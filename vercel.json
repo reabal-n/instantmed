@@ -56,6 +56,14 @@
     {
       "path": "/api/cron/repeat-rx-reminders",
       "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/ahpra-reverification",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/daily-reconciliation",
+      "schedule": "0 21 * * *"
     }
   ],
   "headers": [

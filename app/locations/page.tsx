@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { MapPin, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -21,11 +22,30 @@ const cities = [
   { name: "Newcastle", state: "NSW", slug: "newcastle", population: "320K" },
   { name: "Hobart", state: "TAS", slug: "hobart", population: "240K" },
   { name: "Darwin", state: "NT", slug: "darwin", population: "150K" },
+  { name: "Sunshine Coast", state: "QLD", slug: "sunshine-coast", population: "350K" },
+  { name: "Wollongong", state: "NSW", slug: "wollongong", population: "310K" },
+  { name: "Geelong", state: "VIC", slug: "geelong", population: "270K" },
+  { name: "Townsville", state: "QLD", slug: "townsville", population: "195K" },
+  { name: "Cairns", state: "QLD", slug: "cairns", population: "160K" },
+  { name: "Toowoomba", state: "QLD", slug: "toowoomba", population: "140K" },
+  { name: "Ballarat", state: "VIC", slug: "ballarat", population: "115K" },
+  { name: "Bendigo", state: "VIC", slug: "bendigo", population: "100K" },
+  { name: "Launceston", state: "TAS", slug: "launceston", population: "90K" },
+  { name: "Mackay", state: "QLD", slug: "mackay", population: "85K" },
+  { name: "Rockhampton", state: "QLD", slug: "rockhampton", population: "80K" },
+  { name: "Bunbury", state: "WA", slug: "bunbury", population: "75K" },
+  { name: "Wagga Wagga", state: "NSW", slug: "wagga-wagga", population: "65K" },
+  { name: "Albury-Wodonga", state: "NSW/VIC", slug: "albury-wodonga", population: "95K" },
+  { name: "Hervey Bay", state: "QLD", slug: "hervey-bay", population: "55K" },
 ]
 
 export default function LocationsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://instantmed.com.au" },
+        { name: "Locations", url: "https://instantmed.com.au/locations" },
+      ]} />
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-20">
@@ -33,7 +53,7 @@ export default function LocationsPage() {
           <div className="mx-auto max-w-4xl">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
             <p className="text-muted-foreground text-center max-w-xl mx-auto mb-12">
-              InstantMed is available nationwide. No matter where you are, we&apos;ve got you covered.
+              InstantMed is available in 25+ cities and regions nationwide. No matter where you are, we&apos;ve got you covered.
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

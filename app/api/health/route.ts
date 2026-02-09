@@ -79,9 +79,9 @@ export async function GET() {
   
   const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key])
   if (missingEnvVars.length > 0) {
-    checks.environment = { 
-      status: "error", 
-      error: `Missing: ${missingEnvVars.join(", ")}` 
+    checks.environment = {
+      status: "error",
+      error: `${missingEnvVars.length} required variable(s) missing`
     }
   } else {
     checks.environment = { status: "ok" }

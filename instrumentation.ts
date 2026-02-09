@@ -88,6 +88,27 @@ export async function register() {
       "Load failed",
       "AbortError",
     ],
+    beforeSend(event) {
+      // Scrub potentially sensitive data from server-side events
+      if (event.request?.headers) {
+        delete event.request.headers['authorization']
+        delete event.request.headers['cookie']
+        delete event.request.headers['x-forwarded-for']
+      }
+      // Scrub any PHI patterns from breadcrumbs
+      if (event.breadcrumbs) {
+        event.breadcrumbs = event.breadcrumbs.map(breadcrumb => {
+          if (breadcrumb.message) {
+            // Mask Medicare numbers (10 digits)
+            breadcrumb.message = breadcrumb.message.replace(/\b\d{10,11}\b/g, '[REDACTED]')
+            // Mask email addresses
+            breadcrumb.message = breadcrumb.message.replace(/[\w.-]+@[\w.-]+\.\w+/g, '[EMAIL_REDACTED]')
+          }
+          return breadcrumb
+        })
+      }
+      return event
+    },
     // Always sample critical clinical and payment transactions
     tracesSampler: ({ name, parentSampled }) => {
       // Always inherit parent decision

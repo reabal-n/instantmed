@@ -138,7 +138,7 @@ export function trackIntakeFunnelStep(event: {
  * Track business metric events for alerting and dashboards
  */
 export function trackBusinessMetric(event: {
-  metric: 'payment_failed' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'high_risk_intake'
+  metric: 'payment_failed' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'high_risk_intake' | 'ahpra_reverification_overdue' | 'email_bounced' | 'email_stuck_pending' | 'daily_reconciliation'
   severity: 'info' | 'warning' | 'critical'
   userId?: string
   metadata?: Record<string, unknown>

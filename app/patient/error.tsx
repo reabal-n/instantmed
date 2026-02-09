@@ -4,8 +4,9 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   AlertTriangle, 
   Home, 
   RefreshCw, 
@@ -59,6 +60,10 @@ export default function PatientError({
 
   useEffect(() => {
     console.error("[PatientError]", error)
+    Sentry.captureException(error, {
+      tags: { boundary: "patient", errorType: getErrorInfo(error).type },
+      extra: { digest: error.digest },
+    })
   }, [error])
 
   const handleRetry = async () => {

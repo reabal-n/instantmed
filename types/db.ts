@@ -321,6 +321,9 @@ export interface Profile {
   medicare_expiry_year: string | null
   // Doctor-specific fields
   ahpra_number?: string | null // AHPRA registration number for doctors
+  ahpra_verified?: boolean // Whether AHPRA registration has been admin-verified
+  ahpra_verified_at?: string | null // When AHPRA was verified
+  ahpra_verified_by?: string | null // Admin who verified AHPRA
   provider_number?: string | null // Medicare provider number for doctors
   // Consent and onboarding
   consent_myhr: boolean

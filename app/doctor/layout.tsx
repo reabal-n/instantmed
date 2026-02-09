@@ -4,6 +4,7 @@ import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { DoctorShell } from "./doctor-shell"
+import { DoctorOnboardingBanner } from "@/components/doctor/onboarding-banner"
 
 const log = createLogger("doctor-layout")
 
@@ -36,6 +37,7 @@ export default async function DoctorLayout({
         />
         <main className="flex-1 min-w-0 lg:ml-0 py-6 px-4 sm:px-6 lg:px-8" data-testid="doctor-main">
           <div className="mx-auto max-w-6xl" data-testid="dashboard-container">
+            <DoctorOnboardingBanner />
             {children}
           </div>
         </main>

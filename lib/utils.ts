@@ -6,6 +6,23 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Validate redirect URL to prevent open redirect attacks.
+ * Only allows relative paths starting with / and blocks protocol-relative URLs.
+ */
+export function isValidRedirect(url: string | null | undefined): boolean {
+  if (!url) return false
+  // Must start with / and not contain // (prevents protocol-relative URLs)
+  if (!url.startsWith('/') || url.startsWith('//')) {
+    return false
+  }
+  // Block any URL that could be interpreted as absolute
+  if (url.includes('://') || url.includes('\\')) {
+    return false
+  }
+  return true
+}
+
+/**
  * Standard disabled state classes for consistent UX
  * Use with cn(): cn(disabledStyles, disabled && "pointer-events-none")
  */

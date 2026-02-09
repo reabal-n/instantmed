@@ -69,9 +69,9 @@ export async function POST(
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, role")
-      .eq("auth_user_id", userId)
+      .eq("clerk_user_id", userId)
       .single()
-    
+
     if (!profile || !["clinician", "doctor", "admin"].includes(profile.role)) {
       return NextResponse.json(
         { error: "Forbidden: Must be a clinician" },
@@ -238,7 +238,7 @@ export async function POST(
       // Get patient details for notification
       const { data: patientProfile } = await supabase
         .from("profiles")
-        .select("id, full_name, email, auth_user_id")
+        .select("id, full_name, email, clerk_user_id")
         .eq("id", existingRequest.patient_id)
         .single()
       

@@ -8,6 +8,7 @@ import { highIntentSeoArticles } from './high-intent-seo'
 import { trustBuildingArticles } from './trust-building'
 import { locationArticles } from './locations'
 import { additionalSeoArticles } from './additional-seo'
+import { highIntentKeywordArticles } from './high-intent-keywords'
 import type { Article, ArticleCategory } from '../types'
 
 // Combine all article collections
@@ -22,6 +23,7 @@ export const allArticles: Article[] = [
   ...trustBuildingArticles,
   ...locationArticles,
   ...additionalSeoArticles,
+  ...highIntentKeywordArticles,
 ]
 
 // Get article by slug

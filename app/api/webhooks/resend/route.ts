@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
+import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 
 /**
@@ -63,13 +64,13 @@ function verifyWebhookSignature(
   signature: string | null,
   webhookSecret: string | undefined
 ): boolean {
-  // Require webhook secret in production
+  // Require webhook secret in production and Vercel preview
   if (!webhookSecret) {
-    if (process.env.NODE_ENV === "production") {
-      logger.error("[Resend Webhook] CRITICAL: No webhook secret configured in production")
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+      logger.error("[Resend Webhook] CRITICAL: No webhook secret configured in production/preview")
       return false
     }
-    logger.warn("[Resend Webhook] No webhook secret configured, skipping verification (dev only)")
+    logger.warn("[Resend Webhook] No webhook secret configured, skipping verification (local dev only)")
     return true
   }
 
@@ -107,6 +108,8 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
       return "opened"
     case "email.clicked":
       return "clicked"
+    case "email.delivery_delayed":
+      return "delayed"
     default:
       return null
   }
@@ -314,6 +317,33 @@ export async function POST(request: NextRequest) {
 
       // P1: Flag patient profile with delivery failure
       await flagPatientEmailBounce(supabase, data.to?.[0], data.bounce.message, data.bounce.type)
+
+      Sentry.captureMessage(
+        `Email bounce: ${data.bounce.type} - ${data.bounce.message}`,
+        {
+          level: "warning",
+          tags: {
+            source: "resend-webhook",
+            event_type: "email.bounced",
+            bounce_type: data.bounce.type,
+          },
+          extra: {
+            emailId: data.email_id,
+            to: data.to?.[0],
+            subject: data.subject,
+            bounce: data.bounce,
+          },
+        }
+      )
+    }
+
+    // Log delivery delays
+    if (eventType === "email.delivery_delayed") {
+      logger.warn("[Resend Webhook] Email delivery delayed", {
+        emailId: data.email_id,
+        to: data.to?.[0],
+        subject: data.subject,
+      })
     }
 
     // Reset bounce flag if email delivered successfully
@@ -348,6 +378,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error("[Resend Webhook] Error processing webhook", {
       error: error instanceof Error ? error.message : String(error),
+    })
+    Sentry.captureException(error, {
+      tags: { source: "resend-webhook" },
     })
     return NextResponse.json(
       { error: "Internal server error" },

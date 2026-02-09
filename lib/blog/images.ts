@@ -75,6 +75,15 @@ export const blogImages = {
   perthCity: 'https://images.unsplash.com/photo-1555421689-3f034debb7a6?w=800&h=450&fit=crop&q=80',
   adelaideCity: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=450&fit=crop&q=80',
 
+  // High-Intent SEO Articles (Jan 2026)
+  sickLeaveCertOnline: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=800&h=450&fit=crop&q=80',
+  repeatPrescriptionOnline: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&h=450&fit=crop&q=80',
+  telehealthConsultation: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=450&fit=crop&q=80',
+  onlineDoctorCertWork: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=450&fit=crop&q=80',
+  eScriptGuide: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=450&fit=crop&q=80',
+  mentalHealthCertOnline: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=450&fit=crop&q=80',
+  sameDayMedCert: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&h=450&fit=crop&q=80',
+
   // Author Photos
   authorSarahChen: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&q=80',
   authorMarcusThompson: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80',

@@ -10,7 +10,7 @@ const log = createLogger("ensure-profile")
  * This is the ONLY place where profiles are created - server-side only using service role.
  * 
  * Flow:
- * 1. Check if profile exists (by auth_user_id)
+ * 1. Check if profile exists (by clerk_user_id)
  * 2. If found: do nothing, return existing profile ID
  * 3. If not found: create profile server-side using service role client
  * 
@@ -18,7 +18,7 @@ const log = createLogger("ensure-profile")
  * - This is a server action ("use server") - can ONLY be called from server
  * - Uses service role client to bypass RLS
  * - Never create profiles on the client - always use this function
- * - Uses auth_user_id (Supabase user ID format: UUID)
+ * - Uses clerk_user_id (Clerk user ID format: user_2xxx...)
  */
 export async function ensureProfile(
   userId: string, // Supabase auth user ID (UUID)
@@ -42,7 +42,7 @@ export async function ensureProfile(
       const { data, error } = await supabase
         .from("profiles")
         .select("id, email, full_name")
-        .eq("auth_user_id", userId)
+        .eq("clerk_user_id", userId)
         .maybeSingle()
       return { data, error }
     }
@@ -88,7 +88,7 @@ export async function ensureProfile(
 
     // Only include required fields - onboarding_completed has a default value in DB
     const profileData: Record<string, unknown> = {
-      auth_user_id: userId,
+      clerk_user_id: userId,
       email: userEmail,
       full_name: options?.fullName || userEmail.split("@")[0] || "User",
       role: "patient",
@@ -103,7 +103,7 @@ export async function ensureProfile(
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
       .upsert(profileData, { 
-        onConflict: "auth_user_id",
+        onConflict: "clerk_user_id",
         ignoreDuplicates: false 
       })
       .select("id")

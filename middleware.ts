@@ -43,12 +43,20 @@ const isPublicRoute = createRouteMatcher([
 /**
  * Check if E2E test mode is enabled and has valid auth cookie.
  * Only bypasses Clerk when PLAYWRIGHT=1 AND the E2E cookie is present.
+ *
+ * SECURITY: Explicitly blocked in Vercel production AND preview to match
+ * the auth helper in lib/auth.ts — defense-in-depth.
  */
 function hasE2EAuthBypass(req: Request): boolean {
+  // P0 SECURITY: Block E2E bypass in Vercel production and preview
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    return false
+  }
+
   if (process.env.PLAYWRIGHT !== "1" && process.env.NODE_ENV !== "test") {
     return false
   }
-  
+
   const cookies = req.headers.get("cookie") || ""
   return cookies.includes("__e2e_auth_user_id=")
 }

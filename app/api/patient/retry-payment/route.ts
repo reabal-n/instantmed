@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -105,6 +106,7 @@ export async function POST(request: Request) {
       { status: 200 }
     )
   } catch (error) {
+    Sentry.captureException(error, { tags: { route: "retry-payment" } })
     logger.error("Failed to retry payment", {}, error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       { error: "Failed to retry payment" },

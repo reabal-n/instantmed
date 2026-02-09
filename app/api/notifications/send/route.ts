@@ -1,4 +1,5 @@
 // LEGACY: retained pending external dependency audit (requires INTERNAL_API_SECRET)
+import { timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendViaResend } from "@/lib/email/resend"
@@ -30,7 +31,10 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get("authorization")
     const apiSecret = process.env.INTERNAL_API_SECRET
     
-    if (!apiSecret || authHeader !== `Bearer ${apiSecret}`) {
+    const expected = `Bearer ${apiSecret}`
+    const isValid = apiSecret && authHeader && authHeader.length === expected.length &&
+      timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))
+    if (!isValid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

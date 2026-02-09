@@ -35,6 +35,11 @@ export type EmailType =
   | "weight_loss_approved"
   | "consult_approved"
   | "generic"
+  // Database-template email types (sent via template-sender, retried via dispatcher)
+  | "payment_received"
+  | "refund_notification"
+  | "payment_failed"
+  | "guest_complete_account"
 
 interface SendEmailParams {
   to: string
@@ -762,11 +767,258 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     return { success: true, html }
   }
 
-  // For other email types, we cannot reconstruct without stored template props
-  // Mark as failed with clear reason
-  return { 
-    success: false, 
-    error: `Cannot reconstruct email type '${row.email_type}' - no certificate_id or unsupported type` 
+  // ----------------------------------------------------------------
+  // Helper: fetch intake + patient + service data for reconstruction
+  // ----------------------------------------------------------------
+  async function fetchIntakeContext(intakeId: string) {
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_note, refund_amount_cents, answers, parchment_reference")
+      .eq("id", intakeId)
+      .single()
+
+    if (intakeError || !intake) {
+      return { error: `Intake not found: ${intakeId}` } as const
+    }
+
+    const { data: patient, error: patientError } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("id", intake.patient_id)
+      .single()
+
+    if (patientError || !patient) {
+      return { error: `Patient not found for intake: ${intakeId}` } as const
+    }
+
+    const { data: service, error: serviceError } = await supabase
+      .from("services")
+      .select("id, name, short_name, slug, type")
+      .eq("id", intake.service_id)
+      .single()
+
+    if (serviceError || !service) {
+      return { error: `Service not found for intake: ${intakeId}` } as const
+    }
+
+    return { intake, patient, service } as const
+  }
+
+  // ----------------------------------------------------------------
+  // Helper: fetch a database-stored email template and fill merge tags
+  // ----------------------------------------------------------------
+  async function renderDatabaseTemplate(
+    templateSlug: string,
+    mergeData: Record<string, string>,
+  ): Promise<{ success: boolean; html?: string; error?: string }> {
+    const { data: tpl, error: tplError } = await supabase
+      .from("email_templates")
+      .select("body_html, available_tags")
+      .eq("slug", templateSlug)
+      .eq("is_active", true)
+      .single()
+
+    if (tplError || !tpl) {
+      return { success: false, error: `Email template '${templateSlug}' not found or inactive` }
+    }
+
+    let html = tpl.body_html as string
+    for (const [key, value] of Object.entries(mergeData)) {
+      const tag = new RegExp(`\\{\\{${key}\\}\\}`, "g")
+      html = html.replace(tag, value || "")
+    }
+
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // welcome — React template, needs only patientName
+  // ----------------------------------------------------------------
+  if (row.email_type === "welcome") {
+    const patientName = row.to_name || "there"
+
+    const { WelcomeEmail } = await import("@/components/email/templates")
+    const template = WelcomeEmail({
+      patientName,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // script_sent — React template, needs intake data
+  // ----------------------------------------------------------------
+  if (row.email_type === "script_sent") {
+    if (!row.intake_id) {
+      return { success: false, error: "script_sent requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const { ScriptSentEmail } = await import("@/components/email/templates")
+    const template = ScriptSentEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestId: ctx.intake.id,
+      escriptReference: ctx.intake.parchment_reference || undefined,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // request_declined — React template, needs intake data + reason
+  // ----------------------------------------------------------------
+  if (row.email_type === "request_declined") {
+    if (!row.intake_id) {
+      return { success: false, error: "request_declined requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const requestType = ctx.service.short_name || ctx.service.name
+    const reason = ctx.intake.decline_reason_note || ctx.intake.decline_reason || undefined
+
+    const { RequestDeclinedEmail } = await import("@/components/email/templates")
+    const template = RequestDeclinedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType,
+      requestId: ctx.intake.id,
+      reason,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // prescription_approved — React template, needs intake + medication
+  // ----------------------------------------------------------------
+  if (row.email_type === "prescription_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "prescription_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { medicationName?: string } | null
+    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
+    const medicationName = metadata?.medicationName
+      || String(answers.medicationName || "")
+      || ctx.service.short_name
+      || "medication"
+
+    const { PrescriptionApprovedEmail } = await import("@/components/email/templates/prescription-approved")
+    const template = PrescriptionApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      medicationName,
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // payment_received — database template with merge tags
+  // ----------------------------------------------------------------
+  if (row.email_type === "payment_received") {
+    if (!row.intake_id) {
+      return { success: false, error: "payment_received requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const amountCents = ctx.intake.amount_cents || 0
+    const amount = `$${(amountCents / 100).toFixed(2)}`
+    const serviceName = ctx.service.short_name || ctx.service.name
+
+    return renderDatabaseTemplate("payment_received", {
+      patient_name: ctx.patient.full_name || row.to_name || "there",
+      amount,
+      service_name: serviceName,
+    })
+  }
+
+  // ----------------------------------------------------------------
+  // refund_notification — database template (slug: refund_processed)
+  // ----------------------------------------------------------------
+  if (row.email_type === "refund_notification") {
+    if (!row.intake_id) {
+      return { success: false, error: "refund_notification requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const refundCents = ctx.intake.refund_amount_cents || ctx.intake.amount_cents || 0
+    const amount = `$${(refundCents / 100).toFixed(2)}`
+    const reason = ctx.intake.decline_reason || "Refund processed"
+
+    return renderDatabaseTemplate("refund_processed", {
+      patient_name: ctx.patient.full_name || row.to_name || "there",
+      amount,
+      refund_reason: reason,
+    })
+  }
+
+  // ----------------------------------------------------------------
+  // payment_failed — database template with merge tags
+  // ----------------------------------------------------------------
+  if (row.email_type === "payment_failed") {
+    if (!row.intake_id) {
+      return { success: false, error: "payment_failed requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const serviceName = ctx.service.short_name || ctx.service.name
+    const retryUrl = `${env.appUrl}/patient/intakes/${ctx.intake.id}`
+
+    return renderDatabaseTemplate("payment_failed", {
+      patient_name: ctx.patient.full_name || row.to_name || "there",
+      service_name: serviceName,
+      failure_reason: "Your payment could not be processed. Please try again.",
+      retry_url: retryUrl,
+    })
+  }
+
+  // ----------------------------------------------------------------
+  // guest_complete_account — database template with merge tags
+  // ----------------------------------------------------------------
+  if (row.email_type === "guest_complete_account") {
+    if (!row.intake_id) {
+      return { success: false, error: "guest_complete_account requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const serviceName = ctx.service.short_name || ctx.service.name
+    const completeAccountUrl = `${env.appUrl}/auth/complete-account?intake_id=${ctx.intake.id}`
+
+    return renderDatabaseTemplate("guest_complete_account", {
+      patient_name: ctx.patient.full_name || row.to_name || "there",
+      service_name: serviceName,
+      intake_id: ctx.intake.id,
+      complete_account_url: completeAccountUrl,
+    })
+  }
+
+  // Fallback: unrecognized email type
+  return {
+    success: false,
+    error: `Cannot reconstruct email type '${row.email_type}' - unsupported type`
   }
 }
 

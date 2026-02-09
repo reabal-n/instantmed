@@ -55,7 +55,14 @@ const serverEnvSchema = z.object({
 
   // Monitoring
   SENTRY_DSN: z.string().optional(),
-  
+
+  // Cron job authentication
+  CRON_SECRET: z.string().optional(),
+  OPS_CRON_SECRET: z.string().optional(),
+
+  // Clerk webhook verification
+  CLERK_WEBHOOK_SECRET: z.string().optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 })
 
@@ -67,8 +74,11 @@ const productionRequirements = z.object({
   ENCRYPTION_KEY: z.string().min(32, "Production requires ENCRYPTION_KEY (min 32 bytes base64)"),
   // Stripe price IDs - required in production for payment functionality
   STRIPE_PRICE_MEDCERT: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT"),
+  STRIPE_PRICE_MEDCERT_2DAY: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT_2DAY"),
   STRIPE_PRICE_PRESCRIPTION: z.string().min(1, "Production requires STRIPE_PRICE_PRESCRIPTION"),
+  CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   STRIPE_PRICE_CONSULT: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT"),
+  CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
 })
 
 /**

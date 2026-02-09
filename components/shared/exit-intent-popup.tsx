@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useSyncExternalStore } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { X, Save, ArrowRight, Mail, Clock, Star, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -77,6 +77,16 @@ export function ExitIntentPopup({
   const [isVisible, setIsVisible] = useState(false)
   const [email, setEmail] = useState("")
   const [isSaved, setIsSaved] = useState(false)
+  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup auto-close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimerRef.current) {
+        clearTimeout(autoCloseTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!isClient || hasShown) return
@@ -109,7 +119,7 @@ export function ExitIntentPopup({
     setIsSaved(true)
     
     // Auto-close after 2 seconds
-    setTimeout(() => setIsVisible(false), 2000)
+    autoCloseTimerRef.current = setTimeout(() => setIsVisible(false), 2000)
   }
 
   if (!isVisible) return null
@@ -120,7 +130,7 @@ export function ExitIntentPopup({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
 
-        <div className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div role="dialog" aria-modal="true" className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
           <button
             onClick={() => setIsVisible(false)}
             className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
@@ -191,7 +201,7 @@ export function ExitIntentPopup({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
 
-      <div className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={() => setIsVisible(false)}
           className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"

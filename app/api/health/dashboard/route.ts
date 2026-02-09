@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 interface HealthCheck {
@@ -8,7 +8,14 @@ interface HealthCheck {
   error?: string
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Require CRON_SECRET or internal auth for security
+  const authHeader = request.headers.get("authorization")
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const checks: HealthCheck[] = []
   const startTime = Date.now()
 

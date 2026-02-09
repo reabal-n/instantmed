@@ -6,6 +6,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { FAQAccordion } from "./faq-accordion"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { MessageCircle, HelpCircle, BadgeCheck } from "lucide-react"
 import { useReducedMotion } from "framer-motion"
 import {
@@ -136,8 +137,11 @@ const faqCategories = [
 export default function FAQPage() {
   const prefersReducedMotion = useReducedMotion()
   
+  const allFaqs = faqCategories.flatMap(cat => cat.faqs.map(f => ({ question: f.q, answer: f.a })))
+
   return (
     <div className="flex min-h-screen flex-col">
+      <FAQSchema faqs={allFaqs} />
       <Navbar variant="marketing" />
 
       <main className="flex-1 bg-background">

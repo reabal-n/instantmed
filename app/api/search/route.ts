@@ -31,6 +31,20 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceRoleClient()
 
+  // SECURITY: Enforce role-based access — patients cannot use doctor/admin search variants
+  let effectiveVariant = variant
+  if (variant === "doctor" || variant === "admin") {
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
+    if (!callerProfile || (callerProfile.role !== "doctor" && callerProfile.role !== "admin")) {
+      effectiveVariant = "patient" // Downgrade to patient search
+    }
+  }
+
   const results: Array<{
     id: string
     type: "intake" | "patient"
@@ -41,7 +55,7 @@ export async function GET(request: NextRequest) {
   }> = []
 
   try {
-    if (variant === "doctor" || variant === "admin") {
+    if (effectiveVariant === "doctor" || effectiveVariant === "admin") {
       const { data: intakes } = await supabase
         .from("intakes")
         .select(`
@@ -99,7 +113,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-    } else if (variant === "patient") {
+    } else if (effectiveVariant === "patient") {
       // Patient can only search their own requests
       const { data: profile } = await supabase
         .from("profiles")

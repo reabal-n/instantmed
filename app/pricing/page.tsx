@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { PricingClient } from "./pricing-client"
+import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs | InstantMed",
@@ -30,5 +31,23 @@ export const metadata: Metadata = {
 }
 
 export default function PricingPage() {
-  return <PricingClient />
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://instantmed.com.au" },
+        { name: "Pricing", url: "https://instantmed.com.au/pricing" },
+      ]} />
+      <MedicalServiceSchema
+        name="Medical Certificate"
+        description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor"
+        price="19.95"
+      />
+      <MedicalServiceSchema
+        name="Online Prescription"
+        description="Request prescriptions for common medications from registered Australian doctors"
+        price="29.95"
+      />
+      <PricingClient />
+    </>
+  )
 }

@@ -33,6 +33,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "intake_id and doctor_id required" }, { status: 400 })
     }
 
+    // SECURITY: Validate that doctor_id is an actual doctor profile
+    const { data: doctorProfile } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", doctor_id)
+      .single()
+
+    if (!doctorProfile || (doctorProfile.role !== "doctor" && doctorProfile.role !== "admin")) {
+      return NextResponse.json({ error: "Invalid doctor_id — must be a doctor or admin" }, { status: 400 })
+    }
+
     const { data, error } = await supabase
       .from("intakes")
       .update({

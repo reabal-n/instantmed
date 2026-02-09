@@ -70,7 +70,49 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 3. High-risk intakes waiting in queue
+    // 3. Bounced emails in last hour (from email_outbox)
+    const { count: bouncedEmails } = await supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("delivery_status", "bounced")
+      .gte("delivery_status_updated_at", oneHourAgo.toISOString())
+
+    if (bouncedEmails && bouncedEmails >= 2) {
+      alerts.push({
+        metric: "email_bounced",
+        severity: bouncedEmails >= 5 ? "critical" : "warning",
+        detail: `${bouncedEmails} bounced emails in last hour`,
+      })
+      trackBusinessMetric({
+        metric: "email_bounced",
+        severity: bouncedEmails >= 5 ? "critical" : "warning",
+        metadata: { count: bouncedEmails, window: "1h" },
+      })
+    }
+
+    // 4. Emails stuck in pending status for more than 30 minutes
+    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
+    const { count: stuckPending } = await supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .lt("created_at", thirtyMinAgo.toISOString())
+      .lt("retry_count", 10)
+
+    if (stuckPending && stuckPending >= 5) {
+      alerts.push({
+        metric: "email_stuck_pending",
+        severity: "warning",
+        detail: `${stuckPending} emails stuck in pending for >30min`,
+      })
+      trackBusinessMetric({
+        metric: "email_stuck_pending",
+        severity: "warning",
+        metadata: { count: stuckPending, window: "30m" },
+      })
+    }
+
+    // 5. High-risk intakes waiting in queue
     const { count: highRiskWaiting } = await supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
@@ -90,7 +132,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 4. SLA breaches (intakes past their sla_deadline)
+    // 6. SLA breaches (intakes past their sla_deadline)
     const { count: slaBreaches } = await supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
@@ -164,6 +206,8 @@ export async function GET(request: NextRequest) {
       metrics: {
         failed_payments: failedPayments || 0,
         email_failures: emailFailures || 0,
+        bounced_emails: bouncedEmails || 0,
+        stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
         sla_breaches: slaBreaches || 0,
       },

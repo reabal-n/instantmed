@@ -60,9 +60,9 @@ export async function POST(request: Request) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("auth_user_id", userId)
+        .eq("clerk_user_id", userId)
         .single()
-      
+
       if (profile?.id) {
         // Log eligibility check to audit_events
         await supabase.from("audit_events").insert({

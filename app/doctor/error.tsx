@@ -3,6 +3,7 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
+import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, LayoutDashboard, Users } from "lucide-react"
 
@@ -15,6 +16,10 @@ export default function DoctorError({
 }) {
   useEffect(() => {
     console.error("[DoctorError]", error)
+    Sentry.captureException(error, {
+      tags: { boundary: "doctor" },
+      extra: { digest: error.digest },
+    })
   }, [error])
 
   return (

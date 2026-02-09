@@ -6,7 +6,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
-// Local SEO Pages - Top 10 Australian cities
+// Local SEO Pages - Top 25 Australian cities & regions
 const cities: Record<
   string,
   {
@@ -98,6 +98,111 @@ const cities: Record<
     slug: "darwin",
     population: "150,000",
     localTestimonial: { name: "Tom B.", quote: "Works perfectly even in the Top End. Fast service." },
+  },
+  "sunshine-coast": {
+    name: "Sunshine Coast",
+    state: "QLD",
+    slug: "sunshine-coast",
+    population: "350,000",
+    localTestimonial: { name: "Kate P.", quote: "So much easier than trying to find a GP with availability in Noosa." },
+  },
+  wollongong: {
+    name: "Wollongong",
+    state: "NSW",
+    slug: "wollongong",
+    population: "310,000",
+    localTestimonial: { name: "Ryan C.", quote: "Got my med cert while recovering at home. Didn't have to drive to the city." },
+  },
+  geelong: {
+    name: "Geelong",
+    state: "VIC",
+    slug: "geelong",
+    population: "270,000",
+    localTestimonial: { name: "Sophie W.", quote: "Finally a telehealth service that's quick and reliable for Geelong." },
+  },
+  townsville: {
+    name: "Townsville",
+    state: "QLD",
+    slug: "townsville",
+    population: "195,000",
+    localTestimonial: { name: "Daniel M.", quote: "Perfect for up here in the tropics. Fast and professional." },
+  },
+  cairns: {
+    name: "Cairns",
+    state: "QLD",
+    slug: "cairns",
+    population: "160,000",
+    localTestimonial: { name: "Jess A.", quote: "Great for when you can't get a GP appointment in FNQ." },
+  },
+  toowoomba: {
+    name: "Toowoomba",
+    state: "QLD",
+    slug: "toowoomba",
+    population: "140,000",
+    localTestimonial: { name: "Matt H.", quote: "Brilliant service for regional QLD. Quick turnaround." },
+  },
+  ballarat: {
+    name: "Ballarat",
+    state: "VIC",
+    slug: "ballarat",
+    population: "115,000",
+    localTestimonial: { name: "Emily G.", quote: "So much better than waiting at a walk-in clinic." },
+  },
+  bendigo: {
+    name: "Bendigo",
+    state: "VIC",
+    slug: "bendigo",
+    population: "100,000",
+    localTestimonial: { name: "Steve R.", quote: "Easy to use and got my certificate within the hour." },
+  },
+  launceston: {
+    name: "Launceston",
+    state: "TAS",
+    slug: "launceston",
+    population: "90,000",
+    localTestimonial: { name: "Lauren T.", quote: "Great option for Tassie when local GPs are fully booked." },
+  },
+  mackay: {
+    name: "Mackay",
+    state: "QLD",
+    slug: "mackay",
+    population: "85,000",
+    localTestimonial: { name: "Josh F.", quote: "Works great even from the mining regions. Reliable service." },
+  },
+  rockhampton: {
+    name: "Rockhampton",
+    state: "QLD",
+    slug: "rockhampton",
+    population: "80,000",
+    localTestimonial: { name: "Tina K.", quote: "Saved me a trip to Rocky when I was feeling awful." },
+  },
+  bunbury: {
+    name: "Bunbury",
+    state: "WA",
+    slug: "bunbury",
+    population: "75,000",
+    localTestimonial: { name: "Craig N.", quote: "Excellent for regional WA. No more driving to Perth." },
+  },
+  "wagga-wagga": {
+    name: "Wagga Wagga",
+    state: "NSW",
+    slug: "wagga-wagga",
+    population: "65,000",
+    localTestimonial: { name: "Mel J.", quote: "Perfect for the Riverina. Quick, easy, professional." },
+  },
+  "albury-wodonga": {
+    name: "Albury-Wodonga",
+    state: "NSW/VIC",
+    slug: "albury-wodonga",
+    population: "95,000",
+    localTestimonial: { name: "Sam L.", quote: "Great service for the border region. Very impressed." },
+  },
+  "hervey-bay": {
+    name: "Hervey Bay",
+    state: "QLD",
+    slug: "hervey-bay",
+    population: "55,000",
+    localTestimonial: { name: "Linda B.", quote: "Fantastic for retirees. Simple to use and affordable." },
   },
 }
 

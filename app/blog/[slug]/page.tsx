@@ -183,9 +183,13 @@ export default async function BlogPostPage({ params }: PageProps) {
     // Check if this is a "how to" article that should have HowToSchema
     const howToSlugs = [
       'medical-certificate-online-australia',
-      'online-prescription-australia', 
+      'online-prescription-australia',
       'repeat-prescription-online',
-      'same-day-medical-certificate'
+      'same-day-medical-certificate',
+      'sick-leave-certificate-online-australia',
+      'repeat-prescription-online-australia',
+      'online-doctor-certificate-for-work',
+      'how-escripts-work-australia'
     ]
     const isHowToArticle = howToSlugs.includes(slug)
 

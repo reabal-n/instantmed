@@ -64,15 +64,22 @@ export function ContactClient() {
       has_message: !!formData.get('message'),
     })
 
-    const result = await submitContactForm(formData)
-    
-    setIsSubmitting(false)
-    
-    if (result.success) {
-      setIsSubmitted(true)
-    } else {
-      setSubmitError(result.error || "Failed to send message. Please try again.")
-      posthog.capture('contact_form_error', { error: result.error })
+    try {
+      const result = await submitContactForm(formData)
+
+      setIsSubmitting(false)
+
+      if (result.success) {
+        setIsSubmitted(true)
+      } else {
+        setSubmitError(result.error || "Failed to send message. Please try again.")
+        posthog.capture('contact_form_error', { error: result.error })
+      }
+    } catch (error) {
+      console.error("Contact form submission failed:", error)
+      setIsSubmitting(false)
+      setSubmitError("Failed to send message. Please try again.")
+      posthog.capture('contact_form_error', { error: String(error) })
     }
   }
 

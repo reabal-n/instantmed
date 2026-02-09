@@ -23,7 +23,17 @@ export const MAX_RETRIES = 10
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
 
 // Email types that the dispatcher can reconstruct and resend
-const SUPPORTED_EMAIL_TYPES = ["med_cert_patient"] as const
+const SUPPORTED_EMAIL_TYPES = [
+  "med_cert_patient",
+  "script_sent",
+  "request_declined",
+  "payment_received",
+  "prescription_approved",
+  "refund_notification",
+  "payment_failed",
+  "guest_complete_account",
+  "welcome",
+] as const
 
 function isSupportedEmailType(emailType: string): boolean {
   return SUPPORTED_EMAIL_TYPES.includes(emailType as typeof SUPPORTED_EMAIL_TYPES[number])

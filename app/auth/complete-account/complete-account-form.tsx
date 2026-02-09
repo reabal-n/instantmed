@@ -115,7 +115,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(`https://instantmed.com.au/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
+        <a href={`${process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/sign-in'}?redirect_url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL || ''}/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

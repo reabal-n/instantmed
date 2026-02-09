@@ -37,6 +37,12 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Certificate credentials not configured" }, { status: 400 })
     }
 
+    // SECURITY: Require AHPRA verification before approving — unverified doctors cannot issue certificates
+    if (doctor.role === "doctor" && !doctor.ahpra_verified) {
+      logger.warn("APPROVE_BLOCKED_UNVERIFIED", { intakeId, doctorId: doctor.id })
+      return NextResponse.json({ ok: false, error: "AHPRA verification required before approving requests" }, { status: 403 })
+    }
+
     const supabase = createServiceRoleClient()
 
     const { data: intake, error: intakeError } = await supabase

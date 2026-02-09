@@ -6,6 +6,8 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // SECURITY: Don't expose X-Powered-By header
+  poweredByHeader: false,
   typescript: {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
@@ -142,7 +144,7 @@ const nextConfig = {
     // child-src: Fallback for older browsers that don't support worker-src
     const standardCSP = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au",
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au",
       "worker-src 'self' blob:",
       "child-src 'self' blob:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",

@@ -3,6 +3,9 @@ import { stripe } from "@/lib/stripe/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { auth } from "@clerk/nextjs/server"
+import * as Sentry from "@sentry/nextjs"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("stripe-verify-payment")
 
@@ -10,9 +13,21 @@ const log = createLogger("stripe-verify-payment")
  * Fallback endpoint to verify payment status with Stripe
  * Called from success page if webhook hasn't updated the intake yet
  * This ensures intakes get marked as paid even if webhook fails/delays
+ *
+ * SECURITY: Requires authentication and verifies the caller owns the intake.
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit to prevent abuse
+    const rateLimitResponse = await applyRateLimit(req, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
+    // Require authentication
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { intakeId, sessionId } = await req.json()
 
     if (!intakeId) {
@@ -21,11 +36,23 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // 1. Check current intake status
+    // Verify the caller owns this intake
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+    }
+
+    // 1. Check current intake status AND verify ownership
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
       .select("id, status, payment_status, payment_id")
       .eq("id", intakeId)
+      .eq("patient_id", profile.id)
       .single()
 
     if (fetchError || !intake) {
@@ -128,6 +155,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     log.error("Unexpected error in verify-payment", {}, error instanceof Error ? error : undefined)
+    Sentry.captureException(error, { tags: { route: "verify-payment" } })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

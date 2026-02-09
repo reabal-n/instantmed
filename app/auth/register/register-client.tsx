@@ -4,12 +4,15 @@ import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
+import { isValidRedirect } from "@/lib/utils"
 
 
 export function RegisterClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams?.get("redirect") || "/account"
+  const rawRedirect = searchParams?.get("redirect") || "/account"
+  // Validate and sanitize redirect URL to prevent open redirect attacks
+  const redirectTo = isValidRedirect(rawRedirect) ? rawRedirect : "/account"
   const { isSignedIn, isLoading } = useAuth()
 
   useEffect(() => {

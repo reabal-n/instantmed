@@ -61,19 +61,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "bondi-beach",
     "newcastle",
     "wollongong",
+    "wagga-wagga",
+    "albury-wodonga",
     // VIC
     "melbourne",
     "geelong",
     "ballarat",
+    "bendigo",
     // QLD
     "brisbane",
     "gold-coast",
     "sunshine-coast",
     "cairns",
     "townsville",
+    "toowoomba",
+    "mackay",
+    "rockhampton",
+    "hervey-bay",
     // WA
     "perth",
     "fremantle",
+    "bunbury",
     // SA
     "adelaide",
     // TAS

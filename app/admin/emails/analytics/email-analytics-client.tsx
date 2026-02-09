@@ -38,21 +38,13 @@ import { cn } from "@/lib/utils"
 interface EmailAnalytics {
   summary: {
     totalSent: number
-    totalOpened: number
-    totalClicked: number
     totalFailed: number
-    openRate: number
-    clickRate: number
     deliveryRate: number
   }
   templateStats: {
     template: string
     sent: number
-    opened: number
-    clicked: number
     failed: number
-    openRate: number
-    clickRate: number
   }[]
   recentEmails: {
     id: string
@@ -60,8 +52,6 @@ interface EmailAnalytics {
     recipient: string
     status: string
     sentAt: string
-    openedAt: string | null
-    clickedAt: string | null
     error: string | null
   }[]
 }
@@ -92,7 +82,7 @@ function formatTimeAgo(dateString: string): string {
   return `${diffDays}d ago`
 }
 
-function getStatusBadge(status: string, openedAt: string | null, clickedAt: string | null) {
+function getStatusBadge(status: string) {
   if (status === "failed") {
     return (
       <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 gap-1">
@@ -101,26 +91,26 @@ function getStatusBadge(status: string, openedAt: string | null, clickedAt: stri
       </Badge>
     )
   }
-  if (clickedAt) {
+  if (status === "sent") {
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 gap-1">
-        <MousePointer className="h-3 w-3" />
-        Clicked
+        <CheckCircle className="h-3 w-3" />
+        Sent
       </Badge>
     )
   }
-  if (openedAt) {
+  if (status === "pending" || status === "claimed") {
     return (
-      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 gap-1">
-        <Eye className="h-3 w-3" />
-        Opened
+      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1">
+        <Clock className="h-3 w-3" />
+        {status === "claimed" ? "Processing" : "Pending"}
       </Badge>
     )
   }
   return (
     <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 gap-1">
       <Send className="h-3 w-3" />
-      Sent
+      {status}
     </Badge>
   )
 }
@@ -135,8 +125,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
     .map((t) => ({
       name: formatTemplateName(t.template).slice(0, 15),
       Sent: t.sent,
-      Opened: t.opened,
-      Clicked: t.clicked,
+      Failed: t.failed,
     }))
 
   return (
@@ -155,7 +144,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
               Email Analytics
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Delivery, open, and click metrics (last 30 days)
+              Delivery metrics (last 30 days). Open/click tracking available in Resend dashboard.
             </p>
           </div>
         </div>
@@ -179,11 +168,11 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Open Rate</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {summary.openRate.toFixed(1)}%
+                <p className="text-sm font-medium text-muted-foreground mt-1">
+                  Tracking via Resend
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {summary.totalOpened.toLocaleString()} opened
+                  View in Resend dashboard
                 </p>
               </div>
               <Eye className="h-8 w-8 text-blue-500/50" />
@@ -195,11 +184,11 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Click Rate</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {summary.clickRate.toFixed(1)}%
+                <p className="text-sm font-medium text-muted-foreground mt-1">
+                  Tracking via Resend
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {summary.totalClicked.toLocaleString()} clicked
+                  View in Resend dashboard
                 </p>
               </div>
               <MousePointer className="h-8 w-8 text-green-500/50" />
@@ -254,8 +243,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   />
                   <Legend />
                   <Bar dataKey="Sent" fill="#6b7280" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Opened" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Clicked" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Failed" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -267,7 +255,9 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Template Breakdown</CardTitle>
-          <CardDescription>Performance metrics per email template</CardDescription>
+          <CardDescription>
+            Delivery metrics per email template. Open/click tracking is available in the Resend dashboard.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border overflow-hidden">
@@ -276,61 +266,48 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                 <TableRow className="bg-muted/50">
                   <TableHead>Template</TableHead>
                   <TableHead className="text-right">Sent</TableHead>
-                  <TableHead className="text-right">Opened</TableHead>
-                  <TableHead className="text-right">Clicked</TableHead>
-                  <TableHead className="text-right">Open Rate</TableHead>
-                  <TableHead className="text-right">Click Rate</TableHead>
+                  <TableHead className="text-right">Failed</TableHead>
+                  <TableHead className="text-right">Delivery Rate</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {templateStats.length > 0 ? (
                   templateStats
                     .sort((a, b) => b.sent - a.sent)
-                    .map((template) => (
-                      <TableRow key={template.template}>
-                        <TableCell className="font-medium">
-                          {formatTemplateName(template.template)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {template.sent.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-blue-600 dark:text-blue-400">
-                          {template.opened.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-green-600 dark:text-green-400">
-                          {template.clicked.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge
-                            className={cn(
-                              template.openRate >= 30
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : template.openRate >= 15
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                            )}
-                          >
-                            {template.openRate.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge
-                            className={cn(
-                              template.clickRate >= 10
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : template.clickRate >= 5
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                                : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
-                            )}
-                          >
-                            {template.clickRate.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    .map((template) => {
+                      const deliveryRate = template.sent > 0
+                        ? ((template.sent - template.failed) / template.sent) * 100
+                        : 0
+                      return (
+                        <TableRow key={template.template}>
+                          <TableCell className="font-medium">
+                            {formatTemplateName(template.template)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {template.sent.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-red-600 dark:text-red-400">
+                            {template.failed.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge
+                              className={cn(
+                                deliveryRate >= 98
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                  : deliveryRate >= 95
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                              )}
+                            >
+                              {deliveryRate.toFixed(1)}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       No email data available
                     </TableCell>
                   </TableRow>
@@ -369,7 +346,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                         {email.recipient?.replace(/(.{3}).*@/, "$1***@") || "—"}
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(email.status, email.openedAt, email.clickedAt)}
+                        {getStatusBadge(email.status)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-muted-foreground">

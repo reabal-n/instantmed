@@ -36,11 +36,11 @@ export async function completeOnboardingAction(
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("auth_user_id")
+    .select("clerk_user_id")
     .eq("id", profileId)
     .single()
 
-  if (profileError || !profile || profile.auth_user_id !== userId) {
+  if (profileError || !profile || profile.clerk_user_id !== userId) {
     return { success: false, error: "Unauthorized" }
   }
 

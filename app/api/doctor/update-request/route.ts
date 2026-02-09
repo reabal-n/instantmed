@@ -43,6 +43,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
+    // SECURITY: Validate doctor_id if provided
+    if (doctor_id) {
+      const { data: doctorProfile } = await supabase
+        .from("profiles")
+        .select("id, role")
+        .eq("id", doctor_id)
+        .single()
+
+      if (!doctorProfile || (doctorProfile.role !== "doctor" && doctorProfile.role !== "admin")) {
+        return NextResponse.json({ error: "Invalid doctor_id" }, { status: 400 })
+      }
+    }
+
     const statusMap = {
       approve: "approved",
       decline: "declined",

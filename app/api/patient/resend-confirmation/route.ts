@@ -1,6 +1,5 @@
-"use server"
-
 import { NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
@@ -32,6 +31,12 @@ export async function POST(request: Request) {
         { success: false, error: "Please wait before requesting another email" },
         { status: 429 }
       )
+    }
+
+    // Require authentication — only the intake owner should resend
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
     const supabase = createServiceRoleClient()

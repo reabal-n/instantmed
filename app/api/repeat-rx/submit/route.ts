@@ -96,9 +96,9 @@ export async function POST(request: Request) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("auth_user_id", userId)
+        .eq("clerk_user_id", userId)
         .single()
-      
+
       patientId = profile?.id || null
       isGuest = !patientId
     }
