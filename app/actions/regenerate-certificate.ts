@@ -5,7 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
-import type { CertReviewData } from "@/components/doctor/cert-review-modal"
+import type { CertReviewData } from "@/types/db"
 
 interface RegenerateCertificateInput {
   intakeId: string

@@ -1391,7 +1391,7 @@ export function RepeatRxIntakeFlow({
               </div>
               
               <Button
-                onClick={() => router.push("/patient/requests")}
+                onClick={() => router.push("/patient/intakes")}
                 className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
                 {REPEAT_RX_COPY.confirmation.trackStatus}

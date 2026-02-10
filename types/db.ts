@@ -246,6 +246,15 @@ export interface IntakeWithDetails extends Intake {
   answers: IntakeAnswers | null
 }
 
+// Certificate review data used by the approval flow
+export interface CertReviewData {
+  doctorName: string
+  consultDate: string // YYYY-MM-DD
+  startDate: string // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+  medicalReason: string
+}
+
 // Insert/update types for intakes
 export type IntakeInsert = Partial<Omit<Intake, "id" | "created_at" | "updated_at" | "reference_number">> & {
   patient_id: string
@@ -256,7 +265,8 @@ export type IntakeAnswersInsert = Omit<IntakeAnswers, "id" | "created_at" | "upd
 export type PatientNoteInsert = Omit<PatientNote, "id" | "created_at" | "updated_at">
 
 // ============================================
-// LEGACY REQUEST TYPES (deprecated - use Intake)
+// SHARED ENUM TYPES
+// Used by both intakes and legacy code paths
 // ============================================
 
 export type RequestType =
@@ -337,64 +347,6 @@ export interface Profile {
   // Timestamps
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
-}
-
-// Table: requests
-export interface Request {
-  id: string // uuid, PK
-  patient_id: string // uuid, FK to profiles.id
-  type: RequestType
-  status: RequestStatus
-  category: RequestCategory | null
-  subtype: RequestSubtype | null
-  clinical_note: string | null
-  priority_review: boolean
-  // Doctor notes and escalation fields
-  doctor_notes: string | null
-  escalation_level: EscalationLevel
-  escalation_reason: string | null
-  escalated_at: string | null
-  escalated_by: string | null
-  flagged_for_followup: boolean
-  followup_reason: string | null
-  reviewed_by: string | null
-  reviewed_at: string | null
-  // Script tracking fields
-  script_sent: boolean
-  script_sent_at: string | null
-  script_notes: string | null
-  parchment_reference: string | null // eScript reference from Parchment
-  sent_via: "parchment" | "paper" | null // How the script was sent
-  // Decision tracking fields
-  decision: "approved" | "declined" | null
-  decline_reason_code: DeclineReasonCode | null
-  decline_reason_note: string | null
-  decided_at: string | null // ISO timestamp
-  // Payment fields
-  paid: boolean
-  payment_status: PaymentStatus
-  created_at: string // ISO timestamp
-  updated_at: string // ISO timestamp
-}
-
-// Escalation level type
-export type EscalationLevel = "none" | "senior_review" | "phone_consult"
-
-// Table: request_answers
-export interface RequestAnswers {
-  id: string // uuid, PK
-  request_id: string // uuid, FK to requests.id
-  answers: Record<string, unknown> // JSONB
-  created_at: string // ISO timestamp
-}
-
-// Table: documents
-export interface Document {
-  id: string // uuid, PK
-  request_id: string // uuid, FK to requests.id
-  document_type: string
-  content: string
-  created_at: string // ISO timestamp
 }
 
 // Table: document_drafts
@@ -511,38 +463,6 @@ export interface Payment {
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
 }
-
-// Joined/expanded types for queries
-export interface RequestWithPatient extends Request {
-  patient: Profile
-}
-
-export interface RequestWithDetails extends Request {
-  patient: Profile
-  answers: RequestAnswers | null
-  document: Document | null
-}
-
-// Extended request with document
-export interface RequestWithDocument extends RequestWithDetails {
-  generatedDocument: GeneratedDocument | null
-}
-
-// Insert types (omit auto-generated fields and make fields with defaults optional)
-export type ProfileInsert = Omit<Profile, "id" | "created_at" | "updated_at">
-export type RequestInsert = Partial<Omit<Request, "id" | "created_at" | "updated_at">> & {
-  patient_id: string
-  type: RequestType
-  status: RequestStatus
-}
-export type RequestAnswersInsert = Omit<RequestAnswers, "id" | "created_at">
-export type DocumentInsert = Omit<Document, "id" | "created_at">
-export type DocumentDraftInsert = Omit<DocumentDraft, "id" | "created_at" | "updated_at">
-export type GeneratedDocumentInsert = Omit<GeneratedDocument, "id" | "created_at">
-
-// Update types (all fields optional except id)
-export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at">>
-export type RequestUpdate = Partial<Omit<Request, "id" | "created_at">>
 
 // Analytics types
 export interface DashboardAnalytics {

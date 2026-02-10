@@ -57,15 +57,15 @@ export async function POST(req: NextRequest) {
     // Limit batch size to prevent abuse
     const limitedIds = requestIds.slice(0, 10)
 
-    // Fetch request data from database
+    // Fetch intake data from database
     const supabase = createServiceRoleClient()
     const { data: requests, error: fetchError } = await supabase
-      .from('requests')
+      .from('intakes')
       .select('id, type, answers')
       .in('id', limitedIds)
 
     if (fetchError) {
-      log.error("Failed to fetch requests for batch summary", { error: fetchError })
+      log.error("Failed to fetch intakes for batch summary", { error: fetchError })
       return NextResponse.json(
         { error: "Failed to fetch request data" },
         { status: 500 }

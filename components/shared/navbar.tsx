@@ -318,15 +318,15 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink
                     href="/patient"
                     icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-                    isActive={isActivePath("/patient") && !isActivePath("/patient/requests") && !isActivePath("/patient/settings")}
+                    isActive={isActivePath("/patient") && !isActivePath("/patient/intakes") && !isActivePath("/patient/settings")}
                     gradient="radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.06) 50%, rgba(99,102,241,0) 100%)"
                   >
                     Dashboard
                   </AnimatedNavLink>
                   <AnimatedNavLink
-                    href="/patient/requests"
+                    href="/patient/intakes"
                     icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
-                    isActive={isActivePath("/patient/requests")}
+                    isActive={isActivePath("/patient/intakes")}
                     gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
                   >
                     My Requests
@@ -560,7 +560,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               onClose={() => setMobileMenuOpen(false)}
             />
             <AnimatedMobileMenu.Item
-              item={{ label: "My Requests", href: "/patient/requests", icon: <ClipboardList className="h-5 w-5" /> }}
+              item={{ label: "My Requests", href: "/patient/intakes", icon: <ClipboardList className="h-5 w-5" /> }}
               index={1}
               onClose={() => setMobileMenuOpen(false)}
             />

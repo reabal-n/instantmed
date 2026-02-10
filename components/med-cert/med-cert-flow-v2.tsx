@@ -1052,7 +1052,7 @@ export function MedCertFlowV2({
               </div>
 
               <Button
-                onClick={() => router.push("/patient/requests")}
+                onClick={() => router.push("/patient/intakes")}
                 className="w-full h-12 rounded-xl"
               >
                 {MED_CERT_COPY.confirmation.trackStatus}

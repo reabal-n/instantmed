@@ -22,7 +22,7 @@ import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
 import * as Sentry from "@sentry/nextjs"
-import type { CertReviewData } from "@/components/doctor/cert-review-modal"
+import type { CertReviewData } from "@/types/db"
 
 interface ApproveCertResult {
   success: boolean
@@ -259,9 +259,12 @@ export async function approveAndSendCert(
 
     if (!pdfResult.success || !pdfResult.buffer) {
       logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
-      // Revert the claim and release intake since we can't proceed
+      // Release the claim first, then revert status
+      const { error: releaseErr } = await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      if (releaseErr) {
+        logger.warn("Failed to release claim after PDF failure", { intakeId, error: releaseErr.message })
+      }
       await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
-      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
       return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
 

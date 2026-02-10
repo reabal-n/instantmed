@@ -36,7 +36,7 @@ export function RequestReceivedEmail({
       </p>
 
       <p>
-        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button">
           View Request Status
         </a>
       </p>

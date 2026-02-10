@@ -29,7 +29,7 @@ export function PaymentConfirmedEmail({ patientName, requestType, amount, reques
       </p>
 
       <p>
-        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button">
           Track Your Request
         </a>
       </p>

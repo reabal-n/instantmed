@@ -39,7 +39,7 @@ export function RequestDeclinedEmail({ patientName, requestType, requestId, reas
       </div>
 
       <p>
-        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button button-secondary">
+        <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button button-secondary">
           View Details
         </a>
       </p>

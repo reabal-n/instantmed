@@ -4,7 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRoleOrNull } from "@/lib/auth"
 import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
-import type { CertReviewData } from "@/components/doctor/cert-review-modal"
+import type { CertReviewData } from "@/types/db"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { logger } from "@/lib/observability/logger"
 
@@ -61,26 +61,39 @@ export async function generateMedCertPdfAndApproveAction(
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()
 
-    // Fetch draft data - try request_id first (used by getOrCreateMedCertDraftForIntake), fallback to intake_id
+    // Fetch draft data - use draftId if provided, otherwise look up by request_id/intake_id
     let draft = null
-    const { data: draftByRequestId } = await supabase
-      .from("document_drafts")
-      .select("data")
-      .eq("request_id", intakeId)
-      .eq("type", "med_cert")
-      .maybeSingle()
-    
-    if (draftByRequestId) {
-      draft = draftByRequestId
-    } else {
-      // Fallback to intake_id column (used by older getOrCreateMedCertDraftForRequest)
-      const { data: draftByIntakeId } = await supabase
+    if (draftId) {
+      const { data: draftById } = await supabase
         .from("document_drafts")
         .select("data")
-        .eq("intake_id", intakeId)
+        .eq("id", draftId)
         .eq("type", "med_cert")
         .maybeSingle()
-      draft = draftByIntakeId
+      draft = draftById
+    }
+
+    if (!draft) {
+      // Fallback: try request_id (used by getOrCreateMedCertDraftForIntake)
+      const { data: draftByRequestId } = await supabase
+        .from("document_drafts")
+        .select("data")
+        .eq("request_id", intakeId)
+        .eq("type", "med_cert")
+        .maybeSingle()
+
+      if (draftByRequestId) {
+        draft = draftByRequestId
+      } else {
+        // Fallback to intake_id column (used by older getOrCreateMedCertDraftForRequest)
+        const { data: draftByIntakeId } = await supabase
+          .from("document_drafts")
+          .select("data")
+          .eq("intake_id", intakeId)
+          .eq("type", "med_cert")
+          .maybeSingle()
+        draft = draftByIntakeId
+      }
     }
 
     const draftData = draft?.data as MedCertDraftData | null
@@ -89,6 +102,18 @@ export async function generateMedCertPdfAndApproveAction(
     if (!draftData?.date_from || !draftData?.date_to) {
       logger.warn("Draft data missing or incomplete - cannot approve without valid dates", { intakeId, hasDraft: !!draft, hasDraftData: !!draftData })
       return { success: false, error: "Certificate draft is missing required date information. Please review the certificate details before approving." }
+    }
+
+    // Validate dates are valid and in correct order
+    const parsedFrom = new Date(draftData.date_from)
+    const parsedTo = new Date(draftData.date_to)
+    if (isNaN(parsedFrom.getTime()) || isNaN(parsedTo.getTime())) {
+      logger.warn("Draft has invalid date values", { intakeId, dateFrom: draftData.date_from, dateTo: draftData.date_to })
+      return { success: false, error: "Certificate dates are invalid. Please correct the dates before approving." }
+    }
+    if (parsedTo < parsedFrom) {
+      logger.warn("Draft end date before start date", { intakeId, dateFrom: draftData.date_from, dateTo: draftData.date_to })
+      return { success: false, error: "End date cannot be before start date. Please correct the dates before approving." }
     }
 
     // Build review data from draft

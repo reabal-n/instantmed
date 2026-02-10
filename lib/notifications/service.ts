@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendMedCertReadyEmail, sendRequestDeclinedEmail } from "@/lib/email/resend"
+import { sendRequestDeclinedEmailNew } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
 const logger = createLogger("notifications-service")
@@ -89,31 +89,21 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           metadata: { requestId, requestType, status: newStatus },
         })
 
-        // IMPORTANT: For med_certs, email is sent by approveAndSendCert() directly via sendViaResend.
-        // Skip email here to prevent duplicate sends. Only create in-app notification for med certs.
-        const isMedCert = requestType === "med_certs" || requestType.includes("med_cert")
-        
-        // Email notification - SKIP for med_certs (handled by canonical approveAndSendCert)
-        if (documentUrl && !isMedCert) {
-          await sendMedCertReadyEmail({
-            to: patientEmail,
-            patientName,
-            pdfUrl: documentUrl,
-            requestId,
-            certType: requestType.includes("uni") ? "uni" : requestType.includes("carer") ? "carer" : "work",
+        // NOTE: Approval emails are sent by each canonical approval action directly:
+        // - Med certs: approveAndSendCert() in app/actions/approve-cert.ts
+        // - Consults: approveConsult() in app/actions/approve-consult.ts
+        // - Scripts: repeat-prescription action
+        // No duplicate email is sent here — only the in-app notification.
+
+        // Track approval in PostHog
+        try {
+          const posthog = getPostHogClient()
+          posthog.capture({
+            distinctId: patientId,
+            event: 'request_approved',
+            properties: { request_type: requestType, request_id: requestId },
           })
-          logger.info("Approval email sent", { requestId, patientEmail })
-          
-          // Track email sent in PostHog
-          try {
-            const posthog = getPostHogClient()
-            posthog.capture({
-              distinctId: patientId,
-              event: 'email_sent',
-              properties: { template: 'approval', request_id: requestId },
-            })
-          } catch { /* non-blocking */ }
-        }
+        } catch { /* non-blocking */ }
         break
       }
 
@@ -128,10 +118,17 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           metadata: { requestId, requestType, status: newStatus, reason: declineReason },
         })
 
-        // Email notification
-        await sendRequestDeclinedEmail(patientEmail, patientName, requestType, requestId, declineReason)
+        // Email notification via canonical sendEmail system
+        await sendRequestDeclinedEmailNew({
+          to: patientEmail,
+          patientName,
+          patientId,
+          intakeId: requestId,
+          requestType,
+          reason: declineReason,
+        })
         logger.info("Decline email sent", { requestId, patientEmail })
-        
+
         // Track email sent in PostHog
         try {
           const posthog = getPostHogClient()

@@ -162,6 +162,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         postcode,
       })
       onNext()
+    } else {
+      // Scroll to first error field for better UX
+      requestAnimationFrame(() => {
+        const firstError = document.querySelector('[data-error="true"], .border-destructive, [aria-invalid="true"]')
+        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
     }
   }
 

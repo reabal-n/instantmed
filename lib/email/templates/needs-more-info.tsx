@@ -25,7 +25,7 @@ export function NeedsMoreInfoEmail({ patientName, requestType, requestId, doctor
       </div>
 
       <p>
-        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button">
           Respond Now
         </a>
       </p>

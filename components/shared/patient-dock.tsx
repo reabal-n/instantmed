@@ -6,8 +6,8 @@ import {
   LayoutDashboard,
   FileText,
   Plus,
-  Settings,
   Bell,
+  HelpCircle,
 } from "lucide-react"
 
 export function PatientDock() {
@@ -23,8 +23,8 @@ export function PatientDock() {
     {
       icon: FileText,
       label: "My Requests",
-      href: "/patient/requests",
-      active: pathname?.startsWith("/patient/requests"),
+      href: "/patient/intakes",
+      active: pathname?.startsWith("/patient/intakes"),
     },
     {
       icon: Plus,
@@ -39,10 +39,10 @@ export function PatientDock() {
       active: pathname === "/patient/notifications",
     },
     {
-      icon: Settings,
-      label: "Settings",
-      href: "/patient/settings",
-      active: pathname === "/patient/settings",
+      icon: HelpCircle,
+      label: "Help",
+      href: "/faq",
+      active: pathname === "/faq",
     },
   ]
 

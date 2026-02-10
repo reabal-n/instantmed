@@ -5,8 +5,8 @@
  * 
  * Tests Row Level Security policies by:
  * 1. Signing in as a normal patient user
- * 2. Testing ALLOWED actions (create own request, view own requests)
- * 3. Testing FORBIDDEN actions (update role, approve request, set payment_status)
+ * 2. Testing ALLOWED actions (create own intake, view own intakes)
+ * 3. Testing FORBIDDEN actions (update role, approve intake, set payment_status)
  * 
  * Required env vars:
  * - NEXT_PUBLIC_SUPABASE_URL
@@ -137,7 +137,7 @@ async function setup(): Promise<void> {
 async function cleanup(): Promise<void> {
   if (testRequestId) {
     // Try to clean up test request (may fail due to RLS, which is fine)
-    await supabase.from("requests").delete().eq("id", testRequestId)
+    await supabase.from("intakes").delete().eq("id", testRequestId)
     log(`Cleaned up test request: ${testRequestId}`, "info")
   }
 }
@@ -159,32 +159,32 @@ async function testViewOwnProfile(): Promise<void> {
 
 async function testCreateOwnRequest(): Promise<void> {
   const { data, error } = await supabase
-    .from("requests")
+    .from("intakes")
     .insert({
       patient_id: profileId,
       type: "med_cert",
-      status: "pending",
+      status: "submitted",
       payment_status: "pending_payment",
     })
     .select("id")
     .single()
 
   if (error) throw new Error(error.message)
-  if (!data) throw new Error("No request returned")
-  
+  if (!data) throw new Error("No intake returned")
+
   testRequestId = data.id
-  log(`  Created test request: ${testRequestId}`, "info")
+  log(`  Created test intake: ${testRequestId}`, "info")
 }
 
 async function testViewOwnRequests(): Promise<void> {
   const { data, error } = await supabase
-    .from("requests")
+    .from("intakes")
     .select("*")
     .eq("patient_id", profileId)
 
   if (error) throw new Error(error.message)
-  if (!data) throw new Error("No requests returned")
-  log(`  Found ${data.length} own requests`, "info")
+  if (!data) throw new Error("No intakes returned")
+  log(`  Found ${data.length} own intakes`, "info")
 }
 
 async function testUpdateOwnUnpaidRequest(): Promise<void> {
@@ -192,7 +192,7 @@ async function testUpdateOwnUnpaidRequest(): Promise<void> {
 
   // Patients can update their own unpaid requests (e.g., cancel)
   const { error } = await supabase
-    .from("requests")
+    .from("intakes")
     .update({ clinical_note: "Patient note" })
     .eq("id", testRequestId)
     .eq("payment_status", "pending_payment")
@@ -220,7 +220,7 @@ async function testApproveOwnRequest() {
   
   // Patients should NOT be able to approve requests
   return await supabase
-    .from("requests")
+    .from("intakes")
     .update({ status: "approved" })
     .eq("id", testRequestId)
 }
@@ -232,7 +232,7 @@ async function testSetPaymentStatusPaid() {
   
   // Patients should NOT be able to mark payment as paid
   return await supabase
-    .from("requests")
+    .from("intakes")
     .update({ payment_status: "paid" })
     .eq("id", testRequestId)
 }
@@ -241,7 +241,7 @@ async function testViewOtherUsersRequests() {
   // Patients should NOT see other users' requests
   // We query for requests NOT belonging to this patient
   const { data, error } = await supabase
-    .from("requests")
+    .from("intakes")
     .select("id")
     .neq("patient_id", profileId)
     .limit(1)
@@ -310,7 +310,7 @@ async function testSetReviewedBy() {
   
   // Patients should NOT be able to set reviewed_by
   return await supabase
-    .from("requests")
+    .from("intakes")
     .update({ reviewed_by: profileId })
     .eq("id", testRequestId)
 }

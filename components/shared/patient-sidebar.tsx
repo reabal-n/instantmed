@@ -7,14 +7,15 @@ import { Home, FileText, Plus, Settings, HelpCircle } from "lucide-react"
 
 const navItems = [
   { href: "/patient", label: "Dashboard", icon: Home },
-  { href: "/patient/requests", label: "My Requests", icon: FileText },
-  { href: "/patient/requests/new", label: "New Request", icon: Plus },
+  { href: "/patient/intakes", label: "My Requests", icon: FileText },
+  { href: "/request", label: "New Request", icon: Plus },
   { href: "/patient/settings", label: "Settings", icon: Settings },
 ]
 
 const quickLinks = [
-  { href: "/medical-certificate", label: "Med Certificate" },
-  { href: "/prescriptions", label: "Prescription" },
+  { href: "/medical-certificate", label: "Medical Certificate" },
+  { href: "/prescriptions", label: "Repeat Prescription" },
+  { href: "/request?service=consult", label: "GP Consultation" },
 ]
 
 export function PatientSidebar() {
@@ -35,7 +36,7 @@ export function PatientSidebar() {
                   "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/50",
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                 )}
               >
                 <item.icon className="w-4 h-4" />
@@ -53,7 +54,7 @@ export function PatientSidebar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/50 transition-colors"
+                className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               >
                 {link.label}
               </Link>

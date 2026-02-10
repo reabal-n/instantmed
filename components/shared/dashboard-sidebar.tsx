@@ -43,7 +43,7 @@ interface DashboardSidebarProps {
 
 const patientNavItems: NavItem[] = [
   { href: "/patient", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/patient/requests", label: "My Requests", icon: ClipboardList, badge: true },
+  { href: "/patient/intakes", label: "My Requests", icon: ClipboardList, badge: true },
   { href: "/patient/settings", label: "Settings", icon: Settings },
 ]
 

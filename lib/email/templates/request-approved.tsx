@@ -35,7 +35,7 @@ export function RequestApprovedEmail({
       )}
 
       <p>
-        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button button-secondary">
+        <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button button-secondary">
           View in Dashboard
         </a>
       </p>

@@ -2,7 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function IntakesLoading() {
   return (
-    <div className="container max-w-4xl py-8 px-4">
+    <div className="container max-w-4xl py-8 px-4" aria-busy="true" aria-live="polite">
+      <span className="sr-only" role="status">Loading your requests</span>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

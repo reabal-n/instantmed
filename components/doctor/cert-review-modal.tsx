@@ -15,24 +15,19 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, Calendar, User, FileText, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { RequestWithDetails } from "@/types/db"
+import type { IntakeWithDetails, CertReviewData } from "@/types/db"
 import { AiReviewSummary } from "@/components/doctor/ai-review-summary"
 import { AIDraftsPanel } from "@/components/doctor/ai-drafts-panel"
+
+// Re-export CertReviewData for backward compatibility
+export type { CertReviewData } from "@/types/db"
 
 interface CertReviewModalProps {
   open: boolean
   onClose: () => void
-  request: RequestWithDetails | null
+  request: IntakeWithDetails | null
   doctorName: string
   onConfirm: (data: CertReviewData) => Promise<void>
-}
-
-export interface CertReviewData {
-  doctorName: string
-  consultDate: string // YYYY-MM-DD
-  startDate: string // YYYY-MM-DD
-  endDate: string // YYYY-MM-DD
-  medicalReason: string
 }
 
 export function CertReviewModal({
@@ -114,10 +109,19 @@ export function CertReviewModal({
     }
   }, [request, open, doctorName, requestedDaysOff])
 
+  const [validationError, setValidationError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setValidationError(null)
+
     if (!formData.startDate || !formData.endDate) {
+      return
+    }
+
+    // Validate end date is not before start date
+    if (new Date(formData.endDate) < new Date(formData.startDate)) {
+      setValidationError("End date cannot be before start date.")
       return
     }
 
@@ -255,6 +259,11 @@ export function CertReviewModal({
                 />
               </div>
             </div>
+
+            {/* Date validation error */}
+            {validationError && (
+              <p className="text-sm text-red-600 font-medium">{validationError}</p>
+            )}
 
             {/* Medical Reason */}
             <div className="space-y-2">

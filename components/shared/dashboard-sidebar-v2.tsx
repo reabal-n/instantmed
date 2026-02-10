@@ -65,7 +65,7 @@ const patientNavSections: NavSection[] = [
     defaultExpanded: true,
     items: [
       { href: "/patient", label: "Dashboard", icon: LayoutDashboard, description: "Overview of your requests" },
-      { href: "/patient/requests", label: "My Requests", icon: ClipboardList, badge: true, description: "Track your medical requests" },
+      { href: "/patient/intakes", label: "My Requests", icon: ClipboardList, badge: true, description: "Track your medical requests" },
     ]
   },
   {

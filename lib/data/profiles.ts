@@ -355,62 +355,7 @@ export async function completeOnboarding(
 }
 
 /**
- * Get the email address for a patient associated with a request.
- * Looks up the request → profile → auth.users to get the email.
- * Uses service role client for auth.admin access.
- */
-export async function getPatientEmailFromRequest(requestId: string): Promise<string | null> {
-  const supabase = createServiceRoleClient()
-
-  // Get the intake with patient profile
-  const { data: request, error: requestError } = await supabase
-    .from("intakes")
-    .select(`
-      patient_id,
-      patient:profiles!patient_id (
-        auth_user_id,
-        email
-      )
-    `)
-    .eq("id", requestId)
-    .single()
-
-  if (requestError || !request || !request.patient) {
-    logger.error("Error fetching request for email lookup", {}, requestError instanceof Error ? requestError : new Error(String(requestError)))
-    return null
-  }
-
-  const patient = request.patient as unknown as { auth_user_id: string | null; email: string | null }
-  
-  // First try to get email from profile
-  if (patient.email) {
-    return patient.email
-  }
-  
-  const authUserId = patient.auth_user_id
-
-  // For guest profiles (no auth_user_id), we can't get email this way
-  // In that case, email should be stored elsewhere (e.g., checkout metadata)
-  if (!authUserId) {
-    logger.debug("[Email] Guest profile - no auth_user_id available")
-    return null
-  }
-
-  // Get user email from auth.users via admin API
-  // Must use service role client for auth.admin access
-  const serviceClient = createServiceRoleClient()
-  const { data: authUser, error: authError } = await serviceClient.auth.admin.getUserById(authUserId)
-
-  if (authError || !authUser?.user?.email) {
-    logger.error("Error fetching auth user email", {}, authError instanceof Error ? authError : new Error(String(authError)))
-    return null
-  }
-
-  return authUser.user.email
-}
-
-/**
- * Get user email from auth_user_id (legacy - for backward compatibility)
+ * Get user email from auth_user_id
  */
 export async function getUserEmailFromAuthUserId(authUserId: string): Promise<string | null> {
   const supabase = createServiceRoleClient()

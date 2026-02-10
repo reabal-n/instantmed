@@ -99,11 +99,11 @@ interface PatientDashboardProps {
 }
 
 const STATUS_CONFIG = {
-  approved: { color: "bg-green-100 text-green-700", icon: CheckCircle, label: "Approved" },
-  rejected: { color: "bg-red-100 text-red-700", icon: AlertCircle, label: "Declined" },
-  pending: { color: "bg-blue-100 text-blue-700", icon: Clock, label: "Under Review" },
-  in_review: { color: "bg-blue-100 text-primary", icon: Clock, label: "Under Review" },
-  requires_info: { color: "bg-orange-100 text-orange-700", icon: AlertCircle, label: "Needs Info" },
+  approved: { color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle, label: "Approved" },
+  rejected: { color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle, label: "Declined" },
+  pending: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
+  in_review: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
+  requires_info: { color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: AlertTriangle, label: "Action Needed" },
 }
 
 export function PanelDashboard({
@@ -257,7 +257,20 @@ export function PanelDashboard({
           <EmptyState
             icon={FileText}
             title={FEEDBACK_MESSAGES.noRequests}
-            description='Use the "New Request" button to get started'
+            description="Get started by choosing what you need — most requests are reviewed within 2 hours."
+            action={{
+              label: "New Request",
+              href: "/request",
+            }}
+            secondaryAction={{
+              label: "Learn how it works",
+              href: "/how-it-works",
+            }}
+            tips={[
+              "Medical certificates can be issued for past or future dates",
+              "Repeat prescriptions are usually approved same-day",
+              "Your documents are stored securely and can be downloaded anytime",
+            ]}
           />
         ) : (
           <div className="space-y-3">
