@@ -176,7 +176,7 @@ export function SwipeableCard({
       {/* Swipe hint indicator (shows on first render) */}
       {(leftAction || rightAction) && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 md:hidden">
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground/50">
             {leftAction && <span>← Swipe</span>}
             {leftAction && rightAction && <span>|</span>}
             {rightAction && <span>Swipe →</span>}

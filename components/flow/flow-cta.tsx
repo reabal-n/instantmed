@@ -257,7 +257,7 @@ export function FlowCTA({
         </AnimatePresence>
 
         {/* Security badge */}
-        <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400">
+        <div className="flex items-center justify-center gap-3 text-xs text-slate-400">
           <span className="flex items-center gap-1">
             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
               <path

@@ -108,7 +108,7 @@ export function ServiceCards() {
                     </div>
                     {service.badge && (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
                         style={{
                           backgroundColor: service.colorLight,
                           color: service.color,
@@ -129,7 +129,7 @@ export function ServiceCards() {
                   <p className="text-muted-foreground text-xs leading-relaxed mb-3">{service.description}</p>
 
                   {/* Time estimate */}
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-3">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
                     <Clock className="h-3 w-3" style={{ color: service.color }} />
                     <span>{service.time}</span>
                   </div>
@@ -139,7 +139,7 @@ export function ServiceCards() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-base font-bold text-foreground">{service.price}</span>
-                        <span className="text-[10px] text-muted-foreground ml-0.5">AUD</span>
+                        <span className="text-xs text-muted-foreground ml-0.5">AUD</span>
                       </div>
                       <span
                         className="flex items-center text-xs font-medium group-hover:gap-1.5 transition-all"

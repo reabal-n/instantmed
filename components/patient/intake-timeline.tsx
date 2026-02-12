@@ -223,7 +223,7 @@ export function IntakeTimeline({ events, currentStatus, className }: IntakeTimel
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs font-medium text-muted-foreground">{relative}</p>
-                  <p className="text-[10px] text-muted-foreground/70">{time}</p>
+                  <p className="text-xs text-muted-foreground/70">{time}</p>
                 </div>
               </div>
 

@@ -77,7 +77,7 @@ export function ArticleSeriesNav({
               </span>
               
               {isCurrent && (
-                <span className="text-[10px] font-medium text-primary px-2 py-0.5 rounded bg-primary/10">
+                <span className="text-xs font-medium text-primary px-2 py-0.5 rounded bg-primary/10">
                   Current
                 </span>
               )}

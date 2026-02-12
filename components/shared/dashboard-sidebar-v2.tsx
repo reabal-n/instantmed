@@ -432,7 +432,7 @@ export function DashboardSidebarV2({
                     <Keyboard className="w-4 h-4 mr-2" />
                     Shortcuts
                   </span>
-                  <kbd className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">⌘?</kbd>
+                  <kbd className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">⌘?</kbd>
                 </Button>
               }
             />

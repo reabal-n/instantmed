@@ -260,7 +260,7 @@ export function CertificatePreview({
 
           {/* Verification Disclaimer */}
           <div className="mt-4 pt-3 border-t border-dashed" style={{ borderColor: colors.border }}>
-            <p className="text-[9px] text-gray-400 text-center">
+            <p className="text-xs text-gray-400 text-center">
               To verify this certificate, visit instantmed.com.au/verify and enter certificate number {SAMPLE_DATA.certificateNumber}
             </p>
           </div>

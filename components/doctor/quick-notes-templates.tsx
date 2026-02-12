@@ -129,7 +129,7 @@ export function QuickNotesTemplates({ onSelect, serviceType }: QuickNotesTemplat
               <div className="flex items-center justify-between">
                 <span className="font-medium">{template.label}</span>
                 {template.category !== "general" && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
                     {template.category === "med_cert" ? "Cert" : "Rx"}
                   </Badge>
                 )}

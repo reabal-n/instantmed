@@ -101,7 +101,7 @@ export function PatientHealthProfilePanel({
           <Heart className="h-4 w-4 text-primary" />
           Health Profile
         </h4>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           Updated {new Date(profile.updated_at).toLocaleDateString("en-AU", {
             day: "numeric",
             month: "short",

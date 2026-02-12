@@ -155,7 +155,7 @@ export function RequestTimeline({
 
               {/* Date */}
               {stepDate && isCompleted && (
-                <span className="text-[10px] text-muted-foreground mt-0.5">{stepDate}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">{stepDate}</span>
               )}
             </div>
           )

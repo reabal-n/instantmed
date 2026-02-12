@@ -130,7 +130,7 @@ export function SSLBadge({
         <Lock className="w-4 h-4 text-green-600" />
         <div className="flex flex-col">
           <span className="text-xs font-medium text-green-800 dark:text-green-200">256-bit SSL</span>
-          <span className="text-[10px] text-green-600 dark:text-green-400">Encrypted Connection</span>
+          <span className="text-xs text-green-600 dark:text-green-400">Encrypted Connection</span>
         </div>
       </div>
     )
@@ -251,7 +251,7 @@ export function AustralianOwnedBadge({
         <MapPin className="w-4 h-4 text-blue-600" />
         <div className="flex flex-col">
           <span className="text-xs font-medium text-blue-800 dark:text-blue-200">Australian Owned</span>
-          <span className="text-[10px] text-blue-600 dark:text-blue-400">& Operated</span>
+          <span className="text-xs text-blue-600 dark:text-blue-400">& Operated</span>
         </div>
       </div>
     )
@@ -577,7 +577,7 @@ export function DataSecurityStrip({
             <span>Never stored unencrypted</span>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground/70 text-center">
+        <p className="text-xs text-muted-foreground/70 text-center">
           Your Medicare details are protected under the Privacy Act 1988
         </p>
       </div>

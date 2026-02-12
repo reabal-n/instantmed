@@ -115,7 +115,7 @@ function ProgressBar({ steps, current }: { steps: string[]; current: number }) {
         <div key={label} className="flex-1">
           <div className={`h-1 rounded-full transition-all duration-300 ${i <= current ? "bg-primary" : "bg-muted"}`} />
           <span
-            className={`text-[10px] mt-1 block text-center font-medium ${i <= current ? "text-foreground" : "text-muted-foreground"}`}
+            className={`text-xs mt-1 block text-center font-medium ${i <= current ? "text-foreground" : "text-muted-foreground"}`}
           >
             {label}
           </span>

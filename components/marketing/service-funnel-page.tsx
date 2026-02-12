@@ -397,7 +397,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
-                      <p className="text-[10px] text-muted-foreground">Australian Doctor</p>
+                      <p className="text-xs text-muted-foreground">Australian Doctor</p>
                     </div>
                   </div>
                 </motion.div>

@@ -32,7 +32,6 @@ import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-
 import { cn } from "@/lib/utils"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
-import { ShatterButtonLink } from "@/components/ui/shatter-button"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -285,9 +284,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
-                    <ShatterButtonLink href="/request" className="text-xs h-7 px-3 py-1">
+                    <Button
+                      as={Link}
+                      href="/request"
+                      size="sm"
+                      className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                    >
                       Get started
-                    </ShatterButtonLink>
+                    </Button>
                     <SignedOut>
                       <SignInButton mode="modal">
                         <Button
@@ -479,9 +483,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </SignedIn>
-                <ShatterButtonLink href="/request" className="w-full rounded-xl">
+                <Button
+                  as={Link}
+                  href="/request"
+                  className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
                   Get started
-                </ShatterButtonLink>
+                </Button>
               </>
             )}
             {variant === "patient" && (

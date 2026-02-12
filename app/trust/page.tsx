@@ -783,7 +783,7 @@ export default function TrustPage() {
                   {/* Source badge */}
                   <div className="absolute top-4 right-4 flex items-center gap-1">
                     {testimonial.verified && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                         <Verified className="w-3 h-3" />
                         {testimonial.source}
                       </span>

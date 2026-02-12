@@ -110,7 +110,7 @@ export function StepProgress({
                 {steps && steps.length > 0 && (
                   <span
                     className={cn(
-                      "text-[10px] font-medium text-center leading-tight transition-colors duration-300",
+                      "text-xs font-medium text-center leading-tight transition-colors duration-300",
                       isCurrent && "text-foreground font-semibold",
                       isCompleted && "text-primary",
                       !isCompleted && !isCurrent && "text-muted-foreground"

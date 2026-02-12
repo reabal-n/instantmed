@@ -239,11 +239,11 @@ export function ShortcutHint({ keys }: { keys: string[] }) {
     <span className="hidden sm:inline-flex items-center gap-0.5 ml-2">
       {keys.map((key, index) => (
         <span key={index}>
-          <kbd className="px-1 py-0.5 text-[10px] font-mono bg-muted/50 rounded border border-border/50">
+          <kbd className="px-1 py-0.5 text-xs font-mono bg-muted/50 rounded border border-border/50">
             {key}
           </kbd>
           {index < keys.length - 1 && (
-            <span className="text-muted-foreground text-[10px]">+</span>
+            <span className="text-muted-foreground text-xs">+</span>
           )}
         </span>
       ))}

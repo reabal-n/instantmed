@@ -41,7 +41,7 @@ export function MessageStatusIndicator({ status, className, showLabel = false }:
         return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
       case "failed":
         return (
-          <span className="text-[10px] text-red-500 font-medium">Failed</span>
+          <span className="text-xs text-red-500 font-medium">Failed</span>
         )
       default:
         return null
@@ -63,7 +63,7 @@ export function MessageStatusIndicator({ status, className, showLabel = false }:
     <div className={cn("flex items-center gap-1 text-muted-foreground", className)}>
       {getIcon()}
       {showLabel && (
-        <span className="text-[10px]">{getLabel()}</span>
+        <span className="text-xs">{getLabel()}</span>
       )}
     </div>
   )
@@ -175,7 +175,7 @@ export function MessageTime({ timestamp, status, isOwn = false, className }: Mes
   const timeString = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
   return (
-    <div className={cn("flex items-center gap-1 text-[10px] text-muted-foreground", className)}>
+    <div className={cn("flex items-center gap-1 text-xs text-muted-foreground", className)}>
       <span>{timeString}</span>
       {isOwn && status && <MessageStatusIndicator status={status} />}
     </div>

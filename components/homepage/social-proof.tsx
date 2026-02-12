@@ -81,7 +81,7 @@ export function LiveActivityCounter() {
               <p className="text-xs font-medium truncate">
                 {toast.name} from {toast.location}
               </p>
-              <p className="text-[10px] text-muted-foreground">just got their {toast.service}</p>
+              <p className="text-xs text-muted-foreground">just got their {toast.service}</p>
             </div>
           </div>
         )}

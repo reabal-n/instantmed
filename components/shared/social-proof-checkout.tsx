@@ -58,7 +58,7 @@ export function SocialProofCheckout({
           <p className="text-xs text-muted-foreground italic leading-relaxed">
             &ldquo;{SOCIAL_PROOF.testimonial.text}&rdquo;
           </p>
-          <p className="text-[10px] text-muted-foreground/70 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             — {SOCIAL_PROOF.testimonial.author}, {SOCIAL_PROOF.testimonial.location}
           </p>
         </div>

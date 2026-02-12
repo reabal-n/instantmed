@@ -333,7 +333,7 @@ export function IntakeStatusTracker({
                       {step.label}
                     </p>
                     {(isComplete || isActive) && timestamps.get(step.id) && (
-                      <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                      <span className="text-xs text-muted-foreground tabular-nums shrink-0">
                         {new Date(timestamps.get(step.id)!).toLocaleString("en-AU", {
                           day: "numeric",
                           month: "short",

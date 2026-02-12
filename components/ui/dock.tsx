@@ -52,7 +52,7 @@ const DockIconButton = React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
           active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
         )} />
         {badge !== undefined && badge > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
             {badge > 9 ? "9+" : badge}
           </span>
         )}

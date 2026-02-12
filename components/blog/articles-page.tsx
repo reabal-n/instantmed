@@ -185,7 +185,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                     className="object-cover"
                   />
                   <div className="absolute top-3 left-3">
-                    <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
                       {categories[article.category]?.name || article.category}
                     </span>
                   </div>

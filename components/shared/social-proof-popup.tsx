@@ -224,7 +224,7 @@ export function SocialProofPopup() {
             
             {/* Subtle verification footer */}
             <div className="px-3 pb-2 pt-0">
-              <p className="text-[10px] text-gray-400 flex items-center gap-1">
+              <p className="text-xs text-gray-400 flex items-center gap-1">
                 <Check className="w-2.5 h-2.5" />
                 <span>Verified request</span>
               </p>

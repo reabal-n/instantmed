@@ -152,13 +152,13 @@ export function ViewingNowIndicator({ count = 8, className }: { count?: number; 
         {[...Array(Math.min(count, 4))].map((_, i) => (
           <div 
             key={i}
-            className="w-6 h-6 rounded-full bg-primary/10 border-2 border-white dark:border-white/10 flex items-center justify-center text-[10px] font-medium text-primary"
+            className="w-6 h-6 rounded-full bg-primary/10 border-2 border-white dark:border-white/10 flex items-center justify-center text-xs font-medium text-primary"
           >
             {String.fromCharCode(65 + i)}
           </div>
         ))}
         {count > 4 && (
-          <div className="w-6 h-6 rounded-full bg-white/60 dark:bg-white/10 border-2 border-white dark:border-white/20 flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+          <div className="w-6 h-6 rounded-full bg-white/60 dark:bg-white/10 border-2 border-white dark:border-white/20 flex items-center justify-center text-xs font-medium text-muted-foreground">
             +{count - 4}
           </div>
         )}

@@ -120,15 +120,16 @@ body {
   --chart-5: #F87171;
   
   /* ================================
-     CRAFT RADIUS SYSTEM - Restrained, modern
+     RADIUS SYSTEM - Consistent, modern
+     buttons=lg, cards=xl, modals=2xl
      ================================ */
-  --radius: 14px;
+  --radius: 12px;
   --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
-  --radius-2xl: 26px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
   
   /* ================================
@@ -161,16 +162,16 @@ body {
   --space-16: 4rem;     /* 64px */
   
   /* ================================
-     CRAFT SHADOW SYSTEM - Neutral, subtle
+     SHADOW SYSTEM - 3 levels: resting, hover, elevated
      ================================ */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.06), 0 8px 10px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.1);
   --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-  --shadow-glow-lg: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  --shadow-glow-lg: 0 0 0 3px rgba(59, 130, 246, 0.12);
   
   /* Sidebar — clean white with subtle depth */
   --sidebar: rgba(255, 255, 255, 0.90);
@@ -272,15 +273,15 @@ body {
   --sidebar-border: rgba(197, 221, 240, 0.12);
   --sidebar-ring: var(--dawn-400);
   
-  /* Dark mode shadows - starlight glow */
+  /* Dark mode shadows - 3 levels matching light */
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.30);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.40);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 40px rgba(168, 204, 232, 0.05);
-  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.50), 0 0 60px rgba(168, 204, 232, 0.06);
-  --shadow-2xl: 0 20px 60px rgba(0, 0, 0, 0.60), 0 0 80px rgba(168, 204, 232, 0.08);
-  --shadow-glow: 0 0 20px rgba(249, 201, 146, 0.15), 0 0 40px rgba(168, 204, 232, 0.10);
-  --shadow-glow-lg: 0 0 40px rgba(249, 201, 146, 0.30);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.50);
+  --shadow-glow: 0 0 0 3px rgba(93, 184, 201, 0.15);
+  --shadow-glow-lg: 0 0 0 3px rgba(93, 184, 201, 0.15);
   
   /* Dark mode gradient orbs */
   --gradient-orb-1: rgba(249, 201, 146, 0.05);
@@ -486,16 +487,11 @@ body {
   .card,
   [data-slot="base"],
   .glass-card {
-    @apply bg-card/95 text-card-foreground;
-    border-radius: var(--radius-lg);
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.06),
-      0 8px 32px rgba(148, 163, 184, 0.08),
-      0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    @apply bg-card text-card-foreground;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
     z-index: 1;
   }
@@ -503,33 +499,22 @@ body {
   .card:hover,
   [data-slot="base"]:hover,
   .glass-card:hover {
-    box-shadow: 
-      0 8px 24px rgba(0, 0, 0, 0.08),
-      0 16px 48px rgba(148, 163, 184, 0.12),
-      0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
   
-  /* Elevated floating card - more prominent */
+  /* Elevated floating card - for hero/featured content only */
   .floating-card {
-    @apply bg-white/90 text-card-foreground;
+    @apply bg-card text-card-foreground;
     border-radius: var(--radius-xl);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.08),
-      0 16px 64px rgba(148, 163, 184, 0.12),
-      0 0 0 1px rgba(255, 255, 255, 0.7) inset;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
   
   .floating-card:hover {
-    box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.1),
-      0 24px 80px rgba(148, 163, 184, 0.15),
-      0 0 0 1px rgba(255, 255, 255, 0.8) inset;
-    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
   }
   
   /* ================================
@@ -561,20 +546,12 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
   
-  input:hover,
-  textarea:hover,
-  select:hover {
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08);
-    transform: scale(1.002);
-  }
-  
   input:focus,
   textarea:focus,
   select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 2px 6px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
     outline: none;
-    transform: scale(1.005);
   }
   
   /* Enhanced dark mode input focus */
@@ -600,10 +577,10 @@ body {
      with the .btn-micro system below. Use .btn-micro, .btn-premium, or .btn-cta 
      for specific hover effects instead. */
   
-  /* Enhanced dark mode button hover */
+  /* Dark mode button hover - subtle */
   .dark button:hover,
   .dark [role="button"]:hover {
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: var(--shadow-sm);
   }
   
   /* Primary buttons - Craft: clean solid colors, no gradients */
@@ -784,12 +761,12 @@ body {
     color: var(--muted-foreground);
   }
   
-  /* Enhanced card hover effects for dark mode */
+  /* Dark mode card hover */
   .card:hover,
   [data-slot="base"]:hover,
   .glass-card:hover {
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
   
   /* Dark mode selection */
@@ -877,32 +854,7 @@ body {
   z-index: 0;
 }
 
-.liquid-glass-nav-pill::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  animation: shimmer-nav 3s infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes shimmer-nav {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
+/* Shimmer removed - clean, confident nav */
 
 /* Rainbow animation for rainbow button */
 @keyframes rainbow {
@@ -1398,12 +1350,18 @@ body {
     65px 40px 0 -20px rgba(255,255,255,0.7);
 }
 
-/* Mobile cloud optimization - scale down for performance */
+/* Mobile cloud optimization - static clouds, no animations for GPU savings */
 @media (max-width: 768px) {
+  .cloud {
+    animation: none !important;
+    will-change: auto;
+  }
+  
   .cloud-back-1 {
     width: 250px;
     height: 110px;
     filter: blur(25px);
+    left: 10%;
     box-shadow: 
       100px 0 0 -22px rgba(255,255,255,0.5),
       55px 35px 0 -18px rgba(255,255,255,0.5);
@@ -1413,6 +1371,7 @@ body {
     width: 280px;
     height: 120px;
     filter: blur(28px);
+    right: 5%;
     box-shadow: 
       110px 0 0 -25px rgba(255,255,255,0.45),
       65px 40px 0 -20px rgba(255,255,255,0.45);
@@ -1422,6 +1381,7 @@ body {
     width: 200px;
     height: 90px;
     filter: blur(20px);
+    left: 20%;
     box-shadow: 
       80px 0 0 -18px rgba(255,255,255,0.6),
       45px 30px 0 -15px rgba(255,255,255,0.6);
@@ -1431,6 +1391,7 @@ body {
     width: 220px;
     height: 100px;
     filter: blur(22px);
+    right: 15%;
     box-shadow: 
       85px 0 0 -20px rgba(255,255,255,0.55),
       50px 32px 0 -16px rgba(255,255,255,0.55);
@@ -1440,6 +1401,7 @@ body {
     width: 160px;
     height: 75px;
     filter: blur(14px);
+    left: 30%;
     box-shadow: 
       65px 0 0 -15px rgba(255,255,255,0.7),
       38px 24px 0 -12px rgba(255,255,255,0.7);
@@ -1449,6 +1411,14 @@ body {
   .animate-sun-glow {
     width: 300px !important;
     height: 300px !important;
+    animation: none !important;
+  }
+  
+  /* Disable parallax on mobile */
+  .sky-layer-back,
+  .sky-layer-mid,
+  .sky-layer-front {
+    transform: none !important;
   }
 }
 

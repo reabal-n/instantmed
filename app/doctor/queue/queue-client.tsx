@@ -759,7 +759,7 @@ export function QueueClient({
               className="h-8 text-[12px] text-muted-foreground"
               onClick={() => setShowShortcutsHelp(prev => !prev)}
             >
-              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono mr-1">?</kbd>
+              <kbd className="px-1 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
               Keys
             </Button>
           </div>
@@ -815,7 +815,7 @@ export function QueueClient({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" id={listId}>
               {keyboardShortcuts.slice(0, -1).map((s, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px] text-muted-foreground">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs text-muted-foreground">
                     {s.shift && "⇧"}{s.key === "Enter" ? "↵" : s.key.toUpperCase()}
                   </kbd>
                   <span className="text-[12px] text-muted-foreground">{s.description}</span>
@@ -1006,7 +1006,7 @@ export function QueueClient({
                                     {answers.duration && (
                                       <>
                                         <span className="text-xs text-muted-foreground">•</span>
-                                        <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                        <Badge variant="outline" className="text-xs h-4 px-1">
                                           {answers.duration}d
                                         </Badge>
                                       </>

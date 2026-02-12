@@ -100,7 +100,7 @@ export function BottomTabBar({ unreadMessages = 0, unreadNotifications = 0 }: Bo
                     isActive && "scale-110"
                   )} />
                   {badge !== undefined && badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full px-1">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold text-white bg-red-500 rounded-full px-1">
                       {badge > 99 ? "99+" : badge}
                     </span>
                   )}
@@ -108,7 +108,7 @@ export function BottomTabBar({ unreadMessages = 0, unreadNotifications = 0 }: Bo
 
                 {/* Label */}
                 <span className={cn(
-                  "text-[10px] mt-1 font-medium",
+                  "text-xs mt-1 font-medium",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}>
                   {tab.label}
@@ -174,7 +174,7 @@ export function CompactBottomTabBar({ unreadMessages = 0, unreadNotifications = 
               >
                 <Icon className="h-6 w-6" />
                 {badge !== undefined && badge > 0 && (
-                  <span className="absolute top-0 right-0 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold text-white bg-red-500 rounded-full">
+                  <span className="absolute top-0 right-0 min-w-[16px] h-[16px] flex items-center justify-center text-xs font-bold text-white bg-red-500 rounded-full">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 )}

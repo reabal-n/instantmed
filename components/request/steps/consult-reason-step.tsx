@@ -171,7 +171,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             {CATEGORY_GUIDANCE[consultCategory].suggestedTopics.map((topic) => (
               <span
                 key={topic}
-                className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
               >
                 {topic}
               </span>

@@ -37,7 +37,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   className="object-cover"
                 />
                 <div className="absolute top-2 left-2">
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
                     {article.readingTime} min read
                   </span>
                 </div>

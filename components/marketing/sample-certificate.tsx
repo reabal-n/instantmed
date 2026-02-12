@@ -27,7 +27,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
       <div className="relative bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden max-w-md mx-auto">
         {/* Sample badge */}
         <div className="absolute top-3 right-3 z-10">
-          <span className="px-2 py-1 text-[10px] font-semibold bg-amber-100 text-amber-800 rounded-full uppercase tracking-wide">
+          <span className="px-2 py-1 text-xs font-semibold bg-amber-100 text-amber-800 rounded-full uppercase tracking-wide">
             Sample
           </span>
         </div>
@@ -120,7 +120,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
           </div>
 
           {/* Disclaimer */}
-          <p className="text-[9px] text-gray-400 mt-4 leading-relaxed">
+          <p className="text-xs text-gray-400 mt-4 leading-relaxed">
             This medical certificate was issued via InstantMed telehealth services. 
             The issuing doctor is registered with AHPRA and can be verified on the 
             public register.
@@ -131,7 +131,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
         <div className="absolute bottom-4 left-4">
           <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-full">
             <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="text-[10px] font-medium text-emerald-700">Verifiable</span>
+            <span className="text-xs font-medium text-emerald-700">Verifiable</span>
           </div>
         </div>
       </div>

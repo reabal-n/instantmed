@@ -133,7 +133,7 @@ function ProgressBar({
             </div>
             {/* Label - hidden on mobile, visible on sm+ */}
             <span 
-              className={`text-[10px] mt-1.5 text-center font-medium transition-colors truncate hidden sm:block ${
+              className={`text-xs mt-1.5 text-center font-medium transition-colors truncate hidden sm:block ${
                 i <= currentIndex ? "text-foreground" : "text-muted-foreground"
               } ${isClickable && !isCurrent ? "group-hover:text-primary" : ""}`}
             >
@@ -833,7 +833,7 @@ export function RequestFlow({
             <h1 className="font-semibold text-sm">
               {currentStep.label}
             </h1>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               Step {currentStepIndex + 1} of {activeSteps.length}
             </span>
           </div>

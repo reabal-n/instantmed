@@ -61,7 +61,7 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
           >
             <Keyboard className="h-4 w-4" />
             <span className="hidden sm:inline">Shortcuts</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs font-mono bg-muted rounded">
               {isMac ? "⌘" : "Ctrl"}+?
             </kbd>
           </Button>
@@ -112,7 +112,7 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground">
               Shortcuts are disabled when typing in text fields.
-              Press <kbd className="px-1 py-0.5 text-[10px] bg-muted rounded">Esc</kbd> to close dialogs.
+              Press <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Esc</kbd> to close dialogs.
             </p>
           </div>
         </div>
@@ -173,7 +173,7 @@ export function ShortcutDiscoveryHint() {
                 <p className="font-medium text-sm">Keyboard shortcuts available</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Press{" "}
-                  <kbd className="px-1 py-0.5 text-[10px] bg-muted rounded">
+                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded">
                     {isMac ? "⌘" : "Ctrl"}+?
                   </kbd>{" "}
                   to see all shortcuts

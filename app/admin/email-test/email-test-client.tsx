@@ -318,7 +318,7 @@ export function EmailTestClient() {
                 </SelectContent>
               </Select>
               <p className="text-[12px] text-muted-foreground">{selectedTemplate.description}</p>
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                 <span>Uses real production template</span>
               </div>
@@ -419,7 +419,7 @@ export function EmailTestClient() {
                     <Button
                       variant={viewMode === "preview" ? "default" : "ghost"}
                       size="sm"
-                      className="h-7 text-[11px] rounded-r-none px-2.5"
+                      className="h-7 text-xs rounded-r-none px-2.5"
                       onClick={() => setViewMode("preview")}
                     >
                       <Eye className="h-3 w-3 mr-1" />
@@ -428,7 +428,7 @@ export function EmailTestClient() {
                     <Button
                       variant={viewMode === "code" ? "default" : "ghost"}
                       size="sm"
-                      className="h-7 text-[11px] rounded-l-none px-2.5"
+                      className="h-7 text-xs rounded-l-none px-2.5"
                       onClick={() => setViewMode("code")}
                     >
                       <Code className="h-3 w-3 mr-1" />
@@ -440,7 +440,7 @@ export function EmailTestClient() {
                       <Button
                         variant={previewMode === "desktop" ? "default" : "ghost"}
                         size="sm"
-                        className="h-7 text-[11px] rounded-r-none px-2.5"
+                        className="h-7 text-xs rounded-r-none px-2.5"
                         onClick={() => setPreviewMode("desktop")}
                       >
                         <Monitor className="h-3 w-3 mr-1" />
@@ -449,7 +449,7 @@ export function EmailTestClient() {
                       <Button
                         variant={previewMode === "mobile" ? "default" : "ghost"}
                         size="sm"
-                        className="h-7 text-[11px] rounded-l-none px-2.5"
+                        className="h-7 text-xs rounded-l-none px-2.5"
                         onClick={() => setPreviewMode("mobile")}
                       >
                         <Smartphone className="h-3 w-3 mr-1" />
@@ -503,7 +503,7 @@ export function EmailTestClient() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="absolute top-2 right-2 z-10 h-7 text-[11px]"
+                    className="absolute top-2 right-2 z-10 h-7 text-xs"
                     onClick={() => {
                       navigator.clipboard.writeText(renderedHtml)
                       toast.success("HTML copied to clipboard")
@@ -512,7 +512,7 @@ export function EmailTestClient() {
                     <Copy className="h-3 w-3 mr-1" />
                     Copy
                   </Button>
-                  <pre className="bg-muted p-4 rounded-lg overflow-auto text-[11px] font-mono max-h-[700px] leading-relaxed">
+                  <pre className="bg-muted p-4 rounded-lg overflow-auto text-xs font-mono max-h-[700px] leading-relaxed">
                     {renderedHtml}
                   </pre>
                 </div>

@@ -429,7 +429,7 @@ export default function MedicalCertificatePage() {
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
-                          <p className="text-[10px] text-muted-foreground">Australian Doctor</p>
+                          <p className="text-xs text-muted-foreground">Australian Doctor</p>
                         </div>
                       </div>
                     </motion.div>
@@ -467,7 +467,7 @@ export default function MedicalCertificatePage() {
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-foreground">100% online</p>
-                          <p className="text-[10px] text-muted-foreground">From your phone</p>
+                          <p className="text-xs text-muted-foreground">From your phone</p>
                         </div>
                       </div>
                       <div className="mt-3 flex gap-1.5">

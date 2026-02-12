@@ -198,7 +198,7 @@ export function DraftRecoveryModal({
 
 export function FlowFooterMeta({ lastSaved }: { lastSaved?: Date | null }) {
   return (
-    <div className="max-w-md mx-auto flex items-center justify-between mt-2 text-[10px] text-muted-foreground/60">
+    <div className="max-w-md mx-auto flex items-center justify-between mt-2 text-xs text-muted-foreground/60">
       <div className="flex items-center gap-1">
         {lastSaved && (
           <>

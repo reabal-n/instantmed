@@ -236,7 +236,7 @@ export function ServicePicker() {
                         
                         {/* #3: Benefit question above title */}
                         {'benefitQuestion' in service && service.benefitQuestion && (
-                          <p className="text-[11px] font-medium text-primary mb-0.5">
+                          <p className="text-xs font-medium text-primary mb-0.5">
                             {service.benefitQuestion}
                           </p>
                         )}
@@ -264,7 +264,7 @@ export function ServicePicker() {
                         )}
                         
                         {/* Meta info - #6: clearer time, #7: reframed call messaging */}
-                        <div className="flex items-center gap-3 text-[11px] min-h-[18px]">
+                        <div className="flex items-center gap-3 text-xs min-h-[18px]">
                           <span className="flex items-center gap-1 text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             {meta.time}
@@ -277,7 +277,7 @@ export function ServicePicker() {
                         
                         {/* Medicare note - only for prescriptions */}
                         {service.id === 'scripts' && (
-                          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                             PBS subsidies may apply at pharmacy
                           </p>
                         )}
@@ -292,11 +292,11 @@ export function ServicePicker() {
                             <span className="text-base font-semibold text-foreground">
                               ${displayPrice.toFixed(2)}
                             </span>
-                            <span className="text-[10px] text-muted-foreground line-through">
+                            <span className="text-xs text-muted-foreground line-through">
                               {meta.gpCost}
                             </span>
                           </div>
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                             Save {meta.savings} vs GP
                           </span>
                         </div>
@@ -310,7 +310,7 @@ export function ServicePicker() {
                       {/* #5: Testimonial for popular card */}
                       {service.popular && 'testimonial' in service && service.testimonial && (
                         <div className="px-3 pb-2 pt-1 border-t border-border/30">
-                          <div className="flex items-center gap-2 text-[10px]">
+                          <div className="flex items-center gap-2 text-xs">
                             <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
                             <span className="text-muted-foreground italic">
                               &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
@@ -324,7 +324,7 @@ export function ServicePicker() {
                       
                       {/* Disclaimer for General Consult */}
                       {service.id === 'consult' && (
-                        <p className="text-[10px] text-muted-foreground/70 text-center px-3 pb-3">
+                        <p className="text-xs text-muted-foreground/70 text-center px-3 pb-3">
                           Not suitable for emergencies or urgent care.
                         </p>
                       )}
