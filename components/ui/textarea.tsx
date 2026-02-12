@@ -4,8 +4,9 @@ import * as React from "react"
 import { Textarea as HeroTextarea, type TextAreaProps as HeroTextareaProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface TextareaProps extends Omit<HeroTextareaProps, "size"> {
+export interface TextareaProps extends Omit<HeroTextareaProps, "size" | "onChange"> {
   size?: "default" | "sm" | "lg"
+  onChange?: React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>
 }
 
 const sizeMap: Record<string, HeroTextareaProps["size"]> = {
@@ -17,11 +18,13 @@ const sizeMap: Record<string, HeroTextareaProps["size"]> = {
 function Textarea({
   size = "default",
   className,
+  onChange,
   ...props
 }: TextareaProps) {
   return (
     <HeroTextarea
       size={sizeMap[size]}
+      onChange={onChange as HeroTextareaProps["onChange"]}
       radius="md" // Craft: restrained radius
       variant="bordered"
       classNames={{

@@ -648,7 +648,7 @@ export function StreamlinedIntake({
               <Textarea
                 placeholder="E.g., ongoing condition, specific requirements..."
                 value={formData.additionalNotes}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("additionalNotes", e.target.value)}
+                onChange={(e) => updateField("additionalNotes", e.target.value)}
                 className="min-h-20 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
               />
             </FormField>
