@@ -276,20 +276,9 @@ export function QueueClient({
 
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
-    // For med certs - 1-click approval: generate PDF + approve atomically
+    // Med certs MUST go through the document builder for proper review
     if (serviceType === "med_certs") {
-      startTransition(async () => {
-        const result = await generateMedCertPdfAndApproveAction(intakeId, "")
-        if (result.success) {
-          setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
-          const emailNote = result.emailStatus === "sent"
-            ? "Certificate approved and sent to patient."
-            : "Certificate approved. Email will be sent shortly."
-          toast.success(emailNote)
-        } else {
-          toast.error(result.error || "Failed to approve certificate")
-        }
-      })
+      router.push(`/doctor/intakes/${intakeId}/document`)
       return
     }
 

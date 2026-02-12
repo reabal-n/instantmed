@@ -35,7 +35,7 @@ async function tryClaimEvent(
   const { data, error } = await supabase.rpc("try_process_stripe_event", {
     p_event_id: eventId,
     p_event_type: eventType,
-    p_request_id: requestId || null,
+    p_request_id: requestId || null, // RPC param name matches DB function signature
     p_session_id: sessionId || null,
     p_metadata: metadata || {},
   })
@@ -75,7 +75,7 @@ async function legacyClaimEvent(
   const { error: insertError } = await supabase.from("stripe_webhook_events").insert({
     event_id: eventId,
     event_type: eventType,
-    request_id: requestId || null,
+    intake_id: requestId || null,
     session_id: sessionId || null,
     processed_at: new Date().toISOString(),
   })
@@ -570,7 +570,7 @@ export async function POST(request: Request) {
 
         if (patientProfile?.email) {
           notifyPaymentReceived({
-            requestId: intakeId, // Using intakeId for notification tracking
+            intakeId, // Using intakeId for notification tracking
             patientId,
             patientEmail: patientProfile.email,
             patientName: patientProfile.full_name || "Patient",

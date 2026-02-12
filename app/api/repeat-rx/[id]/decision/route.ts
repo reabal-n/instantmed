@@ -112,7 +112,7 @@ export async function POST(
     const { error: decisionError } = await supabase
       .from("clinician_decisions")
       .insert({
-        request_id: id,
+        intake_id: id,
         clinician_id: profile.id,
         decision: body.decision,
         decision_reason: body.decisionReason,
@@ -144,7 +144,7 @@ export async function POST(
     
     // Log audit event (legacy)
     await supabase.from("audit_events").insert({
-      request_id: id,
+      intake_id: id,
       patient_id: existingRequest.patient_id,
       event_type: "clinician_decision",
       payload: {
@@ -228,7 +228,7 @@ export async function POST(
       } catch (scriptErr) {
         log.error("Failed to create script task (non-fatal)", {
           error: scriptErr instanceof Error ? scriptErr.message : "Unknown",
-          requestId: id,
+          intakeId: id,
         })
       }
     }
@@ -244,7 +244,7 @@ export async function POST(
       
       if (patientProfile) {
         await notifyRequestStatusChange({
-          requestId: id,
+          intakeId: id,
           patientId: patientProfile.id,
           patientEmail: patientProfile.email || "",
           patientName: patientProfile.full_name || "there",
@@ -252,13 +252,13 @@ export async function POST(
           newStatus: body.decision === "approved" ? "approved" : body.decision === "declined" ? "declined" : "pending",
           documentUrl: undefined, // PDF generated separately if approved
         })
-        log.info("[Repeat Rx Decision] Patient notified", { requestId: id, decision: body.decision })
+        log.info("[Repeat Rx Decision] Patient notified", { intakeId: id, decision: body.decision })
       }
     } catch (notifyError) {
       // Log but don't fail the request - notification is not critical
       log.error("[Repeat Rx Decision] Failed to notify patient", { 
         error: notifyError instanceof Error ? notifyError.message : "Unknown error",
-        requestId: id 
+        intakeId: id
       })
     }
     

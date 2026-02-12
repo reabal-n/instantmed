@@ -13,7 +13,6 @@ export interface AuditLog {
   id: string
   action: string
   intake_id: string | null
-  request_id: string | null // Legacy - use intake_id for new code
   profile_id: string | null
   admin_action_id: string | null
   actor_id: string | null

@@ -629,7 +629,7 @@ export async function getCertificateWithPdfUrl(
   intakeId: string
 ): Promise<{
   id: string
-  request_id: string
+  intake_id: string
   type: string
   subtype: string
   pdf_url: string
@@ -660,7 +660,7 @@ export async function getCertificateWithPdfUrl(
   
   return {
     id: certificate.id,
-    request_id: intakeId,
+    intake_id: intakeId,
     type: "med_cert",
     subtype: certificate.certificate_type,
     pdf_url: signedUrlData.signedUrl,

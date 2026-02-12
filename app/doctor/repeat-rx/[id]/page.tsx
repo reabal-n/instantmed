@@ -94,7 +94,7 @@ async function getRequestData(id: string) {
   
   // Log that clinician viewed this request (legacy)
   await supabase.from("audit_events").insert({
-    request_id: id,
+    intake_id: id,
     patient_id: request.patient_id,
     event_type: "clinician_viewed",
     payload: {

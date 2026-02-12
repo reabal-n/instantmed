@@ -264,7 +264,7 @@ async function testInsertPayment() {
   return await supabase
     .from("payments")
     .insert({
-      request_id: testRequestId,
+      intake_id: testRequestId,
       stripe_session_id: "fake_session_" + Date.now(),
       amount: 100,
       currency: "aud",
@@ -289,7 +289,7 @@ async function testInsertDocument() {
   return await supabase
     .from("documents")
     .insert({
-      request_id: testRequestId,
+      intake_id: testRequestId,
       type: "med_cert",
       pdf_url: "https://fake.url/doc.pdf",
     })

@@ -40,7 +40,7 @@ interface AuditLogEntry {
   action: AuditAction
   actorId?: string
   actorType?: "patient" | "doctor" | "admin" | "system"
-  requestId?: string
+  intakeId?: string
   fromState?: string
   toState?: string
   metadata?: Record<string, unknown>
@@ -91,7 +91,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       action: entry.action,
       actor_id: entry.actorId,
       actor_type: entry.actorType,
-      request_id: entry.requestId,
+      intake_id: entry.intakeId,
       from_state: entry.fromState,
       to_state: entry.toState,
       metadata: sanitizedMetadata,
@@ -99,7 +99,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       user_agent: entry.userAgent,
       created_at: new Date().toISOString(),
     })
-    
+
     if (error) {
       // Queue for retry on DB error
       if (failedAuditQueue.length < MAX_FAILED_QUEUE_SIZE) {
@@ -148,7 +148,7 @@ export async function retryFailedAuditEvents(): Promise<{ processed: number; fai
         action: entry.action,
         actor_id: entry.actorId,
         actor_type: entry.actorType,
-        request_id: entry.requestId,
+        intake_id: entry.intakeId,
         from_state: entry.fromState,
         to_state: entry.toState,
         metadata: sanitizedMetadata,
@@ -156,7 +156,7 @@ export async function retryFailedAuditEvents(): Promise<{ processed: number; fai
         user_agent: entry.userAgent,
         created_at: new Date().toISOString(),
       })
-      
+
       if (error) {
         stillFailed.push(entry)
       } else {
@@ -195,7 +195,7 @@ export async function logLoginFailed(email: string, ipAddress?: string, reason?:
 export async function logRequestAction(
   action: "request_created" | "request_approved" | "request_declined" | "request_updated",
   actorId: string,
-  requestId: string,
+  intakeId: string,
   actorType: "patient" | "doctor" | "admin" | "system" = "patient",
   metadata?: Record<string, unknown>
 ) {
@@ -203,7 +203,7 @@ export async function logRequestAction(
     action,
     actorId,
     actorType,
-    requestId,
+    intakeId,
     metadata,
   })
 }
@@ -212,13 +212,13 @@ export async function logDocumentAction(
   action: "document_generated" | "document_downloaded",
   actorId: string,
   documentId: string,
-  requestId?: string
+  intakeId?: string
 ) {
   await logAuditEvent({
     action,
     actorId,
     actorType: "doctor",
-    requestId,
+    intakeId,
     metadata: { documentId },
   })
 }
@@ -239,7 +239,7 @@ export async function logAdminAction(
 export async function logRefundAction(
   action: "refund_attempted" | "refund_succeeded" | "refund_failed",
   actorId: string,
-  requestId: string,
+  intakeId: string,
   metadata: {
     category?: string
     amount?: number
@@ -252,7 +252,7 @@ export async function logRefundAction(
     action,
     actorId,
     actorType: "doctor",
-    requestId,
+    intakeId,
     metadata,
   })
 }
@@ -266,7 +266,7 @@ export async function logIntakeClaim(
     action,
     actorId: doctorId,
     actorType: "doctor",
-    requestId: intakeId,
+    intakeId,
   })
 }
 
@@ -282,7 +282,7 @@ export async function logEmailEvent(
   await logAuditEvent({
     action,
     actorType: "system",
-    requestId: intakeId,
+    intakeId,
     metadata,
   })
 }
@@ -296,7 +296,7 @@ export async function logWebhookFailure(
   await logAuditEvent({
     action: "webhook_failed",
     actorType: "system",
-    requestId: intakeId || undefined,
+    intakeId: intakeId || undefined,
     metadata: { eventId, eventType, error },
   })
 }
@@ -313,7 +313,7 @@ export async function logAiDraftEvent(
   await logAuditEvent({
     action,
     actorType: "system",
-    requestId: intakeId,
+    intakeId,
     metadata,
   })
 }
@@ -332,7 +332,7 @@ export async function logPaymentEvent(
     action,
     actorId: patientId,
     actorType: "patient",
-    requestId: intakeId,
+    intakeId,
     metadata,
   })
 }
@@ -349,7 +349,7 @@ export async function logStateTransition(
     action: "state_change",
     actorId,
     actorType,
-    requestId: intakeId,
+    intakeId,
     fromState,
     toState,
     metadata,

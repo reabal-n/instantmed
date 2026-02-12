@@ -18,7 +18,7 @@ interface CreateNotificationParams {
 }
 
 interface NotifyRequestStatusParams {
-  requestId: string
+  intakeId: string
   patientId: string
   patientEmail: string
   patientName: string
@@ -64,7 +64,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
  */
 export async function notifyRequestStatusChange(params: NotifyRequestStatusParams): Promise<void> {
   const {
-    requestId,
+    intakeId,
     patientId,
     patientEmail,
     patientName,
@@ -74,7 +74,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
     declineReason,
   } = params
 
-  const actionUrl = `/patient/intakes/${requestId}`
+  const actionUrl = `/patient/intakes/${intakeId}`
 
   try {
     switch (newStatus) {
@@ -86,7 +86,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           title: "Your request has been approved",
           message: "A doctor has approved your request. Your document is ready to download.",
           actionUrl,
-          metadata: { requestId, requestType, status: newStatus },
+          metadata: { intakeId, requestType, status: newStatus },
         })
 
         // NOTE: Approval emails are sent by each canonical approval action directly:
@@ -101,7 +101,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           posthog.capture({
             distinctId: patientId,
             event: 'request_approved',
-            properties: { request_type: requestType, request_id: requestId },
+            properties: { request_type: requestType, intake_id: intakeId },
           })
         } catch { /* non-blocking */ }
         break
@@ -115,7 +115,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           title: "Update on your request",
           message: "A doctor has reviewed your request. Please check the details for more information.",
           actionUrl,
-          metadata: { requestId, requestType, status: newStatus, reason: declineReason },
+          metadata: { intakeId, requestType, status: newStatus, reason: declineReason },
         })
 
         // Email notification via canonical sendEmail system
@@ -123,11 +123,11 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           to: patientEmail,
           patientName,
           patientId,
-          intakeId: requestId,
+          intakeId,
           requestType,
           reason: declineReason,
         })
-        logger.info("Decline email sent", { requestId, patientEmail })
+        logger.info("Decline email sent", { intakeId, patientEmail })
 
         // Track email sent in PostHog
         try {
@@ -135,7 +135,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           posthog.capture({
             distinctId: patientId,
             event: 'email_sent',
-            properties: { template: 'decline', request_id: requestId },
+            properties: { template: 'decline', intake_id: intakeId },
           })
         } catch { /* non-blocking */ }
         break
@@ -149,18 +149,18 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           title: "Doctor needs more information",
           message: "The doctor reviewing your request needs some additional information from you.",
           actionUrl,
-          metadata: { requestId, requestType, status: newStatus },
+          metadata: { intakeId, requestType, status: newStatus },
         })
         break
       }
 
       default:
-        logger.debug("No notification for status", { newStatus, requestId })
+        logger.debug("No notification for status", { newStatus, intakeId })
     }
   } catch (err) {
     logger.error("Failed to send status notifications", {
       error: err instanceof Error ? err.message : "Unknown",
-      requestId,
+      intakeId,
       newStatus,
     })
   }
@@ -170,29 +170,29 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
  * Send payment confirmation notification
  */
 export async function notifyPaymentReceived(params: {
-  requestId: string
+  intakeId: string
   patientId: string
   patientEmail: string
   patientName: string
   amount: number
 }): Promise<void> {
-  const { requestId, patientId, amount } = params
+  const { intakeId, patientId, amount } = params
 
   try {
     await createNotification({
       userId: patientId,
       type: "payment",
-      title: "Payment received ✓",
+      title: "Payment received",
       message: `Your payment of $${(amount / 100).toFixed(2)} has been confirmed. A doctor will review your request shortly.`,
-      actionUrl: `/patient/intakes/${requestId}`,
-      metadata: { requestId, amount },
+      actionUrl: `/patient/intakes/${intakeId}`,
+      metadata: { intakeId, amount },
     })
 
-    logger.info("Payment notification created", { requestId, patientId })
+    logger.info("Payment notification created", { intakeId, patientId })
   } catch (err) {
     logger.error("Failed to create payment notification", {
       error: err instanceof Error ? err.message : "Unknown",
-      requestId,
+      intakeId,
     })
   }
 }

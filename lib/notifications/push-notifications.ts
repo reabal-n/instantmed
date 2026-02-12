@@ -213,7 +213,7 @@ class PushNotificationManager {
     } else if (payload.data?.intakeId) {
       window.location.href = `/patient/intakes/${String(payload.data.intakeId)}`
     } else if (payload.data?.requestId) {
-      window.location.href = `/track/${String(payload.data.requestId)}`
+      window.location.href = `/track/${String(payload.data.requestId)}` // Legacy fallback
     }
 
     logger.info("Notification clicked", { data: payload.data })

@@ -1,11 +1,25 @@
 import "server-only"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { isPermanentStorageUrl } from "../storage/documents"
+
+/**
+ * Check if a document URL points to permanent Supabase Storage.
+ * Returns true if the URL is a Supabase Storage public/signed URL for the documents bucket.
+ */
+function isPermanentStorageUrl(url: string): boolean {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl) return false
+    const baseUrl = `${supabaseUrl}/storage/v1/object/`
+    return url.startsWith(baseUrl)
+  } catch {
+    return false
+  }
+}
 
 /**
  * Approval Invariant Checks
- * 
+ *
  * These checks MUST pass before any intake can be approved.
  * If any check fails, approval is blocked with a hard error.
  */

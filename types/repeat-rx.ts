@@ -165,7 +165,7 @@ export interface ClinicalSummary {
   }
   
   // Request info
-  requestId: string
+  intakeId: string
   requestedAt: string
   
   // Medication
@@ -261,7 +261,7 @@ export interface RepeatRxRequest {
 
 export interface RepeatRxAnswer {
   id: string
-  request_id: string
+  intake_id: string
   question_key: string
   question_text: string
   answer_value: unknown
@@ -276,7 +276,7 @@ export interface RepeatRxAnswer {
 export interface AuditEvent {
   id: string
   event_type: AuditEventType
-  request_id: string | null
+  intake_id: string | null
   patient_id: string | null
   clinician_id: string | null
   event_data: Record<string, unknown>
@@ -290,7 +290,7 @@ export interface AuditEvent {
 
 export interface ClinicianDecisionRecord {
   id: string
-  request_id: string
+  intake_id: string
   clinician_id: string
   decision: ClinicianDecision
   decision_reason: string
@@ -338,8 +338,8 @@ export interface RepeatRxFlowState {
   answers: Partial<RepeatRxIntakeAnswers>
   
   // Request
-  requestId: string | null
-  
+  intakeId: string | null
+
   // Consent timestamps
   emergencyDisclaimerTimestamp: string | null
   gpAttestationTimestamp: string | null
@@ -403,7 +403,7 @@ export interface EligibilityCheckPayload {
 }
 
 export interface ClinicianDecisionPayload {
-  requestId: string
+  intakeId: string
   decision: ClinicianDecision
   decisionReason: string
   medication?: MedicationSelection

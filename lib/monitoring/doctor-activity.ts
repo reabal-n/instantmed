@@ -207,7 +207,7 @@ export async function getDoctorPerformance(
   
   // Get review times from request_latency
   const requestIds = decisions
-    .map(d => (d.metadata as { request_id?: string })?.request_id)
+    .map(d => (d.metadata as { intake_id?: string })?.intake_id)
     .filter(Boolean)
   
   let avgReviewTimeMs = 0
@@ -215,7 +215,7 @@ export async function getDoctorPerformance(
     const { data: latencies } = await supabase
       .from("request_latency")
       .select("review_to_decision_ms")
-      .in("request_id", requestIds)
+      .in("intake_id", requestIds)
       .not("review_to_decision_ms", "is", null)
     
     if (latencies && latencies.length > 0) {

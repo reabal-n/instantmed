@@ -390,10 +390,10 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                     <p>{selectedLog.actor.full_name} ({selectedLog.actor.email})</p>
                   </div>
                 )}
-                {(selectedLog.intake_id || selectedLog.request_id) && (
+                {selectedLog.intake_id && (
                   <div>
                     <Label className="text-muted-foreground">Intake ID</Label>
-                    <p className="font-mono text-xs">{selectedLog.request_id}</p>
+                    <p className="font-mono text-xs">{selectedLog.intake_id}</p>
                   </div>
                 )}
                 {selectedLog.client_ip && (

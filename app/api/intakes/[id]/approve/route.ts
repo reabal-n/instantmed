@@ -91,7 +91,7 @@ export async function POST(
     const { data: draft } = await supabase
       .from("document_drafts")
       .select("data")
-      .eq("request_id", intakeId)
+      .eq("intake_id", intakeId)
       .eq("type", "med_cert")
       .maybeSingle()
     

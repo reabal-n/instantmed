@@ -709,14 +709,14 @@ async function validateSeededData(): Promise<ValidationResult[]> {
   // 6. Document draft exists
   const { data: draft } = await supabase
     .from("document_drafts")
-    .select("id, request_id")
+    .select("id, intake_id")
     .eq("id", DRAFT_ID)
     .single()
 
   results.push({
     name: "Document draft exists for intake",
-    passed: draft?.request_id === INTAKE_ID,
-    message: draft ? `linked to ${draft.request_id}` : "NOT FOUND",
+    passed: draft?.intake_id === INTAKE_ID,
+    message: draft ? `linked to ${draft.intake_id}` : "NOT FOUND",
   })
 
   return results

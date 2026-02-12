@@ -123,9 +123,11 @@ function mapEventToEmailStatus(eventType: ResendEventType): string | null {
     case "email.sent":
       return "sent"
     case "email.delivered":
-      return "delivered"
+      // Map to 'sent' (the closest valid status in our CHECK constraint)
+      // Delivery tracking is handled separately via delivery_status column
+      return "sent"
     case "email.bounced":
-      return "bounced"
+      return "failed"
     default:
       return null
   }

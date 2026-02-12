@@ -343,6 +343,13 @@ export async function approveAndSendCert(
       logger.error("Atomic approval failed", { intakeId, error: atomicResult.error })
       // Release the claim since atomic operation failed
       await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      // Clean up orphaned PDF from storage (non-blocking — don't let cleanup failure mask the real error)
+      try {
+        await supabase.storage.from("documents").remove([storagePath])
+        logger.info("Cleaned up orphaned PDF after atomic approval failure", { intakeId, storagePath })
+      } catch (cleanupErr) {
+        logger.warn("Failed to clean up orphaned PDF — manual cleanup needed", { intakeId, storagePath, error: String(cleanupErr) })
+      }
       return { success: false, error: atomicResult.error || "Failed to create certificate records" }
     }
 

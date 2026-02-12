@@ -79,6 +79,7 @@ const productionRequirements = z.object({
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   STRIPE_PRICE_CONSULT: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT"),
   CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
+  RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
 })
 
 /**

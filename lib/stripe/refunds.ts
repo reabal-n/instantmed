@@ -136,7 +136,7 @@ export async function refundIfEligible(
       const { data: payment } = await supabase
         .from("payments")
         .select("stripe_payment_intent_id, amount, stripe_refund_id, refund_status, refund_amount")
-        .eq("request_id", intakeId)
+        .eq("intake_id", intakeId)
         .eq("status", "paid")
         .single()
 
@@ -286,7 +286,7 @@ export async function refundIfEligible(
         refunded_at: timestamp,
         updated_at: timestamp,
       })
-      .eq("request_id", intakeId)
+      .eq("intake_id", intakeId)
 
     // Log refund success
     await logRefundAction("refund_succeeded", actorId, intakeId, {
@@ -331,7 +331,7 @@ export async function getRefundStatus(requestId: string): Promise<{
   const { data: payment, error } = await supabase
     .from("payments")
     .select("refund_status, refund_reason, refunded_at, refund_amount")
-    .eq("request_id", requestId)
+    .eq("intake_id", requestId)
     .single()
 
   if (error || !payment) {

@@ -4,7 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { TrackingClient } from "./tracking-client"
 
 interface PageProps {
-  params: Promise<{ requestId: string }>
+  params: Promise<{ intakeId: string }>
 }
 
 export const dynamic = "force-dynamic"
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export default async function TrackingPage({ params }: PageProps) {
-  const { requestId } = await params
+  const { intakeId } = await params
   const supabase = createServiceRoleClient()
 
   // Get the intake with patient profile
@@ -28,7 +28,7 @@ export default async function TrackingPage({ params }: PageProps) {
         id
       )
     `)
-    .eq("id", requestId)
+    .eq("id", intakeId)
     .single()
 
   if (error || !intake) {
@@ -47,7 +47,6 @@ export default async function TrackingPage({ params }: PageProps) {
     queuePosition = (count || 0) + 1
   }
 
-  // Calculate estimated wait time (avg 15 min per request)
   const estimatedMinutes = queuePosition * 15
 
   return <TrackingClient intake={intake} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />

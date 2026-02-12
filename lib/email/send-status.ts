@@ -258,7 +258,7 @@ export async function sendStatusEmail(params: SendStatusEmailParams): Promise<{ 
       html,
       tags: [
         { name: "template", value: template },
-        ...(requestId ? [{ name: "request_id", value: requestId }] : []),
+        ...(requestId ? [{ name: "intake_id", value: requestId }] : []),
       ],
     })
 

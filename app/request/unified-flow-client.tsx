@@ -200,10 +200,10 @@ function TestPaymentHint() {
 }
 
 function SkipPaymentButton({
-  requestId: _requestId,
+  intakeId: _intakeId,
   onSuccess: _onSuccess,
 }: {
-  requestId: string | null
+  intakeId: string | null
   onSuccess: () => void
 }) {
   // Skip payment test mode removed - use Stripe test cards instead
@@ -755,16 +755,16 @@ export function UnifiedFlowClient({
   ])
 
   // Extract the ID for the skip button
-  const [requestId, setRequestId] = useState<string | null>(null)
+  const [intakeId, setIntakeId] = useState<string | null>(null)
 
-  // If the user is authenticated and the patientId exists, we can potentially get the request ID after submission
+  // If the user is authenticated and the patientId exists, we can potentially get the intake ID after submission
   useEffect(() => {
     if (isAuthenticated && patientId) {
-      // This is a placeholder. In a real application, you would fetch the request ID
+      // This is a placeholder. In a real application, you would fetch the intake ID
       // after the initial submission and before the payment step.
       // For now, we'll just use a dummy value for testing.
       if (isTestMode) {
-        setRequestId("test-request-123")
+        setIntakeId("test-request-123")
       }
     }
   }, [isAuthenticated, patientId])
@@ -1372,7 +1372,7 @@ export function UnifiedFlowClient({
 
             {/* Add skip payment button in review step */}
             <SkipPaymentButton
-              requestId={requestId}
+              intakeId={intakeId}
               onSuccess={() => {
                 localStorage.removeItem(STORAGE_KEY)
                 window.location.href = "/success" // Or wherever your success page is

@@ -27,7 +27,7 @@ export type TransitionResult = {
 }
 
 export type TransitionParams = {
-  requestId: string
+  intakeId: string
   fromState: RequestState
   toState: RequestState
   actorId?: string
@@ -41,7 +41,7 @@ export type TransitionParams = {
  * Execute a state transition with audit logging
  */
 export async function executeTransition(params: TransitionParams): Promise<TransitionResult> {
-  const { requestId, fromState, toState, actorId, actorType, metadata, ipAddress, userAgent } = params
+  const { intakeId, fromState, toState, actorId, actorType, metadata, ipAddress, userAgent } = params
 
   // Validate transition
   if (!canTransition(fromState, toState)) {
@@ -68,7 +68,7 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
       updateData.reviewed_by = actorId
     }
 
-    const { error: updateError } = await supabase.from("intakes").update(updateData).eq("id", requestId)
+    const { error: updateError } = await supabase.from("intakes").update(updateData).eq("id", intakeId)
 
     if (updateError) {
       // Server-side error logging
@@ -80,7 +80,7 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
 
     // Create audit log with sanitized metadata
     await supabase.from("audit_logs").insert({
-      request_id: requestId,
+      intake_id: intakeId,
       actor_id: actorId,
       actor_type: actorType,
       action: trigger || "state_change",
@@ -110,13 +110,13 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
 /**
  * Get audit history for a request
  */
-export async function getAuditHistory(requestId: string) {
+export async function getAuditHistory(intakeId: string) {
   const supabase = getServiceClient()
 
   const { data, error } = await supabase
     .from("audit_logs")
     .select("*")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .order("created_at", { ascending: true })
 
   if (error) {

@@ -233,7 +233,7 @@ export async function processRefundAction(
     action: "refund_attempted",
     actorId: admin.id,
     actorType: "admin",
-    requestId: intakeId,
+    intakeId,
     fromState: "eligible",
     toState: "processing",
     metadata: {
@@ -255,7 +255,7 @@ export async function processRefundAction(
       action: "refund_succeeded",
       actorId: admin.id,
       actorType: "admin",
-      requestId: intakeId,
+      intakeId,
       fromState: "processing",
       toState: "refunded",
       metadata: {
@@ -272,7 +272,7 @@ export async function processRefundAction(
       action: "refund_failed",
       actorId: admin.id,
       actorType: "admin",
-      requestId: intakeId,
+      intakeId,
       fromState: "processing",
       toState: "failed",
       metadata: {

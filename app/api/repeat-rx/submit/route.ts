@@ -116,7 +116,7 @@ export async function POST(request: Request) {
         email: guestEmail || "",
         isGuest,
       },
-      requestId: "", // Will be filled after insert
+      intakeId: "", // Will be filled after insert
       requestedAt: new Date().toISOString(),
       medication,
       clinicalData: {
@@ -187,19 +187,19 @@ export async function POST(request: Request) {
       throw new Error(`Failed to create request: ${requestError.message}`)
     }
     
-    const requestId = requestData.id
-    
+    const intakeId = requestData.id
+
     // Store immutable answers
     await serviceClient.from("repeat_rx_answers").insert({
-      request_id: requestId,
+      intake_id: intakeId,
       patient_id: patientId,
       version: 1,
       answers: answers,
     })
-    
+
     // Log audit event
     await serviceClient.from("audit_events").insert({
-      request_id: requestId,
+      intake_id: intakeId,
       patient_id: patientId,
       event_type: "request_submitted",
       payload: {
@@ -215,7 +215,7 @@ export async function POST(request: Request) {
     
     return NextResponse.json({
       success: true,
-      requestId,
+      intakeId,
       status: eligibilityResult.passed ? "pending" : "requires_consult",
       message: eligibilityResult.passed
         ? "Your request has been submitted and is awaiting review."

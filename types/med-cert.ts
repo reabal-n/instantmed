@@ -98,7 +98,7 @@ export interface MedCertIntakeData {
 
 export interface MedCertAuditPayload {
   // Request context
-  requestId: string
+  intakeId: string
   sessionId?: string
   
   // Symptom capture (exactly as selected)
@@ -150,7 +150,7 @@ export interface MedCertClinicalSummary {
   }
   
   // Request
-  requestId: string
+  intakeId: string
   submittedAt: string
   
   // Certificate details
@@ -204,7 +204,7 @@ export interface MedCertClinicalSummary {
 export interface GeneratedCertificate {
   // Identity
   certificateId: string
-  requestId: string
+  intakeId: string
   
   // Content
   patientName: string
@@ -292,7 +292,7 @@ export interface MedCertRequest {
 export interface MedCertAuditEvent {
   id: string
   event_type: AuditEventType
-  request_id: string | null
+  intake_id: string | null
   patient_id: string | null
   clinician_id: string | null
   event_data: Record<string, unknown>
@@ -306,7 +306,7 @@ export interface MedCertAuditEvent {
 
 export interface MedCertDecision {
   id: string
-  request_id: string
+  intake_id: string
   clinician_id: string
   decision: ClinicianDecision
   decision_reason: string
@@ -341,8 +341,8 @@ export interface MedCertFlowState {
   formData: Partial<MedCertIntakeData>
   
   // Request
-  requestId: string | null
-  
+  intakeId: string | null
+
   // Escalation
   isEscalatedToCall: boolean
 }
@@ -405,7 +405,7 @@ export interface MedCertSubmitPayload {
 }
 
 export interface MedCertDecisionPayload {
-  requestId: string
+  intakeId: string
   decision: ClinicianDecision
   decisionReason: string
   clinicalNotes?: string

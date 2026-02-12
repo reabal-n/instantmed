@@ -19,9 +19,17 @@ import {
   Briefcase,
   GraduationCap,
   Heart,
+  AlertTriangle,
+  Brain,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
 import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
+
+interface AIDrafts {
+  clinicalNote: Record<string, unknown> | null
+  medCert: Record<string, unknown> | null
+  flags: { requiresReview: boolean; flagReason: string | null } | null
+}
 
 interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
@@ -29,6 +37,7 @@ interface DocumentBuilderClientProps {
   existingDocument: GeneratedDocument | null
   patientAge: number
   hasCredentials: boolean
+  aiDrafts?: AIDrafts | null
 }
 
 function getSubtypeIcon(subtype: string | null) {
@@ -61,6 +70,7 @@ export function DocumentBuilderClient({
   existingDocument,
   patientAge,
   hasCredentials,
+  aiDrafts,
 }: DocumentBuilderClientProps) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
@@ -116,6 +126,27 @@ export function DocumentBuilderClient({
     setActionMessage(null)
 
     try {
+      // Save current form data to draft before approving — the server action
+      // reads dates from the database, so unsaved form edits would be lost.
+      const updatedData: MedCertDraftData = {
+        patient_name: formData.patientName,
+        dob: formData.dob,
+        date_from: formData.dateFrom,
+        date_to: formData.dateTo,
+        reason: formData.reason,
+        work_capacity: formData.workCapacity,
+        notes: formData.notes,
+        doctor_name: "",
+        provider_number: "",
+        created_date: new Date().toISOString().split("T")[0],
+        certificate_type: certType as "work" | "uni" | "carer",
+      }
+      const saveResult = await saveMedCertDraftAction(draft.id, updatedData)
+      if (!saveResult.success) {
+        setActionMessage({ type: "error", text: saveResult.error || "Failed to save draft before approval" })
+        return
+      }
+
       const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
 
       if (result.success) {
@@ -178,6 +209,62 @@ export function DocumentBuilderClient({
                 <Link href="/doctor/settings/identity">Configure Certificate Identity →</Link>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Review Flags — requires doctor attention */}
+      {aiDrafts?.flags?.requiresReview && (
+        <Card className="bg-amber-50 border-amber-300">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-amber-800">AI Flag: Requires Extra Review</p>
+                {aiDrafts.flags.flagReason && (
+                  <p className="text-sm text-amber-700 mt-1">{aiDrafts.flags.flagReason}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Clinical Note — pre-consultation summary for doctor */}
+      {aiDrafts?.clinicalNote && (
+        <Card className="border-blue-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800">
+              <Brain className="h-4 w-4" />
+              AI Clinical Summary
+              <span className="text-xs font-normal text-blue-500 ml-auto">Auto-generated — review before issuing</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2 text-gray-700">
+            {Boolean(aiDrafts.clinicalNote.presentingComplaint) && (
+              <div>
+                <span className="font-medium text-gray-900">Presenting Complaint: </span>
+                {String(aiDrafts.clinicalNote.presentingComplaint)}
+              </div>
+            )}
+            {Boolean(aiDrafts.clinicalNote.historyOfPresentIllness) && (
+              <div>
+                <span className="font-medium text-gray-900">History: </span>
+                {String(aiDrafts.clinicalNote.historyOfPresentIllness)}
+              </div>
+            )}
+            {Boolean(aiDrafts.clinicalNote.relevantInformation) && (
+              <div>
+                <span className="font-medium text-gray-900">Relevant Info: </span>
+                {String(aiDrafts.clinicalNote.relevantInformation)}
+              </div>
+            )}
+            {Boolean(aiDrafts.clinicalNote.certificateDetails) && (
+              <div>
+                <span className="font-medium text-gray-900">Certificate Details: </span>
+                {String(aiDrafts.clinicalNote.certificateDetails)}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

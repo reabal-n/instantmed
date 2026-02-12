@@ -29,7 +29,7 @@ export async function recordDocumentGeneration(
   const supabase = createServiceRoleClient()
   
   await supabase.from("document_generation_metrics").insert({
-    request_id: metrics.requestId,
+    intake_id: metrics.requestId,
     document_type: metrics.documentType,
     success: metrics.success,
     latency_ms: metrics.latencyMs,

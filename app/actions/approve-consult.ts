@@ -103,7 +103,7 @@ export async function approveConsultAction(
       action: "state_change",
       actorId: doctorProfile.id,
       actorType: "doctor",
-      requestId: intakeId,
+      intakeId,
       fromState: intake.status,
       toState: "approved",
       metadata: {
@@ -178,7 +178,7 @@ export async function approveConsultAction(
 
     // Create in-app notification
     await createNotification({
-      userId: patient.auth_user_id,
+      userId: patient.id,
       type: "request_update",
       title: "Your consultation has been reviewed",
       message: "Your doctor has reviewed your request. Check your email for details.",

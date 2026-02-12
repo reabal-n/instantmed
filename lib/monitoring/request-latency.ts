@@ -10,13 +10,13 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface RequestLatencyData {
-  requestId: string
+  intakeId: string
   paymentAt: string | null
   queuedAt: string | null
   assignedAt: string | null
   reviewStartedAt: string | null
   decisionAt: string | null
-  
+
   // Calculated latencies (milliseconds)
   paymentToQueueMs: number | null
   queueToReviewMs: number | null
@@ -27,30 +27,30 @@ export interface RequestLatencyData {
 /**
  * Record payment completion timestamp
  */
-export async function recordPaymentCompleted(requestId: string): Promise<void> {
+export async function recordPaymentCompleted(intakeId: string): Promise<void> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   await supabase
     .from("request_latency")
     .upsert({
-      request_id: requestId,
+      intake_id: intakeId,
       payment_at: now,
       queued_at: now, // Payment = queued for us
-    }, { onConflict: "request_id" })
+    }, { onConflict: "intake_id" })
 }
 
 /**
  * Record when doctor is assigned to request
  */
-export async function recordDoctorAssigned(requestId: string, doctorId: string): Promise<void> {
+export async function recordDoctorAssigned(intakeId: string, doctorId: string): Promise<void> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   const { data: existing } = await supabase
     .from("request_latency")
     .select("queued_at")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .single()
 
   const queueToAssignMs = existing?.queued_at
@@ -60,24 +60,24 @@ export async function recordDoctorAssigned(requestId: string, doctorId: string):
   await supabase
     .from("request_latency")
     .upsert({
-      request_id: requestId,
+      intake_id: intakeId,
       assigned_at: now,
       assigned_doctor_id: doctorId,
       queue_to_assign_ms: queueToAssignMs,
-    }, { onConflict: "request_id" })
+    }, { onConflict: "intake_id" })
 }
 
 /**
  * Record when doctor starts reviewing (opens the case)
  */
-export async function recordReviewStarted(requestId: string): Promise<void> {
+export async function recordReviewStarted(intakeId: string): Promise<void> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   const { data: existing } = await supabase
     .from("request_latency")
     .select("queued_at, assigned_at")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .single()
 
   const queueToReviewMs = existing?.queued_at
@@ -87,17 +87,17 @@ export async function recordReviewStarted(requestId: string): Promise<void> {
   await supabase
     .from("request_latency")
     .upsert({
-      request_id: requestId,
+      intake_id: intakeId,
       review_started_at: now,
       queue_to_review_ms: queueToReviewMs,
-    }, { onConflict: "request_id" })
+    }, { onConflict: "intake_id" })
 }
 
 /**
  * Record when decision is made (approved/declined)
  */
 export async function recordDecisionMade(
-  requestId: string,
+  intakeId: string,
   decision: "approved" | "declined" | "needs_call"
 ): Promise<RequestLatencyData | null> {
   const supabase = createServiceRoleClient()
@@ -106,7 +106,7 @@ export async function recordDecisionMade(
   const { data: existing } = await supabase
     .from("request_latency")
     .select("*")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .single()
 
   if (!existing) {
@@ -129,7 +129,7 @@ export async function recordDecisionMade(
       review_to_decision_ms: reviewToDecisionMs,
       total_latency_ms: totalLatencyMs,
     })
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
 
   // Check for SLA breach
   if (totalLatencyMs && totalLatencyMs > 60 * 60 * 1000) {
@@ -137,7 +137,7 @@ export async function recordDecisionMade(
       level: "warning",
       tags: { alert_type: "latency_warning" },
       extra: {
-        requestId,
+        intakeId,
         totalLatencyMs,
         totalMinutes: Math.round(totalLatencyMs / 60000),
       },
@@ -145,7 +145,7 @@ export async function recordDecisionMade(
   }
 
   return {
-    requestId,
+    intakeId,
     paymentAt: existing.payment_at,
     queuedAt: existing.queued_at,
     assignedAt: existing.assigned_at,

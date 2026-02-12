@@ -10,7 +10,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface DateChangeRequest {
-  requestId: string
+  intakeId: string
   originalDate: string
   requestedDate: string
   reason: string
@@ -56,7 +56,7 @@ export function isDateChangeAllowed(
  * Request a date change (for audit trail)
  */
 export async function requestDateChange(
-  requestId: string,
+  intakeId: string,
   originalDate: string,
   requestedDate: string,
   reason: string,
@@ -66,7 +66,7 @@ export async function requestDateChange(
 
   // Log the request attempt
   const { error } = await supabase.from("date_change_requests").insert({
-    request_id: requestId,
+    intake_id: intakeId,
     original_date: originalDate,
     requested_date: requestedDate,
     reason,
@@ -82,7 +82,7 @@ export async function requestDateChange(
   // Also log to audit trail
   await supabase.from("audit_logs").insert({
     action: "date_change_requested",
-    request_id: requestId,
+    intake_id: intakeId,
     details: {
       originalDate,
       requestedDate,
@@ -143,7 +143,7 @@ export async function processDateChangeRequest(
           value: JSON.stringify(request.requested_date),
         }),
       })
-      .eq("id", request.request_id)
+      .eq("id", request.intake_id)
 
     if (certError) {
       return { success: false, error: "Failed to update certificate date" }
@@ -153,7 +153,7 @@ export async function processDateChangeRequest(
   // Log to audit trail
   await supabase.from("audit_logs").insert({
     action: `date_change_${decision}`,
-    request_id: request.request_id,
+    intake_id: request.intake_id,
     details: {
       originalDate: request.original_date,
       requestedDate: request.requested_date,

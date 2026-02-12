@@ -38,9 +38,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { requestId, status, doctorName, declineReason } = await request.json()
+    const body = await request.json()
+    const intakeId = body.intakeId || body.requestId // backward compat
+    const { status, doctorName, declineReason } = body
 
-    if (!requestId || !status) {
+    if (!intakeId || !status) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -62,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (templateType) {
-      await sendStatusTransitionEmail(requestId, templateType, additionalData)
+      await sendStatusTransitionEmail(intakeId, templateType, additionalData)
     }
 
     return NextResponse.json({ success: true })

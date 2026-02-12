@@ -304,8 +304,8 @@ export async function claimIntakeAction(
     Sentry.captureException(error, {
       tags: { action: "claim_intake", intake_id: intakeId, step_id: "claim_outer_catch" },
     })
-    // Graceful fallback if function doesn't exist
-    return { success: true }
+    // Return failure — do NOT silently succeed on unknown errors
+    return { success: false, error: "Failed to claim intake for review. Please try again." }
   }
 }
 

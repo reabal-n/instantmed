@@ -49,7 +49,7 @@ export async function releaseStaleClaimsWithLogging(
     // Log to audit table
     await supabase.from("audit_logs").insert({
       action: "claim_auto_released",
-      request_id: claim.id,
+      intake_id: claim.id,
       actor_id: claim.claimed_by,
       metadata: {
         reason: "session_timeout",

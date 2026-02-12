@@ -19,7 +19,8 @@ const log = createLogger("ai-review-summary-batch")
  */
 
 interface BatchRequest {
-  requestIds: string[]
+  intakeIds: string[]
+  requestIds?: string[] // backward compat
 }
 
 interface RequestData {
@@ -45,17 +46,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body: BatchRequest = await req.json()
-    const { requestIds } = body
+    const intakeIds = body.intakeIds || body.requestIds // backward compat
 
-    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+    if (!intakeIds || !Array.isArray(intakeIds) || intakeIds.length === 0) {
       return NextResponse.json(
-        { error: "requestIds array required" },
+        { error: "intakeIds array required" },
         { status: 400 }
       )
     }
 
     // Limit batch size to prevent abuse
-    const limitedIds = requestIds.slice(0, 10)
+    const limitedIds = intakeIds.slice(0, 10)
 
     // Fetch intake data from database
     const supabase = createServiceRoleClient()
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
 
         return { id: request.id, summary: text, cached: false }
       } catch (error) {
-        log.warn("Failed to generate summary for request", { requestId: request.id, error })
+        log.warn("Failed to generate summary for request", { intakeId: request.id, error })
         return { id: request.id, summary: FALLBACK_RESPONSES.reviewSummary, error: true }
       }
     })

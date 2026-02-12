@@ -60,7 +60,7 @@ export async function recordDeliverySent(params: {
   
   await supabase.from("delivery_tracking").insert({
     message_id: params.messageId,
-    request_id: params.requestId,
+    intake_id: params.requestId,
     patient_id: params.patientId,
     channel: params.channel,
     template_type: params.templateType,
@@ -119,7 +119,7 @@ export async function updateDeliveryStatus(
   if (status === "bounced" && details?.bounceType === "hard") {
     const { data } = await supabase
       .from("delivery_tracking")
-      .select("template_type, request_id")
+      .select("template_type, intake_id")
       .eq("provider_id", providerId)
       .single()
     
@@ -134,7 +134,7 @@ export async function updateDeliveryStatus(
           providerId,
           bounceType: details.bounceType,
           bounceReason: details.bounceReason,
-          requestId: data.request_id,
+          requestId: data.intake_id,
         },
       })
     }

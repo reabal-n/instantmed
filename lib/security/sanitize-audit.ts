@@ -73,7 +73,6 @@ const SAFE_KEYS = new Set([
   // IDs and references
   "id",
   "intake_id",
-  "request_id",
   "profile_id",
   "user_id",
   "doctor_id",

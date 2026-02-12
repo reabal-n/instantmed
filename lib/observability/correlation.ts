@@ -68,7 +68,7 @@ export function fetchWithCorrelation(
 export function getWebhookCorrelationId(payload: Record<string, unknown>): string {
   // Check common webhook correlation patterns
   if (typeof payload.correlation_id === "string") return payload.correlation_id
-  if (typeof payload.request_id === "string") return payload.request_id
+  if (typeof payload.intake_id === "string") return payload.intake_id
   if (typeof payload.idempotency_key === "string") return payload.idempotency_key
   
   // For Stripe webhooks, use event ID

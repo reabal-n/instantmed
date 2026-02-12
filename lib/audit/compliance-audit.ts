@@ -95,7 +95,7 @@ export async function logComplianceEvent(entry: ComplianceAuditEntry): Promise<s
   try {
     const { data, error } = await supabase.rpc("log_compliance_event", {
       p_event_type: entry.eventType,
-      p_request_id: entry.requestId,
+      p_intake_id: entry.requestId,
       p_request_type: entry.requestType,
       p_actor_id: entry.actorId || null,
       p_actor_role: entry.actorRole,
@@ -616,7 +616,7 @@ export async function checkAuditReadiness(requestId: string): Promise<AuditReadi
   const { data, error } = await supabase
     .from("compliance_audit_summary")
     .select("*")
-    .eq("request_id", requestId)
+    .eq("intake_id", requestId)
     .single()
 
   if (error || !data) {
@@ -671,7 +671,7 @@ export async function getComplianceTimeline(requestId: string) {
       event_data,
       created_at
     `)
-    .eq("request_id", requestId)
+    .eq("intake_id", requestId)
     .order("created_at", { ascending: true })
 
   if (error) {

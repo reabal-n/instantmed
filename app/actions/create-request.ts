@@ -22,7 +22,7 @@ export interface CreateRequestInput {
 
 export interface CreateRequestResult {
   success: boolean
-  requestId?: string
+  intakeId?: string
   error?: string
   errorCode?: string
 }
@@ -175,7 +175,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
 
     return {
       success: true,
-      requestId: intake.id,
+      intakeId: intake.id,
     }
   } catch (error) {
     log.error("[createRequestAction] Unexpected error", { error: String(error) })
@@ -198,7 +198,7 @@ export async function saveDraftAction(input: CreateRequestInput): Promise<Create
  * Update an existing draft request before payment
  */
 export async function updateDraftAction(
-  requestId: string,
+  intakeId: string,
   answers: Record<string, unknown>
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -213,7 +213,7 @@ export async function updateDraftAction(
     const { data: existing } = await supabase
       .from("intakes")
       .select("patient_id, status")
-      .eq("id", requestId)
+      .eq("id", intakeId)
       .single()
 
     if (!existing || existing.patient_id !== authUser.profile?.id) {
@@ -228,7 +228,7 @@ export async function updateDraftAction(
     const { error } = await supabase
       .from("intake_answers")
       .upsert({
-        intake_id: requestId,
+        intake_id: intakeId,
         answers,
       })
 

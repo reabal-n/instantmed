@@ -221,7 +221,7 @@ export async function POST(request: Request) {
     const documentUrl = document?.pdf_url || null
 
     await notifyRequestStatusChange({
-      requestId: intakeId,
+      intakeId,
       patientId: intakeWithPatient?.patient_id || patientData?.id,
       patientEmail: patientEmail || '',
       patientName: patientData?.full_name || 'there',

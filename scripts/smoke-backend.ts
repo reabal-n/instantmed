@@ -45,7 +45,6 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
   document_verifications: ["id", "intake_id", "verification_code", "is_valid"],
   stripe_webhook_events: ["id", "event_id", "event_type", "processed_at"],
   // Optional tables
-  request_answers: ["id", "request_id", "answers"],
   intake_answers: ["id", "intake_id", "answers"],
 }
 

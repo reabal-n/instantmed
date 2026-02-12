@@ -76,7 +76,7 @@ export async function handlePaymentFailure(
   // Log to audit
   await supabase.from("audit_logs").insert({
     action: "payment_failed",
-    request_id: intake.id,
+    intake_id: intake.id,
     actor_id: intake.patient_id,
     metadata: {
       payment_intent_id: context.paymentIntentId,

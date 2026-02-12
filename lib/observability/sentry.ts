@@ -421,7 +421,7 @@ async function capture5xxResponse(
       ...(e2e.e2eRunId && { e2e_run_id: e2e.e2eRunId }),
     },
     extra: {
-      request_id: requestId,
+      intake_id: requestId,
       status: response.status,
       response_body: responseBody,
       url: request.url,

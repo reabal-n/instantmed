@@ -172,13 +172,13 @@ export function DoctorDashboardClient({
   }
 
   // Handle single request action
-  const handleSingleAction = async (requestId: string, action: "approve" | "reject", notes: string) => {
+  const handleSingleAction = async (intakeId: string, action: "approve" | "reject", notes: string) => {
     try {
       const response = await fetch("/api/doctor/update-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_id: requestId,
+          request_id: intakeId,
           action,
           notes,
           doctor_id: doctorId,
@@ -190,7 +190,7 @@ export function DoctorDashboardClient({
       // Update local state
       setRequests((prev) =>
         prev.map((req) =>
-          req.id === requestId
+          req.id === intakeId
             ? { ...req, status: action === "approve" ? "approved" : "rejected", doctor_notes: notes }
             : req
         )
@@ -208,13 +208,13 @@ export function DoctorDashboardClient({
   }
 
   // Assign request to self
-  const assignToSelf = async (requestId: string) => {
+  const assignToSelf = async (intakeId: string) => {
     try {
       const response = await fetch("/api/doctor/assign-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_id: requestId,
+          request_id: intakeId,
           doctor_id: doctorId,
         }),
       })
@@ -222,7 +222,7 @@ export function DoctorDashboardClient({
       if (!response.ok) throw new Error("Failed to assign request")
 
       setRequests((prev) =>
-        prev.map((req) => (req.id === requestId ? { ...req, doctor_id: doctorId, status: "in_review" } : req))
+        prev.map((req) => (req.id === intakeId ? { ...req, doctor_id: doctorId, status: "in_review" } : req))
       )
 
       toast.success("Request assigned to you")
@@ -572,7 +572,7 @@ function RequestDetailDialog({
 }: {
   request: Request
   onClose: () => void
-  onAction: (requestId: string, action: "approve" | "reject", notes: string) => Promise<void>
+  onAction: (intakeId: string, action: "approve" | "reject", notes: string) => Promise<void>
 }) {
   const [notes, setNotes] = useState(request.doctor_notes || "")
   const [isSubmitting, setIsSubmitting] = useState(false)

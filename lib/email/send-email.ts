@@ -919,7 +919,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     const template = PrescriptionApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
-      requestId: ctx.intake.id,
+      intakeId: ctx.intake.id,
       appUrl: env.appUrl,
     })
 

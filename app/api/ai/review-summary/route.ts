@@ -19,7 +19,7 @@ const log = createLogger("ai-review-summary")
  */
 
 interface ReviewSummaryRequest {
-  requestId: string
+  intakeId: string
   requestType: "med_cert" | "repeat_rx" | "consult"
 }
 
@@ -88,9 +88,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ReviewSummaryRequest = await req.json()
-    const { requestId, requestType } = body
+    const { intakeId, requestType } = body
 
-    if (!requestId) {
+    if (!intakeId) {
       return NextResponse.json({ error: "Request ID required" }, { status: 400 })
     }
 
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
           answers
         )
       `)
-      .eq("id", requestId)
+      .eq("id", intakeId)
       .single()
 
     if (error || !intake) {
@@ -208,11 +208,11 @@ Return ONLY the summary text, no labels or formatting.`
     }
 
     // Check cache first
-    const cached = await getCachedResponse<string>('reviewSummary', requestId)
+    const cached = await getCachedResponse<string>('reviewSummary', intakeId)
     if (cached) {
       return NextResponse.json({
         summary: cached,
-        requestId,
+        intakeId,
         requestType,
         cached: true,
       })
@@ -222,7 +222,7 @@ Return ONLY the summary text, no labels or formatting.`
     if (!isAIConfigured()) {
       return NextResponse.json({
         summary: FALLBACK_RESPONSES.reviewSummary,
-        requestId,
+        intakeId,
         requestType,
         fallback: true,
       })
@@ -245,7 +245,7 @@ Return ONLY the summary text, no labels or formatting.`
     const summary = text.trim()
 
     // Cache the result
-    await setCachedResponse('reviewSummary', requestId, summary)
+    await setCachedResponse('reviewSummary', intakeId, summary)
 
     // Log to audit trail
     await logAIAudit({
@@ -258,21 +258,21 @@ Return ONLY the summary text, no labels or formatting.`
       responseTimeMs: responseTime,
       modelVersion: AI_MODEL_CONFIG.clinical.model,
       metadata: {
-        requestId,
+        intakeId,
         requestType,
         promptVersion: PROMPT_VERSION,
       },
     })
 
     log.info("Review summary generated", {
-      requestId,
+      intakeId,
       doctorId: profile.id,
       responseTimeMs: responseTime,
     })
 
     return NextResponse.json({
       summary,
-      requestId,
+      intakeId,
       requestType,
       promptVersion: PROMPT_VERSION,
     })

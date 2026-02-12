@@ -1,7 +1,7 @@
 /**
  * Patient Medical Certificate Download Endpoint
  * 
- * GET /api/patient/documents/{requestId}/download
+ * GET /api/patient/documents/{intakeId}/download
  * 
  * Allows authenticated patients to download their approved medical certificate PDF.
  * Returns the PDF file for streaming download to the browser.
@@ -26,33 +26,33 @@ export const runtime = "nodejs"
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ requestId: string }> }
+  { params }: { params: Promise<{ intakeId: string }> }
 ) {
   try {
-    const { requestId } = await params // Can be intake ID or legacy request ID
+    const { intakeId } = await params
 
     // Auth check - patients can only download their own documents
     const authResult = await getApiAuth()
     if (!authResult) {
-      log.warn(`[document-download] Unauthenticated access attempt to ${requestId}`)
+      log.warn(`[document-download] Unauthenticated access attempt to ${intakeId}`)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { userId } = authResult
 
     // Validate UUID format
-    if (!requestId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      log.warn(`[document-download] Invalid request ID format: ${requestId}`)
+    if (!intakeId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      log.warn(`[document-download] Invalid intake ID format: ${intakeId}`)
       return NextResponse.json({ error: "Invalid request ID" }, { status: 400 })
     }
 
-    log.info(`[document-download] Download request for ${requestId} by user ${userId}`)
+    log.info(`[document-download] Download request for ${intakeId} by user ${userId}`)
 
     // Fetch intake to verify ownership and approval status
-    const intakeData = await getIntakeWithDetails(requestId)
+    const intakeData = await getIntakeWithDetails(intakeId)
 
     if (!intakeData) {
-      log.warn(`[document-download] Intake not found: ${requestId}`)
+      log.warn(`[document-download] Intake not found: ${intakeId}`)
       return NextResponse.json({ error: "Request not found" }, { status: 404 })
     }
 
@@ -64,7 +64,7 @@ export async function GET(
 
     // Verify intake is approved or completed (has generated document)
     if (!["approved", "completed"].includes(intakeData.status)) {
-      log.warn(`[document-download] Attempted download of non-approved intake ${requestId} (status: ${intakeData.status})`)
+      log.warn(`[document-download] Attempted download of non-approved intake ${intakeId} (status: ${intakeData.status})`)
       return NextResponse.json(
         { error: "Request not approved" },
         { status: 400 }
@@ -72,10 +72,10 @@ export async function GET(
     }
 
     // Fetch certificate from issued_certificates (new canonical table)
-    const certificate = await getCertificateForIntake(requestId)
-    
+    const certificate = await getCertificateForIntake(intakeId)
+
     if (!certificate || certificate.status !== "valid") {
-      log.error(`[document-download] Certificate not found for ${requestId}`)
+      log.error(`[document-download] Certificate not found for ${intakeId}`)
       return NextResponse.json(
         { error: "Document not available" },
         { status: 404 }
@@ -89,7 +89,7 @@ export async function GET(
       .createSignedUrl(certificate.storage_path, 300) // 5 minute expiry
 
     if (signedUrlError || !signedUrlData?.signedUrl) {
-      log.error(`[document-download] Failed to generate signed URL for ${requestId}`, { error: signedUrlError })
+      log.error(`[document-download] Failed to generate signed URL for ${intakeId}`, { error: signedUrlError })
       return NextResponse.json(
         { error: "Failed to generate download link" },
         { status: 500 }
@@ -115,7 +115,7 @@ export async function GET(
     // Get the PDF buffer
     const pdfBuffer = await pdfResponse.arrayBuffer()
 
-    log.info(`[document-download] Successfully downloaded ${requestId} (${pdfBuffer.byteLength} bytes)`)
+    log.info(`[document-download] Successfully downloaded ${intakeId} (${pdfBuffer.byteLength} bytes)`)
 
     // Track document download in PostHog
     try {
@@ -124,7 +124,7 @@ export async function GET(
         distinctId: userId,
         event: 'document_downloaded',
         properties: {
-          intake_id: requestId,
+          intake_id: intakeId,
           document_type: 'med_cert',
           file_size_bytes: pdfBuffer.byteLength,
         },
@@ -141,7 +141,7 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="medical-certificate-${requestId}.pdf"`,
+        "Content-Disposition": `attachment; filename="medical-certificate-${intakeId}.pdf"`,
         "Content-Length": pdfBuffer.byteLength.toString(),
         "Cache-Control": "public, max-age=31536000", // Cache for 1 year (immutable)
       },

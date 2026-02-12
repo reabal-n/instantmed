@@ -20,14 +20,14 @@ import {
 export interface PrescriptionApprovedEmailProps {
   patientName: string
   medicationName: string
-  requestId: string
+  intakeId: string
   appUrl?: string
 }
 
 export function PrescriptionApprovedEmail({
   patientName,
   medicationName,
-  requestId,
+  intakeId,
   appUrl = "https://instantmed.com.au",
 }: PrescriptionApprovedEmailProps) {
   return (
@@ -76,7 +76,7 @@ export function PrescriptionApprovedEmail({
       </Box>
 
       <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+        <Button href={`${appUrl}/patient/intakes/${intakeId}`}>
           View Request Details
         </Button>
       </div>

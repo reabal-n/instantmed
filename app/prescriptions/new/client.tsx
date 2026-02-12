@@ -59,7 +59,7 @@ export function PrescriptionIntakeClient({
 
     // Redirect to payment after a brief delay for confetti
     setTimeout(() => {
-      router.push(`/checkout/${result.requestId}`)
+      router.push(`/checkout/${result.intakeId}`)
     }, 500)
   }
 

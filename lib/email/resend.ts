@@ -446,7 +446,7 @@ export async function sendScriptSentEmail(
     html,
     tags: [
       { name: "category", value: "script_sent" },
-      { name: "request_id", value: requestId },
+      { name: "intake_id", value: requestId },
     ],
   })
 }

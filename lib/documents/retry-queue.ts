@@ -16,7 +16,7 @@ const INITIAL_DELAY_MS = 5000 // 5 seconds
 const MAX_DELAY_MS = 60000    // 1 minute
 
 export interface RetryableDocument {
-  requestId: string
+  intakeId: string
   documentType: "med_cert" | "pathology" | "prescription"
   subtype?: string
   attemptCount: number
@@ -28,30 +28,30 @@ export interface RetryableDocument {
  * Queue a document for retry after generation failure
  */
 export async function queueDocumentRetry(
-  requestId: string,
+  intakeId: string,
   documentType: "med_cert" | "pathology" | "prescription",
   error: Error,
   subtype?: string
 ): Promise<void> {
   const supabase = createServiceRoleClient()
-  
+
   // Check existing retry record
   const { data: existing } = await supabase
     .from("document_generation_retries")
     .select("attempt_count")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .eq("document_type", documentType)
     .single()
-  
+
   const attemptCount = (existing?.attempt_count ?? 0) + 1
-  
+
   if (attemptCount > MAX_RETRIES) {
     logger.error("Document generation max retries exceeded", {
-      requestId,
+      intakeId,
       documentType,
       attemptCount,
     })
-    
+
     // Alert operations team
     Sentry.captureMessage("Document generation permanently failed", {
       level: "error",
@@ -60,18 +60,18 @@ export async function queueDocumentRetry(
         alert_type: "action_required",
       },
       extra: {
-        requestId,
+        intakeId,
         documentType,
         attemptCount,
         lastError: error.message,
       },
     })
-    
+
     // Mark as permanently failed
     await supabase
       .from("document_generation_retries")
       .upsert({
-        request_id: requestId,
+        intake_id: intakeId,
         document_type: documentType,
         subtype,
         status: "permanently_failed",
@@ -79,25 +79,25 @@ export async function queueDocumentRetry(
         last_error: error.message,
         updated_at: new Date().toISOString(),
       })
-    
+
     return
   }
-  
+
   // Calculate next retry time with exponential backoff
   const delay = Math.min(INITIAL_DELAY_MS * Math.pow(2, attemptCount - 1), MAX_DELAY_MS)
   const nextRetryAt = new Date(Date.now() + delay)
-  
+
   logger.info("Queueing document for retry", {
-    requestId,
+    intakeId,
     documentType,
     attemptCount,
     nextRetryAt: nextRetryAt.toISOString(),
   })
-  
+
   await supabase
     .from("document_generation_retries")
     .upsert({
-      request_id: requestId,
+      intake_id: intakeId,
       document_type: documentType,
       subtype,
       status: "pending_retry",
@@ -116,7 +116,7 @@ export async function getDocumentsReadyForRetry(): Promise<RetryableDocument[]> 
   
   const { data, error } = await supabase
     .from("document_generation_retries")
-    .select("request_id, document_type, subtype, attempt_count, last_error, next_retry_at")
+    .select("intake_id, document_type, subtype, attempt_count, last_error, next_retry_at")
     .eq("status", "pending_retry")
     .lte("next_retry_at", new Date().toISOString())
     .order("next_retry_at", { ascending: true })
@@ -128,7 +128,7 @@ export async function getDocumentsReadyForRetry(): Promise<RetryableDocument[]> 
   }
   
   return (data || []).map(row => ({
-    requestId: row.request_id,
+    intakeId: row.intake_id,
     documentType: row.document_type,
     subtype: row.subtype,
     attemptCount: row.attempt_count,
@@ -141,11 +141,11 @@ export async function getDocumentsReadyForRetry(): Promise<RetryableDocument[]> 
  * Mark a document retry as successful
  */
 export async function markRetrySuccess(
-  requestId: string,
+  intakeId: string,
   documentType: "med_cert" | "pathology" | "prescription"
 ): Promise<void> {
   const supabase = createServiceRoleClient()
-  
+
   await supabase
     .from("document_generation_retries")
     .update({
@@ -153,21 +153,21 @@ export async function markRetrySuccess(
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .eq("document_type", documentType)
-  
-  logger.info("Document retry completed successfully", { requestId, documentType })
+
+  logger.info("Document retry completed successfully", { intakeId, documentType })
 }
 
 /**
  * Mark a document as being processed (to prevent duplicate processing)
  */
 export async function markRetryInProgress(
-  requestId: string,
+  intakeId: string,
   documentType: "med_cert" | "pathology" | "prescription"
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
-  
+
   // Use optimistic locking to prevent race conditions
   const { error } = await supabase
     .from("document_generation_retries")
@@ -175,9 +175,9 @@ export async function markRetryInProgress(
       status: "processing",
       updated_at: new Date().toISOString(),
     })
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .eq("document_type", documentType)
     .eq("status", "pending_retry")
-  
+
   return !error
 }

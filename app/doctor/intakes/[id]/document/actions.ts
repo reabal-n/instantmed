@@ -61,7 +61,7 @@ export async function generateMedCertPdfAndApproveAction(
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()
 
-    // Fetch draft data - use draftId if provided, otherwise look up by request_id/intake_id
+    // Fetch draft data - use draftId if provided, otherwise look up by intake_id
     let draft = null
     if (draftId) {
       const { data: draftById } = await supabase
@@ -74,24 +74,15 @@ export async function generateMedCertPdfAndApproveAction(
     }
 
     if (!draft) {
-      // Fallback: try request_id (used by getOrCreateMedCertDraftForIntake)
-      const { data: draftByRequestId } = await supabase
+      // Fallback: try intake_id
+      const { data: draftByIntakeId } = await supabase
         .from("document_drafts")
         .select("data")
-        .eq("request_id", intakeId)
+        .eq("intake_id", intakeId)
         .eq("type", "med_cert")
         .maybeSingle()
 
-      if (draftByRequestId) {
-        draft = draftByRequestId
-      } else {
-        // Fallback to intake_id column (used by older getOrCreateMedCertDraftForRequest)
-        const { data: draftByIntakeId } = await supabase
-          .from("document_drafts")
-          .select("data")
-          .eq("intake_id", intakeId)
-          .eq("type", "med_cert")
-          .maybeSingle()
+      if (draftByIntakeId) {
         draft = draftByIntakeId
       }
     }
@@ -120,9 +111,12 @@ export async function generateMedCertPdfAndApproveAction(
     // Handle both 'reason' and 'reason_summary' fields for compatibility
     const medicalReason = draftData.reason || draftData.reason_summary || "Medical Illness"
 
+    // Use Australian Eastern Time for consult date (medicolegal requirement)
+    // new Date().toISOString() gives UTC which can be a day behind/ahead in AEST
+    const nowAEST = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" }) // YYYY-MM-DD format
     const reviewData: CertReviewData = {
       doctorName: doctorProfile?.full_name || "Dr.",
-      consultDate: new Date().toISOString().split("T")[0],
+      consultDate: nowAEST,
       startDate: draftData.date_from,
       endDate: draftData.date_to,
       medicalReason,

@@ -104,7 +104,7 @@ export async function markRepeatScriptSentAction(
       action: "state_change",
       actorId: doctorId,
       actorType: "doctor",
-      requestId: intakeId,
+      intakeId,
       fromState: intake.status,
       toState: "completed",
       metadata: {
@@ -143,7 +143,7 @@ export async function markRepeatScriptSentAction(
             template: PrescriptionApprovedEmail({
               patientName,
               medicationName,
-              requestId: intakeId,
+              intakeId,
               appUrl: env.appUrl,
             }),
             emailType: "prescription_approved",
@@ -217,7 +217,7 @@ export async function markRepeatScriptSentAction(
       action: "state_change",
       actorId: doctorId,
       actorType: auth.profile.role as "doctor" | "admin",
-      requestId: intakeId,
+      intakeId,
       fromState: "completed",
       toState: "approved",
       metadata: {

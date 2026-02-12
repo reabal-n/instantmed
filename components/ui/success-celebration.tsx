@@ -13,11 +13,11 @@ import posthog from "posthog-js"
 
 interface SuccessCelebrationProps {
   type?: "request" | "payment" | "account"
-  requestId?: string
+  intakeId?: string
   showConfetti?: boolean
 }
 
-export function SuccessCelebration({ type = "request", requestId, showConfetti = false }: SuccessCelebrationProps) {
+export function SuccessCelebration({ type = "request", intakeId, showConfetti = false }: SuccessCelebrationProps) {
   const [confettiTrigger, setConfettiTrigger] = useState(false)
   // Initialize showContent based on showConfetti prop
   const [showContent, setShowContent] = useState(!showConfetti)
@@ -26,7 +26,7 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
   useEffect(() => {
     // Track payment success in PostHog
     posthog.capture('payment_success', {
-      request_id: requestId,
+      intake_id: intakeId,
       celebration_type: type,
     })
 
@@ -38,7 +38,7 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [showConfetti, requestId, type])
+  }, [showConfetti, intakeId, type])
 
   const content = type === "request" ? SUCCESS.requestSubmitted : SUCCESS.requestSubmitted
 
@@ -151,9 +151,9 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
           <Button asChild size="lg" className="w-full">
             <Link href="/patient">Go to Dashboard</Link>
           </Button>
-          {requestId && (
+          {intakeId && (
             <Button asChild variant="outline" size="lg" className="w-full">
-              <Link href={`/patient/intakes/${requestId}`}>{BUTTONS.viewRequest}</Link>
+              <Link href={`/patient/intakes/${intakeId}`}>{BUTTONS.viewRequest}</Link>
             </Button>
           )}
         </div>

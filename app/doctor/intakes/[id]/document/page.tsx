@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation"
 import { requireRole } from "@/lib/auth"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
-import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake } from "@/lib/data/documents"
+import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake, getAIDraftsForIntake } from "@/lib/data/documents"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { DocumentBuilderClient } from "./document-builder-client"
 
@@ -34,15 +34,18 @@ export default async function IntakeDocumentBuilderPage({
     redirect(`/doctor/intakes/${id}`)
   }
 
-  // Get or create draft
+  // Get or create draft (will be seeded from AI draft if one exists)
   const draft = await getOrCreateMedCertDraftForIntake(id)
 
   if (!draft) {
     redirect(`/doctor/intakes/${id}`)
   }
 
-  // Check if a document already exists
-  const existingDocument = await getLatestDocumentForIntake(id)
+  // Fetch AI-generated clinical intelligence (clinical note + flags) in parallel
+  const [existingDocument, aiDrafts] = await Promise.all([
+    getLatestDocumentForIntake(id),
+    getAIDraftsForIntake(id),
+  ])
 
   // Calculate patient age
   const calculateAge = (dob: string): number => {
@@ -65,6 +68,7 @@ export default async function IntakeDocumentBuilderPage({
       existingDocument={existingDocument}
       patientAge={patientAge}
       hasCredentials={hasCredentials}
+      aiDrafts={aiDrafts}
     />
   )
 }

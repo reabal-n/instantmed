@@ -95,7 +95,7 @@ export function validateAttestation(
  * Save attestation to audit log
  */
 export async function saveAttestation(
-  requestId: string,
+  intakeId: string,
   requestType: string,
   patientId: string,
   attestation: AttestationData,
@@ -108,7 +108,7 @@ export async function saveAttestation(
       .from("audit_logs")
       .insert({
         action: "attestation_signed",
-        request_id: requestId,
+        intake_id: intakeId,
         request_type: requestType,
         patient_id: patientId,
         details: {

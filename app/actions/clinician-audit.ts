@@ -32,7 +32,7 @@ function getRequestType(serviceType?: string): RequestType {
 }
 
 export async function logViewedIntakeAnswersAction(
-  requestId: string,
+  intakeId: string,
   serviceType?: string,
   viewDurationMs?: number
 ): Promise<{ success: boolean }> {
@@ -41,7 +41,7 @@ export async function logViewedIntakeAnswersAction(
     if (!profile) return { success: false }
 
     await logClinicianViewedIntakeAnswers(
-      requestId,
+      intakeId,
       getRequestType(serviceType),
       profile.id,
       viewDurationMs
@@ -54,7 +54,7 @@ export async function logViewedIntakeAnswersAction(
 }
 
 export async function logViewedMedicalHistoryAction(
-  requestId: string,
+  intakeId: string,
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
@@ -62,7 +62,7 @@ export async function logViewedMedicalHistoryAction(
     if (!profile) return { success: false }
 
     await logClinicianViewedMedicalHistory(
-      requestId,
+      intakeId,
       getRequestType(serviceType),
       profile.id
     )
@@ -74,7 +74,7 @@ export async function logViewedMedicalHistoryAction(
 }
 
 export async function logViewedSafetyFlagsAction(
-  requestId: string,
+  intakeId: string,
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
@@ -82,7 +82,7 @@ export async function logViewedSafetyFlagsAction(
     if (!profile) return { success: false }
 
     await logClinicianViewedSafetyFlags(
-      requestId,
+      intakeId,
       getRequestType(serviceType),
       profile.id
     )
@@ -94,7 +94,7 @@ export async function logViewedSafetyFlagsAction(
 }
 
 export async function logViewedAISummaryAction(
-  requestId: string,
+  intakeId: string,
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
@@ -102,7 +102,7 @@ export async function logViewedAISummaryAction(
     if (!profile) return { success: false }
 
     await logClinicianViewedAISummary(
-      requestId,
+      intakeId,
       getRequestType(serviceType),
       profile.id
     )

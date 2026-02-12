@@ -349,10 +349,10 @@ export interface Profile {
   updated_at: string // ISO timestamp
 }
 
-// Table: document_drafts
+// Table: document_drafts (document builder drafts)
 export interface DocumentDraft {
   id: string // uuid, PK
-  request_id: string // uuid, FK to requests.id
+  intake_id: string // uuid, FK to intakes.id
   type: string // e.g. 'med_cert', 'referral', 'prescription'
   subtype: string // e.g. 'work', 'uni', 'carer'
   data: MedCertDraftData | PathologyDraftData | PrescriptionDraftData | Record<string, unknown> // JSONB - editable fields
@@ -363,7 +363,7 @@ export interface DocumentDraft {
 // Table: documents (generated PDFs)
 export interface GeneratedDocument {
   id: string // uuid, PK
-  request_id: string // uuid, FK to requests.id
+  intake_id: string // uuid, FK to intakes.id
   type: string // 'med_cert', 'referral', etc.
   subtype: string
   pdf_url: string
@@ -448,7 +448,7 @@ export type RefundStatus = "not_applicable" | "eligible" | "processing" | "refun
 // Payment type
 export interface Payment {
   id: string // uuid, PK
-  request_id: string // uuid, FK to requests.id
+  intake_id: string // uuid, FK to intakes.id
   stripe_session_id: string
   stripe_payment_intent_id: string | null
   amount: number
@@ -486,7 +486,7 @@ export type MedCertDraftStatus = "draft" | "issued"
 
 export interface MedCertDraft {
   id: string // uuid, PK
-  request_id: string // uuid, FK to med_cert_requests.id
+  intake_id: string // uuid, FK to intakes.id
   
   // Patient information (editable by doctor)
   patient_full_name: string | null
