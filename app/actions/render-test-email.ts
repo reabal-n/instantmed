@@ -11,11 +11,14 @@ import * as React from "react"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { requireRoleOrNull } from "@/lib/auth"
 
+// Subject can be a plain string or a function that takes a name/label arg
+type SubjectValue = string | ((...args: string[]) => string)
+
 // Template registry -- maps template IDs to their React component + subject
 const TEMPLATE_REGISTRY: Record<
   string,
   {
-    load: () => Promise<{ component: React.FC<Record<string, unknown>>; subject: string }>
+    load: () => Promise<{ component: React.FC<Record<string, unknown>>; subject: SubjectValue }>
   }
 > = {
   med_cert_patient: {
@@ -148,7 +151,10 @@ export async function renderTestEmailAction(
   }
 
   try {
-    const { component: Component, subject } = await registry.load()
+    const { component: Component, subject: rawSubject } = await registry.load()
+
+    // Resolve subject -- some templates export a function (e.g. (name) => `...`)
+    const subject = typeof rawSubject === "function" ? rawSubject(sampleData.patientName ?? "Test Patient") : rawSubject
 
     // Create the React element with sample data
     const element = React.createElement(Component, sampleData)
