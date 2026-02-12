@@ -4,19 +4,17 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { Button, Accordion, AccordionItem } from "@heroui/react"
+import { Accordion, AccordionItem } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
-import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
-import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
 import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
-  AnimatedOrbs,
   GlowLine,
 } from "@/components/ui/premium-effects"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
@@ -34,9 +32,9 @@ const CONSULT_TYPES = [
     benefits: ["Full clinical assessment", "Treatment advice", "Prescriptions if appropriate"],
     popular: true,
     href: "/request?service=consult",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     id: "new-medication",
@@ -130,8 +128,8 @@ const testimonials = consultTestimonials.length > 0
 const trustBadges = [
   { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
   { name: "Clinical Standards", description: "Same as in-person care", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-violet-600" },
-  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-amber-600" },
+  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-blue-600" },
+  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-blue-600" },
 ]
 
 // How it works steps
@@ -141,9 +139,9 @@ const steps = [
     title: "Describe your concern",
     description: "Tell us what is going on and answer health questions. This helps the doctor prepare.",
     time: "3-5 min",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     number: "02",
@@ -190,10 +188,7 @@ export default function GeneralConsultPage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
-            {/* Animated background orbs */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs orbCount={3} className="opacity-40" />
-            )}
+            {/* Subtle background */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -234,19 +229,17 @@ export default function GeneralConsultPage() {
                   transition={{ duration: 0.5, delay: 0.3 }}
                 >
                   <Button 
-                    as={Link}
-                    href="/request?service=consult"
-                    color="primary"
+                    asChild
                     size="lg"
-                    className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                    endContent={<ArrowRight className="h-4 w-4" />}
+                    className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
                   >
-                    Start your consult
+                    <Link href="/request?service=consult">
+                      Start your consult <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                   <Button 
-                    as={Link}
-                    href="#how-it-works"
-                    variant="bordered"
+                    asChild
+                    variant="outline"
                     size="lg"
                     className="h-12 px-8"
                   >
