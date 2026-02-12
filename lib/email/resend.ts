@@ -342,11 +342,15 @@ export async function sendCriticalEmail(
 }
 
 // ============================================
-// SCRIPT SENT EMAIL (used by doctor queue actions)
+// SCRIPT SENT EMAIL — DEPRECATED
 // ============================================
 
 /**
- * Send script sent notification (for prescriptions)
+ * @deprecated Use `sendEmail()` from `lib/email/send-email.ts` with the
+ * `ScriptSentEmail` React template instead. This bypasses the outbox pipeline,
+ * has no retry/Sentry support, and uses legacy inline HTML with emoji.
+ * Caller migrated in `app/doctor/queue/actions.ts`.
+ * Kept temporarily for backward compatibility.
  */
 export async function sendScriptSentEmail(
   to: string,
