@@ -645,14 +645,13 @@ export default function GeneralConsultPage() {
                 transition={{ delay: 0.3 }}
               >
                 <Button
-                  as={Link}
-                  href="/request?service=consult"
-                  color="primary"
+                  asChild
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                  endContent={<ArrowRight className="h-4 w-4" />}
                 >
-                  Start your consult
+                  <Link href="/request?service=consult">
+                    Start your consult <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
                   Doctor typically responds within 2 hours
