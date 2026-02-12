@@ -168,6 +168,6 @@ export async function renderTestEmailAction(
 }
 
 /** List available template IDs for the UI */
-export function getAvailableTemplateIds(): string[] {
+export async function getAvailableTemplateIds(): Promise<string[]> {
   return Object.keys(TEMPLATE_REGISTRY)
 }
