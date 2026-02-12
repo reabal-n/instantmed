@@ -573,7 +573,7 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
                       tickFormatter={(v) => `$${v}`}
                       allowDecimals={false}
                     />
-                    <Tooltip formatter={(value: number) => [formatCurrency(value), "Revenue"]} />
+                    <Tooltip formatter={(value) => [formatCurrency(Number(value ?? 0)), "Revenue"]} />
                     <Area
                       type="monotone"
                       dataKey="Revenue"
