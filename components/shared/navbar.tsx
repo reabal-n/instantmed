@@ -229,7 +229,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             )}
             variants={navGlowVariants}
           />
-          <div className="relative z-10 flex items-center justify-between px-4 py-2">
+          <div className="relative z-10 flex items-center justify-between px-3 py-1.5">
             {/* Logo */}
             <BrandLogo size="sm" className="relative z-10" />
 

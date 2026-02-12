@@ -2594,9 +2594,9 @@ button:not(.no-micro):active:not(:disabled),
   background-size: 24px 24px;
 }
 
-/* Premium text treatments - warmer, more human gradient */
+/* Premium text treatments - clean blue gradient */
 .text-premium-gradient {
-  background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #60A5FA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2604,7 +2604,7 @@ button:not(.no-micro):active:not(:disabled),
 
 /* Warm accent gradient for special highlights */
 .text-warm-gradient {
-  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%);
+  background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 50%, #60A5FA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

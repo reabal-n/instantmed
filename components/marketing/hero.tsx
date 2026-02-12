@@ -29,9 +29,9 @@ export function Hero() {
           <DoctorAvailabilityPill />
         </motion.div>
 
-        {/* Headline -- bold, centered, clean. Capped at 5xl (48px) max */}
+        {/* Headline -- bold, centered, clean. Capped at 4xl (36px) max */}
         <motion.h1 
-          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
+          className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
@@ -39,7 +39,7 @@ export function Hero() {
           <RotatingText 
             texts={heroRotatingTexts} 
             interval={3500}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold"
           />
         </motion.h1>
 
@@ -83,7 +83,7 @@ export function Hero() {
           </Button>
         </motion.div>
 
-        {/* Compact trust line */}
+        {/* Compact trust line -- no RACGP (repeated in badge slider below) */}
         <motion.p
           className="text-sm text-muted-foreground flex items-center justify-center gap-2"
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -91,7 +91,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-          <span>{'AHPRA-registered doctors \u00b7 Refund if we can\'t help \u00b7 RACGP Standards 5th Edition'}</span>
+          <span>{'AHPRA-registered doctors \u00b7 Refund if we can\'t help \u00b7 Usually sorted in under an hour'}</span>
         </motion.p>
       </div>
     </section>

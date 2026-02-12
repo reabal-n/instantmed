@@ -61,7 +61,7 @@ export function RotatingText({
         <span className="absolute inset-0 flex items-center justify-start">
           <span className={cn(
             "whitespace-nowrap",
-            gradient && "bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent",
+            gradient && "bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent",
             className
           )}>
             {texts[currentIndex]}
@@ -109,7 +109,7 @@ export function RotatingText({
             }}
             className={cn(
               "inline-block whitespace-nowrap",
-              gradient && "bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent animate-gradient-text bg-[length:200%_auto]",
+              gradient && "bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent animate-gradient-text bg-[length:200%_auto]",
               className
             )}
             style={{ transformStyle: 'preserve-3d' }}
