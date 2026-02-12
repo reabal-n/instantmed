@@ -531,7 +531,7 @@ export function IntakeDetailClient({
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             {service?.name || formatServiceType(service?.type || "")}
-            {/* Display consult subtype for gp-consult service */}
+            {/* Display consult subtype for consult service */}
             {intake.category === 'consult' && intake.subtype && intake.subtype !== 'general' && (
               <Badge variant="secondary" className="ml-2 text-xs font-normal">
                 {formatConsultSubtype(intake.subtype)}

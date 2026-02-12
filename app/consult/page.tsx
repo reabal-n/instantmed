@@ -5,18 +5,18 @@ import { BreadcrumbSchema, MedicalServiceSchema } from '@/components/seo/healthc
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 
 export const metadata: Metadata = {
-  title: 'Online GP Consultation | Speak with a Doctor | InstantMed',
-  description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
+  title: 'Online Doctor Consultation | Speak with an Australian Doctor | InstantMed',
+  description: 'A proper doctor consult without the clinic visit. Australian AHPRA-registered doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
   openGraph: {
-    title: 'Online GP Consultation | InstantMed',
-    description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
+    title: 'Online Doctor Consultation | InstantMed',
+    description: 'A proper doctor consult without the clinic visit. Australian doctors assess your health concerns.',
     type: 'website',
     url: 'https://instantmed.com.au/consult',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Online GP Consultation | InstantMed',
-    description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
+    title: 'Online Doctor Consultation | InstantMed',
+    description: 'A proper doctor consult without the clinic visit. Australian doctors assess your health concerns.',
   },
   alternates: {
     canonical: 'https://instantmed.com.au/consult',
@@ -41,12 +41,12 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
       <BreadcrumbSchema 
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
-          { name: "GP Consultation", url: "https://instantmed.com.au/consult" }
+          { name: "Doctor Consultation", url: "https://instantmed.com.au/consult" }
         ]} 
       />
       <MedicalServiceSchema 
-        name="Online GP Consultation"
-        description="A proper GP consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice."
+        name="Online Doctor Consultation"
+        description="A proper doctor consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice."
         price="49.95"
       />
       {/* Show contextual banner for med cert redirects */}

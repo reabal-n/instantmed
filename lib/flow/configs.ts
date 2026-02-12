@@ -1274,9 +1274,9 @@ const consultQuestionnaire: QuestionnaireConfig = {
 
 export const consultConfig: FlowConfig = {
   id: 'consult',
-  serviceSlug: 'gp-consult',
+  serviceSlug: 'consult',
   serviceName: 'Doctor Consultation',
-  serviceDescription: 'Speak with an Australian GP about any health concern',
+  serviceDescription: 'Speak with an Australian doctor about any health concern',
   category: 'consult',
   icon: 'Stethoscope',
   steps: refinedSteps,
@@ -1303,8 +1303,8 @@ export const flowConfigs: Record<string, FlowConfig> = {
   'med-cert': medCertConfig,
   'common-scripts': commonScriptsConfig,
   'prescription': commonScriptsConfig,
-  'gp-consult': consultConfig,
   'consult': consultConfig,
+  'gp-consult': consultConfig, // backward compat for existing DB rows
 }
 
 export function getFlowConfig(serviceSlug: string): FlowConfig | null {
@@ -1312,7 +1312,7 @@ export function getFlowConfig(serviceSlug: string): FlowConfig | null {
 }
 
 export function getAllServiceSlugs(): string[] {
-  return ['medical-certificate', 'common-scripts', 'gp-consult']
+  return ['medical-certificate', 'common-scripts', 'consult']
 }
 
 // Service categories for display (per brand voice guidelines)
@@ -1337,9 +1337,9 @@ export const serviceCategories = [
     features: ['Doctor reviewed', 'E-script to your phone', 'Use at any pharmacy'],
   },
   {
-    slug: 'gp-consult',
+    slug: 'consult',
     name: 'Doctor Consultation',
-    description: 'Speak with an Australian GP about any health concern',
+    description: 'Speak with an Australian doctor about any health concern',
     price: '$49.95',
     time: '~20 mins',
     icon: 'Stethoscope',

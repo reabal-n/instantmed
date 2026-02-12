@@ -50,7 +50,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'AlertCircle',
         title: 'Same-day or recent absence',
-        description: 'Certificates can cover absences up to 48 hours ago if clinically appropriate. Beyond that, see your GP.',
+        description: 'Certificates can cover absences up to 48 hours ago if clinically appropriate. Beyond that, see your doctor.',
         type: 'info',
       },
       {
@@ -77,7 +77,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
         number: '2',
         icon: 'Stethoscope',
         title: 'Doctor reviews your request',
-        description: 'An AHPRA-registered GP reviews your submission. They may message you if they need clarification.',
+        description: 'An AHPRA-registered doctor reviews your submission. They may message you if they need clarification.',
         time: 'Under 1 hour',
       },
       {
@@ -265,7 +265,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
         number: '2',
         icon: 'Stethoscope',
         title: 'Doctor reviews',
-        description: 'An AHPRA-registered GP reviews your request. They\'ll check it\'s safe and appropriate to continue.',
+        description: 'An AHPRA-registered doctor reviews your request. They\'ll check it\'s safe and appropriate to continue.',
         time: 'Under 1 hour',
       },
       {
@@ -290,7 +290,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'MessageCircle',
         title: 'Doctor may ask questions',
-        description: 'The doctor might ask about your last blood tests, when you last saw your GP, or other relevant health information.',
+        description: 'The doctor might ask about your last blood tests, when you last saw your doctor, or other relevant health information.',
       },
       {
         icon: 'Phone',
@@ -352,7 +352,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     subtitle: 'Real reviews from Australians who\'ve used our service',
     reviews: [
       {
-        text: 'Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes. Got the eScript on my phone and picked it up same day.',
+        text: 'Needed my blood pressure meds renewed. Usually takes a week to see my doctor. This took 20 minutes. Got the eScript on my phone and picked it up same day.',
         author: 'David R.',
         location: 'Gold Coast',
         rating: 5,
@@ -364,7 +364,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
         rating: 5,
       },
       {
-        text: 'Living remote, nearest GP is 2 hours away. This service is a game changer for my regular medications.',
+        text: 'Living remote, nearest doctor is 2 hours away. This service is a game changer for my regular medications.',
         author: 'Ryan P.',
         location: 'Darwin',
         rating: 5,
@@ -390,8 +390,8 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'consult',
   
   hero: {
-    badge: 'Online GP Consultation',
-    headline: 'A proper GP consult, without the clinic visit',
+    badge: 'Online Doctor Consultation',
+    headline: 'A proper doctor consult, without the clinic visit',
     subheadline: 'For new health concerns or treatment advice. Speak with an Australian doctor who\'ll assess your situation and recommend next steps.',
     reassurances: [
       'No signup to get started',
@@ -449,7 +449,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         number: '2',
         icon: 'Stethoscope',
         title: 'Doctor assessment',
-        description: 'A GP reviews your information and will often call you to discuss further. This ensures a proper clinical assessment.',
+        description: 'A doctor reviews your information and will often call you to discuss further. This ensures a proper clinical assessment.',
         time: 'Within 2 hours',
       },
       {
@@ -491,7 +491,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   
   pricing: {
     title: 'Consultation pricing',
-    subtitle: 'A fraction of typical GP costs, with the same quality of care.',
+    subtitle: 'A fraction of typical clinic costs, with the same quality of care.',
     price: 49.95,
     features: [
       'Full clinical assessment',
@@ -526,7 +526,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'Shield',
         title: 'Clinical Standards',
-        description: 'Same standard of care as in-person GP visits',
+        description: 'Same standard of care as in-person doctor visits',
       },
     ],
   },

@@ -512,8 +512,8 @@ export const useFlowStore = create<FlowStore>()(
           'prescription',
           'repeat-script', 
           'new-script',
-          'gp-consult',
           'consult',
+          'gp-consult',
         ].includes(state.serviceSlug)
 
         // Check identity data for details step
