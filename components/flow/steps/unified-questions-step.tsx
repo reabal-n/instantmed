@@ -463,7 +463,7 @@ export function UnifiedQuestionsStep({
         </AnimatePresence>
         
         {/* Security note - minimal */}
-        <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] text-slate-400">
+        <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-slate-400">
           <Shield className="w-3 h-3" />
           <span>Encrypted · Doctor reviewed</span>
         </div>

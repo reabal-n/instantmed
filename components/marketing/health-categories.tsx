@@ -206,7 +206,7 @@ export function HealthCategories() {
                       {category.benefits && (
                         <ul className="space-y-1 mb-2 flex-1">
                           {category.benefits.slice(0, 3).map((benefit, idx) => (
-                            <li key={idx} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
+                            <li key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
                               <Check className="h-2.5 w-2.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                               <span>{benefit}</span>
                             </li>
@@ -215,7 +215,7 @@ export function HealthCategories() {
                       )}
                       
                       {/* Meta info */}
-                      <div className="flex items-center gap-2 text-[10px] mt-auto">
+                      <div className="flex items-center gap-2 text-xs mt-auto">
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="h-2.5 w-2.5" />
                           {category.metaTime || "~15 min"}

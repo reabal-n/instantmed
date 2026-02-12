@@ -427,7 +427,7 @@ const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
       >
         <img src={image} alt={title} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-foreground/60 to-transparent" />
-        <p className="absolute bottom-1.5 left-1.5 right-1.5 text-[10px] font-medium text-primary-foreground truncate">
+        <p className="absolute bottom-1.5 left-1.5 right-1.5 text-xs font-medium text-primary-foreground truncate">
           {title}
         </p>
       </div>

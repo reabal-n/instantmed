@@ -100,7 +100,7 @@ export function AvailabilityToggle({
               <Circle className={`h-2.5 w-2.5 fill-current ${config.color}`} />
               <span>{config.label}</span>
               {isActive && (
-                <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">
+                <Badge variant="secondary" className="ml-auto text-xs px-1.5 py-0">
                   Current
                 </Badge>
               )}

@@ -10,7 +10,6 @@ import { MediaMentions } from "@/components/marketing/media-mentions"
 import { Mail } from "lucide-react"
 import { motion, useInView, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
 import { RotatingText } from "@/components/marketing/rotating-text"
-import { MagneticCard, Spotlight } from "@/components/ui/glowing-effect"
 import { Accordion, AccordionItem } from "@heroui/react"
 import {
   AHPRALogo,
@@ -21,14 +20,10 @@ import {
   LegitScriptLogo,
 } from "@/components/icons/certification-logos"
 import {
-  TextRevealWord,
   GridStagger,
-  HolographicCard,
 } from "@/components/effects"
 import {
-  AnimatedOrbs,
   GlowLine,
-  FloatingBadge,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
 import {
@@ -245,9 +240,9 @@ const trustPillars = [
       "Regular clinical decision audits",
     ],
     image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=400&fit=crop&crop=face",
-    color: "from-emerald-500/20 to-teal-500/20",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
+    color: "from-blue-500/20 to-sky-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Shield,
@@ -261,7 +256,7 @@ const trustPillars = [
       "Every request is human-reviewed",
     ],
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-indigo-500/20",
+    color: "from-blue-500/20 to-sky-500/20",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
@@ -277,9 +272,9 @@ const trustPillars = [
       "Regular security audits and pen testing",
     ],
     image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop",
-    color: "from-violet-500/20 to-purple-500/20",
-    iconBg: "bg-violet-500/10",
-    iconColor: "text-violet-600 dark:text-violet-400",
+    color: "from-blue-500/20 to-sky-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Building2,
@@ -293,9 +288,9 @@ const trustPillars = [
       "Compliant with Therapeutic Goods Act",
     ],
     image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=400&fit=crop",
-    color: "from-amber-500/20 to-orange-500/20",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-600 dark:text-amber-400",
+    color: "from-blue-500/20 to-sky-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Scale,
@@ -309,9 +304,9 @@ const trustPillars = [
       "Full refund if we can&apos;t help you",
     ],
     image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=400&fit=crop",
-    color: "from-rose-500/20 to-pink-500/20",
-    iconBg: "bg-rose-500/10",
-    iconColor: "text-rose-600 dark:text-rose-400",
+    color: "from-blue-500/20 to-sky-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: BookOpen,
@@ -325,9 +320,9 @@ const trustPillars = [
       "Quarterly protocol reviews and updates",
     ],
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop",
-    color: "from-cyan-500/20 to-sky-500/20",
-    iconBg: "bg-cyan-500/10",
-    iconColor: "text-cyan-600 dark:text-cyan-400",
+    color: "from-blue-500/20 to-sky-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
 ]
 
@@ -403,27 +398,24 @@ export default function TrustPage() {
       <main className="relative">
         {/* Hero Section - Enhanced with Effects */}
         <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden">
-          {/* Animated Orbs Background - respects reduced motion */}
-          {!prefersReducedMotion && <AnimatedOrbs className="opacity-50" orbCount={3} />}
+  {/* Subtle background accent */}
           
           {/* Subtle gradient background */}
           <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-background to-background" />
           
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            {/* Badge with FloatingBadge effect */}
-            <div className="flex justify-center mb-6">
-              <FloatingBadge color="primary" delay={0.1}>
-                <Shield className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground/80">Trust & Safety</span>
-              </FloatingBadge>
-            </div>
+  {/* Badge */}
+  <div className="flex justify-center mb-6">
+  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+  <Shield className="w-4 h-4 text-primary" />
+  <span className="text-sm font-medium text-foreground/80">Trust & Safety</span>
+  </div>
+  </div>
 
-            {/* Main headline with TextRevealWord effect */}
-            <div className="text-center mb-6">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
-                <TextRevealWord delay={0.2} className="justify-center">
-                  Your health. Our responsibility.
-                </TextRevealWord>
+  {/* Main headline */}
+  <div className="text-center mb-6">
+  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
+  Your health. Our responsibility.
                 <span className="block mt-2 text-premium-gradient">
                   <RotatingText 
                     texts={HEADLINE_VARIATIONS} 
@@ -445,21 +437,21 @@ export default function TrustPage() {
               We built InstantMed on a foundation of clinical excellence, transparency, and genuine care. Here&apos;s how we earn your trust.
             </motion.p>
 
-            {/* Trust pills with FloatingBadge */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              <FloatingBadge color="success" delay={0.5}>
-                <BadgeCheck className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm font-medium text-foreground">AHPRA Verified</span>
-              </FloatingBadge>
-              <FloatingBadge color="primary" delay={0.6}>
-                <Lock className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">256-bit Encryption</span>
-              </FloatingBadge>
-              <FloatingBadge color="success" delay={0.7}>
-                <Users className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm font-medium text-foreground">10,000+ Aussies Helped</span>
-              </FloatingBadge>
-            </div>
+  {/* Trust pills */}
+  <div className="flex flex-wrap justify-center gap-3 mb-12">
+  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+  <BadgeCheck className="w-4 h-4 text-emerald-500" />
+  <span className="text-sm font-medium text-foreground">AHPRA Verified</span>
+  </div>
+  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+  <Lock className="w-4 h-4 text-primary" />
+  <span className="text-sm font-medium text-foreground">256-bit Encryption</span>
+  </div>
+  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+  <Users className="w-4 h-4 text-emerald-500" />
+  <span className="text-sm font-medium text-foreground">10,000+ Aussies Helped</span>
+  </div>
+  </div>
 
             {/* Animated Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
@@ -558,9 +550,7 @@ export default function TrustPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <MagneticCard intensity={8} scale={1.02} borderRadius="1.5rem">
-                    <Spotlight color="rgba(99, 102, 241, 0.08)" size={400}>
-                      <div className={cn(
+  <div className={cn(
                         "relative h-full rounded-3xl overflow-hidden",
                         "bg-card/80 backdrop-blur-xl",
                         "border border-border/50",
@@ -613,8 +603,7 @@ export default function TrustPage() {
                           </ul>
                         </div>
                       </div>
-                    </Spotlight>
-                  </MagneticCard>
+
                 </motion.div>
               ))}
             </div>
@@ -783,7 +772,7 @@ export default function TrustPage() {
                   {/* Source badge */}
                   <div className="absolute top-4 right-4 flex items-center gap-1">
                     {testimonial.verified && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                         <Verified className="w-3 h-3" />
                         {testimonial.source}
                       </span>
@@ -867,7 +856,7 @@ export default function TrustPage() {
           <GlowLine />
         </div>
 
-        {/* AHPRA Verification CTA - HolographicCard */}
+        {/* AHPRA Verification CTA */}
         <section id={SECTION_IDS.verify} className="py-16 lg:py-20 bg-muted/20 scroll-mt-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -876,7 +865,7 @@ export default function TrustPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <HolographicCard intensity="medium" className="p-8 md:p-12">
+              <div className="p-8 md:p-12 bg-card rounded-2xl border border-border shadow-md">
                 <div className="relative flex flex-col md:flex-row items-center gap-8">
                   {/* Content */}
                   <div className="flex-1 text-center md:text-left">
@@ -925,7 +914,7 @@ export default function TrustPage() {
                     </motion.div>
                   </div>
                 </div>
-              </HolographicCard>
+              </div>
             </motion.div>
           </div>
         </section>

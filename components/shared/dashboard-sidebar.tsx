@@ -87,7 +87,7 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
       {badgeCount !== undefined && badgeCount > 0 && (
         <span
           className={cn(
-            "min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-semibold",
+            "min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-xs font-semibold",
             isActive 
               ? "bg-primary text-primary-foreground" 
               : "bg-muted text-muted-foreground",
@@ -139,14 +139,14 @@ export function DashboardSidebar({
               <span className="text-[15px] font-semibold tracking-tight text-foreground">
                 InstantMed
               </span>
-              <p className="text-[11px] text-muted-foreground capitalize leading-none mt-0.5">{variant} Portal</p>
+              <p className="text-xs text-muted-foreground capitalize leading-none mt-0.5">{variant} Portal</p>
             </div>
           </div>
         </div>
 
         {/* Main Navigation */}
         <nav className="flex flex-col gap-0.5 px-3">
-          <p className="px-3 mb-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Navigation</p>
+          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Navigation</p>
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
             const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
@@ -166,7 +166,7 @@ export function DashboardSidebar({
         {/* Admin Navigation */}
         {variant === "doctor" && isAdmin && (
           <nav className="flex flex-col gap-0.5 px-3 mt-4">
-            <p className="px-3 mb-1.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">Admin</p>
+            <p className="px-3 mb-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">Admin</p>
             {adminNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
               return (
@@ -179,7 +179,7 @@ export function DashboardSidebar({
         {/* Ops Navigation */}
         {variant === "doctor" && (
           <nav className="flex flex-col gap-0.5 px-3 mt-4" data-testid="ops-nav-section">
-            <p className="px-3 mb-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Ops</p>
+            <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Ops</p>
             {opsNavItemsBase.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin/ops" && pathname?.startsWith(item.href))
               return (
@@ -209,7 +209,7 @@ export function DashboardSidebar({
         {/* Stats - Doctor only */}
         {variant === "doctor" && (
           <div className="px-6 flex flex-col gap-2">
-            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Queue</p>
+            <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Queue</p>
             <div className="flex items-center justify-between py-1.5">
               <span className="text-[13px] text-muted-foreground">Pending</span>
               <span className={cn(
@@ -250,7 +250,7 @@ export function DashboardSidebar({
                     <Keyboard className="w-3.5 h-3.5" />
                     Shortcuts
                   </span>
-                  <kbd className="text-[10px] font-mono bg-muted/80 px-1.5 py-0.5 rounded text-muted-foreground">?</kbd>
+                  <kbd className="text-xs font-mono bg-muted/80 px-1.5 py-0.5 rounded text-muted-foreground">?</kbd>
                 </Button>
               }
             />
@@ -277,7 +277,7 @@ export function DashboardSidebar({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-medium text-foreground truncate leading-tight">{userName}</p>
-              <p className="text-[11px] text-muted-foreground capitalize leading-tight">{userRole || variant}</p>
+              <p className="text-xs text-muted-foreground capitalize leading-tight">{userRole || variant}</p>
             </div>
           </div>
         </div>

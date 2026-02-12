@@ -283,7 +283,7 @@ export function FileUpload({
       </AnimatePresence>
       
       {/* Size hint */}
-      <p className="text-[10px] text-muted-foreground mt-2 text-center">
+      <p className="text-xs text-muted-foreground mt-2 text-center">
         Max file size: {maxSizeMB}MB • Supported: JPG, PNG, HEIC
       </p>
     </div>

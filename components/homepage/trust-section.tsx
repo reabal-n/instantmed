@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Shield, Zap, Lock, Heart } from "lucide-react"
 import { motion } from "framer-motion"
-import { HolographicCard } from "@/components/effects/holographic-card"
+
 import { SecurityBadges } from "@/components/security/security-badges"
 import { SectionPill } from "@/components/ui/section-pill"
 
@@ -88,7 +88,7 @@ export function TrustSection() {
         >
           {trustPoints.map((point) => (
             <motion.div key={point.title} variants={itemVariants}>
-              <HolographicCard hover intensity="medium" className="flex gap-4 p-6 h-full">
+              <div className="flex gap-4 p-6 h-full bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                 {/* Icon with gradient background */}
                 <div
                   className="shrink-0 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl"
@@ -106,7 +106,7 @@ export function TrustSection() {
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{point.description}</p>
                 </div>
-              </HolographicCard>
+              </div>
             </motion.div>
           ))}
         </motion.div>

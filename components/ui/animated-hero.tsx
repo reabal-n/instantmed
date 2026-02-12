@@ -344,7 +344,7 @@ export function AnimatedHero({
             {/* Title */}
             <motion.h1
               variants={itemVariants}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]"
+              className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6 leading-[1.12]"
             >
               {title}
             </motion.h1>

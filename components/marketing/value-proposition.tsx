@@ -35,7 +35,7 @@ export function HeroValueProp({ className }: { className?: string }) {
           Australia&apos;s fastest telehealth
         </Badge>
 
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
           Scripts &amp; Med Certs
           <br />
           <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">

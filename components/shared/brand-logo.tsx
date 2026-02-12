@@ -14,9 +14,9 @@ interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  sm: { height: 24, width: 140 },
-  md: { height: 30, width: 175 },
-  lg: { height: 38, width: 220 },
+  sm: { height: 20, width: 120 },
+  md: { height: 26, width: 150 },
+  lg: { height: 32, width: 185 },
 }
 
 export function BrandLogo({

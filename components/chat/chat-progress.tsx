@@ -35,7 +35,7 @@ export function ChatProgress({ currentStep, totalSteps, labels }: ChatProgressPr
           />
         )
       })}
-      <span className="text-[10px] text-primary-foreground/70 ml-1">
+      <span className="text-xs text-primary-foreground/70 ml-1">
         {Math.round(progress * 100)}%
       </span>
     </div>

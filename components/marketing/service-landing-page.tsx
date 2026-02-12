@@ -165,7 +165,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               </div>
 
               {/* Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
                 {config.heroTitle}
               </h1>
 

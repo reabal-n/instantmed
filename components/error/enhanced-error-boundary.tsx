@@ -153,7 +153,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                             Component stack
                           </summary>
-                          <pre className="mt-2 p-2 rounded bg-muted overflow-auto max-h-[200px] text-[10px]">
+                          <pre className="mt-2 p-2 rounded bg-muted overflow-auto max-h-[200px] text-xs">
                             {this.state.errorInfo.componentStack}
                           </pre>
                         </details>

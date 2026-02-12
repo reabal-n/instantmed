@@ -29,7 +29,7 @@ export function Footer() {
           <div className="flex flex-col items-start gap-2">
             <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              Medical certificates & prescriptions — handled online by real Australian doctors.
+              See a doctor from bed. Sorted in under an hour.
             </p>
           </div>
 
@@ -97,8 +97,8 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground/70 max-w-sm">
-          All doctors AHPRA-registered. RACGP-aligned protocols. Medical Director oversight.
+        <p className="text-xs text-muted-foreground/70">
+          ABN: 64 694 559 334
         </p>
       </div>
     </footer>

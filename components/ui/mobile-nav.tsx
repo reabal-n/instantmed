@@ -77,12 +77,12 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
               <div className="relative">
                 <Icon className={cn("w-5 h-5", isActive && "animate-bounce-once")} />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
               </div>
-              <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>
+              <span className={cn("text-xs font-medium", isActive && "font-semibold")}>
                 {item.label}
               </span>
             </button>

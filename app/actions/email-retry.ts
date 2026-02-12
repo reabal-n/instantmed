@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { sendEmail } from "@/lib/email/send-email"
 import { sendFromOutboxRow, claimOutboxRow, type OutboxRow } from "@/lib/email/send-email"
-import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
+import { MedCertEmail } from "@/components/email/med-cert-email"
 import { env } from "@/lib/env"
 import {
   getFailedEmailDeliveries,
@@ -99,9 +99,9 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
     // Increment retry count first
     await incrementEmailRetry(certificateId)
 
-    // Generate email HTML
+    // Generate email template as React element
     const dashboardUrl = `${env.appUrl}/patient/intakes/${certificate.intake_id}`
-    const emailHtml = renderMedCertEmailToHtml({
+    const emailTemplate = MedCertEmail({
       patientName: certificate.patient_name,
       dashboardUrl,
     })
@@ -117,7 +117,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
       to: patient.email,
       toName: certificate.patient_name,
       subject: "Your Medical Certificate is Ready - InstantMed",
-      template: emailHtml,
+      template: emailTemplate,
       emailType: "med_cert_patient",
       intakeId: certificate.intake_id,
       patientId: certificate.patient_id,

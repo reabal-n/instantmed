@@ -32,7 +32,6 @@ import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-
 import { cn } from "@/lib/utils"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
-import { ShatterButtonLink } from "@/components/ui/shatter-button"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -225,12 +224,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             className={cn(
               "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
               isDarkTheme
-                ? "bg-gradient-radial from-transparent via-primary/20 to-transparent"
-                : "bg-gradient-radial from-transparent via-primary/10 to-transparent"
+                ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
+                : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
             )}
             variants={navGlowVariants}
           />
-          <div className="relative z-10 flex items-center justify-between px-4 py-2">
+          <div className="relative z-10 flex items-center justify-between px-3 py-1.5">
             {/* Logo */}
             <BrandLogo size="sm" className="relative z-10" />
 
@@ -285,9 +284,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
-                    <ShatterButtonLink href="/request" className="text-xs h-7 px-3 py-1">
+                    <Button
+                      as={Link}
+                      href="/request"
+                      size="sm"
+                      className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                    >
                       Get started
-                    </ShatterButtonLink>
+                    </Button>
                     <SignedOut>
                       <SignInButton mode="modal">
                         <Button
@@ -479,9 +483,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </SignedIn>
-                <ShatterButtonLink href="/request" className="w-full rounded-xl">
+                <Button
+                  as={Link}
+                  href="/request"
+                  className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
                   Get started
-                </ShatterButtonLink>
+                </Button>
               </>
             )}
             {variant === "patient" && (

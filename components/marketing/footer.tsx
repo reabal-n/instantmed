@@ -70,7 +70,7 @@ export function MarketingFooter() {
           <div className="flex flex-col items-start gap-3">
             <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              Medical certificates & consultations — handled online by real Australian doctors.
+              See a doctor from bed. Sorted in under an hour.
             </p>
             <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
               <div className="flex items-start gap-2">
@@ -162,10 +162,9 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <div className="flex flex-col items-start md:items-end gap-1 text-xs text-muted-foreground/70">
-          <p>AHPRA-registered doctors. RACGP-aligned protocols. Medical Director oversight.</p>
-          <p>ABN: 64 694 559 334</p>
-        </div>
+        <p className="text-xs text-muted-foreground/70">
+          ABN: 64 694 559 334
+        </p>
       </div>
     </footer>
   )

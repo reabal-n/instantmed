@@ -61,7 +61,7 @@ export const TestimonialsColumn = (props: {
                       <Avatar
                         className="h-8 w-8"
                         fallback={
-                          <div className="h-8 w-8 flex items-center justify-center text-[11px] font-semibold text-primary">
+                          <div className="h-8 w-8 flex items-center justify-center text-xs font-semibold text-primary">
                             {getInitials(name)}
                           </div>
                         }
@@ -73,7 +73,7 @@ export const TestimonialsColumn = (props: {
                     </div>
                     <div className="flex items-center gap-1 text-emerald-600 shrink-0">
                       <BadgeCheck className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-medium">Verified</span>
+                      <span className="text-xs font-medium">Verified</span>
                     </div>
                   </div>
                 </div>

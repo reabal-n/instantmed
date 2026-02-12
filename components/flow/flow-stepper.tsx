@@ -71,7 +71,7 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
                 {/* Label */}
                 <motion.span
                   className={cn(
-                    'mt-2 text-[11px] font-medium whitespace-nowrap',
+                    'mt-2 text-xs font-medium whitespace-nowrap',
                     isCurrent && 'text-primary-600 dark:text-primary-400',
                     isCompleted && 'text-slate-600 dark:text-slate-400',
                     isPending && 'text-slate-400 dark:text-slate-500'
@@ -91,7 +91,7 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
         <div className="flex items-center gap-3">
           {/* Step indicator pill */}
           <div className="flex items-center gap-1.5 bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_2px_8px_rgb(59,130,246,0.25)]">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-bold flex items-center justify-center shadow-[0_2px_8px_rgb(59,130,246,0.25)]">
               {currentIndex + 1}
             </div>
             <span className="text-xs font-semibold text-primary-700 dark:text-primary-400">
@@ -110,7 +110,7 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
           </div>
           
           {/* Step count */}
-          <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">
+          <span className="text-xs font-medium text-slate-400 whitespace-nowrap">
             {currentIndex + 1}/{steps.length}
           </span>
         </div>

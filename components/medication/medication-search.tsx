@@ -180,7 +180,7 @@ export function MedicationSearch({
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm text-foreground">{med.name}</span>
                     {med.requiresCall && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5">
                         <Phone className="w-2.5 h-2.5 mr-1" />
                         Call needed
                       </Badge>

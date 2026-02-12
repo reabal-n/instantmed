@@ -188,7 +188,7 @@ export function ConditionGrid() {
                   transition={{ delay: 0.2, duration: 0.3, ease: "easeOut" }}
                 >
                   <div 
-                    className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
+                    className="text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
                     style={{ 
                       background: `linear-gradient(135deg, ${condition.color}, ${condition.color}cc)`,
                       boxShadow: `0 4px 12px ${condition.color}40`,

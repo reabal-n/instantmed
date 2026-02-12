@@ -15,12 +15,12 @@ interface ConfettiPiece {
 }
 
 const COLORS = [
-  "#2563EB", // Primary teal
-  "#4f46e5", // Purple
-  "#4f46e5", // Cyan
+  "#2563EB", // Primary blue
+  "#3B82F6", // Blue 500
+  "#60A5FA", // Blue 400
   "#F59E0B", // Amber
-  "#EC4899", // Pink
   "#10B981", // Emerald
+  "#0891B2", // Cyan
 ]
 
 const SHAPES = ["square", "circle", "triangle"] as const

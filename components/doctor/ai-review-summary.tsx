@@ -137,7 +137,7 @@ export function AiReviewSummary({
         </div>
       )}
 
-      <p className="text-[10px] text-muted-foreground/60">
+      <p className="text-xs text-muted-foreground/60">
         AI-generated summary for quick reference. Always verify against full intake data.
       </p>
     </div>

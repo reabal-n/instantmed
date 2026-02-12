@@ -94,7 +94,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
             >
               {/* Popular badge */}
               {service.popular && (
-                <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                   Popular
                 </span>
               )}
@@ -125,7 +125,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                   <p className="text-xs sm:text-sm text-slate-600 mb-2">{service.description}</p>
 
                   {/* Meta row */}
-                  <div className="flex flex-wrap items-center gap-3 text-[10px] sm:text-xs text-slate-500 mb-2">
+                  <div className="flex flex-wrap items-center gap-3 text-xs sm:text-xs text-slate-500 mb-2">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       {service.time}
@@ -138,7 +138,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                       <span
                         key={idx}
                         className={cn(
-                          'inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full',
+                          'inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full',
                           isSelected
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-slate-100 text-slate-600'

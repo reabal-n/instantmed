@@ -4,20 +4,18 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { Button, Accordion, AccordionItem } from "@heroui/react"
+import { Accordion, AccordionItem } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, RefreshCw, Smartphone, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
-import { MagneticCard, GradientBorderChase } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
-import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
 import { useState, useEffect } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
@@ -111,8 +109,8 @@ const testimonials = [
 const trustBadges = [
   { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
   { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-violet-600" },
-  { name: "Any Pharmacy", description: "Australia-wide", icon: Building2, color: "text-amber-600" },
+  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-blue-600" },
+  { name: "Any Pharmacy", description: "Australia-wide", icon: Building2, color: "text-blue-600" },
 ]
 
 // How it works steps
@@ -131,16 +129,16 @@ const steps = [
     title: "Doctor reviews your request",
     description: "An AHPRA-registered doctor assesses your request and determines eligibility.",
     time: "Under 1 hour",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     number: "03",
     title: "E-script sent to your phone",
     description: "Your prescription is sent as an e-script. Take it to any pharmacy in Australia.",
     time: "Same day",
-    color: "from-emerald-500 to-green-600",
+    color: "from-emerald-500 to-emerald-600",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
   },
@@ -181,13 +179,7 @@ export default function RepeatPrescriptionPage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
-            {/* Animated background orbs - respects reduced motion */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs 
-                orbCount={3} 
-                className="opacity-40"
-              />
-            )}
+            {/* Subtle background */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -202,7 +194,7 @@ export default function RepeatPrescriptionPage() {
               {/* Main content */}
               <div className="text-center max-w-4xl mx-auto">
                 <motion.h1 
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
@@ -228,23 +220,21 @@ export default function RepeatPrescriptionPage() {
                   transition={{ duration: 0.5, delay: 0.3 }}
                 >
                   <Button 
-                    as={Link}
-                    href="/request?service=prescription"
-                    color="primary"
+                    asChild
                     size="lg"
-                    className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                    endContent={<ArrowRight className="h-4 w-4" />}
+                    className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
                   >
-                    Request your prescription
+                    <Link href="/request?service=prescription">
+                      Request your prescription <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                   <Button 
-                    as={Link}
-                    href="#how-it-works"
-                    variant="bordered"
+                    asChild
+                    variant="outline"
                     size="lg"
-                    className="h-12 px-8"
+                    className="h-12 px-8 active:scale-[0.98]"
                   >
-                    See how it works
+                    <Link href="#how-it-works">See how it works</Link>
                   </Button>
                 </motion.div>
 
@@ -262,16 +252,7 @@ export default function RepeatPrescriptionPage() {
                   </p>
                 </motion.div>
 
-                {/* Social proof indicators */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <ViewingNowIndicator service="repeat-prescription" />
-                  <LiveServiceCounter service="repeat-prescription" />
-                </motion.div>
+
 
                 {/* Trust signals row */}
                 <motion.div 
@@ -687,14 +668,7 @@ export default function RepeatPrescriptionPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
-                  <GradientBorderChase 
-                    colors={['#2563EB', '#4f46e5', '#4f46e5', '#7c3aed', '#2563EB']}
-                    duration={4}
-                    borderWidth={2}
-                    borderRadius="1.5rem"
-                  >
-                    <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 rounded-3xl p-8 sm:p-12 text-center">
+                    <div className="bg-linear-to-br from-primary/5 via-transparent to-primary/3 rounded-2xl border border-primary/10 p-8 sm:p-12 text-center">
                       {/* Badge */}
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                         <RefreshCw className="w-4 h-4 text-primary" />
@@ -736,8 +710,7 @@ export default function RepeatPrescriptionPage() {
                         $29.95 consultation fee • PBS subsidies apply at pharmacy
                       </p>
                     </div>
-                  </GradientBorderChase>
-                </MagneticCard>
+
               </motion.div>
             </div>
           </section>

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Button, Input, Textarea } from "@heroui/react"
+import { Button, Input } from "@/components/uix"
+import { Textarea } from "@/components/ui/textarea"
 import { Heart, Plus, X, Save, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import type { HealthProfile } from "@/lib/data/health-profile"

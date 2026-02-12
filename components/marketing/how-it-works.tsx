@@ -55,7 +55,7 @@ export function HowItWorks() {
             <span className="text-sm font-medium text-foreground/80">How it works</span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
             Three steps. That&apos;s it.
           </h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
@@ -75,7 +75,7 @@ export function HowItWorks() {
               whileHover={{ y: -4 }}
               className="group"
             >
-              <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} backdrop-blur-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-none`}>
+              <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-none`}>
                 {/* Step number */}
                 <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
                   {step.number}

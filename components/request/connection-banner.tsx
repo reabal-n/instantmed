@@ -102,17 +102,17 @@ export function ConnectionIndicator() {
       {!isOnline ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30">
           <WifiOff className="w-3 h-3 text-amber-600" />
-          <span className="text-[10px] font-medium text-amber-700 dark:text-amber-300">Offline</span>
+          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Offline</span>
         </div>
       ) : isSyncing ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30">
           <RefreshCw className="w-3 h-3 text-blue-600 animate-spin" />
-          <span className="text-[10px] font-medium text-blue-700 dark:text-blue-300">Syncing</span>
+          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Syncing</span>
         </div>
       ) : pendingCount > 0 ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30">
           <CloudOff className="w-3 h-3 text-blue-600" />
-          <span className="text-[10px] font-medium text-blue-700 dark:text-blue-300">{pendingCount}</span>
+          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{pendingCount}</span>
         </div>
       ) : null}
     </div>

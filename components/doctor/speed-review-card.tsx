@@ -144,7 +144,7 @@ export function SpeedReviewCard({
           >
             <CheckCircle className="h-4 w-4 mr-2" />
             Approve & Next
-            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] bg-emerald-700 rounded">⌘A</kbd>
+            <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-emerald-700 rounded">⌘A</kbd>
           </Button>
           <Button
             variant="outline"

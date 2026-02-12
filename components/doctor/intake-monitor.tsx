@@ -61,7 +61,7 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
 
   return (
     <div className="flex flex-col gap-1 p-3 rounded-lg bg-muted/40 border border-border/30">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <Icon className="h-3 w-3" />
         {label}
       </div>
@@ -114,7 +114,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
             Live Monitor
           </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground tabular-nums">
+            <span className="text-xs text-muted-foreground tabular-nums">
               {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
             <Button
@@ -183,7 +183,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               <span className="font-medium text-emerald-600 dark:text-emerald-400">{stats.paidCount}</span> paid
             </span>
             {stats.pendingCount > 0 && (
-              <Badge variant="outline" className="text-[11px] h-5 px-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20">
+              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20">
                 {stats.pendingCount} pending
               </Badge>
             )}
@@ -201,7 +201,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               <span className="text-[13px] font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
             </div>
             {approvalRate !== null && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 ({approvalRate}%)
               </span>
             )}
@@ -210,7 +210,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           {stats.queueSize === 0 && (
             <>
               <div className="h-3.5 w-px bg-border/60" />
-              <Badge variant="outline" className="text-[11px] h-5 px-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">
+              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">
                 Queue clear
               </Badge>
             </>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Chip } from "@heroui/react"
+import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
@@ -136,11 +136,12 @@ export function ContactClient() {
 
             <div className="container mx-auto px-4 relative">
               <div className="max-w-3xl mx-auto text-center">
-                <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4 badge-premium spacing-premium">
+                <Badge variant="secondary" className="mb-4 gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
                   Contact Us
-                </Chip>
+                </Badge>
                 <h1
-                  className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
+                  className="text-3xl md:text-4xl font-bold text-foreground tracking-tight"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   Got a question? <span className="text-premium-gradient">We&apos;re here to help.</span>

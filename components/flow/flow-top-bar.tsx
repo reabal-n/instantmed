@@ -63,7 +63,7 @@ export function FlowTopBar({
           <h1 className="text-sm font-semibold text-slate-900 truncate">{serviceName}</h1>
           
           {/* Save status - subtle */}
-          <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 h-4">
+          <div className="flex items-center justify-center gap-1 text-xs text-slate-400 h-4">
             {isSaving ? (
               <motion.div 
                 className="flex items-center gap-1"

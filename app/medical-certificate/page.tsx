@@ -7,12 +7,10 @@ import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
-import { MediaMentions, LiveWaitTime, StatsStrip } from "@/components/marketing"
+import { LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
-import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
-import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
@@ -20,12 +18,10 @@ import { motion, useReducedMotion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
 import { GridStagger } from "@/components/effects/stagger-container"
-import { NearMeBanner } from "@/components/seo/near-me-banner"
 
 // Certificate types - 3 tiers
 // Pricing: 1-day $19.95, 2-day $29.95 (tiered based on duration selected in flow)
@@ -60,9 +56,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Accepted by all unis", "PDF straight to your inbox"],
     popular: false,
     href: "/request?service=med-cert",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     id: "carer",
@@ -77,9 +73,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: false,
     href: "/request?service=med-cert",
-    color: "from-rose-500 to-pink-600",
-    bgColor: "bg-rose-500/10",
-    borderColor: "border-rose-500/20",
+    color: "from-blue-400 to-blue-500",
+    bgColor: "bg-blue-400/10",
+    borderColor: "border-blue-400/20",
   },
 ]
 
@@ -124,8 +120,8 @@ const testimonials = medCertTestimonials.slice(0, 12).map((t) => ({
 const trustBadges = [
   { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
   { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-violet-600" },
-  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-amber-600" },
+  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-blue-600" },
+  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-blue-600" },
 ]
 
 // How it works steps
@@ -144,9 +140,9 @@ const steps = [
     title: "Doctor reviews your request",
     description: "A real GP looks over everything and makes the call.",
     time: "Under 1 hour",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     number: "03",
@@ -226,7 +222,6 @@ function useRotatingSubheadline() {
 }
 
 export default function MedicalCertificatePage() {
-  const waitTime = useWaitTimeRotator()
   const currentSubheadline = useRotatingSubheadline()
   const prefersReducedMotion = useReducedMotion()
   
@@ -238,13 +233,7 @@ export default function MedicalCertificatePage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
-            {/* Animated background orbs - respects reduced motion */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs 
-                orbCount={3} 
-                className="opacity-40"
-              />
-            )}
+            {/* Subtle background accent */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -261,7 +250,7 @@ export default function MedicalCertificatePage() {
                 {/* Text content */}
                 <div className="text-center lg:text-left flex-1 max-w-2xl">
                   <motion.h1 
-                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -323,76 +312,14 @@ export default function MedicalCertificatePage() {
                     </div>
                   </motion.div>
 
-                  {/* Safety notice + Guarantee badge */}
+                  {/* Safety notice */}
                   <motion.div
-                    className="flex flex-col items-center lg:items-start gap-2 mb-4"
+                    className="mb-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.35 }}
                   >
                     <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-emerald-500" />
-                      Full refund if we can&apos;t help
-                    </p>
-                  </motion.div>
-
-                  {/* Near Me - auto-detect location */}
-                  <motion.div
-                    className="mb-4 max-w-md lg:mx-0 mx-auto"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.38 }}
-                  >
-                    <NearMeBanner service="medical certificate" />
-                  </motion.div>
-
-                  {/* Social proof indicators with urgency */}
-                  <motion.div
-                    className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-3 mb-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                  >
-                    <ViewingNowIndicator service="med-cert" />
-                    <LiveServiceCounter service="med-cert" />
-                    {/* Subtle urgency: current wait time */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/50">
-                      <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
-                        ~<motion.span
-                          key={waitTime}
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="inline-block tabular-nums"
-                        >
-                          {waitTime}
-                        </motion.span> min wait
-                      </span>
-                    </div>
-                  </motion.div>
-
-                  {/* Trust signals row */}
-                  <motion.div 
-                    className="flex flex-wrap lg:justify-start justify-center gap-6 sm:gap-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                  >
-                    {[
-                      { icon: CheckCircle2, text: "Valid for all employers" },
-                      { icon: CheckCircle2, text: "7 days a week" },
-                      { icon: Shield, text: "AHPRA registered" },
-                    ].map((signal) => (
-                      <div 
-                        key={signal.text} 
-                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                      >
-                        <signal.icon className="h-4 w-4 text-emerald-500" />
-                        <span>{signal.text}</span>
-                      </div>
-                    ))}
                   </motion.div>
                 </div>
 
@@ -429,7 +356,7 @@ export default function MedicalCertificatePage() {
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
-                          <p className="text-[10px] text-muted-foreground">Australian Doctor</p>
+                          <p className="text-xs text-muted-foreground">Australian Doctor</p>
                         </div>
                       </div>
                     </motion.div>
@@ -467,7 +394,7 @@ export default function MedicalCertificatePage() {
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-foreground">100% online</p>
-                          <p className="text-[10px] text-muted-foreground">From your phone</p>
+                          <p className="text-xs text-muted-foreground">From your phone</p>
                         </div>
                       </div>
                       <div className="mt-3 flex gap-1.5">
@@ -610,7 +537,6 @@ export default function MedicalCertificatePage() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Link href={cert.href} className="group block h-full">
-                      <SpotlightReveal color={cert.id === 'personal' ? "#2563EB" : cert.id === 'study' ? "#7c3aed" : "#e11d48"} borderRadius="1rem">
                         <div className={cn(
                           "relative h-full rounded-2xl overflow-hidden flex flex-col",
                           "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
@@ -637,7 +563,7 @@ export default function MedicalCertificatePage() {
                             <div 
                               className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${cert.bgColor}`}
                             >
-                              <cert.icon className="w-6 h-6" style={{ color: cert.id === 'personal' ? '#2563EB' : cert.id === 'study' ? '#7c3aed' : '#e11d48' }} />
+                              <cert.icon className="w-6 h-6 text-blue-600" />
                             </div>
 
                             {/* Title */}
@@ -676,7 +602,6 @@ export default function MedicalCertificatePage() {
                             </div>
                           </div>
                         </div>
-                      </SpotlightReveal>
                     </Link>
                   </motion.div>
                 ))}
@@ -927,9 +852,6 @@ export default function MedicalCertificatePage() {
         <LiveWaitTime variant="strip" services={['med-cert']} />
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
         
-        {/* Media mentions */}
-        <MediaMentions variant="strip" className="bg-muted/30" />
-
         {/* Final CTA */}
         <ParallaxSection speed={0.2}>
           <section className="py-16 lg:py-20 relative overflow-hidden">
@@ -940,14 +862,7 @@ export default function MedicalCertificatePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
-                  <GradientBorderChase 
-                    colors={['#2563EB', '#4f46e5', '#4f46e5', '#EC4899', '#2563EB']}
-                    duration={4}
-                    borderWidth={2}
-                    borderRadius="1.5rem"
-                  >
-                    <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 rounded-3xl p-8 sm:p-12 text-center">
+                    <div className="bg-linear-to-br from-primary/5 via-transparent to-primary/3 rounded-2xl border border-primary/10 p-8 sm:p-12 text-center">
                       {/* Badge */}
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                         <Zap className="w-4 h-4 text-primary" />
@@ -992,8 +907,7 @@ export default function MedicalCertificatePage() {
                         <span className="line-through opacity-60">$60+ GP visit</span>
                       </p>
                     </div>
-                  </GradientBorderChase>
-                </MagneticCard>
+
               </motion.div>
             </div>
           </section>

@@ -329,14 +329,14 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                             <span className="text-sm font-medium block">{subtype.label}</span>
                             <ul className="mt-0.5 space-y-0">
                               {subtype.bullets.map((bullet) => (
-                                <li key={bullet} className="text-[11px] text-muted-foreground leading-relaxed">
+                                <li key={bullet} className="text-xs text-muted-foreground leading-relaxed">
                                   • {bullet}
                                 </li>
                               ))}
                             </ul>
                             <Badge
                               variant={subtype.callVariant}
-                              className="text-[10px] mt-1 px-1.5 py-0"
+                              className="text-xs mt-1 px-1.5 py-0"
                             >
                               {subtype.callBadge}
                             </Badge>
@@ -413,7 +413,7 @@ function ServiceCard({
           {/* Popular badge */}
           {popularBadge && (
             <div className="absolute top-0 right-0">
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
                 Most popular
               </div>
             </div>
@@ -442,7 +442,7 @@ function ServiceCard({
                     />
                     {/* Price */}
                     <div className="text-right mt-1">
-                      <span className="text-[10px] text-muted-foreground">{pricePrefix}</span>
+                      <span className="text-xs text-muted-foreground">{pricePrefix}</span>
                       <span className="text-sm font-semibold text-foreground ml-1">{price}</span>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { Button } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 
 const trustBadges = [
   { 
@@ -25,7 +25,7 @@ const trustBadges = [
     name: "Medical Director Oversight", 
     description: "Clinical governance & quality", 
     icon: UserCheck, 
-    color: "text-violet-600" 
+    color: "text-blue-600" 
   },
   { 
     name: "TGA ePrescribing", 
@@ -90,7 +90,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
 
         {/* CTA Section */}
         <motion.div
-          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-violet-500/5 border border-primary/10 p-8 lg:p-10 text-center overflow-hidden"
+          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-primary/3 border border-primary/10 p-8 lg:p-10 text-center overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -98,7 +98,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {/* Background decoration */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.06),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.05),transparent_50%)]" />
           
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
@@ -115,22 +115,19 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                as={Link}
-                href="/request"
-                color="primary"
+                asChild
                 size="lg"
-                className="px-8 font-semibold shadow-lg shadow-primary/25"
+                className="px-8 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
               >
-                Get started
+                <Link href="/request">Get started</Link>
               </Button>
               <Button
-                as={Link}
-                href="/pricing"
-                variant="bordered"
+                asChild
+                variant="outline"
                 size="lg"
-                className="px-8"
+                className="px-8 active:scale-[0.98]"
               >
-                View pricing
+                <Link href="/pricing">View pricing</Link>
               </Button>
             </div>
             

@@ -17,8 +17,11 @@ export const SkyBackground = ({
   className,
   fullPage = false,
 }: SkyBackgroundProps) => {
-  // Minimal scroll listener for parallax CSS variable
+  // Scroll parallax - disabled on mobile for GPU savings
   useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) return;
+    
     let ticking = false;
     const updateScrollY = () => {
       document.documentElement.style.setProperty('--scroll-y', String(window.scrollY));
