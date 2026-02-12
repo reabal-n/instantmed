@@ -41,7 +41,7 @@ export async function GET(
     .maybeSingle()
 
   if (error) {
-    console.error("[v0] Failed to fetch health profile:", error.message)
+    // Profile not found or fetch failed - return null gracefully
     return NextResponse.json({ profile: null }, { status: 200 })
   }
 

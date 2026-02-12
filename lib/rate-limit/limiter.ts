@@ -176,10 +176,7 @@ export async function checkRateLimit(
     .single()
 
   if (error && error.code !== "PGRST116") {
-    // PGRST116 = no rows found
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Rate limit check error:", error)
-    }
+    // PGRST116 = no rows found — non-critical, rate limiting fails open
   }
 
   const currentCount = data?.request_count || 0

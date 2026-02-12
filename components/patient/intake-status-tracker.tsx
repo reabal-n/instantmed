@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { 
   Clock, 
   CheckCircle2, 
-  MessageSquare, 
   FileText, 
   Send,
   AlertCircle,
@@ -15,11 +14,6 @@ import {
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
-
-interface StatusTimestamp {
-  status: string
-  created_at: string
-}
 
 interface IntakeStatusTrackerProps {
   intakeId: string

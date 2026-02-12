@@ -70,7 +70,6 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
     patientName,
     requestType,
     newStatus,
-    documentUrl,
     declineReason,
   } = params
 

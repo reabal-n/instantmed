@@ -8,8 +8,6 @@ import { ConfettiButton } from "@/components/ui/confetti"
 import {
   RefundGuaranteeBadge,
   AHPRAStatement,
-  PaymentMethodIcons,
-  StripeBadge,
   CheckoutSecurityFooter,
 } from "@/components/checkout"
 import { CheckoutActivityBadge } from "@/components/marketing/social-proof-notifications"

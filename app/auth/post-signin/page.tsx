@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -269,7 +270,6 @@ export default async function PostSignInPage({
   // If we still don't have a profile after all attempts, check for conflicts
   // and show an error page
   let errorReason = "unknown"
-  let conflictingProfile = null
 
   if (!profile && primaryEmail) {
     // Check if there's a profile with this email linked to a different Clerk user
@@ -282,7 +282,6 @@ export default async function PostSignInPage({
     if (existingEmailProfile) {
       if (existingEmailProfile.clerk_user_id && existingEmailProfile.clerk_user_id !== userId) {
         errorReason = "email_conflict"
-        conflictingProfile = existingEmailProfile
         log.error("Email already linked to different Clerk user - cannot create profile", {
           email: primaryEmail,
           currentClerkUserId: userId,
@@ -332,18 +331,18 @@ export default async function PostSignInPage({
               : "We encountered an issue setting up your account. This is usually temporary."}
           </p>
           <div className="space-y-3">
-            <a
+            <Link
               href="/auth/post-signin"
               className="block w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
               Try Again
-            </a>
-            <a
+            </Link>
+            <Link
               href="/"
               className="block w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             >
               Go to Home
-            </a>
+            </Link>
           </div>
           <p className="text-sm text-gray-500">
             If this issue persists, please contact support.

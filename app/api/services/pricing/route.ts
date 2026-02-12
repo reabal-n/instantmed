@@ -19,7 +19,7 @@ export async function GET() {
       .order("price", { ascending: true })
 
     if (error) {
-      console.error("[v0] Failed to fetch service pricing:", error.message)
+      // Failed to fetch pricing - return empty prices gracefully
       return NextResponse.json({ prices: {} }, { status: 200 })
     }
 
@@ -53,8 +53,8 @@ export async function GET() {
         },
       }
     )
-  } catch (err) {
-    console.error("[v0] Pricing API error:", err)
+  } catch (_err) {
+    // Pricing API error - return empty prices gracefully
     return NextResponse.json({ prices: {} }, { status: 200 })
   }
 }
