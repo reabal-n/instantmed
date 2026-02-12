@@ -64,7 +64,7 @@ export function RequestDeclinedEmail({
         <Text small style={{ margin: 0 }}>
           A full refund will be processed to your original payment method within 5–7 business
           days. If your symptoms are concerning, please consider booking an in-person
-          appointment with your regular GP.
+          appointment with your regular doctor.
         </Text>
       </Box>
 

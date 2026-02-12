@@ -20,7 +20,7 @@ export function RequestReceivedEmail({
       <h1>We&apos;ve received your request</h1>
       <p>Hi {patientName},</p>
       <p>
-        Your <strong>{requestType}</strong> request has been submitted and is now in our review queue. A GP will review
+        Your <strong>{requestType}</strong> request has been submitted and is now in our review queue. A doctor will review
         your information shortly.
       </p>
 

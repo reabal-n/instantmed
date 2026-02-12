@@ -74,22 +74,22 @@ const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: strin
   { 
     code: "requires_examination", 
     label: "Requires in-person examination",
-    template: "This condition requires a physical examination that cannot be conducted via telehealth. Please see your regular GP or visit a clinic for an in-person assessment."
+    template: "This condition requires a physical examination that cannot be conducted via telehealth. Please see your regular doctor or visit a clinic for an in-person assessment."
   },
   { 
     code: "not_telehealth_suitable", 
     label: "Not suitable for telehealth",
-    template: "Based on the information provided, this request is not suitable for an asynchronous telehealth consultation. Please book a video/phone consultation or see your regular GP."
+    template: "Based on the information provided, this request is not suitable for an asynchronous telehealth consultation. Please book a video/phone consultation or see your regular doctor."
   },
   { 
     code: "prescribing_guidelines", 
     label: "Against prescribing guidelines",
-    template: "This request cannot be fulfilled as it does not align with current prescribing guidelines. Please discuss with your regular GP who has access to your full medical history."
+    template: "This request cannot be fulfilled as it does not align with current prescribing guidelines. Please discuss with your regular doctor who has access to your full medical history."
   },
   { 
     code: "controlled_substance", 
     label: "Controlled substance request",
-    template: "This medication is a controlled substance and cannot be prescribed via this telehealth service. Please see your regular GP who can assess you in person."
+    template: "This medication is a controlled substance and cannot be prescribed via this telehealth service. Please see your regular doctor who can assess you in person."
   },
   { 
     code: "urgent_care_needed", 

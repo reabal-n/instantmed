@@ -19,7 +19,7 @@ export function PaymentConfirmedEmail({ patientName, requestType, amount, reques
       </p>
 
       <div className="info-box">
-        <p style={{ margin: 0, fontSize: "14px" }}>Your request is now in the review queue. A GP will review it shortly.</p>
+        <p style={{ margin: 0, fontSize: "14px" }}>Your request is now in the review queue. A doctor will review it shortly.</p>
       </div>
 
       <table style={{ width: "100%", fontSize: "14px", marginBottom: "20px" }}>
