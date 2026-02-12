@@ -252,16 +252,7 @@ export default function RepeatPrescriptionPage() {
                   </p>
                 </motion.div>
 
-                {/* Social proof indicators */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <ViewingNowIndicator service="repeat-prescription" />
-                  <LiveServiceCounter service="repeat-prescription" />
-                </motion.div>
+
 
                 {/* Trust signals row */}
                 <motion.div 
@@ -677,14 +668,7 @@ export default function RepeatPrescriptionPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
-                  <GradientBorderChase 
-                    colors={['#2563EB', '#4f46e5', '#4f46e5', '#7c3aed', '#2563EB']}
-                    duration={4}
-                    borderWidth={2}
-                    borderRadius="1.5rem"
-                  >
-                    <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 rounded-3xl p-8 sm:p-12 text-center">
+                    <div className="bg-linear-to-br from-primary/5 via-transparent to-primary/3 rounded-2xl border border-primary/10 p-8 sm:p-12 text-center">
                       {/* Badge */}
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                         <RefreshCw className="w-4 h-4 text-primary" />
@@ -726,8 +710,7 @@ export default function RepeatPrescriptionPage() {
                         $29.95 consultation fee • PBS subsidies apply at pharmacy
                       </p>
                     </div>
-                  </GradientBorderChase>
-                </MagneticCard>
+
               </motion.div>
             </div>
           </section>

@@ -62,7 +62,7 @@ const CONSULT_TYPES = [
     benefits: ["Referral letters", "Pathology requests", "Imaging referrals"],
     popular: false,
     href: "/request?service=consult",
-    color: "from-emerald-500 to-green-600",
+    color: "from-emerald-500 to-emerald-600",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
   },
@@ -157,7 +157,7 @@ const steps = [
     title: "Treatment plan",
     description: "The doctor provides advice, prescriptions if appropriate, or referrals if needed.",
     time: "Same day",
-    color: "from-emerald-500 to-green-600",
+    color: "from-emerald-500 to-emerald-600",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
   },
@@ -261,16 +261,7 @@ export default function GeneralConsultPage() {
                   </p>
                 </motion.div>
 
-                {/* Social proof indicators */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <ViewingNowIndicator service="general-consult" />
-                  <LiveServiceCounter service="general-consult" />
-                </motion.div>
+
 
                 {/* Trust signals row */}
                 <motion.div 
@@ -437,7 +428,6 @@ export default function GeneralConsultPage() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Link href={consult.href} className="group block h-full">
-                      <SpotlightReveal color={consult.id === 'new-concern' ? "#7c3aed" : consult.id === 'new-medication' ? "#2563EB" : "#10b981"} borderRadius="1rem">
                         <div className={cn(
                           "relative h-full rounded-2xl overflow-hidden flex flex-col",
                           "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
@@ -445,12 +435,12 @@ export default function GeneralConsultPage() {
                           "shadow-lg shadow-black/5 dark:shadow-black/20",
                           "hover:shadow-xl transition-all duration-300",
                           "group-hover:-translate-y-1",
-                          consult.popular && "ring-2 ring-violet-500/30 dark:ring-violet-400/30"
+                          consult.popular && "ring-2 ring-primary/30 dark:ring-primary/30"
                         )}>
                           {/* Popular badge */}
                           {consult.popular && (
                             <div className="absolute top-0 right-4 z-20">
-                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-violet-500 to-purple-500 text-background text-xs font-bold tracking-wide uppercase shadow-lg shadow-violet-500/40">
+                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-blue-600 to-blue-500 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-blue-500/30">
                                 Popular
                               </div>
                             </div>
@@ -464,7 +454,7 @@ export default function GeneralConsultPage() {
                             <div 
                               className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${consult.bgColor}`}
                             >
-                              <consult.icon className="w-6 h-6" style={{ color: consult.id === 'new-concern' ? '#7c3aed' : consult.id === 'new-medication' ? '#2563EB' : '#10b981' }} />
+                              <consult.icon className="w-6 h-6 text-blue-600" />
                             </div>
 
                             {/* Title */}
@@ -500,7 +490,6 @@ export default function GeneralConsultPage() {
                             </div>
                           </div>
                         </div>
-                      </SpotlightReveal>
                     </Link>
                   </motion.div>
                 ))}
@@ -778,14 +767,7 @@ export default function GeneralConsultPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
-                  <GradientBorderChase 
-                    colors={['#7c3aed', '#4f46e5', '#2563EB', '#4f46e5', '#7c3aed']}
-                    duration={4}
-                    borderWidth={2}
-                    borderRadius="1.5rem"
-                  >
-                    <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 rounded-3xl p-8 sm:p-12 text-center">
+                    <div className="bg-linear-to-br from-primary/5 via-transparent to-primary/3 rounded-2xl border border-primary/10 p-8 sm:p-12 text-center">
                       {/* Badge */}
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                         <Stethoscope className="w-4 h-4 text-primary" />
@@ -817,22 +799,20 @@ export default function GeneralConsultPage() {
                       </div>
                       
                       <Button 
-                        as={Link}
-                        href="/request?service=consult"
-                        color="primary"
+                        asChild
                         size="lg"
-                        className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                        endContent={<ArrowRight className="h-4 w-4" />}
+                        className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
                       >
-                        Start your consult
+                        <Link href="/request?service=consult">
+                          Start your consult <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
                       </Button>
                       
                       <p className="mt-6 text-xs text-muted-foreground">
                         $49.95 consultation fee • Prescriptions if appropriate
                       </p>
                     </div>
-                  </GradientBorderChase>
-                </MagneticCard>
+
               </motion.div>
             </div>
           </section>
