@@ -339,6 +339,103 @@ export async function sendCriticalEmail(
   }
   
   return result
-}
+  }
 
+/**
+ * Send script sent notification (for prescriptions)
+ */
+export async function sendScriptSentEmail(
+  to: string,
+  patientName: string,
+  requestId: string,
+  parchmentReference?: string
+): Promise<EmailResult> {
+  const appUrl = env.appUrl
+
+  const referenceSection = parchmentReference
+    ? `
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin: 24px 0;">
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534;">
+          <strong>eScript Reference</strong>
+        </p>
+        <p style="margin: 0; font-size: 20px; font-family: monospace; font-weight: bold; color: #15803d; letter-spacing: 1px;">
+          ${parchmentReference}
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 12px; color: #166534;">
+          Show this reference at your pharmacy to collect your prescription.
+        </p>
+      </div>
+    `
+    : ""
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+      <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="${appUrl}/logo.png" alt="InstantMed" style="height: 40px;" />
+        </div>
+
+        <div style="background: linear-gradient(135deg, #dbeafe, #e0e7ff); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
+          <h1 style="color: #1e40af; font-size: 24px; margin: 16px 0 0 0;">
+            Your prescription has been sent
+          </h1>
+        </div>
+
+        <p style="font-size: 16px;">Hi ${patientName},</p>
+
+        <p style="font-size: 16px;">
+          Great news! Your prescription has been approved and your eScript has been sent to your phone via SMS.
+        </p>
+
+        ${referenceSection}
+
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0;">
+          <h3 style="margin: 0 0 12px 0; color: #0A0F1C; font-size: 16px;">What happens next?</h3>
+          <ul style="margin: 0; padding-left: 20px; color: #475569;">
+            <li>Visit any pharmacy to collect your medication</li>
+            <li>Show your Medicare card and the eScript reference (if provided)</li>
+            <li>Your pharmacist will dispense your medication</li>
+          </ul>
+        </div>
+
+        <p style="font-size: 14px; color: #666;">
+          You can view your request details on your
+          <a href="${appUrl}/patient/intakes/${requestId}" style="color: #00C9A7; font-weight: 500;">patient dashboard</a>.
+        </p>
+
+        <p style="font-size: 14px; color: #666; margin-top: 24px;">
+          Questions? Just reply to this email or visit our
+          <a href="${appUrl}/contact" style="color: #00C9A7;">help center</a>.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
+
+        <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+          InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Sydney, Australia<br>
+          <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> &middot;
+          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> &middot;
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a> &middot;
+          <a href="${appUrl}/unsubscribe" style="color: #9ca3af;">Unsubscribe</a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `
+
+  return sendViaResend({
+    to,
+    subject: `Your eScript has been sent`,
+    html,
+    tags: [
+      { name: "category", value: "script_sent" },
+      { name: "intake_id", value: requestId },
+    ],
+  })
+}
 
