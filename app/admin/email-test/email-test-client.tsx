@@ -151,6 +151,17 @@ const emailTemplates = [
       { key: "requestId", label: "Request ID", default: "test-intake-123" },
     ],
   },
+  {
+    id: "repeat_rx_reminder",
+    name: "Repeat Rx Reminder",
+    description: "Sent when a repeat prescription is due for renewal",
+    fields: [
+      { key: "patientName", label: "Patient Name", default: "Sarah Johnson" },
+      { key: "medicationName", label: "Medication Name", default: "Sildenafil 50mg" },
+      { key: "requestId", label: "Request ID", default: "test-intake-123" },
+      { key: "appUrl", label: "App URL", default: "https://instantmed.com.au" },
+    ],
+  },
 ]
 
 export function EmailTestClient() {
