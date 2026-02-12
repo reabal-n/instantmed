@@ -424,6 +424,39 @@ function IntakeCard({
     return "Request"
   }
 
+  // Contextual "What's Next" guidance based on intake status
+  const whatsNextConfig: Record<string, { message: string; actionLabel?: string; actionHref?: string; color: string }> = {
+    paid: {
+      message: "A doctor will review your request shortly. We'll email you when it's done.",
+      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+    },
+    in_review: {
+      message: "A doctor is reviewing your request right now. Hang tight.",
+      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+    },
+    pending_info: {
+      message: "The doctor has a question. Please respond so we can continue.",
+      actionLabel: "Respond now",
+      actionHref: `/patient/intakes/${intake.id}`,
+      color: "bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30 text-amber-700 dark:text-amber-300",
+    },
+    approved: {
+      message: intake.service?.type === "med_certs" 
+        ? "Your certificate is ready. Download it or send it to your employer." 
+        : "Your request has been approved. Download your document below.",
+      actionLabel: "View & download",
+      actionHref: `/patient/intakes/${intake.id}`,
+      color: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+    },
+    declined: {
+      message: "This request wasn't approved. You can view the reason or start a new one.",
+      actionLabel: "View details",
+      actionHref: `/patient/intakes/${intake.id}`,
+      color: "bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-300",
+    },
+  }
+  const whatsNext = whatsNextConfig[intake.status]
+
   return (
     <button
       onClick={onClick}
@@ -459,6 +492,22 @@ function IntakeCard({
           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
+
+      {/* What's Next contextual guidance */}
+      {whatsNext && (
+        <div className={cn("mt-3 px-3 py-2.5 rounded-lg border text-xs flex items-center justify-between gap-3", whatsNext.color)}>
+          <p>{whatsNext.message}</p>
+          {whatsNext.actionLabel && whatsNext.actionHref && (
+            <Link
+              href={whatsNext.actionHref}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 font-semibold underline underline-offset-2 hover:no-underline"
+            >
+              {whatsNext.actionLabel}
+            </Link>
+          )}
+        </div>
+      )}
     </button>
   )
 }

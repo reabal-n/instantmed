@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
+interface StatusTimestamp {
+  status: string
+  created_at: string
+}
+
 interface IntakeStatusTrackerProps {
   intakeId: string
   initialStatus: IntakeStatus
@@ -116,9 +121,31 @@ export function IntakeStatusTracker({
   className,
 }: IntakeStatusTrackerProps) {
   const [status, setStatus] = useState<IntakeStatus>(initialStatus)
+  const [timestamps, setTimestamps] = useState<Map<string, string>>(new Map())
   const [isConnecting, setIsConnecting] = useState(true)
   const [isDisconnected, setIsDisconnected] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+
+  // Fetch status history timestamps on mount
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from("intake_status_history")
+      .select("new_status, created_at")
+      .eq("intake_id", intakeId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          const map = new Map<string, string>()
+          data.forEach((row: { new_status: string; created_at: string }) => {
+            if (!map.has(row.new_status)) {
+              map.set(row.new_status, row.created_at)
+            }
+          })
+          setTimestamps(map)
+        }
+      })
+  }, [intakeId])
 
   // Subscribe to realtime status updates with reconnection logic
   useEffect(() => {
@@ -139,6 +166,14 @@ export function IntakeStatusTracker({
           (payload) => {
             const newStatus = payload.new.status as IntakeStatus
             setStatus(newStatus)
+            // Record this transition timestamp immediately
+            setTimestamps(prev => {
+              const next = new Map(prev)
+              if (!next.has(newStatus)) {
+                next.set(newStatus, new Date().toISOString())
+              }
+              return next
+            })
             onStatusChange?.(newStatus)
           }
         )
@@ -292,16 +327,29 @@ export function IntakeStatusTracker({
 
                 {/* Content */}
                 <div className="flex-1 pt-1">
-                  <p
-                    className={cn(
-                      "font-medium text-sm transition-colors",
-                      isComplete && "text-primary",
-                      isActive && "text-foreground",
-                      isPending && "text-muted-foreground"
+                  <div className="flex items-center justify-between gap-2">
+                    <p
+                      className={cn(
+                        "font-medium text-sm transition-colors",
+                        isComplete && "text-primary",
+                        isActive && "text-foreground",
+                        isPending && "text-muted-foreground"
+                      )}
+                    >
+                      {step.label}
+                    </p>
+                    {(isComplete || isActive) && timestamps.get(step.id) && (
+                      <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                        {new Date(timestamps.get(step.id)!).toLocaleString("en-AU", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
                     )}
-                  >
-                    {step.label}
-                  </p>
+                  </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {step.description}
                   </p>

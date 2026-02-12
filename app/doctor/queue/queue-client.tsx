@@ -68,6 +68,7 @@ import {
 } from "@/components/ui/select"
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
+import { PatientHealthProfilePanel } from "@/components/doctor/patient-health-profile-panel"
 import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -111,6 +112,7 @@ export function QueueClient({
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+  const [newIntakeCount, setNewIntakeCount] = useState(0)
   const [audioEnabled, setAudioEnabled] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("queue-audio-notifications") === "true"
@@ -178,6 +180,17 @@ export function QueueClient({
             if (audioEnabledRef.current && audioRef.current) {
               audioRef.current.play().catch(() => {})
             }
+            // Show visible toast notification
+            const newPatientName = (payload.new as { patient_name?: string }).patient_name
+            const serviceData = (payload.new as { service?: { short_name?: string } }).service
+            const serviceName = serviceData?.short_name || "New request"
+            toast.info(
+              newPatientName 
+                ? `${serviceName} from ${newPatientName}`
+                : `${serviceName} added to queue`,
+              { duration: 5000 }
+            )
+            setNewIntakeCount(c => c + 1)
             router.refresh()
           } else if (payload.eventType === "UPDATE") {
             setIntakes((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
@@ -680,6 +693,33 @@ export function QueueClient({
         </div>
       )}
 
+      {/* New Intakes Banner */}
+      {newIntakeCount > 0 && (
+        <div 
+          role="status"
+          className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 animate-in fade-in slide-in-from-top-2 duration-300"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+            </span>
+            <p className="text-sm font-medium text-foreground">
+              {newIntakeCount} new {newIntakeCount === 1 ? "request" : "requests"} arrived
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => { setNewIntakeCount(0); router.refresh() }}
+            className="h-7 text-xs"
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Refresh queue
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-3" data-testid="queue-header">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1090,6 +1130,9 @@ export function QueueClient({
                           View full details & questionnaire responses
                         </Link>
                       </div>
+
+                      {/* Patient Health Profile */}
+                      <PatientHealthProfilePanel patientId={intake.patient_id} />
 
                       {/* Patient History */}
                       <div className="p-4 bg-muted rounded-lg">
