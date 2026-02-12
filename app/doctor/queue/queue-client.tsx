@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition, useMemo, useCallback, useRef, useId
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
