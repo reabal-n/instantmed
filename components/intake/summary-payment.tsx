@@ -112,15 +112,14 @@ export function SummaryPayment({
         {(data.emergency_symptoms || data.safety_confirmed !== undefined) && (
           <div className="p-4">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Safety Check</div>
-            {data.safety_confirmed === true && (
+            {safetyDisplayValue ? (
+              <SummaryRow label="Emergency symptoms" value={safetyDisplayValue} />
+            ) : data.safety_confirmed === true ? (
               <SummaryRow 
                 label="Emergency symptoms" 
                 value="None reported ✓" 
               />
-            )}
-            {safetyDisplayValue && (
-              <SummaryRow label="Emergency symptoms" value={safetyDisplayValue} />
-            )}
+            ) : null}
           </div>
         )}
 
@@ -150,7 +149,7 @@ export function SummaryPayment({
         <label className="text-sm font-medium">Anything else the doctor should know?</label>
         <Textarea
           value={additionalNotes}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalNotes(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAdditionalNotes(e.target.value)}
           placeholder="Optional — add any extra details here..."
           className="min-h-20"
         />
@@ -174,12 +173,6 @@ export function SummaryPayment({
 
       {/* AHPRA statement */}
       <AHPRAStatement variant="inline" />
-
-      {/* Payment methods */}
-      <div className="flex flex-col items-center gap-2">
-        <PaymentMethodIcons />
-        <StripeBadge variant="powered-by" />
-      </div>
 
       {/* Mobile social proof */}
       <CheckoutActivityBadge className="sm:hidden" />

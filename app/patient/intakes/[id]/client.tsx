@@ -377,7 +377,7 @@ export function IntakeDetailClient({
                 </p>
                 <div className="p-3 rounded-md bg-red-50 border border-red-200">
                   <p className="text-sm text-red-800">
-                    <strong>Reason:</strong> {intake.decline_reason_note || "This request could not be fulfilled via our telehealth service. For your safety, we recommend consulting with your regular GP who has access to your full medical history."}
+                    <strong>Reason:</strong> {intake.decline_reason_note || "This request could not be fulfilled via our telehealth service. For your safety, we recommend consulting with your regular doctor who has access to your full medical history."}
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground">

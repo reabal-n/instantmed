@@ -17,7 +17,7 @@ export function MedCertRedirectBanner() {
           <div className="text-sm text-blue-800 dark:text-blue-200">
             <p className="font-medium">Looking for extended time off?</p>
             <p className="text-blue-700 dark:text-blue-300 mt-0.5">
-              Absences longer than 2 days are best handled through a GP consultation. 
+              Absences longer than 2 days are best handled through a doctor consultation. 
               The doctor can assess your situation and provide appropriate documentation.
             </p>
           </div>

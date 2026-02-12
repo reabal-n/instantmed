@@ -99,17 +99,17 @@ const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: strin
   { 
     code: "insufficient_info", 
     label: "Insufficient information",
-    template: "We need more information to safely assess your request. Please provide additional details about your condition and medical history, or see your regular GP."
+    template: "We need more information to safely assess your request. Please provide additional details about your condition and medical history, or see your regular doctor."
   },
   { 
     code: "patient_not_eligible", 
     label: "Patient not eligible",
-    template: "Based on the eligibility criteria, we are unable to process this request. Please see your regular GP for assistance."
+    template: "Based on the eligibility criteria, we are unable to process this request. Please see your regular doctor for assistance."
   },
   { 
     code: "outside_scope", 
     label: "Outside scope of practice",
-    template: "This request falls outside the scope of what can be safely managed via telehealth. Please consult with your regular GP or an appropriate specialist."
+    template: "This request falls outside the scope of what can be safely managed via telehealth. Please consult with your regular doctor or an appropriate specialist."
   },
   { 
     code: "other", 
