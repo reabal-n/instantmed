@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { GlassStatCard, DashboardGrid, DashboardHeader } from "@/components/dashboard"
 import {
   TrendingUp,
-  TrendingDown,
   CreditCard,
   CheckCircle,
   Eye,

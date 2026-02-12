@@ -75,8 +75,7 @@ export function ContactClient() {
         setSubmitError(result.error || "Failed to send message. Please try again.")
         posthog.capture('contact_form_error', { error: result.error })
       }
-    } catch (error) {
-      console.error("Contact form submission failed:", error)
+    } catch (_error) {
       setIsSubmitting(false)
       setSubmitError("Failed to send message. Please try again.")
       posthog.capture('contact_form_error', { error: String(error) })

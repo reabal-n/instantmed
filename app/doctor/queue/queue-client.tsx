@@ -57,7 +57,6 @@ import {
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
-import { generateMedCertPdfAndApproveAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { MessageSquare } from "lucide-react"
 import {
   Select,
