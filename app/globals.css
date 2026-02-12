@@ -1474,7 +1474,15 @@ body {
   animation: success-bounce 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Stagger delays — unified to 0.1s increments (see below for canonical definitions) */
+/* Stagger delays — unified to 0.1s increments */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.15s; }
+.stagger-3 { animation-delay: 0.2s; }
+.stagger-4 { animation-delay: 0.25s; }
+.stagger-5 { animation-delay: 0.3s; }
+.stagger-6 { animation-delay: 0.35s; }
+.stagger-7 { animation-delay: 0.4s; }
+.stagger-8 { animation-delay: 0.45s; }
 
 /* ================================
    MARQUEE ANIMATION
@@ -1665,10 +1673,7 @@ body {
   pointer-events: none;
 }
 
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
+/* @keyframes gradient-shift — duplicate removed, original defined in PREMIUM ANIMATIONS */
 
 /* Premium button - Craft: solid color, no shimmer */
 .btn-premium {
@@ -2039,12 +2044,7 @@ body {
   animation: success-pulse 1.5s ease-out;
 }
 
-/* Staggered card entrance */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.15s; }
-.stagger-3 { animation-delay: 0.2s; }
-.stagger-4 { animation-delay: 0.25s; }
-.stagger-5 { animation-delay: 0.3s; }
+/* Staggered card entrance — canonical definitions in PREMIUM ANIMATIONS section above */
 
 /* Button press effect */
 .btn-press:active {
