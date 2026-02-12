@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-// Consolidated: all email outbox routes redirect to the canonical location
+// Canonical email outbox lives at /doctor/admin/email-outbox
 export default function OpsEmailOutboxRedirect() {
   redirect("/doctor/admin/email-outbox")
 }

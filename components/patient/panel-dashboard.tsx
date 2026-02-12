@@ -523,16 +523,20 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {/* Actions */}
       {intake.status === "approved" && (
         <div className="pt-4 border-t border-border">
-          <Button className="w-full magnetic-button">
-            Download {intake.service?.type === "med_certs" ? "certificate" : "document"}
+          <Button asChild className="w-full magnetic-button">
+            <Link href={`/patient/intakes/${intake.id}`}>
+              Download {intake.service?.type === "med_certs" ? "certificate" : "document"}
+            </Link>
           </Button>
         </div>
       )}
 
       {intake.status === "pending_info" && (
         <div className="pt-4 border-t border-border">
-          <Button className="w-full magnetic-button">
-            Provide information
+          <Button asChild className="w-full magnetic-button">
+            <Link href={`/patient/intakes/${intake.id}`}>
+              Provide information
+            </Link>
           </Button>
         </div>
       )}

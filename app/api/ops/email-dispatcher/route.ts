@@ -16,7 +16,11 @@ function verifyOpsSecret(providedSecret: string | null, cronSecret: string | nul
 }
 
 /**
- * Email Dispatcher Route (OPS)
+ * Email Dispatcher Route (OPS) - Manual trigger endpoint
+ * 
+ * NOTE: The canonical automated dispatcher is /api/cron/email-dispatcher
+ * (runs every 5 minutes via Vercel Cron). This route exists for manual
+ * ops use and E2E tests only.
  * 
  * Alternative endpoint for external cron services.
  * Protected by OPS_CRON_SECRET header.

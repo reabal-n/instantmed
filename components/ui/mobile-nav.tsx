@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { Home, FileText, User, Calendar } from "lucide-react"
+import { Home, FileText, User, FolderOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -28,14 +28,14 @@ const defaultItems: NavItem[] = [
     href: "/patient/intakes",
   },
   {
-    label: "Scripts",
-    icon: Calendar,
-    href: "/patient/prescriptions",
+    label: "Documents",
+    icon: FolderOpen,
+    href: "/patient/documents",
   },
   {
     label: "Account",
     icon: User,
-    href: "/account",
+    href: "/patient/settings",
   },
 ]
 
@@ -93,30 +93,4 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
   )
 }
 
-// Doctor-specific mobile nav
-export function DoctorMobileNav() {
-  const doctorItems: NavItem[] = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      href: "/doctor/dashboard",
-    },
-    {
-      label: "Pending",
-      icon: FileText,
-      href: "/doctor/pending",
-    },
-    {
-      label: "Calendar",
-      icon: Calendar,
-      href: "/doctor/calendar",
-    },
-    {
-      label: "Profile",
-      icon: User,
-      href: "/doctor/profile",
-    },
-  ]
 
-  return <MobileNav items={doctorItems} />
-}

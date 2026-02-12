@@ -42,12 +42,6 @@ interface DashboardSidebarProps {
   requestCount?: number
 }
 
-const patientNavItems: NavItem[] = [
-  { href: "/patient", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/patient/intakes", label: "My Requests", icon: ClipboardList, badge: true },
-  { href: "/patient/settings", label: "Settings", icon: Settings },
-]
-
 const doctorNavItems: NavItem[] = [
   { href: "/doctor", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
@@ -64,14 +58,14 @@ const adminNavItems: NavItem[] = [
 ]
 
 const opsNavItemsBase: NavItem[] = [
-  { href: "/doctor/admin/ops", label: "Ops Overview", icon: Wrench },
-  { href: "/doctor/admin/ops/intakes-stuck", label: "Stuck Intakes", icon: AlertTriangle },
+  { href: "/admin/ops", label: "Ops Overview", icon: Wrench },
+  { href: "/admin/ops/intakes-stuck", label: "Stuck Intakes", icon: AlertTriangle },
 ]
 
 const opsNavItemsAdminOnly: NavItem[] = [
   { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Mail },
-  { href: "/doctor/admin/ops/reconciliation", label: "Reconciliation", icon: CreditCard },
-  { href: "/doctor/admin/ops/doctors", label: "Doctor Ops", icon: Users },
+  { href: "/admin/ops/reconciliation", label: "Reconciliation", icon: CreditCard },
+  { href: "/admin/ops/doctors", label: "Doctor Ops", icon: Users },
 ]
 
 function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
@@ -120,7 +114,7 @@ export function DashboardSidebar({
   requestCount = 0 
 }: DashboardSidebarProps) {
   const pathname = usePathname()
-  const navItems = variant === "patient" ? patientNavItems : doctorNavItems
+  const navItems = doctorNavItems
   const baseHref = variant === "patient" ? "/patient" : "/doctor"
 
   const handleExport = () => {
@@ -189,7 +183,7 @@ export function DashboardSidebar({
           <nav className="flex flex-col gap-0.5 px-3 mt-4" data-testid="ops-nav-section">
             <p className="px-3 mb-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Ops</p>
             {opsNavItemsBase.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/doctor/admin/ops" && pathname?.startsWith(item.href))
+              const isActive = pathname === item.href || (item.href !== "/admin/ops" && pathname?.startsWith(item.href))
               return (
                 <NavLink
                   key={item.href}
