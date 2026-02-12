@@ -2338,7 +2338,8 @@ body {
   background-image: radial-gradient(var(--tw-gradient-stops));
 }
 
-/* 3D folder colors for light/dark modes */
+/* 3D folder colors for light/dark modes
+   NOTE: Extends the main :root above — these are component-specific tokens */
 :root {
   --folder-back: hsl(var(--primary) / 0.6);
   --folder-front: hsl(var(--primary) / 0.8);
@@ -2940,7 +2941,8 @@ button:not(.no-micro):active:not(:disabled),
 
 /* ================================
    UNIFIED GLASS CARD SYSTEM
-   .glass-card and .dashboard-card are now unified
+   .glass-card and .dashboard-card are now unified.
+   Dashboard :root above extends the main :root with dashboard-specific tokens.
    ================================ */
 .dashboard-card,
 .glass-card {
