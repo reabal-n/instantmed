@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { Button } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion, useReducedMotion } from 'framer-motion'
 import { RotatingText } from '@/components/marketing/rotating-text'
@@ -29,9 +29,9 @@ export function Hero() {
           <DoctorAvailabilityPill />
         </motion.div>
 
-        {/* Headline -- bold, centered, clean */}
+        {/* Headline -- bold, centered, clean. Capped at 5xl (48px) max */}
         <motion.h1 
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-[1.08]"
+          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
@@ -39,13 +39,13 @@ export function Hero() {
           <RotatingText 
             texts={heroRotatingTexts} 
             interval={3500}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold"
           />
         </motion.h1>
 
         {/* Single subtext line -- warm, concise */}
         <motion.p 
-          className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed text-balance"
+          className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed text-balance"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
@@ -53,7 +53,7 @@ export function Hero() {
           Skip the waiting room. A real Australian doctor reviews your request — usually within an hour. No signup needed to get started.
         </motion.p>
 
-        {/* CTAs */}
+        {/* CTAs -- shadcn buttons, clean press effect */}
         <motion.div 
           className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
@@ -61,24 +61,25 @@ export function Hero() {
           transition={{ duration: 0.4, delay: 0.15 }}
         >
           <Button 
-            as={Link}
-            href="/request"
-            color="primary"
+            asChild
             size="lg"
-            className="px-8 h-13 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-            endContent={<ArrowRight className="h-4 w-4" />}
+            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
           >
-            Get started
+            <Link href="/request">
+              Get started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
           <Button 
-            as={Link}
-            href="/request?service=prescription"
-            variant="bordered"
+            asChild
+            variant="outline"
             size="lg"
-            className="h-13 px-6 text-base"
-            endContent={<ArrowRight className="h-4 w-4" />}
+            className="h-12 px-6 text-base active:scale-[0.98]"
           >
-            Renew your prescription
+            <Link href="/request?service=prescription">
+              Renew your prescription
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </motion.div>
 

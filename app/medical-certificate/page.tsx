@@ -261,7 +261,7 @@ export default function MedicalCertificatePage() {
                 {/* Text content */}
                 <div className="text-center lg:text-left flex-1 max-w-2xl">
                   <motion.h1 
-                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+                    className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}

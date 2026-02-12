@@ -6,11 +6,9 @@ import {
   HowItWorks,
   FAQSection,
   CTASection,
-  PlatformStats,
   MarketingFooter,
   LiveWaitTime,
   StatsStrip,
-  MediaMentions,
 } from '@/components/marketing'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
@@ -20,8 +18,6 @@ import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
-import { SocialProofToast } from '@/components/shared/social-proof-toast'
 
 export const revalidate = 3600
 
@@ -86,13 +82,6 @@ export default function HomePage() {
       {/* Client component for hash navigation */}
       <HashScrollHandler />
       
-      {/* Exit intent popup for abandoning users */}
-      <ExitIntentPopup variant="discount" showDiscount />
-
-      {/* Social proof notifications */}
-      <SocialProofToast />
-      
-      
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
       
@@ -127,18 +116,8 @@ export default function HomePage() {
           </ParallaxSection>
         </Suspense>
         
-        {/* Platform performance stats */}
-        <Suspense fallback={<SectionSkeleton height="h-48" />}>
-          <ParallaxSection speed={0.2}>
-            <PlatformStats />
-          </ParallaxSection>
-        </Suspense>
-        
-        {/* Total patients served + stats */}
+        {/* Key stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        
-        {/* Media mentions */}
-        <MediaMentions variant="strip" className="bg-muted/30" />
         
         {/* FAQs */}
         <Suspense fallback={<SectionSkeleton />}>

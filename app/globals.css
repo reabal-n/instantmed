@@ -120,16 +120,16 @@ body {
   --chart-5: #F87171;
   
   /* ================================
-     RADIUS SYSTEM - Consistent, modern
-     buttons=lg, cards=xl, modals=2xl
+     RADIUS SYSTEM - 3 levels: sm, md, lg
+     buttons=md (10px), cards=lg (14px), modals=xl (18px)
      ================================ */
-  --radius: 12px;
+  --radius: 10px;
   --radius-xs: 6px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
   --radius-full: 9999px;
   
   /* ================================
@@ -162,16 +162,17 @@ body {
   --space-16: 4rem;     /* 64px */
   
   /* ================================
-     SHADOW SYSTEM - 3 levels: resting, hover, elevated
+     SHADOW SYSTEM - 3 semantic levels
+     resting (sm), hover (md), elevated/modals (lg)
      ================================ */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-  --shadow-glow-lg: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  --shadow-glow-lg: 0 0 0 3px rgba(59, 130, 246, 0.1);
   
   /* Sidebar — clean white with subtle depth */
   --sidebar: rgba(255, 255, 255, 0.90);
@@ -189,22 +190,18 @@ body {
   --warning: #F59E0B;
   --warning-foreground: var(--slate-800);
   
-  /* Legacy/compat tokens */
+  /* Legacy/compat tokens - maintained for existing component refs */
   --navy: var(--slate-800);
   --indigo: var(--primary);
   --violet: #8B5CF6;
   --violet-light: var(--sky-50);
 
-  /* Morning sky gradient button colors */
+  /* Button gradient colors - sky blue monochrome */
   --color-1: 217 91% 60%;
   --color-2: 213 94% 68%;
   --color-3: 199 89% 70%;
   --color-4: 210 90% 72%;
   --color-5: 215 90% 65%;
-  
-  /* Light mode gradient orbs — soft sky diffuse */
-  --gradient-orb-1: rgba(59, 130, 246, 0.04);
-  --gradient-orb-2: rgba(148, 163, 184, 0.06);
   
   /* Background color variables */
   --white: #ffffff;
@@ -481,14 +478,14 @@ body {
 
 @layer components {
   /* ================================
-     FLOATING CARD SYSTEM
-     Cards float above sky background with depth
+     CARD SYSTEM - Solid backgrounds, simple shadows
+     No glass/blur on cards. Reserve blur for navbar only.
      ================================ */
   .card,
   [data-slot="base"],
   .glass-card {
     @apply bg-card text-card-foreground;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -503,10 +500,10 @@ body {
     transform: translateY(-1px);
   }
   
-  /* Elevated floating card - for hero/featured content only */
+  /* Elevated card - for hero/featured content only */
   .floating-card {
     @apply bg-card text-card-foreground;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -923,44 +920,23 @@ body {
 /* Glass Card - Unified with dashboard-card for consistency */
 /* NOTE: .glass-card now aliases .dashboard-card styling - see dashboard section below */
 
-/* 3D Tilt Card - Cursor-tracking light effect */
+/* Subtle card hover lift - no 3D transforms */
 .tilt-card {
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .tilt-card:hover {
-  box-shadow: 0 25px 50px rgba(26, 26, 46, 0.15), 0 10px 20px rgba(26, 26, 46, 0.1), 0 0 40px rgba(37, 99, 235, 0.15);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-.tilt-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(37, 99, 235, 0.12),
-    transparent 40%
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.tilt-card:hover::before {
-  opacity: 1;
-}
-
-/* Indigo/Violet Glow Effects */
+/* Primary glow - single layer */
 .glow-primary {
-  box-shadow: 0 0 30px rgba(37, 99, 235, 0.25), 0 0 60px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.15);
 }
 
 .glow-primary-subtle {
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
 }
 
 
@@ -1645,57 +1621,39 @@ body {
 
 /* @keyframes gradient-shift — duplicate removed, original defined in PREMIUM ANIMATIONS */
 
-/* Premium button - Craft: solid color, no shimmer */
+/* Premium button - solid color, subtle lift */
 .btn-premium {
-  @apply relative overflow-hidden transition-all duration-300;
+  @apply relative overflow-hidden transition-all duration-200;
   background: var(--primary);
   border-radius: var(--radius-md);
   color: white;
   font-weight: 600;
-  box-shadow: 
-    0 4px 16px rgba(37, 99, 235, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.btn-premium::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
-}
-
-.btn-premium:hover::before {
-  transform: translateX(100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .btn-premium:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 
-    0 16px 40px rgba(37, 99, 235, 0.45),
-    0 8px 20px rgba(79, 70, 229, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
 }
 
 .btn-premium:active {
   transform: translateY(0) scale(0.98);
 }
 
-/* Primary CTA button - rounded with premium effect */
+/* Primary CTA button - clean, confident */
 .btn-cta {
-  @apply relative overflow-hidden font-semibold transition-all duration-300;
+  @apply relative overflow-hidden font-semibold transition-all duration-200;
   border-radius: var(--radius-md);
   background: var(--primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .btn-cta::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transform: translateX(-100%);
   transition: transform 0.5s ease;
 }
@@ -1705,10 +1663,8 @@ body {
 }
 
 .btn-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 32px rgba(37, 99, 235, 0.4),
-    0 4px 12px rgba(79, 70, 229, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
 }
 
 .btn-cta:active {
@@ -2588,48 +2544,31 @@ button:not(.no-micro):active:not(:disabled),
     linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
-/* Sophisticated multi-layered shadows with color tints */
+/* Premium shadows - single layer with subtle tint */
 .shadow-premium {
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(37, 99, 235, 0.08),
-    0 16px 48px rgba(79, 70, 229, 0.04);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.08);
 }
 
 .shadow-premium-lg {
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.06),
-    0 12px 40px rgba(37, 99, 235, 0.12),
-    0 24px 64px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
 }
 
 .shadow-premium-xl {
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 20px 60px rgba(37, 99, 235, 0.15),
-    0 32px 80px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.12);
 }
 
-/* Premium card with enhanced depth */
+/* Premium card - solid bg, subtle shadow */
 .card-premium {
-  background: linear-gradient(135deg, #ffffff 0%, #fef9f3 100%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 226, 181, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
 }
 
 .card-premium:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.06),
-    0 12px 40px rgba(37, 99, 235, 0.12),
-    0 24px 64px rgba(79, 70, 229, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
-  border-color: rgba(37, 99, 235, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Premium badge with gradient */
@@ -2910,44 +2849,30 @@ button:not(.no-micro):active:not(:disabled),
 }
 
 /* ================================
-   UNIFIED GLASS CARD SYSTEM
-   .glass-card and .dashboard-card are now unified.
-   Dashboard :root above extends the main :root with dashboard-specific tokens.
+   DASHBOARD CARD SYSTEM
+   Dashboard cards use the same solid-bg system as .glass-card (defined above in :root).
+   No blur on cards - reserve blur for navbar only.
    ================================ */
-.dashboard-card,
-.glass-card {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1px solid rgba(255, 255, 255, 0.50);
+.dashboard-card {
+  @apply bg-card text-card-foreground;
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.dashboard-card:hover,
-.glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.60);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+.dashboard-card:hover {
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-.dark .dashboard-card,
-.dark .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-    0 4px 24px rgba(0, 0, 0, 0.4);
+.dark .dashboard-card {
+  background: var(--card);
+  border-color: var(--border);
 }
 
-.dark .dashboard-card:hover,
-.dark .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-    0 8px 40px rgba(0, 0, 0, 0.5),
-    0 0 60px rgba(59, 130, 246, 0.08);
+.dark .dashboard-card:hover {
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 

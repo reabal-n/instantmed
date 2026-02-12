@@ -1,6 +1,6 @@
 "use client"
 
-import { HolographicCard } from "@/components/effects/holographic-card"
+
 import { SectionPill } from "@/components/ui/section-pill"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { Check } from "lucide-react"
@@ -61,10 +61,8 @@ export function PricingSection() {
         <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
           {pricingPlans.map((plan, i) => (
             <BlurFade key={plan.name} delay={0.1 + i * 0.1}>
-              <HolographicCard
-                hover
-                intensity={plan.popular ? "high" : "medium"}
-                className={`p-6 relative ${plan.popular ? "ring-2 ring-primary/50" : ""}`}
+              <div
+                className={`p-6 relative bg-card rounded-xl border shadow-sm hover:shadow-md transition-shadow ${plan.popular ? "ring-2 ring-primary/50 border-primary/20" : "border-border"}`}
               >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -96,7 +94,7 @@ export function PricingSection() {
                   </Link>
                 </Button>
               </div>
-            </HolographicCard>
+            </div>
             </BlurFade>
           ))}
         </div>
