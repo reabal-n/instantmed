@@ -250,12 +250,108 @@ These pages exist solely as redirects:
 - [x] Remove dead patientNavItems from DashboardSidebar (only used for doctor)
 - [x] Fix LeftRail to only render patient nav (doctor uses DashboardSidebar)
 
+---
+
+## PART 4 -- EXTENDED AUDIT (Round 2)
+
+### SECURITY: Tables with RLS Disabled (in public schema)
+
+| Table | Used by code? | Risk |
+|---|---|---|
+| `audit_log` (singular) | NO (fixed to `audit_logs`) | **HIGH** -- Any authenticated user can read/write. Contains intake IDs, profile IDs, IP addresses. |
+| `compliance_audit_summary` | Yes (1 file, `lib/audit/compliance-audit.ts`) | **MEDIUM** -- It's a VIEW (not a table), always queried via service role. RLS doesn't apply to views the same way, but should still be locked down. |
+| `v_stuck_intakes` | Yes (1 file, `lib/data/intake-ops.ts`) | **LOW** -- It's a VIEW, only queried via service role. Exposes patient names + intake status. |
+
+**Action**: Enable RLS on `audit_log` or drop it (no code references remain). The two views are accessed via service role only, so RLS disabled is acceptable but should be documented.
+
+### DATABASE: Notifications page queries non-existent column
+
+`/patient/notifications/page.tsx` line 28 queries `profiles.notification_preferences` -- this column does NOT exist in the `profiles` table schema. The query will silently ignore the missing column (Supabase returns null for unknown select fields), so the page still renders, but notification preferences will never load.
+
+**Action**: Either add `notification_preferences` column to `profiles` or remove the query for it.
+
+### CRON: `qa-sampling` route NOT registered in vercel.json
+
+`/api/cron/qa-sampling/route.ts` exists with a full implementation (random sampling of approved intakes for QA review) but is NOT listed in `vercel.json` crons. It will never execute automatically.
+
+Additionally, the route queries `intakes.qa_sampled` column which does NOT exist in the `intakes` table schema. This cron would fail even if triggered manually.
+
+**Action**: Either register it in vercel.json AND add the `qa_sampled` column to intakes, or delete the orphaned route.
+
+### CRON: `process-email-retries` processes `email_retry_queue` (nearly dead)
+
+The `email_retry_queue` table has only 1 code file writing to it (`lib/email/retry-queue.ts`). The cron runs every 10 minutes but the queue likely has zero rows since the main email flow uses `email_outbox` for retries.
+
+**Action**: Verify if `email_retry_queue` ever has data in production. If not, remove the cron + table.
+
+### EMAIL: Cert retry bypasses outbox audit trail
+
+When a doctor retries a failed med cert email via the admin email queue:
+- **Initial send**: Uses `sendEmail()` → writes to `email_outbox` (tracked)
+- **Retry**: Uses `sendViaResend()` directly (NOT tracked in outbox)
+
+This means retried emails have no outbox record. The email-hub dashboard will show incomplete data.
+
+**Action**: Change `email-retry.ts` to use `sendEmail()` (outbox) instead of `sendViaResend()` for cert retries.
+
+### UX: Patient `/messages` page is functional but unreachable
+
+The messages page (`/patient/messages`) has a full implementation (grouped by intake, read/unread, doctor replies) with proper auth and the `patient_messages` DB table has RLS policies. But no navigation link points to it from anywhere in the patient dashboard.
+
+**Action**: Either add Messages to the patient left rail nav, or merge the messaging UI into the intake detail page (contextual messaging per intake).
+
+### INFRA: No `loading.tsx` states for patient or doctor dashboards
+
+Neither the patient nor doctor layouts have `loading.tsx` files. On slow DB queries (intakes list, queue, etc.), users see a blank screen until the server component resolves. This is particularly noticeable on the doctor review queue which runs multiple parallel queries.
+
+**Action**: Add `loading.tsx` skeleton states to `/patient`, `/doctor`, `/patient/intakes`, and `/patient/documents` routes.
+
+### INFRA: Error boundaries exist but are well-placed
+
+Error boundaries exist at `app/error.tsx`, `app/patient/error.tsx`, `app/doctor/error.tsx`, `app/admin/error.tsx`, and `app/global-error.tsx`. Sentry is fully integrated with `instrumentation.ts`. This is well-architected.
+
+### INFRA: `(dev)/email-preview` and `(dev)/sentry-test` routes in production bundle
+
+These routes check `NODE_ENV === "production"` and redirect, but they're still included in the production build. They add ~100 lines to the bundle and create unnecessary route entries.
+
+**Action**: LOW priority. The runtime guard works. Could use middleware to block `/(dev)/*` in production for cleaner routing.
+
+---
+
+## PART 5 -- UPDATED PRIORITY CHECKLIST
+
+### P0 (Must fix before go-live)
+- [x] Fix compliance page to use `audit_logs` (plural) instead of dead `audit_log` (singular)
+- [x] Fix patient download button in panel-dashboard (now links to intake detail)
+- [x] Block `/api/test/*` routes in production (middleware guard added)
+- [x] Verify med cert email is sent on approval (confirmed working in code review)
+- [x] **DROP `audit_log` view** -- Dropped (was a view, not a table); no code references remained
+
+### P1 (Should fix before go-live)  
+- [x] Convert `doctor/admin/ops/*` duplicate pages to redirects + delete dead client components
+- [x] Fix patient mobile nav (add Documents, fix Settings link to /patient/settings)
+- [x] Add notifications bell icon in LeftRail header
+- [x] Fix doctor redirect chain (`/doctor/dashboard` → `/doctor` directly)
+- [x] Remove dead `DoctorMobileNav` component + dead `/doctor/dashboard/doctor-shell.tsx`
+- [x] Fix sidebar ops links to use canonical `/admin/ops/*` paths (avoids middleware hops)
+- [x] Fix email-outbox infinite redirect loop (removed middleware entry, kept canonical at /doctor/admin/email-outbox)
+- [x] Fix payment-history page standalone styling (removed duplicate chrome, uses shell layout)
+- [x] Remove dead patientNavItems from DashboardSidebar (only used for doctor)
+- [x] Fix LeftRail to only render patient nav (doctor uses DashboardSidebar)
+- [x] **Add loading.tsx skeletons** -- Already existed for patient, doctor, intakes, documents
+- [x] **Fix notifications page** -- Removed non-existent `notification_preferences` column from query
+- [x] **Fix cert email retry** -- Changed to use `sendEmail` (outbox-tracked) instead of `sendViaResend`
+- [x] **Make patient Messages accessible** -- Added Messages link to LeftRail nav
+
 ### P2 (Clean up post-launch)
+- [x] Drop `email_delivery_log` table (dead, zero code references)
+- [x] Remove `/admin/email-queue` page -- Redirected to `/admin/email-hub`
+- [x] Delete orphaned `qa-sampling` cron route (queried non-existent `qa_sampled` column)
 - [ ] Consolidate 3 cert download endpoints → 1 canonical
 - [ ] Consolidate email send functions with clear "when to use which" docs
-- [ ] Drop legacy `requests` table + RLS policies
+- [x] Drop legacy `requests` table + RLS policies
 - [ ] Consolidate `documents` table into `issued_certificates` + `intake_documents`
-- [ ] Merge `/admin/performance` + `/admin/performance-dashboard`
+- [x] Merge `/admin/performance-dashboard` → redirect to `/admin/performance`
 - [ ] Consolidate admin email pages (5 pages → 2-3)
-- [ ] Route `sendViaResend` direct callers through outbox where appropriate
-- [ ] Remove `email_retry_queue` table if fully replaced by `email_outbox` retry logic
+- [x] Remove `email_retry_queue` table (fully replaced by `email_outbox` retry logic)
+- [x] Block `/(dev)/*` routes in middleware for production

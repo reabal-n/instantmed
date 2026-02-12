@@ -16,7 +16,6 @@ import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
-import { GlowLine } from '@/components/ui/premium-effects'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
@@ -106,13 +105,8 @@ export default function HomePage() {
         {/* Live wait times - shows current doctor response times */}
         <LiveWaitTime variant="strip" />
         
-        {/* Trust badges - compact strip, no parallax for faster paint */}
+        {/* Trust badges - compact strip */}
         <TrustBadgeSlider />
-        
-        {/* Section divider */}
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <GlowLine />
-        </div>
         
         {/* Core services - what we offer */}
         <ParallaxSection speed={0.25}>
@@ -125,11 +119,6 @@ export default function HomePage() {
             <HowItWorks />
           </ParallaxSection>
         </Suspense>
-        
-        {/* Section divider */}
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <GlowLine />
-        </div>
         
         {/* Trustpilot reviews - authentic social proof */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>
@@ -157,11 +146,6 @@ export default function HomePage() {
             <FAQSection />
           </ParallaxSection>
         </Suspense>
-        
-        {/* Section divider */}
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <GlowLine />
-        </div>
         
         {/* Final CTA */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>

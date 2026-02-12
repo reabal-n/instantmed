@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
-import { sendViaResend } from "@/lib/email/resend"
+import { sendEmail } from "@/lib/email/send-email"
 import { sendFromOutboxRow, claimOutboxRow, type OutboxRow } from "@/lib/email/send-email"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { env } from "@/lib/env"
@@ -106,37 +106,43 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
       dashboardUrl,
     })
 
-    // Send email
-    log.info("Retrying email send", {
+    // Send email via outbox (tracked, auditable)
+    log.info("Retrying email send via outbox", {
       certificateId,
       patientEmail: patient.email,
       retryCount: certificate.email_retry_count + 1,
     })
 
-    const emailResult = await sendViaResend({
+    const emailResult = await sendEmail({
       to: patient.email,
+      toName: certificate.patient_name,
       subject: "Your Medical Certificate is Ready - InstantMed",
-      html: emailHtml,
-      tags: [
-        { name: "category", value: "med_cert_retry" },
-        { name: "certificate_id", value: certificateId },
-        { name: "retry_count", value: String(certificate.email_retry_count + 1) },
-      ],
+      template: emailHtml,
+      emailType: "med_cert_patient",
+      intakeId: certificate.intake_id,
+      patientId: certificate.patient_id,
+      certificateId,
+      metadata: {
+        retry: true,
+        retry_count: certificate.email_retry_count + 1,
+        triggered_by: adminProfile.id,
+      },
     })
 
     if (emailResult.success) {
       await updateEmailStatus(certificateId, "sent", {
-        deliveryId: emailResult.id,
+        deliveryId: emailResult.outboxId || emailResult.messageId,
       })
       await logCertificateEvent(certificateId, "email_sent", adminProfile.id, "admin", {
         retry: true,
         retry_count: certificate.email_retry_count + 1,
-        resend_id: emailResult.id,
+        outbox_id: emailResult.outboxId,
       })
 
-      log.info("Email retry successful", { certificateId, resendId: emailResult.id })
+      log.info("Email retry successful via outbox", { certificateId, outboxId: emailResult.outboxId })
 
       revalidatePath("/admin/email-queue")
+      revalidatePath("/doctor/admin/email-outbox")
       return { success: true }
     } else {
       await updateEmailStatus(certificateId, "failed", {

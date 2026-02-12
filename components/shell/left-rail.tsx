@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ClipboardList,
   Activity,
-  Bell
+  Bell,
+  MessageSquare
 } from 'lucide-react'
 import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
@@ -51,6 +52,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
     { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
     { icon: Activity, label: 'Health Summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
+    { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
     { icon: Settings, label: 'Settings', href: '/patient/settings' },
   ]
 

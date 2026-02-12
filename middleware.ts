@@ -66,9 +66,12 @@ function hasE2EAuthBypass(req: Request): boolean {
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = new URL(req.url)
   
-  // Block /api/test/* routes in production and preview
+  // Block /api/test/* and /(dev)/* routes in production and preview
   if (pathname.startsWith("/api/test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+  if (pathname.startsWith("/email-preview") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+    return NextResponse.redirect(new URL("/", req.url), 302)
   }
 
   // Handle admin consolidation redirects
