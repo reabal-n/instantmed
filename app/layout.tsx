@@ -18,6 +18,7 @@ import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
 import { LazyOverlays } from "@/components/shared/lazy-overlays"
+import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
 import Script from "next/script"
 import "./globals.css"
 
@@ -213,8 +214,10 @@ export default function RootLayout({
                 <NightSkyBackground starCount={100} showShootingStars />
                 <ScrollProgress color="gradient" />
                 <SkipToContent />
-                <div id="main-content" className="page-enter relative z-10">
-                  {children}
+                <div id="main-content" className="relative z-10">
+                  <PageTransitionProvider>
+                    {children}
+                  </PageTransitionProvider>
                 </div>
                 <Toaster position="top-center" richColors />
                 <LazyOverlays />

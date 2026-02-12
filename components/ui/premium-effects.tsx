@@ -16,7 +16,7 @@ export function AnimatedOrbs({ className, orbCount = 3 }: AnimatedOrbsProps) {
   const orbs = [
     { size: 600, x: "10%", y: "20%", color: "from-primary/20 to-primary/5", delay: 0 },
     { size: 500, x: "70%", y: "60%", color: "from-secondary/15 to-secondary/5", delay: 2 },
-    { size: 400, x: "40%", y: "80%", color: "from-violet-500/10 to-violet-500/5", delay: 4 },
+    { size: 400, x: "40%", y: "80%", color: "from-blue-400/10 to-blue-400/5", delay: 4 },
   ].slice(0, orbCount)
 
   return (
@@ -340,7 +340,7 @@ const iconBadgeVariants = {
   success: "bg-emerald-500/10 text-emerald-500",
   warning: "bg-dawn-500/10 text-dawn-500",
   danger: "bg-red-500/10 text-red-500",
-  info: "bg-violet-500/10 text-violet-500",
+  info: "bg-blue-500/10 text-blue-500",
 }
 
 const iconBadgeSizes = {

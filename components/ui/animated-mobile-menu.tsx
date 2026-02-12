@@ -142,14 +142,14 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
   )
 }
 
-// Menu item colors for visual variety
+// Menu item colors - aligned with brand palette (blues, teals, greens)
 const menuColors = [
-  { light: "#6366f1", dark: "#818cf8" }, // Indigo
-  { light: "#8b5cf6", dark: "#a78bfa" }, // Violet  
-  { light: "#ec4899", dark: "#f472b6" }, // Pink
-  { light: "#06b6d4", dark: "#22d3ee" }, // Cyan
-  { light: "#10b981", dark: "#34d399" }, // Emerald
-  { light: "#f59e0b", dark: "#fbbf24" }, // Amber
+  { light: "#2563EB", dark: "#60A5FA" }, // Blue (primary)
+  { light: "#0891B2", dark: "#22D3EE" }, // Cyan
+  { light: "#059669", dark: "#34D399" }, // Emerald
+  { light: "#3B82F6", dark: "#93C5FD" }, // Sky
+  { light: "#0D9488", dark: "#5EEAD4" }, // Teal
+  { light: "#D97706", dark: "#FBBF24" }, // Amber (warm accent)
 ]
 
 // Menu item component
@@ -324,7 +324,7 @@ export function AnimatedMobileMenu({
           // Border
           "border-l border-white/50 dark:border-white/15",
           // Glow shadow
-          "shadow-[-20px_0_60px_rgb(59,130,246,0.15)] dark:shadow-[-20px_0_60px_rgb(139,92,246,0.2)]"
+          "shadow-[-20px_0_60px_rgb(59,130,246,0.12)] dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]"
         )}
       />
 

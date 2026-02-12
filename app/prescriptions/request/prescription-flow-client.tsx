@@ -5,8 +5,8 @@ import type React from "react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button, Input, Textarea } from "@heroui/react"
-import { DatePickerField } from "@/components/uix"
+import { Button, Input, DatePickerField } from "@/components/uix"
+import { Textarea } from "@/components/ui/textarea"
 import {
   ArrowLeft,
   CheckCircle,

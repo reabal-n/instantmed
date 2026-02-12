@@ -238,8 +238,8 @@ body {
   --secondary: rgba(168, 204, 232, 0.12);
   --secondary-foreground: #E8EEF4;
   
-  /* Muted - distant nebula */
-  --muted: rgba(99, 102, 241, 0.08);
+  /* Muted - subtle neutral */
+  --muted: rgba(148, 163, 184, 0.10);
   --muted-foreground: #94A3B8;
   
   /* Accent - soft sky */
@@ -268,7 +268,7 @@ body {
   --sidebar-accent: rgba(197, 221, 240, 0.10);
   --sidebar-accent-foreground: #F7FAFC;
   --sidebar-border: rgba(197, 221, 240, 0.12);
-  --sidebar-ring: var(--dawn-400);
+  --sidebar-ring: #5DB8C9;
   
   /* Dark mode shadows - 3 levels matching light */
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.30);
@@ -334,6 +334,19 @@ body {
   --color-indigo: var(--indigo);
   --color-violet: var(--violet);
   --color-violet-light: var(--violet-light);
+  
+  /* Dawn - warm amber/gold palette (used across status & accent elements) */
+  --color-dawn-50: #FFFBEB;
+  --color-dawn-100: #FEF3C7;
+  --color-dawn-200: #FDE68A;
+  --color-dawn-300: #FCD34D;
+  --color-dawn-400: #FBBF24;
+  --color-dawn-500: #F59E0B;
+  --color-dawn-600: #D97706;
+  --color-dawn-700: #B45309;
+  --color-dawn-800: #92400E;
+  --color-dawn-900: #78350F;
+  --color-dawn-950: #451A03;
   
   /* Rainbow button colors */
   --color-color-1: hsl(var(--color-1));
