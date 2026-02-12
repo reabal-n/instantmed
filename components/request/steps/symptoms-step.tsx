@@ -203,9 +203,24 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
           }
           className={`min-h-[100px] mt-2 ${touched.symptomDetails && errors.symptomDetails ? 'border-destructive' : ''}`}
         />
-        <p className="text-xs text-muted-foreground text-right mt-1">
-          {symptomDetails.length}/20 characters minimum
-        </p>
+        <div className="flex items-center justify-between mt-1.5 gap-2">
+          <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all duration-300 ${
+                symptomDetails.length >= 20 ? 'bg-emerald-500' : 'bg-primary'
+              }`}
+              style={{ width: `${Math.min((symptomDetails.length / 20) * 100, 100)}%` }}
+            />
+          </div>
+          <p className={`text-xs shrink-0 ${
+            symptomDetails.length >= 20 ? 'text-emerald-600' : 'text-muted-foreground'
+          }`}>
+            {symptomDetails.length >= 20 
+              ? `${symptomDetails.length} characters` 
+              : `${symptomDetails.length}/20 min`
+            }
+          </p>
+        </div>
       </FormField>
 
       {/* Continue button */}

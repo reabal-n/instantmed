@@ -5,7 +5,8 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, Edit2, Shield, Clock, RefreshCw } from "lucide-react"
+import { useState } from "react"
+import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRequestStore } from "../store"
@@ -39,6 +40,34 @@ const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
   'never': 'Never prescribed',
 }
 
+const TRUNCATE_THRESHOLD = 60
+
+function ExpandableValue({ value }: { value: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const needsTruncation = value.length > TRUNCATE_THRESHOLD
+
+  if (!needsTruncation) {
+    return <span>{value}</span>
+  }
+
+  return (
+    <span>
+      {expanded ? value : value.substring(0, TRUNCATE_THRESHOLD) + '...'}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="ml-1 inline-flex items-center gap-0.5 text-xs text-primary hover:text-primary/80 font-normal"
+      >
+        {expanded ? (
+          <>Less <ChevronUp className="w-3 h-3" /></>
+        ) : (
+          <>More <ChevronDown className="w-3 h-3" /></>
+        )}
+      </button>
+    </span>
+  )
+}
+
 function ReviewSection({ 
   title, 
   items, 
@@ -64,7 +93,9 @@ function ReviewSection({
           {items.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted-foreground">{item.label}</dt>
-              <dd className="font-medium text-right max-w-[60%]">{item.value || '—'}</dd>
+              <dd className="font-medium text-right max-w-[60%]">
+                {item.value ? <ExpandableValue value={item.value} /> : '—'}
+              </dd>
             </div>
           ))}
         </dl>
@@ -125,7 +156,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       items: [
         { label: 'Symptoms', value: symptoms?.join(', ') || '' },
         { label: 'Duration', value: symptomDuration || '' },
-        { label: 'Details', value: symptomDetails?.substring(0, 50) + (symptomDetails?.length > 50 ? '...' : '') || '' },
+        { label: 'Details', value: symptomDetails || '' },
       ],
       stepId: 'symptoms',
     })
@@ -191,7 +222,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         title: 'Consultation Details',
         items: [
           ...(consultCategory ? [{ label: 'Category', value: CATEGORY_LABELS[consultCategory] || consultCategory }] : []),
-          ...(consultDetails ? [{ label: 'Details', value: consultDetails.substring(0, 80) + (consultDetails.length > 80 ? '...' : '') }] : []),
+          ...(consultDetails ? [{ label: 'Details', value: consultDetails }] : []),
         ],
         stepId: 'consult-reason',
       })

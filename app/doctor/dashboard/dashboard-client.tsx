@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Eye,
   MessageSquare,
+  Inbox,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -236,7 +237,7 @@ export function DoctorDashboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -355,61 +356,141 @@ export function DoctorDashboardClient({
           )}
         </AnimatePresence>
 
-        {/* Requests Table */}
-        <div className="bg-card rounded-xl border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedRequests.size === filteredRequests.length && filteredRequests.length > 0}
-                      onChange={selectAll}
-                      className="rounded"
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                    Patient
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                    Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                    Submitted
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                      No requests found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRequests.map((request) => (
-                    <RequestRow
-                      key={request.id}
-                      request={request}
-                      isSelected={selectedRequests.has(request.id)}
-                      onToggleSelect={() => toggleSelection(request.id)}
-                      onView={() => setSelectedRequest(request)}
-                      onAssign={() => assignToSelf(request.id)}
-                      isAssignedToMe={request.doctor_id === doctorId}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Empty State */}
+        {filteredRequests.length === 0 ? (
+          <div className="dashboard-empty">
+            <Inbox className="w-12 h-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">No requests found</h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+              {searchQuery || statusFilter !== "all" || typeFilter !== "all"
+                ? "Try adjusting your search or filters to find what you're looking for."
+                : "New patient requests will appear here when they are submitted."}
+            </p>
+            {(searchQuery || statusFilter !== "all" || typeFilter !== "all") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("")
+                  setStatusFilter("all")
+                  setTypeFilter("all")
+                }}
+              >
+                Clear all filters
+              </Button>
+            )}
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Mobile Card Layout */}
+            <div className="md:hidden space-y-3">
+              {filteredRequests.map((request) => {
+                const StatusIcon = STATUS_CONFIG[request.status].icon
+                const TypeIcon = TYPE_CONFIG[request.type].icon
+                const isSelected = selectedRequests.has(request.id)
+                return (
+                  <div
+                    key={request.id}
+                    className={cn(
+                      "bg-card rounded-xl border p-4 transition-colors",
+                      isSelected && "bg-primary/10 border-primary/20"
+                    )}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelection(request.id)}
+                          className="rounded mt-0.5"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{request.patient.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{request.patient.email}</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="flex items-center gap-1 shrink-0">
+                        <StatusIcon className="w-3 h-3" />
+                        {STATUS_CONFIG[request.status].label}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <TypeIcon className="w-3.5 h-3.5" />
+                          {TYPE_CONFIG[request.type].label}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {new Date(request.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setSelectedRequest(request)}>
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          View
+                        </Button>
+                        {!request.doctor_id && (
+                          <Button size="sm" variant="default" onClick={() => assignToSelf(request.id)}>
+                            Assign
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden md:block bg-card rounded-xl border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectedRequests.size === filteredRequests.length && filteredRequests.length > 0}
+                          onChange={selectAll}
+                          className="rounded"
+                        />
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Patient
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Type
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Submitted
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {filteredRequests.map((request) => (
+                      <RequestRow
+                        key={request.id}
+                        request={request}
+                        isSelected={selectedRequests.has(request.id)}
+                        onToggleSelect={() => toggleSelection(request.id)}
+                        onView={() => setSelectedRequest(request)}
+                        onAssign={() => assignToSelf(request.id)}
+                        isAssignedToMe={request.doctor_id === doctorId}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Results count */}
         <div className="mt-4 text-sm text-muted-foreground text-center">
@@ -436,7 +517,7 @@ export function DoctorDashboardClient({
               </label>
               <Textarea
                 value={bulkNotes}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBulkNotes(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkNotes(e.target.value)}
                 placeholder="Add notes for these requests..."
                 minRows={4}
               />
@@ -520,7 +601,7 @@ function RequestRow({
   const TypeIcon = TYPE_CONFIG[request.type].icon
 
   return (
-    <tr className={cn("hover:bg-slate-50 transition-colors", isSelected && "bg-blue-50")}>
+    <tr className={cn("hover:bg-muted/50 transition-colors", isSelected && "bg-primary/10")}>
       <td className="px-4 py-3">
         <input type="checkbox" checked={isSelected} onChange={onToggleSelect} className="rounded" />
       </td>
@@ -616,7 +697,7 @@ function RequestDetailDialog({
             <label className="font-semibold mb-2 block">Doctor Notes</label>
             <Textarea
               value={notes}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
               minRows={4}
             />

@@ -108,9 +108,9 @@ function ProgressBar({
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-primary flex items-center justify-center"
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
                 >
-                  <Check className="w-1.5 h-1.5 text-primary-foreground" strokeWidth={3} />
+                  <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
                 </motion.div>
               )}
             </div>

@@ -1,12 +1,15 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
+import { motion } from "framer-motion"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { createClient } from "@/lib/supabase/client"
-import { Mail } from "lucide-react"
+import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { Button } from "@/components/ui/button"
+
+const RESEND_COOLDOWN_SECONDS = 60
 
 interface SuccessClientProps {
   intakeId?: string
@@ -29,10 +32,19 @@ export function SuccessClient({
   const [pollingError, setPollingError] = useState(false)
   const [resendingEmail, setResendingEmail] = useState(false)
   const [emailResent, setEmailResent] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // P0 FIX: Fallback to resend confirmation email if not received
+  // Cleanup cooldown timer
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current)
+    }
+  }, [])
+
+  // P0 FIX: Fallback to resend confirmation email if not received (with cooldown)
   const handleResendConfirmation = useCallback(async () => {
-    if (!intakeId || resendingEmail || emailResent) return
+    if (!intakeId || resendingEmail || resendCooldown > 0) return
     
     setResendingEmail(true)
     try {
@@ -44,13 +56,25 @@ export function SuccessClient({
       const result = await response.json()
       if (result.success) {
         setEmailResent(true)
+        // Start cooldown timer
+        setResendCooldown(RESEND_COOLDOWN_SECONDS)
+        cooldownRef.current = setInterval(() => {
+          setResendCooldown(prev => {
+            if (prev <= 1) {
+              if (cooldownRef.current) clearInterval(cooldownRef.current)
+              setEmailResent(false) // Allow re-sending after cooldown
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
       }
     } catch {
       // Silently fail - user can try again
     } finally {
       setResendingEmail(false)
     }
-  }, [intakeId, resendingEmail, emailResent])
+  }, [intakeId, resendingEmail, resendCooldown])
 
   useEffect(() => {
     if (!intakeId || initialStatus !== "pending_payment") return
@@ -147,13 +171,20 @@ export function SuccessClient({
   // P2 FIX: Show error state if polling failed due to errors (not just timeout)
   if (pollingError) {
     return (
-      <div className="space-y-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
-            <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.1 }}
+            className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center"
+          >
+            <AlertTriangle className="w-8 h-8 text-amber-600" />
+          </motion.div>
           <div>
             <h2 className="text-xl font-semibold">Connection issue</h2>
             <p className="text-muted-foreground text-sm mt-1">
@@ -170,7 +201,7 @@ export function SuccessClient({
             <li>If you don&apos;t see your request within 10 minutes, <a href="/contact" className="underline hover:no-underline">contact support</a></li>
           </ul>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -193,11 +224,18 @@ export function SuccessClient({
             variant="outline"
             size="sm"
             onClick={handleResendConfirmation}
-            disabled={resendingEmail || emailResent}
+            disabled={resendingEmail || resendCooldown > 0}
             className="gap-2"
           >
             <Mail className="w-4 h-4" />
-            {emailResent ? "Email sent!" : resendingEmail ? "Sending..." : "Resend confirmation email"}
+            {resendCooldown > 0 
+              ? `Resend in ${resendCooldown}s` 
+              : resendingEmail 
+                ? "Sending..." 
+                : emailResent 
+                  ? "Email sent!" 
+                  : "Resend confirmation email"
+            }
           </Button>
         </div>
       </div>
@@ -207,19 +245,26 @@ export function SuccessClient({
   // No intake ID - show generic success
   if (!intakeId) {
     return (
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500 flex items-center justify-center">
-          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center space-y-4"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", delay: 0.1 }}
+          className="w-16 h-16 mx-auto rounded-full bg-emerald-500 flex items-center justify-center"
+        >
+          <Check className="w-8 h-8 text-white" strokeWidth={2.5} />
+        </motion.div>
         <div>
           <h2 className="text-xl font-semibold">Request submitted</h2>
           <p className="text-muted-foreground text-sm mt-1">
             Check your dashboard to track progress.
           </p>
         </div>
-      </div>
+      </motion.div>
     )
   }
 

@@ -225,8 +225,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             className={cn(
               "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
               isDarkTheme
-                ? "bg-gradient-radial from-transparent via-indigo-400/20 to-transparent"
-                : "bg-gradient-radial from-transparent via-indigo-400/10 to-transparent"
+                ? "bg-gradient-radial from-transparent via-primary/20 to-transparent"
+                : "bg-gradient-radial from-transparent via-primary/10 to-transparent"
             )}
             variants={navGlowVariants}
           />
