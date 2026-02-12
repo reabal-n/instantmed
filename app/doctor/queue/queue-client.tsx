@@ -653,147 +653,144 @@ export function QueueClient({
 
   return (
     <div className="space-y-6">
-      {/* Stale Data Warning - Clinical Safety */}
+      {/* Stale Data Warning */}
       {isStale && (
         <div 
           role="alert"
-          className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
+          className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20"
         >
-          <AlertTriangle className="h-5 w-5 shrink-0" />
-          <div className="flex-1">
-            <p className="font-medium">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-amber-800 dark:text-amber-200">
               {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
             </p>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Last synced: {lastSyncTimeRef.current.toLocaleTimeString()}. Refresh to ensure you have the latest cases.
+            <p className="text-[12px] text-amber-700/80 dark:text-amber-300/80">
+              Last synced: {lastSyncTimeRef.current.toLocaleTimeString()}
             </p>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => router.refresh()}
-            className="shrink-0 border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+            className="shrink-0 h-7 text-[12px] border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/10"
           >
-            <RefreshCw className="h-4 w-4 mr-1.5" />
+            <RefreshCw className="h-3 w-3 mr-1" />
             Refresh
           </Button>
         </div>
       )}
 
-      {/* Header - Mobile optimized */}
-      <div className="flex flex-col gap-4" data-testid="queue-header">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col gap-3" data-testid="queue-header">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight" data-testid="queue-heading">Review Queue</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting • Priority first
+            <h2 className="text-lg font-semibold tracking-tight text-foreground font-sans" data-testid="queue-heading">Review Queue</h2>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
+              {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
             </p>
           </div>
           {/* Desktop controls */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {!focusMode && (
               <Input
                 placeholder="Search patients..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64"
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+                className="w-56 h-8 text-[13px]"
+                startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
               />
             )}
             <Button
               variant={focusMode ? "default" : "outline"}
               size="sm"
               onClick={() => setFocusMode(!focusMode)}
-              className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white" : ""}
+              className={cn("h-8 text-[12px]", focusMode && "bg-primary hover:bg-primary/90 text-primary-foreground")}
               aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
             >
               {focusMode ? (
-                <>
-                  <Maximize2 className="h-4 w-4 mr-1.5" />
-                  Exit Focus
-                </>
+                <><Maximize2 className="h-3.5 w-3.5 mr-1" />Exit Focus</>
               ) : (
-                <>
-                  <Focus className="h-4 w-4 mr-1.5" />
-                  Focus Mode
-                </>
+                <><Focus className="h-3.5 w-3.5 mr-1" />Focus</>
               )}
             </Button>
-            <Button variant="outline" size="icon" onClick={() => router.refresh()}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
+              <RefreshCw className="h-3.5 w-3.5" />
             </Button>
             <Button 
-              variant={audioEnabled ? "default" : "outline"}
+              variant={audioEnabled ? "default" : "ghost"}
               size="icon"
+              className={cn("h-8 w-8", audioEnabled && "bg-emerald-600 hover:bg-emerald-700 text-white")}
               onClick={toggleAudio}
               title={audioEnabled ? "Disable sound notifications" : "Enable sound notifications"}
-              className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
             >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {audioEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
+              className="h-8 text-[12px] text-muted-foreground"
               onClick={() => setShowShortcutsHelp(prev => !prev)}
-              className="text-muted-foreground"
             >
-              <kbd className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
-              Shortcuts
+              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono mr-1">?</kbd>
+              Keys
             </Button>
           </div>
         </div>
-        {/* Mobile/Tablet controls */}
-        <div className="flex md:hidden flex-col gap-3">
+        {/* Mobile controls */}
+        <div className="flex md:hidden flex-col gap-2">
           {!focusMode && (
             <Input
               placeholder="Search patients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-              startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+              className="w-full h-8 text-[13px]"
+              startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
             />
           )}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Button
               variant={focusMode ? "default" : "outline"}
               size="sm"
               onClick={() => setFocusMode(!focusMode)}
-              className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white flex-1 sm:flex-none" : "flex-1 sm:flex-none"}
+              className={cn("h-8 text-[12px] flex-1 sm:flex-none", focusMode && "bg-primary hover:bg-primary/90 text-primary-foreground")}
               aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
             >
-              {focusMode ? <Maximize2 className="h-4 w-4 mr-1.5" /> : <Focus className="h-4 w-4 mr-1.5" />}
+              {focusMode ? <Maximize2 className="h-3.5 w-3.5 mr-1" /> : <Focus className="h-3.5 w-3.5 mr-1" />}
               {focusMode ? "Exit" : "Focus"}
             </Button>
-            <Button variant="outline" size="icon" onClick={() => router.refresh()}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
+              <RefreshCw className="h-3.5 w-3.5" />
             </Button>
             <Button 
-              variant={audioEnabled ? "default" : "outline"}
+              variant={audioEnabled ? "default" : "ghost"}
               size="icon"
+              className={cn("h-8 w-8", audioEnabled && "bg-emerald-600 hover:bg-emerald-700 text-white")}
               onClick={toggleAudio}
-              className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
             >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {audioEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Keyboard Shortcuts Help */}
+      {/* Keyboard Shortcuts */}
       {showShortcutsHelp && (
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="border-border/50">
           <CardContent className="py-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-sm">Keyboard Shortcuts</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(false)}>×</Button>
+              <h3 className="text-[13px] font-medium">Keyboard Shortcuts</h3>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => setShowShortcutsHelp(false)}>
+                <span className="sr-only">Close</span>
+                <span aria-hidden>{"x"}</span>
+              </Button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm" id={listId}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" id={listId}>
               {keyboardShortcuts.slice(0, -1).map((s, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                <div key={i} className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px] text-muted-foreground">
                     {s.shift && "⇧"}{s.key === "Enter" ? "↵" : s.key.toUpperCase()}
                   </kbd>
-                  <span className="text-muted-foreground">{s.description}</span>
+                  <span className="text-[12px] text-muted-foreground">{s.description}</span>
                 </div>
               ))}
             </div>
@@ -801,33 +798,29 @@ export function QueueClient({
         </Card>
       )}
 
-      {/* Flagged Cases Summary - Hidden in focus mode */}
+      {/* Flagged Cases */}
       {!focusMode && flaggedCount > 0 && (
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardContent className="py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-destructive">
-                <ShieldAlert className="h-5 w-5" />
-                <span className="font-medium">
-                  {flaggedCount} case{flaggedCount !== 1 ? "s" : ""} with clinical flags
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                onClick={() => setSortOption("flagged")}
-              >
-                Review flagged first
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/15">
+          <div className="flex items-center gap-2 text-destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <span className="text-[13px] font-medium">
+              {flaggedCount} case{flaggedCount !== 1 ? "s" : ""} with clinical flags
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-[12px] text-destructive hover:bg-destructive/10"
+            onClick={() => setSortOption("flagged")}
+          >
+            Review flagged first
+          </Button>
+        </div>
       )}
 
-      {/* Sort & Filter Controls - Hidden in focus mode, responsive grid */}
+      {/* Sort & Filter */}
       {!focusMode && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-2 lg:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-2">
           <div className="flex items-center gap-2">
             <ArrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>

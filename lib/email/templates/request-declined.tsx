@@ -15,19 +15,17 @@ export function RequestDeclinedEmail({ patientName, requestType, requestId, reas
       <h1>About your request</h1>
       <p>Hi {patientName},</p>
       <p>
-        After careful review, the doctor was unable to approve your <strong>{requestType}</strong>
+        After careful review, the doctor was unable to approve your <strong>{requestType}</strong>{" "}
         request at this time.
       </p>
 
       <div className="info-box">
-        <p style={{ margin: 0, fontWeight: 500 }}>Reason:</p>
-        <p style={{ margin: "8px 0 0 0" }}>{reason}</p>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: "14px" }}>Reason:</p>
+        <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>{reason}</p>
       </div>
 
-      <p>
-        <strong>What happens next?</strong>
-      </p>
-      <p>A full refund will be processed to your original payment method within 5-7 business days.</p>
+      <p><strong>What happens next?</strong></p>
+      <p>A full refund will be processed to your original payment method within 5--7 business days.</p>
 
       <div className="warning-box">
         <p style={{ margin: 0, fontSize: "14px" }}>
@@ -44,8 +42,8 @@ export function RequestDeclinedEmail({ patientName, requestType, requestId, reas
         </a>
       </p>
 
-      <p style={{ fontSize: "14px", color: "#737373" }}>
-        If you have questions about this decision, please reply to this email.
+      <p style={{ fontSize: "13px", color: "#9CA3AF" }}>
+        If you have questions about this decision, reply to this email.
       </p>
     </BaseLayout>
   )

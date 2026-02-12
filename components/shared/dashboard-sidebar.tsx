@@ -12,7 +12,6 @@ import {
   ListOrdered,
   ClipboardList,
   Settings,
-  Zap,
   Palette,
   Building2,
   Shield,
@@ -20,7 +19,9 @@ import {
   Wrench,
   Mail,
   AlertTriangle,
-  CreditCard
+  CreditCard,
+  ChevronRight,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
@@ -62,18 +63,53 @@ const adminNavItems: NavItem[] = [
   { href: "/admin", label: "Admin Dashboard", icon: Shield },
 ]
 
-// Ops items visible to all doctors
 const opsNavItemsBase: NavItem[] = [
   { href: "/doctor/admin/ops", label: "Ops Overview", icon: Wrench },
   { href: "/doctor/admin/ops/intakes-stuck", label: "Stuck Intakes", icon: AlertTriangle },
 ]
 
-// Sensitive ops items - admin only
 const opsNavItemsAdminOnly: NavItem[] = [
   { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Mail },
   { href: "/doctor/admin/ops/reconciliation", label: "Reconciliation", icon: CreditCard },
   { href: "/doctor/admin/ops/doctors", label: "Doctor Ops", icon: Users },
 ]
+
+function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "group flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+      )}
+    >
+      <span className="flex items-center gap-2.5">
+        <item.icon className={cn(
+          "w-[18px] h-[18px]",
+          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+        )} />
+        {item.label}
+      </span>
+      {badgeCount !== undefined && badgeCount > 0 && (
+        <span
+          className={cn(
+            "min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-semibold",
+            isActive 
+              ? "bg-primary text-primary-foreground" 
+              : "bg-muted text-muted-foreground",
+          )}
+        >
+          {badgeCount}
+        </span>
+      )}
+      {!badgeCount && isActive && (
+        <ChevronRight className="w-3.5 h-3.5 text-primary/50" />
+      )}
+    </Link>
+  )
+}
 
 export function DashboardSidebar({ 
   variant, 
@@ -91,171 +127,115 @@ export function DashboardSidebar({
     window.location.href = "/api/doctor/export?format=csv"
   }
 
+  const initials = userName
+    .split(" ")
+    .map(n => n.charAt(0))
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col">
-      <div className="sticky top-24 space-y-4">
-        {/* Logo/Brand Header */}
-        <div className="dashboard-card rounded-2xl p-4 border border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
-              <Zap className="h-5 w-5 text-white" />
+    <aside className="hidden lg:flex w-[260px] shrink-0 flex-col">
+      <div className="sticky top-6 flex flex-col gap-1 pb-6">
+        {/* Brand */}
+        <div className="px-4 py-4 mb-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="text-sm font-bold tracking-tight">IM</span>
             </div>
             <div>
-              <span className="text-lg font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              <span className="text-[15px] font-semibold tracking-tight text-foreground">
                 InstantMed
               </span>
-              <p className="text-xs text-muted-foreground capitalize">{variant} Portal</p>
+              <p className="text-[11px] text-muted-foreground capitalize leading-none mt-0.5">{variant} Portal</p>
             </div>
           </div>
         </div>
 
         {/* Main Navigation */}
-        <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-white/20">
+        <nav className="flex flex-col gap-0.5 px-3">
+          <p className="px-3 mb-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Navigation</p>
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
             const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
-            const badgeCount = variant === "doctor" ? pendingCount : requestCount
+            const badgeCount = showBadge ? (variant === "doctor" ? pendingCount : requestCount) : undefined
             
             return (
-              <Link
+              <NavLink
                 key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
-                  isActive
-                    ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-sm",
-                )}
-              >
-                <span className="flex items-center gap-3">
-                  <item.icon className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    !isActive && "group-hover:scale-110"
-                  )} />
-                  {item.label}
-                </span>
-                {showBadge && (
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-full text-xs font-semibold transition-colors",
-                      isActive 
-                        ? "bg-white/20 text-white" 
-                        : "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300",
-                    )}
-                  >
-                    {badgeCount}
-                  </span>
-                )}
-              </Link>
+                item={item}
+                isActive={!!isActive}
+                badgeCount={badgeCount}
+              />
             )
           })}
         </nav>
 
-        {/* Admin Navigation - Admin only */}
+        {/* Admin Navigation */}
         {variant === "doctor" && isAdmin && (
-          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-amber-200/50 bg-amber-50/30 dark:bg-amber-500/5 dark:border-amber-500/20">
-            <h4 className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider px-4 py-1">Admin Tools</h4>
+          <nav className="flex flex-col gap-0.5 px-3 mt-4">
+            <p className="px-3 mb-1.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">Admin</p>
             {adminNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
-                    isActive
-                      ? "bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
-                      : "text-amber-700 dark:text-amber-400 hover:bg-amber-100/80 dark:hover:bg-amber-500/10 hover:-translate-y-0.5 hover:shadow-sm",
-                  )}
-                >
-                  <item.icon className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    !isActive && "group-hover:scale-110"
-                  )} />
-                  {item.label}
-                </Link>
+                <NavLink key={item.href} item={item} isActive={!!isActive} />
               )
             })}
           </nav>
         )}
 
-        {/* Ops Navigation - Doctor/Admin only */}
+        {/* Ops Navigation */}
         {variant === "doctor" && (
-          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-white/5 dark:border-white/10" data-testid="ops-nav-section">
-            <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-4 py-1">Ops</h4>
-            {/* Base ops items - visible to all doctors */}
+          <nav className="flex flex-col gap-0.5 px-3 mt-4" data-testid="ops-nav-section">
+            <p className="px-3 mb-1.5 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Ops</p>
             {opsNavItemsBase.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/doctor/admin/ops" && pathname?.startsWith(item.href))
               return (
-                <Link
+                <NavLink
                   key={item.href}
-                  href={item.href}
-                  data-testid={`ops-nav-${item.href.split('/').pop()}`}
-                  className={cn(
-                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
-                    isActive
-                      ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-sm",
-                  )}
-                >
-                  <item.icon className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    !isActive && "group-hover:scale-110"
-                  )} />
-                  {item.label}
-                </Link>
+                  item={item}
+                  isActive={!!isActive}
+                />
               )
             })}
-            {/* Admin-only ops items */}
             {isAdmin && opsNavItemsAdminOnly.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(item.href)
               return (
-                <Link
+                <NavLink
                   key={item.href}
-                  href={item.href}
-                  data-testid={`ops-nav-${item.href.split('/').pop()}`}
-                  className={cn(
-                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
-                    isActive
-                      ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-sm",
-                  )}
-                >
-                  <item.icon className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    !isActive && "group-hover:scale-110"
-                  )} />
-                  {item.label}
-                </Link>
+                  item={item}
+                  isActive={!!isActive}
+                />
               )
             })}
           </nav>
         )}
 
-        {/* Stats Card - Doctor only */}
+        {/* Divider */}
+        <div className="mx-6 my-3 border-t border-border/50" />
+
+        {/* Stats - Doctor only */}
         {variant === "doctor" && (
-          <div className="dashboard-card rounded-2xl p-4 space-y-3 border border-white/20">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Stats</h4>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20">
-                <span className="text-sm text-indigo-700 dark:text-indigo-300">Pending Review</span>
-                <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{pendingCount}</span>
-              </div>
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-violet-50/80 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20">
-                <span className="text-sm text-violet-700 dark:text-violet-300">Scripts to Send</span>
-                <span className="text-sm font-bold text-violet-700 dark:text-violet-300">{pendingCount}</span>
-              </div>
+          <div className="px-6 flex flex-col gap-2">
+            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">Queue</p>
+            <div className="flex items-center justify-between py-1.5">
+              <span className="text-[13px] text-muted-foreground">Pending</span>
+              <span className={cn(
+                "text-[13px] font-semibold tabular-nums",
+                pendingCount > 0 ? "text-primary" : "text-muted-foreground"
+              )}>
+                {pendingCount}
+              </span>
             </div>
           </div>
         )}
 
-        {/* Patient Quick Actions */}
+        {/* Patient Quick Action */}
         {variant === "patient" && (
-          <div className="dashboard-card rounded-2xl p-4 space-y-3 border border-white/20">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</h4>
+          <div className="px-4">
             <Button 
               asChild 
-              className="w-full rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
+              className="w-full h-9 text-[13px]"
             >
               <Link href="/request">
                 New Request
@@ -264,46 +244,48 @@ export function DashboardSidebar({
           </div>
         )}
 
-        {/* Export & Shortcuts - Doctor only */}
+        {/* Tools - Doctor only */}
         {variant === "doctor" && (
-          <div className="dashboard-card rounded-2xl p-4 border border-white/20 space-y-3">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tools</h4>
+          <div className="px-4 mt-2 flex flex-col gap-1.5">
             <KeyboardShortcutsModal 
               trigger={
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   size="sm" 
-                  className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors justify-between"
+                  className="w-full h-8 text-[12px] text-muted-foreground hover:text-foreground justify-between px-3"
                 >
-                  <span className="flex items-center">
-                    <Keyboard className="w-4 h-4 mr-2" />
+                  <span className="flex items-center gap-2">
+                    <Keyboard className="w-3.5 h-3.5" />
                     Shortcuts
                   </span>
-                  <kbd className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">⌘?</kbd>
+                  <kbd className="text-[10px] font-mono bg-muted/80 px-1.5 py-0.5 rounded text-muted-foreground">?</kbd>
                 </Button>
               }
             />
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm" 
-              className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors" 
+              className="w-full h-8 text-[12px] text-muted-foreground hover:text-foreground justify-start gap-2 px-3" 
               onClick={handleExport}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Export to CSV
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
             </Button>
           </div>
         )}
 
-        {/* User Profile Card */}
-        <div className="dashboard-card rounded-2xl p-4 border border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white font-semibold">
-              {userName.charAt(0).toUpperCase()}
+        {/* Spacer to push user card down */}
+        <div className="flex-1 min-h-4" />
+
+        {/* User Profile */}
+        <div className="px-4 mt-auto">
+          <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/50 transition-colors cursor-default">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-[12px] font-semibold">
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground truncate">{userName}</p>
-              <p className="text-xs text-muted-foreground capitalize">{userRole || variant}</p>
+              <p className="text-[13px] font-medium text-foreground truncate leading-tight">{userName}</p>
+              <p className="text-[11px] text-muted-foreground capitalize leading-tight">{userRole || variant}</p>
             </div>
           </div>
         </div>

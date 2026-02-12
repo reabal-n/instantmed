@@ -25,7 +25,7 @@ export function WelcomeEmail({
 }: WelcomeEmailProps) {
   return (
     <BaseEmail
-      previewText="Welcome to InstantMed — healthcare made simple"
+      previewText="Welcome to InstantMed - healthcare made simple"
       appUrl={appUrl}
     >
       <Heading>Welcome to InstantMed</Heading>
@@ -33,8 +33,8 @@ export function WelcomeEmail({
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Thanks for joining InstantMed. We're here to make healthcare simple and accessible
-        — from your phone, on your schedule.
+        Thanks for joining InstantMed. We make healthcare simple and accessible
+        -- from your phone, on your schedule.
       </Text>
 
       <Box>
@@ -53,9 +53,9 @@ export function WelcomeEmail({
       </div>
 
       <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#00C9A7", fontWeight: 500 }}>
-          help center
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: "#3B82F6", fontWeight: 500 }}>
+          help centre
         </a>
         .
       </Text>

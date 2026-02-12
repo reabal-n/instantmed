@@ -79,9 +79,11 @@ export default async function DoctorDashboardPage({
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Review Queue</h1>
-        <p className="text-muted-foreground">Patient requests awaiting your review</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>
+        </div>
       </div>
 
       {/* Identity Incomplete Banner */}

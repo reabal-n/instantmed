@@ -36,7 +36,7 @@ interface IntakeMonitorProps {
 }
 
 function formatDuration(minutes: number | null): string {
-  if (minutes === null) return "—"
+  if (minutes === null) return "--"
   if (minutes < 60) return `${minutes}m`
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
@@ -44,6 +44,32 @@ function formatDuration(minutes: number | null): string {
   const days = Math.floor(hours / 24)
   const remainingHours = hours % 24
   return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`
+}
+
+function StatCell({ label, value, icon: Icon, variant = "default" }: {
+  label: string
+  value: string | number
+  icon: React.ComponentType<{ className?: string }>
+  variant?: "default" | "success" | "warning" | "danger"
+}) {
+  const colorMap = {
+    default: "text-foreground",
+    success: "text-emerald-600 dark:text-emerald-400",
+    warning: "text-amber-600 dark:text-amber-400",
+    danger: "text-destructive",
+  }
+
+  return (
+    <div className="flex flex-col gap-1 p-3 rounded-lg bg-muted/40 border border-border/30">
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        <Icon className="h-3 w-3" />
+        {label}
+      </div>
+      <div className={cn("text-xl font-semibold tabular-nums tracking-tight", colorMap[variant])}>
+        {value}
+      </div>
+    </div>
+  )
 }
 
 export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeMonitorProps) {
@@ -80,15 +106,15 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
   const avgTimeHealthy = stats.avgReviewTimeMinutes === null || stats.avgReviewTimeMinutes < 60
 
   return (
-    <Card className="border-dusk-200/50 bg-linear-to-br from-white to-dusk-50/30">
+    <Card className="border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Activity className="h-4 w-4 text-lumen-500" />
-            Live Queue Monitor
+          <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Activity className="h-4 w-4 text-primary" />
+            Live Monitor
           </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground tabular-nums">
               {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
             <Button
@@ -104,131 +130,87 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Primary Metrics Row */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {/* Today's Submissions */}
-          <div className="rounded-lg bg-white/60 p-3 shadow-sm ring-1 ring-dusk-100">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3" />
-              Today
-            </div>
-            <div className="mt-1 text-2xl font-bold text-dusk-900">
-              {stats.todaySubmissions}
-            </div>
-            <div className="text-xs text-muted-foreground">submissions</div>
-          </div>
-
-          {/* Queue Size */}
-          <div className={cn(
-            "rounded-lg p-3 shadow-sm ring-1",
-            queueHealthy 
-              ? "bg-emerald-50/60 ring-emerald-200" 
-              : "bg-amber-50/60 ring-amber-200"
-          )}>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Users className="h-3 w-3" />
-              Queue
-            </div>
-            <div className={cn(
-              "mt-1 text-2xl font-bold",
-              queueHealthy ? "text-emerald-700" : "text-amber-700"
-            )}>
-              {stats.queueSize}
-            </div>
-            <div className="text-xs text-muted-foreground">waiting</div>
-          </div>
-
-          {/* Avg Review Time */}
-          <div className={cn(
-            "rounded-lg p-3 shadow-sm ring-1",
-            avgTimeHealthy 
-              ? "bg-white/60 ring-dusk-100" 
-              : "bg-amber-50/60 ring-amber-200"
-          )}>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              Avg Time
-            </div>
-            <div className={cn(
-              "mt-1 text-2xl font-bold",
-              avgTimeHealthy ? "text-dusk-900" : "text-amber-700"
-            )}>
-              {formatDuration(stats.avgReviewTimeMinutes)}
-            </div>
-            <div className="text-xs text-muted-foreground">to review</div>
-          </div>
-
-          {/* Oldest in Queue */}
-          <div className="rounded-lg bg-white/60 p-3 shadow-sm ring-1 ring-dusk-100">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <AlertCircle className="h-3 w-3" />
-              Oldest
-            </div>
-            <div className="mt-1 text-2xl font-bold text-dusk-900">
-              {formatDuration(stats.oldestInQueueMinutes)}
-            </div>
-            <div className="text-xs text-muted-foreground">in queue</div>
-          </div>
+      <CardContent className="space-y-3">
+        {/* Primary Metrics */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <StatCell
+            label="Today"
+            value={stats.todaySubmissions}
+            icon={TrendingUp}
+          />
+          <StatCell
+            label="Queue"
+            value={stats.queueSize}
+            icon={Users}
+            variant={queueHealthy ? "default" : "warning"}
+          />
+          <StatCell
+            label="Avg Time"
+            value={formatDuration(stats.avgReviewTimeMinutes)}
+            icon={Clock}
+            variant={avgTimeHealthy ? "default" : "warning"}
+          />
+          <StatCell
+            label="Oldest"
+            value={formatDuration(stats.oldestInQueueMinutes)}
+            icon={AlertCircle}
+          />
         </div>
 
         {/* SLA Alerts */}
         {(stats.slaBreached ?? 0) > 0 && (
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-red-50 border border-red-200">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <span className="text-sm font-medium text-red-700">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
+            <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+            <span className="text-[13px] font-medium text-destructive">
               {stats.slaBreached} case{stats.slaBreached !== 1 ? "s" : ""} past SLA deadline
             </span>
           </div>
         )}
         {(stats.slaApproaching ?? 0) > 0 && (stats.slaBreached ?? 0) === 0 && (
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
-            <Clock className="h-4 w-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-700">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+            <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="text-[13px] font-medium text-amber-700 dark:text-amber-300">
               {stats.slaApproaching} case{stats.slaApproaching !== 1 ? "s" : ""} approaching deadline
             </span>
           </div>
         )}
 
-        {/* Secondary Metrics */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-dusk-100">
-          {/* Payment Status */}
-          <div className="flex items-center gap-2">
+        {/* Secondary Row */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
+          <div className="flex items-center gap-1.5">
             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-sm">
-              <span className="font-medium text-emerald-600">{stats.paidCount}</span>
-              <span className="text-muted-foreground"> paid</span>
+            <span className="text-[13px] text-muted-foreground">
+              <span className="font-medium text-emerald-600 dark:text-emerald-400">{stats.paidCount}</span> paid
             </span>
             {stats.pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+              <Badge variant="outline" className="text-[11px] h-5 px-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20">
                 {stats.pendingCount} pending
               </Badge>
             )}
           </div>
 
-          <div className="h-4 w-px bg-dusk-200" />
+          <div className="h-3.5 w-px bg-border/60" />
 
-          {/* Decisions Today */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1">
               <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-sm font-medium text-emerald-600">{stats.approvedToday}</span>
+              <span className="text-[13px] font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">{stats.approvedToday}</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <XCircle className="h-3.5 w-3.5 text-rose-500" />
-              <span className="text-sm font-medium text-rose-600">{stats.declinedToday}</span>
+            <div className="flex items-center gap-1">
+              <XCircle className="h-3.5 w-3.5 text-destructive/70" />
+              <span className="text-[13px] font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
             </div>
             {approvalRate !== null && (
-              <span className="text-xs text-muted-foreground">
-                ({approvalRate}% approved)
+              <span className="text-[11px] text-muted-foreground">
+                ({approvalRate}%)
               </span>
             )}
           </div>
 
           {stats.queueSize === 0 && (
             <>
-              <div className="h-4 w-px bg-dusk-200" />
-              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+              <div className="h-3.5 w-px bg-border/60" />
+              <Badge variant="outline" className="text-[11px] h-5 px-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">
                 Queue clear
               </Badge>
             </>

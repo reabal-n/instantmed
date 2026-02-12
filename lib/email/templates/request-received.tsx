@@ -25,9 +25,9 @@ export function RequestReceivedEmail({
       </p>
 
       <div className="info-box">
-        <p style={{ margin: 0, fontWeight: 500 }}>Estimated turnaround: {estimatedTime}</p>
-        <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
-          Most requests are reviewed within 1 hour during operating hours (8am–10pm AEST).
+        <p style={{ margin: 0, fontWeight: 600, fontSize: "14px" }}>Estimated turnaround: {estimatedTime}</p>
+        <p style={{ margin: "8px 0 0 0", fontSize: "13px" }}>
+          Most requests are reviewed within 1 hour during operating hours (8am--10pm AEST).
         </p>
       </div>
 
@@ -41,9 +41,9 @@ export function RequestReceivedEmail({
         </a>
       </p>
 
-      <p style={{ fontSize: "14px", color: "#737373" }}>
-        We&apos;ll email you as soon as your request has been reviewed. You can also check your request status anytime
-        in your dashboard.
+      <p style={{ fontSize: "13px", color: "#9CA3AF" }}>
+        We&apos;ll email you as soon as your request has been reviewed. You can also check your status anytime
+        from your dashboard.
       </p>
     </BaseLayout>
   )
