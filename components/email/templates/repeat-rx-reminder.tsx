@@ -36,24 +36,27 @@ export function RepeatRxReminderEmail({
     >
       <div
         style={{
-          background: "linear-gradient(135deg, #dbeafe, #e0e7ff)",
-          borderRadius: "12px",
-          padding: "24px",
+          backgroundColor: "#f0f9ff",
+          border: "1px solid #e0f2fe",
+          borderRadius: "10px",
+          padding: "20px 24px",
           marginBottom: "24px",
           textAlign: "center",
         }}
       >
-        <span style={{ fontSize: "48px", display: "block", marginBottom: "8px" }}>💊</span>
         <h1
           style={{
-            color: colors.info,
-            fontSize: "24px",
+            color: colors.text,
+            fontSize: "20px",
             margin: 0,
-            fontWeight: "600",
+            fontWeight: 600,
           }}
         >
           Time to renew your prescription
         </h1>
+        <p style={{ margin: "6px 0 0 0", fontSize: "14px", color: colors.textMuted }}>
+          Your {medicationName} refill may be due
+        </p>
       </div>
 
       <Text>Hi {patientName},</Text>

@@ -48,7 +48,7 @@ export function WeightLossApprovedEmail({
       previewText={`Your ${medicationName} prescription has been approved`}
       appUrl={appUrl}
     >
-      <SuccessBanner icon="✅" title="Treatment approved" />
+      <SuccessBanner title="Treatment approved" />
 
       <Text>Hi {patientName},</Text>
 
@@ -58,7 +58,7 @@ export function WeightLossApprovedEmail({
       </Text>
 
       <Box variant="info">
-        <Heading as="h3">📱 eScript arriving via SMS</Heading>
+        <Heading as="h3">eScript arriving via SMS</Heading>
         <Text small>
           Take your phone to any pharmacy. The pharmacist will scan your eScript QR code
           to dispense your medication. Note: this medication may need to be special-ordered
@@ -95,7 +95,7 @@ export function WeightLossApprovedEmail({
           </Box>
 
           <Box variant="warning">
-            <Heading as="h3">⚠️ When to contact your doctor</Heading>
+            <Heading as="h3">When to contact your doctor</Heading>
             <List
               items={[
                 "Severe or persistent nausea, vomiting, or diarrhoea",

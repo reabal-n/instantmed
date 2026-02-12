@@ -12,6 +12,7 @@ import {
   Box,
   Heading,
   List,
+  SuccessBanner,
   colors,
 } from "../base-email"
 
@@ -33,28 +34,7 @@ export function ScriptSentEmail({
       previewText="Your eScript has been sent to your phone"
       appUrl={appUrl}
     >
-      {/* Blue success banner for scripts */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #dbeafe, #e0e7ff)",
-          borderRadius: "12px",
-          padding: "24px",
-          marginBottom: "24px",
-          textAlign: "center",
-        }}
-      >
-        <span style={{ fontSize: "48px", display: "block", marginBottom: "8px" }}>📱</span>
-        <h1
-          style={{
-            color: colors.info,
-            fontSize: "24px",
-            margin: 0,
-            fontWeight: "600",
-          }}
-        >
-          Your eScript has been sent
-        </h1>
-      </div>
+      <SuccessBanner title="Your eScript has been sent" />
 
       <Text>Hi {patientName},</Text>
 
@@ -69,11 +49,11 @@ export function ScriptSentEmail({
           <p
             style={{
               margin: 0,
-              fontSize: "22px",
-              fontFamily: "monospace",
-              fontWeight: "bold",
-              color: "#15803d",
-              letterSpacing: "1px",
+              fontSize: "20px",
+              fontFamily: "'SF Mono', 'Fira Code', monospace",
+              fontWeight: 700,
+              color: colors.success,
+              letterSpacing: "2px",
             }}
           >
             {escriptReference}
@@ -85,7 +65,7 @@ export function ScriptSentEmail({
       )}
 
       <Box>
-        <Heading as="h3">What happens next?</Heading>
+        <Heading as="h3">What happens next</Heading>
         <List
           items={[
             "Check your phone for the eScript SMS",
@@ -103,7 +83,7 @@ export function ScriptSentEmail({
 
       <Text muted small>
         Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#00C9A7", fontWeight: 500 }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.primary, fontWeight: 500 }}>
           help center
         </a>
         .

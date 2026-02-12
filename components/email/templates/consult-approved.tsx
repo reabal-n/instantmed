@@ -2,7 +2,6 @@
  * General Consultation Approved Email Template
  *
  * Sent to patient when their general consultation is approved.
- * Generic template with optional doctor notes.
  */
 
 import * as React from "react"
@@ -35,7 +34,7 @@ export function ConsultApprovedEmail({
       previewText="Your consultation has been reviewed"
       appUrl={appUrl}
     >
-      <SuccessBanner icon="✅" title="Consultation reviewed" />
+      <SuccessBanner title="Consultation reviewed" />
 
       <Text>Hi {patientName},</Text>
 

@@ -46,7 +46,7 @@ export function EdApprovedEmail({
       previewText={`Your ED prescription for ${medicationName} has been approved`}
       appUrl={appUrl}
     >
-      <SuccessBanner icon="✅" title="Prescription approved" />
+      <SuccessBanner title="Prescription approved" />
 
       <Text>Hi {patientName},</Text>
 
@@ -56,7 +56,7 @@ export function EdApprovedEmail({
       </Text>
 
       <Box variant="info">
-        <Heading as="h3">📱 eScript arriving via SMS</Heading>
+        <Heading as="h3">eScript arriving via SMS</Heading>
         <Text small>
           Take your phone to any pharmacy. The pharmacist will scan your eScript QR code
           to dispense your medication. Bring your Medicare card for any PBS subsidy.
@@ -104,7 +104,7 @@ export function EdApprovedEmail({
       )}
 
       <Box variant="warning">
-        <Heading as="h3">⚠️ Important safety information</Heading>
+        <Heading as="h3">Important safety information</Heading>
         <List
           items={[
             "Common side effects: headache, flushing, nasal congestion, indigestion — these usually pass quickly",
