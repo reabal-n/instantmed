@@ -74,7 +74,7 @@ export function TrustSection() {
             Why Aussies trust InstantMed
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            We built this because GP waitlists are ridiculous and you shouldn&apos;t need to take a half-day off work for a
+            We built this because doctor waitlists are ridiculous and you shouldn&apos;t need to take a half-day off work for a
             script renewal.
           </p>
         </motion.div>

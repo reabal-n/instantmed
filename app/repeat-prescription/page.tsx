@@ -99,9 +99,9 @@ const FAQS = [
 
 // Testimonials with verified badges
 const testimonials = [
-  { text: '"Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidR', name: 'David R.', role: 'Gold Coast • Verified ✓' },
+  { text: '"Needed my blood pressure meds renewed. Usually takes a week to see my doctor. This took 20 minutes."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidR', name: 'David R.', role: 'Gold Coast • Verified ✓' },
   { text: '"So convenient for my regular contraceptive prescription. The doctor asked good questions."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaW', name: 'Jessica W.', role: 'Adelaide • Verified ✓' },
-  { text: '"Living remote, nearest GP is 2 hours away. This service is a game changer."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RyanP', name: 'Ryan P.', role: 'Darwin • Verified ✓' },
+  { text: '"Living remote, nearest doctor is 2 hours away. This service is a game changer."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RyanP', name: 'Ryan P.', role: 'Darwin • Verified ✓' },
   { text: '"Script was at my pharmacy same day. No more running out of medication."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LindaM', name: 'Linda M.', role: 'Perth • Verified ✓' },
   { text: '"The doctor checked my recent blood tests before approving. Felt properly looked after."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelK', name: 'Michael K.', role: 'Sydney • Verified ✓' },
   { text: '"Been using this for my asthma preventer for months. Works perfectly every time."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SophieT', name: 'Sophie T.', role: 'Melbourne • Verified ✓' },
@@ -129,7 +129,7 @@ const steps = [
   {
     number: "02",
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
+    description: "An AHPRA-registered doctor assesses your request and determines eligibility.",
     time: "Under 1 hour",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -217,7 +217,7 @@ export default function RepeatPrescriptionPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  Request repeats of your existing medication. A GP assesses your request and issues an e-script valid at any Australian pharmacy.
+                  Request repeats of your existing medication. A doctor assesses your request and issues an e-script valid at any Australian pharmacy.
                 </motion.p>
 
                 {/* CTAs */}

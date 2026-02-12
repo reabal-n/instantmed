@@ -43,7 +43,7 @@ export const trustSignals = [
   {
     icon: "Shield",
     text: "AHPRA registered drs",
-    description: "Real Australian GPs review every request",
+    description: "Real Australian doctors review every request",
   },
   {
     icon: "Lock",
@@ -101,7 +101,7 @@ export const serviceCategories = [
     title: "General Consult",
     shortTitle: "Consult",
     benefitQuestion: "Have a health concern?",
-    description: "Talk to a GP about something new or ongoing",
+    description: "Talk to a doctor about something new or ongoing",
     icon: "Stethoscope",
     color: "violet",
     priceFrom: 49.95,
@@ -150,7 +150,7 @@ export const howItWorks = [
   {
     step: 2,
     title: "A doctor reviews it",
-    description: "A real Australian GP looks at your request and makes the call.",
+    description: "A real Australian doctor looks at your request and makes the call.",
     icon: "Stethoscope",
     emoji: "🩺",
   },
@@ -233,7 +233,7 @@ export const pricingTiers = [
 
 export const faqItems = [
   {
-    question: "How is this different from seeing a GP?",
+    question: "How is this different from seeing a doctor in person?",
     answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
   },
   {

@@ -179,7 +179,7 @@ export function WeightManagementClient() {
                   {
                     step: "2",
                     title: "Doctor review",
-                    desc: "An Australian GP reviews your assessment and determines if treatment is appropriate.",
+                    desc: "An Australian doctor reviews your assessment and determines if treatment is appropriate.",
                     time: "~2 hrs",
                   },
                   {

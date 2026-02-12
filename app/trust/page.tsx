@@ -143,7 +143,7 @@ const trustTestimonials = [
     source: "Trustpilot",
   },
   {
-    text: "Much better than waiting 3 days for a GP appointment just to get a medical certificate.",
+    text: "Much better than waiting 3 days for a doctor appointment just to get a medical certificate.",
     name: "Chris B.",
     location: "Gold Coast",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
@@ -160,7 +160,7 @@ const trustFAQs = [
   },
   {
     question: "Will my employer accept certificates from InstantMed?",
-    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian GPs and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details. Thousands of employers and universities accept our certificates.",
+    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details. Thousands of employers and universities accept our certificates.",
   },
   {
     question: "What happens to my personal health information?",
@@ -168,7 +168,7 @@ const trustFAQs = [
   },
   {
     question: "Is this actually reviewed by a doctor, or is it automated?",
-    answer: "Every single request is reviewed by a qualified Australian GP who makes an independent clinical decision. There are no automated approvals. Doctors can request additional information, schedule a call, or decline requests that don't meet clinical guidelines.",
+    answer: "Every single request is reviewed by a qualified Australian doctor who makes an independent clinical decision. There are no automated approvals. Doctors can request additional information, schedule a call, or decline requests that don't meet clinical guidelines.",
   },
   {
     question: "What if I'm not happy with the service?",
@@ -199,7 +199,7 @@ const processSteps = [
   {
     step: 3,
     title: "Doctor reviews your case",
-    description: "An AHPRA-registered GP reviews your full submission and medical history.",
+    description: "An AHPRA-registered doctor reviews your full submission and medical history.",
     icon: UserCheck,
     time: "Under 1 hour",
   },
@@ -253,7 +253,7 @@ const trustPillars = [
     icon: Shield,
     title: "Human-Reviewed Requests",
     description:
-      "Your request is reviewed by a qualified GP who makes an independent clinical decision. No automated approvals — every request gets proper attention.",
+      "Your request is reviewed by a qualified doctor who makes an independent clinical decision. No automated approvals — every request gets proper attention.",
     details: [
       "Doctors review your full medical history",
       "Clinical guidelines inform every decision",
@@ -695,7 +695,7 @@ export default function TrustPage() {
                 Same quality. More convenience.
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                How InstantMed compares to booking a traditional GP appointment.
+                How InstantMed compares to booking a traditional doctor appointment.
               </p>
             </motion.div>
 
@@ -710,7 +710,7 @@ export default function TrustPage() {
               <div className="grid grid-cols-3 bg-muted/30 dark:bg-white/5 border-b border-border/30 dark:border-white/10">
                 <div className="p-4 font-medium text-sm text-foreground">Feature</div>
                 <div className="p-4 font-medium text-sm text-foreground text-center border-x border-border/30">InstantMed</div>
-                <div className="p-4 font-medium text-sm text-foreground text-center">Traditional GP</div>
+                <div className="p-4 font-medium text-sm text-foreground text-center">Traditional Doctor</div>
               </div>
               
               {/* Rows */}
@@ -907,7 +907,7 @@ export default function TrustPage() {
                     <div className="absolute inset-0 rounded-2xl overflow-hidden border-4 border-white/80 dark:border-slate-800/80 shadow-xl">
                       <Image
                         src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face"
-                        alt="Verified Australian GP"
+                        alt="Verified Australian Doctor"
                         fill
                         priority
                         className="object-cover"

@@ -8,7 +8,7 @@ import { Button } from "@heroui/react"
 
 const trustBadges = [
   { 
-    name: "AHPRA Verified Doctors", 
+    name: "AHPRA Registered", 
     description: "Verify on the public register", 
     icon: BadgeCheck, 
     color: "text-emerald-600",
@@ -23,7 +23,7 @@ const trustBadges = [
   },
   { 
     name: "Medical Director Oversight", 
-    description: "FRACGP clinical leadership", 
+    description: "Clinical governance & quality", 
     icon: UserCheck, 
     color: "text-violet-600" 
   },

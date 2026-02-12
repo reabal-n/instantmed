@@ -46,7 +46,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /med cert|medical certificate|sick|unwell|work/i,
       response:
-        "Med certs accepted everywhere — work, uni, TAFE. A GP reviews your symptoms and issues the cert if it checks out. Usually a couple of hours.",
+        "Med certs accepted everywhere — work, uni, TAFE. A doctor reviews your symptoms and issues the cert if it checks out. Usually a couple of hours.",
     },
   ],
   refund: [
@@ -60,7 +60,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /legit|real|scam|legal|safe/i,
       response:
-        "Totally legit. All our doctors are AHPRA-registered Australian GPs — you can look them up on the public register. We follow all telehealth regulations.",
+        "Totally legit. All our doctors are AHPRA-registered Australian doctors — you can look them up on the public register. We follow all telehealth regulations.",
     },
   ],
 }

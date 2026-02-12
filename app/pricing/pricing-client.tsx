@@ -25,7 +25,7 @@ const services = [
     priceLabel: `From $${PRICING.MED_CERT}`,
     priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
-    features: ["Same-day delivery", "Accepted by all employers", "AHPRA-registered GP", "PDF via email"],
+    features: ["Same-day delivery", "Accepted by all employers", "AHPRA-registered doctor", "PDF via email"],
     popular: true,
     href: "/medical-certificate",
     iconType: "medCert" as const,

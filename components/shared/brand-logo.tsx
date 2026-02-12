@@ -14,62 +14,35 @@ interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  sm: { logo: 28, text: "text-sm" },
-  md: { logo: 36, text: "text-base" },
-  lg: { logo: 44, text: "text-lg" },
+  sm: { height: 24, width: 140 },
+  md: { height: 30, width: 175 },
+  lg: { height: 38, width: 220 },
 }
 
 export function BrandLogo({
   size = "sm",
-  showText = true,
-  showGradient = false,
   className,
   href = "/",
   onClick,
 }: BrandLogoProps) {
-  const { logo, text } = sizeConfig[size]
+  const { height, width } = sizeConfig[size]
 
   const content = (
-    <>
-      <div
-        className={cn(
-          "relative rounded-xl overflow-hidden transition-all duration-300",
-          "shadow-[0_2px_8px_rgba(99,102,241,0.15)]",
-          "group-hover:shadow-[0_4px_20px_rgba(99,102,241,0.25)]",
-          "group-hover:scale-105"
-        )}
-        style={{ width: logo, height: logo }}
-      >
-        <Image
-          src="/branding/logo.svg"
-          alt="InstantMed"
-          width={logo}
-          height={logo}
-          className="object-cover"
-          priority
-        />
-      </div>
-      {showText && (
-        <span
-          className={cn(
-            "font-semibold transition-colors duration-200",
-            showGradient
-              ? "bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent"
-              : "text-foreground group-hover:text-primary",
-            text
-          )}
-        >
-          InstantMed
-        </span>
-      )}
-    </>
+    <Image
+      src="/branding/wordmark.svg"
+      alt="InstantMed"
+      width={width}
+      height={height}
+      className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
+      priority
+    />
   )
 
   if (href) {
     return (
       <Link 
         href={href} 
-        className={cn("flex items-center gap-2 group", className)}
+        className={cn("flex items-center group", className)}
         aria-label="InstantMed home"
         onClick={onClick}
       >
@@ -79,7 +52,7 @@ export function BrandLogo({
   }
 
   return (
-    <div className={cn("flex items-center gap-2 group", className)}>
+    <div className={cn("flex items-center group", className)}>
       {content}
     </div>
   )

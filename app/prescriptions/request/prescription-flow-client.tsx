@@ -1368,7 +1368,7 @@ export function PrescriptionFlowClient({
                   </Button>
                 ) : step === "safety" && checkSafetyKnockout() ? (
                   <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="flex-1 h-12 rounded-xl">
-                    Find a GP near you
+                    Find a doctor near you
                   </Button>
                 ) : (
                   <Button onClick={goNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl">

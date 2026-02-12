@@ -78,7 +78,7 @@ export function ServiceCards() {
             Med cert or prescription?
           </h2>
           <p className="mt-3 text-sm text-muted-foreground max-w-lg mx-auto">
-            Pick what you need. Fill a quick form. A real GP reviews it — usually within an hour.
+            Pick what you need. Fill a quick form. A real doctor reviews it — usually within an hour.
           </p>
         </div>
 

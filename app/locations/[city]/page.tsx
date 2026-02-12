@@ -40,30 +40,30 @@ const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
   sydney: "Sydney residents can skip crowded CBD clinics and long waits at bulk-billing practices. Whether you're in the Eastern Suburbs, Inner West or out in Parramatta, InstantMed connects you with a doctor from anywhere with phone signal.",
-  melbourne: "From Brunswick to Brighton, Melbourne's notoriously long GP wait times are a thing of the past. InstantMed lets you see a doctor without braving the weather or the traffic — perfect for those days when you really can't leave the house.",
-  brisbane: "Brisbane's growing population means longer GP wait times across the city. From the CBD to the suburbs, InstantMed gives you access to Australian-registered doctors without the queue — even during school holidays and peak flu season.",
-  perth: "Perth's isolation means fewer GP options, especially in outer suburbs. InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.",
-  adelaide: "Adelaide patients can avoid the scramble for same-day GP appointments. InstantMed is ideal for when you need a quick med cert or script without driving across the city — from Glenelg to the Adelaide Hills.",
-  "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a GP appointment at short notice can be tricky. InstantMed lets you sort a med cert or script from Broadbeach, Burleigh or anywhere along the coast.",
+  melbourne: "From Brunswick to Brighton, Melbourne's notoriously long doctor wait times are a thing of the past. InstantMed lets you see a doctor without braving the weather or the traffic — perfect for those days when you really can't leave the house.",
+  brisbane: "Brisbane's growing population means longer doctor wait times across the city. From the CBD to the suburbs, InstantMed gives you access to Australian-registered doctors without the queue — even during school holidays and peak flu season.",
+  perth: "Perth's isolation means fewer doctor options, especially in outer suburbs. InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.",
+  adelaide: "Adelaide patients can avoid the scramble for same-day doctor appointments. InstantMed is ideal for when you need a quick med cert or script without driving across the city — from Glenelg to the Adelaide Hills.",
+  "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a doctor appointment at short notice can be tricky. InstantMed lets you sort a med cert or script from Broadbeach, Burleigh or anywhere along the coast.",
   canberra: "Canberra's limited bulk-billing options and long wait times make telehealth a practical choice for public servants and students alike. InstantMed is available across the ACT, from Civic to Tuggeranong.",
-  newcastle: "Newcastle and the Hunter Valley can face long waits for same-day GP availability. InstantMed gives you access to Australian doctors from anywhere in the region — from Merewether to Maitland.",
-  hobart: "Hobart and Southern Tasmania have limited after-hours GP options. InstantMed bridges the gap, giving you access to Australian-registered doctors seven days a week without leaving your home.",
-  darwin: "In the Top End, extreme weather and distance can make GP visits difficult. InstantMed works on NT time and is available whether you're in the CBD, Palmerston, or further afield.",
-  "sunshine-coast": "The Sunshine Coast's popularity means GP clinics are often overloaded, especially in peak season. From Noosa to Caloundra, InstantMed offers a quick alternative to long clinic waits.",
-  wollongong: "Illawarra residents often face the choice of a long wait locally or driving to Sydney for a GP. InstantMed lets you stay in the Gong and get sorted from your couch.",
-  geelong: "Geelong is growing fast, and GP availability hasn't kept up. InstantMed gives you same-day access to doctors without the drive to Melbourne or the wait at a walk-in clinic.",
-  townsville: "North Queensland's limited specialist availability makes telehealth essential. InstantMed connects Townsville patients with Australian GPs for everyday health needs, rain or shine.",
-  cairns: "Far North Queensland can be challenging for GP access, especially in the wet season. InstantMed keeps you connected to healthcare from anywhere in the Cairns region.",
-  toowoomba: "Toowoomba and the Darling Downs can face GP shortages, especially outside business hours. InstantMed gives you flexible access to Australian doctors when you need them.",
-  ballarat: "Ballarat and regional Victoria have fewer GP options than Melbourne. InstantMed lets you get medical certificates and scripts without the drive or the wait.",
-  bendigo: "Bendigo's growing population means GP wait times are increasing. InstantMed provides an alternative that works around your schedule — no appointments needed.",
-  launceston: "Northern Tasmania's GP availability can be limited. InstantMed bridges the gap with same-day access to Australian-registered doctors, seven days a week.",
-  mackay: "The Mackay region, including the mining communities of the Bowen Basin, can face limited GP access. InstantMed is designed to work around shift patterns and remote schedules.",
-  rockhampton: "Central Queensland's vast distances make GP visits time-consuming. InstantMed lets Rockhampton residents get healthcare sorted without the drive.",
-  bunbury: "South-West WA has fewer GP options than Perth. InstantMed gives Bunbury and surrounding area residents access to doctors without a trip to the city.",
-  "wagga-wagga": "The Riverina's GP shortages are well documented. InstantMed gives Wagga residents the same access to healthcare as metro patients — fast and from home.",
+  newcastle: "Newcastle and the Hunter Valley can face long waits for same-day doctor availability. InstantMed gives you access to Australian doctors from anywhere in the region — from Merewether to Maitland.",
+  hobart: "Hobart and Southern Tasmania have limited after-hours doctor options. InstantMed bridges the gap, giving you access to Australian-registered doctors seven days a week without leaving your home.",
+  darwin: "In the Top End, extreme weather and distance can make doctor visits difficult. InstantMed works on NT time and is available whether you're in the CBD, Palmerston, or further afield.",
+  "sunshine-coast": "The Sunshine Coast's popularity means doctor clinics are often overloaded, especially in peak season. From Noosa to Caloundra, InstantMed offers a quick alternative to long clinic waits.",
+  wollongong: "Illawarra residents often face the choice of a long wait locally or driving to Sydney for a doctor. InstantMed lets you stay in the Gong and get sorted from your couch.",
+  geelong: "Geelong is growing fast, and doctor availability hasn't kept up. InstantMed gives you same-day access to doctors without the drive to Melbourne or the wait at a walk-in clinic.",
+  townsville: "North Queensland's limited specialist availability makes telehealth essential. InstantMed connects Townsville patients with Australian doctors for everyday health needs, rain or shine.",
+  cairns: "Far North Queensland can be challenging for doctor access, especially in the wet season. InstantMed keeps you connected to healthcare from anywhere in the Cairns region.",
+  toowoomba: "Toowoomba and the Darling Downs can face doctor shortages, especially outside business hours. InstantMed gives you flexible access to Australian doctors when you need them.",
+  ballarat: "Ballarat and regional Victoria have fewer doctor options than Melbourne. InstantMed lets you get medical certificates and scripts without the drive or the wait.",
+  bendigo: "Bendigo's growing population means doctor wait times are increasing. InstantMed provides an alternative that works around your schedule — no appointments needed.",
+  launceston: "Northern Tasmania's doctor availability can be limited. InstantMed bridges the gap with same-day access to Australian-registered doctors, seven days a week.",
+  mackay: "The Mackay region, including the mining communities of the Bowen Basin, can face limited doctor access. InstantMed is designed to work around shift patterns and remote schedules.",
+  rockhampton: "Central Queensland's vast distances make doctor visits time-consuming. InstantMed lets Rockhampton residents get healthcare sorted without the drive.",
+  bunbury: "South-West WA has fewer doctor options than Perth. InstantMed gives Bunbury and surrounding area residents access to doctors without a trip to the city.",
+  "wagga-wagga": "The Riverina's doctor shortages are well documented. InstantMed gives Wagga residents the same access to healthcare as metro patients — fast and from home.",
   "albury-wodonga": "Straddling the NSW-Victoria border can complicate healthcare. InstantMed serves the whole Albury-Wodonga region regardless of which side of the Murray you're on.",
-  "hervey-bay": "Hervey Bay and the Fraser Coast have a growing retiree population and limited GP availability. InstantMed offers a simple, affordable alternative for everyday health needs.",
+  "hervey-bay": "Hervey Bay and the Fraser Coast have a growing retiree population and limited doctor availability. InstantMed offers a simple, affordable alternative for everyday health needs.",
 }
 
 // City-specific FAQ items
@@ -179,7 +179,7 @@ const cities: Record<
     state: "NSW",
     slug: "newcastle",
     population: "320,000",
-    localTestimonial: { name: "David H.", quote: "Super convenient when you&apos;re too crook to drive to the GP." },
+    localTestimonial: { name: "David H.", quote: "Super convenient when you&apos;re too crook to drive to the doctor." },
   },
   hobart: {
     name: "Hobart",
@@ -200,7 +200,7 @@ const cities: Record<
     state: "QLD",
     slug: "sunshine-coast",
     population: "350,000",
-    localTestimonial: { name: "Kate P.", quote: "So much easier than trying to find a GP with availability in Noosa." },
+    localTestimonial: { name: "Kate P.", quote: "So much easier than trying to find a doctor with availability in Noosa." },
   },
   wollongong: {
     name: "Wollongong",
@@ -228,7 +228,7 @@ const cities: Record<
     state: "QLD",
     slug: "cairns",
     population: "160,000",
-    localTestimonial: { name: "Jess A.", quote: "Great for when you can't get a GP appointment in FNQ." },
+    localTestimonial: { name: "Jess A.", quote: "Great for when you can't get a doctor appointment in FNQ." },
   },
   toowoomba: {
     name: "Toowoomba",
@@ -566,7 +566,7 @@ export default async function CityPage({ params }: PageProps) {
                   {
                     step: "2",
                     title: "Doctor reviews",
-                    desc: "An Australian GP reviews your request (usually within 1 hour)",
+                    desc: "An Australian doctor reviews your request (usually within 1 hour)",
                   },
                   { step: "3", title: "Get your result", desc: "Certificate, script, or referral sent to your phone" },
                 ].map((item) => (
@@ -648,7 +648,7 @@ export default async function CityPage({ params }: PageProps) {
                 </Link>
                 <span className="text-muted-foreground">•</span>
                 <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
-                  Telehealth vs GP
+                  Telehealth vs Doctor
                 </Link>
                 <span className="text-muted-foreground">•</span>
                 <Link href="/medical-certificate" className="text-primary hover:underline">

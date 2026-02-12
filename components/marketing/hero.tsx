@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Star, Shield, Clock } from 'lucide-react'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from "@heroui/react"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -50,7 +50,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          Skip the waiting room. A real Australian GP reviews your request — usually within an hour. No signup needed to get started.
+          Skip the waiting room. A real Australian doctor reviews your request — usually within an hour. No signup needed to get started.
         </motion.p>
 
         {/* CTAs */}
@@ -82,46 +82,16 @@ export function Hero() {
           </Button>
         </motion.div>
 
-        {/* Single trust line -- replaces 6 scattered badges */}
+        {/* Compact trust line */}
         <motion.p
-          className="text-sm text-muted-foreground mb-16 flex items-center justify-center gap-2"
+          className="text-sm text-muted-foreground flex items-center justify-center gap-2"
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-          <span>{'AHPRA-registered GPs \u00b7 Refund if we can\'t help \u00b7 RACGP Standards 5th Edition'}</span>
+          <span>{'AHPRA-registered doctors \u00b7 Refund if we can\'t help \u00b7 RACGP Standards 5th Edition'}</span>
         </motion.p>
-
-        {/* Stat cards -- clean grid */}
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-        >
-          {[
-            { value: "100%", label: "GP reviewed", icon: CheckCircle2 },
-            { value: "AHPRA", label: "Registered doctors", icon: Shield },
-            { value: "4.9", label: "Patient rating", icon: Star, showStars: true },
-            { value: "<1 hr", label: "Typical turnaround", icon: Clock },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="text-center p-5 rounded-2xl bg-card border border-border/50"
-            >
-              <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{stat.value}</div>
-              {stat.showStars && (
-                <div className="flex justify-center gap-0.5 mb-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-            </div>
-          ))}
-        </motion.div>
       </div>
     </section>
   )

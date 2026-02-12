@@ -42,7 +42,7 @@ const steps = [
     title: "A real doctor reviews it",
     subtitle: "Usually within 2-4 hours",
     description:
-      "An Australian GP reviews your request and medical history. If they need more information, they'll reach out to you directly.",
+      "An Australian doctor reviews your request and medical history. If they need more information, they'll reach out to you directly.",
     icon: UserCheck,
     color: "from-blue-600 to-indigo-600",
     emoji: "👨‍⚕️",

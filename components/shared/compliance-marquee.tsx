@@ -15,7 +15,7 @@ const complianceItems = [
   { icon: BookOpen, text: 'RACGP-Aligned Protocols' },
   { icon: Lock, text: 'Privacy Act Protected' },
   { icon: FileCheck, text: 'Legally Valid Certificates' },
-  { icon: Stethoscope, text: 'Real Australian GPs' },
+  { icon: Stethoscope, text: 'Real Australian Doctors' },
   { icon: Building2, text: 'Australian Owned' },
   { icon: Shield, text: 'Secure & Encrypted' },
   { icon: CheckCircle2, text: 'Medicare Compliant' },

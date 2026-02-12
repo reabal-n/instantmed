@@ -28,15 +28,15 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 export const metadata: Metadata = {
   title: 'Online Doctor Australia | Med Certs & Scripts',
-  description: 'Medical certificates from $19.95, prescriptions from $29.95. AHPRA-registered Australian GPs. Results in under an hour, 100% online.',
+  description: 'Medical certificates from $19.95, prescriptions from $29.95. AHPRA-registered Australian doctors. Results in under an hour, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
     'medical certificate online',
-    'online GP',
+    'online doctor',
     'sick certificate',
     'repeat prescription online',
-    'telehealth GP',
+    'telehealth doctor',
     'virtual doctor australia',
   ],
   openGraph: {

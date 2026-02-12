@@ -123,7 +123,7 @@ export function EstimatedTimeBadge({
           <div className="flex items-start gap-3">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">2</span>
             <div>
-              <p className="text-xs font-medium text-foreground">GP reviews your case</p>
+              <p className="text-xs font-medium text-foreground">Doctor reviews your case</p>
               <p className="text-xs text-muted-foreground">An AHPRA-registered doctor assesses your request</p>
             </div>
           </div>

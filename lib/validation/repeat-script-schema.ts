@@ -247,7 +247,7 @@ export function validateRepeatScriptPayload(
   if (isPBSCodeBlocked(medicationCode as string)) {
     return {
       valid: false,
-      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular GP.",
+      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
       requiresConsult: false,
     }
   }
@@ -256,7 +256,7 @@ export function validateRepeatScriptPayload(
   if (containsBlockedSubstance(String(medicationDisplay)) || containsBlockedSubstance(String(medicationName))) {
     return {
       valid: false,
-      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular GP.",
+      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
       requiresConsult: false,
     }
   }
