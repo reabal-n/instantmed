@@ -9,6 +9,9 @@
 --   5. Updating RLS policies for renamed columns
 --   6. Updating indexes for renamed columns
 --   7. Dropping the notify_on_request_status_change function
+--
+-- ALL operations are wrapped in conditional blocks to be fully idempotent
+-- and safe even if tables don't exist on the target database.
 -- =============================================================
 
 -- ============================================================================
@@ -35,44 +38,74 @@ DROP TABLE IF EXISTS public.request_answers;
 -- ============================================================================
 
 -- 3a. request_latency: request_id is the PK
--- Drop old indexes first
-DROP INDEX IF EXISTS idx_request_latency_decision;
-DROP INDEX IF EXISTS idx_request_latency_pending;
-
-ALTER TABLE public.request_latency RENAME COLUMN request_id TO intake_id;
-
--- Recreate indexes with new column name
-CREATE INDEX IF NOT EXISTS idx_intake_latency_decision
-  ON public.request_latency(decision_at DESC)
-  WHERE decision_at IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS idx_intake_latency_pending
-  ON public.request_latency(queued_at)
-  WHERE decision_at IS NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'request_latency'
+    AND column_name = 'request_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_request_latency_decision;
+    DROP INDEX IF EXISTS idx_request_latency_pending;
+    ALTER TABLE public.request_latency RENAME COLUMN request_id TO intake_id;
+    CREATE INDEX IF NOT EXISTS idx_intake_latency_decision
+      ON public.request_latency(decision_at DESC)
+      WHERE decision_at IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_intake_latency_pending
+      ON public.request_latency(queued_at)
+      WHERE decision_at IS NULL;
+  END IF;
+END $$;
 
 -- 3b. delivery_tracking: request_id is nullable
-DROP INDEX IF EXISTS idx_delivery_request;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'delivery_tracking'
+    AND column_name = 'request_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_delivery_request;
+    ALTER TABLE public.delivery_tracking RENAME COLUMN request_id TO intake_id;
+    CREATE INDEX IF NOT EXISTS idx_delivery_intake
+      ON public.delivery_tracking(intake_id)
+      WHERE intake_id IS NOT NULL;
+  END IF;
+END $$;
 
-ALTER TABLE public.delivery_tracking RENAME COLUMN request_id TO intake_id;
-
-CREATE INDEX IF NOT EXISTS idx_delivery_intake
-  ON public.delivery_tracking(intake_id)
-  WHERE intake_id IS NOT NULL;
-
--- 3c. ai_metrics: request_id is nullable (no app code references but clean up anyway)
-ALTER TABLE public.ai_metrics RENAME COLUMN request_id TO intake_id;
+-- 3c. ai_metrics: request_id is nullable
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'ai_metrics'
+    AND column_name = 'request_id'
+  ) THEN
+    ALTER TABLE public.ai_metrics RENAME COLUMN request_id TO intake_id;
+  END IF;
+END $$;
 
 -- 3d. compliance_audit_log: request_id NOT NULL — stores intake IDs
-DROP INDEX IF EXISTS idx_compliance_audit_request;
-DROP INDEX IF EXISTS idx_compliance_audit_request_timeline;
-
-ALTER TABLE public.compliance_audit_log RENAME COLUMN request_id TO intake_id;
-
-CREATE INDEX IF NOT EXISTS idx_compliance_audit_intake
-  ON public.compliance_audit_log(intake_id);
-
-CREATE INDEX IF NOT EXISTS idx_compliance_audit_intake_timeline
-  ON public.compliance_audit_log(intake_id, created_at ASC);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'compliance_audit_log'
+    AND column_name = 'request_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_compliance_audit_request;
+    DROP INDEX IF EXISTS idx_compliance_audit_request_timeline;
+    ALTER TABLE public.compliance_audit_log RENAME COLUMN request_id TO intake_id;
+    CREATE INDEX IF NOT EXISTS idx_compliance_audit_intake
+      ON public.compliance_audit_log(intake_id);
+    CREATE INDEX IF NOT EXISTS idx_compliance_audit_intake_timeline
+      ON public.compliance_audit_log(intake_id, created_at ASC);
+  END IF;
+END $$;
 
 -- 3e. document_generation_metrics: request_id column (if table exists)
 DO $$
@@ -95,14 +128,27 @@ END $$;
 -- ============================================================================
 
 -- 4a. audit_logs: rename request_id → intake_id
---     (audit_logs does NOT have an intake_id column yet)
-DROP INDEX IF EXISTS idx_audit_logs_request;
-
-ALTER TABLE public.audit_logs RENAME COLUMN request_id TO intake_id;
-
-CREATE INDEX IF NOT EXISTS idx_audit_logs_intake
-  ON public.audit_logs(intake_id)
-  WHERE intake_id IS NOT NULL;
+--     (audit_logs does NOT have an intake_id column yet — rename is needed)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'audit_logs'
+    AND column_name = 'request_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'audit_logs'
+    AND column_name = 'intake_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_audit_logs_request;
+    ALTER TABLE public.audit_logs RENAME COLUMN request_id TO intake_id;
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_intake
+      ON public.audit_logs(intake_id)
+      WHERE intake_id IS NOT NULL;
+  END IF;
+END $$;
 
 -- 4b. date_change_requests: rename request_id → intake_id
 DO $$
@@ -118,16 +164,18 @@ BEGIN
 END $$;
 
 -- 4c. documents: DROP old request_id column (intake_id is now fully populated)
+--     Must drop policies that reference request_id BEFORE dropping the column
+DROP POLICY IF EXISTS "Patients can view own documents" ON public.documents;
 DROP INDEX IF EXISTS idx_documents_request_id;
-
 ALTER TABLE public.documents DROP COLUMN IF EXISTS request_id;
 
 -- 4d. document_verifications: DROP old request_id column
+DROP POLICY IF EXISTS "patients_view_own_verifications" ON public.document_verifications;
 DROP INDEX IF EXISTS idx_document_verifications_request_id;
-
 ALTER TABLE public.document_verifications DROP COLUMN IF EXISTS request_id;
 
 -- 4e. payments: DROP old request_id column
+DROP POLICY IF EXISTS "patients_select_own_payments" ON public.payments;
 ALTER TABLE public.payments DROP COLUMN IF EXISTS request_id;
 
 -- 4f. fraud_flags: DROP old request_id column (if both columns exist)
@@ -233,25 +281,32 @@ CREATE POLICY "patients_view_own_verifications"
     )
   );
 
--- 5e. Update request_latency RLS policies for renamed column
-DROP POLICY IF EXISTS "request_latency_admin_read" ON public.request_latency;
-CREATE POLICY "intake_latency_admin_read"
-  ON public.request_latency FOR SELECT
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.auth_user_id = (SELECT auth.uid())
-      AND profiles.role IN ('admin', 'doctor')
-    )
-  );
+-- 5e. Update request_latency RLS policies for renamed column (if table exists)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'request_latency') THEN
+    DROP POLICY IF EXISTS "request_latency_admin_read" ON public.request_latency;
+    DROP POLICY IF EXISTS "intake_latency_admin_read" ON public.request_latency;
+    CREATE POLICY "intake_latency_admin_read"
+      ON public.request_latency FOR SELECT
+      TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1 FROM profiles
+          WHERE profiles.auth_user_id = (SELECT auth.uid())
+          AND profiles.role IN ('admin', 'doctor')
+        )
+      );
 
-DROP POLICY IF EXISTS "request_latency_service_write" ON public.request_latency;
-CREATE POLICY "intake_latency_service_write"
-  ON public.request_latency FOR ALL
-  TO service_role
-  USING (true)
-  WITH CHECK (true);
+    DROP POLICY IF EXISTS "request_latency_service_write" ON public.request_latency;
+    DROP POLICY IF EXISTS "intake_latency_service_write" ON public.request_latency;
+    CREATE POLICY "intake_latency_service_write"
+      ON public.request_latency FOR ALL
+      TO service_role
+      USING (true)
+      WITH CHECK (true);
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 6. UPDATE audit_log VIEW if it exists (references request_id)
@@ -287,145 +342,124 @@ END $$;
 -- ============================================================================
 
 -- Recreate the log_compliance_event function with p_intake_id parameter
--- The old function used p_request_id
-CREATE OR REPLACE FUNCTION public.log_compliance_event(
-  p_event_type compliance_event_type,
-  p_intake_id UUID,
-  p_request_type TEXT,
-  p_actor_id UUID DEFAULT NULL,
-  p_actor_role TEXT DEFAULT 'system',
-  p_is_human_action BOOLEAN DEFAULT true,
-  p_outcome TEXT DEFAULT NULL,
-  p_previous_outcome TEXT DEFAULT NULL,
-  p_call_required BOOLEAN DEFAULT NULL,
-  p_call_occurred BOOLEAN DEFAULT NULL,
-  p_call_completed_before_decision BOOLEAN DEFAULT NULL,
-  p_prescribing_occurred_in_platform BOOLEAN DEFAULT false,
-  p_external_prescribing_reference TEXT DEFAULT NULL,
-  p_event_data JSONB DEFAULT '{}',
-  p_ip_address INET DEFAULT NULL,
-  p_user_agent TEXT DEFAULT NULL
-)
-RETURNS UUID
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_id UUID;
+-- The old function used p_request_id — PostgreSQL doesn't allow renaming params
+-- with CREATE OR REPLACE, so we must DROP first then CREATE
+-- Wrapped in conditional to skip if compliance_event_type doesn't exist
+DO $$
 BEGIN
-  INSERT INTO public.compliance_audit_log (
-    event_type, intake_id, request_type, actor_id, actor_role,
-    is_human_action, outcome, previous_outcome,
-    call_required, call_occurred, call_completed_before_decision,
-    prescribing_occurred_in_platform, external_prescribing_reference,
-    event_data, ip_address, user_agent
-  ) VALUES (
-    p_event_type, p_intake_id, p_request_type, p_actor_id, p_actor_role,
-    p_is_human_action, p_outcome, p_previous_outcome,
-    p_call_required, p_call_occurred, p_call_completed_before_decision,
-    p_prescribing_occurred_in_platform, p_external_prescribing_reference,
-    p_event_data, p_ip_address, p_user_agent
-  )
-  RETURNING id INTO v_id;
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'compliance_event_type') THEN
+    -- Drop the existing function with old parameter signature (has defaults)
+    DROP FUNCTION IF EXISTS public.log_compliance_event(
+      compliance_event_type, UUID, TEXT, UUID, TEXT, BOOLEAN, TEXT, TEXT,
+      BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, TEXT, JSONB, INET, TEXT
+    );
 
-  RETURN v_id;
-END;
-$$;
-
--- Keep backward-compatible alias with old parameter name
-CREATE OR REPLACE FUNCTION public.log_compliance_event(
-  p_event_type compliance_event_type,
-  p_request_id UUID,
-  p_request_type TEXT,
-  p_actor_id UUID,
-  p_actor_role TEXT,
-  p_is_human_action BOOLEAN,
-  p_outcome TEXT,
-  p_previous_outcome TEXT,
-  p_call_required BOOLEAN,
-  p_call_occurred BOOLEAN,
-  p_call_completed_before_decision BOOLEAN,
-  p_prescribing_occurred_in_platform BOOLEAN,
-  p_external_prescribing_reference TEXT,
-  p_event_data JSONB,
-  p_ip_address INET,
-  p_user_agent TEXT
-)
-RETURNS UUID
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  -- Forward to the canonical function
-  RETURN public.log_compliance_event(
-    p_event_type := p_event_type,
-    p_intake_id := p_request_id,
-    p_request_type := p_request_type,
-    p_actor_id := p_actor_id,
-    p_actor_role := p_actor_role,
-    p_is_human_action := p_is_human_action,
-    p_outcome := p_outcome,
-    p_previous_outcome := p_previous_outcome,
-    p_call_required := p_call_required,
-    p_call_occurred := p_call_occurred,
-    p_call_completed_before_decision := p_call_completed_before_decision,
-    p_prescribing_occurred_in_platform := p_prescribing_occurred_in_platform,
-    p_external_prescribing_reference := p_external_prescribing_reference,
-    p_event_data := p_event_data,
-    p_ip_address := p_ip_address,
-    p_user_agent := p_user_agent
-  );
-END;
-$$;
+    -- Create the canonical function with p_intake_id parameter
+    EXECUTE $fn$
+    CREATE FUNCTION public.log_compliance_event(
+      p_event_type compliance_event_type,
+      p_intake_id UUID,
+      p_request_type TEXT,
+      p_actor_id UUID DEFAULT NULL,
+      p_actor_role TEXT DEFAULT 'system',
+      p_is_human_action BOOLEAN DEFAULT true,
+      p_outcome TEXT DEFAULT NULL,
+      p_previous_outcome TEXT DEFAULT NULL,
+      p_call_required BOOLEAN DEFAULT NULL,
+      p_call_occurred BOOLEAN DEFAULT NULL,
+      p_call_completed_before_decision BOOLEAN DEFAULT NULL,
+      p_prescribing_occurred_in_platform BOOLEAN DEFAULT false,
+      p_external_prescribing_reference TEXT DEFAULT NULL,
+      p_event_data JSONB DEFAULT '{}',
+      p_ip_address INET DEFAULT NULL,
+      p_user_agent TEXT DEFAULT NULL
+    )
+    RETURNS UUID
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    SET search_path = public
+    AS $inner$
+    DECLARE
+      v_id UUID;
+    BEGIN
+      INSERT INTO public.compliance_audit_log (
+        event_type, intake_id, request_type, actor_id, actor_role,
+        is_human_action, outcome, previous_outcome,
+        call_required, call_occurred, call_completed_before_decision,
+        prescribing_occurred_in_platform, external_prescribing_reference,
+        event_data, ip_address, user_agent
+      ) VALUES (
+        p_event_type, p_intake_id, p_request_type, p_actor_id, p_actor_role,
+        p_is_human_action, p_outcome, p_previous_outcome,
+        p_call_required, p_call_occurred, p_call_completed_before_decision,
+        p_prescribing_occurred_in_platform, p_external_prescribing_reference,
+        p_event_data, p_ip_address, p_user_agent
+      )
+      RETURNING id INTO v_id;
+      RETURN v_id;
+    END;
+    $inner$;
+    $fn$;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 8. RENAME request_id → intake_id ON REMAINING TABLES
 -- ============================================================================
 
 -- 8a. stripe_webhook_events: rename request_id → intake_id
-DROP INDEX IF EXISTS idx_stripe_webhook_events_request_id;
-
-ALTER TABLE public.stripe_webhook_events RENAME COLUMN request_id TO intake_id;
-
-CREATE INDEX IF NOT EXISTS idx_stripe_webhook_events_intake_id
-  ON public.stripe_webhook_events(intake_id)
-  WHERE intake_id IS NOT NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'stripe_webhook_events'
+    AND column_name = 'request_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_stripe_webhook_events_request_id;
+    ALTER TABLE public.stripe_webhook_events RENAME COLUMN request_id TO intake_id;
+    CREATE INDEX IF NOT EXISTS idx_stripe_webhook_events_intake_id
+      ON public.stripe_webhook_events(intake_id)
+      WHERE intake_id IS NOT NULL;
+  END IF;
+END $$;
 
 -- 8b. Update try_process_stripe_event function to use intake_id column
-CREATE OR REPLACE FUNCTION public.try_process_stripe_event(
-  p_event_id TEXT,
-  p_event_type TEXT,
-  p_request_id UUID DEFAULT NULL,
-  p_session_id TEXT DEFAULT NULL,
-  p_metadata JSONB DEFAULT '{}'
-)
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_inserted BOOLEAN;
+DO $$
 BEGIN
-  -- Attempt to insert the event - if it already exists, do nothing
-  INSERT INTO stripe_webhook_events (event_id, event_type, intake_id, session_id, metadata, processed_at, created_at)
-  VALUES (p_event_id, p_event_type, p_request_id, p_session_id, p_metadata, NOW(), NOW())
-  ON CONFLICT (event_id) DO NOTHING;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stripe_webhook_events') THEN
+    EXECUTE $fn$
+    CREATE OR REPLACE FUNCTION public.try_process_stripe_event(
+      p_event_id TEXT,
+      p_event_type TEXT,
+      p_request_id UUID DEFAULT NULL,
+      p_session_id TEXT DEFAULT NULL,
+      p_metadata JSONB DEFAULT '{}'
+    )
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    SET search_path = 'public'
+    AS $inner$
+    DECLARE
+      v_inserted BOOLEAN;
+    BEGIN
+      INSERT INTO stripe_webhook_events (event_id, event_type, intake_id, session_id, metadata, processed_at, created_at)
+      VALUES (p_event_id, p_event_type, p_request_id, p_session_id, p_metadata, NOW(), NOW())
+      ON CONFLICT (event_id) DO NOTHING;
+      SELECT EXISTS (
+        SELECT 1 FROM stripe_webhook_events
+        WHERE event_id = p_event_id
+        AND processed_at >= NOW() - INTERVAL '1 second'
+      ) INTO v_inserted;
+      RETURN v_inserted;
+    END;
+    $inner$;
+    $fn$;
 
-  -- Check if we actually inserted
-  SELECT EXISTS (
-    SELECT 1 FROM stripe_webhook_events
-    WHERE event_id = p_event_id
-    AND processed_at >= NOW() - INTERVAL '1 second'
-  ) INTO v_inserted;
-
-  RETURN v_inserted;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.try_process_stripe_event TO authenticated;
+    GRANT EXECUTE ON FUNCTION public.try_process_stripe_event TO authenticated;
+  END IF;
+END $$;
 
 -- 8c. stripe_webhook_dead_letter: rename request_id → intake_id (if column exists)
 DO $$

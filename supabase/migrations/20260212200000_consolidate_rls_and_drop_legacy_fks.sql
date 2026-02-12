@@ -291,23 +291,26 @@ CREATE INDEX IF NOT EXISTS idx_payments_intake_id ON public.payments(intake_id) 
 --    This makes the intake_id column the single source of truth.
 -- ============================================================================
 
--- documents: backfill intake_id from request_id
+-- documents: backfill intake_id from request_id (only where FK target exists)
 UPDATE public.documents
 SET intake_id = request_id
 WHERE intake_id IS NULL
-AND request_id IS NOT NULL;
+AND request_id IS NOT NULL
+AND request_id IN (SELECT id FROM public.intakes);
 
 -- document_verifications: backfill intake_id from request_id
 UPDATE public.document_verifications
 SET intake_id = request_id
 WHERE intake_id IS NULL
-AND request_id IS NOT NULL;
+AND request_id IS NOT NULL
+AND request_id IN (SELECT id FROM public.intakes);
 
 -- payments: backfill intake_id from request_id
 UPDATE public.payments
 SET intake_id = request_id
 WHERE intake_id IS NULL
-AND request_id IS NOT NULL;
+AND request_id IS NOT NULL
+AND request_id IN (SELECT id FROM public.intakes);
 
 -- fraud_flags: backfill intake_id from request_id (if both columns exist)
 DO $$
@@ -321,7 +324,7 @@ BEGIN
     WHERE table_schema = 'public' AND table_name = 'fraud_flags'
     AND column_name = 'request_id'
   ) THEN
-    EXECUTE 'UPDATE public.fraud_flags SET intake_id = request_id WHERE intake_id IS NULL AND request_id IS NOT NULL';
+    EXECUTE 'UPDATE public.fraud_flags SET intake_id = request_id WHERE intake_id IS NULL AND request_id IS NOT NULL AND request_id IN (SELECT id FROM public.intakes)';
   END IF;
 END $$;
 
@@ -337,6 +340,6 @@ BEGIN
     WHERE table_schema = 'public' AND table_name = 'priority_upsell_conversions'
     AND column_name = 'request_id'
   ) THEN
-    EXECUTE 'UPDATE public.priority_upsell_conversions SET intake_id = request_id WHERE intake_id IS NULL AND request_id IS NOT NULL';
+    EXECUTE 'UPDATE public.priority_upsell_conversions SET intake_id = request_id WHERE intake_id IS NULL AND request_id IS NOT NULL AND request_id IN (SELECT id FROM public.intakes)';
   END IF;
 END $$;

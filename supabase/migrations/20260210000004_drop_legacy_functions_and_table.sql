@@ -8,10 +8,15 @@ DROP FUNCTION IF EXISTS public.release_request_claim(UUID, UUID);
 DROP FUNCTION IF EXISTS public.approve_request_with_document(uuid, text, text, text, uuid);
 
 -- 2. Drop unused request_documents table (0 rows, no app code references)
-DROP POLICY IF EXISTS "Patients can view own documents" ON public.request_documents;
-DROP POLICY IF EXISTS "Doctors can create documents" ON public.request_documents;
-DROP POLICY IF EXISTS "Doctors can view all documents" ON public.request_documents;
-DROP TABLE IF EXISTS public.request_documents;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'request_documents') THEN
+    DROP POLICY IF EXISTS "Patients can view own documents" ON public.request_documents;
+    DROP POLICY IF EXISTS "Doctors can create documents" ON public.request_documents;
+    DROP POLICY IF EXISTS "Doctors can view all documents" ON public.request_documents;
+    DROP TABLE public.request_documents;
+  END IF;
+END $$;
 
 -- 3. Fix notify_on_request_status_change search_path security advisory
 CREATE OR REPLACE FUNCTION notify_on_request_status_change()

@@ -30,11 +30,13 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role full access to notifications" ON public.notifications;
 CREATE POLICY "Service role full access to notifications"
   ON public.notifications FOR ALL
   TO service_role
   USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
 CREATE POLICY "Users can view own notifications"
   ON public.notifications FOR SELECT
   TO authenticated
@@ -42,6 +44,7 @@ CREATE POLICY "Users can view own notifications"
     SELECT id FROM profiles WHERE auth_user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
 CREATE POLICY "Users can update own notifications"
   ON public.notifications FOR UPDATE
   TO authenticated
@@ -52,8 +55,16 @@ CREATE POLICY "Users can update own notifications"
     SELECT id FROM profiles WHERE auth_user_id = auth.uid()
   ));
 
--- Enable realtime for notifications
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+-- Enable realtime for notifications (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 2. PRESCRIPTIONS TABLE (3 code references)
@@ -85,11 +96,13 @@ CREATE INDEX IF NOT EXISTS idx_prescriptions_issued_date ON public.prescriptions
 
 ALTER TABLE public.prescriptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role full access to prescriptions" ON public.prescriptions;
 CREATE POLICY "Service role full access to prescriptions"
   ON public.prescriptions FOR ALL
   TO service_role
   USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Patients can view own prescriptions" ON public.prescriptions;
 CREATE POLICY "Patients can view own prescriptions"
   ON public.prescriptions FOR SELECT
   TO authenticated
@@ -97,6 +110,7 @@ CREATE POLICY "Patients can view own prescriptions"
     SELECT id FROM profiles WHERE auth_user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Doctors can view all prescriptions" ON public.prescriptions;
 CREATE POLICY "Doctors can view all prescriptions"
   ON public.prescriptions FOR SELECT
   TO public
@@ -106,6 +120,7 @@ CREATE POLICY "Doctors can view all prescriptions"
     AND profiles.role IN ('doctor', 'admin')
   ));
 
+DROP POLICY IF EXISTS "Doctors can manage prescriptions" ON public.prescriptions;
 CREATE POLICY "Doctors can manage prescriptions"
   ON public.prescriptions FOR ALL
   TO public
@@ -144,11 +159,13 @@ CREATE INDEX IF NOT EXISTS idx_prescription_refills_status ON public.prescriptio
 
 ALTER TABLE public.prescription_refills ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role full access to prescription_refills" ON public.prescription_refills;
 CREATE POLICY "Service role full access to prescription_refills"
   ON public.prescription_refills FOR ALL
   TO service_role
   USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Patients can view own refill requests" ON public.prescription_refills;
 CREATE POLICY "Patients can view own refill requests"
   ON public.prescription_refills FOR SELECT
   TO authenticated
@@ -156,6 +173,7 @@ CREATE POLICY "Patients can view own refill requests"
     SELECT id FROM profiles WHERE auth_user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Doctors can view all refill requests" ON public.prescription_refills;
 CREATE POLICY "Doctors can view all refill requests"
   ON public.prescription_refills FOR SELECT
   TO public
@@ -165,6 +183,7 @@ CREATE POLICY "Doctors can view all refill requests"
     AND profiles.role IN ('doctor', 'admin')
   ));
 
+DROP POLICY IF EXISTS "Doctors can manage refill requests" ON public.prescription_refills;
 CREATE POLICY "Doctors can manage refill requests"
   ON public.prescription_refills FOR ALL
   TO public
