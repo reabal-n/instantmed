@@ -2,13 +2,13 @@
  * Medical Certificate Patient Email Template
  * 
  * Sent to patient when their medical certificate is approved and ready.
- * Links to dashboard for download (no PDF attachment by default).
+ * Links to dashboard for download.
  */
 
 import * as React from "react"
 import {
   BaseEmail,
-  SuccessBanner,
+  StatusBanner,
   Text,
   Button,
   Box,
@@ -40,15 +40,15 @@ export function MedCertPatientEmail({
 
   return (
     <BaseEmail
-      previewText={`Your medical certificate is ready to download`}
+      previewText="Your medical certificate is ready to download"
       appUrl={appUrl}
     >
-      <SuccessBanner title="Your medical certificate is ready" />
+      <StatusBanner title="Your medical certificate is ready" variant="success" />
 
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Your <strong>Medical Certificate — {certTypeLabel}</strong> has been reviewed and
+        Your <strong>Medical Certificate -- {certTypeLabel}</strong> has been reviewed and
         approved by one of our doctors. You can download it from your dashboard.
       </Text>
 
@@ -72,9 +72,9 @@ export function MedCertPatientEmail({
       </Box>
 
       <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#00C9A7", fontWeight: 500 }}>
-          help center
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: "#3B82F6", fontWeight: 500 }}>
+          help centre
         </a>
         .
       </Text>

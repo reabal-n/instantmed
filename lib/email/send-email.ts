@@ -40,6 +40,7 @@ export type EmailType =
   | "refund_notification"
   | "payment_failed"
   | "guest_complete_account"
+  | "payment_confirmed"
 
 interface SendEmailParams {
   to: string
@@ -761,6 +762,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       dashboardUrl,
       verificationCode: cert.verification_code,
       certType: cert.certificate_type as "work" | "study" | "carer",
+      appUrl: env.appUrl,
     })
 
     const html = await renderEmailToHtml(template)
@@ -1015,6 +1017,250 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     })
   }
 
+  // ----------------------------------------------------------------
+  // needs_more_info — lib React template, needs intake + doctor message
+  // ----------------------------------------------------------------
+  if (row.email_type === "needs_more_info") {
+    if (!row.intake_id) {
+      return { success: false, error: "needs_more_info requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { doctorMessage?: string } | null
+    const doctorMessage = metadata?.doctorMessage || "Please provide additional information."
+
+    const { NeedsMoreInfoEmail } = await import("@/lib/email/templates/needs-more-info")
+    const template = NeedsMoreInfoEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: ctx.service.short_name || ctx.service.name,
+      requestId: ctx.intake.id,
+      doctorMessage,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // consult_approved — component React template
+  // ----------------------------------------------------------------
+  if (row.email_type === "consult_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "consult_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { doctorNotes?: string } | null
+
+    const { ConsultApprovedEmail } = await import("@/components/email/templates/consult-approved")
+    const template = ConsultApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestId: ctx.intake.id,
+      doctorNotes: metadata?.doctorNotes || undefined,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // ed_approved — component React template, needs medication name
+  // ----------------------------------------------------------------
+  if (row.email_type === "ed_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "ed_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { medicationName?: string } | null
+    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
+    const medicationName = metadata?.medicationName
+      || String(answers.medicationName || answers.medication_name || "")
+      || "medication"
+
+    const { EdApprovedEmail } = await import("@/components/email/templates/ed-approved")
+    const template = EdApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      medicationName,
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // hair_loss_approved — component React template
+  // ----------------------------------------------------------------
+  if (row.email_type === "hair_loss_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "hair_loss_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { medicationName?: string } | null
+    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
+    const medicationName = metadata?.medicationName
+      || String(answers.medicationName || answers.medication_name || "")
+      || "medication"
+
+    const { HairLossApprovedEmail } = await import("@/components/email/templates/hair-loss-approved")
+    const template = HairLossApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      medicationName,
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // weight_loss_approved — component React template
+  // ----------------------------------------------------------------
+  if (row.email_type === "weight_loss_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "weight_loss_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { medicationName?: string } | null
+    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
+    const medicationName = metadata?.medicationName
+      || String(answers.medicationName || answers.medication_name || "")
+      || "medication"
+
+    const { WeightLossApprovedEmail } = await import("@/components/email/templates/weight-loss-approved")
+    const template = WeightLossApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      medicationName,
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // womens_health_approved — component React template
+  // ----------------------------------------------------------------
+  if (row.email_type === "womens_health_approved") {
+    if (!row.intake_id) {
+      return { success: false, error: "womens_health_approved requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { medicationName?: string; treatmentType?: string } | null
+    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
+    const medicationName = metadata?.medicationName
+      || String(answers.medicationName || answers.medication_name || "")
+      || "medication"
+
+    const { WomensHealthApprovedEmail } = await import("@/components/email/templates/womens-health-approved")
+    const template = WomensHealthApprovedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      medicationName,
+      treatmentType: metadata?.treatmentType || undefined,
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // med_cert_employer — component React template, needs cert + employer data
+  // ----------------------------------------------------------------
+  if (row.email_type === "med_cert_employer") {
+    if (!row.certificate_id) {
+      return { success: false, error: "med_cert_employer requires certificate_id for reconstruction" }
+    }
+
+    const { data: cert, error: certError } = await supabase
+      .from("issued_certificates")
+      .select("intake_id, patient_name, verification_code, start_date, end_date, storage_path")
+      .eq("id", row.certificate_id)
+      .single()
+
+    if (certError || !cert) {
+      return { success: false, error: "Certificate not found for employer email reconstruction" }
+    }
+
+    // Generate a signed download URL (7-day expiry)
+    const { data: signedUrlData } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(cert.storage_path, 60 * 60 * 24 * 7)
+
+    const downloadUrl = signedUrlData?.signedUrl || `${env.appUrl}/api/certificates/${row.certificate_id}/download`
+
+    // Employer info from metadata or intake answers
+    const metadata = row.metadata as { employerName?: string; companyName?: string; patientNote?: string } | null
+
+    const { MedCertEmployerEmail } = await import("@/components/email/templates/med-cert-employer")
+    const template = MedCertEmployerEmail({
+      patientName: cert.patient_name,
+      downloadUrl,
+      verificationCode: cert.verification_code,
+      certStartDate: cert.start_date,
+      certEndDate: cert.end_date,
+      employerName: metadata?.employerName || undefined,
+      companyName: metadata?.companyName || undefined,
+      patientNote: metadata?.patientNote || undefined,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // payment_confirmed — lib React template, needs intake + amount
+  // ----------------------------------------------------------------
+  if (row.email_type === "payment_confirmed") {
+    if (!row.intake_id) {
+      return { success: false, error: "payment_confirmed requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { amount_cents?: number; service_slug?: string } | null
+    const amountCents = metadata?.amount_cents || 0
+    const amountFormatted = amountCents > 0 ? `$${(amountCents / 100).toFixed(2)}` : "N/A"
+    const serviceName = metadata?.service_slug
+      ?.replace(/-/g, " ")
+      ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+      || ctx.service.short_name || ctx.service.name || "medical request"
+
+    const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+    const template = PaymentConfirmedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: serviceName,
+      amount: amountFormatted,
+      requestId: ctx.intake.id,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
   // Fallback: unrecognized email type
   return {
     success: false,
@@ -1114,6 +1360,9 @@ async function generateAndUploadPdfForCertificate(
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
     logger.error("[Email Dispatcher] PDF generation error", { certificateId, error })
+    Sentry.captureException(err, {
+      tags: { component: "email_dispatcher", action: "pdf_generation", certificate_id: certificateId },
+    })
     return { success: false, error }
   }
 }

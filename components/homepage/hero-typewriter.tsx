@@ -15,7 +15,7 @@ interface HeroVariant {
 const heroVariants: HeroVariant[] = [
   {
     id: "certs",
-    headline: "Medical certificates reviewed by Australian GPs.",
+    headline: "Medical certificates reviewed by Australian doctors.",
     subheadline:
       "Complete a 2-minute form. A registered doctor reviews your request. Certificate emailed within the hour.",
     cta: "Request a certificate",
@@ -23,7 +23,7 @@ const heroVariants: HeroVariant[] = [
   {
     id: "scripts",
     headline: "Repeat scripts sent straight to your phone.",
-    subheadline: "Request your regular medication online. Reviewed by an AHPRA-registered GP. eScript sent via SMS.",
+    subheadline: "Request your regular medication online. Reviewed by an AHPRA-registered doctor. eScript sent via SMS.",
     cta: "Request a script",
   },
   {

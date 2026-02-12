@@ -54,7 +54,7 @@ const comparisonCards: DisplayCardProps[] = [
   {
     icon: <Shield className="size-4 text-cyan-300" />,
     title: "AHPRA Doctors",
-    description: "Real Australian GPs, not AI chatbots",
+    description: "Real Australian doctors, not AI chatbots",
     date: "Licensed & Verified",
     iconClassName: "bg-cyan-800",
     titleClassName: "text-cyan-400",

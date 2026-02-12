@@ -27,9 +27,13 @@ function useHasMounted() {
   )
 }
 
+function getRandomVisitors(): number {
+  return Math.floor(Math.random() * 17) + 2 // 2-18
+}
+
 export function DoctorAvailabilityPill() {
   const [isOnline, setIsOnline] = useState(true)
-  const [visitorCount, setVisitorCount] = useState(12)
+  const [visitors, setVisitors] = useState(() => getRandomVisitors())
   const mounted = useHasMounted()
 
   useEffect(() => {
@@ -39,12 +43,16 @@ export function DoctorAvailabilityPill() {
     return () => clearInterval(interval)
   }, [])
 
+  // Fluctuate visitor count every 15-30 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      const change = Math.random() > 0.5 ? 1 : -1
-      setVisitorCount((prev) => Math.max(8, Math.min(25, prev + change)))
-    }, 2000 + Math.random() * 2000) // Random interval between 2-4 seconds
-
+    const fluctuate = () => {
+      setVisitors(prev => {
+        const change = Math.random() > 0.5 ? 1 : -1
+        const next = prev + change
+        return Math.max(2, Math.min(18, next))
+      })
+    }
+    const interval = setInterval(fluctuate, 15000 + Math.random() * 15000)
     return () => clearInterval(interval)
   }, [])
 
@@ -67,20 +75,18 @@ export function DoctorAvailabilityPill() {
               </span>
               Doctors online now
             </span>
-            <span className="hidden sm:inline text-xs text-emerald-600/60 dark:text-emerald-400/60">•</span>
-            <span className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
-              <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span className="h-3 w-px bg-emerald-300/50 dark:bg-emerald-700/50" />
+            <span className="flex items-center gap-1.5 text-xs text-emerald-600/80 dark:text-emerald-400/80">
+              <Users className="w-3 h-3" />
               <motion.span
-                key={visitorCount}
-                initial={{ y: -4, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 4, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="inline-block min-w-[1.5ch] text-center font-medium text-xs"
+                key={visitors}
+                initial={{ opacity: 0.5, y: -2 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                {visitorCount}
+                {visitors}
               </motion.span>
-              <span className="hidden sm:inline">viewing now</span>
+              <span className="hidden sm:inline">browsing</span>
             </span>
           </>
         ) : (

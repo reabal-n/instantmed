@@ -17,15 +17,16 @@ export default async function ComplianceDashboardPage() {
     { count: oldRecords },
     { data: topActors },
   ] = await Promise.all([
-    supabase.from("audit_log").select("*", { count: "exact", head: true }),
-    supabase.from("audit_log").select("*", { count: "exact", head: true })
+    // Canonical audit table is `audit_logs` (plural, with RLS)
+    supabase.from("audit_logs").select("*", { count: "exact", head: true }),
+    supabase.from("audit_logs").select("*", { count: "exact", head: true })
       .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-    supabase.from("audit_log").select("action, actor_id, created_at, entity_type")
+    supabase.from("audit_logs").select("action, actor_id, created_at, entity_type")
       .order("created_at", { ascending: false })
       .limit(20),
     supabase.from("intakes").select("*", { count: "exact", head: true })
       .lt("created_at", new Date(Date.now() - 7 * 365.25 * 24 * 60 * 60 * 1000).toISOString()),
-    supabase.from("audit_log")
+    supabase.from("audit_logs")
       .select("actor_id")
       .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .limit(100),
@@ -37,7 +38,7 @@ export default async function ComplianceDashboardPage() {
   // Detect anomalies: any actor with >50 actions in last hour
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
   const { data: hourlyActions } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("actor_id")
     .gte("created_at", oneHourAgo)
 

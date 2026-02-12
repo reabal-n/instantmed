@@ -3,12 +3,14 @@ import { NextResponse } from 'next/server'
 
 // Admin route redirects: consolidate /doctor/admin/* into /admin/*
 // Note: /doctor/admin itself is NOT redirected - it's the "All Requests" page for doctors
+// Redirect /doctor/admin/* ops routes to their canonical /admin/* paths.
+// Note: /doctor/admin/email-outbox is NOT redirected -- it IS the canonical outbox page.
+// Note: /doctor/admin itself is NOT redirected -- it's the "All Requests" page for doctors.
 const adminRedirects: Record<string, string> = {
   '/doctor/admin/ops': '/admin/ops',
   '/doctor/admin/ops/intakes-stuck': '/admin/ops/intakes-stuck',
   '/doctor/admin/ops/reconciliation': '/admin/ops/reconciliation',
   '/doctor/admin/ops/doctors': '/admin/ops/doctors',
-  '/doctor/admin/email-outbox': '/admin/ops/email-outbox',
   '/doctor/admin/emails': '/admin/emails',
 }
 
@@ -64,6 +66,14 @@ function hasE2EAuthBypass(req: Request): boolean {
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = new URL(req.url)
   
+  // Block /api/test/* and /(dev)/* routes in production and preview
+  if (pathname.startsWith("/api/test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+  if (pathname.startsWith("/email-preview") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+    return NextResponse.redirect(new URL("/", req.url), 302)
+  }
+
   // Handle admin consolidation redirects
   const redirectTo = adminRedirects[pathname]
   if (redirectTo) {

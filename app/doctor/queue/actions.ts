@@ -188,22 +188,40 @@ export async function markScriptSentAction(
     return { success: false, error: "Failed to mark script sent" }
   }
 
-  // Send email notification to patient
+  // Send email notification to patient via the centralized sendEmail pipeline
+  // This ensures outbox logging, retry support, Sentry capture, and the modern React template
   try {
-    const { sendScriptSentEmail } = await import("@/lib/email/resend")
+    const React = await import("react")
+    const { sendEmail } = await import("@/lib/email/send-email")
+    const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/components/email/templates/script-sent")
     const { getIntakeWithDetails } = await import("@/lib/data/intakes")
     
     const intake = await getIntakeWithDetails(intakeId)
     if (intake?.patient?.email) {
-      await sendScriptSentEmail(
-        intake.patient.email,
-        intake.patient.full_name || "Patient",
+      const patientName = intake.patient.full_name || "Patient"
+
+      await sendEmail({
+        to: intake.patient.email,
+        toName: patientName,
+        subject: scriptSentEmailSubject,
+        template: React.createElement(ScriptSentEmail, {
+          patientName,
+          requestId: intakeId,
+          escriptReference: parchmentReference,
+        }),
+        emailType: "script_sent",
         intakeId,
-        parchmentReference
-      )
+        patientId: intake.patient.id,
+        metadata: parchmentReference ? { parchmentReference } : {},
+      })
     }
-  } catch {
-    // Email is non-critical, don't fail the action
+  } catch (emailErr) {
+    // Email is non-critical, don't fail the action -- but log to Sentry
+    Sentry.captureException(emailErr, {
+      tags: { email_type: "script_sent", intake_id: intakeId },
+      level: "warning",
+    })
+    logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
   }
 
   revalidatePath("/doctor")

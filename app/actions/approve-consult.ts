@@ -8,6 +8,7 @@
  */
 
 import * as React from "react"
+import * as Sentry from "@sentry/nextjs"
 import { revalidatePath } from "next/cache"
 import { sendEmail, type EmailType } from "@/lib/email/send-email"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -173,6 +174,12 @@ export async function approveConsultAction(
       logger.error("Failed to send consult approval email (consult still approved)", {
         intakeId,
         error: emailResult.error,
+      })
+      // Alert ops -- patient approved but may never learn about it
+      Sentry.captureMessage("Consult approval email failed to send", {
+        level: "error",
+        tags: { email_type: emailType, intake_id: intakeId },
+        extra: { error: emailResult.error, patientId: patient.id },
       })
     }
 

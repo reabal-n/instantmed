@@ -12,9 +12,10 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Stethoscope,
   ClipboardList,
-  Activity
+  Activity,
+  Bell,
+  MessageSquare
 } from 'lucide-react'
 import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
@@ -43,18 +44,16 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
   const pathname = usePathname()
   const { isPanelOpen } = usePanel()
 
-  const navItems = userRole === 'patient' ? [
+  // LeftRail is only used by the patient layout (AuthenticatedShell).
+  // Doctor layout uses DashboardSidebar instead.
+  const navItems = [
     { icon: Home, label: 'Overview', href: '/patient' },
     { icon: FileText, label: 'My Requests', href: '/patient/intakes' },
     { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
     { icon: Activity, label: 'Health Summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
-    { icon: Settings, label: 'Settings', href: '/account' },
-  ] : [
-    { icon: Home, label: 'Dashboard', href: '/doctor' },
-    { icon: ClipboardList, label: 'Queue', href: '/doctor/queue' },
-    { icon: Stethoscope, label: 'Profile', href: '/doctor/profile' },
-    { icon: Settings, label: 'Settings', href: '/doctor/settings' },
+    { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
+    { icon: Settings, label: 'Settings', href: '/patient/settings' },
   ]
 
   return (
@@ -107,6 +106,14 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
               <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
             </div>
           )}
+          <Link
+            href="/patient/notifications"
+            className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
+            title="Notifications"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4 h-4 text-muted-foreground" />
+          </Link>
         </div>
       </div>
 

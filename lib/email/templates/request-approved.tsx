@@ -19,7 +19,7 @@ export function RequestApprovedEmail({
 }: RequestApprovedEmailProps) {
   return (
     <BaseLayout previewText={`Your ${requestType} has been approved`} appUrl={APP_URL}>
-      <h1>Good news! Your request is approved ✓</h1>
+      <h1>Your request has been approved</h1>
       <p>Hi {patientName},</p>
       <p>
         Dr {doctorName} has reviewed and approved your <strong>{requestType}</strong> request.
@@ -41,18 +41,16 @@ export function RequestApprovedEmail({
       </p>
 
       <div className="info-box">
-        <p style={{ margin: 0, fontSize: "14px" }}>
-          <strong>Tips:</strong>
-        </p>
-        <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px", fontSize: "14px" }}>
+        <p style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}>Next steps:</p>
+        <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px", fontSize: "13px" }}>
           <li>Save or print your document for your records</li>
-          <li>Forward it to your employer/university if required</li>
+          <li>Forward it to your employer or university if required</li>
           <li>The document includes a verification code</li>
         </ul>
       </div>
 
-      <p style={{ fontSize: "14px", color: "#737373" }}>
-        Thank you for using InstantMed. We hope you feel better soon!
+      <p style={{ fontSize: "13px", color: "#9CA3AF" }}>
+        Thank you for using InstantMed. We hope you feel better soon.
       </p>
     </BaseLayout>
   )

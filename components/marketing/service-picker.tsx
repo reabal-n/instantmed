@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Clock, PhoneOff, Check, Users, Star } from 'lucide-react'
+import useSWR from 'swr'
 import { serviceCategories } from '@/lib/marketing/homepage'
+
+const pricingFetcher = (url: string) => fetch(url).then(r => r.json())
+
 import { motion } from 'framer-motion'
 import { Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
@@ -86,6 +90,14 @@ const itemVariants = {
 }
 
 export function ServicePicker() {
+  // Fetch live pricing from services table, fall back to static prices
+  const { data: pricingData } = useSWR<{ prices: Record<string, number> }>(
+    '/api/services/pricing',
+    pricingFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
+  )
+  const livePrices = pricingData?.prices || {}
+
   return (
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -172,6 +184,8 @@ export function ServicePicker() {
             const Icon = iconMap[service.icon as keyof typeof iconMap] || DocumentPremium
             const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
             const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
+            // Use live price if available, fall back to static
+            const displayPrice = livePrices[service.id] ?? service.priceFrom
             
             return (
               <motion.div key={service.id} variants={itemVariants}>
@@ -276,7 +290,7 @@ export function ServicePicker() {
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
                             <span className="text-base font-semibold text-foreground">
-                              ${service.priceFrom.toFixed(2)}
+                              ${displayPrice.toFixed(2)}
                             </span>
                             <span className="text-[10px] text-muted-foreground line-through">
                               {meta.gpCost}

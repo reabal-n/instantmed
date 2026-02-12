@@ -77,8 +77,10 @@ export interface DraftClaimResult {
 export const SERVICE_NAMES: Record<string, string> = {
   'medical-certificate': 'Medical Certificate',
   'prescription': 'Prescription',
+  'consult': 'Doctor Consultation',
+  'gp-consult': 'Doctor Consultation',
   'weight-management': 'Weight Management',
-}
+  }
 
 // Step labels for progress display (simplified 3-step model)
 export const STEP_LABELS: Record<string, string> = {

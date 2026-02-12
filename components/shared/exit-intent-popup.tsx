@@ -5,6 +5,7 @@ import { X, Save, ArrowRight, Mail, Clock, Star, Shield, Tag } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
 import { getAvailabilityMessage } from "@/lib/time-of-day"
 
 interface ExitIntentPopupProps {
@@ -57,7 +58,7 @@ const SERVICE_MESSAGES = {
   },
   'consult': {
     heading: "Want to talk to a doctor?",
-    subheading: "Real Australian GPs available 7 days a week. No waiting rooms.",
+    subheading: "Real Australian doctors available 7 days a week. No waiting rooms.",
     cta: "Start your consult",
     href: "/request?service=consult",
   },
@@ -108,6 +109,8 @@ export function ExitIntentPopup({
     return () => document.removeEventListener("mouseleave", handleMouseLeave)
   }, [hasShown, isClient])
 
+  const handleClose = () => setIsVisible(false)
+
   const handleSaveForLater = () => {
     if (!email) return
     
@@ -128,73 +131,90 @@ export function ExitIntentPopup({
     autoCloseTimerRef.current = setTimeout(() => setIsVisible(false), 2000)
   }
 
-  if (!isVisible) return null
-
   // Save for later variant (for intake forms)
   if (variant === 'save') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
+      <AnimatePresence>
+        {isVisible && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClose}
+            />
 
-        <div role="dialog" aria-modal="true" className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-          <button
-            onClick={() => setIsVisible(false)}
-            className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
-          >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <button
+                onClick={handleClose}
+                className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
 
-          {isSaved ? (
-            <div className="text-center py-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
-                <Save className="w-6 h-6 text-emerald-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-1">Progress saved</h3>
-              <p className="text-sm text-muted-foreground">
-                We&apos;ll email you a link to continue where you left off.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-primary" />
+              {isSaved ? (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
+                    <Save className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Progress saved</h3>
+                  <p className="text-sm text-muted-foreground">
+                    We&apos;ll email you a link to continue where you left off.
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold mb-1">Save your progress?</h3>
-                <p className="text-sm text-muted-foreground">
-                  We&apos;ll save your answers so you can finish later.
-                </p>
-              </div>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <Clock className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">Save your progress?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      We&apos;ll save your answers so you can finish later.
+                    </p>
+                  </div>
 
-              <div className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder="Your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  startContent={<Mail className="w-4 h-4 text-muted-foreground" />}
-                />
-                
-                <Button 
-                  onClick={handleSaveForLater}
-                  disabled={!email}
-                  className="w-full"
-                >
-                  Save for later
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
+                  <div className="space-y-3">
+                    <Input
+                      type="email"
+                      placeholder="Your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      startContent={<Mail className="w-4 h-4 text-muted-foreground" />}
+                    />
+                    
+                    <Button 
+                      onClick={handleSaveForLater}
+                      disabled={!email}
+                      className="w-full"
+                    >
+                      Save for later
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
 
-                <button
-                  onClick={() => setIsVisible(false)}
-                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-                >
-                  No thanks, I&apos;ll finish now
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+                    <button
+                      onClick={handleClose}
+                      className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                    >
+                      No thanks, I&apos;ll finish now
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     )
   }
 
@@ -204,89 +224,108 @@ export function ExitIntentPopup({
   const testimonial = SERVICE_TESTIMONIALS[service]
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
+    <AnimatePresence>
+      {isVisible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+          />
 
-      <div role="dialog" aria-modal="true" className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <button
-          onClick={() => setIsVisible(false)}
-          className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
-        >
-          <X className="w-4 h-4 text-muted-foreground" />
-        </button>
-
-        <div className="text-center">
-          {/* Time-aware status */}
-          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4 ${
-            availability.isActive 
-              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-              : "bg-white/60 text-slate-600 dark:bg-white/10 dark:text-slate-400"
-          }`}>
-            {availability.isActive && (
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-            )}
-            <span>{availability.message}</span>
-          </div>
-
-          <h3 className="text-lg font-semibold mb-2">
-            {showDiscount ? "Wait — here's 10% off" : messages.heading}
-          </h3>
-
-          <p className="text-sm text-muted-foreground mb-4">
-            {showDiscount
-              ? "First time? Use this code at checkout for 10% off your first request."
-              : messages.subheading}
-          </p>
-
-          {/* Discount code banner */}
-          {showDiscount && (
-            <div className="flex items-center justify-center gap-2 px-4 py-3 mb-4 rounded-xl bg-primary/5 border border-primary/20">
-              <Tag className="w-4 h-4 text-primary" />
-              <span className="font-mono text-lg font-bold tracking-wider text-primary">
-                {discountCode}
-              </span>
-            </div>
-          )}
-
-          {/* Mini testimonial - service-specific */}
-          <div className="bg-muted/30 rounded-xl p-4 mb-5 text-left">
-            <div className="flex gap-0.5 mb-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            <p className="text-sm text-foreground italic mb-2">
-              &quot;{testimonial.quote}&quot;
-            </p>
-            <p className="text-xs text-muted-foreground">{testimonial.author}, {testimonial.location}</p>
-          </div>
-
-          <div className="space-y-3">
-            <Button asChild className="w-full">
-              <Link href={messages.href}>
-                {messages.cta}
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
-            </Button>
-            
-            {/* Trust signal */}
-            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
-              <Shield className="w-3 h-3" />
-              Full refund if we can&apos;t help
-            </p>
-
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
             <button
-              onClick={() => setIsVisible(false)}
-              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
+              aria-label="Close"
             >
-              Maybe later
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
-          </div>
+
+            <div className="text-center">
+              {/* Time-aware status */}
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4 ${
+                availability.isActive 
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
+                  : "bg-muted text-muted-foreground"
+              }`}>
+                {availability.isActive && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                )}
+                <span>{availability.message}</span>
+              </div>
+
+              <h3 className="text-lg font-semibold mb-2 text-foreground">
+                {showDiscount ? "Wait \u2014 here's 10% off" : messages.heading}
+              </h3>
+
+              <p className="text-sm text-muted-foreground mb-4">
+                {showDiscount
+                  ? "First time? Use this code at checkout for 10% off your first request."
+                  : messages.subheading}
+              </p>
+
+              {/* Discount code banner */}
+              {showDiscount && (
+                <div className="flex items-center justify-center gap-2 px-4 py-3 mb-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <Tag className="w-4 h-4 text-primary" />
+                  <span className="font-mono text-lg font-bold tracking-wider text-primary">
+                    {discountCode}
+                  </span>
+                </div>
+              )}
+
+              {/* Mini testimonial - service-specific */}
+              <div className="bg-muted/30 rounded-xl p-4 mb-5 text-left">
+                <div className="flex gap-0.5 mb-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-foreground italic mb-2">
+                  &quot;{testimonial.quote}&quot;
+                </p>
+                <p className="text-xs text-muted-foreground">{testimonial.author}, {testimonial.location}</p>
+              </div>
+
+              <div className="space-y-3">
+                <Button asChild className="w-full">
+                  <Link href={messages.href}>
+                    {messages.cta}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+                
+                {/* Trust signal */}
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+                  <Shield className="w-3 h-3" />
+                  Full refund if we can&apos;t help
+                </p>
+
+                <button
+                  onClick={handleClose}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                >
+                  Maybe later
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   )
 }

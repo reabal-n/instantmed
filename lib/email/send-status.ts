@@ -181,7 +181,7 @@ const emailTemplates = {
       <div class="warning-box">
         <p style="margin: 0; font-size: 14px;">
           <strong>Need to see a doctor?</strong><br>
-          If your symptoms are concerning, please consider booking an in-person appointment with your regular GP or
+          If your symptoms are concerning, please consider booking an in-person appointment with your regular doctor or
           visiting a medical centre.
         </p>
       </div>

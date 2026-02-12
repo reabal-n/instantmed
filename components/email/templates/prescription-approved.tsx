@@ -2,7 +2,7 @@
  * Prescription Approved Email Template
  *
  * Sent to patient when their repeat prescription is approved
- * and the eScript token will arrive via SMS (prescribed via Parchment).
+ * and the eScript token will arrive via SMS.
  */
 
 import * as React from "react"
@@ -35,17 +35,17 @@ export function PrescriptionApprovedEmail({
       previewText={`Your ${medicationName} prescription has been approved`}
       appUrl={appUrl}
     >
-      <SuccessBanner icon="✅" title="Prescription approved" />
+      <SuccessBanner title="Prescription approved" />
 
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Great news — your doctor has reviewed and approved your prescription for{" "}
+        Great news -- your doctor has reviewed and approved your prescription for{" "}
         <strong>{medicationName}</strong>.
       </Text>
 
       <Box variant="info">
-        <Heading as="h3">📱 Your eScript is on its way</Heading>
+        <Heading as="h3">Your eScript is on its way</Heading>
         <Text small>
           You will receive an eScript token via <strong>SMS</strong> shortly. This is a
           unique code that any pharmacy in Australia can use to dispense your medication.
@@ -58,7 +58,7 @@ export function PrescriptionApprovedEmail({
           items={[
             "Check your phone for the eScript SMS (usually arrives within a few minutes)",
             "Take your phone to any pharmacy",
-            "Show the pharmacist your eScript token — they'll scan the QR code",
+            "Show the pharmacist your eScript token -- they'll scan the QR code",
             "Bring your Medicare card for any PBS-subsidised medications",
           ]}
         />

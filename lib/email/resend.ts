@@ -339,11 +339,7 @@ export async function sendCriticalEmail(
   }
   
   return result
-}
-
-// ============================================
-// SCRIPT SENT EMAIL (used by doctor queue actions)
-// ============================================
+  }
 
 /**
  * Send script sent notification (for prescriptions)
@@ -381,29 +377,24 @@ export async function sendScriptSentEmail(
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
       <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <!-- Header -->
         <div style="text-align: center; margin-bottom: 24px;">
           <img src="${appUrl}/logo.png" alt="InstantMed" style="height: 40px;" />
         </div>
-        
-        <!-- Success Banner -->
+
         <div style="background: linear-gradient(135deg, #dbeafe, #e0e7ff); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
-          <span style="font-size: 48px;">💊</span>
           <h1 style="color: #1e40af; font-size: 24px; margin: 16px 0 0 0;">
             Your prescription has been sent
           </h1>
         </div>
-        
-        <!-- Greeting -->
+
         <p style="font-size: 16px;">Hi ${patientName},</p>
-        
+
         <p style="font-size: 16px;">
           Great news! Your prescription has been approved and your eScript has been sent to your phone via SMS.
         </p>
-        
+
         ${referenceSection}
-        
-        <!-- What's Next -->
+
         <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0;">
           <h3 style="margin: 0 0 12px 0; color: #0A0F1C; font-size: 16px;">What happens next?</h3>
           <ul style="margin: 0; padding-left: 20px; color: #475569;">
@@ -412,27 +403,24 @@ export async function sendScriptSentEmail(
             <li>Your pharmacist will dispense your medication</li>
           </ul>
         </div>
-        
-        <!-- View Request Link -->
+
         <p style="font-size: 14px; color: #666;">
-          You can view your request details on your 
+          You can view your request details on your
           <a href="${appUrl}/patient/intakes/${requestId}" style="color: #00C9A7; font-weight: 500;">patient dashboard</a>.
         </p>
-        
-        <!-- Help -->
+
         <p style="font-size: 14px; color: #666; margin-top: 24px;">
-          Questions? Just reply to this email or visit our 
+          Questions? Just reply to this email or visit our
           <a href="${appUrl}/contact" style="color: #00C9A7;">help center</a>.
         </p>
-        
-        <!-- Footer -->
+
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
-        
+
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-          InstantMed Pty Ltd · ABN 64 694 559 334 · Sydney, Australia<br>
-          <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> · 
-          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> ·
-          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a> ·
+          InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Sydney, Australia<br>
+          <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> &middot;
+          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> &middot;
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a> &middot;
           <a href="${appUrl}/unsubscribe" style="color: #9ca3af;">Unsubscribe</a>
         </p>
       </div>
@@ -450,3 +438,4 @@ export async function sendScriptSentEmail(
     ],
   })
 }
+

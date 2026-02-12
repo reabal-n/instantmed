@@ -52,6 +52,12 @@ const STEP_TIME_ESTIMATES: Record<string, number> = {
   'checkout': 60,
 }
 
+interface HealthProfilePrefill {
+  allergies?: string[]
+  conditions?: string[]
+  current_medications?: string[]
+}
+
 interface RequestFlowProps {
   /** Service from URL param. null = invalid param was provided */
   initialService: UnifiedServiceType | null
@@ -68,6 +74,8 @@ interface RequestFlowProps {
   userEmail?: string
   /** User name for pre-filling */
   userName?: string
+  /** Health profile data for pre-filling medical history steps */
+  healthProfile?: HealthProfilePrefill | null
 }
 
 function ProgressBar({ 
@@ -92,35 +100,42 @@ function ProgressBar({
             type="button"
             onClick={() => isClickable && onStepClick(step.id, i)}
             disabled={!isClickable}
-            className={`flex-1 group ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`flex-1 group min-h-[44px] sm:min-h-0 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
             aria-current={isCurrent ? 'step' : undefined}
             aria-label={`${step.shortLabel}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
           >
-            {/* Progress bar segment */}
+            {/* Progress bar segment -- taller on mobile for better touch targets */}
             <div className="relative">
               <div 
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-2 sm:h-1.5 rounded-full transition-all duration-300 ${
                   i <= currentIndex ? "bg-primary" : "bg-muted"
                 } ${isClickable && !isCurrent ? "group-hover:bg-primary/70" : ""}`} 
               />
-              {/* Checkmark for completed steps */}
+              {/* Checkmark for completed steps -- hidden on mobile, dot indicator instead */}
               {isCompleted && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-primary flex items-center justify-center"
-                >
-                  <Check className="w-1.5 h-1.5 text-primary-foreground" strokeWidth={3} />
-                </motion.div>
+                <>
+                  {/* Mobile: small dot */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary sm:hidden"
+                  />
+                  {/* Desktop: checkmark */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary items-center justify-center hidden sm:flex"
+                  >
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                  </motion.div>
+                </>
               )}
             </div>
-            {/* Label - hidden on very small screens, shows abbreviated on small */}
+            {/* Label - hidden on mobile, visible on sm+ */}
             <span 
-              className={`text-[10px] mt-1.5 block text-center font-medium transition-colors truncate ${
+              className={`text-[10px] mt-1.5 text-center font-medium transition-colors truncate hidden sm:block ${
                 i <= currentIndex ? "text-foreground" : "text-muted-foreground"
-              } ${isClickable && !isCurrent ? "group-hover:text-primary" : ""} ${
-                isCompleted ? "hidden xs:block" : ""
-              }`}
+              } ${isClickable && !isCurrent ? "group-hover:text-primary" : ""}`}
             >
               {step.shortLabel}
             </span>
@@ -299,6 +314,7 @@ export function RequestFlow({
   hasMedicare,
   userEmail,
   userName,
+  healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
   const posthog = usePostHog()
@@ -358,6 +374,25 @@ export function RequestFlow({
       })
     }
   }, [userEmail, userName, answers.email, setIdentity])
+
+  // Pre-fill medical history from health profile
+  useEffect(() => {
+    if (!healthProfile) return
+    // Only pre-fill if the fields haven't been filled yet
+    if (healthProfile.allergies?.length && !answers.known_allergies) {
+      setAnswer('known_allergies', healthProfile.allergies.join(', '))
+      setAnswer('has_allergies', 'yes')
+    }
+    if (healthProfile.conditions?.length && !answers.existing_conditions) {
+      setAnswer('existing_conditions', healthProfile.conditions.join(', '))
+      setAnswer('has_conditions', 'yes')
+    }
+    if (healthProfile.current_medications?.length && !answers.current_medications) {
+      setAnswer('current_medications', healthProfile.current_medications.join(', '))
+      setAnswer('takes_medications', 'yes')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [healthProfile])
 
   // Initialize service type from URL param
   // IMPORTANT: URL param is the source of truth for which service to show
@@ -782,12 +817,13 @@ export function RequestFlow({
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
-        <div className="container max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="container max-w-lg mx-auto px-4 h-14 sm:h-14 flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handleBack}
             aria-label="Go back"
+            className="h-11 w-11 sm:h-10 sm:w-10"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -807,6 +843,7 @@ export function RequestFlow({
             size="icon" 
             onClick={handleExitWithConfirm}
             aria-label="Exit"
+            className="h-11 w-11 sm:h-10 sm:w-10"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -837,7 +874,7 @@ export function RequestFlow({
       {/* Content with swipe gestures */}
       <motion.main 
         ref={contentRef}
-        className="container max-w-lg mx-auto px-4 py-6 touch-pan-y"
+        className="container max-w-lg mx-auto px-4 py-6 pb-28 sm:pb-6 touch-pan-y"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
@@ -900,6 +937,28 @@ export function RequestFlow({
           )}
         </AnimatePresence>
       </motion.main>
+
+      {/* Sticky bottom CTA bar for mobile */}
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t p-4 sm:hidden safe-area-bottom">
+        <div className="container max-w-lg mx-auto flex items-center gap-3">
+          {currentStepIndex > 0 && (
+            <Button 
+              variant="outline" 
+              size="lg" 
+              onClick={handleBack}
+              className="h-12 px-5"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          )}
+          <div className="flex-1 text-center">
+            <p className="text-xs text-muted-foreground">
+              Step {currentStepIndex + 1} of {activeSteps.length}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

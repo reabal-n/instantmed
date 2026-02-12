@@ -28,19 +28,19 @@ const faqCategories = [
       },
       {
         q: "Is this service legal and legitimate?",
-        a: "100% legitimate. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified GPs who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
+        a: "100% legitimate. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified doctors who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
       },
       {
         q: "How long does it take?",
         a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can&apos;t help you, you get a full refund.",
       },
       {
-        q: "How do I know if I need a GP visit instead?",
+        q: "How do I know if I need an in-person visit instead?",
         a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that&apos;s the case.",
       },
       {
         q: "How does the doctor decide on my request?",
-        a: "A real GP reviews your symptoms, medical history, and request — just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
+        a: "A real doctor reviews your symptoms, medical history, and request — just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
       },
       {
         q: "Why was my request declined?",
@@ -58,7 +58,7 @@ const faqCategories = [
     faqs: [
       {
         q: "Will my employer actually accept this?",
-        a: "Yes. Our medical certificates are issued by registered Australian GPs and are legally valid for all workplaces, universities, and Centrelink. They're identical in validity to certificates issued in-person.",
+        a: "Yes. Our medical certificates are issued by registered Australian doctors and are legally valid for all workplaces, universities, and Centrelink. They're identical in validity to certificates issued in-person.",
       },
       {
         q: "Can I get a backdated certificate?",
@@ -66,7 +66,7 @@ const faqCategories = [
       },
       {
         q: "What if my request is declined?",
-        a: "If the doctor determines a certificate isn&apos;t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a GP in person for a more thorough assessment.",
+        a: "If the doctor determines a certificate isn&apos;t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a doctor in person for a more thorough assessment.",
       },
       {
         q: "What if I need more than 2 days off?",

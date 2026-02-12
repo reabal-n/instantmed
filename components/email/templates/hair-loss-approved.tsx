@@ -46,7 +46,7 @@ export function HairLossApprovedEmail({
       previewText={`Your hair loss treatment for ${medicationName} has been approved`}
       appUrl={appUrl}
     >
-      <SuccessBanner icon="✅" title="Treatment approved" />
+      <SuccessBanner title="Treatment approved" />
 
       <Text>Hi {patientName},</Text>
 
@@ -56,7 +56,7 @@ export function HairLossApprovedEmail({
       </Text>
 
       <Box variant="info">
-        <Heading as="h3">📱 eScript arriving via SMS</Heading>
+        <Heading as="h3">eScript arriving via SMS</Heading>
         <Text small>
           Take your phone to any pharmacy. The pharmacist will scan your eScript QR code
           to dispense your medication.

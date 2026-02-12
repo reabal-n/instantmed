@@ -20,10 +20,10 @@ export default async function NotificationsPage() {
 
   const supabase = createServiceRoleClient()
 
-  // Get profile with notification preferences
+  // Get profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, first_name, notification_preferences")
+    .select("id, full_name, first_name")
     .eq("auth_user_id", userId)
     .single()
 

@@ -620,7 +620,7 @@ export const weightSafetyConfig: SafetyRulesConfig = {
 }
 
 export const consultSafetyConfig: SafetyRulesConfig = {
-  serviceSlug: 'gp-consult',
+  serviceSlug: 'consult',
   version: '1.0',
   rules: consultRules,
   defaultOutcome: 'ALLOW',
@@ -653,8 +653,8 @@ export const safetyConfigs: Record<string, SafetyRulesConfig> = {
   'weight-loss': weightSafetyConfig,
   
   // Consultations
-  'gp-consult': consultSafetyConfig,
   consult: consultSafetyConfig,
+  'gp-consult': consultSafetyConfig, // backward compat
   consultation: consultSafetyConfig,
 }
 

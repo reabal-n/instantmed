@@ -2,19 +2,14 @@
  * Medical Certificate PDF Template
  * 
  * React-PDF component for rendering professional medical certificates.
- * A4 single-page layout with:
- * - InstantMed logo
- * - Patient details (name, DOB)
- * - Certificate period (from/to dates)
- * - Certificate type-specific text
- * - Doctor signature block
- * - Provider information
+ * A4 single-page layout with refined, premium typography.
+ * 
+ * Design: Clean, authoritative, minimal. No color gradients.
+ * Uses dark text with subtle blue accent for structure.
  * 
  * Note: ESLint jsx-a11y/alt-text disabled for React-PDF Image components
  * which don't support alt prop (not rendered to HTML).
  */
-
- 
 
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
 import type { MedCertDraft } from "@/types/db"
@@ -26,91 +21,96 @@ import {
   type CertificateTextType,
 } from "@/lib/certificate-defaults"
 
-// Professional color scheme
+// Professional color scheme - refined
 const colors = {
-  primary: "#0F172A",      // Dark blue
-  secondary: "#64748B",    // Gray-blue
-  accent: "#06B6D4",       // Cyan
-  border: "#E2E8F0",       // Light gray
+  primary: "#111827",       // Near black
+  secondary: "#6B7280",    // Gray
+  accent: "#2563EB",       // Blue
+  accentLight: "#EFF6FF",  // Light blue bg
+  border: "#E5E7EB",       // Light gray border
+  borderDark: "#D1D5DB",   // Medium border
   white: "#FFFFFF",
-  text: "#1E293B",
-  lightText: "#64748B",
+  text: "#111827",
+  textSecondary: "#4B5563",
+  textMuted: "#9CA3AF",
+  surface: "#F9FAFB",
 }
 
-// PDF Styles
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 40,
-    paddingRight: 50,
-    paddingBottom: 50,
-    paddingLeft: 50,
+    paddingTop: 48,
+    paddingRight: 56,
+    paddingBottom: 56,
+    paddingLeft: 56,
     fontFamily: "Helvetica",
-    fontSize: 11,
+    fontSize: 10,
     color: colors.text,
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
   
   // Header
   header: {
-    marginBottom: 30,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.accent,
-    paddingBottom: 15,
+    marginBottom: 28,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
   
   logo: {
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
   },
   
   headerText: {
     flex: 1,
-    marginLeft: 20,
+    marginLeft: 16,
   },
   
   clinicName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: colors.primary,
-    marginBottom: 3,
+    marginBottom: 2,
+    letterSpacing: -0.3,
   },
   
   clinicSubtitle: {
-    fontSize: 9,
-    color: colors.lightText,
+    fontSize: 8,
+    color: colors.textMuted,
+    letterSpacing: 0.2,
   },
   
   // Title
   title: {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: "bold",
     color: colors.primary,
     textAlign: "center",
-    marginBottom: 25,
-    marginTop: 10,
+    marginBottom: 24,
+    marginTop: 8,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   
   // Content sections
   section: {
-    marginBottom: 18,
+    marginBottom: 16,
   },
   
   sectionLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
-    color: colors.secondary,
+    color: colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 6,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   
   sectionContent: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.text,
     marginBottom: 4,
   },
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   patientGrid: {
     flexDirection: "row",
     marginBottom: 8,
-    gap: 20,
+    gap: 24,
   },
   
   patientField: {
@@ -127,26 +127,32 @@ const styles = StyleSheet.create({
   },
   
   patientLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: "bold",
-    color: colors.secondary,
+    color: colors.textMuted,
     textTransform: "uppercase",
-    marginBottom: 2,
+    marginBottom: 3,
+    letterSpacing: 0.5,
   },
   
   patientValue: {
     fontSize: 11,
     color: colors.text,
+    fontWeight: "bold",
   },
   
   // Date range
   dateRange: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingTop: 12,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingLeft: 14,
+    paddingRight: 14,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   
   dateField: {
@@ -154,11 +160,12 @@ const styles = StyleSheet.create({
   },
   
   dateLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: "bold",
-    color: colors.secondary,
+    color: colors.textMuted,
     textTransform: "uppercase",
-    marginBottom: 2,
+    marginBottom: 3,
+    letterSpacing: 0.5,
   },
   
   dateValue: {
@@ -169,54 +176,55 @@ const styles = StyleSheet.create({
   
   // Statement
   statement: {
-    marginTop: 15,
-    marginBottom: 15,
-    paddingTop: 12,
-    paddingRight: 12,
-    paddingBottom: 12,
-    paddingLeft: 12,
-    backgroundColor: "#F8FAFC",
-    borderLeftWidth: 3,
+    marginTop: 12,
+    marginBottom: 16,
+    paddingTop: 14,
+    paddingRight: 16,
+    paddingBottom: 14,
+    paddingLeft: 16,
+    backgroundColor: colors.surface,
+    borderLeftWidth: 2,
     borderLeftColor: colors.accent,
   },
   
   statementText: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.text,
-    lineHeight: 1.6,
+    lineHeight: 1.7,
     textAlign: "justify",
   },
   
   // Reason section
   reasonBox: {
-    marginBottom: 15,
+    marginBottom: 12,
     paddingTop: 10,
-    paddingRight: 10,
+    paddingRight: 14,
     paddingBottom: 10,
-    paddingLeft: 10,
+    paddingLeft: 14,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: "#FAFBFC",
+    backgroundColor: colors.white,
   },
   
   reasonLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: "bold",
-    color: colors.secondary,
+    color: colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 4,
+    letterSpacing: 0.5,
   },
   
   reasonText: {
     fontSize: 10,
-    color: colors.text,
+    color: colors.textSecondary,
     fontStyle: "italic",
   },
   
   // Signature block
   signatureBlock: {
-    marginTop: 25,
-    paddingTop: 15,
+    marginTop: 28,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -224,7 +232,7 @@ const styles = StyleSheet.create({
   signatureImage: {
     width: 100,
     height: 40,
-    marginBottom: 5,
+    marginBottom: 6,
   },
   
   doctorName: {
@@ -235,40 +243,39 @@ const styles = StyleSheet.create({
   },
   
   doctorCredentials: {
-    fontSize: 9,
-    color: colors.lightText,
+    fontSize: 8,
+    color: colors.textMuted,
     marginBottom: 8,
+    letterSpacing: 0.2,
   },
   
   providerInfo: {
-    fontSize: 9,
-    color: colors.lightText,
+    fontSize: 8,
+    color: colors.textMuted,
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+    lineHeight: 1.6,
   },
   
   // Footer
   footer: {
-    marginTop: 20,
+    marginTop: 24,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    fontSize: 8,
-    color: colors.lightText,
+    fontSize: 7,
+    color: colors.textMuted,
     textAlign: "center",
+    letterSpacing: 0.3,
   },
   
-  // Spacer
   spacer: {
     marginBottom: 10,
   },
 })
 
-/**
- * Format date to Australian format (DD/MM/YYYY)
- */
 function formatDate(date: string | null | undefined): string {
   if (!date) return ""
   try {
@@ -283,9 +290,6 @@ function formatDate(date: string | null | undefined): string {
   }
 }
 
-/**
- * Get statement text based on certificate type
- */
 function getCertificateStatement(
   type: "work" | "uni" | "carer" | null | undefined,
   patientName: string | null | undefined,
@@ -307,14 +311,11 @@ function getCertificateStatement(
   return statements[type as keyof typeof statements] || statements.work
 }
 
-/**
- * Get certificate type title
- */
 function getCertificateTitle(type: "work" | "uni" | "carer" | null | undefined): string {
   const titles = {
-    work: "Medical Certificate - Work Absence",
-    uni: "Medical Certificate - Educational Institution",
-    carer: "Medical Certificate - Carer's Leave",
+    work: "Medical Certificate",
+    uni: "Medical Certificate",
+    carer: "Medical Certificate",
   }
   return titles[type as keyof typeof titles] || titles.work
 }
@@ -335,19 +336,15 @@ export function MedicalCertificateTemplate({
 }) {
   const certificateType = draft.certificate_type || "work"
   
-  // Get certificate text type
   const certTextType: CertificateTextType = certificateType === "uni" ? "study" : certificateType as CertificateTextType
   
-  // Get custom text from template config, with defaults
   const customText = getCertificateTextWithDefaults(
     certTextType,
     templateConfig?.certificateText?.[certTextType]
   )
   
-  // Use custom title or fall back to default
   const title = customText.title || getCertificateTitle(certificateType)
   
-  // Use custom attestation or generate statement
   const statement = customText.attestation || getCertificateStatement(
     certificateType,
     draft.patient_full_name,
@@ -356,18 +353,24 @@ export function MedicalCertificateTemplate({
     draft.reason_summary
   )
   
-  // Split statement into paragraphs
   const statementParagraphs = textToParagraphs(statement)
   
-  // Seal configuration
   const sealConfig = templateConfig?.seal
   const showSeal = sealConfig?.show ?? true
   const sealSize = SEAL_SIZE_VALUES[sealConfig?.size ?? "sm"]
 
+  // Certificate type subtitle
+  const typeSubtitles = {
+    work: "Work Absence",
+    uni: "Educational Institution",
+    carer: "Carer's Leave",
+  }
+  const subtitle = typeSubtitles[certificateType as keyof typeof typeSubtitles] || "Work Absence"
+
   return (
     <Document title={title} producer="InstantMed">
       <Page size="A4" style={styles.page}>
-        {/* Header with Logo */}
+        {/* Header */}
         <View style={styles.header}>
           <Image src={logoUrl} style={styles.logo} />
           <View style={styles.headerText}>
@@ -378,18 +381,29 @@ export function MedicalCertificateTemplate({
 
         {/* Title */}
         <Text style={styles.title}>{title}</Text>
+        <Text style={{
+          fontSize: 9,
+          color: colors.textMuted,
+          textAlign: "center",
+          marginTop: -18,
+          marginBottom: 24,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+        }}>
+          {subtitle}
+        </Text>
 
         {/* Patient Information */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Patient Information</Text>
           <View style={styles.patientGrid}>
             <View style={styles.patientField}>
-              <Text style={styles.patientLabel}>Name</Text>
-              <Text style={styles.patientValue}>{draft.patient_full_name || "—"}</Text>
+              <Text style={styles.patientLabel}>Full Name</Text>
+              <Text style={styles.patientValue}>{draft.patient_full_name || "\u2014"}</Text>
             </View>
             <View style={styles.patientField}>
               <Text style={styles.patientLabel}>Date of Birth</Text>
-              <Text style={styles.patientValue}>{formatDate(draft.patient_dob) || "—"}</Text>
+              <Text style={styles.patientValue}>{formatDate(draft.patient_dob) || "\u2014"}</Text>
             </View>
           </View>
         </View>
@@ -398,11 +412,11 @@ export function MedicalCertificateTemplate({
         <View style={styles.dateRange}>
           <View style={styles.dateField}>
             <Text style={styles.dateLabel}>Period From</Text>
-            <Text style={styles.dateValue}>{formatDate(draft.date_from) || "—"}</Text>
+            <Text style={styles.dateValue}>{formatDate(draft.date_from) || "\u2014"}</Text>
           </View>
           <View style={styles.dateField}>
             <Text style={styles.dateLabel}>Period To</Text>
-            <Text style={styles.dateValue}>{formatDate(draft.date_to) || "—"}</Text>
+            <Text style={styles.dateValue}>{formatDate(draft.date_to) || "\u2014"}</Text>
           </View>
         </View>
 
@@ -414,7 +428,7 @@ export function MedicalCertificateTemplate({
           </View>
         )}
 
-        {/* Medical Statement / Attestation */}
+        {/* Medical Statement */}
         <View style={styles.statement}>
           {statementParagraphs.map((paragraph, index) => (
             <Text key={index} style={index > 0 ? [styles.statementText, { marginTop: 8 }] : styles.statementText}>
@@ -445,16 +459,11 @@ export function MedicalCertificateTemplate({
 
         {/* Signature Block */}
         <View style={styles.signatureBlock}>
-          {/* Signature Image */}
           {draft.signature_asset_url && (
             <Image src={draft.signature_asset_url} style={styles.signatureImage} />
           )}
-
-          {/* Doctor Name and Credentials */}
           <Text style={styles.doctorName}>{draft.doctor_typed_name}</Text>
-          <Text style={styles.doctorCredentials}>AHPRA Number: {draft.doctor_ahpra}</Text>
-
-          {/* Provider Info */}
+          <Text style={styles.doctorCredentials}>AHPRA: {draft.doctor_ahpra}</Text>
           <Text style={styles.providerInfo}>
             {draft.provider_name}
             {"\n"}
@@ -464,7 +473,7 @@ export function MedicalCertificateTemplate({
 
         {/* Seal */}
         {showSeal && sealUrl && (
-          <View style={{ position: "absolute", bottom: 60, right: 50, opacity: 0.6 }}>
+          <View style={{ position: "absolute", bottom: 60, right: 56, opacity: 0.5 }}>
             <Image src={sealUrl} style={{ width: sealSize, height: sealSize }} />
           </View>
         )}
@@ -472,6 +481,7 @@ export function MedicalCertificateTemplate({
         {/* Footer */}
         <View style={styles.footer}>
           <Text>This medical certificate is issued in accordance with Australian medical standards.</Text>
+          <Text style={{ marginTop: 3 }}>Generated by InstantMed Telehealth Services</Text>
         </View>
       </Page>
     </Document>

@@ -3,39 +3,46 @@
  * 
  * Provides consistent header/footer/typography across all transactional emails.
  * Optimized for email client compatibility (inline styles, table-based layout).
+ * 
+ * Design: Clean, minimal, professional. No gradients on body elements.
+ * Brand color: #1A1A1A (dark) with #3B82F6 (blue) accent.
  */
 
 import * as React from "react"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
-// Brand colors
+// Brand colors - refined, premium palette
 const colors = {
-  primary: "#00C9A7",       // InstantMed teal
-  primaryDark: "#00A88A",
-  background: "#f9fafb",
+  primary: "#1A1A1A",
+  accent: "#3B82F6",
+  accentLight: "#EFF6FF",
+  background: "#F8F9FA",
   cardBg: "#ffffff",
-  text: "#1f2937",
-  textMuted: "#6b7280",
-  textLight: "#9ca3af",
-  border: "#e5e7eb",
-  success: "#166534",
-  successBg: "#dcfce7",
-  successBorder: "#bbf7d0",
-  info: "#1e40af",
-  infoBg: "#dbeafe",
-  warning: "#92400e",
-  warningBg: "#fef3c7",
-  error: "#991b1b",
-  errorBg: "#fef2f2",
+  text: "#1A1A1A",
+  textSecondary: "#4B5563",
+  textMuted: "#9CA3AF",
+  border: "#E5E7EB",
+  borderLight: "#F3F4F6",
+  success: "#059669",
+  successBg: "#ECFDF5",
+  successBorder: "#A7F3D0",
+  info: "#2563EB",
+  infoBg: "#EFF6FF",
+  infoBorder: "#BFDBFE",
+  warning: "#D97706",
+  warningBg: "#FFFBEB",
+  warningBorder: "#FDE68A",
+  error: "#DC2626",
+  errorBg: "#FEF2F2",
+  errorBorder: "#FECACA",
 }
 
-// Shared styles
 const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
 interface BaseEmailProps {
   children: React.ReactNode
-  previewText?: string  // Hidden preview text for email clients
+  previewText?: string
   appUrl?: string
 }
 
@@ -60,7 +67,6 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
           WebkitTextSizeAdjust: "100%",
         }}
       >
-        {/* Preview text (hidden) */}
         {previewText && (
           <div
             style={{
@@ -73,55 +79,46 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
             }}
           >
             {previewText}
-            {/* Invisible characters to prevent email clients from showing body preview */}
             {"\u00A0\u200C".repeat(100)}
           </div>
         )}
 
-        {/* Main container */}
         <table
           role="presentation"
           cellPadding="0"
           cellSpacing="0"
-          style={{
-            width: "100%",
-            backgroundColor: colors.background,
-          }}
+          style={{ width: "100%", backgroundColor: colors.background }}
         >
           <tbody>
             <tr>
-              <td style={{ padding: "24px 16px" }}>
-                {/* Content card */}
+              <td style={{ padding: "40px 16px" }}>
                 <table
                   role="presentation"
                   cellPadding="0"
                   cellSpacing="0"
                   style={{
-                    maxWidth: "600px",
+                    maxWidth: "560px",
                     margin: "0 auto",
                     backgroundColor: colors.cardBg,
-                    borderRadius: "16px",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    borderRadius: "12px",
+                    border: `1px solid ${colors.border}`,
                     overflow: "hidden",
                   }}
                 >
                   <tbody>
                     {/* Header */}
                     <tr>
-                      <td style={{ padding: "32px 32px 24px 32px", textAlign: "center" }}>
+                      <td style={{ padding: "28px 32px 20px 32px" }}>
                         <a
                           href={appUrl}
-                          style={{
-                            textDecoration: "none",
-                            display: "inline-block",
-                          }}
+                          style={{ textDecoration: "none", display: "inline-block" }}
                         >
                           <span
                             style={{
-                              fontSize: "28px",
+                              fontSize: "18px",
                               fontWeight: "700",
                               color: colors.primary,
-                              letterSpacing: "-0.5px",
+                              letterSpacing: "-0.3px",
                             }}
                           >
                             InstantMed
@@ -130,9 +127,16 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                       </td>
                     </tr>
 
+                    {/* Divider */}
+                    <tr>
+                      <td style={{ padding: "0 32px" }}>
+                        <div style={{ borderTop: `1px solid ${colors.borderLight}` }} />
+                      </td>
+                    </tr>
+
                     {/* Content */}
                     <tr>
-                      <td style={{ padding: "0 32px 32px 32px" }}>
+                      <td style={{ padding: "24px 32px 32px 32px" }}>
                         {children}
                       </td>
                     </tr>
@@ -141,9 +145,9 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                     <tr>
                       <td
                         style={{
-                          padding: "24px 32px",
-                          borderTop: `1px solid ${colors.border}`,
-                          backgroundColor: "#fafafa",
+                          padding: "20px 32px",
+                          borderTop: `1px solid ${colors.borderLight}`,
+                          backgroundColor: "#FAFAFA",
                         }}
                       >
                         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
@@ -152,35 +156,36 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                               <td style={{ textAlign: "center" }}>
                                 <p
                                   style={{
-                                    margin: "0 0 12px 0",
-                                    fontSize: "13px",
-                                    color: colors.textLight,
+                                    margin: "0 0 8px 0",
+                                    fontSize: "12px",
+                                    color: colors.textMuted,
+                                    lineHeight: "1.6",
                                   }}
                                 >
-                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
                                     Privacy
                                   </a>
-                                  {" · "}
-                                  <a href={`${appUrl}/terms`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  {"  ·  "}
+                                  <a href={`${appUrl}/terms`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
                                     Terms
                                   </a>
-                                  {" · "}
-                                  <a href={`${appUrl}/contact`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  {"  ·  "}
+                                  <a href={`${appUrl}/contact`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
                                     Contact
                                   </a>
-                                  {" · "}
-                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textMuted, textDecoration: "none" }}>
-                                    Email Preferences
+                                  {"  ·  "}
+                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
+                                    Preferences
                                   </a>
                                 </p>
                                 <p
                                   style={{
                                     margin: 0,
-                                    fontSize: "12px",
-                                    color: colors.textLight,
+                                    fontSize: "11px",
+                                    color: colors.textMuted,
                                   }}
                                 >
-                                  InstantMed Pty Ltd · Australia
+                                  InstantMed Pty Ltd · ABN 64 694 559 334 · Australia
                                 </p>
                               </td>
                             </tr>
@@ -199,7 +204,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
   )
 }
 
-// Reusable email components
+// --- Reusable Email Components ---
 
 interface HeadingProps {
   children: React.ReactNode
@@ -208,9 +213,9 @@ interface HeadingProps {
 
 export function Heading({ children, as = "h1" }: HeadingProps) {
   const sizes = {
-    h1: { fontSize: "24px", marginBottom: "16px" },
-    h2: { fontSize: "20px", marginBottom: "12px" },
-    h3: { fontSize: "16px", marginBottom: "8px" },
+    h1: { fontSize: "22px", marginBottom: "16px" },
+    h2: { fontSize: "18px", marginBottom: "12px" },
+    h3: { fontSize: "15px", marginBottom: "8px" },
   }
   const Tag = as
   return (
@@ -220,7 +225,8 @@ export function Heading({ children, as = "h1" }: HeadingProps) {
         fontSize: sizes[as].fontSize,
         fontWeight: "600",
         color: colors.text,
-        lineHeight: "1.3",
+        lineHeight: "1.35",
+        letterSpacing: "-0.2px",
       }}
     >
       {children}
@@ -240,8 +246,8 @@ export function Text({ children, muted, small, style }: TextProps) {
     <p
       style={{
         margin: "0 0 16px 0",
-        fontSize: small ? "14px" : "16px",
-        color: muted ? colors.textMuted : colors.text,
+        fontSize: small ? "13px" : "15px",
+        color: muted ? colors.textMuted : colors.textSecondary,
         lineHeight: "1.6",
         ...style,
       }}
@@ -268,19 +274,21 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
               href={href}
               style={{
                 display: "inline-block",
-                padding: "14px 28px",
-                fontSize: "16px",
+                padding: isPrimary ? "12px 24px" : "10px 20px",
+                fontSize: "14px",
                 fontWeight: "600",
                 textDecoration: "none",
-                borderRadius: "999px",
+                borderRadius: "8px",
+                letterSpacing: "0.01em",
                 ...(isPrimary
                   ? {
-                      background: `linear-gradient(135deg, #00E2B5, ${colors.primary})`,
-                      color: "#0A0F1C",
+                      backgroundColor: colors.primary,
+                      color: "#ffffff",
                     }
                   : {
-                      backgroundColor: "#f3f4f6",
+                      backgroundColor: colors.borderLight,
                       color: colors.text,
+                      border: `1px solid ${colors.border}`,
                     }),
               }}
             >
@@ -300,11 +308,11 @@ interface BoxProps {
 
 export function Box({ children, variant = "default" }: BoxProps) {
   const variantStyles = {
-    default: { backgroundColor: "#f8fafc", borderColor: colors.border },
+    default: { backgroundColor: "#F9FAFB", borderColor: colors.border },
     success: { backgroundColor: colors.successBg, borderColor: colors.successBorder },
-    info: { backgroundColor: colors.infoBg, borderColor: "#bfdbfe" },
-    warning: { backgroundColor: colors.warningBg, borderColor: "#fde68a" },
-    error: { backgroundColor: colors.errorBg, borderColor: "#fecaca" },
+    info: { backgroundColor: colors.infoBg, borderColor: colors.infoBorder },
+    warning: { backgroundColor: colors.warningBg, borderColor: colors.warningBorder },
+    error: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
   }
   const styles = variantStyles[variant]
   return (
@@ -312,9 +320,9 @@ export function Box({ children, variant = "default" }: BoxProps) {
       style={{
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
-        borderRadius: "12px",
-        padding: "20px",
-        margin: "24px 0",
+        borderRadius: "8px",
+        padding: "16px",
+        margin: "20px 0",
       }}
     >
       {children}
@@ -322,35 +330,51 @@ export function Box({ children, variant = "default" }: BoxProps) {
   )
 }
 
-interface SuccessBannerProps {
+interface StatusBannerProps {
+  title: string
+  variant?: "success" | "info" | "warning"
+}
+
+export function StatusBanner({ title, variant = "success" }: StatusBannerProps) {
+  const config = {
+    success: { bg: colors.successBg, border: colors.successBorder, color: colors.success, icon: "check_circle" },
+    info: { bg: colors.infoBg, border: colors.infoBorder, color: colors.info, icon: "info" },
+    warning: { bg: colors.warningBg, border: colors.warningBorder, color: colors.warning, icon: "warning" },
+  }
+  const c = config[variant]
+  return (
+    <div
+      style={{
+        backgroundColor: c.bg,
+        border: `1px solid ${c.border}`,
+        borderRadius: "8px",
+        padding: "16px 20px",
+        marginBottom: "24px",
+      }}
+    >
+      <p
+        style={{
+          color: c.color,
+          fontSize: "15px",
+          margin: 0,
+          fontWeight: "600",
+          lineHeight: "1.4",
+        }}
+      >
+        {title}
+      </p>
+    </div>
+  )
+}
+
+// Keep SuccessBanner for backwards compatibility
+interface SuccessBannerProps2 {
   icon?: string
   title: string
 }
 
-export function SuccessBanner({ icon = "✓", title }: SuccessBannerProps) {
-  return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, #dcfce7, #d1fae5)",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "24px",
-        textAlign: "center",
-      }}
-    >
-      <span style={{ fontSize: "48px", display: "block", marginBottom: "8px" }}>{icon}</span>
-      <h1
-        style={{
-          color: colors.success,
-          fontSize: "24px",
-          margin: 0,
-          fontWeight: "600",
-        }}
-      >
-        {title}
-      </h1>
-    </div>
-  )
+export function SuccessBanner({ title }: SuccessBannerProps2) {
+  return <StatusBanner title={title} variant="success" />
 }
 
 interface VerificationCodeProps {
@@ -361,25 +385,25 @@ interface VerificationCodeProps {
 export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
   return (
     <Box variant="success">
-      <p style={{ margin: "0 0 8px 0", fontSize: "14px", color: colors.success, fontWeight: "600" }}>
+      <p style={{ margin: "0 0 6px 0", fontSize: "12px", color: colors.success, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>
         Verification Code
       </p>
       <p
         style={{
           margin: 0,
-          fontSize: "22px",
+          fontSize: "20px",
           fontFamily: "monospace",
           fontWeight: "bold",
-          color: "#15803d",
-          letterSpacing: "2px",
+          color: colors.success,
+          letterSpacing: "3px",
         }}
       >
         {code}
       </p>
       {verifyUrl && (
-        <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: colors.success }}>
+        <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: colors.textMuted }}>
           Employers can verify at{" "}
-          <a href={verifyUrl} style={{ color: "#16a34a" }}>
+          <a href={verifyUrl} style={{ color: colors.accent }}>
             {verifyUrl.replace("https://", "")}
           </a>
         </p>
@@ -398,12 +422,13 @@ export function List({ items }: ListProps) {
       style={{
         margin: "0",
         paddingLeft: "20px",
-        color: colors.textMuted,
+        color: colors.textSecondary,
         fontSize: "14px",
+        lineHeight: "1.7",
       }}
     >
       {items.map((item, i) => (
-        <li key={i} style={{ marginBottom: i < items.length - 1 ? "8px" : 0 }}>
+        <li key={i} style={{ marginBottom: i < items.length - 1 ? "6px" : 0 }}>
           {item}
         </li>
       ))}

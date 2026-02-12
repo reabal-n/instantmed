@@ -14,6 +14,8 @@ export interface ReferralTemplateData {
 
 /**
  * Pathology/Imaging Referral HTML Template
+ * 
+ * Professional, print-optimized layout that matches the medical certificate style.
  */
 export function generateReferralHTML(data: ReferralTemplateData): string {
   const formatDate = (dateStr: string) => {
@@ -34,203 +36,245 @@ export function generateReferralHTML(data: ReferralTemplateData): string {
     })
   }
 
-  const urgencyColor = {
-    Routine: "#10b981",
-    Urgent: "#f59e0b",
-    ASAP: "#ef4444",
+  const urgencyStyles = {
+    Routine: { bg: "#ecfdf5", text: "#065f46", border: "#a7f3d0" },
+    Urgent: { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
+    ASAP: { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
   }
 
-  return `
-<!DOCTYPE html>
+  const urgency = urgencyStyles[data.urgency]
+
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    @page { margin: 20mm; size: A4; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: 11pt;
-      line-height: 1.5;
-      color: #1a1a1a;
-      padding: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      font-size: 10pt;
+      line-height: 1.55;
+      color: #111827;
+      padding: 0;
       max-width: 800px;
       margin: 0 auto;
     }
+    .page {
+      padding: 40px;
+    }
+
+    /* Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      border-bottom: 2px solid #059669;
-      padding-bottom: 16px;
+      padding-bottom: 20px;
       margin-bottom: 24px;
+      border-bottom: 2px solid #111827;
     }
-    .header h1 {
-      font-size: 20pt;
-      font-weight: 600;
-      color: #047857;
+    .header-title {
+      font-size: 17pt;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.3px;
+    }
+    .header-subtitle {
+      font-size: 9pt;
+      color: #6b7280;
+      margin-top: 2px;
     }
     .urgency-badge {
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 10pt;
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-size: 9pt;
       font-weight: 600;
-      color: white;
-      background: ${urgencyColor[data.urgency]};
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: ${urgency.bg};
+      color: ${urgency.text};
+      border: 1px solid ${urgency.border};
     }
+    .ref-number {
+      font-size: 8pt;
+      color: #9ca3af;
+      text-align: right;
+      margin-top: 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* Sections */
     .section {
       margin-bottom: 20px;
     }
-    .section-title {
-      font-size: 9pt;
+    .section-label {
+      font-size: 8pt;
       font-weight: 600;
-      color: #6b7280;
+      color: #9ca3af;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       margin-bottom: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 4px;
     }
-    .grid {
+    .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 6px 20px;
     }
-    .field {
-      margin-bottom: 8px;
+    .field-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 5px 0;
     }
     .field-label {
       font-size: 9pt;
       color: #6b7280;
-      margin-bottom: 2px;
+      min-width: 100px;
+      flex-shrink: 0;
     }
     .field-value {
       font-weight: 500;
-    }
-    .tests-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 16px 0;
-    }
-    .tests-box h3 {
       font-size: 10pt;
-      color: #047857;
+    }
+
+    /* Content boxes */
+    .content-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .content-box.tests {
+      background: #fafafa;
+      border-color: #d1d5db;
+    }
+    .content-box.clinical {
+      background: #fffdf7;
+      border-color: #e5e7eb;
+    }
+    .content-box-title {
+      font-size: 8pt;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
       margin-bottom: 8px;
     }
-    .clinical-box {
-      background: #fefce8;
-      border: 1px solid #fef08a;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 16px 0;
+    .content-box-body {
+      font-size: 11pt;
+      line-height: 1.6;
     }
+
+    /* Doctor section */
     .doctor-section {
-      margin-top: 30px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e7eb;
       display: flex;
       justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .signature-area {
+      width: 200px;
     }
     .signature-line {
       border-top: 1px solid #9ca3af;
-      width: 200px;
-      margin-top: 50px;
-      padding-top: 8px;
-      font-size: 9pt;
+      padding-top: 6px;
+      margin-top: 48px;
+      font-size: 8pt;
+      color: #9ca3af;
+    }
+    .doctor-details {
+      text-align: right;
+      font-size: 9.5pt;
+    }
+    .doctor-name {
+      font-weight: 600;
+      font-size: 10.5pt;
+    }
+    .doctor-info {
       color: #6b7280;
+      margin-top: 2px;
     }
+
+    /* Footer */
     .footer {
-      margin-top: 30px;
-      font-size: 8pt;
-      color: #9ca3af;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #f3f4f6;
       text-align: center;
-    }
-    .ref {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      font-size: 8pt;
+      font-size: 7.5pt;
       color: #9ca3af;
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
-  <div class="ref">Ref: ${data.referenceNumber}</div>
-
-  <div class="header">
-    <div>
-      <h1>Pathology / Imaging Request</h1>
-      <p style="font-size: 10pt; color: #6b7280;">InstantMed Telehealth Services</p>
-    </div>
-    <span class="urgency-badge">${data.urgency}</span>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Patient Details</div>
-    <div class="grid">
-      <div class="field">
-        <div class="field-label">Full Name</div>
-        <div class="field-value">${data.patientName}</div>
+  <div class="page">
+    <div class="header">
+      <div>
+        <div class="header-title">Pathology / Imaging Request</div>
+        <div class="header-subtitle">InstantMed Telehealth Services</div>
       </div>
-      <div class="field">
-        <div class="field-label">Date of Birth</div>
-        <div class="field-value">${formatDOB(data.dob)}</div>
+      <div style="text-align: right;">
+        <span class="urgency-badge">${data.urgency}</span>
+        <div class="ref-number">${data.referenceNumber}</div>
       </div>
-      ${
-        data.medicareNumber
-          ? `
-      <div class="field">
-        <div class="field-label">Medicare Number</div>
-        <div class="field-value">${data.medicareNumber}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Patient Details</div>
+      <div class="grid-2">
+        <div class="field-row">
+          <span class="field-label">Full Name</span>
+          <span class="field-value">${data.patientName}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Date of Birth</span>
+          <span class="field-value">${formatDOB(data.dob)}</span>
+        </div>
+        ${data.medicareNumber ? `
+        <div class="field-row">
+          <span class="field-label">Medicare No.</span>
+          <span class="field-value">${data.medicareNumber}</span>
+        </div>` : ""}
       </div>
-      `
-          : ""
-      }
     </div>
-  </div>
 
-  <div class="tests-box">
-    <h3>Tests / Investigations Requested</h3>
-    <p style="font-size: 12pt; font-weight: 500;">${data.testsRequested}</p>
-  </div>
-
-  <div class="clinical-box">
-    <div class="section-title" style="border: none; margin-bottom: 8px;">Clinical Indication</div>
-    <p>${data.clinicalIndication}</p>
-  </div>
-
-  ${
-    data.previousTests
-      ? `
-  <div class="section">
-    <div class="section-title">Previous Tests / Relevant History</div>
-    <p>${data.previousTests}</p>
-  </div>
-  `
-      : ""
-  }
-
-  <div class="doctor-section">
-    <div>
-      <div class="signature-line">Requesting Doctor</div>
+    <div class="content-box tests">
+      <div class="content-box-title">Tests / Investigations Requested</div>
+      <div class="content-box-body">${data.testsRequested}</div>
     </div>
-    <div style="text-align: right;">
-      <strong>${data.doctorName}</strong><br>
-      Provider No: ${data.providerNumber}<br>
-      Date: ${formatDate(data.createdDate)}
-    </div>
-  </div>
 
-  <div class="footer">
-    Generated via InstantMed Telehealth • Reference: ${data.referenceNumber}<br>
-    Valid for 12 months from date of issue
+    <div class="content-box clinical">
+      <div class="content-box-title">Clinical Indication</div>
+      <div class="content-box-body">${data.clinicalIndication}</div>
+    </div>
+
+    ${data.previousTests ? `
+    <div class="content-box">
+      <div class="content-box-title">Previous Tests / Relevant History</div>
+      <div class="content-box-body">${data.previousTests}</div>
+    </div>` : ""}
+
+    <div class="doctor-section">
+      <div class="signature-area">
+        <div class="signature-line">Requesting Doctor</div>
+      </div>
+      <div class="doctor-details">
+        <div class="doctor-name">${data.doctorName}</div>
+        <div class="doctor-info">Provider No: ${data.providerNumber}</div>
+        <div class="doctor-info">Date: ${formatDate(data.createdDate)}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Generated via InstantMed Telehealth &middot; Reference: ${data.referenceNumber}<br>
+      Valid for 12 months from date of issue &middot; AHPRA-registered medical practitioner
+    </div>
   </div>
 </body>
-</html>
-  `
+</html>`
 }

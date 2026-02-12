@@ -1,75 +1,103 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AnalyticsDashboardClient } from "./analytics-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
 
 export default async function AnalyticsDashboardPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
+  const authUser = await requireRole(["admin"], { redirectTo: "/" })
 
-  if (!authUser || authUser.profile.role !== "admin") {
+  if (!authUser) {
     redirect("/")
   }
 
   const supabase = createServiceRoleClient()
 
-  // Fetch analytics data
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  // Get intake funnel data - use allSettled to prevent page crash
+  // Fetch all analytics data in parallel using allSettled for resilience
   const results = await Promise.allSettled([
-    // Total page views (from audit logs or approximation)
+    // [0] Page views / sessions from audit logs
     supabase
       .from("audit_logs")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
       .in("action", ["page_view", "session_start"]),
-    
-    // Started intakes (created)
+
+    // [1] Started intakes (created)
     supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString()),
-    
-    // Paid intakes
+
+    // [2] Paid intakes
     supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
       .not("paid_at", "is", null),
-    
-    // Completed intakes
+
+    // [3] Completed intakes
     supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
       .eq("status", "approved"),
-    
-    // Intakes by day (last 30 days)
+
+    // [4] Intakes by day (last 30 days) with payment data
     supabase
       .from("intakes")
-      .select("created_at, status")
+      .select("created_at, status, paid_at, amount_paid")
       .gte("created_at", monthAgo.toISOString())
       .order("created_at", { ascending: true }),
-    
-    // Intakes by service type
+
+    // [5] Intakes by service type
     supabase
       .from("intakes")
       .select("service_type")
       .gte("created_at", monthAgo.toISOString()),
-    
-    // Intakes by UTM source
+
+    // [6] Intakes by UTM source
     supabase
       .from("intakes")
       .select("utm_source, utm_medium, utm_campaign")
       .gte("created_at", monthAgo.toISOString())
       .not("utm_source", "is", null),
+
+    // [7] Revenue data - paid intakes with amount
+    supabase
+      .from("intakes")
+      .select("amount_paid, paid_at, created_at")
+      .not("paid_at", "is", null)
+      .gte("paid_at", monthAgo.toISOString()),
+
+    // [8] Doctor dashboard stats
+    getDoctorDashboardStats(),
+
+    // [9] Monitoring stats (queue health, avg review time)
+    getIntakeMonitoringStats(),
+
+    // [10] This week's paid intakes for weekly revenue
+    supabase
+      .from("intakes")
+      .select("amount_paid")
+      .not("paid_at", "is", null)
+      .gte("paid_at", weekAgo.toISOString()),
+
+    // [11] Today's paid intakes for daily revenue
+    supabase
+      .from("intakes")
+      .select("amount_paid")
+      .not("paid_at", "is", null)
+      .gte("paid_at", today.toISOString()),
   ])
 
-  // Extract results with fallbacks
+  // Extract results with safe fallbacks
   const totalVisitsResult = results[0].status === "fulfilled" ? results[0].value : { count: 0 }
   const startedIntakesResult = results[1].status === "fulfilled" ? results[1].value : { count: 0 }
   const paidIntakesResult = results[2].status === "fulfilled" ? results[2].value : { count: 0 }
@@ -77,18 +105,26 @@ export default async function AnalyticsDashboardPage() {
   const intakesByDayResult = results[4].status === "fulfilled" ? results[4].value : { data: [] }
   const intakesByServiceResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
   const intakesBySourceResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
+  const revenueResult = results[7].status === "fulfilled" ? results[7].value : { data: [] }
+  const dashboardStats = results[8].status === "fulfilled" ? results[8].value : {
+    total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0
+  }
+  const monitoringStats = results[9].status === "fulfilled" ? results[9].value : {
+    todaySubmissions: 0, queueSize: 0, paidCount: 0, pendingCount: 0,
+    approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, oldestInQueueMinutes: null
+  }
+  const weekRevenueResult = results[10].status === "fulfilled" ? results[10].value : { data: [] }
+  const todayRevenueResult = results[11].status === "fulfilled" ? results[11].value : { data: [] }
 
   // Process daily data
-  const dailyData: Record<string, { visits: number; started: number; paid: number; completed: number }> = {}
-  
-  // Initialize last 30 days
+  const dailyData: Record<string, { visits: number; started: number; paid: number; completed: number; revenue: number }> = {}
+
   for (let i = 29; i >= 0; i--) {
     const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
     const key = date.toISOString().split("T")[0]
-    dailyData[key] = { visits: 0, started: 0, paid: 0, completed: 0 }
+    dailyData[key] = { visits: 0, started: 0, paid: 0, completed: 0, revenue: 0 }
   }
 
-  // Fill in intake data
   if (intakesByDayResult.data) {
     for (const intake of intakesByDayResult.data) {
       if (!intake.created_at) continue
@@ -97,6 +133,12 @@ export default async function AnalyticsDashboardPage() {
         dailyData[key].started++
         if (intake.status === "approved") {
           dailyData[key].completed++
+        }
+        if (intake.paid_at) {
+          dailyData[key].paid++
+        }
+        if (intake.amount_paid) {
+          dailyData[key].revenue += Number(intake.amount_paid) || 0
         }
       }
     }
@@ -120,6 +162,17 @@ export default async function AnalyticsDashboardPage() {
     }
   }
 
+  // Calculate revenue totals
+  const monthRevenue = (revenueResult.data || []).reduce(
+    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+  )
+  const weekRevenue = (weekRevenueResult.data || []).reduce(
+    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+  )
+  const todayRevenue = (todayRevenueResult.data || []).reduce(
+    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+  )
+
   const analytics = {
     funnel: {
       visits: totalVisitsResult.count || 0,
@@ -139,6 +192,27 @@ export default async function AnalyticsDashboardPage() {
       source,
       count,
     })),
+    revenue: {
+      today: todayRevenue,
+      thisWeek: weekRevenue,
+      thisMonth: monthRevenue,
+    },
+    queueHealth: {
+      queueSize: monitoringStats.queueSize,
+      avgReviewTimeMinutes: monitoringStats.avgReviewTimeMinutes,
+      oldestInQueueMinutes: monitoringStats.oldestInQueueMinutes,
+      todaySubmissions: monitoringStats.todaySubmissions,
+      approvedToday: monitoringStats.approvedToday,
+      declinedToday: monitoringStats.declinedToday,
+    },
+    overview: {
+      total: dashboardStats.total,
+      inQueue: dashboardStats.in_queue,
+      approved: dashboardStats.approved,
+      declined: dashboardStats.declined,
+      pendingInfo: dashboardStats.pending_info,
+      scriptsPending: dashboardStats.scripts_pending,
+    },
   }
 
   return <AnalyticsDashboardClient analytics={analytics} />

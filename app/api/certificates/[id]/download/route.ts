@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
+import * as Sentry from "@sentry/nextjs"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import {
   getCertificateById,
@@ -117,6 +118,9 @@ export async function GET(
     })
   } catch (error) {
     log.error("Certificate download error", {}, error instanceof Error ? error : undefined)
+    Sentry.captureException(error, {
+      tags: { route: "certificate-download" },
+    })
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

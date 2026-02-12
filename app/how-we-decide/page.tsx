@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "How We Make Decisions | InstantMed",
     description:
-      "Every request is reviewed by a real Australian GP. Here's what they look at and how they decide.",
+      "Every request is reviewed by a real Australian doctor. Here's what they look at and how they decide.",
   },
 }
 
@@ -51,7 +51,7 @@ const reviewFactors = [
     icon: ShieldCheck,
     title: "Clinical guidelines",
     description:
-      "The same rules any GP follows. Some things just need to be done in person. We don&apos;t bend on that.",
+      "The same rules any doctor follows. Some things just need to be done in person. We don&apos;t bend on that.",
   },
 ]
 
@@ -88,7 +88,7 @@ const safetyPoints = [
     icon: UserCheck,
     title: "Real doctors, real accountability",
     description:
-      "Every reviewer is an AHPRA-registered GP. They put their name on every decision.",
+      "Every reviewer is an AHPRA-registered doctor. They put their name on every decision.",
   },
   {
     icon: Heart,

@@ -69,7 +69,7 @@ export function BenefitsSection() {
                 </span>
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
-                We built InstantMed because waiting 3 weeks for a GP appointment is insane. 
+                We built InstantMed because waiting 3 weeks for a doctor appointment is insane. 
                 Get the care you need, when you need it.
               </p>
             </BlurFade>

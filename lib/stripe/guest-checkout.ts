@@ -54,8 +54,8 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
     "medical_certificate:carer": "med-cert-carer",
     "prescription:repeat": "common-scripts",
     "prescription:chronic_review": "common-scripts",
-    "prescription:new": "gp-consult",
-    "consult:general": "gp-consult",
+    "prescription:new": "consult",
+    "consult:general": "consult",
   }
   return slugMap[`${category}:${subtype}`] || slugMap[category] || "common-scripts"
 }
@@ -132,7 +132,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (medCheck.blocked) {
         return {
           success: false,
-          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
         }
       }
     }
@@ -168,7 +168,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (safetyCheck.outcome === 'DECLINE') {
         return {
           success: false,
-          error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular GP.",
+          error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular doctor.",
         }
       }
       

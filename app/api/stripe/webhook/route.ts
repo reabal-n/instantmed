@@ -560,7 +560,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // STEP 5: Send payment notification (non-critical)
+      // STEP 5: Send payment notification + confirmation email (non-critical)
       if (patientId && session.amount_total) {
         const { data: patientProfile } = await supabase
           .from("profiles")
@@ -569,6 +569,7 @@ export async function POST(request: Request) {
           .single()
 
         if (patientProfile?.email) {
+          // 5a: In-app notification
           notifyPaymentReceived({
             intakeId, // Using intakeId for notification tracking
             patientId,
@@ -578,6 +579,44 @@ export async function POST(request: Request) {
           }).catch((err) => {
             log.error("Notification error (non-fatal)", { intakeId }, err)
           })
+
+          // 5b: Send payment_confirmed email via centralized pipeline
+          try {
+            const React = await import("react")
+            const { sendEmail } = await import("@/lib/email/send-email")
+            const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+
+            const serviceName = session.metadata?.service_slug
+              ?.replace(/-/g, " ")
+              ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+              || "medical request"
+
+            const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
+
+            await sendEmail({
+              to: patientProfile.email,
+              toName: patientProfile.full_name || "Patient",
+              subject: `Payment confirmed for your ${serviceName}`,
+              template: React.createElement(PaymentConfirmedEmail, {
+                patientName: patientProfile.full_name || "there",
+                requestType: serviceName,
+                amount: amountFormatted,
+                requestId: intakeId,
+              }),
+              emailType: "payment_confirmed",
+              intakeId,
+              patientId,
+              metadata: {
+                amount_cents: session.amount_total,
+                service_slug: session.metadata?.service_slug,
+              },
+            })
+
+            log.info("Payment confirmed email sent", { intakeId, email: patientProfile.email })
+          } catch (emailErr) {
+            // Non-critical -- logged to outbox for retry by dispatcher
+            log.error("Payment confirmed email error (non-fatal)", { intakeId }, emailErr)
+          }
           
           // STEP 5b: Send guest account completion email if this was a guest checkout
           const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.auth_user_id

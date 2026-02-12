@@ -122,7 +122,7 @@ export function SuccessCelebration({ type = "request", intakeId, showConfetti = 
           {expandedFaq && (
             <div className="mt-2 p-4 rounded-xl bg-muted/30 text-left text-sm text-muted-foreground space-y-3">
               <p>
-                <strong>1. Doctor review</strong> — A real GP (not a bot) will look at your request and make a
+                <strong>1. Doctor review</strong> — A real doctor (not a bot) will look at your request and make a
                 clinical decision.
               </p>
               <p>

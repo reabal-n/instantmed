@@ -126,7 +126,7 @@ export function validateMedCertPayload(
     if (daysDiff > 7) {
       return {
         valid: false,
-        error: "Certificates cannot be backdated more than 7 days. Please see your GP for earlier dates.",
+        error: "Certificates cannot be backdated more than 7 days. Please see your doctor for earlier dates.",
       }
     }
   } catch {

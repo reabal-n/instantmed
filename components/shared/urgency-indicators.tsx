@@ -76,92 +76,83 @@ export function DoctorsOnline({ className, variant = "badge" }: DoctorsOnlinePro
 
 interface QueueDepthProps {
   className?: string
+  /** Actual queue count from server. Only renders when provided. */
+  count?: number
 }
 
-export function QueueDepth({ className }: QueueDepthProps) {
+/**
+ * QueueDepth - Shows real queue position when data is available.
+ * No longer generates fake random numbers. Pass `count` from server data.
+ */
+export function QueueDepth({ className, count }: QueueDepthProps) {
   const isClient = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   )
-  const [depth, setDepth] = useState(() => {
-    const hour = new Date().getHours()
-    const isPeakHour = hour >= 9 && hour <= 17
-    return isPeakHour ? Math.floor(Math.random() * 8) + 3 : Math.floor(Math.random() * 4)
-  })
 
-  useEffect(() => {
-    if (!isClient) return
-
-    // Slowly change
-    const interval = setInterval(() => {
-      setDepth((prev) => {
-        const change = Math.random() > 0.5 ? 1 : -1
-        return Math.max(0, Math.min(15, prev + change))
-      })
-    }, 45000)
-
-    return () => clearInterval(interval)
-  }, [isClient])
-
-  if (!isClient || depth === 0) return null
+  if (!isClient || count === undefined || count === 0) return null
 
   return (
     <p className={cn("text-xs text-muted-foreground", className)}>
-      {depth} request{depth > 1 ? "s" : ""} in queue ahead of you
+      {count} request{count > 1 ? "s" : ""} in queue ahead of you
     </p>
   )
 }
 
 interface CompletionTimeProps {
   className?: string
+  /** Actual average completion time in minutes from server. Falls back to static copy if not provided. */
+  averageMinutes?: number
 }
 
-export function CompletionTime({ className }: CompletionTimeProps) {
+/**
+ * CompletionTime - Shows real average completion time when data is available,
+ * or a static honest statement when no data is provided.
+ */
+export function CompletionTime({ className, averageMinutes }: CompletionTimeProps) {
   const isClient = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   )
-  const [time, _setTime] = useState(() => {
-    const hour = new Date().getHours()
-    const isPeakHour = hour >= 9 && hour <= 17
-    const baseTime = isPeakHour ? 55 : 35
-    return baseTime + Math.floor(Math.random() * 15)
-  })
 
   if (!isClient) return null
 
-  return <p className={cn("text-xs text-emerald-600", className)}>Most requests completed in under {time} mins today</p>
+  if (averageMinutes !== undefined) {
+    return (
+      <p className={cn("text-xs text-emerald-600", className)}>
+        Average completion time: {averageMinutes} mins
+      </p>
+    )
+  }
+
+  // Static fallback -- honest and verifiable
+  return (
+    <p className={cn("text-xs text-emerald-600", className)}>
+      Most requests reviewed within 1 hour
+    </p>
+  )
 }
 
 interface ViewerCountProps {
   className?: string
+  /** Actual viewer count from analytics/presence system. Only renders when provided. */
+  count?: number
 }
 
-export function ViewerCount({ className }: ViewerCountProps) {
-  const [count, setCount] = useState(() => {
-    return Math.floor(Math.random() * 8) + 3
-  })
+/**
+ * ViewerCount - Shows real viewer count when data is available from a presence system.
+ * No longer generates fake random numbers. Pass `count` from real analytics.
+ */
+export function ViewerCount({ className, count }: ViewerCountProps) {
   const isClient = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   )
 
-  useEffect(() => {
-    if (!isClient) return
-    const interval = setInterval(() => {
-      setCount((prev) => {
-        const change = Math.floor(Math.random() * 3) - 1
-        return Math.max(2, Math.min(15, prev + change))
-      })
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [isClient])
-
-  if (!isClient) return null
+  if (!isClient || count === undefined || count <= 0) return null
 
   return <p className={cn("text-xs text-muted-foreground", className)}>{count} people viewing this page</p>
 }

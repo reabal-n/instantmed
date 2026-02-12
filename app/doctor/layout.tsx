@@ -32,7 +32,7 @@ export default async function DoctorLayout({
 
   return (
     <DoctorShell>
-      <div className="flex min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="flex min-h-screen bg-background">
         <DashboardSidebar 
           variant="doctor" 
           userName={authUser.profile.full_name}
@@ -40,8 +40,8 @@ export default async function DoctorLayout({
           isAdmin={isAdmin}
           pendingCount={stats.in_queue}
         />
-        <main className="flex-1 min-w-0 lg:ml-0 py-6 px-4 sm:px-6 lg:px-8" data-testid="doctor-main">
-          <div className="mx-auto max-w-6xl" data-testid="dashboard-container">
+        <main className="flex-1 min-w-0 lg:border-l border-border/40 py-6 px-4 sm:px-6 lg:px-8" data-testid="doctor-main">
+          <div className="mx-auto max-w-5xl" data-testid="dashboard-container">
             <DoctorOnboardingBanner />
             {children}
           </div>

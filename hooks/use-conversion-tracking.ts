@@ -16,7 +16,7 @@ import {
 const SERVICE_NAMES: Record<string, string> = {
   'med-cert': 'Medical Certificate',
   'repeat-script': 'Repeat Prescription',
-  'consult': 'GP Consultation',
+  'consult': 'Doctor Consultation',
 }
 
 /**
@@ -40,7 +40,7 @@ export function usePageTracking() {
       storeLastService('repeat-prescription', 'Repeat Prescription')
     } else if (pathname.includes('/general-consult')) {
       trackFunnelStep('landing', 'general-consult')
-      storeLastService('general-consult', 'GP Consultation')
+      storeLastService('general-consult', 'Doctor Consultation')
     } else if (pathname === '/start') {
       const service = searchParams?.get('service')
       if (service) {

@@ -21,3 +21,21 @@ export type { RequestDeclinedEmailProps } from "./request-declined"
 
 export { PaymentReceiptEmail, paymentReceiptEmailSubject } from "./payment-receipt"
 export type { PaymentReceiptEmailProps } from "./payment-receipt"
+
+export { ConsultApprovedEmail } from "./consult-approved"
+export type { ConsultApprovedEmailProps } from "./consult-approved"
+
+export { EdApprovedEmail } from "./ed-approved"
+export type { EdApprovedEmailProps } from "./ed-approved"
+
+export { HairLossApprovedEmail } from "./hair-loss-approved"
+export type { HairLossApprovedEmailProps } from "./hair-loss-approved"
+
+export { WeightLossApprovedEmail } from "./weight-loss-approved"
+export type { WeightLossApprovedEmailProps } from "./weight-loss-approved"
+
+export { WomensHealthApprovedEmail } from "./womens-health-approved"
+export type { WomensHealthApprovedEmailProps } from "./womens-health-approved"
+
+export { PrescriptionApprovedEmail } from "./prescription-approved"
+export type { PrescriptionApprovedEmailProps } from "./prescription-approved"

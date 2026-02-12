@@ -35,6 +35,18 @@ const emailTypeLabels: Record<string, string> = {
   script_sent: "Script Sent",
   request_declined: "Request Declined",
   needs_more_info: "Needs More Info",
+  payment_confirmed: "Payment Confirmed",
+  payment_received: "Payment Received",
+  payment_failed: "Payment Failed",
+  refund_notification: "Refund Notification",
+  repeat_rx_reminder: "Repeat Rx Reminder",
+  prescription_approved: "Prescription Approved",
+  ed_approved: "ED Treatment Approved",
+  hair_loss_approved: "Hair Loss Treatment Approved",
+  womens_health_approved: "Women's Health Approved",
+  weight_loss_approved: "Weight Loss Approved",
+  consult_approved: "Consult Approved",
+  guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
 }
 
@@ -266,7 +278,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/ops/email-outbox">
+              <Link href="/doctor/admin/email-outbox">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MailOpen className="h-5 w-5" />
@@ -374,7 +386,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 )}
               </div>
               <div className="mt-4 pt-4 border-t">
-                <Link href="/admin/ops/email-outbox">
+                <Link href="/doctor/admin/email-outbox">
                   <Button variant="outline" size="sm" className="w-full">
                     View All Activity
                   </Button>
@@ -411,39 +423,110 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
           </Card>
         </TabsContent>
 
-        {/* Queue Tab */}
+        {/* Queue Tab -- delivery tracking summary */}
         <TabsContent value="queue" className="space-y-6">
+          {/* Delivery Health Overview */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingEmails}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.pendingEmails === 0 ? "All clear" : "Awaiting delivery"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Failed (7d)</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.failedEmails}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.failedEmails === 0 ? "No failures" : "Needs attention"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Delivery Rate</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.deliveryRate}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.emailsSentWeek} delivered this week
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent failed emails from activity feed */}
           <Card>
             <CardHeader>
-              <CardTitle>Email Queue Status</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Recent Failures
+              </CardTitle>
               <CardDescription>
-                Monitor email sending queue and delivery status
+                Failed emails from the last 7 days that may need attention
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Queue Management</h3>
-                <p className="text-muted-foreground mb-4">
-                  Monitor email queue and outbox
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Link href="/admin/email-queue">
-                    <Button variant="outline">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Queue Status
-                    </Button>
-                  </Link>
-                  <Link href="/admin/ops/email-outbox">
-                    <Button variant="outline">
-                      <MailOpen className="h-4 w-4 mr-2" />
-                      Email Outbox
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              {(() => {
+                const failures = activity.filter((a) => a.status === "failed")
+                if (failures.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No recent failures -- all emails delivered successfully.
+                    </p>
+                  )
+                }
+                return (
+                  <div className="space-y-3">
+                    {failures.slice(0, 5).map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-destructive/20 bg-destructive/5">
+                        <div>
+                          <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {sanitizeEmail(item.toEmail)} -- {formatRelativeTime(item.createdAt)}
+                          </p>
+                          {item.errorMessage && (
+                            <p className="text-xs text-destructive mt-1 truncate max-w-md">{item.errorMessage}</p>
+                          )}
+                        </div>
+                        {item.intakeId && (
+                          <Badge variant="outline" className="text-xs">
+                            {item.intakeId.slice(0, 8)}
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
             </CardContent>
           </Card>
+
+          {/* Links to detailed views */}
+          <div className="flex gap-3">
+            <Link href="/admin/email-queue">
+              <Button variant="outline">
+                <Clock className="h-4 w-4 mr-2" />
+                Failed Certificate Queue
+              </Button>
+            </Link>
+            <Link href="/doctor/admin/email-outbox">
+              <Button variant="outline">
+                <MailOpen className="h-4 w-4 mr-2" />
+                Full Email Outbox
+              </Button>
+            </Link>
+          </div>
         </TabsContent>
 
         {/* Analytics Tab */}

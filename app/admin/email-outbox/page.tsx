@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 
+// Consolidated: all email admin routes redirect to the Email Hub
 export default function EmailOutboxRedirect() {
-  redirect("/doctor/admin/email-outbox")
+  redirect("/admin/email-hub")
 }
