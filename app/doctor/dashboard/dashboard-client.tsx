@@ -697,7 +697,7 @@ function RequestDetailDialog({
             <label className="font-semibold mb-2 block">Doctor Notes</label>
             <Textarea
               value={notes}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
               minRows={4}
             />
