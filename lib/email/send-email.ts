@@ -40,6 +40,7 @@ export type EmailType =
   | "refund_notification"
   | "payment_failed"
   | "guest_complete_account"
+  | "payment_confirmed"
 
 interface SendEmailParams {
   to: string
@@ -1223,6 +1224,37 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       companyName: metadata?.companyName || undefined,
       patientNote: metadata?.patientNote || undefined,
       appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // payment_confirmed — lib React template, needs intake + amount
+  // ----------------------------------------------------------------
+  if (row.email_type === "payment_confirmed") {
+    if (!row.intake_id) {
+      return { success: false, error: "payment_confirmed requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { amount_cents?: number; service_slug?: string } | null
+    const amountCents = metadata?.amount_cents || 0
+    const amountFormatted = amountCents > 0 ? `$${(amountCents / 100).toFixed(2)}` : "N/A"
+    const serviceName = metadata?.service_slug
+      ?.replace(/-/g, " ")
+      ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+      || ctx.service.short_name || ctx.service.name || "medical request"
+
+    const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+    const template = PaymentConfirmedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: serviceName,
+      amount: amountFormatted,
+      requestId: ctx.intake.id,
     })
 
     const html = await renderEmailToHtml(template)

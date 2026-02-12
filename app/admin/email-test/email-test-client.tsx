@@ -162,6 +162,17 @@ const emailTemplates = [
       { key: "appUrl", label: "App URL", default: "https://instantmed.com.au" },
     ],
   },
+  {
+    id: "payment_confirmed",
+    name: "Payment Confirmed",
+    description: "Sent after successful Stripe checkout for all service types",
+    fields: [
+      { key: "patientName", label: "Patient Name", default: "John Smith" },
+      { key: "requestType", label: "Request Type", default: "Medical Certificate" },
+      { key: "amount", label: "Amount", default: "$39.99" },
+      { key: "requestId", label: "Request ID", default: "test-intake-123" },
+    ],
+  },
 ]
 
 export function EmailTestClient() {

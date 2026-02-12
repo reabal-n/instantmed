@@ -122,6 +122,14 @@ const TEMPLATE_REGISTRY: Record<
       return { component: RepeatRxReminderEmail as React.FC<Record<string, unknown>>, subject: "Time to renew your prescription" }
     },
   },
+  payment_confirmed: {
+    async load() {
+      const { PaymentConfirmedEmail } = await import(
+        "@/lib/email/templates/payment-confirmed"
+      )
+      return { component: PaymentConfirmedEmail as React.FC<Record<string, unknown>>, subject: "Payment confirmed" }
+    },
+  },
 }
 
 export async function renderTestEmailAction(

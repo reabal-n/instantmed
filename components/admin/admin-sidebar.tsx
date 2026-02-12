@@ -87,7 +87,7 @@ const opsNavItems: NavItem[] = [
   { href: "/admin/refunds", label: "Refunds", icon: CreditCard },
   { href: "/admin/webhook-dlq", label: "Webhook DLQ", icon: Webhook },
   { href: "/admin/email-queue", label: "Email Queue", icon: Mail },
-  { href: "/admin/ops/email-outbox", label: "Email Outbox", icon: Send },
+  { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Send },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { href: "/admin/ops/sla", label: "SLA Monitor", icon: Timer },
   { href: "/admin/support", label: "Support", icon: HelpCircle },
