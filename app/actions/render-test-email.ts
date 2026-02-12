@@ -23,7 +23,7 @@ const TEMPLATE_REGISTRY: Record<
       const { MedCertPatientEmail, medCertPatientEmailSubject } = await import(
         "@/components/email/templates/med-cert-patient"
       )
-      return { component: MedCertPatientEmail as React.FC<Record<string, unknown>>, subject: medCertPatientEmailSubject }
+      return { component: MedCertPatientEmail as unknown as React.FC<Record<string, unknown>>, subject: medCertPatientEmailSubject }
     },
   },
   med_cert_employer: {
@@ -31,7 +31,7 @@ const TEMPLATE_REGISTRY: Record<
       const { MedCertEmployerEmail, medCertEmployerEmailSubject } = await import(
         "@/components/email/templates/med-cert-employer"
       )
-      return { component: MedCertEmployerEmail as React.FC<Record<string, unknown>>, subject: medCertEmployerEmailSubject }
+      return { component: MedCertEmployerEmail as unknown as React.FC<Record<string, unknown>>, subject: medCertEmployerEmailSubject }
     },
   },
   welcome: {
@@ -39,7 +39,7 @@ const TEMPLATE_REGISTRY: Record<
       const { WelcomeEmail, welcomeEmailSubject } = await import(
         "@/components/email/templates/welcome"
       )
-      return { component: WelcomeEmail as React.FC<Record<string, unknown>>, subject: welcomeEmailSubject }
+      return { component: WelcomeEmail as unknown as React.FC<Record<string, unknown>>, subject: welcomeEmailSubject }
     },
   },
   script_sent: {
@@ -47,7 +47,7 @@ const TEMPLATE_REGISTRY: Record<
       const { ScriptSentEmail, scriptSentEmailSubject } = await import(
         "@/components/email/templates/script-sent"
       )
-      return { component: ScriptSentEmail as React.FC<Record<string, unknown>>, subject: scriptSentEmailSubject }
+      return { component: ScriptSentEmail as unknown as React.FC<Record<string, unknown>>, subject: scriptSentEmailSubject }
     },
   },
   request_declined: {
@@ -55,7 +55,7 @@ const TEMPLATE_REGISTRY: Record<
       const { RequestDeclinedEmail, requestDeclinedEmailSubject } = await import(
         "@/components/email/templates/request-declined"
       )
-      return { component: RequestDeclinedEmail as React.FC<Record<string, unknown>>, subject: requestDeclinedEmailSubject }
+      return { component: RequestDeclinedEmail as unknown as React.FC<Record<string, unknown>>, subject: requestDeclinedEmailSubject }
     },
   },
   prescription_approved: {
@@ -63,7 +63,7 @@ const TEMPLATE_REGISTRY: Record<
       const { PrescriptionApprovedEmail } = await import(
         "@/components/email/templates/prescription-approved"
       )
-      return { component: PrescriptionApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your prescription has been approved" }
+      return { component: PrescriptionApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your prescription has been approved" }
     },
   },
   consult_approved: {
@@ -71,7 +71,7 @@ const TEMPLATE_REGISTRY: Record<
       const { ConsultApprovedEmail } = await import(
         "@/components/email/templates/consult-approved"
       )
-      return { component: ConsultApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your consultation has been reviewed" }
+      return { component: ConsultApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your consultation has been reviewed" }
     },
   },
   ed_approved: {
@@ -79,7 +79,7 @@ const TEMPLATE_REGISTRY: Record<
       const { EdApprovedEmail } = await import(
         "@/components/email/templates/ed-approved"
       )
-      return { component: EdApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your ED prescription has been approved" }
+      return { component: EdApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your ED prescription has been approved" }
     },
   },
   hair_loss_approved: {
@@ -87,7 +87,7 @@ const TEMPLATE_REGISTRY: Record<
       const { HairLossApprovedEmail } = await import(
         "@/components/email/templates/hair-loss-approved"
       )
-      return { component: HairLossApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
+      return { component: HairLossApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
     },
   },
   weight_loss_approved: {
@@ -95,7 +95,7 @@ const TEMPLATE_REGISTRY: Record<
       const { WeightLossApprovedEmail } = await import(
         "@/components/email/templates/weight-loss-approved"
       )
-      return { component: WeightLossApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
+      return { component: WeightLossApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
     },
   },
   womens_health_approved: {
@@ -103,7 +103,7 @@ const TEMPLATE_REGISTRY: Record<
       const { WomensHealthApprovedEmail } = await import(
         "@/components/email/templates/womens-health-approved"
       )
-      return { component: WomensHealthApprovedEmail as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
+      return { component: WomensHealthApprovedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Your treatment has been approved" }
     },
   },
   payment_receipt: {
@@ -111,7 +111,7 @@ const TEMPLATE_REGISTRY: Record<
       const { PaymentReceiptEmail, paymentReceiptEmailSubject } = await import(
         "@/components/email/templates/payment-receipt"
       )
-      return { component: PaymentReceiptEmail as React.FC<Record<string, unknown>>, subject: paymentReceiptEmailSubject }
+      return { component: PaymentReceiptEmail as unknown as React.FC<Record<string, unknown>>, subject: paymentReceiptEmailSubject }
     },
   },
   repeat_rx_reminder: {
@@ -119,7 +119,7 @@ const TEMPLATE_REGISTRY: Record<
       const { RepeatRxReminderEmail } = await import(
         "@/components/email/templates/repeat-rx-reminder"
       )
-      return { component: RepeatRxReminderEmail as React.FC<Record<string, unknown>>, subject: "Time to renew your prescription" }
+      return { component: RepeatRxReminderEmail as unknown as React.FC<Record<string, unknown>>, subject: "Time to renew your prescription" }
     },
   },
   payment_confirmed: {
@@ -127,7 +127,7 @@ const TEMPLATE_REGISTRY: Record<
       const { PaymentConfirmedEmail } = await import(
         "@/lib/email/templates/payment-confirmed"
       )
-      return { component: PaymentConfirmedEmail as React.FC<Record<string, unknown>>, subject: "Payment confirmed" }
+      return { component: PaymentConfirmedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Payment confirmed" }
     },
   },
 }
