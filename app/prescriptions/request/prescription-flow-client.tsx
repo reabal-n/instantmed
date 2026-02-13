@@ -1000,7 +1000,7 @@ export function PrescriptionFlowClient({
                   <Button
                     as={Link}
                     href="/consult"
-                    className="w-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                    className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white"
                     radius="lg"
                   >
                     Continue to General Consult ($49.95)

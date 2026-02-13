@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
  */
 
 export interface ButtonProps extends Omit<HeroButtonProps, "variant" | "size"> {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "flat" | "bordered" | "solid" | "light" | "faded" | "shadow"
   size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg"
   asChild?: boolean
   className?: string
@@ -27,6 +27,13 @@ const variantMap: Record<string, HeroButtonProps["variant"]> = {
   secondary: "flat",
   ghost: "light",
   link: "light",
+  // HeroUI pass-through variants
+  flat: "flat",
+  bordered: "bordered",
+  solid: "solid",
+  light: "light",
+  faded: "faded",
+  shadow: "shadow",
 }
 
 const colorMap: Record<string, HeroButtonProps["color"]> = {
@@ -36,6 +43,13 @@ const colorMap: Record<string, HeroButtonProps["color"]> = {
   secondary: "secondary",
   ghost: "default",
   link: "primary",
+  // HeroUI pass-through variants use their own color prop
+  flat: undefined,
+  bordered: undefined,
+  solid: undefined,
+  light: undefined,
+  faded: undefined,
+  shadow: undefined,
 }
 
 const sizeMap: Record<string, HeroButtonProps["size"]> = {
@@ -65,7 +79,7 @@ export function Button({
   return (
     <HeroButton
       variant={variantMap[variant]}
-      color={colorMap[variant]}
+      color={props.color ?? colorMap[variant]}
       size={sizeMap[size]}
       radius={pill ? "full" : "lg"}
       isIconOnly={isIconSize}
