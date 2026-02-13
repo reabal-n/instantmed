@@ -10,6 +10,7 @@ import {
   AlertCircle,
   XCircle,
   Loader2,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
