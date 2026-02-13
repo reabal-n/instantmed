@@ -12,7 +12,7 @@
  */
 
 // Core Components
-export { Button, UIXButton, type ButtonProps } from "./button"
+export { Button, type ButtonProps } from "./button"
 export { 
   Card, 
   CardHeader, 

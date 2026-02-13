@@ -7,8 +7,12 @@ import { cn } from "@/lib/utils"
 import { RippleEffect } from "./ripple-effect"
 
 export interface ButtonProps extends Omit<HeroButtonProps, "variant" | "size" | "color"> {
+  /** Accepts both shadcn variants and HeroUI variants for full compatibility */
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+    | "flat" | "bordered" | "solid" | "light" | "faded" | "shadow"
   size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg"
+  /** HeroUI color prop -- pass-through for HeroUI variants */
+  color?: HeroButtonProps["color"]
   asChild?: boolean
   /** Enable ripple effect on click */
   ripple?: boolean
@@ -21,15 +25,29 @@ const variantMap: Record<string, HeroButtonProps["variant"]> = {
   secondary: "flat",
   ghost: "light",
   link: "light",
+  // HeroUI pass-through variants
+  flat: "flat",
+  bordered: "bordered",
+  solid: "solid",
+  light: "light",
+  faded: "faded",
+  shadow: "shadow",
 }
 
-const colorMap: Record<string, HeroButtonProps["color"]> = {
+const colorMap: Record<string, HeroButtonProps["color"] | undefined> = {
   default: "primary",
   destructive: "danger",
   outline: "primary",
   secondary: "secondary",
   ghost: "default",
   link: "primary",
+  // HeroUI pass-through variants defer to explicit color prop
+  flat: undefined,
+  bordered: undefined,
+  solid: undefined,
+  light: undefined,
+  faded: undefined,
+  shadow: undefined,
 }
 
 const sizeMap: Record<string, HeroButtonProps["size"]> = {
@@ -49,6 +67,13 @@ const craftVariantStyles: Record<string, string> = {
   secondary: "hover:bg-secondary/80 transition-all duration-200",
   ghost: "hover:bg-muted/50 transition-all duration-200",
   link: "bg-transparent underline-offset-4 hover:underline text-primary hover:text-primary/80",
+  // HeroUI pass-through variants use HeroUI's own styling
+  flat: "transition-all duration-200",
+  bordered: "transition-all duration-200",
+  solid: "shadow-sm hover:shadow-md transition-all duration-200",
+  light: "transition-all duration-200",
+  faded: "transition-all duration-200",
+  shadow: "transition-all duration-200",
 }
 
 // Size classes for asChild mode (since we can't use HeroUI's size prop)
@@ -77,6 +102,7 @@ function Button({
   size = "default",
   asChild = false,
   ripple = true,
+  color,
   className,
   children,
   onClick,
@@ -144,7 +170,7 @@ function Button({
     <HeroButton
       type={type || "button"}
       variant={variantMap[variant]}
-      color={colorMap[variant]}
+      color={color ?? colorMap[variant]}
       size={heroSize}
       radius="md" // Craft: restrained radius
       isIconOnly={isIconOnly}
