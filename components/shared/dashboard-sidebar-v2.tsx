@@ -85,7 +85,7 @@ const doctorNavSections: NavSection[] = [
     variant: "primary",
     defaultExpanded: true,
     items: [
-      { href: "/doctor", label: "Review Queue", icon: ListOrdered, badge: true, description: "Patient requests awaiting review" },
+      { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true, description: "Patient requests awaiting review" },
       { href: "/doctor/patients", label: "My Patients", icon: Users, description: "Patient management and history" },
       { href: "/doctor/analytics", label: "My Analytics", icon: BarChart3, description: "Personal performance metrics" },
       { href: "/doctor/settings/identity", label: "Settings", icon: Settings, description: "Professional profile and preferences" },

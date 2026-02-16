@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { DocumentsClient } from "./documents-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -6,48 +6,45 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 export const dynamic = "force-dynamic"
 
 export default async function PatientDocumentsPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in?redirect=/patient/documents")
-  }
-
-  if (!authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
+  const authUser = await requireRole(["patient"])
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
 
-  // Fetch approved intakes with documents (limit for performance)
-  const { data: intakes, error: intakesError } = await supabase
-    .from("intakes")
+  // Fetch issued certificates for this patient
+  const { data: certificates, error: intakesError } = await supabase
+    .from("issued_certificates")
     .select(`
       id,
+      intake_id,
+      certificate_type,
       status,
-      service_type,
+      storage_path,
       created_at,
-      updated_at,
-      certificate_url,
-      certificate_generated_at,
-      category
+      patient_name,
+      start_date,
+      end_date,
+      intake:intakes!intake_id (
+        id,
+        category,
+        service:services!service_id ( name, type )
+      )
     `)
     .eq("patient_id", patientId)
-    .eq("status", "approved")
-    .not("certificate_url", "is", null)
-    .order("updated_at", { ascending: false })
+    .eq("status", "valid")
+    .order("created_at", { ascending: false })
     .limit(50)
 
-  // Fetch payment receipts (limit for performance)
+  // Fetch payment receipts using correct column names
   const { data: payments, error: paymentsError } = await supabase
     .from("intakes")
     .select(`
       id,
-      stripe_checkout_session_id,
-      amount_paid,
+      payment_id,
+      amount_cents,
       paid_at,
-      service_type,
-      category
+      category,
+      service:services!service_id ( name, type )
     `)
     .eq("patient_id", patientId)
     .not("paid_at", "is", null)
@@ -58,25 +55,28 @@ export default async function PatientDocumentsPage() {
   const fetchError = intakesError || paymentsError ? "Unable to load some documents. Please try again later." : null
 
   const documents = {
-    certificates: (intakes || []).map((i) => {
+    certificates: (certificates || []).map((c) => {
+      const intake = Array.isArray(c.intake) ? c.intake[0] : c.intake
+      const service = intake?.service ? (Array.isArray(intake.service) ? intake.service[0] : intake.service) : null
       return {
-        id: i.id,
+        id: c.id,
         type: "certificate" as const,
-        serviceType: i.service_type,
-        serviceName: i.category || "Medical Certificate",
-        url: i.certificate_url,
-        generatedAt: i.certificate_generated_at || i.updated_at,
+        serviceType: (service as { type?: string } | null)?.type || c.certificate_type,
+        serviceName: (service as { name?: string } | null)?.name || (intake as { category?: string } | null)?.category || "Medical Certificate",
+        url: `/api/patient/certificates/${c.id}/download`,
+        generatedAt: c.created_at,
       }
     }),
     receipts: (payments || []).map((p) => {
+      const service = Array.isArray(p.service) ? p.service[0] : p.service
       return {
         id: p.id,
         type: "receipt" as const,
-        serviceType: p.service_type,
-        serviceName: p.category || "Payment",
-        amount: p.amount_paid,
+        serviceType: (service as { type?: string } | null)?.type || null,
+        serviceName: (service as { name?: string } | null)?.name || p.category || "Payment",
+        amount: p.amount_cents,
         paidAt: p.paid_at,
-        stripeSessionId: p.stripe_checkout_session_id,
+        stripeSessionId: p.payment_id,
       }
     }),
   }

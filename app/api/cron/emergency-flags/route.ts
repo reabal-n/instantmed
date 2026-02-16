@@ -51,8 +51,8 @@ export async function GET(request: Request) {
       .select(`
         id,
         patient_id,
-        answers,
         created_at,
+        intake_answers:intake_answers(answers),
         profiles:patient_id (
           full_name,
           phone
@@ -80,7 +80,8 @@ export async function GET(request: Request) {
       processed++
 
       // Check if intake had emergency flags
-      const answers = intake.answers as Record<string, unknown> | null
+      const answersArr = intake.intake_answers as { answers: Record<string, unknown> }[] | null
+      const answers = answersArr?.[0]?.answers || null
       const hasEmergencyFlag = answers && (
         answers.emergency_symptoms ||
         answers.has_emergency_symptoms === true ||

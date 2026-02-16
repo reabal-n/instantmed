@@ -14,9 +14,9 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("services")
-      .select("slug, price, type")
-      .eq("active", true)
-      .order("price", { ascending: true })
+      .select("slug, price_cents, type")
+      .eq("is_active", true)
+      .order("price_cents", { ascending: true })
 
     if (error) {
       // Failed to fetch pricing - return empty prices gracefully
@@ -29,18 +29,18 @@ export async function GET() {
       // Map service type to the ServicePicker's service IDs
       if (service.type === "med_certs" || service.slug?.includes("medical-certificate")) {
         // Use the lowest price for this category
-        if (!prices["med-cert"] || service.price < prices["med-cert"]) {
-          prices["med-cert"] = service.price
+        if (!prices["med-cert"] || service.price_cents < prices["med-cert"]) {
+          prices["med-cert"] = service.price_cents
         }
       }
       if (service.type === "common_scripts" || service.slug?.includes("prescription")) {
-        if (!prices["scripts"] || service.price < prices["scripts"]) {
-          prices["scripts"] = service.price
+        if (!prices["scripts"] || service.price_cents < prices["scripts"]) {
+          prices["scripts"] = service.price_cents
         }
       }
       if (service.type === "consult" || service.slug?.includes("consult")) {
-        if (!prices["consult"] || service.price < prices["consult"]) {
-          prices["consult"] = service.price
+        if (!prices["consult"] || service.price_cents < prices["consult"]) {
+          prices["consult"] = service.price_cents
         }
       }
     }

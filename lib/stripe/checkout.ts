@@ -713,6 +713,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         intake_id: intake.id,
         patient_id: patientId,
         is_retry: "true",
+        category: intake.category || "",
+        subtype: intake.subtype || "",
+        service_slug: serviceSlugForSafety || "",
       },
       customer: authUser.profile.stripe_customer_id || undefined,
       customer_email: !authUser.profile.stripe_customer_id && patientEmail ? patientEmail : undefined,
@@ -721,8 +724,8 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     let session
     try {
-      // Use intake.id for retry idempotency key with timestamp suffix
-      const retryIdempotencyKey = `retry_${intake.id}_${Date.now()}`
+      // Use intake.id for retry idempotency key (stable, not timestamp-based)
+      const retryIdempotencyKey = `retry_${intake.id}_${intake.payment_id || 'initial'}`
       session = await stripe.checkout.sessions.create(sessionParams, {
         idempotencyKey: retryIdempotencyKey,
       })

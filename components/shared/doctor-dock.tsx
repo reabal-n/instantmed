@@ -21,8 +21,8 @@ export function DoctorDock({ pendingCount = 0 }: DoctorDockProps) {
     {
       icon: LayoutDashboard,
       label: "Dashboard",
-      href: "/doctor",
-      active: pathname === "/doctor",
+      href: "/doctor/dashboard",
+      active: pathname === "/doctor/dashboard",
     },
     {
       icon: ClipboardList,

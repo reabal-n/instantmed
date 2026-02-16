@@ -7,7 +7,7 @@ import { LayoutDashboard, FileText, Users, BarChart3, Download, ListOrdered } fr
 import { Button } from "@/components/ui/button"
 
 const navItems = [
-  { href: "/doctor", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/doctor/queue", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },
   { href: "/doctor/patients", label: "Patients", icon: Users },
@@ -32,7 +32,7 @@ export function DoctorSidebar({ pendingCount = 0, scriptsToSend = 0 }: DoctorSid
         {/* Main Nav */}
         <nav className="glass-card rounded-2xl p-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/doctor" && pathname?.startsWith(item.href))
+            const isActive = pathname === item.href || (item.href !== "/doctor/dashboard" && pathname?.startsWith(item.href))
             const showBadge = item.badge && pendingCount > 0
             return (
               <Link

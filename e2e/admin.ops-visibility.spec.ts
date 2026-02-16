@@ -19,7 +19,7 @@ test.describe("Ops Navigation Visibility", () => {
     expect(loginResult.success).toBe(true)
 
     // Navigate to doctor dashboard
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await page.waitForLoadState("networkidle")
 
     // Wait for sidebar to load
@@ -42,7 +42,7 @@ test.describe("Ops Navigation Visibility", () => {
     expect(loginResult.success).toBe(true)
 
     // Navigate to doctor dashboard
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await page.waitForLoadState("networkidle")
 
     // Wait for sidebar to load

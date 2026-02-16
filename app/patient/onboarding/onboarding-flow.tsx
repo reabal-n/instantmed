@@ -193,7 +193,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
     setError(null)
 
     const medicareNumber = medicareDigits.join("")
-    const medicareExpiry = `${expiryYear}-${expiryMonth}-01`
+    const medicareExpiry = expiryYear && expiryMonth ? `${expiryYear}-${expiryMonth}-01` : null
 
     const result = await completeOnboardingAction(profileId, {
       phone,
@@ -201,8 +201,8 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
       suburb,
       state: state!,
       postcode,
-      medicare_number: medicareNumber,
-      medicare_irn: irn!,
+      medicare_number: medicareNumber || null,
+      medicare_irn: irn || null,
       medicare_expiry: medicareExpiry,
       consent_myhr: consentMyhr,
     })

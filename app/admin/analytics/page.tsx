@@ -52,14 +52,14 @@ export default async function AnalyticsDashboardPage() {
     // [4] Intakes by day (last 30 days) with payment data
     supabase
       .from("intakes")
-      .select("created_at, status, paid_at, amount_paid")
+      .select("created_at, status, paid_at, amount_cents")
       .gte("created_at", monthAgo.toISOString())
       .order("created_at", { ascending: true }),
 
     // [5] Intakes by service type
     supabase
       .from("intakes")
-      .select("service_type")
+      .select("category")
       .gte("created_at", monthAgo.toISOString()),
 
     // [6] Intakes by UTM source
@@ -72,7 +72,7 @@ export default async function AnalyticsDashboardPage() {
     // [7] Revenue data - paid intakes with amount
     supabase
       .from("intakes")
-      .select("amount_paid, paid_at, created_at")
+      .select("amount_cents, paid_at, created_at")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
 
@@ -85,14 +85,14 @@ export default async function AnalyticsDashboardPage() {
     // [10] This week's paid intakes for weekly revenue
     supabase
       .from("intakes")
-      .select("amount_paid")
+      .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", weekAgo.toISOString()),
 
     // [11] Today's paid intakes for daily revenue
     supabase
       .from("intakes")
-      .select("amount_paid")
+      .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", today.toISOString()),
   ])
@@ -137,8 +137,8 @@ export default async function AnalyticsDashboardPage() {
         if (intake.paid_at) {
           dailyData[key].paid++
         }
-        if (intake.amount_paid) {
-          dailyData[key].revenue += Number(intake.amount_paid) || 0
+        if (intake.amount_cents) {
+          dailyData[key].revenue += Number(intake.amount_cents) || 0
         }
       }
     }
@@ -148,7 +148,7 @@ export default async function AnalyticsDashboardPage() {
   const serviceTypeCounts: Record<string, number> = {}
   if (intakesByServiceResult.data) {
     for (const intake of intakesByServiceResult.data) {
-      const type = intake.service_type || "unknown"
+      const type = intake.category || "unknown"
       serviceTypeCounts[type] = (serviceTypeCounts[type] || 0) + 1
     }
   }
@@ -164,13 +164,13 @@ export default async function AnalyticsDashboardPage() {
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
-    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
   )
   const weekRevenue = (weekRevenueResult.data || []).reduce(
-    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
   )
   const todayRevenue = (todayRevenueResult.data || []).reduce(
-    (sum: number, r: { amount_paid?: number | string | null }) => sum + (Number(r.amount_paid) || 0), 0
+    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
   )
 
   const analytics = {

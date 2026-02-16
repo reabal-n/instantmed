@@ -4,7 +4,7 @@
  * Queue Availability - Estimates doctor response time based on pending intakes
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface QueueEstimate {
   pendingCount: number
@@ -16,7 +16,7 @@ export interface QueueEstimate {
  */
 export async function getQueueEstimate(): Promise<QueueEstimate> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { count, error } = await supabase
       .from("intakes")

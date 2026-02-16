@@ -33,7 +33,7 @@ interface Message {
   created_at: string
   intake?: {
     id: string
-    service_type: string
+    category?: string | null
     service?: { name: string; short_name: string } | null
   } | null
 }
@@ -74,9 +74,9 @@ export function MessagesClient({
       intakeId,
       lastMessage,
       unread,
-      serviceName: lastMessage?.intake?.service?.name || 
+      serviceName: lastMessage?.intake?.service?.name ||
                    lastMessage?.intake?.service?.short_name ||
-                   formatServiceType(lastMessage?.intake?.service_type || ""),
+                   formatServiceType(lastMessage?.intake?.category || ""),
     }
   })
 

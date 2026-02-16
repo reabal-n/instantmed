@@ -71,23 +71,16 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   refreshIntakesRef.current = async () => {
     setIsRefreshing(true)
     try {
-      const { data, error } = await supabase
-        .from("intakes")
-        .select(`*`)
-        .eq("patient_id", patientId)
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        toast.error("Failed to refresh requests")
-        return
-      }
-      if (data) {
-        setIntakes(data as IntakeWithPatient[])
-      }
+      // Use Next.js router.refresh() instead of direct Supabase client query
+      // The browser Supabase client has no auth session (Clerk-based auth), so
+      // RLS policies block all rows. router.refresh() triggers a server-side
+      // re-render which uses the service role client and bypasses RLS.
+      router.refresh()
     } catch {
       toast.error("Failed to refresh requests")
     } finally {
-      setIsRefreshing(false)
+      // Give the server re-render time to complete
+      setTimeout(() => setIsRefreshing(false), 1000)
     }
   }
 

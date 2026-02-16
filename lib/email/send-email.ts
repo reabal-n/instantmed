@@ -775,7 +775,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_note, refund_amount_cents, answers, parchment_reference")
+      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_note, refund_amount_cents, parchment_reference")
       .eq("id", intakeId)
       .single()
 
@@ -803,7 +803,15 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       return { error: `Service not found for intake: ${intakeId}` } as const
     }
 
-    return { intake, patient, service } as const
+    // Fetch answers from intake_answers table (separate from intakes)
+    const { data: intakeAnswersRow } = await supabase
+      .from("intake_answers")
+      .select("answers")
+      .eq("intake_id", intakeId)
+      .single()
+    const answers = (intakeAnswersRow?.answers || {}) as Record<string, unknown>
+
+    return { intake: { ...intake, answers }, patient, service } as const
   }
 
   // ----------------------------------------------------------------
@@ -1326,7 +1334,7 @@ async function generateAndUploadPdfForCertificate(
     }
 
     // Upload to storage
-    const storagePath = `certificates/${cert.intake_id}/${cert.certificate_number}.pdf`
+    const storagePath = `med-certs/${cert.patient_id}/${cert.certificate_number}.pdf`
     const { error: uploadError } = await supabase.storage
       .from("documents")
       .upload(storagePath, result.buffer, {

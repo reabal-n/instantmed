@@ -28,7 +28,7 @@ interface Certificate {
 interface ReceiptDoc {
   id: string
   type: "receipt"
-  serviceType: string
+  serviceType: string | null
   serviceName: string
   amount: number | null
   paidAt: string
@@ -185,7 +185,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                         {receipt.stripeSessionId && (
                           <Button variant="outline" size="sm" asChild>
                             <a
-                              href={`https://dashboard.stripe.com/payments/${receipt.stripeSessionId}`}
+                              href={`/patient/intakes/${receipt.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >

@@ -70,7 +70,7 @@ export async function updateStatusAction(
       await markAsReviewed(intakeId, profile.id)
     }
 
-    revalidatePath("/doctor")
+    revalidatePath("/doctor/dashboard")
     revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
 
@@ -145,7 +145,7 @@ export async function declineIntakeAction(
     return { success: false, error: result.error }
   }
 
-  revalidatePath("/doctor")
+  revalidatePath("/doctor/dashboard")
   revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
@@ -224,7 +224,7 @@ export async function markScriptSentAction(
     logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
   }
 
-  revalidatePath("/doctor")
+  revalidatePath("/doctor/dashboard")
   revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
@@ -424,7 +424,7 @@ export async function markAsRefundedAction(
       }
       
       if (refundResult.refunded) {
-        revalidatePath("/doctor")
+        revalidatePath("/doctor/dashboard")
         revalidatePath("/doctor/queue")
         revalidatePath(`/doctor/intakes/${intakeId}`)
         revalidatePath(`/patient/intakes/${intakeId}`)
@@ -447,7 +447,7 @@ export async function markAsRefundedAction(
       return { success: false, error: "Failed to mark as refunded" }
     }
 
-    revalidatePath("/doctor")
+    revalidatePath("/doctor/dashboard")
     revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/patient/intakes/${intakeId}`)

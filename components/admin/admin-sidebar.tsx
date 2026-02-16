@@ -49,7 +49,7 @@ interface NavItem {
 }
 
 const doctorNavItems: NavItem[] = [
-  { href: "/doctor", label: "Review Queue", icon: ListOrdered },
+  { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },
@@ -97,9 +97,9 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
   const pathname = usePathname()
 
   const isActive = (href: string) => {
-    if (href === "/doctor" && pathname === "/doctor") return true
+    if (href === "/doctor/dashboard" && pathname === "/doctor/dashboard") return true
     if (href === "/admin" && pathname === "/admin") return true
-    if (href !== "/doctor" && href !== "/admin" && pathname?.startsWith(href)) return true
+    if (href !== "/doctor/dashboard" && href !== "/admin" && pathname?.startsWith(href)) return true
     return pathname === href
   }
 

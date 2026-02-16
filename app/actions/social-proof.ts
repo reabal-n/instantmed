@@ -14,9 +14,8 @@ const AUSTRALIAN_CITIES = [
 ]
 
 const SERVICE_LABELS: Record<string, string> = {
-  med_certs: "medical certificate",
+  medical_certificate: "medical certificate",
   prescription: "prescription",
-  repeat_script: "repeat prescription",
   consult: "consultation",
 }
 
@@ -30,7 +29,7 @@ export async function getRecentApprovals(): Promise<SocialProofItem[]> {
 
   const { data, error } = await supabase
     .from("intakes")
-    .select("approved_at, service_type, patient:profiles!intakes_patient_id_fkey(state)")
+    .select("approved_at, category, patient:profiles!intakes_patient_id_fkey(state)")
     .not("approved_at", "is", null)
     .gte("approved_at", twoHoursAgo)
     .order("approved_at", { ascending: false })
@@ -47,7 +46,7 @@ export async function getRecentApprovals(): Promise<SocialProofItem[]> {
       // Use state to pick a city, or fallback to random Australian city
       const patientState = (intake.patient as { state?: string } | null)?.state
       const city = stateToCityMap(patientState)
-      const service = SERVICE_LABELS[intake.service_type || "med_certs"] || "medical certificate"
+      const service = SERVICE_LABELS[intake.category || "medical_certificate"] || "medical certificate"
 
       return { city, service, minutesAgo }
     })

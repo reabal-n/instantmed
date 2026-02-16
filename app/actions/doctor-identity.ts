@@ -74,7 +74,7 @@ export async function saveDoctorIdentityAction(
 
     if (result.success) {
       revalidatePath("/doctor/settings/identity")
-      revalidatePath("/doctor")
+      revalidatePath("/doctor/dashboard")
       revalidatePath("/doctor/queue")
       log.info("Doctor identity saved", { doctorId: profile.id })
     }

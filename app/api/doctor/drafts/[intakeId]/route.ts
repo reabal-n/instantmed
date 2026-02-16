@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -16,7 +16,11 @@ export async function GET(
 ) {
   try {
     // Require doctor or admin role
-    const { profile } = await requireRole(["doctor", "admin"])
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const { profile } = authResult
 
     const { intakeId } = await params
 
@@ -56,7 +60,11 @@ export async function POST(
 ) {
   try {
     // Require doctor or admin role
-    const { profile } = await requireRole(["doctor", "admin"])
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const { profile } = authResult
 
     const { intakeId } = await params
 

@@ -20,7 +20,7 @@ test.describe("Layout Contracts - Doctor Dashboard", () => {
   })
 
   test("doctor main has correct container classes", async ({ page }) => {
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Check main content area exists with expected structure
@@ -43,7 +43,7 @@ test.describe("Layout Contracts - Doctor Dashboard", () => {
   })
 
   test("doctor queue page has consistent spacing", async ({ page }) => {
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Check that content sections have spacing
@@ -137,9 +137,9 @@ test.describe("Layout Contracts - Cross-Dashboard Consistency", () => {
 
   test("doctor and admin use same max-width", async ({ page }) => {
     // Check doctor
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
-    
+
     const doctorContainer = page.locator('[data-testid="dashboard-container"]')
     const doctorClass = await doctorContainer.getAttribute("class")
     const doctorMaxWidth = doctorClass?.match(/max-w-\w+/)?.[0]
@@ -165,7 +165,7 @@ test.describe("Layout Contracts - Cross-Dashboard Consistency", () => {
       return hasPadding > 0
     }
 
-    const doctorHasPadding = await checkPadding("/doctor")
+    const doctorHasPadding = await checkPadding("/doctor/dashboard")
     const studioHasPadding = await checkPadding("/admin/studio")
     const clinicHasPadding = await checkPadding("/admin/clinic")
 
@@ -184,7 +184,7 @@ test.describe("Layout Contracts - Cross-Dashboard Consistency", () => {
       return hasGap > 0
     }
 
-    const doctorHasGap = await checkGap("/doctor")
+    const doctorHasGap = await checkGap("/doctor/dashboard")
     const studioHasGap = await checkGap("/admin/studio")
     const patientsHasGap = await checkGap("/doctor/patients")
 

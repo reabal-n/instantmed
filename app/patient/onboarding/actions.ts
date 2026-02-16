@@ -15,9 +15,9 @@ interface OnboardingInput {
   suburb: string
   state: AustralianState
   postcode: string
-  medicare_number: string
-  medicare_irn: number
-  medicare_expiry: string
+  medicare_number: string | null
+  medicare_irn: number | null
+  medicare_expiry: string | null
   consent_myhr: boolean
 }
 

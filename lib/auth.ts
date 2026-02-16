@@ -319,7 +319,7 @@ export async function requireRole(
     } else if (userRole === "patient") {
       redirect("/patient")
     } else if (userRole === "doctor" || userRole === "admin") {
-      redirect("/doctor")
+      redirect("/doctor/dashboard")
     } else {
       redirect("/sign-in")
     }

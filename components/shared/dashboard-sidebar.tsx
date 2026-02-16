@@ -41,7 +41,7 @@ interface DashboardSidebarProps {
 }
 
 const doctorNavItems: NavItem[] = [
-  { href: "/doctor", label: "Review Queue", icon: ListOrdered, badge: true },
+  { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
@@ -113,7 +113,7 @@ export function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname()
   const navItems = doctorNavItems
-  const baseHref = variant === "patient" ? "/patient" : "/doctor"
+  const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
 
   const handleExport = () => {
     window.location.href = "/api/doctor/export?format=csv"

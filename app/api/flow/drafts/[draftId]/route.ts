@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -10,7 +11,8 @@ interface RouteContext {
 
 /**
  * GET /api/flow/drafts/[draftId]
- * Get a specific draft by ID
+ * Get a specific draft by ID.
+ * Requires sessionId for ownership verification (both guests and authenticated users).
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
@@ -25,20 +27,22 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
+    // sessionId is required for draft ownership verification
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "sessionId is required" },
+        { status: 400 }
+      )
+    }
+
     const supabase = createServiceRoleClient()
 
-    // Build query
-    let query = supabase
+    const { data: draft, error } = await supabase
       .from("intake_drafts")
       .select("*")
       .eq("id", draftId)
-
-    // If sessionId provided, verify ownership
-    if (sessionId) {
-      query = query.eq("session_id", sessionId)
-    }
-
-    const { data: draft, error } = await query.single()
+      .eq("session_id", sessionId)
+      .single()
 
     if (error || !draft) {
       logger.warn("Draft not found", { draftId, sessionId, error: error?.message })
@@ -79,7 +83,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 /**
  * PATCH /api/flow/drafts/[draftId]
- * Update an existing draft
+ * Update an existing draft.
+ * Requires sessionId for ownership verification.
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
@@ -94,24 +99,30 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       )
     }
 
+    // sessionId is required for draft ownership verification
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "sessionId is required" },
+        { status: 400 }
+      )
+    }
+
     const supabase = createServiceRoleClient()
 
-    // Verify ownership if sessionId provided
-    if (sessionId) {
-      const { data: existingDraft, error: checkError } = await supabase
-        .from("intake_drafts")
-        .select("id, session_id")
-        .eq("id", draftId)
-        .eq("session_id", sessionId)
-        .single()
+    // Verify ownership via sessionId
+    const { data: existingDraft, error: checkError } = await supabase
+      .from("intake_drafts")
+      .select("id, session_id")
+      .eq("id", draftId)
+      .eq("session_id", sessionId)
+      .single()
 
-      if (checkError || !existingDraft) {
-        logger.warn("Draft not found or session mismatch", { draftId, sessionId })
-        return NextResponse.json(
-          { error: "Draft not found or access denied" },
-          { status: 404 }
-        )
-      }
+    if (checkError || !existingDraft) {
+      logger.warn("Draft not found or access denied", { draftId, sessionId })
+      return NextResponse.json(
+        { error: "Draft not found or access denied" },
+        { status: 404 }
+      )
     }
 
     // Build update object
@@ -165,7 +176,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 /**
  * DELETE /api/flow/drafts/[draftId]
- * Delete a draft (mark as abandoned)
+ * Delete a draft (mark as abandoned).
+ * Requires sessionId for ownership verification.
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
@@ -180,22 +192,24 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       )
     }
 
+    // sessionId is required for draft ownership verification
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "sessionId is required" },
+        { status: 400 }
+      )
+    }
+
     const supabase = createServiceRoleClient()
 
-    // Build query with optional session verification
-    let query = supabase
+    const { error } = await supabase
       .from("intake_drafts")
       .update({
         status: "abandoned",
         updated_at: new Date().toISOString(),
       })
       .eq("id", draftId)
-
-    if (sessionId) {
-      query = query.eq("session_id", sessionId)
-    }
-
-    const { error } = await query
+      .eq("session_id", sessionId)
 
     if (error) {
       logger.error("Failed to delete draft", { draftId, error: error.message })

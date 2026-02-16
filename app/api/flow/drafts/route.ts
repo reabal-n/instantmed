@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
         {
           session_id: sessionId,
           service_slug: serviceSlug,
-          profile_id: clerkUserId,
           data: initialData || {},
           current_step: "safety",
           current_group_index: 0,
@@ -123,7 +122,6 @@ export async function GET(request: NextRequest) {
       .from("intake_drafts")
       .select("id, service_slug, current_step, current_group_index, status, created_at, updated_at")
       .eq("session_id", sessionId)
-      .eq("profile_id", clerkUserId)
       .eq("status", "in_progress")
       .order("updated_at", { ascending: false })
 

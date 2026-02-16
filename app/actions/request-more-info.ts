@@ -157,7 +157,7 @@ export async function requestMoreInfoAction(
     }
 
     // Revalidate paths
-    revalidatePath("/doctor")
+    revalidatePath("/doctor/dashboard")
     revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/patient/intakes/${intakeId}`)

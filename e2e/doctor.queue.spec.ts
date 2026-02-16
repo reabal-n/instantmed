@@ -78,7 +78,7 @@ test.describe("Doctor Queue", () => {
   })
 
   test("queue loads without error banners", async ({ page }) => {
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Should see Review Queue heading
@@ -104,7 +104,7 @@ test.describe("Doctor Queue", () => {
     // Ensure intake is in paid status
     await resetIntakeForTest(SEEDED_INTAKE_ID)
 
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Wait for queue to load
@@ -122,7 +122,7 @@ test.describe("Doctor Queue", () => {
     // Ensure intake is in paid status
     await resetIntakeForTest(SEEDED_INTAKE_ID)
 
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Wait for queue to load
@@ -208,7 +208,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
   test("queue handles empty state gracefully", async ({ page }) => {
     // This test verifies the UI handles when queue is empty
     // (may show "Queue is clear!" message)
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Should load without crashing
@@ -224,7 +224,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
   })
 
   test("queue search/filter works", async ({ page }) => {
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
     // Wait for queue to load

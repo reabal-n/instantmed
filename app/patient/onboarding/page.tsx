@@ -18,7 +18,7 @@ export default async function PatientOnboardingPage({
   }
 
   if (authUser.profile.role !== "patient") {
-    redirect("/doctor")
+    redirect("/doctor/dashboard")
   }
 
   // If already completed onboarding, redirect to intended destination or dashboard

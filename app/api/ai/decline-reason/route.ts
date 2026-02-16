@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { getDefaultModel } from "@/lib/ai/provider"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
@@ -48,10 +48,11 @@ export async function POST(request: NextRequest) {
     }
     
     // Require doctor authentication
-    const { profile } = await requireRole(["doctor", "admin"])
-    if (!profile) {
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const { profile } = authResult
 
     // Check for AI Gateway API key (or OIDC on Vercel)
     if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {

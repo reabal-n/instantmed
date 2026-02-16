@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -12,7 +12,10 @@ import type { MedCertDraft } from "@/types/db"
 export async function POST(request: NextRequest) {
   try {
     // Require doctor or admin role
-    await requireRole(["doctor", "admin"])
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const body = await request.json() as { draftData?: MedCertDraft; requestId?: string; draftId?: string }
     const { draftData, requestId, draftId } = body

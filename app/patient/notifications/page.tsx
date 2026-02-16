@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth"
 import { NotificationsClient } from "./notifications-client"
 
 // Prevent static generation for dynamic auth
@@ -12,24 +11,10 @@ export const metadata = {
 }
 
 export default async function NotificationsPage() {
-  const { userId } = await auth()
-
-  if (!userId) {
-    redirect("/sign-in?redirect=/patient/notifications")
-  }
+  const authUser = await requireRole(["patient"])
 
   const supabase = createServiceRoleClient()
-
-  // Get profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, first_name")
-    .eq("auth_user_id", userId)
-    .single()
-
-  if (!profile) {
-    redirect("/patient/onboarding")
-  }
+  const profile = authUser.profile
 
   // Get all notifications
   const { data: notifications } = await supabase

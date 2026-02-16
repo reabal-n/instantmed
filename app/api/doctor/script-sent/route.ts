@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { updateScriptSent } from "@/lib/data/intakes"
 
 export async function POST(request: Request) {
   try {
     // Require doctor or admin role
-    await requireRole(["doctor", "admin"])
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     let body
     try {

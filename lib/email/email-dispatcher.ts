@@ -23,6 +23,7 @@ export const MAX_RETRIES = 10
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
 
 // Email types that the dispatcher can reconstruct and resend
+// Must match the types handled by reconstructEmailHtml() in send-email.ts
 const SUPPORTED_EMAIL_TYPES = [
   "med_cert_patient",
   "script_sent",
@@ -33,6 +34,14 @@ const SUPPORTED_EMAIL_TYPES = [
   "payment_failed",
   "guest_complete_account",
   "welcome",
+  "needs_more_info",
+  "consult_approved",
+  "ed_approved",
+  "hair_loss_approved",
+  "weight_loss_approved",
+  "womens_health_approved",
+  "med_cert_employer",
+  "payment_confirmed",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {

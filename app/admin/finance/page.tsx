@@ -25,21 +25,21 @@ export default async function FinanceDashboardPage() {
     // Total revenue (paid intakes)
     supabase
       .from("intakes")
-      .select("amount_paid, paid_at")
+      .select("amount_cents, paid_at")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
     
     // Refunds
     supabase
       .from("intakes")
-      .select("amount_paid, refunded_at")
+      .select("amount_cents, refunded_at")
       .not("refunded_at", "is", null)
       .gte("refunded_at", monthAgo.toISOString()),
     
     // Revenue by day
     supabase
       .from("intakes")
-      .select("amount_paid, paid_at")
+      .select("amount_cents, paid_at")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString())
       .order("paid_at", { ascending: true }),
@@ -47,7 +47,7 @@ export default async function FinanceDashboardPage() {
     // Revenue by service type
     supabase
       .from("intakes")
-      .select("service_type, amount_paid")
+      .select("category, amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
     
@@ -60,7 +60,7 @@ export default async function FinanceDashboardPage() {
     // For average calculation
     supabase
       .from("intakes")
-      .select("amount_paid")
+      .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", yearAgo.toISOString()),
     
@@ -90,8 +90,8 @@ export default async function FinanceDashboardPage() {
   const fraudFlagsResult = results[7].status === "fulfilled" ? results[7].value : { data: [] }
 
   // Calculate totals
-  const totalRevenue = revenueResult.data?.reduce((sum, i) => sum + (i.amount_paid || 0), 0) || 0
-  const totalRefunds = refundsResult.data?.reduce((sum, i) => sum + (i.amount_paid || 0), 0) || 0
+  const totalRevenue = revenueResult.data?.reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
+  const totalRefunds = refundsResult.data?.reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
   const refundCount = refundsResult.data?.length || 0
   const transactionCount = revenueResult.data?.length || 0
   const refundRate = transactionCount > 0 ? (refundCount / transactionCount) * 100 : 0
@@ -99,17 +99,17 @@ export default async function FinanceDashboardPage() {
   // Today's revenue
   const todayRevenue = revenueResult.data
     ?.filter((i) => i.paid_at && new Date(i.paid_at) >= today)
-    .reduce((sum, i) => sum + (i.amount_paid || 0), 0) || 0
+    .reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
 
   // This week's revenue
   const weekRevenue = revenueResult.data
     ?.filter((i) => i.paid_at && new Date(i.paid_at) >= weekAgo)
-    .reduce((sum, i) => sum + (i.amount_paid || 0), 0) || 0
+    .reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
 
   // Average transaction value
   const allTransactions = avgTransactionResult.data || []
   const avgTransaction = allTransactions.length > 0
-    ? allTransactions.reduce((sum, i) => sum + (i.amount_paid || 0), 0) / allTransactions.length
+    ? allTransactions.reduce((sum, i) => sum + (i.amount_cents || 0), 0) / allTransactions.length
     : 0
 
   // Process daily revenue
@@ -124,7 +124,7 @@ export default async function FinanceDashboardPage() {
       if (intake.paid_at) {
         const key = intake.paid_at.split("T")[0]
         if (dailyRevenue[key]) {
-          dailyRevenue[key].revenue += intake.amount_paid || 0
+          dailyRevenue[key].revenue += intake.amount_cents || 0
           dailyRevenue[key].count++
         }
       }
@@ -135,8 +135,8 @@ export default async function FinanceDashboardPage() {
   const serviceRevenue: Record<string, number> = {}
   if (revenueByServiceResult.data) {
     for (const intake of revenueByServiceResult.data) {
-      const type = intake.service_type || "unknown"
-      serviceRevenue[type] = (serviceRevenue[type] || 0) + (intake.amount_paid || 0)
+      const type = intake.category || "unknown"
+      serviceRevenue[type] = (serviceRevenue[type] || 0) + (intake.amount_cents || 0)
     }
   }
 

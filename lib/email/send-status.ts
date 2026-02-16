@@ -314,9 +314,8 @@ export async function sendStatusTransitionEmail(
     return
   }
 
-  // Get patient email from auth
-  const { data: authUser } = await supabase.auth.admin.getUserById(intake.patient.auth_user_id)
-  const email = authUser?.user?.email
+  // Get patient email from profile
+  const email = intake.patient.email
 
   if (!email) {
     logger.error("Could not find patient email")

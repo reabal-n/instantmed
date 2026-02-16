@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { getIntakeMonitoringStats, getSlaBreachIntakes } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     // Require doctor or admin role
-    await requireRole(["doctor", "admin"])
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     // Fetch stats and SLA data in parallel
     const [stats, slaData] = await Promise.all([

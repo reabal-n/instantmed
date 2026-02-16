@@ -401,9 +401,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               {variant === "doctor" && (
                 <>
                   <AnimatedNavLink
-                    href="/doctor"
+                    href="/doctor/dashboard"
                     icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-                    isActive={pathname === "/doctor"}
+                    isActive={pathname === "/doctor/dashboard"}
                     gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
                   >
                     Queue
@@ -598,7 +598,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         {variant === "doctor" && (
           <>
             <AnimatedMobileMenu.Item
-              item={{ label: "Queue", href: "/doctor", icon: <LayoutDashboard className="h-5 w-5" /> }}
+              item={{ label: "Queue", href: "/doctor/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }}
               index={0}
               onClose={() => setMobileMenuOpen(false)}
             />

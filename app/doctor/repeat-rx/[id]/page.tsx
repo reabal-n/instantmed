@@ -48,7 +48,7 @@ async function getRequestData(id: string) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
-    .eq("auth_user_id", userId)
+    .eq("clerk_user_id", userId)
     .single()
   
   if (!profile || !["clinician", "doctor", "admin"].includes(profile.role)) {

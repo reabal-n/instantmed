@@ -63,6 +63,24 @@ export async function POST(request: Request) {
       )
     }
 
+    // Verify the authenticated user owns this intake
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
+    const patientData = intake.patient
+    const patient = Array.isArray(patientData) ? patientData[0] : patientData
+
+    if (!callerProfile || !patient || patient.id !== callerProfile.id) {
+      log.warn("User attempted to resend confirmation for intake they don't own", { intakeId, clerkUserId })
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 }
+      )
+    }
+
     // Only resend for paid intakes
     if (intake.payment_status !== "paid") {
       return NextResponse.json(
@@ -71,9 +89,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Handle Supabase join response (may be array or object)
-    const patientData = intake.patient
-    const patient = Array.isArray(patientData) ? patientData[0] : patientData
     const service = { name: intake.category || "Service" }
 
     if (!patient?.email) {

@@ -85,9 +85,9 @@ test.describe("Portal Access Control - Unauthenticated", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
     
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
-    
+
     // Should redirect to sign-in or show auth prompt
     const url = page.url()
     const isRedirected = url.includes("/sign-in") || url.includes("/login")
@@ -157,9 +157,9 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
     
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
-    
+
     // Should NOT show error messages
     const hasLoadError = await page.getByText(/error loading dashboard/i).isVisible().catch(() => false)
     const hasQueueError = await page.getByText(/unable to load queue/i).isVisible().catch(() => false)
@@ -242,7 +242,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     tracker.attach(page)
     
     // Navigate to doctor pages
-    const doctorPages = ["/doctor", "/doctor/queue", "/doctor/settings"]
+    const doctorPages = ["/doctor/dashboard", "/doctor/queue", "/doctor/settings"]
     
     for (const doctorPage of doctorPages) {
       await page.goto(doctorPage)
@@ -279,9 +279,9 @@ test.describe("Role Restrictions - Patient User", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
     
-    await page.goto("/doctor")
+    await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
-    
+
     // Should redirect away or show unauthorized
     const url = page.url()
     const isRedirectedAway = !url.includes("/doctor")

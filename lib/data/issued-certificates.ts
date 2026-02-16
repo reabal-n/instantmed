@@ -565,7 +565,7 @@ export async function getCertificateByVerificationCode(
     .from("issued_certificates")
     .select("*")
     .eq("verification_code", verificationCode)
-    .single()
+    .maybeSingle()
 
   if (error) {
     return null

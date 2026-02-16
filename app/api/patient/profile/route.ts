@@ -23,20 +23,16 @@ export async function PATCH(request: Request) {
     } catch {
       return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
     }
-    const { 
-      full_name, 
-      phone, 
-      street_address, 
-      suburb, 
-      state, 
+    const {
+      full_name,
+      phone,
+      street_address,
+      address_line1,
+      suburb,
+      state,
       postcode,
       date_of_birth,
-      emergency_contact_name,
-      emergency_contact_phone,
-      preferred_pharmacy_name,
-      preferred_pharmacy_address,
-      email_notifications,
-      sms_notifications,
+      consent_myhr,
     } = body
 
     // Build update object with only provided fields
@@ -46,17 +42,14 @@ export async function PATCH(request: Request) {
 
     if (full_name !== undefined) updateData.full_name = full_name
     if (phone !== undefined) updateData.phone = phone
-    if (street_address !== undefined) updateData.street_address = street_address
+    // Support both field names from client (street_address is legacy, address_line1 is canonical)
+    const addressValue = address_line1 !== undefined ? address_line1 : street_address
+    if (addressValue !== undefined) updateData.address_line1 = addressValue
     if (suburb !== undefined) updateData.suburb = suburb
     if (state !== undefined) updateData.state = state
     if (postcode !== undefined) updateData.postcode = postcode
     if (date_of_birth !== undefined) updateData.date_of_birth = date_of_birth
-    if (emergency_contact_name !== undefined) updateData.emergency_contact_name = emergency_contact_name
-    if (emergency_contact_phone !== undefined) updateData.emergency_contact_phone = emergency_contact_phone
-    if (preferred_pharmacy_name !== undefined) updateData.preferred_pharmacy_name = preferred_pharmacy_name
-    if (preferred_pharmacy_address !== undefined) updateData.preferred_pharmacy_address = preferred_pharmacy_address
-    if (email_notifications !== undefined) updateData.email_notifications = email_notifications
-    if (sms_notifications !== undefined) updateData.sms_notifications = sms_notifications
+    if (consent_myhr !== undefined) updateData.consent_myhr = consent_myhr
 
     const { error } = await supabase
       .from("profiles")

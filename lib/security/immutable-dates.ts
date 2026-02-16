@@ -131,19 +131,26 @@ export async function processDateChangeRequest(
     return { success: false, error: "Failed to process date change request" }
   }
 
-  // If approved, update the actual certificate
+  // If approved, update the actual certificate date in intake_answers
   if (decision === "approved") {
+    const { data: existingAnswers } = await supabase
+      .from("intake_answers")
+      .select("id, answers")
+      .eq("intake_id", request.intake_id)
+      .maybeSingle()
+
+    if (!existingAnswers) {
+      return { success: false, error: "Failed to update certificate date" }
+    }
+
+    const updatedAnswers = {
+      ...(existingAnswers.answers as Record<string, unknown> || {}),
+      start_date: request.requested_date,
+    }
     const { error: certError } = await supabase
-      .from("intakes")
-      .update({
-        // Update the answers with new date
-        answers: supabase.rpc("jsonb_set_value", {
-          target: "answers",
-          path: "{start_date}",
-          value: JSON.stringify(request.requested_date),
-        }),
-      })
-      .eq("id", request.intake_id)
+      .from("intake_answers")
+      .update({ answers: updatedAnswers })
+      .eq("id", existingAnswers.id)
 
     if (certError) {
       return { success: false, error: "Failed to update certificate date" }

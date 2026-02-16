@@ -1,20 +1,11 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { requireRole } from "@/lib/auth"
 import { MessagesClient } from "./messages-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
 export default async function PatientMessagesPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in?redirect=/patient/messages")
-  }
-
-  if (!authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
+  const authUser = await requireRole(["patient"])
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
@@ -32,7 +23,6 @@ export default async function PatientMessagesPage() {
       created_at,
       intake:intakes!intake_id(
         id,
-        service_type,
         category
       )
     `)

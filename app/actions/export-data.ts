@@ -56,7 +56,7 @@ interface PatientDataExport {
     title: string
     message: string | null
     createdAt: string
-    readAt: string | null
+    read: boolean
   }>
 }
 
@@ -78,7 +78,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
     // Fetch all intakes for this patient
     const { data: intakes, error: intakesError } = await supabase
       .from("intakes")
-      .select("id, category, subtype, status, created_at, updated_at, answers")
+      .select("id, category, subtype, status, created_at, updated_at, intake_answers:intake_answers(answers)")
       .eq("patient_id", profile.id)
       .order("created_at", { ascending: false })
 
@@ -100,8 +100,8 @@ export async function exportPatientData(): Promise<ExportDataResult> {
     // Fetch all notifications for this patient
     const { data: notifications, error: notificationsError } = await supabase
       .from("notifications")
-      .select("id, type, title, message, created_at, read_at")
-      .eq("patient_id", profile.id)
+      .select("id, type, title, message, created_at, read")
+      .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
 
     if (notificationsError) {
@@ -141,7 +141,12 @@ export async function exportPatientData(): Promise<ExportDataResult> {
         status: intake.status,
         createdAt: intake.created_at,
         updatedAt: intake.updated_at,
-        answers: intake.answers || {},
+        answers: (() => {
+          const ia = intake.intake_answers as unknown
+          if (Array.isArray(ia)) return (ia as { answers: Record<string, unknown> }[])[0]?.answers || {}
+          if (ia && typeof ia === 'object' && 'answers' in ia) return (ia as { answers: Record<string, unknown> }).answers || {}
+          return {}
+        })(),
       })),
       documents: (documents || []).map(doc => ({
         id: doc.id,
@@ -155,7 +160,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
         title: notif.title,
         message: notif.message,
         createdAt: notif.created_at,
-        readAt: notif.read_at,
+        read: notif.read,
       })),
     }
 

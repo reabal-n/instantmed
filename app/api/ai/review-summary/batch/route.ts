@@ -4,7 +4,7 @@ import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/pr
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
-import { requireRole } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { REVIEW_SUMMARY_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
@@ -25,8 +25,8 @@ interface BatchRequest {
 
 interface RequestData {
   id: string
-  type: string
-  answers: Record<string, unknown>
+  category: string
+  intake_answers: { answers: Record<string, unknown> }[] | null
 }
 
 export async function POST(req: NextRequest) {
@@ -40,10 +40,11 @@ export async function POST(req: NextRequest) {
     }
     
     // Require doctor authentication
-    const { profile } = await requireRole(["doctor", "admin"])
-    if (!profile) {
+    const authResult = await getApiAuth()
+    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const { profile } = authResult
 
     const body: BatchRequest = await req.json()
     const intakeIds = body.intakeIds || body.requestIds // backward compat
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceRoleClient()
     const { data: requests, error: fetchError } = await supabase
       .from('intakes')
-      .select('id, type, answers')
+      .select('id, category, intake_answers:intake_answers(answers)')
       .in('id', limitedIds)
 
     if (fetchError) {
@@ -102,11 +103,11 @@ export async function POST(req: NextRequest) {
 
       try {
         const context = formatRequestContext(request)
-        
+
         const { text } = await generateText({
           model,
           system: REVIEW_SUMMARY_PROMPT,
-          prompt: `Summarize this ${request.type} request:\n\n${context}`,
+          prompt: `Summarize this ${request.category} request:\n\n${context}`,
           temperature,
         })
 
@@ -179,21 +180,22 @@ export async function POST(req: NextRequest) {
 
 function formatRequestContext(request: RequestData): string {
   const lines: string[] = []
-  lines.push(`Request Type: ${request.type}`)
-  
-  const answers = request.answers || {}
-  
-  // Include key fields based on type
-  if (request.type === 'med_cert') {
+  lines.push(`Request Type: ${request.category}`)
+
+  // Extract answers from intake_answers join
+  const answers = request.intake_answers?.[0]?.answers || {}
+
+  // Include key fields based on category
+  if (request.category === 'medical_certificate') {
     if (answers.certType) lines.push(`Certificate: ${answers.certType}`)
     if (answers.duration) lines.push(`Duration: ${answers.duration}`)
     if (answers.selectedSymptoms) {
-      const symptoms = Array.isArray(answers.selectedSymptoms) 
+      const symptoms = Array.isArray(answers.selectedSymptoms)
         ? answers.selectedSymptoms.join(', ')
         : answers.selectedSymptoms
       lines.push(`Symptoms: ${symptoms}`)
     }
-  } else if (request.type === 'script' || request.type === 'repeat_rx') {
+  } else if (request.category === 'prescription') {
     const med = answers.medication as Record<string, unknown> | undefined
     if (med?.product_name) lines.push(`Medication: ${med.product_name}`)
     if (answers.indication) lines.push(`Indication: ${answers.indication}`)
@@ -202,6 +204,6 @@ function formatRequestContext(request: RequestData): string {
     if (answers.consultReason) lines.push(`Reason: ${answers.consultReason}`)
     if (answers.consultDetails) lines.push(`Details: ${answers.consultDetails}`)
   }
-  
+
   return lines.join('\n')
 }

@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
           .update({
             status: newStatus,
             doctor_notes: notes,
-            doctor_id: doctor_id || profile.id,
+            reviewing_doctor_id: doctor_id || profile.id,
             reviewed_by: profile.id,
             reviewed_at: timestamp,
             updated_at: timestamp,

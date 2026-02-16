@@ -99,7 +99,7 @@ export async function refundIfEligible(
         .from("intakes")
         .update({
           refund_status: "not_eligible",
-          refund_reason: reason,
+          refund_error: reason,
           updated_at: timestamp,
         })
         .eq("id", intakeId)
@@ -246,7 +246,7 @@ export async function refundIfEligible(
         .from("intakes")
         .update({
           payment_status: "refund_failed",
-          refund_reason: `Stripe error: ${errorMessage}`,
+          refund_error: `Stripe error: ${errorMessage}`,
           updated_at: timestamp,
         })
         .eq("id", intakeId)
@@ -269,7 +269,7 @@ export async function refundIfEligible(
         payment_status: "refunded",
         refunded_at: timestamp,
         refunded_by: actorId,
-        refund_reason: refundReason,
+        refund_error: refundReason,
         updated_at: timestamp,
       })
       .eq("id", intakeId)
@@ -282,7 +282,7 @@ export async function refundIfEligible(
         refund_status: "refunded",
         stripe_refund_id: stripeRefund.id,
         refund_amount: stripeRefund.amount,
-        refund_reason: refundReason,
+        refund_error: refundReason,
         refunded_at: timestamp,
         updated_at: timestamp,
       })

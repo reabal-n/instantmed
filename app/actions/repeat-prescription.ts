@@ -51,8 +51,8 @@ export async function markRepeatScriptSentAction(
   // Verify intake exists and is a repeat prescription
   const { data: intake, error: fetchError } = await supabase
     .from("intakes")
-    .select(`id, service_type, status, prescription_sent_at, prescription_sent_by, user_id, answers,
-        patient:profiles!patient_id (id, auth_user_id, full_name)`)
+    .select(`id, category, subtype, status, prescription_sent_at, prescription_sent_by,
+        patient:profiles!patient_id (id, full_name, email)`)
     .eq("id", intakeId)
     .single()
 
@@ -61,8 +61,8 @@ export async function markRepeatScriptSentAction(
     return { success: false, error: "Intake not found" }
   }
 
-  // Validate service type
-  if (!["repeat_rx", "repeat_prescription"].includes(intake.service_type)) {
+  // Validate this is a prescription intake
+  if (intake.category !== "prescription") {
     return { success: false, error: "This action is only for repeat prescription intakes" }
   }
 
@@ -111,7 +111,7 @@ export async function markRepeatScriptSentAction(
         action_type: "repeat_rx_script_sent",
         sent: true,
         channel,
-        service_type: intake.service_type,
+        category: intake.category,
       },
     })
 
@@ -125,37 +125,40 @@ export async function markRepeatScriptSentAction(
     // Send prescription approved email to patient
     try {
       const patientArr = intake.patient as unknown as Array<{
-        id: string; auth_user_id: string; full_name: string | null
+        id: string; full_name: string | null; email: string | null
       }> | null
       const patient = patientArr?.[0] ?? null
-      if (patient?.auth_user_id) {
-        const { data: authUser } = await supabase.auth.admin.getUserById(patient.auth_user_id)
-        const patientEmail = authUser?.user?.email
-        if (patientEmail) {
-          const answers = (intake.answers || {}) as Record<string, unknown>
-          const medicationName = String(answers.medicationName || "medication")
-          const patientName = patient.full_name || "there"
+      const patientEmail = patient?.email
+      if (patient && patientEmail) {
+        // Fetch answers from intake_answers table
+        const { data: intakeAnswersRow } = await supabase
+          .from("intake_answers")
+          .select("answers")
+          .eq("intake_id", intakeId)
+          .single()
+        const answers = (intakeAnswersRow?.answers || {}) as Record<string, unknown>
+        const medicationName = String(answers.medicationName || answers.medication_name || "medication")
+        const patientName = patient.full_name || "there"
 
-          await sendEmail({
-            to: patientEmail,
-            toName: patientName,
-            subject: prescriptionApprovedSubject(medicationName),
-            template: PrescriptionApprovedEmail({
-              patientName,
-              medicationName,
-              intakeId,
-              appUrl: env.appUrl,
-            }),
-            emailType: "prescription_approved",
+        await sendEmail({
+          to: patientEmail,
+          toName: patientName,
+          subject: prescriptionApprovedSubject(medicationName),
+          template: PrescriptionApprovedEmail({
+            patientName,
+            medicationName,
             intakeId,
-            patientId: patient.id,
-            metadata: { medicationName, channel },
-            tags: [
-              { name: "category", value: "prescription_approved" },
-              { name: "intake_id", value: intakeId },
-            ],
-          })
-        }
+            appUrl: env.appUrl,
+          }),
+          emailType: "prescription_approved",
+          intakeId,
+          patientId: patient.id,
+          metadata: { medicationName, channel },
+          tags: [
+            { name: "category", value: "prescription_approved" },
+            { name: "intake_id", value: intakeId },
+          ],
+        })
       }
     } catch (emailErr) {
       // Don't fail the action if email fails — script is already marked as sent
@@ -224,7 +227,7 @@ export async function markRepeatScriptSentAction(
         action_type: "repeat_rx_script_sent_undone",
         sent: false,
         reason: isAdmin ? "admin_override" : "doctor_undo_within_window",
-        service_type: intake.service_type,
+        category: intake.category,
       },
     })
 

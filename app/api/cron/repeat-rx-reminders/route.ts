@@ -65,11 +65,11 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         category,
-        answers,
         completed_at,
+        intake_answers:intake_answers(answers),
         patient:profiles!patient_id (
           id,
-          auth_user_id,
+          email,
           full_name
         )
       `)
@@ -105,19 +105,16 @@ export async function GET(request: NextRequest) {
           continue
         }
 
-        // Get patient email
-        // Supabase join returns array; take first element
-        const patientArr = intake.patient as unknown as Array<{ id: string; auth_user_id: string; full_name: string | null }> | null
+        // Get patient email from profile join
+        const patientArr = intake.patient as unknown as Array<{ id: string; email: string | null; full_name: string | null }> | null
         const patient = patientArr?.[0] ?? null
-        if (!patient?.auth_user_id) continue
+        if (!patient?.email) continue
+        const email = patient.email
 
-        const { data: authUser } = await supabase.auth.admin.getUserById(patient.auth_user_id)
-        const email = authUser?.user?.email
-        if (!email) continue
-
-        // Extract medication name from answers
-        const answers = (intake.answers || {}) as Record<string, unknown>
-        const medicationName = String(answers.medicationName || "medication")
+        // Extract medication name from intake_answers join
+        const answersArr = intake.intake_answers as { answers: Record<string, unknown> }[] | null
+        const answers = answersArr?.[0]?.answers || {}
+        const medicationName = String(answers.medicationName || answers.medication_name || "medication")
 
         // Enqueue to outbox — the email-dispatcher cron will render and send
         const { error: insertError } = await supabase.from("email_outbox").insert({

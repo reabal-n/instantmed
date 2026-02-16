@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getPatientHealthSummary } from "@/lib/data/health-summary"
 import { HealthSummaryClient } from "./client"
 import type { Metadata } from "next"
@@ -12,16 +11,12 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function HealthSummaryPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-  
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-  
+  const authUser = await requireRole(["patient"])
+
   const healthSummary = await getPatientHealthSummary(authUser.profile.id)
-  
+
   return (
-    <HealthSummaryClient 
+    <HealthSummaryClient
       profile={authUser.profile}
       summary={healthSummary}
     />

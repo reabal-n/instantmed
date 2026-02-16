@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
     const { count: emailFailures } = await supabase
       .from("issued_certificates")
       .select("id", { count: "exact", head: true })
-      .eq("email_status", "failed")
+      .not("email_failed_at", "is", null)
+      .is("email_sent_at", null)
       .gte("created_at", oneHourAgo.toISOString())
 
     if (emailFailures && emailFailures >= 2) {

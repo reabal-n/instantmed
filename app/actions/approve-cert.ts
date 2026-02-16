@@ -534,7 +534,6 @@ export async function approveAndSendCert(
     // 9. Revalidate dashboard paths
     // NOTE: Removed /doctor/intakes/${intakeId} to prevent mid-action navigation.
     // The client will navigate to /doctor/queue on success anyway.
-    revalidatePath("/doctor")
     revalidatePath("/doctor/dashboard")
     revalidatePath("/doctor/queue")
     revalidatePath(`/patient/intakes/${intakeId}`)

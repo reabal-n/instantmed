@@ -129,8 +129,12 @@ export async function createCheckoutFromUnifiedFlow(
     finalSubtype = String(answers.certType)
   }
   // For consults, use the category from answers (e.g., 'new_medication', 'ed', 'general')
-  if (serviceType === 'consult' && answers.consultCategory) {
-    finalSubtype = String(answers.consultCategory)
+  if (serviceType === 'consult') {
+    if (answers.consultCategory) {
+      finalSubtype = String(answers.consultCategory)
+    } else if (answers.consultSubtype) {
+      finalSubtype = String(answers.consultSubtype)
+    }
   }
   
   // DEV: Debug log for prescription flow tracing (no PHI)

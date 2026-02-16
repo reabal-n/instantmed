@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 
@@ -20,18 +20,10 @@ export interface EmailPreferences {
 }
 
 export async function getEmailPreferences(): Promise<EmailPreferences | null> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const authResult = await getAuthenticatedUserWithProfile()
+  if (!authResult) return null
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single()
-
-  if (!profile) return null
+  const { profile } = authResult
 
   // Get or create preferences using service role
   const serviceClient = createServiceRoleClient()
@@ -49,25 +41,15 @@ export async function getEmailPreferences(): Promise<EmailPreferences | null> {
 export async function updateEmailPreferences(
   preferences: Partial<Pick<EmailPreferences, "marketing_emails" | "abandoned_checkout_emails">>
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const authResult = await getAuthenticatedUserWithProfile()
+  if (!authResult) {
     return { success: false, error: "Not authenticated" }
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single()
-
-  if (!profile) {
-    return { success: false, error: "Profile not found" }
-  }
+  const { profile } = authResult
 
   const serviceClient = createServiceRoleClient()
-  
+
   // First ensure preferences exist
   await serviceClient.rpc("get_or_create_email_preferences", { p_profile_id: profile.id })
 
@@ -87,7 +69,7 @@ export async function updateEmailPreferences(
 
   logger.info("Updated email preferences", { profileId: profile.id, preferences })
   revalidatePath("/patient/settings")
-  
+
   return { success: true }
 }
 
@@ -100,26 +82,17 @@ export async function unsubscribeFromMarketing(
   })
 
   if (result.success && reason) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("auth_user_id", user.id)
-        .single()
+    const authResult = await getAuthenticatedUserWithProfile()
 
-      if (profile) {
-        const serviceClient = createServiceRoleClient()
-        await serviceClient
-          .from("email_preferences")
-          .update({
-            unsubscribed_at: new Date().toISOString(),
-            unsubscribe_reason: reason,
-          })
-          .eq("profile_id", profile.id)
-      }
+    if (authResult) {
+      const serviceClient = createServiceRoleClient()
+      await serviceClient
+        .from("email_preferences")
+        .update({
+          unsubscribed_at: new Date().toISOString(),
+          unsubscribe_reason: reason,
+        })
+        .eq("profile_id", authResult.profile.id)
     }
   }
 
@@ -132,7 +105,7 @@ export async function unsubscribeFromMarketing(
  */
 export async function canSendMarketingEmail(profileId: string): Promise<boolean> {
   const serviceClient = createServiceRoleClient()
-  
+
   const { data } = await serviceClient
     .from("email_preferences")
     .select("marketing_emails, abandoned_checkout_emails")

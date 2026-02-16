@@ -1,5 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { requireRole } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -14,15 +13,7 @@ export const metadata = {
 }
 
 export default async function PaymentHistoryPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (authUser.profile.role !== "patient") {
-    redirect("/doctor")
-  }
+  const authUser = await requireRole(["patient"])
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

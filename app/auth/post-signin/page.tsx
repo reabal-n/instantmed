@@ -376,7 +376,7 @@ export default async function PostSignInPage({
   } else {
     // Default destination based on role and onboarding status
     if (profile.role === "doctor" || profile.role === "admin") {
-      destination = "/doctor"
+      destination = "/doctor/dashboard"
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
     }

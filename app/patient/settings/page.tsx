@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { PatientSettingsClient } from "./settings-client"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 import { getEmailPreferences } from "@/app/actions/email-preferences"
@@ -13,21 +12,13 @@ export const metadata = {
 }
 
 export default async function PatientSettingsPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (authUser.profile.role !== "patient") {
-    redirect("/doctor")
-  }
+  const authUser = await requireRole(["patient"])
 
   // Decrypt sensitive fields before passing to client
   const profileWithDecryptedFields = {
     ...authUser.profile,
-    medicare_number: authUser.profile.medicare_number 
-      ? decryptIfNeeded(authUser.profile.medicare_number) 
+    medicare_number: authUser.profile.medicare_number
+      ? decryptIfNeeded(authUser.profile.medicare_number)
       : null,
   }
 
@@ -35,9 +26,9 @@ export default async function PatientSettingsPage() {
   const emailPreferences = await getEmailPreferences()
 
   return (
-    <PatientSettingsClient 
-      profile={profileWithDecryptedFields} 
-      email={authUser.user.email || ""} 
+    <PatientSettingsClient
+      profile={profileWithDecryptedFields}
+      email={authUser.user.email || ""}
       emailPreferences={emailPreferences}
     />
   )

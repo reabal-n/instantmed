@@ -89,33 +89,19 @@ export async function POST(request: Request) {
       // Get user's email from profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("auth_user_id, email, notification_preferences")
+        .select("email")
         .eq("id", userId)
         .single()
 
-      if (profile) {
-        // Check notification preferences
-        const prefs = profile.notification_preferences || {}
-        const shouldSendEmail = prefs.email_request_updates !== false
-
-        if (shouldSendEmail) {
-          // Get email from profile directly, or lookup from auth
-          let email: string | null = profile.email
-          if (!email && profile.auth_user_id) {
-            email = await getUserEmailFromAuthUserId(profile.auth_user_id)
-          }
-
-          if (email) {
-            // Send email (fire and forget)
-            sendViaResend({
-              to: email,
-              subject: title,
-              html: generateEmailHtml(title, message, actionUrl),
-            }).catch((err) => {
-              log.warn('Failed to send email notification', { userId, email }, err)
-            })
-          }
-        }
+      if (profile?.email) {
+        // Send email (fire and forget)
+        sendViaResend({
+          to: profile.email,
+          subject: title,
+          html: generateEmailHtml(title, message, actionUrl),
+        }).catch((err) => {
+          log.warn('Failed to send email notification', { userId, email: profile.email }, err)
+        })
       }
     }
 

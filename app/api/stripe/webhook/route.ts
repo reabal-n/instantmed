@@ -65,7 +65,7 @@ async function legacyClaimEvent(
     .from("stripe_webhook_events")
     .select("id")
     .eq("event_id", eventId)
-    .single()
+    .maybeSingle()
 
   if (existing) {
     return false // Already processed
@@ -262,6 +262,19 @@ export async function POST(request: Request) {
       amount: session.amount_total,
       paymentStatus: session.payment_status,
     })
+
+    // BECS Direct Debit (AU bank transfers) fire checkout.session.completed with
+    // payment_status="unpaid". The real confirmation arrives via
+    // checkout.session.async_payment_succeeded. Skip processing here to avoid
+    // marking the intake as paid before the money actually moves.
+    if (session.payment_status !== "paid") {
+      log.info("Skipping checkout.session.completed — payment not yet confirmed (async payment method)", {
+        eventId: event.id,
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "async_payment_pending" })
+    }
 
     Sentry.addBreadcrumb({
       category: "stripe-webhook",
@@ -507,7 +520,7 @@ export async function POST(request: Request) {
         step: 'payment_completed',
         intakeId: intakeId!,
         serviceSlug: session.metadata?.service_slug || 'unknown',
-        serviceType: session.metadata?.service_type || 'unknown',
+        serviceType: session.metadata?.category || session.metadata?.service_type || 'unknown',
         userId: patientId || undefined,
         metadata: { amount_cents: session.amount_total },
       })
@@ -564,7 +577,7 @@ export async function POST(request: Request) {
       if (patientId && session.amount_total) {
         const { data: patientProfile } = await supabase
           .from("profiles")
-          .select("email, full_name, auth_user_id")
+          .select("email, full_name, clerk_user_id")
           .eq("id", patientId)
           .single()
 
@@ -619,7 +632,7 @@ export async function POST(request: Request) {
           }
           
           // STEP 5b: Send guest account completion email if this was a guest checkout
-          const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.auth_user_id
+          const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
           if (isGuestCheckout) {
             const serviceName = session.metadata?.service_slug || "medical certificate"
             sendGuestCompleteAccountEmail({
@@ -751,6 +764,160 @@ export async function POST(request: Request) {
       } catch (error) {
         log.error("Error handling expired session", { intakeId }, error)
       }
+    }
+  }
+
+  // Handle checkout.session.async_payment_succeeded - BECS Direct Debit confirmation
+  // This fires when an async payment method (e.g., AU bank transfer) clears.
+  // The checkout.session.completed event was skipped earlier because payment_status was "unpaid".
+  if (event.type === "checkout.session.async_payment_succeeded") {
+    const session = event.data.object as Stripe.Checkout.Session
+    const intakeId = session.metadata?.intake_id
+    const patientId = session.metadata?.patient_id
+
+    log.info("checkout.session.async_payment_succeeded received", {
+      eventId: event.id,
+      sessionId: session.id,
+      intakeId,
+      patientId,
+      amount: session.amount_total,
+    })
+
+    const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, intakeId, session.id, {
+      amount: session.amount_total,
+      payment_intent: session.payment_intent,
+      customer: session.customer,
+    })
+    if (!shouldProcess) {
+      return NextResponse.json({ received: true, skipped: true })
+    }
+
+    if (!intakeId) {
+      log.error("CRITICAL: Missing intake_id in async_payment_succeeded metadata", {
+        eventId: event.id,
+        sessionId: session.id,
+      })
+      return NextResponse.json({ error: "Missing intake_id" }, { status: 200 })
+    }
+
+    try {
+      const { data: currentIntake } = await supabase
+        .from("intakes")
+        .select("id, status, payment_status")
+        .eq("id", intakeId)
+        .single()
+
+      if (!currentIntake) {
+        log.error("Intake not found for async payment", { intakeId })
+        return NextResponse.json({ error: "Intake not found" }, { status: 500 })
+      }
+
+      if (currentIntake.payment_status === "paid") {
+        log.info("Intake already paid, skipping async payment update", { intakeId })
+        return NextResponse.json({ received: true, already_paid: true })
+      }
+
+      const paymentIntentId = typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id || null
+      const stripeCustomerId = typeof session.customer === "string"
+        ? session.customer
+        : session.customer?.id || null
+
+      const { error: updateError } = await supabase
+        .from("intakes")
+        .update({
+          payment_status: "paid",
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          stripe_payment_intent_id: paymentIntentId,
+          stripe_customer_id: stripeCustomerId,
+        })
+        .eq("id", intakeId)
+
+      if (updateError) {
+        log.error("Failed to update intake for async payment", { intakeId, error: updateError.message })
+        return NextResponse.json({ error: "Update failed" }, { status: 500 })
+      }
+
+      // Save Stripe customer ID to profile
+      if (stripeCustomerId && patientId) {
+        await supabase
+          .from("profiles")
+          .update({ stripe_customer_id: stripeCustomerId })
+          .eq("id", patientId)
+          .is("stripe_customer_id", null)
+      }
+
+      // Send payment confirmation email
+      if (patientId) {
+        try {
+          const { data: patientProfile } = await supabase
+            .from("profiles")
+            .select("email, full_name")
+            .eq("id", patientId)
+            .single()
+
+          if (patientProfile?.email) {
+            const React = await import("react")
+            const { sendEmail } = await import("@/lib/email/send-email")
+            const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+
+            const serviceName = session.metadata?.service_slug
+              ?.replace(/-/g, " ")
+              ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+              || "medical request"
+            const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`
+
+            await sendEmail({
+              to: patientProfile.email,
+              toName: patientProfile.full_name || "Patient",
+              subject: `Payment confirmed for your ${serviceName}`,
+              template: React.createElement(PaymentConfirmedEmail, {
+                patientName: patientProfile.full_name || "there",
+                requestType: serviceName,
+                amount: amountFormatted,
+                requestId: intakeId,
+              }),
+              emailType: "payment_confirmed",
+              intakeId,
+              patientId,
+              metadata: { amount_cents: session.amount_total },
+            })
+          }
+        } catch (emailErr) {
+          log.warn("Async payment confirmation email error (non-fatal)", { intakeId }, emailErr)
+        }
+      }
+
+      log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
+    } catch (error) {
+      log.error("Error processing async_payment_succeeded", { intakeId, eventId: event.id }, error)
+      return NextResponse.json({ error: "Processing failed" }, { status: 500 })
+    }
+  }
+
+  // Handle checkout.session.async_payment_failed - BECS Direct Debit failure
+  if (event.type === "checkout.session.async_payment_failed") {
+    const session = event.data.object as Stripe.Checkout.Session
+    const intakeId = session.metadata?.intake_id
+
+    log.warn("checkout.session.async_payment_failed received", {
+      eventId: event.id,
+      sessionId: session.id,
+      intakeId,
+    })
+
+    if (intakeId) {
+      await supabase
+        .from("intakes")
+        .update({
+          payment_status: "failed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+        .eq("status", "pending_payment")
     }
   }
 
@@ -919,17 +1086,17 @@ export async function POST(request: Request) {
       try {
         const { data: intake } = await supabase
           .from("intakes")
-          .select("category, patient:profiles!patient_id(email, first_name)")
+          .select("category, patient:profiles!patient_id(email, full_name)")
           .eq("id", intakeId)
           .single()
 
-        const patient = intake?.patient as { email?: string; first_name?: string } | null
+        const patient = intake?.patient as { email?: string; full_name?: string } | null
         const service = { name: intake?.category || "Service" }
-        
+
         if (patient?.email) {
           await sendPaymentFailedEmail({
             to: patient.email,
-            patientName: patient.first_name || "there",
+            patientName: patient.full_name || "there",
             serviceName: service?.name || "your request",
             failureReason: paymentIntent.last_payment_error?.message || "Your payment could not be processed",
             retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${intakeId}?retry=true`,
@@ -1041,8 +1208,10 @@ export async function POST(request: Request) {
 
   // Log unhandled event types for visibility
   const handledEvents = [
-    "checkout.session.completed", 
+    "checkout.session.completed",
     "checkout.session.expired",
+    "checkout.session.async_payment_succeeded",
+    "checkout.session.async_payment_failed",
     "charge.refunded",
     "payment_intent.payment_failed",
     "charge.dispute.created",

@@ -102,7 +102,6 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
         id,
         patient_id,
         status,
-        service,
         issued_certificates (
           id,
           certificate_number,

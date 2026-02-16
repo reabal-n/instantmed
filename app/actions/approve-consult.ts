@@ -49,8 +49,8 @@ export async function approveConsultAction(
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
       .select(`
-        id, status, service_type, category, subtype, answers,
-        patient:profiles!patient_id (id, auth_user_id, full_name)
+        id, status, category, subtype,
+        patient:profiles!patient_id (id, full_name, email)
       `)
       .eq("id", intakeId)
       .single()
@@ -67,17 +67,15 @@ export async function approveConsultAction(
     // Get patient array (Supabase join returns array)
     const patientArr = intake.patient as unknown as Array<{
       id: string
-      auth_user_id: string
       full_name: string | null
+      email: string | null
     }> | null
     const patient = patientArr?.[0] ?? null
-    if (!patient?.auth_user_id) {
+    if (!patient) {
       return { success: false, error: "Patient not found" }
     }
 
-    // Get patient email
-    const { data: authUser } = await supabase.auth.admin.getUserById(patient.auth_user_id)
-    const patientEmail = authUser?.user?.email
+    const patientEmail = patient.email
     if (!patientEmail) {
       return { success: false, error: "Patient email not found" }
     }
@@ -110,12 +108,17 @@ export async function approveConsultAction(
       metadata: {
         action_type: "consult_approved",
         subtype: intake.subtype,
-        service_type: intake.service_type,
+        category: intake.category,
       },
     })
 
-    // Determine email template based on subtype
-    const answers = (intake.answers || {}) as Record<string, unknown>
+    // Fetch answers from intake_answers table for email template
+    const { data: intakeAnswersRow } = await supabase
+      .from("intake_answers")
+      .select("answers")
+      .eq("intake_id", intakeId)
+      .single()
+    const answers = (intakeAnswersRow?.answers || {}) as Record<string, unknown>
     const consultSubtype = (answers.consultSubtype as string) || intake.subtype || "general"
     const medicationName = String(answers.medicationName || answers.selectedMedication || "medication")
     const treatmentType = answers.womensHealthType as string | undefined

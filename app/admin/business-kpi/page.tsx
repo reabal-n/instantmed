@@ -24,7 +24,7 @@ export default async function BusinessKPIDashboardPage() {
     // [0] Revenue this month (all paid intakes)
     supabase
       .from("intakes")
-      .select("amount_cents, paid_at, service_type")
+      .select("amount_cents, paid_at, category")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
 
@@ -172,7 +172,7 @@ export default async function BusinessKPIDashboardPage() {
   }
 
   // === REVENUE METRICS ===
-  const revenueData = get<Array<{ amount_cents: number; paid_at: string; service_type: string }>>(0, [])
+  const revenueData = get<Array<{ amount_cents: number; paid_at: string; category: string }>>(0, [])
   const totalRevenueMonth = revenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
 
   const todayRevenueData = get<Array<{ amount_cents: number }>>(18, [])

@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { userId } = authResult
+    const { profile } = authResult
 
     // Validate UUID format
     if (!intakeId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
@@ -46,7 +46,7 @@ export async function GET(
       return NextResponse.json({ error: "Invalid request ID" }, { status: 400 })
     }
 
-    log.info(`[document-download] Download request for ${intakeId} by user ${userId}`)
+    log.info(`[document-download] Download request for ${intakeId} by user ${profile.id}`)
 
     // Fetch intake to verify ownership and approval status
     const intakeData = await getIntakeWithDetails(intakeId)
@@ -57,8 +57,8 @@ export async function GET(
     }
 
     // Verify patient owns this intake
-    if (intakeData.patient_id !== userId) {
-      log.warn(`[document-download] User ${userId} attempted to download intake owned by ${intakeData.patient_id}`)
+    if (intakeData.patient_id !== profile.id) {
+      log.warn(`[document-download] User ${profile.id} attempted to download intake owned by ${intakeData.patient_id}`)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -121,7 +121,7 @@ export async function GET(
     try {
       const posthog = getPostHogClient()
       posthog.capture({
-        distinctId: userId,
+        distinctId: profile.id,
         event: 'document_downloaded',
         properties: {
           intake_id: intakeId,
@@ -132,7 +132,7 @@ export async function GET(
     } catch { /* non-blocking */ }
 
     // Log certificate download event for audit trail
-    void logCertificateEvent(certificate.id, "downloaded", userId, "patient", {
+    void logCertificateEvent(certificate.id, "downloaded", profile.id, "patient", {
       file_size_bytes: pdfBuffer.byteLength,
     })
 

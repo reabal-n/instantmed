@@ -116,7 +116,7 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
     .eq("subtype", subtype)
     .gte("created_at", oneHourAgo.toISOString())
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (data) {
     return {
@@ -138,41 +138,13 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
  * Prevents multi-account medication stacking
  */
 export async function checkMedicareDuplication(
-  medicareNumber: string,
-  medicationCode: string,
-  excludePatientId?: string
+  _medicareNumber: string,
+  _medicationCode: string,
+  _excludePatientId?: string
 ): Promise<FraudFlag | null> {
-  const supabase = getServiceClient()
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-
-  // Check for same Medicare + same medication across ANY account
-  let query = supabase
-    .from("repeat_rx_requests")
-    .select("id, patient_id, created_at, status")
-    .eq("patient_medicare", medicareNumber)
-    .eq("medication_code", medicationCode)
-    .gte("created_at", thirtyDaysAgo.toISOString())
-    .in("status", ["pending", "approved", "completed"])
-
-  if (excludePatientId) {
-    query = query.neq("patient_id", excludePatientId)
-  }
-
-  const { data } = await query.limit(1)
-
-  if (data && data.length > 0) {
-    return {
-      type: "duplicate_medication",
-      severity: "critical",
-      details: {
-        previousRequestId: data[0].id,
-        previousDate: data[0].created_at,
-        differentAccount: data[0].patient_id !== excludePatientId,
-        medicationCode,
-      },
-    }
-  }
-
+  // TODO: Enable when repeat_rx_requests table is created
+  // This function checks for multi-account medication stacking via Medicare number dedup.
+  // The repeat_rx_requests table does not exist yet — this is a future feature.
   return null
 }
 
@@ -188,9 +160,9 @@ export async function checkRollingWindowCertificates(
 
   const { data } = await supabase
     .from("intakes")
-    .select("id, answers, created_at")
+    .select("id, created_at, intake_answers:intake_answers(answers)")
     .eq("patient_id", patientId)
-    .eq("service_type", "med_certs")
+    .eq("category", "medical_certificate")
     .gte("created_at", fourteenDaysAgo.toISOString())
     .in("status", ["pending", "approved", "completed"])
 
@@ -198,7 +170,8 @@ export async function checkRollingWindowCertificates(
 
   // Calculate total certificate days
   const totalDays = data.reduce((sum, r) => {
-    const answers = r.answers as Record<string, unknown> | null
+    const intakeAnswers = Array.isArray(r.intake_answers) ? r.intake_answers[0] : r.intake_answers
+    const answers = (intakeAnswers?.answers as Record<string, unknown>) || null
     const duration = answers?.duration as number | string | undefined
     return sum + (typeof duration === "number" ? duration : parseInt(String(duration) || "0", 10))
   }, 0)
@@ -224,31 +197,12 @@ export async function checkRollingWindowCertificates(
  * Users who abandon and restart may be testing what triggers flags
  */
 export async function checkChatRestarts(
-  patientId: string,
-  sessionId: string
+  _patientId: string,
+  _sessionId: string
 ): Promise<FraudFlag | null> {
-  const supabase = getServiceClient()
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-
-  const { count } = await supabase
-    .from("chat_sessions")
-    .select("*", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-    .eq("status", "abandoned")
-    .gte("created_at", oneHourAgo.toISOString())
-
-  if (count && count >= 3) {
-    return {
-      type: "chat_restart_abuse",
-      severity: count >= 5 ? "high" : "medium",
-      details: {
-        abandonedCount: count,
-        period: "1_hour",
-        currentSessionId: sessionId,
-      },
-    }
-  }
-
+  // TODO: Enable when chat_sessions table is created
+  // This function detects users who abandon and restart chats to test flag triggers.
+  // The chat_sessions table does not exist yet — this is a future feature.
   return null
 }
 
@@ -325,7 +279,7 @@ export async function logInjectionAttempt(
       reason: "multiple_injection_attempts",
       details: { attemptCount: count },
       created_at: new Date().toISOString(),
-    })
+    }, { onConflict: "patient_id,flag_type" })
   }
 }
 
@@ -376,7 +330,7 @@ export async function runFraudChecks(params: {
   if (duplicate) flags.push(duplicate)
 
   // HIGH #5: Rolling window check for med certs
-  if (params.category === "med_certs") {
+  if (params.category === "medical_certificate") {
     const rollingWindow = await checkRollingWindowCertificates(params.patientId)
     if (rollingWindow) flags.push(rollingWindow)
   }

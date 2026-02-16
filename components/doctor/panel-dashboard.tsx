@@ -148,7 +148,7 @@ export function PanelDoctorDashboard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_ids: selectedIds,
+          intake_ids: selectedIds,
           action: "approve",
           notes: "",
           doctor_id: doctorId,
@@ -192,8 +192,8 @@ export function PanelDoctorDashboard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_ids: selectedIds,
-          action: "reject",
+          intake_ids: selectedIds,
+          action: "decline",
           notes: "Declined",
           doctor_id: doctorId,
         }),
@@ -442,8 +442,8 @@ function RequestDetailDrawer({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_id: request.id,
-          action,
+          intake_id: request.id,
+          action: action === "reject" ? "decline" : action,
           notes,
           doctor_id: doctorId,
         }),
