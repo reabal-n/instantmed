@@ -26,12 +26,12 @@ export default async function DoctorPerformancePage() {
   // Get intake stats per doctor
   const { data: intakes } = await supabase
     .from("intakes")
-    .select("id, doctor_id, status, created_at, updated_at, paid_at")
+    .select("id, reviewing_doctor_id, status, created_at, updated_at, paid_at")
     .gte("created_at", monthAgo.toISOString())
 
   // Calculate metrics per doctor
   const doctorMetrics = (doctors || []).map((doctor) => {
-    const doctorIntakes = (intakes || []).filter((i) => i.doctor_id === doctor.id)
+    const doctorIntakes = (intakes || []).filter((i) => i.reviewing_doctor_id === doctor.id)
     const approved = doctorIntakes.filter((i) => i.status === "approved")
     const declined = doctorIntakes.filter((i) => i.status === "declined")
     

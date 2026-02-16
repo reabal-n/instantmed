@@ -319,7 +319,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
-    const guestIdempotencyKey = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+    // Deterministic idempotency key based on email + service + answers to prevent duplicate intakes
+    const { createHash } = await import("crypto")
+    const guestIdempotencyKey = `guest-${createHash("sha256")
+      .update(`${normalizedEmail}:${input.category}:${input.subtype}:${JSON.stringify(input.answers)}`)
+      .digest("hex")
+      .slice(0, 24)}`
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .insert({

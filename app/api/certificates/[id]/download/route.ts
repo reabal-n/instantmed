@@ -53,11 +53,12 @@ export async function GET(
       )
     }
 
-    // 4. Verify ownership or doctor/admin access
+    // 4. Verify ownership or issuing doctor/admin access
     const isOwner = certificate.patient_id === profile.id
-    const isDoctor = profile.role === "doctor" || profile.role === "admin"
+    const isIssuingDoctor = profile.role === "doctor" && certificate.doctor_id === profile.id
+    const isAdmin = profile.role === "admin"
 
-    if (!isOwner && !isDoctor) {
+    if (!isOwner && !isIssuingDoctor && !isAdmin) {
       log.warn("Unauthorized download attempt", {
         certificateId,
         requesterId: profile.id,

@@ -4,8 +4,8 @@ import type React from "react"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import {
-  Button,
   Input,
   Textarea,
 } from "@heroui/react"
@@ -134,33 +134,18 @@ function SafetyKnockout() {
         </p>
         <div className="bg-card/70 backdrop-blur-xl rounded-2xl p-6 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-4">
           <p className="font-medium">If this is a medical emergency:</p>
-          <Button
-            as="a"
-            href="tel:000"
-            className="w-full"
-            color="danger"
-          >
-            Call 000
+          <Button asChild variant="destructive" className="w-full">
+            <a href="tel:000">Call 000</a>
           </Button>
           <p className="text-sm text-muted-foreground">or go to your nearest emergency department</p>
           <hr className="border-red-100" />
           <p className="font-medium">For mental health crisis support:</p>
-          <Button
-            as="a"
-            href="tel:131114"
-            className="w-full"
-            variant="bordered"
-            color="danger"
-          >
-            Lifeline: 13 11 14
+          <Button asChild variant="outline" className="w-full border-red-300 text-red-700 hover:bg-red-50">
+            <a href="tel:131114">Lifeline: 13 11 14</a>
           </Button>
         </div>
-        <Button
-          as={Link}
-          href="/"
-          variant="light"
-        >
-          Return to home
+        <Button asChild variant="ghost">
+          <Link href="/">Return to home</Link>
         </Button>
       </div>
     </div>
@@ -676,7 +661,7 @@ export function ConsultFlowClient({
                     We sent a confirmation link to {email}
                   </p>
                   <Button
-                    variant="bordered"
+                    variant="outline"
                     onClick={() => {
                       setIsSignUp(false)
                       setShowEmailConfirm(false)
@@ -693,7 +678,7 @@ export function ConsultFlowClient({
                   />
 
                   <Button
-                    variant="bordered"
+                    variant="outline"
                     className="w-full h-11"
                     onClick={handleGoogleAuth}
                   >

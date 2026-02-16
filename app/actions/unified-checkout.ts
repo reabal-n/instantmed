@@ -12,6 +12,7 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import type { ServiceCategory } from "@/lib/stripe/client"
+import crypto from "crypto"
 
 interface UnifiedCheckoutInput {
   serviceType: UnifiedServiceType
@@ -155,7 +156,11 @@ export async function createCheckoutFromUnifiedFlow(
       subtype: finalSubtype,
       type: serviceType,
       answers: transformedAnswers,
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey: crypto
+        .createHash("sha256")
+        .update(`${authResult.profile.id}:${serviceType}:${finalSubtype}:${JSON.stringify(transformedAnswers)}`)
+        .digest("hex")
+        .slice(0, 32),
       chatSessionId, // Pass chat session ID for transcript linking
     })
   } else {

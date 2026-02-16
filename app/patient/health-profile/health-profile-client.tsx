@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
-import { Heart, Plus, X, Save, AlertCircle } from "lucide-react"
+import { Heart, Plus, X, Save, AlertCircle, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import type { HealthProfile } from "@/lib/data/health-profile"
 
@@ -99,7 +99,7 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
             onChange={(e) => setNewItem((prev) => ({ ...prev, [type]: e.target.value }))}
             onKeyDown={(e) => e.key === "Enter" && addItem(type)}
           />
-          <Button size="sm" variant="flat" onPress={() => addItem(type)} aria-label={`Add ${type}`}>
+          <Button size="sm" variant="secondary" onClick={() => addItem(type)} aria-label={`Add ${type}`}>
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -176,12 +176,11 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
         </div>
 
         <Button
-          color="primary"
-          onPress={handleSave}
-          isLoading={isPending}
-          startContent={!isPending ? <Save className="h-4 w-4" /> : undefined}
+          onClick={handleSave}
+          disabled={isPending}
           className="w-full sm:w-auto"
         >
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Health Profile
         </Button>
       </div>

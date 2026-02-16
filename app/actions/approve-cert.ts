@@ -23,6 +23,7 @@ import { createNotification } from "@/lib/notifications/service"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
+import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 
 interface ApproveCertResult {
   success: boolean
@@ -331,8 +332,8 @@ export async function approveAndSendCert(
       doctor_nominals: doctorIdentity?.nominals || null,
       doctor_provider_number: doctorProfile.provider_number!,
       doctor_ahpra_number: doctorProfile.ahpra_number!,
-      template_config_snapshot: pdfResult.templateConfig! as unknown as Record<string, unknown>,
-      clinic_identity_snapshot: pdfResult.clinicIdentity! as unknown as Record<string, unknown>,
+      template_config_snapshot: (pdfResult.templateConfig ?? DEFAULT_TEMPLATE_CONFIG) as unknown as Record<string, unknown>,
+      clinic_identity_snapshot: (pdfResult.clinicIdentity ?? {}) as unknown as Record<string, unknown>,
       storage_path: storagePath,
       file_size_bytes: pdfBuffer.length,
       filename: `Medical_Certificate_${certificateNumber}.pdf`,
@@ -354,6 +355,10 @@ export async function approveAndSendCert(
     }
 
     const certificateId = atomicResult.certificateId
+    if (!certificateId) {
+      logger.error("Atomic approval succeeded but returned no certificateId", { intakeId })
+      return { success: false, error: "Certificate creation failed — missing certificate ID" }
+    }
 
     // If this was an idempotent re-approval, check if email was already sent
     if (atomicResult.isExisting) {
@@ -379,23 +384,34 @@ export async function approveAndSendCert(
       const edits = compareForEdits(answersData, reviewData)
       if (edits.length > 0) {
         const editResult = await logCertificateEdits(
-          certificateId!,
+          certificateId,
           intakeId,
           doctorProfile.id,
           edits
         )
         
-        // P1 FIX: Fail if audit trail cannot be written (medicolegal requirement)
+        // CRITICAL: Alert if audit trail write fails completely
+        // Certificate is already issued and cannot be rolled back at this point.
+        // We MUST alert for immediate manual review to maintain medicolegal compliance.
         if (editResult.errors.length > 0 && editResult.editCount === 0) {
-          logger.error("Failed to log certificate edits - audit trail incomplete", {
+          logger.error("CRITICAL: Certificate edit audit trail completely failed", {
             intakeId,
             certificateId,
             errors: editResult.errors,
             attemptedEdits: edits.length,
           })
-          // Don't fail the approval, but log a critical alert
-          // Certificate is already issued, so we can't roll back
-          // But we MUST alert on this for manual review
+          Sentry.captureMessage(
+            `CRITICAL: Certificate audit trail write failed completely for intake ${intakeId}`,
+            {
+              level: "fatal",
+              tags: { subsystem: "cert-audit-trail", intakeId },
+              extra: {
+                certificateId,
+                attemptedEdits: edits.length,
+                errors: editResult.errors,
+              },
+            }
+          )
         }
         
         if (editResult.editCount > 0) {

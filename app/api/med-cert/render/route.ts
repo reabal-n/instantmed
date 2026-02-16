@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireRole } from "@/lib/auth"
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { createLogger } from "@/lib/observability/logger"
-const log = createLogger("route")
+const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
 
 /**
@@ -38,9 +37,25 @@ export async function POST(request: NextRequest) {
       doctorId: profile.id,
     })
 
+    // Validate required fields before generation
+    if (!draftData.patient_full_name) {
+      return NextResponse.json(
+        { success: false, error: "Patient name is required" },
+        { status: 400 }
+      )
+    }
+    if (!draftData.date_from || !draftData.date_to) {
+      return NextResponse.json(
+        { success: false, error: "Certificate dates are required" },
+        { status: 400 }
+      )
+    }
+
     // Convert MedCertDraft to factory's expected format (MedCertDraftData)
+    // Note: doctor_ahpra is AHPRA registration number, NOT provider number
+    // The factory uses provider_number for the Medicare provider number displayed on cert
     const draftDataForFactory = {
-      patient_name: draftData.patient_full_name || "",
+      patient_name: draftData.patient_full_name,
       dob: draftData.patient_dob,
       reason: draftData.reason_summary,
       date_from: draftData.date_from,
@@ -48,7 +63,7 @@ export async function POST(request: NextRequest) {
       work_capacity: null,
       notes: null,
       doctor_name: draftData.doctor_typed_name || "",
-      provider_number: draftData.doctor_ahpra || "",
+      provider_number: draftData.doctor_ahpra || "", // Note: MedCertDraft stores provider info in doctor_ahpra field
       created_date: new Date().toISOString().split("T")[0],
     }
 
@@ -65,13 +80,13 @@ export async function POST(request: NextRequest) {
       size: result.size,
     })
 
-    // Upload to Supabase Storage (permanent bucket)
+    // Upload to Supabase Storage (documents bucket — matches canonical approve-cert pipeline)
     const supabase = createServiceRoleClient()
     const fileName = `med-cert-${requestId}-${draftId}.pdf`
     const filePath = `certificates/${fileName}`
 
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("permanent")
+      .from("documents")
       .upload(filePath, result.buffer, {
         contentType: "application/pdf",
         cacheControl: "3600",
@@ -90,12 +105,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("permanent")
-      .getPublicUrl(filePath)
-
-    const pdfUrl = urlData.publicUrl
+    // Store the storage path as reference (bucket is private — downloads use signed URLs)
+    const pdfUrl = filePath
 
     log.info("PDF uploaded successfully", {
       requestId,

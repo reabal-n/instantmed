@@ -159,7 +159,7 @@ const doctorImages = [
 ]
 
 export default function RepeatPrescriptionPage() {
-  const prefersReducedMotion = useReducedMotion()
+  const _prefersReducedMotion = useReducedMotion()
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   // Show sticky CTA after scrolling past hero
@@ -433,15 +433,11 @@ export default function RepeatPrescriptionPage() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
               >
-                <Button 
-                  as={Link}
-                  href="/request?service=prescription"
-                  color="primary"
-                  size="lg"
-                  className="px-8 h-12 font-semibold shadow-lg shadow-primary/25"
-                  endContent={<ArrowRight className="h-4 w-4" />}
-                >
-                  Request your medication
+                <Button asChild size="lg" className="px-8 h-12 font-semibold shadow-lg shadow-primary/25">
+                  <Link href="/request?service=prescription">
+                    Request your medication
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
                 <p className="text-xs text-muted-foreground mt-3">
                   Don&apos;t see yours? Most regular medications are supported.
@@ -545,15 +541,11 @@ export default function RepeatPrescriptionPage() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
               >
-                <Button
-                  as={Link}
-                  href="/request?service=prescription"
-                  color="primary"
-                  size="lg"
-                  className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                  endContent={<ArrowRight className="h-4 w-4" />}
-                >
-                  Renew your medication
+                <Button asChild size="lg" className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+                  <Link href="/request?service=prescription">
+                    Renew your medication
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
                   Most scripts reviewed in under an hour

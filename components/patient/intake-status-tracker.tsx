@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Clock, 
-  CheckCircle2, 
-  FileText, 
+import {
+  Clock,
+  CheckCircle2,
+  FileText,
   Send,
   AlertCircle,
   XCircle,
   Loader2,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"

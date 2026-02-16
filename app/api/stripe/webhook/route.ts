@@ -728,11 +728,12 @@ export async function POST(request: Request) {
 
     if (intakeId) {
       try {
-        // Update intake status to expired if still pending payment
+        // Update intake status and payment_status to expired if still pending payment
         const { error: expireError } = await supabase
           .from("intakes")
           .update({
             status: "expired",
+            payment_status: "expired",
             updated_at: new Date().toISOString(),
           })
           .eq("id", intakeId)

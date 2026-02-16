@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
     const certRequestId = requestId || draftId || "preview"
 
     // Convert MedCertDraft to factory's expected format (MedCertDraftData)
+    // Note: doctor_ahpra stores the provider identification for display on cert
     const draftDataForFactory = {
-      patient_name: draftData.patient_full_name || "",
+      patient_name: draftData.patient_full_name || "Patient Name",
       dob: draftData.patient_dob,
       reason: draftData.reason_summary,
       date_from: draftData.date_from,

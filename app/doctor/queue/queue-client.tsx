@@ -71,6 +71,7 @@ import { PatientHealthProfilePanel } from "@/components/doctor/patient-health-pr
 import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { cn } from "@/lib/utils"
 
 export function QueueClient({
   intakes: initialIntakes,

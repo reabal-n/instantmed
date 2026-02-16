@@ -185,28 +185,6 @@ const doctorImages = [
   '/indian-australian-woman-professional-headshot-smil.jpg',
 ]
 
-// Hook for random wait time (5-25 mins) with subtle variation
-function useWaitTimeRotator() {
-  // Use lazy initial state to generate random value on mount
-  const [waitTime, setWaitTime] = useState(() => Math.floor(Math.random() * 21) + 5)
-  
-  useEffect(() => {
-    // Update every 8-15 seconds with subtle changes
-    const interval = setInterval(() => {
-      setWaitTime(prev => {
-        // Subtle variation: +/- 1-3 minutes, staying within 5-25 range
-        const change = Math.floor(Math.random() * 7) - 3
-        const newValue = prev + change
-        return Math.max(5, Math.min(25, newValue))
-      })
-    }, 8000 + Math.random() * 7000)
-    
-    return () => clearInterval(interval)
-  }, [])
-  
-  return waitTime
-}
-
 // Hook for rotating subheadlines
 function useRotatingSubheadline() {
   const [index, setIndex] = useState(0)
@@ -223,8 +201,8 @@ function useRotatingSubheadline() {
 
 export default function MedicalCertificatePage() {
   const currentSubheadline = useRotatingSubheadline()
-  const prefersReducedMotion = useReducedMotion()
-  
+  const _prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />

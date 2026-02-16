@@ -96,13 +96,13 @@ export async function POST(req: Request) {
       // Check for profiles where clerk_user_id is NULL or empty string
       const { data: guestProfile } = await supabase
         .from('profiles')
-        .select('id, clerk_user_id')
+        .select('id, clerk_user_id, role')
         .ilike('email', primaryEmail)
         .or('clerk_user_id.is.null,clerk_user_id.eq.')
         .maybeSingle()
 
-      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '')) {
-        // Link existing guest profile to Clerk user
+      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '') && (!guestProfile.role || guestProfile.role === 'patient')) {
+        // Link existing guest/patient profile to Clerk user (never link doctor/admin profiles)
         const { error } = await supabase
           .from('profiles')
           .update({

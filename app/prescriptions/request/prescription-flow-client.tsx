@@ -350,7 +350,7 @@ function ControlledWarning({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </div>
-        <Button onPress={onClose} className="w-full" color="primary" radius="lg">
+        <Button onClick={onClose} className="w-full rounded-lg">
           I understand
         </Button>
       </div>
@@ -367,16 +367,15 @@ function SafetyKnockout() {
       </div>
       <h1 className="text-xl font-semibold mb-2">{RX_MICROCOPY.safety.knockoutTitle}</h1>
       <p className="text-sm text-muted-foreground max-w-xs mb-6">{RX_MICROCOPY.safety.knockoutBody}</p>
-      <Button
-        as={Link}
-        href="https://www.healthdirect.gov.au/australian-health-services"
-        target="_blank"
-        rel="noopener noreferrer"
-        variant="bordered"
-        radius="lg"
-      >
-        {RX_MICROCOPY.safety.knockoutCta}
-        <ExternalLink className="w-4 h-4 ml-2" />
+      <Button asChild variant="outline" className="rounded-lg">
+        <a
+          href="https://www.healthdirect.gov.au/australian-health-services"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {RX_MICROCOPY.safety.knockoutCta}
+          <ExternalLink className="w-4 h-4 ml-2" />
+        </a>
       </Button>
     </div>
   )
@@ -787,14 +786,13 @@ export function PrescriptionFlowClient({
               </div>
               <div className="space-y-3">
                 <Button
-                  onPress={restoreDraft}
+                  onClick={restoreDraft}
                   className="w-full h-12 rounded-xl"
-                  color="primary"
                 >
                   Continue my request
                 </Button>
                 <Button
-                  onPress={startFresh}
+                  onClick={startFresh}
                   variant="ghost"
                   className="w-full h-10 rounded-xl"
                 >
@@ -997,13 +995,10 @@ export function PrescriptionFlowClient({
                       </p>
                     </div>
                   </div>
-                  <Button
-                    as={Link}
-                    href="/consult"
-                    className="w-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
-                    radius="lg"
-                  >
-                    Continue to General Consult ($49.95)
+                  <Button asChild className="w-full rounded-lg bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white">
+                    <Link href="/consult">
+                      Continue to General Consult ($49.95)
+                    </Link>
                   </Button>
                 </div>
               )}
@@ -1367,7 +1362,7 @@ export function PrescriptionFlowClient({
                     )}
                   </Button>
                 ) : step === "safety" && checkSafetyKnockout() ? (
-                  <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="flex-1 h-12 rounded-xl">
+                  <Button onClick={() => setIsKnockedOut(true)} variant="outline" className="flex-1 h-12 rounded-xl">
                     Find a doctor near you
                   </Button>
                 ) : (

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("id, role")
       .eq("clerk_user_id", clerkUserId)
       .single()
 
@@ -43,8 +43,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
+    // SECURITY: Verify intake exists and doctor has ownership (assigned to them or unclaimed)
+    const { data: currentIntake, error: fetchError } = await supabase
+      .from("intakes")
+      .select("id, status, reviewing_doctor_id, payment_status")
+      .eq("id", intake_id)
+      .single()
+
+    if (fetchError || !currentIntake) {
+      return NextResponse.json({ error: "Intake not found" }, { status: 404 })
+    }
+
+    // Only allow updates if intake is assigned to this doctor, or unclaimed (for admins)
+    const isAssignedDoctor = currentIntake.reviewing_doctor_id === profile.id
+    const isUnclaimedForAdmin = !currentIntake.reviewing_doctor_id && profile.role === "admin"
+    if (!isAssignedDoctor && !isUnclaimedForAdmin && profile.role !== "admin") {
+      log.warn("Doctor attempted to update intake assigned to another doctor", {
+        intake_id,
+        requestingDoctorId: profile.id,
+        assignedDoctorId: currentIntake.reviewing_doctor_id,
+      })
+      return NextResponse.json({ error: "This intake is assigned to another doctor" }, { status: 403 })
+    }
+
+    // Validate status can be transitioned
+    const actionableStatuses = ["paid", "in_review", "pending_info", "escalated"]
+    if (!actionableStatuses.includes(currentIntake.status)) {
+      return NextResponse.json({
+        error: `Cannot ${action} intake with status '${currentIntake.status}'`
+      }, { status: 400 })
+    }
+
     // SECURITY: Validate doctor_id if provided
-    if (doctor_id) {
+    const effectiveDoctorId = doctor_id || profile.id
+    if (doctor_id && doctor_id !== profile.id) {
       const { data: doctorProfile } = await supabase
         .from("profiles")
         .select("id, role")
@@ -67,10 +99,13 @@ export async function POST(request: NextRequest) {
       .update({
         status: statusMap[action as keyof typeof statusMap],
         doctor_notes: notes,
-        doctor_id,
+        reviewing_doctor_id: effectiveDoctorId,
+        reviewed_by: profile.id,
+        reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", intake_id)
+      .in("status", actionableStatuses) // Prevent race conditions
       .select()
       .single()
 

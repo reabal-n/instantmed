@@ -321,9 +321,9 @@ function MedCertDocument({
         <View style={styles.signature}>
           { }
           <Image style={styles.signatureImage} src={signatureUrl} />
-          <Text style={styles.signatureName}>{data.doctor_name || "Dr Reabal Najjar"}</Text>
+          <Text style={styles.signatureName}>{data.doctor_name || "Doctor Name Required"}</Text>
           <Text style={styles.signatureDetails}>
-            Provider Number: {data.provider_number || "2426577L"}
+            Provider Number: {data.provider_number || "—"}
           </Text>
           <Text style={styles.clinicInfo}>
             InstantMed Telehealth{"\n"}
