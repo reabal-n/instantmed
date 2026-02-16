@@ -13,7 +13,7 @@
  * @see /components/request/request-flow.tsx
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -565,13 +565,17 @@ export function RepeatRxIntakeFlow({
     }
   }, [currentStep, goToStep])
 
-  // Check Supabase auth session on mount
+  // Check Supabase auth session on mount (run once)
+  const hasCheckedSessionRef = useRef(false)
   useEffect(() => {
+    if (hasCheckedSessionRef.current) return
+    hasCheckedSessionRef.current = true
+
     const checkSession = async () => {
       try {
         const { data: { user: currentUser } } = await supabase.auth.getUser()
         setUser(currentUser)
-        
+
         if (currentUser && !_isAuthenticated) {
           const userMetadata = currentUser.user_metadata || {}
           const { profileId } = await createOrGetProfile(
@@ -583,14 +587,12 @@ export function RepeatRxIntakeFlow({
           if (profileId) {
             setPatientId(profileId)
             setIsAuthenticated(true)
-            
-            // Check for auth_success query param
+
+            // Check for auth_success query param — redirect to medication only from auth step
             const urlParams = new URLSearchParams(window.location.search)
             if (urlParams.get("auth_success") === "true") {
               window.history.replaceState({}, "", window.location.pathname)
-              if (currentStep === "auth") {
-                goToStep("medication")
-              }
+              goToStep("medication")
             }
           }
         }
@@ -600,13 +602,13 @@ export function RepeatRxIntakeFlow({
         setIsAuthLoading(false)
       }
     }
-    
+
     checkSession()
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Listen for auth changes (e.g., OAuth popup completing)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
-      
+
       if (session?.user && !_isAuthenticated) {
         const userMetadata = session.user.user_metadata || {}
         const { profileId } = await createOrGetProfile(
@@ -618,14 +620,6 @@ export function RepeatRxIntakeFlow({
         if (profileId) {
           setPatientId(profileId)
           setIsAuthenticated(true)
-          
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get("auth_success") === "true") {
-            window.history.replaceState({}, "", window.location.pathname)
-            if (currentStep === "auth") {
-              goToStep("medication")
-            }
-          }
         }
       }
     })
@@ -633,7 +627,8 @@ export function RepeatRxIntakeFlow({
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase, _isAuthenticated, currentStep, goToStep])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase])
 
   // Check eligibility when moving to review
   const checkEligibility = async () => {
@@ -680,7 +675,7 @@ export function RepeatRxIntakeFlow({
       case "auth":
         return true
       case "medication":
-        return medication !== null && emergencyAccepted
+        return medication !== null
       case "history":
         return lastPrescribed && stability && prescriber.trim() && isSymptomInputValid(indication, 10) && currentDose.trim() && doseChanged !== null
       case "safety":
@@ -698,40 +693,44 @@ export function RepeatRxIntakeFlow({
     }
   }, [currentStep, medication, emergencyAccepted, lastPrescribed, stability, prescriber, indication, currentDose, doseChanged, gpAttestationAccepted, termsAccepted])
   
-  // Handle auth callback
+  // Handle auth callback — only run once when auth state first resolves
+  const hasSetupProfileRef = useRef(false)
   useEffect(() => {
     if (searchParams?.get("auth_success") === "true") {
       // Clear the URL param
       window.history.replaceState({}, "", window.location.pathname)
     }
-    
+
     // Use auth state for authentication check after OAuth redirect
     const setupProfile = async () => {
-      if (user && !isSignedIn) {
+      if (!user || !isSignedIn || hasSetupProfileRef.current) {
         return
       }
-      
-      if (user && isSignedIn) {
-        const userMetadata = user.user_metadata || {}
-        const userName = userMetadata.full_name || userMetadata.name || user.email?.split('@')[0] || ""
-        const { profileId } = await createOrGetProfile(
-          user.id,
-          userName,
-          ""
-        )
-        
-        if (profileId) {
-          setPatientId(profileId)
-          setIsAuthenticated(true)
+
+      hasSetupProfileRef.current = true
+      const userMetadata = user.user_metadata || {}
+      const userName = userMetadata.full_name || userMetadata.name || user.email?.split('@')[0] || ""
+      const { profileId } = await createOrGetProfile(
+        user.id,
+        userName,
+        ""
+      )
+
+      if (profileId) {
+        setPatientId(profileId)
+        setIsAuthenticated(true)
+        // Only redirect to medication if still on auth step
+        if (currentStep === "auth") {
           goToStep("medication")
         }
       }
     }
-    
+
     if (user && isSignedIn) {
       setupProfile()
     }
-  }, [searchParams, goToStep, user, isSignedIn])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isSignedIn])
   
   // ============================================================================
   // RENDER

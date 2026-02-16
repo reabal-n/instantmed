@@ -3,6 +3,9 @@
 /**
  * Consult Reason Step - General consultation pathway selection
  * Collects reason for consultation with common categories
+ *
+ * When consultSubtype is already set (user selected from service hub),
+ * the category selector is hidden — only details + urgency are shown.
  */
 
 import { useState, useEffect } from "react"
@@ -14,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { CONSULT_SUBTYPE_LABELS, type ConsultSubtype } from "@/lib/request/step-registry"
 
 interface ConsultReasonStepProps {
   serviceType: UnifiedServiceType
@@ -30,13 +34,13 @@ const CONSULT_CATEGORIES = [
   { value: "womens_health", label: "Women's health", icon: "🌸" },
 ] as const
 
-// Map hub subtypes to category values
+// Map hub subtypes to category values (hub uses underscores: hair_loss, womens_health, weight_loss)
 const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
   'ed': 'ed',
-  'hair-loss': 'hair_loss',
-  'womens-health': 'womens_health',
-  'weight-loss': 'weight_loss',
+  'hair_loss': 'hair_loss',
+  'womens_health': 'womens_health',
+  'weight_loss': 'weight_loss',
 }
 
 // Subtype-specific guidance and placeholders
@@ -75,12 +79,16 @@ const CATEGORY_GUIDANCE: Record<string, {
 export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  
+
   // Pre-fill from hub subtype selection
   const consultSubtype = answers.consultSubtype as string | undefined
   const consultCategory = answers.consultCategory as string | undefined
   const consultDetails = (answers.consultDetails as string) || ""
   const consultUrgency = answers.consultUrgency as string | undefined
+
+  // If user already selected a subtype from the service hub, category is pre-determined
+  // and should not be shown again (fixes redundant type selection)
+  const subtypePreSelected = !!consultSubtype && !!SUBTYPE_TO_CATEGORY[consultSubtype]
 
   // Apply hub subtype selection on mount
   useEffect(() => {
@@ -94,15 +102,15 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!consultCategory) {
       newErrors.consultCategory = "Please select what you'd like help with"
     }
-    
+
     if (!consultDetails?.trim() || consultDetails.length < 20) {
       newErrors.consultDetails = "Please provide more detail (at least 20 characters)"
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -115,6 +123,11 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
 
   const isComplete = consultCategory && consultDetails?.length >= 20
 
+  // Friendly label for pre-selected subtype
+  const subtypeLabel = consultSubtype
+    ? CONSULT_SUBTYPE_LABELS[consultSubtype as ConsultSubtype] || consultSubtype
+    : null
+
   return (
     <div className="space-y-5 animate-in fade-in">
       {/* Info alert */}
@@ -125,30 +138,39 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
         </AlertDescription>
       </Alert>
 
-      {/* Category selection */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          What would you like help with?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <div className="grid grid-cols-2 gap-2">
-          {CONSULT_CATEGORIES.map((category) => (
-            <EnhancedSelectionButton
-              key={category.value}
-              variant="card"
-              selected={consultCategory === category.value}
-              onClick={() => setAnswer("consultCategory", category.value)}
-              className="justify-start gap-2 h-auto py-3 px-3"
-            >
-              <span className="text-lg">{category.icon}</span>
-              <span className="text-sm">{category.label}</span>
-            </EnhancedSelectionButton>
-          ))}
+      {/* Category selection — hidden when subtype was pre-selected from the service hub */}
+      {subtypePreSelected ? (
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-muted-foreground">
+            Consultation type
+          </Label>
+          <p className="text-sm font-medium">{subtypeLabel}</p>
         </div>
-        {errors.consultCategory && (
-          <p className="text-xs text-destructive">{errors.consultCategory}</p>
-        )}
-      </div>
+      ) : (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            What would you like help with?
+            <span className="text-destructive ml-0.5">*</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {CONSULT_CATEGORIES.map((category) => (
+              <EnhancedSelectionButton
+                key={category.value}
+                variant="card"
+                selected={consultCategory === category.value}
+                onClick={() => setAnswer("consultCategory", category.value)}
+                className="justify-start gap-2 h-auto py-3 px-3"
+              >
+                <span className="text-lg">{category.icon}</span>
+                <span className="text-sm">{category.label}</span>
+              </EnhancedSelectionButton>
+            ))}
+          </div>
+          {errors.consultCategory && (
+            <p className="text-xs text-destructive">{errors.consultCategory}</p>
+          )}
+        </div>
+      )}
 
       {/* Details textarea */}
       <div className="space-y-2">

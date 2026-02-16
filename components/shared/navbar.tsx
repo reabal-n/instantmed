@@ -206,7 +206,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   return (
     <>
       <header
-        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-4")}
+        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-2")}
       >
         <motion.nav
           className={cn(
@@ -229,7 +229,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             )}
             variants={navGlowVariants}
           />
-          <div className="relative z-10 flex items-center justify-between px-3 py-1.5">
+          <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
             <BrandLogo size="sm" className="relative z-10" />
 
