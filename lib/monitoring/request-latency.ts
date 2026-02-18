@@ -105,7 +105,7 @@ export async function recordDecisionMade(
 
   const { data: existing } = await supabase
     .from("request_latency")
-    .select("*")
+    .select("intake_id, payment_at, queued_at, assigned_at, review_started_at, decision_at, payment_to_queue_ms, queue_to_review_ms, review_to_decision_ms, total_latency_ms")
     .eq("intake_id", intakeId)
     .single()
 

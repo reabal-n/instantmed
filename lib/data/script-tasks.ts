@@ -30,7 +30,7 @@ export async function getScriptTasks(filters?: {
   const supabase = createServiceRoleClient()
   let query = supabase
     .from("script_tasks")
-    .select("*")
+    .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at")
     .order("created_at", { ascending: false })
 
   if (filters?.status) {
@@ -107,7 +107,7 @@ export async function createScriptTask(task: {
       medication_form: task.medication_form || null,
       status: "pending_send",
     })
-    .select()
+    .select("id, intake_id, doctor_id, status, created_at")
     .single()
 
   if (error) {

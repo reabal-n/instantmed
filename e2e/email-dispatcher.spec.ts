@@ -112,7 +112,7 @@ test.describe("Email Dispatcher", () => {
     // Verify the row was created with correct status
     const { data: fetchedRow } = await supabase
       .from("email_outbox")
-      .select("*")
+      .select("id, status, retry_count")
       .eq("id", testOutboxId)
       .single()
 

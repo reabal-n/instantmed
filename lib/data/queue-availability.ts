@@ -20,7 +20,7 @@ export async function getQueueEstimate(): Promise<QueueEstimate> {
 
     const { count, error } = await supabase
       .from("intakes")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .in("status", ["paid", "in_review"])
 
     if (error) {

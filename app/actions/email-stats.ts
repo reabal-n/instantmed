@@ -38,7 +38,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
     // Emails sent today
     const { count: todayCount, error: todayError } = await supabase
       .from("email_outbox")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .gte("created_at", todayStart)
       .in("status", ["sent", "skipped_e2e"])
 
@@ -49,7 +49,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
     // Emails sent this week
     const { count: weekCount, error: weekError } = await supabase
       .from("email_outbox")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .gte("created_at", weekAgo)
       .in("status", ["sent", "skipped_e2e"])
 
@@ -60,7 +60,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
     // Pending emails (if any queue mechanism exists)
     const { count: pendingCount, error: pendingError } = await supabase
       .from("email_outbox")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("status", "pending")
 
     if (pendingError) {
@@ -70,7 +70,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
     // Failed emails (last 7 days)
     const { count: failedCount, error: failedError } = await supabase
       .from("email_outbox")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .gte("created_at", weekAgo)
       .eq("status", "failed")
 

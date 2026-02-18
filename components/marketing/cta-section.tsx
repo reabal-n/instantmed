@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
-import { Button, Card, CardBody } from '@heroui/react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { SparklesPremium, ClockPremium, ShieldPremiumAlt } from '@/components/icons/certification-logos'
 
@@ -36,7 +37,7 @@ export function CTASection() {
           transition={{ duration: 0.6 }}
         >
               <Card className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 border border-border/50 overflow-hidden rounded-2xl shadow-lg">
-              <CardBody className="p-8 sm:p-12 text-center">
+              <CardContent className="p-8 sm:p-12 text-center">
               {/* Badge */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -72,10 +73,10 @@ export function CTASection() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
+                <Button
                   as={Link}
                   href="/request"
-                  color="primary"
+                  variant="default"
                   size="lg"
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
                   endContent={<ArrowRight className="h-4 w-4" />}
@@ -94,7 +95,7 @@ export function CTASection() {
                   Full refund if we can&apos;t help
                 </span>
               </div>
-            </CardBody>
+            </CardContent>
           </Card>
         </motion.div>
       </div>

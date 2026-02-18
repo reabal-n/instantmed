@@ -62,7 +62,7 @@ async function getTemplate(slug: string): Promise<TemplateEmail | null> {
 
   const { data, error } = await supabase
     .from("email_templates")
-    .select("*")
+    .select("id, slug, name, subject, body_html, body_text, available_tags, is_active")
     .eq("slug", slug)
     .eq("is_active", true)
     .single()

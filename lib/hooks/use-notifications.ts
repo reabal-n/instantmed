@@ -79,7 +79,7 @@ export function useNotifications(): UseNotificationsReturn {
       // Fetch notifications using profile ID
       const { data, error: fetchError } = await supabase
         .from("notifications")
-        .select("*")
+        .select("id, type, title, message, action_url, read, metadata, created_at, expires_at")
         .eq("user_id", profileId)
         .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
         .order("created_at", { ascending: false })

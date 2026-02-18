@@ -101,7 +101,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   // Fetch pending/failed emails that might be eligible for retry
   const { data: candidates, error: fetchError } = await supabase
     .from("email_outbox")
-    .select("*")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at")
     .in("status", ["pending", "failed"])
     .lt("retry_count", MAX_RETRIES)
     .order("created_at", { ascending: true })

@@ -22,7 +22,7 @@ export default async function TrackingPage({ params }: PageProps) {
   const { data: intake, error } = await supabase
     .from("intakes")
     .select(`
-      *,
+      id, status, created_at, updated_at, is_priority,
       patient:profiles!patient_id (
         full_name,
         id
@@ -40,7 +40,7 @@ export default async function TrackingPage({ params }: PageProps) {
   if (intake.status === "paid") {
     const { count } = await supabase
       .from("intakes")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("status", "paid")
       .lt("created_at", intake.created_at)
 
@@ -49,5 +49,11 @@ export default async function TrackingPage({ params }: PageProps) {
 
   const estimatedMinutes = queuePosition * 15
 
-  return <TrackingClient intake={intake} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />
+  // Supabase returns join relations as arrays with .single() — unwrap for component
+  const intakeForClient = {
+    ...intake,
+    patient: Array.isArray(intake.patient) ? intake.patient[0] : intake.patient,
+  }
+
+  return <TrackingClient intake={intakeForClient} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />
 }

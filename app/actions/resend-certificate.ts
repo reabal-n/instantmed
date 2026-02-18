@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { sendEmail } from "@/lib/email/send-email"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { env } from "@/lib/env"
@@ -21,9 +21,9 @@ interface ResendCertificateResult {
  */
 export async function resendCertificate(intakeId: string): Promise<ResendCertificateResult> {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    
-    if (!authUser) {
+    const authResult = await getApiAuth()
+
+    if (!authResult) {
       return { success: false, error: "Please sign in to continue" }
     }
 
@@ -51,8 +51,8 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
     }
 
     // Verify ownership
-    if (intake.patient_id !== authUser.profile.id) {
-      logger.warn("Resend certificate: unauthorized", { intakeId, userId: authUser.profile.id })
+    if (intake.patient_id !== authResult.profile.id) {
+      logger.warn("Resend certificate: unauthorized", { intakeId, userId: authResult.profile.id })
       return { success: false, error: "You can only access your own requests" }
     }
 

@@ -8,7 +8,6 @@
  * Supports both intakes (new) and legacy requests.
  */
 
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"

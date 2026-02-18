@@ -1,6 +1,7 @@
 'use client'
 
-import { Accordion, AccordionItem, Link } from '@heroui/react'
+import { Accordion, AccordionItem } from '@/components/ui/accordion'
+import { ExternalLink } from 'lucide-react'
 import { faqItems } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { HelpCirclePremium } from '@/components/icons/certification-logos'
@@ -96,13 +97,13 @@ export function FAQSection() {
           transition={{ delay: 0.3 }}
         >
           <p className="text-muted-foreground mb-2 text-sm">Still have questions?</p>
-          <Link 
-            href="mailto:hello@instantmed.com.au" 
-            color="primary"
-            showAnchorIcon
+          <a
+            href="mailto:hello@instantmed.com.au"
+            className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
           >
             Contact our support team
-          </Link>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
         </motion.div>
       </div>
     </section>

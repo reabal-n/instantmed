@@ -5,6 +5,7 @@ import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 /**
  * Render API endpoint for generating and uploading medical certificate PDFs
@@ -13,6 +14,12 @@ import type { MedCertDraft } from "@/types/db"
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
     // Require doctor or admin role
     const authResult = await getApiAuth()
     if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
@@ -143,11 +150,13 @@ export async function POST(request: NextRequest) {
       size: result.size,
     })
   } catch (error) {
-    log.error("Error rendering medical certificate", { error })
+    log.error("Error rendering medical certificate", {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to render certificate",
+        error: "Failed to render certificate",
       },
       { status: 500 }
     )

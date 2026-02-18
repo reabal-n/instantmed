@@ -4,7 +4,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { Button, Accordion, AccordionItem } from "@heroui/react"
+import { Button } from "@/components/ui/button"
+import { Accordion, AccordionItem } from "@/components/ui/accordion"
 import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { LiveWaitTime, StatsStrip } from "@/components/marketing"
@@ -268,15 +269,15 @@ export default function MedicalCertificatePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                   >
-                    <Button 
-                      as={Link}
-                      href="/request?service=med-cert"
-                      color="primary"
+                    <Button
+                      asChild
                       size="lg"
                       className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                      endContent={<ArrowRight className="h-4 w-4" />}
                     >
-                      Request your certificate
+                      <Link href="/request?service=med-cert">
+                        Request your certificate
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
                     </Button>
                     
                     {/* 100% online badge */}
@@ -714,14 +715,14 @@ export default function MedicalCertificatePage() {
                 transition={{ delay: 0.3 }}
               >
                 <Button
-                  as={Link}
-                  href="/request?service=med-cert"
-                  color="primary"
+                  asChild
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                  endContent={<ArrowRight className="h-4 w-4" />}
                 >
-                  Get started now
+                  <Link href="/request?service=med-cert">
+                    Get started now
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
                   Most people are done in under an hour ✅
@@ -901,14 +902,14 @@ export default function MedicalCertificatePage() {
               <p className="text-xs text-muted-foreground truncate">Doctor-reviewed certificate</p>
             </div>
             <Button
-              as={Link}
-              href="/request?service=med-cert"
-              color="primary"
+              asChild
               size="sm"
               className="px-5 font-semibold shadow-lg shadow-primary/25 shrink-0"
-              endContent={<ArrowRight className="h-3.5 w-3.5" />}
             >
-              Get started
+              <Link href="/request?service=med-cert">
+                Get started
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </Button>
           </div>
         </div>

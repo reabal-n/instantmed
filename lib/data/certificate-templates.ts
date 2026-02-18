@@ -28,7 +28,7 @@ export async function getActiveTemplate(
 
   const { data, error } = await supabase
     .from("certificate_templates")
-    .select("*")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
     .eq("template_type", templateType)
     .eq("is_active", true)
     .maybeSingle()
@@ -49,7 +49,7 @@ export async function getAllActiveTemplates(): Promise<CertificateTemplate[]> {
 
   const { data, error } = await supabase
     .from("certificate_templates")
-    .select("*")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
     .eq("is_active", true)
     .order("template_type")
 
@@ -72,7 +72,7 @@ export async function getTemplateById(
   const { data, error } = await supabase
     .from("certificate_templates")
     .select(`
-      *,
+      id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by,
       creator:profiles!created_by(full_name),
       activator:profiles!activated_by(full_name)
     `)
@@ -84,7 +84,7 @@ export async function getTemplateById(
     return null
   }
 
-  return data as CertificateTemplateWithCreator
+  return data as unknown as CertificateTemplateWithCreator
 }
 
 /**
@@ -99,7 +99,7 @@ export async function getTemplateVersionHistory(
   const { data, error } = await supabase
     .from("certificate_templates")
     .select(`
-      *,
+      id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by,
       creator:profiles!created_by(full_name),
       activator:profiles!activated_by(full_name)
     `)
@@ -112,7 +112,7 @@ export async function getTemplateVersionHistory(
     return []
   }
 
-  return data as CertificateTemplateWithCreator[]
+  return data as unknown as CertificateTemplateWithCreator[]
 }
 
 /**
@@ -175,7 +175,7 @@ export async function createTemplateVersion(
         activated_by: actorId,
         created_by: actorId,
       })
-      .select()
+      .select("id, template_type, version, name, config, is_active, created_at")
       .single()
 
     if (error) {

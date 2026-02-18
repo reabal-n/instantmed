@@ -1,17 +1,9 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { EmailAnalyticsClient } from "./email-analytics-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
 export default async function EmailAnalyticsPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser || authUser.profile.role !== "admin") {
-    redirect("/")
-  }
-
   const supabase = createServiceRoleClient()
   const now = new Date()
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)

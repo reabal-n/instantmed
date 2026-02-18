@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
+import { checkAndIncrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 
@@ -11,9 +10,9 @@ function escapeIlike(input: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  // Rate limiting using database
+  // Atomic rate limiting — single check-and-increment to prevent TOCTOU races
   const ip = await getClientIP()
-  const rateLimitResult = await checkRateLimit(
+  const rateLimitResult = await checkAndIncrementRateLimit(
     ip,
     "ip",
     "/api/medications",
@@ -35,14 +34,6 @@ export async function GET(request: NextRequest) {
       }
     )
   }
-
-  // Increment rate limit
-  await incrementRateLimit(
-    ip,
-    "ip",
-    "/api/medications",
-    { maxRequests: 30, windowMs: 60 * 1000 }
-  )
 
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()

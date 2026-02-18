@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     }
 
     // Require either an internal API key OR an authenticated admin session
-    const apiKey = process.env.INTERNAL_API_KEY
+    const apiKey = process.env.INTERNAL_API_SECRET
     let authorized = false
     const supabase = createServiceRoleClient()
 
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
       })
       .eq('id', intakeId)
       .in('status', APPROVABLE_STATUSES) // Only update if still in approvable state
-      .select()
+      .select("id")
       .single()
 
     // STEP 4: Log compliance event for audit trail
@@ -209,9 +209,10 @@ export async function POST(request: Request) {
       .eq('intake_id', intakeId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
-    const patientData = intakeWithPatient?.patient as unknown as { id: string; full_name: string; clerk_user_id: string | null; email: string | null } | null
+    const patientRaw = intakeWithPatient?.patient as unknown as { id: string; full_name: string; clerk_user_id: string | null; email: string | null }[] | { id: string; full_name: string; clerk_user_id: string | null; email: string | null } | null
+    const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
     
     let patientEmail: string | null = patientData?.email ?? null
     if (!patientEmail && patientData?.clerk_user_id) {

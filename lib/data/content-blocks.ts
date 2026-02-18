@@ -27,7 +27,7 @@ export async function getAllContentBlocks(): Promise<ContentBlock[]> {
 
   const { data, error } = await supabase
     .from("content_blocks")
-    .select("*")
+    .select("id, key, name, description, category, content, content_type, context, max_length, created_at, updated_at, updated_by")
     .is("deleted_at", null) // Exclude soft-deleted records
     .order("category", { ascending: true })
     .order("name", { ascending: true })
@@ -48,7 +48,7 @@ export async function getContentBlockByKey(key: string): Promise<ContentBlock | 
 
   const { data, error } = await supabase
     .from("content_blocks")
-    .select("*")
+    .select("id, key, name, description, category, content, content_type, context, max_length, created_at, updated_at, updated_by")
     .eq("key", key)
     .is("deleted_at", null) // Exclude soft-deleted records
     .single()
@@ -69,7 +69,7 @@ export async function getContentBlocksByCategory(category: string): Promise<Cont
 
   const { data, error } = await supabase
     .from("content_blocks")
-    .select("*")
+    .select("id, key, name, description, category, content, content_type, context, max_length, created_at, updated_at, updated_by")
     .eq("category", category)
     .is("deleted_at", null) // Exclude soft-deleted records
     .order("name", { ascending: true })
@@ -110,7 +110,7 @@ export async function createContentBlock(
       content_type: input.content_type || "text",
       updated_by: actorId,
     })
-    .select()
+    .select("id, key, created_at, updated_at")
     .single()
 
   if (error) {
@@ -140,7 +140,7 @@ export async function updateContentBlock(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .select()
+    .select("id, key, created_at, updated_at")
     .single()
 
   if (error) {

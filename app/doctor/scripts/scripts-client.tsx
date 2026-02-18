@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Button } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 import { ClipboardList, Send, CheckCircle2, Clock, Filter, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
@@ -203,24 +203,23 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                   {task.status === "pending_send" && (
                     <Button
                       size="sm"
-                      color="primary"
-                      variant="flat"
-                      onPress={() => updateStatus(task.id, "sent")}
-                      startContent={<Send className="h-3.5 w-3.5" />}
+                      variant="secondary"
+                      onClick={() => updateStatus(task.id, "sent")}
                       aria-label={`Mark script for ${task.patient_name} as sent`}
                     >
+                      <Send className="h-3.5 w-3.5" />
                       Mark Sent
                     </Button>
                   )}
                   {task.status === "sent" && (
                     <Button
                       size="sm"
-                      color="success"
-                      variant="flat"
-                      onPress={() => updateStatus(task.id, "confirmed")}
-                      startContent={<CheckCircle2 className="h-3.5 w-3.5" />}
+                      variant="secondary"
+                      className="text-emerald-700 dark:text-emerald-300"
+                      onClick={() => updateStatus(task.id, "confirmed")}
                       aria-label={`Confirm script for ${task.patient_name}`}
                     >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
                       Confirm
                     </Button>
                   )}

@@ -39,6 +39,34 @@ const defaultItems: NavItem[] = [
   },
 ]
 
+const doctorItems: NavItem[] = [
+  {
+    label: "Queue",
+    icon: FileText,
+    href: "/doctor/dashboard",
+  },
+  {
+    label: "Scripts",
+    icon: FolderOpen,
+    href: "/doctor/scripts",
+  },
+  {
+    label: "Patients",
+    icon: User,
+    href: "/doctor/patients",
+  },
+  {
+    label: "Settings",
+    icon: Home,
+    href: "/doctor/settings/identity",
+  },
+]
+
+/** Doctor-specific mobile navigation with doctor routes pre-configured */
+export function DoctorMobileNav({ className }: { className?: string }) {
+  return <MobileNav items={doctorItems} className={className} />
+}
+
 export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()

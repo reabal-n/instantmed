@@ -216,8 +216,9 @@ export async function approveAndSendCert(
     const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
 
     // Get intake answers for carer details extraction
-    const answers = intake.answers as unknown as { answers: Record<string, unknown> }[] | null
-    const answersData = answers?.[0]?.answers || null
+    const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
+    const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
+    const answersData = answersObj?.answers || null
 
     // Get patient DOB (required for PDF)
     const patientDob = patient.date_of_birth || null

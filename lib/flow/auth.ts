@@ -129,7 +129,7 @@ export async function loadDraft(
   try {
     const { data, error } = await supabase
       .from('intake_drafts')
-      .select('*')
+      .select('id, user_id, session_id, service_slug, answers, data, current_step, status, created_at, updated_at')
       .eq('id', draftId)
       .single()
 

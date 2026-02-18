@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
@@ -11,14 +11,47 @@ const lastAlertTimes: Record<string, number> = {}
 const ALERT_THROTTLE_MS = 5 * 60 * 1000
 
 /**
+ * Verify the request carries a valid CRON_SECRET or internal monitoring token.
+ * Returns true if the caller is authorized to see detailed health data.
+ */
+function isAuthorizedMonitor(request: NextRequest): boolean {
+  const authHeader = request.headers.get("authorization")
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    return true
+  }
+  return false
+}
+
+/**
  * GET /api/health
  * Health check endpoint for load balancers and monitoring
- * 
+ *
+ * Unauthenticated: returns { status: "ok" } (no infrastructure details)
+ * Authenticated (Bearer CRON_SECRET): returns full diagnostics
+ *
  * Returns:
  * - 200: All systems operational
  * - 503: One or more systems degraded
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // For unauthenticated callers (load balancers, public probes), return
+  // a minimal response that does not leak infrastructure details.
+  if (!isAuthorizedMonitor(request)) {
+    // Still run a lightweight DB check so load balancers get a real signal
+    try {
+      const supabase = createServiceRoleClient()
+      const { error } = await supabase.from("services").select("id").limit(1)
+      if (error) {
+        return NextResponse.json({ status: "error" }, { status: 503 })
+      }
+    } catch {
+      return NextResponse.json({ status: "error" }, { status: 503 })
+    }
+    return NextResponse.json({ status: "ok" })
+  }
+
+  // ---- Authenticated detailed health check below ----
   const checks: Record<string, { status: "ok" | "error"; latencyMs?: number; error?: string }> = {}
   const startTime = Date.now()
 
@@ -27,16 +60,16 @@ export async function GET() {
     const dbStart = Date.now()
     const supabase = createServiceRoleClient()
     const { error } = await supabase.from("services").select("id").limit(1)
-    
+
     if (error) {
       checks.database = { status: "error", error: error.message }
     } else {
       checks.database = { status: "ok", latencyMs: Date.now() - dbStart }
     }
   } catch (err) {
-    checks.database = { 
-      status: "error", 
-      error: err instanceof Error ? err.message : "Unknown error" 
+    checks.database = {
+      status: "error",
+      error: err instanceof Error ? err.message : "Unknown error"
     }
   }
 
@@ -119,7 +152,7 @@ export async function GET() {
     "SUPABASE_SERVICE_ROLE_KEY",
     "STRIPE_SECRET_KEY",
   ]
-  
+
   const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key])
   if (missingEnvVars.length > 0) {
     checks.environment = {
@@ -136,13 +169,13 @@ export async function GET() {
 
   if (!allHealthy) {
     logger.warn("Health check failed", { checks })
-    
+
     // Alert via Sentry for degraded services (throttled)
     const now = Date.now()
     const failedServices = Object.entries(checks)
       .filter(([, check]) => check.status === "error")
       .map(([service]) => service)
-    
+
     for (const service of failedServices) {
       if (!lastAlertTimes[service] || now - lastAlertTimes[service] > ALERT_THROTTLE_MS) {
         lastAlertTimes[service] = now

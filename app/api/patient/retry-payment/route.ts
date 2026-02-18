@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/nextjs"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { auth as _auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { sendViaResend } from "@/lib/email/resend"
@@ -16,9 +15,9 @@ interface RetryPaymentRequest {
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser || authUser.profile.role !== "patient") {
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -37,9 +36,9 @@ export async function POST(request: Request) {
     // Get invoice
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
-      .select("*")
+      .select("id, status, retry_count, last_retry_at, description, amount_cents")
       .eq("id", invoiceId)
-      .eq("customer_id", authUser.profile.id)
+      .eq("customer_id", authResult.profile.id)
       .single()
 
     if (invoiceError || !invoice) {
@@ -76,11 +75,11 @@ export async function POST(request: Request) {
 
     // Send email notification for payment retry
     const paymentUrl = `${env.appUrl}/checkout?invoiceId=${invoiceId}`
-    const patientEmail = authUser.user?.email || authUser.profile.email
+    const patientEmail = authResult.profile.email
     
     if (patientEmail) {
       const emailHtml = renderPaymentRetryEmailToHtml({
-        patientName: authUser.profile.full_name || "there",
+        patientName: authResult.profile.full_name || "there",
         requestType: invoice.description || "service",
         amount: `$${((invoice.amount_cents || 0) / 100).toFixed(2)}`,
         paymentUrl,

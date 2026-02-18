@@ -41,7 +41,7 @@ export default async function RevenueAnalyticsPage() {
       .gte("paid_at", thirtyDaysAgo.toISOString()),
     supabase
       .from("profiles")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("role", "patient"),
   ])
 

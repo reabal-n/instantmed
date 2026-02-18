@@ -1,13 +1,12 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { auth as _auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser || authUser.profile.role !== "patient") {
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -26,9 +25,9 @@ export async function GET(request: Request) {
     // Verify invoice belongs to patient
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
-      .select("*")
+      .select("id, number, customer_id")
       .eq("id", invoiceId)
-      .eq("customer_id", authUser.profile.id)
+      .eq("customer_id", authResult.profile.id)
       .single()
 
     if (invoiceError || !invoice) {
@@ -41,7 +40,7 @@ export async function GET(request: Request) {
     // Get invoice PDF from storage
     const { data: pdf, error: storageError } = await supabase.storage
       .from("invoices")
-      .download(`${authUser.profile.id}/${invoiceId}.pdf`)
+      .download(`${authResult.profile.id}/${invoiceId}.pdf`)
 
     if (storageError || !pdf) {
       return NextResponse.json(

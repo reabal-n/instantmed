@@ -143,7 +143,7 @@ export async function optimisticUpdate<T extends Record<string, unknown>>(
     .update({ ...updates, version: expectedVersion + 1 })
     .eq("id", id)
     .eq("version", expectedVersion)
-    .select()
+    .select("id, updated_at")
     .single()
 
   if (error?.code === "PGRST116") {

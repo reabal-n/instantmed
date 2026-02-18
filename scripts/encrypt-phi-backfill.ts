@@ -162,7 +162,7 @@ async function main() {
   log("Counting profiles needing encryption...", "info")
   const { count: totalCount, error: countError } = await supabase
     .from(TABLE_NAME)
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .is("phi_encrypted_at", null)
     .or(
       "medicare_number.not.is.null,date_of_birth.not.is.null,phone.not.is.null"

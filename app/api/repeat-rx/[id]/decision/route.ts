@@ -14,6 +14,7 @@ import {
   logTriageNeedsCall,
   logExternalPrescribingIndicated,
 } from "@/lib/audit/compliance-audit"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 interface DecisionPayload {
   decision: ClinicianDecision
@@ -36,6 +37,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
     const { id } = await params
     const body = await request.json() as DecisionPayload
     
@@ -143,7 +150,7 @@ export async function POST(
     }
     
     // Log audit event (legacy)
-    await supabase.from("audit_events").insert({
+    const { error: auditError } = await supabase.from("audit_events").insert({
       intake_id: id,
       patient_id: existingRequest.patient_id,
       event_type: "clinician_decision",
@@ -158,6 +165,10 @@ export async function POST(
       ip_address: request.headers.get("x-forwarded-for") || "unknown",
       user_agent: request.headers.get("user-agent") || "unknown",
     })
+
+    if (auditError) {
+      log.error("Failed to log clinician decision audit event", { intakeId: id, error: auditError.message })
+    }
     
     // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
     const ip = request.headers.get("x-forwarded-for") || undefined

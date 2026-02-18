@@ -60,7 +60,7 @@ import { toast } from "sonner"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithDetails
-  patientAge: number
+  patientAge: number | null
   maskedMedicare: string
   previousIntakes?: IntakeWithPatient[]
   initialAction?: string
@@ -489,7 +489,7 @@ export function IntakeDetailClient({
               <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-xs text-muted-foreground">Age / DOB</p>
-                <p className="font-medium">{patientAge}y • {new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU")}</p>
+                <p className="font-medium">{patientAge != null ? `${patientAge}y` : "N/A"} • {intake.patient.date_of_birth ? new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU") : "Not provided"}</p>
               </div>
             </div>
             <div className="flex items-start gap-2">
@@ -585,9 +585,9 @@ export function IntakeDetailClient({
           intakeId={intake.id}
           intakeStatus={intake.status}
           aiDrafts={aiDrafts}
-          prescriptionSentAt={(intake as unknown as { prescription_sent_at?: string }).prescription_sent_at || null}
-          prescriptionSentBy={(intake as unknown as { prescription_sent_by?: string }).prescription_sent_by || null}
-          prescriptionSentChannel={(intake as unknown as { prescription_sent_channel?: string }).prescription_sent_channel || null}
+          prescriptionSentAt={intake.prescription_sent_at || null}
+          prescriptionSentBy={intake.prescription_sent_by || null}
+          prescriptionSentChannel={intake.prescription_sent_channel || null}
         />
       )}
 

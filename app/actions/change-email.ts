@@ -1,6 +1,6 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 
 const log = createLogger("change-email")
 
@@ -16,14 +16,14 @@ interface ChangeEmailResult {
  */
 export async function requestEmailChangeAction(_newEmail: string): Promise<ChangeEmailResult> {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return { success: false, error: "You must be logged in to change your email" }
     }
 
     // Email changes are now handled by Clerk Account Portal
     // Users should visit: https://accounts.instantmed.com.au/user
-    log.info("Email change requested - redirecting to Clerk", { userId: authUser.user.id })
+    log.info("Email change requested - redirecting to Clerk", { userId: authResult.userId })
     
     return {
       success: false,
@@ -44,13 +44,13 @@ export async function requestEmailChangeAction(_newEmail: string): Promise<Chang
  */
 export async function resendEmailVerificationAction(): Promise<ChangeEmailResult> {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return { success: false, error: "You must be logged in" }
     }
 
     // Email verification is handled automatically by Clerk
-    log.info("Email verification requested - handled by Clerk", { userId: authUser.user.id })
+    log.info("Email verification requested - handled by Clerk", { userId: authResult.userId })
     
     return {
       success: false,

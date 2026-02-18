@@ -29,7 +29,7 @@ export async function getAllServices(): Promise<Service[]> {
   try {
     const { data, error } = await supabase
       .from("services")
-      .select("*")
+      .select("id, slug, name, short_name, description, type, category, price_cents, priority_fee_cents, is_active, requires_id_verification, requires_medicare, requires_photo, min_age, max_age, allowed_states, sla_standard_minutes, sla_priority_minutes, questionnaire_id, eligibility_rules, icon_name, display_order, badge_text, meta_title, meta_description, created_at, updated_at")
       .order("display_order", { ascending: true })
 
     if (error) {
@@ -55,7 +55,7 @@ export async function getActiveServices(): Promise<Service[]> {
   try {
     const { data, error } = await supabase
       .from("services")
-      .select("*")
+      .select("id, slug, name, short_name, description, type, category, price_cents, priority_fee_cents, is_active, requires_id_verification, requires_medicare, requires_photo, min_age, max_age, allowed_states, sla_standard_minutes, sla_priority_minutes, questionnaire_id, eligibility_rules, icon_name, display_order, badge_text, meta_title, meta_description, created_at, updated_at")
       .eq("is_active", true)
       .order("display_order", { ascending: true })
 
@@ -81,7 +81,7 @@ export async function getServiceById(id: string): Promise<Service | null> {
   try {
     const { data, error } = await supabase
       .from("services")
-      .select("*")
+      .select("id, slug, name, short_name, description, type, category, price_cents, priority_fee_cents, is_active, requires_id_verification, requires_medicare, requires_photo, min_age, max_age, allowed_states, sla_standard_minutes, sla_priority_minutes, questionnaire_id, eligibility_rules, icon_name, display_order, badge_text, meta_title, meta_description, created_at, updated_at")
       .eq("id", id)
       .single()
 
@@ -107,7 +107,7 @@ export async function getServiceBySlug(slug: string): Promise<Service | null> {
   try {
     const { data, error } = await supabase
       .from("services")
-      .select("*")
+      .select("id, slug, name, short_name, description, type, category, price_cents, priority_fee_cents, is_active, requires_id_verification, requires_medicare, requires_photo, min_age, max_age, allowed_states, sla_standard_minutes, sla_priority_minutes, questionnaire_id, eligibility_rules, icon_name, display_order, badge_text, meta_title, meta_description, created_at, updated_at")
       .eq("slug", slug)
       .single()
 
@@ -165,7 +165,7 @@ export async function createService(
       eligibility_rules: input.eligibility_rules ?? {},
       display_order: input.display_order ?? 0,
     })
-    .select()
+    .select("id, slug, created_at, updated_at")
     .single()
 
   if (error) {
@@ -221,7 +221,7 @@ export async function updateService(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .select()
+    .select("id, slug, created_at, updated_at")
     .single()
 
   if (error) {

@@ -77,7 +77,7 @@ export async function getLatestConsentVersion(consentType: string) {
   const supabase = createServiceRoleClient()
   const { data } = await supabase
     .from("consent_versions")
-    .select("*")
+    .select("id, consent_type, version_number, title, content, effective_date, created_at")
     .eq("consent_type", consentType)
     .order("version_number", { ascending: false })
     .limit(1)
@@ -90,7 +90,7 @@ export async function getPatientConsentHistory(patientId: string) {
   const supabase = createServiceRoleClient()
   const { data } = await supabase
     .from("patient_consents")
-    .select("*, consent_version:consent_versions(*)")
+    .select("id, patient_id, consent_version_id, intake_id, ip_address, user_agent, granted_at, consent_version:consent_versions(id, consent_type, version_number, title, content, effective_date, created_at)")
     .eq("patient_id", patientId)
     .order("granted_at", { ascending: false })
 

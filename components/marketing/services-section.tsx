@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
-import { Button, Chip } from '@heroui/react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { featuredServices } from '@/lib/marketing/homepage'
 import { SectionPill } from '@/components/ui/section-pill'
 import { TiltCard } from '@/components/shared/tilt-card'
@@ -58,14 +59,13 @@ export function ServicesSection() {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
-                  <Chip color="primary" variant="flat" size="sm">
+                  <Badge variant="default">
                     From ${service.priceFrom.toFixed(2)}
-                  </Chip>
-                  <Button 
+                  </Badge>
+                  <Button
                     as={Link}
                     href={service.href}
-                    variant="light"
-                    color="primary"
+                    variant="ghost"
                     className="magnetic-button scale-spring"
                     endContent={<ArrowRight className="h-4 w-4 icon-spin-hover" />}
                   >

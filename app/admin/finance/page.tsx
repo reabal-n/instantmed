@@ -1,17 +1,9 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { FinanceDashboardClient } from "./finance-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
 export default async function FinanceDashboardPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser || authUser.profile.role !== "admin") {
-    redirect("/")
-  }
-
   const supabase = createServiceRoleClient()
 
   const now = new Date()

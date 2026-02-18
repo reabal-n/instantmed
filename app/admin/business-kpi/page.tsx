@@ -1,17 +1,9 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { BusinessKPIClient } from "./business-kpi-client"
 
 export const dynamic = "force-dynamic"
 
 export default async function BusinessKPIDashboardPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser || authUser.profile.role !== "admin") {
-    redirect("/")
-  }
-
   const supabase = createServiceRoleClient()
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())

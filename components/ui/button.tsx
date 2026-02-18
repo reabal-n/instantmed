@@ -106,30 +106,34 @@ function Button({
   const heroSize = sizeMap[size || "default"]
   
   // Map onClick to onPress for HeroUI compatibility
-  // HeroUI uses onPress instead of onClick
-  // For type="submit", we need to manually trigger form submission since HeroUI's onPress doesn't do this
+  // HeroUI uses React Aria's onPress instead of onClick. PressEvent.nativeEvent
+  // can be a PointerEvent, KeyboardEvent, or MouseEvent depending on activation method.
+  // We bridge to a minimal React.MouseEvent shape so onClick handlers work safely.
   const handlePress = (e: import("@react-types/shared").PressEvent) => {
     if (onPress) {
       onPress(e)
     } else if (onClick) {
-      // Pass the native event from PressEvent if available, otherwise create minimal synthetic event
-      // This ensures handlers that need event properties (e.g., stopPropagation) work correctly
-      const nativeEvent = (e as { nativeEvent?: React.MouseEvent<HTMLButtonElement> }).nativeEvent
-      if (nativeEvent) {
-        onClick(nativeEvent)
-      } else {
-        // Fallback: create a minimal synthetic event with the target element
-        const syntheticEvent = {
-          target: e.target,
-          currentTarget: e.target,
-          preventDefault: () => {},
-          stopPropagation: () => {},
-          nativeEvent: {} as Event,
-        } as unknown as React.MouseEvent<HTMLButtonElement>
-        onClick(syntheticEvent)
-      }
+      // Build a synthetic React.MouseEvent from PressEvent's target
+      // PressEvent always has .target (the DOM element) — we use that for consistency
+      const target = e.target as HTMLButtonElement
+      const syntheticEvent = {
+        target,
+        currentTarget: target,
+        preventDefault: () => e.continuePropagation?.(),
+        stopPropagation: () => {},
+        nativeEvent: (e as unknown as { nativeEvent?: Event }).nativeEvent ?? new MouseEvent("click"),
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        type: "click",
+        // React synthetic event compat
+        isDefaultPrevented: () => false,
+        isPropagationStopped: () => false,
+        persist: () => {},
+      } as unknown as React.MouseEvent<HTMLButtonElement>
+      onClick(syntheticEvent)
     }
-    
+
     // Handle form submission for type="submit" buttons
     // HeroUI's onPress doesn't trigger native form submission
     if (type === "submit" && e.target instanceof HTMLElement) {

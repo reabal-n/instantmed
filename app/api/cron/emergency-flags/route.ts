@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendSms } from "@/lib/sms/service"
 import { createLogger } from "@/lib/observability/logger"
@@ -79,60 +78,68 @@ export async function GET(request: Request) {
     for (const intake of abandonedIntakes) {
       processed++
 
-      // Check if intake had emergency flags
-      const answersArr = intake.intake_answers as { answers: Record<string, unknown> }[] | null
-      const answers = answersArr?.[0]?.answers || null
-      const hasEmergencyFlag = answers && (
-        answers.emergency_symptoms ||
-        answers.has_emergency_symptoms === true ||
-        answers.red_flags_detected === true
-      )
+      try {
+        // Check if intake had emergency flags
+        const answersArr = intake.intake_answers as { answers: Record<string, unknown> }[] | null
+        const answers = answersArr?.[0]?.answers || null
+        const hasEmergencyFlag = answers && (
+          answers.emergency_symptoms ||
+          answers.has_emergency_symptoms === true ||
+          answers.red_flags_detected === true
+        )
 
-      if (!hasEmergencyFlag) {
-        continue // Skip intakes without emergency flags
-      }
+        if (!hasEmergencyFlag) {
+          continue // Skip intakes without emergency flags
+        }
 
-      // Get patient info - profiles is joined as array, take first
-      const profileData = intake.profiles as unknown as { full_name: string | null; phone: string | null }[] | null
-      const profile = profileData?.[0] || null
-      if (!profile?.phone) {
-        log.warn("Abandoned intake with emergency flag has no phone number", { intakeId: intake.id })
-        continue
-      }
+        // Get patient info - profiles is joined as array, take first
+        const profileRaw = intake.profiles as unknown as { full_name: string | null; phone: string | null }[] | { full_name: string | null; phone: string | null } | null
+        const profile = Array.isArray(profileRaw) ? profileRaw[0] : profileRaw
+        if (!profile?.phone) {
+          log.warn("Abandoned intake with emergency flag has no phone number", { intakeId: intake.id })
+          continue
+        }
 
-      // Send emergency resources SMS
-      const patientName = profile.full_name?.split(" ")[0] || "there"
-      const smsResult = await sendSms({
-        to: profile.phone,
-        message: EMERGENCY_SMS_TEMPLATE(patientName),
-        requestId: intake.id,
-      })
+        // Send emergency resources SMS
+        const patientName = profile.full_name?.split(" ")[0] || "there"
+        const smsResult = await sendSms({
+          to: profile.phone,
+          message: EMERGENCY_SMS_TEMPLATE(patientName),
+          requestId: intake.id,
+        })
 
-      if (smsResult.success) {
-        smsSent++
-        
-        // Mark as SMS sent to avoid duplicate sends
-        await supabase
-          .from("intakes")
-          .update({ emergency_sms_sent_at: new Date().toISOString() })
-          .eq("id", intake.id)
+        if (smsResult.success) {
+          smsSent++
 
-        log.info("Emergency SMS sent for abandoned intake", { 
+          // Mark as SMS sent to avoid duplicate sends
+          await supabase
+            .from("intakes")
+            .update({ emergency_sms_sent_at: new Date().toISOString() })
+            .eq("id", intake.id)
+
+          log.info("Emergency SMS sent for abandoned intake", {
+            intakeId: intake.id,
+            messageId: smsResult.messageId
+          })
+
+          // Alert Sentry for monitoring
+          Sentry.captureMessage("Emergency SMS sent for abandoned intake with flags", {
+            level: "warning",
+            tags: { source: "emergency-flags-cron" },
+            extra: { intakeId: intake.id },
+          })
+        } else {
+          log.error("Failed to send emergency SMS", {
+            intakeId: intake.id,
+            error: smsResult.error
+          })
+        }
+      } catch (smsError) {
+        log.error("Error processing emergency SMS for intake", {
           intakeId: intake.id,
-          messageId: smsResult.messageId 
+          error: smsError instanceof Error ? smsError.message : String(smsError),
         })
-
-        // Alert Sentry for monitoring
-        Sentry.captureMessage("Emergency SMS sent for abandoned intake with flags", {
-          level: "warning",
-          tags: { source: "emergency-flags-cron" },
-          extra: { intakeId: intake.id },
-        })
-      } else {
-        log.error("Failed to send emergency SMS", { 
-          intakeId: intake.id, 
-          error: smsResult.error 
-        })
+        // Continue processing remaining intakes
       }
     }
 

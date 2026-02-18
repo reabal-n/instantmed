@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 
@@ -19,14 +19,14 @@ interface CancelIntakeResult {
  */
 export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult> {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    
-    if (!authUser) {
+    const authResult = await getApiAuth()
+
+    if (!authResult) {
       return { success: false, error: "Please sign in to continue" }
     }
 
     // Rate limiting - prevent abuse
-    const rateLimit = await checkServerActionRateLimit(authUser.user.id, "standard")
+    const rateLimit = await checkServerActionRateLimit(authResult.userId, "standard")
     if (!rateLimit.success) {
       return { success: false, error: rateLimit.error || "Too many requests. Please wait." }
     }
@@ -41,16 +41,16 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       .single()
 
     if (fetchError || !intake) {
-      logger.warn("Cancel intake: not found", { intakeId, userId: authUser.profile.id })
+      logger.warn("Cancel intake: not found", { intakeId, userId: authResult.profile.id })
       return { success: false, error: "Request not found" }
     }
 
     // Verify ownership
-    if (intake.patient_id !== authUser.profile.id) {
+    if (intake.patient_id !== authResult.profile.id) {
       logger.warn("Cancel intake: unauthorized", { 
         intakeId, 
         ownerId: intake.patient_id, 
-        userId: authUser.profile.id 
+        userId: authResult.profile.id 
       })
       return { success: false, error: "You can only cancel your own requests" }
     }
@@ -90,7 +90,7 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       return { success: false, error: "Failed to cancel request. Please try again." }
     }
 
-    logger.info("Intake cancelled successfully", { intakeId, userId: authUser.profile.id })
+    logger.info("Intake cancelled successfully", { intakeId, userId: authResult.profile.id })
 
     // Revalidate paths
     revalidatePath("/patient")

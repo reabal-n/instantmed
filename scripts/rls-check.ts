@@ -149,7 +149,7 @@ async function cleanup(): Promise<void> {
 async function testViewOwnProfile(): Promise<void> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, email, full_name, first_name, last_name, date_of_birth, role, phone, address_line1, suburb, state, postcode, onboarding_completed, created_at, updated_at")
     .eq("id", profileId)
     .single()
 
@@ -179,7 +179,7 @@ async function testCreateOwnRequest(): Promise<void> {
 async function testViewOwnRequests(): Promise<void> {
   const { data, error } = await supabase
     .from("intakes")
-    .select("*")
+    .select("id, patient_id, service_id, status, reference_number, payment_status, created_at, updated_at")
     .eq("patient_id", profileId)
 
   if (error) throw new Error(error.message)
@@ -299,7 +299,7 @@ async function testAccessStripeWebhookEvents() {
   // Patients should NOT be able to access webhook events
   return await supabase
     .from("stripe_webhook_events")
-    .select("*")
+    .select("id")
     .limit(1)
 }
 

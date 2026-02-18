@@ -64,6 +64,10 @@
     {
       "path": "/api/cron/daily-reconciliation",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/qa-sampling",
+      "schedule": "0 6 * * 1"
     }
   ],
   "headers": [

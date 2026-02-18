@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 
@@ -20,7 +20,7 @@ export interface EmailPreferences {
 }
 
 export async function getEmailPreferences(): Promise<EmailPreferences | null> {
-  const authResult = await getAuthenticatedUserWithProfile()
+  const authResult = await getApiAuth()
   if (!authResult) return null
 
   const { profile } = authResult
@@ -41,7 +41,7 @@ export async function getEmailPreferences(): Promise<EmailPreferences | null> {
 export async function updateEmailPreferences(
   preferences: Partial<Pick<EmailPreferences, "marketing_emails" | "abandoned_checkout_emails">>
 ): Promise<{ success: boolean; error?: string }> {
-  const authResult = await getAuthenticatedUserWithProfile()
+  const authResult = await getApiAuth()
   if (!authResult) {
     return { success: false, error: "Not authenticated" }
   }
@@ -82,7 +82,7 @@ export async function unsubscribeFromMarketing(
   })
 
   if (result.success && reason) {
-    const authResult = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
     if (authResult) {
       const serviceClient = createServiceRoleClient()

@@ -5,10 +5,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-  Input,
-  Textarea,
-} from "@heroui/react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { DatePickerField } from "@/components/uix"
 import { useConfetti as _useConfetti } from "@/components/effects/confetti"
 import { ShakeAnimation } from "@/components/effects/shake-animation"

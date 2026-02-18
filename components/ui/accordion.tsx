@@ -38,14 +38,12 @@ function Accordion({
 }
 
 function AccordionItem({
-  key,
   title,
   children,
   ...props
-}: React.ComponentProps<typeof HeroAccordionItem>) {
+}: Omit<React.ComponentProps<typeof HeroAccordionItem>, "key">) {
   return (
     <HeroAccordionItem
-      key={key}
       title={title}
       {...props}
     >

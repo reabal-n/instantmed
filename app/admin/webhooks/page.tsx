@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { WebhookMonitoringClient } from "./webhook-monitoring-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Webhook Monitoring | Admin",
   description: "Monitor webhook deliveries and failures",
@@ -17,7 +19,7 @@ async function getWebhookStats() {
   
   const { data: events, error } = await supabase
     .from("webhook_events")
-    .select("*")
+    .select("id, event_type, status, endpoint, payload, response_status, response_body, attempts, created_at, delivered_at")
     .gte("created_at", sevenDaysAgo.toISOString())
     .order("created_at", { ascending: false })
     .limit(100)
@@ -43,7 +45,7 @@ async function getDLQItems() {
   
   const { data: dlqItems, error } = await supabase
     .from("webhook_dlq")
-    .select("*")
+    .select("id, event_type, payload, error_message, original_event_id, retry_count, created_at")
     .order("created_at", { ascending: false })
     .limit(50)
   

@@ -1,7 +1,7 @@
 "use client"
 
 import { HelpCircle } from "lucide-react"
-import { Tooltip } from "@heroui/react"
+import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface HelpTooltipProps {

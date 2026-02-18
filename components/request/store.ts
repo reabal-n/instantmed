@@ -144,7 +144,24 @@ export const useRequestStore = create<RequestState & RequestActions>()(
     (set, get) => ({
       ...initialState,
 
-      setServiceType: (type) => set({ serviceType: type }),
+      setServiceType: (type) => {
+        const { currentStepId, authContext, answers } = get()
+        // When switching service type, check if current step exists in the new service.
+        // If not, reset to the first step of the new service to prevent navigation failures.
+        const context = { ...authContext, serviceType: type, answers }
+        let steps: { id: string }[]
+        try {
+          steps = _getStepsForService(type, context)
+        } catch {
+          steps = []
+        }
+        const stepExists = steps.some(s => s.id === currentStepId)
+        if (stepExists) {
+          set({ serviceType: type })
+        } else {
+          set({ serviceType: type, currentStepId: (steps[0]?.id || 'safety') as UnifiedStepId })
+        }
+      },
 
       nextStep: () => {
         const { serviceType, currentStepId, authContext, answers } = get()

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Require either an internal API key OR an authenticated admin session
-    const apiKey = process.env.INTERNAL_API_KEY
+    const apiKey = process.env.INTERNAL_API_SECRET
     let authorized = false
     let clerkUserId: string | null = null
     const supabase = createServiceRoleClient()

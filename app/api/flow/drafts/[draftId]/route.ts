@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { data: draft, error } = await supabase
       .from("intake_drafts")
-      .select("*")
+      .select("id, session_id, service_slug, current_step, current_group_index, data, status, safety_outcome, safety_risk_tier, created_at, updated_at")
       .eq("id", draftId)
       .eq("session_id", sessionId)
       .single()

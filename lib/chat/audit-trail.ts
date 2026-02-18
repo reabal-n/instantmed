@@ -192,7 +192,7 @@ export async function queryAuditTrail(filters: AuditQueryFilters) {
     
     let query = supabase
       .from('ai_chat_audit_log')
-      .select('*')
+      .select('id, session_id, patient_id, service_type, turn_number, user_input_preview, ai_output_preview, user_input_length, ai_output_length, input_tokens, output_tokens, response_time_ms, model_version, prompt_version, safety_flags, had_flags, was_blocked, block_reason, metadata, created_at')
       .order('created_at', { ascending: false })
       .limit(filters.limit || 100)
     
@@ -541,7 +541,7 @@ export async function getTranscriptBySession(sessionId: string): Promise<ChatTra
     
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('*')
+      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('session_id', sessionId)
       .single()
     
@@ -569,7 +569,7 @@ export async function getTranscriptByIntake(intakeId: string): Promise<ChatTrans
     
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('*')
+      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('intake_id', intakeId)
       .single()
     
@@ -600,7 +600,7 @@ export async function getTranscriptsForPatient(
     
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('*')
+      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('patient_id', patientId)
       .order('started_at', { ascending: false })
       .limit(limit)

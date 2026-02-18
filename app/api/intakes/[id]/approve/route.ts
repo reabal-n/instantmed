@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
 import { generateCertificateNumber, generateVerificationCode } from "@/lib/pdf/med-cert-render"
 import { generateIdempotencyKey } from "@/lib/data/issued-certificates"
 import { revalidatePath } from "next/cache"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 export const dynamic = "force-dynamic"
 
@@ -14,16 +15,22 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   const { id: intakeId } = await params
-  
+
   logger.info("APPROVE_API_START", { intakeId })
 
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser) {
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 })
     }
-    
-    const doctor = authUser.profile
+
+    const doctor = authResult.profile
     if (!["doctor", "admin"].includes(doctor.role)) {
       return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 })
     }
@@ -67,7 +74,7 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Payment not completed" }, { status: 400 })
     }
 
-    const patientData = intake.patient as unknown as { id: string; full_name: string; email: string; date_of_birth: string }[] | { id: string; full_name: string; email: string; date_of_birth: string }; const patient = Array.isArray(patientData) ? patientData[0] : patientData
+    const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
     if (patient.id === doctor.id) {
       return NextResponse.json({ ok: false, error: "Cannot approve your own request" }, { status: 403 })
     }
@@ -86,7 +93,19 @@ export async function POST(
 
     const answers = (intake.answers as { answers?: Record<string, unknown> })?.answers || {}
     const certType = (answers.cert_type as string) || "work"
-    const today = new Date().toISOString().split("T")[0]
+
+    // Use AEST/AEDT timezone for certificate dates (Australian medical certificates)
+    const aestNow = new Date()
+    const aestParts = new Intl.DateTimeFormat("en-AU", {
+      timeZone: "Australia/Sydney",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(aestNow)
+    const dayPart = aestParts.find(p => p.type === "day")!.value
+    const monthPart = aestParts.find(p => p.type === "month")!.value
+    const yearPart = aestParts.find(p => p.type === "year")!.value
+    const today = `${yearPart}-${monthPart}-${dayPart}`
     
     const { data: draft } = await supabase
       .from("document_drafts")
@@ -145,7 +164,7 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "Failed to create certificate" }, { status: 500 })
     }
 
-    await supabase.from("email_outbox").insert({
+    const { error: emailError } = await supabase.from("email_outbox").insert({
       email_type: "med_cert_patient",
       to_email: patient.email,
       to_name: patient.full_name,
@@ -158,11 +177,29 @@ export async function POST(
       metadata: { needs_pdf_generation: true },
     })
 
-    await supabase.from("intakes").update({ 
-      status: "approved", 
-      reviewed_by: doctor.id,
-      reviewed_at: new Date().toISOString(),
-    }).eq("id", intakeId)
+    if (emailError) {
+      logger.error("APPROVE_API_EMAIL_QUEUE_FAILED", { intakeId, certificateId: certificate.id, error: emailError.message })
+      // Continue — certificate is created, email can be manually re-sent
+    }
+
+    // Optimistic lock: only update if still in approvable state (prevents race with concurrent decline/approve)
+    const { data: updatedIntake, error: updateError } = await supabase
+      .from("intakes")
+      .update({
+        status: "approved",
+        reviewed_by: doctor.id,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", intakeId)
+      .in("status", APPROVABLE_STATES)
+      .select("id")
+      .maybeSingle()
+
+    if (updateError || !updatedIntake) {
+      logger.warn("APPROVE_API_STATUS_RACE", { intakeId, error: updateError?.message })
+      // Certificate was created but intake may have been concurrently processed
+      // Return success since certificate exists (idempotency key prevents duplicates)
+    }
 
     revalidatePath("/doctor/intakes/" + intakeId)
     revalidatePath("/doctor/queue")

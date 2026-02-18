@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { SafeHtml } from '@/components/ui/safe-html'
 import { 
   ArrowRight, 
@@ -93,14 +93,15 @@ export default function StudyMedCertPage() {
                 Accepted by all Australian universities and TAFEs.
               </p>
 
-              <Button 
-                as={Link}
-                href="/request?service=med-cert"
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
               >
-                Get started
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <Link href="/request?service=med-cert">
+                  Get started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
 
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
@@ -396,14 +397,15 @@ export default function StudyMedCertPage() {
               <p className="text-muted-foreground mb-8">
                 Don&apos;t miss your special consideration deadline. Get sorted now.
               </p>
-              <Button 
-                as={Link}
-                href="/request?service=med-cert"
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
               >
-                Get started
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <Link href="/request?service=med-cert">
+                  Get started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
               <p className="mt-4 text-sm text-muted-foreground">$19.95 • Accepted by all unis</p>
             </div>

@@ -37,8 +37,7 @@ export function EnhancedTextarea({
   const isNearLimit = remainingChars !== null && remainingChars < 20 && remainingChars > 0
   const isAtLimit = remainingChars === 0
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = (e.target as unknown as HTMLTextAreaElement).value
+  const handleValueChange = (newValue: string) => {
     // Respect maxLength if provided
     if (maxLength && newValue.length > maxLength) {
       return
@@ -60,7 +59,7 @@ export function EnhancedTextarea({
           {...props}
           label={label || undefined}
           value={value}
-          onChange={handleChange}
+          onValueChange={handleValueChange}
           onBlur={handleBlur}
           onFocus={() => setFocused(true)}
           maxLength={maxLength}

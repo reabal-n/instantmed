@@ -1,21 +1,9 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { AuditLogClient } from "./audit-client"
 import { getAuditLogsAction, getAuditLogStatsAction } from "@/app/actions/admin-config"
 
 export const dynamic = "force-dynamic"
 
 export default async function AuditLogPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (authUser.profile.role !== "admin") {
-    redirect("/")
-  }
-
   const results = await Promise.allSettled([
     getAuditLogsAction({}, 1, 50),
     getAuditLogStatsAction(),

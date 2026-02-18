@@ -5,6 +5,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"
 import { logTriageApproved, logTriageDeclined } from "@/lib/audit/compliance-audit"
 import type { RequestType } from "@/lib/audit/compliance-audit"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("bulk-action")
 
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
   let clerkUserId: string | null = null
 
   try {
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
     const { userId } = await auth()
     clerkUserId = userId
 

@@ -1,6 +1,6 @@
 "use server"
 
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
 import { getEmailTemplateBySlug } from "@/lib/data/email-templates"
 import { createLogger } from "@/lib/observability/logger"
@@ -21,8 +21,8 @@ export async function sendTestEmailAction(
   testEmail: string
 ): Promise<SendTestEmailResult> {
   // Auth check - admin only
-  const authUser = await getAuthenticatedUserWithProfile()
-  if (!authUser || authUser.profile.role !== "admin") {
+  const authResult = await getApiAuth()
+  if (!authResult || authResult.profile.role !== "admin") {
     return { success: false, error: "Unauthorized" }
   }
 
@@ -86,7 +86,7 @@ export async function sendTestEmailAction(
       logger.info("Test email sent", {
         templateSlug,
         testEmail: testEmail.replace(/(.{2}).*@/, "$1***@"),
-        adminId: authUser.user.id,
+        adminId: authResult.userId,
       })
       return { success: true }
     } else {

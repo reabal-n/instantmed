@@ -52,7 +52,7 @@ export async function getAllEmailTemplates(): Promise<EmailTemplate[]> {
 
   const { data, error } = await supabase
     .from("email_templates")
-    .select("*")
+    .select("id, slug, name, description, subject, body_html, body_text, available_tags, version, is_active, created_at, updated_at, created_by, updated_by")
     .order("name", { ascending: true })
 
   if (error) {
@@ -71,7 +71,7 @@ export async function getEmailTemplateBySlug(slug: string): Promise<EmailTemplat
 
   const { data, error } = await supabase
     .from("email_templates")
-    .select("*")
+    .select("id, slug, name, description, subject, body_html, body_text, available_tags, version, is_active, created_at, updated_at, created_by, updated_by")
     .eq("slug", slug)
     .eq("is_active", true)
     .single()
@@ -92,7 +92,7 @@ export async function getEmailTemplateById(id: string): Promise<EmailTemplate | 
 
   const { data, error } = await supabase
     .from("email_templates")
-    .select("*")
+    .select("id, slug, name, description, subject, body_html, body_text, available_tags, version, is_active, created_at, updated_at, created_by, updated_by")
     .eq("id", id)
     .single()
 
@@ -127,7 +127,7 @@ export async function createEmailTemplate(
       created_by: actorId,
       updated_by: actorId,
     })
-    .select()
+    .select("id, slug, version, created_at, updated_at")
     .single()
 
   if (error) {
@@ -165,7 +165,7 @@ export async function updateEmailTemplate(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .select()
+    .select("id, slug, version, created_at, updated_at")
     .single()
 
   if (error) {

@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
         // Dedup: check if we already enqueued a reminder for this intake
         const { count } = await supabase
           .from("email_outbox")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("intake_id", intake.id)
           .eq("email_type", "repeat_rx_reminder")
 
@@ -106,8 +106,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Get patient email from profile join
-        const patientArr = intake.patient as unknown as Array<{ id: string; email: string | null; full_name: string | null }> | null
-        const patient = patientArr?.[0] ?? null
+        const patientRaw = intake.patient as unknown as { id: string; email: string | null; full_name: string | null }[] | { id: string; email: string | null; full_name: string | null } | null
+        const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
         if (!patient?.email) continue
         const email = patient.email
 

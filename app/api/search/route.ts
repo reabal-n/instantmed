@@ -74,7 +74,8 @@ export async function GET(request: NextRequest) {
 
       if (intakes) {
         for (const intake of intakes) {
-          const patientData = intake.patient as unknown as { id: string; full_name: string; medicare_number?: string } | null
+          const patientRaw = intake.patient as unknown as { id: string; full_name: string; medicare_number?: string }[] | { id: string; full_name: string; medicare_number?: string } | null
+          const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
           const serviceData = { name: intake.category || "Service", type: intake.category }
           if (patientData?.full_name?.toLowerCase().includes(query.toLowerCase()) ||
               patientData?.medicare_number?.includes(query)) {

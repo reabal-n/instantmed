@@ -209,7 +209,7 @@ export async function claimOutboxRow(outboxId: string): Promise<{
     })
     .in("status", ["pending", "failed"])
     .eq("id", outboxId)
-    .select("*")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at")
     .single()
 
   if (error) {
@@ -1290,7 +1290,7 @@ async function generateAndUploadPdfForCertificate(
     // Fetch certificate with all needed fields
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
-      .select("*")
+      .select("id, intake_id, certificate_number, verification_code, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, created_at, updated_at")
       .eq("id", certificateId)
       .single()
 

@@ -13,7 +13,7 @@ export async function getIntakeDocument(
 
   let query = supabase
     .from("intake_documents")
-    .select("*")
+    .select("id, intake_id, document_type, filename, storage_path, mime_type, file_size_bytes, certificate_number, verification_code, metadata, created_by, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -39,7 +39,7 @@ export async function getIntakeDocuments(intakeId: string): Promise<IntakeDocume
 
   const { data, error } = await supabase
     .from("intake_documents")
-    .select("*")
+    .select("id, intake_id, document_type, filename, storage_path, mime_type, file_size_bytes, certificate_number, verification_code, metadata, created_by, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
 

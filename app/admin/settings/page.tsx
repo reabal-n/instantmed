@@ -1,31 +1,11 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { FeatureFlagsClient } from "./feature-flags-client"
-import { isAdminEmail } from "@/lib/env"
-
-// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
+
 export default async function AdminSettingsPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in?redirect=/admin/settings")
-  }
-
-  const userEmail = authUser.user.email?.toLowerCase() || ""
-  const isAdmin =
-    isAdminEmail(userEmail) ||
-    authUser.profile.role === "admin" ||
-    authUser.profile.role === "doctor"
-
-  if (!isAdmin) {
-    redirect("/patient")
-  }
-
   const flags = await getFeatureFlags()
 
   return (

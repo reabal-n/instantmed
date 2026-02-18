@@ -57,7 +57,7 @@ export async function checkRateLimit(
     // Count recent actions in the sliding window
     const { count, error } = await supabase
       .from("audit_logs")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("action", config.action)
       .gte("created_at", windowStart.toISOString())

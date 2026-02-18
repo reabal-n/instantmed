@@ -17,7 +17,7 @@ import {
   Bell,
   MessageSquare
 } from 'lucide-react'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { usePanel } from '@/components/panels'
 

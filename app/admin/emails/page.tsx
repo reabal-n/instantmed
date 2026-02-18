@@ -1,21 +1,9 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { EmailTemplateEditorClient } from "./edit/email-template-editor-client"
 import { getAllEmailTemplatesAction } from "@/app/actions/admin-config"
 
 export const dynamic = "force-dynamic"
 
 export default async function EmailTemplatesPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (authUser.profile.role !== "admin") {
-    redirect("/")
-  }
-
   const templates = await getAllEmailTemplatesAction().catch(() => [])
 
   return <EmailTemplateEditorClient initialTemplates={templates} />

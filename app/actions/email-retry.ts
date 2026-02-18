@@ -233,7 +233,7 @@ export async function retryOutboxEmail(
     // Fetch the outbox row to validate before claiming
     const { data: row, error: fetchError } = await supabase
       .from("email_outbox")
-      .select("*")
+      .select("id, email_type, status, retry_count, certificate_id")
       .eq("id", outboxId)
       .single()
 

@@ -112,7 +112,7 @@ export async function getPatientIntakes(
   // Build data query with service join for UI display
   let query = supabase
     .from("intakes")
-    .select(`*, service:services!service_id(id, name, short_name, type, slug)`)
+    .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -128,8 +128,13 @@ export async function getPatientIntakes(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
+  const unwrapped = (data || []).map(row => ({
+    ...row,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  }))
+
   return {
-    data: data as unknown as IntakeWithPatient[],
+    data: unwrapped as unknown as IntakeWithPatient[],
     total: count ?? 0,
     page,
     pageSize,
@@ -193,7 +198,12 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     return null
   }
 
-  return data as unknown as IntakeWithPatient
+  const unwrapped = {
+    ...data,
+    patient: Array.isArray(data.patient) ? data.patient[0] : data.patient,
+  }
+
+  return unwrapped as unknown as IntakeWithPatient
 }
 
 // ============================================
@@ -253,7 +263,11 @@ export async function getAllIntakesByStatus(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  const validData = (data || []).filter((r) => r.patient !== null)
+  const unwrapped = (data || []).map(row => ({
+    ...row,
+    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+  }))
+  const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],
     total: count ?? 0,
@@ -320,7 +334,12 @@ export async function getDoctorQueue(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  const validData = (data || []).filter((r) => r.patient !== null)
+  const unwrapped = (data || []).map(row => ({
+    ...row,
+    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  }))
+  const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],
     total: count ?? 0,
@@ -415,6 +434,8 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
 
   return {
     ...data,
+    patient: Array.isArray(data.patient) ? data.patient[0] : data.patient,
+    service: Array.isArray(data.service) ? data.service[0] : data.service,
     answers: data.answers?.[0] || null,
   } as unknown as IntakeWithDetails
 }
@@ -505,7 +526,12 @@ export async function getAllIntakesForAdmin(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  const validData = (data || []).filter((r) => r.patient !== null)
+  const unwrapped = (data || []).map(row => ({
+    ...row,
+    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  }))
+  const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],
     total: count ?? 0,
@@ -886,7 +912,7 @@ export async function createIntake(
       is_priority: options?.isPriority || false,
       payment_status: "unpaid",
     })
-    .select()
+    .select("id, status, created_at")
     .single()
 
   if (intakeError || !intake) {
@@ -983,7 +1009,7 @@ export async function updateIntakeStatus(
     .update(updateData)
     .eq("id", intakeId)
     .eq("status", currentStatus) // Optimistic lock - fails if status changed
-    .select()
+    .select("id, status, updated_at")
     .single()
 
   if (error || !data) {
@@ -1232,7 +1258,7 @@ export async function getPatientNotes(
 
   let query = supabase
     .from("patient_notes")
-    .select("*")
+    .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -1278,7 +1304,7 @@ export async function createPatientNote(
       metadata: options?.metadata || {},
       created_by: createdBy,
     })
-    .select()
+    .select("id, patient_id, note_type, created_at")
     .single()
 
   if (error) {

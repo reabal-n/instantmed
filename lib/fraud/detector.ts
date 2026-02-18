@@ -40,7 +40,7 @@ async function checkMultipleDaily(patientId: string): Promise<FraudFlag | null> 
 
   const { count } = await supabase
     .from("intakes")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("patient_id", patientId)
     .gte("created_at", today.toISOString())
 
@@ -221,7 +221,7 @@ export async function checkSoftFlags(
   // Check for 2 intakes today (below hard threshold of 3)
   const { count } = await supabase
     .from("intakes")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("patient_id", patientId)
     .gte("created_at", today.toISOString())
 
@@ -266,7 +266,7 @@ export async function logInjectionAttempt(
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
   const { count } = await supabase
     .from("security_events")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("patient_id", patientId)
     .eq("event_type", "injection_attempt")
     .gte("created_at", oneHourAgo.toISOString())

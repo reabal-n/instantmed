@@ -1,5 +1,4 @@
 import { requireRole } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { DocumentsClient } from "./documents-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 

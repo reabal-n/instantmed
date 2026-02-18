@@ -99,7 +99,7 @@ export async function processEmailRetries(): Promise<{
   // Fetch emails ready for retry
   const { data: pendingEmails, error: fetchError } = await supabase
     .from("email_retry_queue")
-    .select("*")
+    .select("id, intake_id, email_type, recipient, subject, html, retry_count, last_error, next_retry_at, created_at")
     .lte("next_retry_at", now)
     .lt("retry_count", MAX_RETRIES)
     .order("next_retry_at", { ascending: true })

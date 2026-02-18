@@ -124,10 +124,7 @@ export async function markRepeatScriptSentAction(
 
     // Send prescription approved email to patient
     try {
-      const patientArr = intake.patient as unknown as Array<{
-        id: string; full_name: string | null; email: string | null
-      }> | null
-      const patient = patientArr?.[0] ?? null
+      const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
       const patientEmail = patient?.email
       if (patient && patientEmail) {
         // Fetch answers from intake_answers table

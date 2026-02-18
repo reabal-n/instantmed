@@ -1,6 +1,6 @@
 "use client"
 
-import { Accordion as HeroAccordion, AccordionItem as HeroAccordionItem } from "@heroui/react"
+import { Accordion, AccordionItem } from "@/components/ui/accordion"
 
 interface FAQItem {
   q: string
@@ -31,13 +31,13 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
             {category.title}
           </h2>
           <div className="relative rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl overflow-hidden">
-            <HeroAccordion
+            <Accordion
               variant="light"
-              selectionMode="multiple"
+              type="multiple"
               className="px-0"
             >
               {category.faqs.map((faq, faqIndex) => (
-                <HeroAccordionItem
+                <AccordionItem
                   key={`${catIndex}-${faqIndex}`}
                   aria-label={faq.q}
                   title={
@@ -52,9 +52,9 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
                   }}
                 >
                   {faq.a}
-                </HeroAccordionItem>
+                </AccordionItem>
               ))}
-            </HeroAccordion>
+            </Accordion>
           </div>
         </div>
       ))}

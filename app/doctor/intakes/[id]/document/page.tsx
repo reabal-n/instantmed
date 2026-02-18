@@ -48,7 +48,8 @@ export default async function IntakeDocumentBuilderPage({
   ])
 
   // Calculate patient age
-  const calculateAge = (dob: string): number => {
+  const calculateAge = (dob: string | null): number | null => {
+    if (!dob) return null
     const birthDate = new Date(dob)
     const today = new Date()
     let age = today.getFullYear() - birthDate.getFullYear()

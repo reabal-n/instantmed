@@ -65,12 +65,8 @@ export async function approveConsultAction(
     }
 
     // Get patient array (Supabase join returns array)
-    const patientArr = intake.patient as unknown as Array<{
-      id: string
-      full_name: string | null
-      email: string | null
-    }> | null
-    const patient = patientArr?.[0] ?? null
+    const patientRaw = intake.patient as unknown as { id: string; full_name: string | null; email: string | null }[] | { id: string; full_name: string | null; email: string | null } | null
+    const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
     if (!patient) {
       return { success: false, error: "Patient not found" }
     }
@@ -82,8 +78,8 @@ export async function approveConsultAction(
 
     const now = new Date().toISOString()
 
-    // Transition to approved
-    const { error: updateError } = await supabase
+    // Transition to approved — status guard prevents double-approval race condition
+    const { data: updatedRows, error: updateError } = await supabase
       .from("intakes")
       .update({
         status: "approved",
@@ -92,25 +88,46 @@ export async function approveConsultAction(
         updated_at: now,
       })
       .eq("id", intakeId)
+      .in("status", ["paid", "in_review"])
+      .select("id")
 
     if (updateError) {
       return { success: false, error: "Failed to update intake status" }
     }
 
-    // Audit log
-    await logAuditEvent({
-      action: "state_change",
-      actorId: doctorProfile.id,
-      actorType: "doctor",
-      intakeId,
-      fromState: intake.status,
-      toState: "approved",
-      metadata: {
-        action_type: "consult_approved",
-        subtype: intake.subtype,
-        category: intake.category,
-      },
-    })
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: "This intake has already been processed by another doctor" }
+    }
+
+    // Audit log — written immediately after status update.
+    // If this fails we log the error but do NOT revert the approval,
+    // because the approval itself is the critical clinical path.
+    try {
+      await logAuditEvent({
+        action: "state_change",
+        actorId: doctorProfile.id,
+        actorType: "doctor",
+        intakeId,
+        fromState: intake.status,
+        toState: "approved",
+        metadata: {
+          action_type: "consult_approved",
+          subtype: intake.subtype,
+          category: intake.category,
+        },
+      })
+    } catch (auditError) {
+      logger.error("CRITICAL: Audit log failed for consult approval — intake was approved without audit trail", {
+        intakeId,
+        doctorId: doctorProfile.id,
+        fromState: intake.status,
+      }, auditError instanceof Error ? auditError : new Error(String(auditError)))
+      Sentry.captureMessage("Consult approval audit log write failed", {
+        level: "error",
+        tags: { intake_id: intakeId, subsystem: "audit-trail" },
+        extra: { doctorId: doctorProfile.id, fromState: intake.status },
+      })
+    }
 
     // Fetch answers from intake_answers table for email template
     const { data: intakeAnswersRow } = await supabase

@@ -1,6 +1,6 @@
 "use server"
 
-import { auth, getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { auth, getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("resend-verification")
@@ -42,9 +42,9 @@ export async function resendVerificationEmail(): Promise<ResendVerificationResul
  */
 export async function checkEmailVerified(): Promise<{ verified: boolean; email?: string }> {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser) {
+    if (!authResult) {
       return { verified: false }
     }
 
@@ -52,7 +52,7 @@ export async function checkEmailVerified(): Promise<{ verified: boolean; email?:
     // Clerk requires email verification before completing sign-up by default
     return {
       verified: true,
-      email: authUser.user.email || undefined,
+      email: authResult.profile.email || undefined,
     }
   } catch {
     return { verified: false }

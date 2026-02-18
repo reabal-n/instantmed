@@ -167,7 +167,7 @@ export async function getAbandonmentAnalytics(
   
   const { data } = await supabase
     .from("intake_abandonment")
-    .select("*")
+    .select("id, abandon_reason, last_step, service_type, device_type, time_spent_ms, reached_payment, stripe_checkout_started, was_blocked_by_safety, created_at")
     .gte("created_at", since)
   
   if (!data || data.length === 0) {

@@ -12,6 +12,23 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 
 // ============================================================================
+// PROFILE SELECT COLUMNS
+// Explicit column list for all profile queries (avoids select("*"))
+// ============================================================================
+const PROFILE_COLUMNS = `
+  id, auth_user_id, clerk_user_id, email, full_name, first_name, last_name,
+  date_of_birth, role, phone, address_line1, suburb, state, postcode,
+  medicare_number, medicare_irn, medicare_expiry,
+  ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
+  ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
+  consent_myhr, onboarding_completed,
+  email_verified, email_verified_at, email_bounced, email_bounced_at,
+  email_bounce_reason, email_delivery_failures,
+  avatar_url, stripe_customer_id, certificate_identity_complete,
+  signature_storage_path, created_at, updated_at
+` as const
+
+// ============================================================================
 // E2E TEST AUTH BYPASS (test mode only)
 // ============================================================================
 
@@ -81,7 +98,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
     const supabase = createServiceRoleClient()
     const { data: profile } = await supabase
       .from("profiles")
-      .select("*")
+      .select(PROFILE_COLUMNS)
       .eq("clerk_user_id", e2eAuth.clerkUserId)
       .single()
 
@@ -89,13 +106,13 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
       return {
         user: {
           id: e2eAuth.clerkUserId,
-          email: (profile as Profile).email ?? null,
+          email: (profile as unknown as Profile).email ?? null,
           user_metadata: {
-            full_name: (profile as Profile).full_name ?? undefined,
-            date_of_birth: (profile as Profile).date_of_birth ?? undefined,
+            full_name: (profile as unknown as Profile).full_name ?? undefined,
+            date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
           },
         },
-        profile: profile as Profile,
+        profile: profile as unknown as Profile,
       }
     }
   }
@@ -117,7 +134,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
   // Find profile by clerk_user_id
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("clerk_user_id", userId)
     .single()
 
@@ -139,7 +156,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
         date_of_birth: profile.date_of_birth ?? undefined,
       },
     },
-    profile: profile as Profile,
+    profile: profile as unknown as Profile,
   }
 }
 
@@ -172,7 +189,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   // Try to find existing profile by clerk_user_id
   let { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("clerk_user_id", userId)
     .single()
 
@@ -181,9 +198,9 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   if (!profile && primaryEmail) {
     const { data: guestProfile } = await supabase
       .from("profiles")
-      .select("*")
+      .select(PROFILE_COLUMNS)
       .ilike("email", primaryEmail)
-      .or("clerk_user_id.is.null,clerk_user_id.eq.")
+      .or('clerk_user_id.is.null,clerk_user_id.eq.""')
       .maybeSingle()
 
     if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === "")) {
@@ -203,7 +220,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
           email_verified_at: new Date().toISOString(),
         })
         .eq("id", guestProfile.id)
-        .select()
+        .select(PROFILE_COLUMNS)
         .single()
 
       if (!linkError && linkedProfile) {
@@ -212,7 +229,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
         // If linking failed, another process may have linked it - try to find it
         const { data: nowLinkedProfile } = await supabase
           .from("profiles")
-          .select("*")
+          .select(PROFILE_COLUMNS)
           .eq("clerk_user_id", userId)
           .single()
 
@@ -242,7 +259,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
         email_verified: true,
         email_verified_at: new Date().toISOString(),
       })
-      .select()
+      .select(PROFILE_COLUMNS)
       .single()
 
     if (error) {
@@ -250,7 +267,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       if (error.code === '23505') {
         const { data: raceProfile } = await supabase
           .from("profiles")
-          .select("*")
+          .select(PROFILE_COLUMNS)
           .eq("clerk_user_id", userId)
           .single()
 
@@ -273,11 +290,11 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       email: primaryEmail ?? null,
       // Populate user_metadata from profile for backward compatibility
       user_metadata: {
-        full_name: (profile as Profile).full_name ?? undefined,
-        date_of_birth: (profile as Profile).date_of_birth ?? undefined,
+        full_name: (profile as unknown as Profile).full_name ?? undefined,
+        date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
       },
     },
-    profile: profile as Profile,
+    profile: profile as unknown as Profile,
   }
 }
 
@@ -404,12 +421,12 @@ export async function getUserProfile(clerkUserId: string): Promise<Profile | nul
   const supabase = createServiceRoleClient()
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("clerk_user_id", clerkUserId)
     .single()
   
   if (error || !profile) return null
-  return profile as Profile
+  return profile as unknown as Profile
 }
 
 /**
@@ -472,15 +489,15 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
   const supabase = createServiceRoleClient()
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("clerk_user_id", userId)
     .single()
-  
+
   if (!profile) {
     return null
   }
 
-  return { userId, profile: profile as Profile }
+  return { userId, profile: profile as unknown as Profile }
 }
 
 /**

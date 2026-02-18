@@ -367,7 +367,7 @@ async function processRefund(
     }
 
     // Process Stripe refund
-    const idempotencyKey = `refund_decline_${intakeId}_${Date.now()}`
+    const idempotencyKey = `refund_decline_${intakeId}`
 
     const refund = await stripe.refunds.create(
       {

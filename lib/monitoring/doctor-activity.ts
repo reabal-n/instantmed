@@ -76,7 +76,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
   const { count: casesLast1Hr } = await supabase
     .from("audit_logs")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .in("action", ["intake_approved", "intake_declined"])
     .gte("created_at", oneHourAgo)
   
@@ -85,7 +85,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   todayStart.setHours(0, 0, 0, 0)
   const { count: casesToday } = await supabase
     .from("audit_logs")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .in("action", ["intake_approved", "intake_declined"])
     .gte("created_at", todayStart.toISOString())
   

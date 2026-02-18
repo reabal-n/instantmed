@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       // Fetch the entry to retry
       const { data: entry, error: fetchError } = await supabase
         .from("stripe_webhook_dead_letter")
-        .select("*")
+        .select("id, event_id, event_type, retry_count, payload")
         .eq("id", entryId)
         .single()
 

@@ -543,9 +543,10 @@ body {
      PREMIUM INPUT STYLING
      Calm, elegant, focused
      ================================ */
-  input:not([type="checkbox"]):not([type="radio"]),
-  textarea,
-  select {
+  /* Exclude HeroUI internal elements (data-slot) to prevent style conflicts */
+  input:not([type="checkbox"]):not([type="radio"]):not([data-slot]),
+  textarea:not([data-slot]),
+  select:not([data-slot]) {
     @apply bg-input text-foreground;
     border-radius: var(--radius-sm);
     border: 1.5px solid rgba(0, 0, 0, 0.08);
@@ -555,19 +556,19 @@ body {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
-  
-  input:focus,
-  textarea:focus,
-  select:focus {
+
+  input:not([data-slot]):focus,
+  textarea:not([data-slot]):focus,
+  select:not([data-slot]):focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
     outline: none;
   }
-  
+
   /* Enhanced dark mode input focus */
-  .dark input:focus,
-  .dark textarea:focus,
-  .dark select:focus {
+  .dark input:not([data-slot]):focus,
+  .dark textarea:not([data-slot]):focus,
+  .dark select:not([data-slot]):focus {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), var(--shadow-sm);
   }
   
@@ -575,21 +576,22 @@ body {
      PREMIUM BUTTON STYLING
      Subtle, elegant, responsive
      ================================ */
-  button,
-  [role="button"] {
+  /* Exclude HeroUI internal elements (data-slot) */
+  button:not([data-slot]),
+  [role="button"]:not([data-slot]) {
     font-weight: 500;
     font-size: var(--font-size-sm);
     border-radius: var(--radius-md);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
-  /* Note: Global button hover transforms removed to prevent double-scale conflict 
-     with the .btn-micro system below. Use .btn-micro, .btn-premium, or .btn-cta 
+
+  /* Note: Global button hover transforms removed to prevent double-scale conflict
+     with the .btn-micro system below. Use .btn-micro, .btn-premium, or .btn-cta
      for specific hover effects instead. */
-  
+
   /* Dark mode button hover - subtle */
-  .dark button:hover,
-  .dark [role="button"]:hover {
+  .dark button:not([data-slot]):hover,
+  .dark [role="button"]:not([data-slot]):hover {
     box-shadow: var(--shadow-sm);
   }
   

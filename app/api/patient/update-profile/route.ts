@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { z } from "zod"
@@ -11,9 +11,9 @@ const updateProfileSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser || authUser.profile.role !== "patient") {
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
         date_of_birth: dateOfBirth,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", authUser.profile.id)
-      .select()
+      .eq("id", authResult.profile.id)
+      .select("id, full_name, phone, date_of_birth, updated_at")
       .single()
 
     if (updateError || !updated) {

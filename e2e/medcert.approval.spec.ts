@@ -57,7 +57,7 @@ async function getIssuedCertificate(intakeId: string) {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("*, template_config_snapshot, clinic_identity_snapshot")
+    .select("id, intake_id, certificate_number, verification_code, status, patient_id, doctor_id, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, email_sent_at, email_failed_at, email_failure_reason, email_retry_count, created_at, updated_at")
     .eq("intake_id", intakeId)
     .single()
   
@@ -93,12 +93,12 @@ async function getIntakeDocument(intakeId: string) {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("intake_documents")
-    .select("*")
+    .select("id, intake_id, document_type, storage_path, created_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
     .single()
-  
+
   if (error) return null
   return data
 }

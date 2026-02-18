@@ -1,7 +1,8 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getAllActiveTemplates } from "@/lib/data/certificate-templates"
 import { TemplateStudioClient } from "./studio-client"
+
+export const dynamic = "force-dynamic"
 
 export const metadata = {
   title: "Template Studio | Admin",
@@ -9,26 +10,15 @@ export const metadata = {
 }
 
 export default async function TemplateStudioPage() {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in?redirect=/admin/studio")
-  }
-
-  // Check admin role
-  const profile = authUser.profile
-
-  if (!profile || profile.role !== "admin") {
-    redirect("/")
-  }
+  const authUser = await requireRole(["admin"])
 
   // Get all active templates
   const templates = await getAllActiveTemplates().catch(() => [])
 
   return (
-    <TemplateStudioClient 
+    <TemplateStudioClient
       initialTemplates={templates}
-      adminName={profile.full_name || "Admin"}
+      adminName={authUser.profile.full_name || "Admin"}
     />
   )
 }

@@ -22,6 +22,7 @@
  *   })
  */
 
+import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
@@ -106,7 +107,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (providedSecret !== e2eSecret) {
+  // Use timing-safe comparison to prevent timing attacks
+  if (
+    !providedSecret ||
+    providedSecret.length !== e2eSecret.length ||
+    !timingSafeEqual(Buffer.from(providedSecret), Buffer.from(e2eSecret))
+  ) {
     return NextResponse.json(
       { error: "Invalid E2E secret" },
       { status: 401 }

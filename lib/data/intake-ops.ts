@@ -48,7 +48,7 @@ export async function getStuckIntakes(
     // Query the view
     let query = supabase
       .from("v_stuck_intakes")
-      .select("*")
+      .select("id, reference_number, status, payment_status, category, subtype, service_name, service_type, is_priority, patient_email, patient_name, created_at, paid_at, reviewed_at, approved_at, stuck_reason, stuck_age_minutes")
       .order("stuck_age_minutes", { ascending: false })
 
     // Apply filters

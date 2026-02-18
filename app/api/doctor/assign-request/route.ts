@@ -44,33 +44,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid doctor_id — must be a doctor or admin" }, { status: 400 })
     }
 
-    // Only assign intakes that are in the queue (paid) or need re-assignment
-    const assignableStatuses = ["paid", "pending_info", "escalated"]
-    const { data, error } = await supabase
-      .from("intakes")
-      .update({
-        reviewing_doctor_id: doctor_id,
-        status: "in_review",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intake_id)
-      .in("status", assignableStatuses) // Only assign intakes in valid states
-      .select()
-      .single()
+    // Use claim RPC for consistent assignment (prevents race conditions)
+    const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
+      p_intake_id: intake_id,
+      p_doctor_id: doctor_id,
+      p_force: true, // Admin/manual assignment overrides existing claims
+    })
 
-    if (error) {
-      // PGRST116 = no rows returned (intake was not in assignable status)
-      if (error.code === "PGRST116") {
-        log.warn("Cannot assign intake - not in assignable status", { intake_id })
-        return NextResponse.json({
-          error: "This intake cannot be assigned. It may have already been claimed or is not in the queue."
-        }, { status: 409 })
-      }
-      log.error("Failed to assign intake", { intake_id, error: error.message })
-      return NextResponse.json({ error: "Failed to assign request" }, { status: 500 })
+    const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
+    if (claimError || !claim?.success) {
+      log.warn("Cannot assign intake via claim RPC", { intake_id, error: claim?.error_message || claimError?.message })
+      return NextResponse.json({
+        error: claim?.error_message || "This intake cannot be assigned. It may have already been claimed or is not in the queue."
+      }, { status: 409 })
     }
 
-    return NextResponse.json({ success: true, intake: data })
+    return NextResponse.json({ success: true, intake: { id: intake_id } })
   } catch (error) {
     log.error("Assign intake failed", { userId }, error)
     return NextResponse.json(

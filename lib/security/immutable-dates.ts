@@ -108,7 +108,7 @@ export async function processDateChangeRequest(
   // Get the original request
   const { data: request, error: fetchError } = await supabase
     .from("date_change_requests")
-    .select("*")
+    .select("id, intake_id, original_date, requested_date, reason, requested_by, status, created_at")
     .eq("id", changeRequestId)
     .single()
 

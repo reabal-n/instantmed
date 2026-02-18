@@ -14,7 +14,15 @@ async function getPatientWithHistory(patientId: string) {
   // Get patient profile
   const { data: patient, error: patientError } = await supabase
     .from("profiles")
-    .select("*")
+    .select(`
+      id, auth_user_id, clerk_user_id, email, full_name, first_name, last_name,
+      date_of_birth, role, phone, address_line1, suburb, state, postcode,
+      medicare_number, medicare_irn, medicare_expiry,
+      ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
+      provider_number, consent_myhr, onboarding_completed,
+      email_verified, email_verified_at,
+      avatar_url, stripe_customer_id, created_at, updated_at
+    `)
     .eq("id", patientId)
     .eq("role", "patient")
     .single()
@@ -77,7 +85,7 @@ async function getPatientWithHistory(patientId: string) {
   // Get patient notes/flags
   const { data: patientNotes, error: notesError } = await supabase
     .from("patient_notes")
-    .select("*")
+    .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_by_name, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
@@ -93,7 +101,7 @@ async function getPatientWithHistory(patientId: string) {
   }))
 
   return {
-    patient,
+    patient: patient as unknown as import("@/types/db").Profile,
     intakes: transformedIntakes,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],

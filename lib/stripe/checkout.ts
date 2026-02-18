@@ -329,7 +329,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .insert(intakeData)
-      .select()
+      .select("id, status")
       .single()
 
     // DEV: Debug log for intake creation tracing (no PHI)

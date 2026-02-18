@@ -18,7 +18,8 @@ import {
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Chip, Spinner } from '@heroui/react'
+import { Badge } from '@/components/ui/badge'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
@@ -70,7 +71,7 @@ export function AccountClient() {
         // Get profile using Clerk user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, full_name, email, phone, role, created_at')
           .eq('clerk_user_id', user.id)
           .single()
 
@@ -132,26 +133,22 @@ export function AccountClient() {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { color: "default" | "primary" | "secondary" | "success" | "warning" | "danger"; icon: React.ReactNode }> = {
-      draft: { color: 'default', icon: <Clock className="h-3.5 w-3.5" /> },
-      pending: { color: 'warning', icon: <Clock className="h-3.5 w-3.5" /> },
-      paid: { color: 'primary', icon: <CreditCard className="h-3.5 w-3.5" /> },
-      in_review: { color: 'secondary', icon: <FileText className="h-3.5 w-3.5" /> },
-      completed: { color: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-      declined: { color: 'danger', icon: <AlertCircle className="h-3.5 w-3.5" /> },
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline" | "success"; icon: React.ReactNode }> = {
+      draft: { variant: 'outline', icon: <Clock className="h-3.5 w-3.5" /> },
+      pending: { variant: 'secondary', icon: <Clock className="h-3.5 w-3.5" /> },
+      paid: { variant: 'default', icon: <CreditCard className="h-3.5 w-3.5" /> },
+      in_review: { variant: 'secondary', icon: <FileText className="h-3.5 w-3.5" /> },
+      completed: { variant: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+      declined: { variant: 'destructive', icon: <AlertCircle className="h-3.5 w-3.5" /> },
     }
-    
+
     const config = statusConfig[status] || statusConfig.pending
-    
+
     return (
-      <Chip 
-        color={config.color} 
-        variant="flat" 
-        size="sm"
-        startContent={config.icon}
-      >
+      <Badge variant={config.variant} className="inline-flex items-center gap-1.5">
+        {config.icon}
         {status.replace('_', ' ')}
-      </Chip>
+      </Badge>
     )
   }
 
@@ -160,7 +157,7 @@ export function AccountClient() {
       <div className="min-h-screen bg-slate-50">
         <Navbar variant="marketing" />
         <div className="flex items-center justify-center py-32">
-          <Spinner size="lg" color="primary" />
+          <Spinner size="lg" variant="primary" />
         </div>
       </div>
     )

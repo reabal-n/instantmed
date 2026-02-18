@@ -25,14 +25,14 @@ export default async function PatientDashboard() {
   const [intakesResult, prescriptionsResult] = await Promise.all([
     supabase
       .from("intakes")
-      .select(`*`)
+      .select(`id, status, created_at, updated_at, doctor_notes, service_id`)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
       .limit(20),
 
     supabase
       .from("prescriptions")
-      .select("*")
+      .select("id, medication_name, dosage, issued_date, renewal_date, status")
       .eq("patient_id", patientId)
       .order("issued_date", { ascending: false })
       .limit(10),

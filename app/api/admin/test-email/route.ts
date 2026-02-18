@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -8,8 +8,8 @@ const logger = createLogger("test-email-api")
 export async function POST(request: NextRequest) {
   try {
     // Auth check - admin only
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser || authUser.profile.role !== "admin") {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "admin") {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       logger.info("Test email sent successfully", {
         to: to.replace(/(.{2}).*@/, "$1***@"),
         subject,
-        adminId: authUser.user.id,
+        adminId: authResult.userId,
       })
 
       return NextResponse.json({
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         to: to.replace(/(.{2}).*@/, "$1***@"),
         subject,
         error: result.error,
-        adminId: authUser.user.id,
+        adminId: authResult.userId,
       })
 
       return NextResponse.json(

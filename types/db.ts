@@ -68,11 +68,27 @@ export interface Intake {
   refund_amount_cents: number
   stripe_payment_intent_id: string | null // For refund traceability
   stripe_customer_id: string | null // Customer ID at time of payment
+  stripe_price_id: string | null // Stripe price ID used for checkout
+  idempotency_key: string | null // Idempotency key for payment dedup
+  // Refund tracking
+  refund_status: "none" | "pending" | "processed" | "failed" | null
+  refund_stripe_id: string | null
+  refund_error: string | null
+  refunded_at: string | null
+  refunded_by: string | null
+  // Dispute tracking
+  dispute_id: string | null
   // Admin/doctor workflow
   admin_notes: string | null
   doctor_notes: string | null
   decline_reason: string | null
   escalation_notes: string | null
+  doctor_notes_enc: unknown | null // PHI encrypted doctor notes (JSON)
+  // Info request tracking
+  info_request_code: string | null
+  info_request_message: string | null
+  info_requested_at: string | null
+  info_requested_by: string | null
   // Decision tracking
   decision: "approved" | "declined" | null
   decline_reason_code: string | null
@@ -81,6 +97,9 @@ export interface Intake {
   // Review tracking
   reviewed_by: string | null
   reviewed_at: string | null
+  review_started_at: string | null
+  reviewing_doctor_id: string | null
+  reviewing_doctor_name: string | null
   flagged_for_followup: boolean
   followup_reason: string | null
   // Script tracking
@@ -97,10 +116,25 @@ export interface Intake {
   declined_at: string | null
   completed_at: string | null
   cancelled_at: string | null
+  expired_at: string | null
+  expiry_reason: string | null
+  // Email tracking
+  abandoned_email_sent_at: string | null
+  confirmation_email_sent_at: string | null
+  notification_email_status: string | null
+  notification_email_error: string | null
+  // Guest checkout
+  guest_email: string | null
   // Document
   generated_document_url: string | null
   generated_document_type: string | null
   document_sent_at: string | null
+  // Prescription delivery tracking
+  prescription_sent_at: string | null
+  prescription_sent_by: string | null
+  prescription_sent_channel: string | null
+  // AI draft status
+  ai_draft_status: string | null
   // Client info
   client_ip: string | null
   client_user_agent: string | null
@@ -229,6 +263,7 @@ export interface PatientNote {
   content: string
   metadata: Record<string, unknown>
   created_by: string
+  created_by_name: string | null
   created_at: string
   updated_at: string
 }
@@ -306,20 +341,20 @@ export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC
 // Table: profiles
 // NOTE: DB column is address_line_1 (with underscore), mapped to address_line1 in app layer
 // DB column is address_line_2 (with underscore), mapped to address_line2 in app layer (not in interface)
-// street_address and my_health_record_consent are app-layer aliases, not direct DB columns
 export interface Profile {
   id: string // uuid, PK
-  auth_user_id: string // uuid, references auth.users.id (Supabase Auth)
+  auth_user_id: string | null // uuid, references auth.users.id (Supabase Auth)
   clerk_user_id?: string | null // Clerk user ID for auth linking
   email?: string | null // User email
   avatar_url?: string | null // Profile avatar URL
   full_name: string
-  date_of_birth: string // ISO date string
+  first_name?: string | null // Given name
+  last_name?: string | null // Family name
+  date_of_birth: string | null // ISO date string
   role: UserRole
   // Contact & address fields (DB uses address_line_1, app maps to address_line1)
   phone: string | null
   address_line1: string | null // Maps to DB: address_line_1
-  street_address: string | null // Alias for address_line1
   suburb: string | null
   state: AustralianState | null
   postcode: string | null
@@ -327,26 +362,45 @@ export interface Profile {
   medicare_number: string | null
   medicare_irn: number | null // 1-5
   medicare_expiry: string | null // ISO date string
-  medicare_expiry_month: string | null
-  medicare_expiry_year: string | null
+  // PHI encryption columns
+  date_of_birth_encrypted: string | null
+  medicare_number_encrypted: string | null
+  phi_encrypted_at: string | null
+  phone_encrypted: string | null
   // Doctor-specific fields
   ahpra_number?: string | null // AHPRA registration number for doctors
   ahpra_verified?: boolean // Whether AHPRA registration has been admin-verified
   ahpra_verified_at?: string | null // When AHPRA was verified
   ahpra_verified_by?: string | null // Admin who verified AHPRA
+  ahpra_verification_notes?: string | null // Admin notes from verification process
+  ahpra_next_review_at?: string | null // When registration needs next review
   provider_number?: string | null // Medicare provider number for doctors
+  nominals?: string | null // Doctor credentials/qualifications (e.g. "BHSc, MD, AFHEA")
   // Consent and onboarding
   consent_myhr: boolean
-  my_health_record_consent: boolean
   onboarding_completed: boolean
-  // P1 FIX: Email verification for guest profile linking security
+  // Email verification
   email_verified: boolean
   email_verified_at: string | null
+  email_bounced?: boolean | null
+  email_bounced_at?: string | null
+  email_bounce_reason?: string | null
+  email_delivery_failures?: number | null
+  // Identity verification
+  certificate_identity_complete?: boolean | null
+  signature_storage_path?: string | null
   // Stripe customer linking
   stripe_customer_id: string | null
   // Timestamps
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
+  // ── App-layer aliases (NOT actual DB columns) ──
+  // These are computed/mapped in the app layer, not stored in the profiles table.
+  // Kept for backward compat with components that expect these fields.
+  street_address?: string | null // Alias for address_line1
+  medicare_expiry_month?: string | null // Parsed from medicare_expiry
+  medicare_expiry_year?: string | null // Parsed from medicare_expiry
+  my_health_record_consent?: boolean // Alias for consent_myhr
 }
 
 // Table: document_drafts (document builder drafts)

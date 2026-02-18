@@ -131,7 +131,7 @@ export function TrackingClient({
       const supabase = createClient()
       const { count } = await supabase
         .from("intakes")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("status", "paid")
         .lt("created_at", intake.created_at)
 

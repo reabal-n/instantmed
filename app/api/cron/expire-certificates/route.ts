@@ -53,16 +53,24 @@ export async function GET(request: NextRequest) {
 
     // Log audit events for each expired certificate
     for (const cert of expiredCerts) {
-      await supabase.from("certificate_audit_log").insert({
-        certificate_id: cert.id,
-        event_type: "expired",
-        actor_id: null,
-        actor_role: "system",
-        event_data: {
-          end_date: cert.end_date,
-          expired_by_cron: true,
-        },
-      })
+      try {
+        await supabase.from("certificate_audit_log").insert({
+          certificate_id: cert.id,
+          event_type: "expired",
+          actor_id: null,
+          actor_role: "system",
+          event_data: {
+            end_date: cert.end_date,
+            expired_by_cron: true,
+          },
+        })
+      } catch (auditError) {
+        logger.error("Failed to insert audit log for expired certificate", {
+          certificateId: cert.id,
+          error: auditError instanceof Error ? auditError.message : String(auditError),
+        })
+        // Continue processing remaining certificates
+      }
     }
 
     logger.info("Expired certificates processed", {

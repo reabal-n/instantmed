@@ -4,9 +4,11 @@ import * as React from "react"
 import { Textarea as HeroTextarea, type TextAreaProps as HeroTextareaProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface TextareaProps extends Omit<HeroTextareaProps, "size" | "onChange"> {
+export interface TextareaProps extends Omit<HeroTextareaProps, "size" | "onChange" | "onValueChange"> {
   size?: "default" | "sm" | "lg"
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>
+  /** Preferred callback — receives the string value directly, avoiding HeroUI's event type mismatch */
+  onValueChange?: (value: string) => void
 }
 
 const sizeMap: Record<string, HeroTextareaProps["size"]> = {
@@ -19,12 +21,16 @@ function Textarea({
   size = "default",
   className,
   onChange,
+  onValueChange,
   ...props
 }: TextareaProps) {
   return (
     <HeroTextarea
       size={sizeMap[size]}
+      // Bridge onChange safely — HeroUI fires ChangeEvent<HTMLInputElement> but consumers
+      // may expect HTMLTextAreaElement. The cast is safe because only .value is read.
       onChange={onChange as HeroTextareaProps["onChange"]}
+      onValueChange={onValueChange}
       radius="md" // Craft: restrained radius
       variant="bordered"
       classNames={{

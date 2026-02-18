@@ -41,12 +41,14 @@ function Switch({
           "max-w-fit",
           // Smooth transition (removed active:scale-95 to avoid double-scale with HeroUI)
           "transition-transform duration-150",
-          // Remove any visible box/outline - aggressive reset for iOS
+          // Remove default outline/ring but preserve focus-visible for keyboard accessibility (WCAG 2.4.7)
           "!outline-none !ring-0 !border-0 !shadow-none",
           "[&>span]:!outline-none [&>span]:!ring-0 [&>span]:!border-0 [&>span]:!shadow-none",
-          "[&_*]:!outline-none [&_*]:focus:!outline-none [&_*]:focus-visible:!outline-none",
-          "[&_*]:!ring-0 [&_*]:focus:!ring-0 [&_*]:focus-visible:!ring-0",
-          "focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus-visible:!ring-0",
+          "[&_*]:!outline-none [&_*]:focus:!outline-none",
+          "[&_*]:!ring-0 [&_*]:focus:!ring-0",
+          "focus:!outline-none focus:!ring-0",
+          // Keyboard focus indicator — visible only when tabbing (not clicking)
+          "focus-visible:!ring-2 focus-visible:!ring-primary/40 focus-visible:!ring-offset-2",
           className
         ),
         wrapper: cn(

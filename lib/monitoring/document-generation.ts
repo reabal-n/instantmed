@@ -77,7 +77,7 @@ export async function getDocumentGenerationMetrics(
   
   const { data } = await supabase
     .from("document_generation_metrics")
-    .select("*")
+    .select("id, success, latency_ms, document_type, error_type, created_at")
     .gte("created_at", since)
   
   if (!data || data.length === 0) {

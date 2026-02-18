@@ -270,7 +270,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           clerk_user_id: null,
           role: "patient",
         })
-        .select()
+        .select("id")
         .single()
 
       if (profileError || !newProfile) {
@@ -339,7 +339,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
       })
-      .select()
+      .select("id")
       .single()
 
     if (intakeError || !intake) {

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Check, Clock, PhoneOff, Phone } from 'lucide-react'
-import { Divider } from '@heroui/react'
+import { Separator } from '@/components/ui/separator'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 
@@ -236,7 +236,7 @@ export function HealthCategories() {
                       </div>
                     </div>
                     
-                    <Divider className="opacity-50" />
+                    <Separator className="opacity-50" />
                     
                     <div className="px-3 py-2.5 shrink-0">
                       <MagneticButton>

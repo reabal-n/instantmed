@@ -103,7 +103,7 @@ async function seedOperatorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", OPERATOR_PROFILE_ID)
     .single()
 
@@ -154,7 +154,7 @@ async function seedDoctorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", DOCTOR_PROFILE_ID)
     .single()
 
@@ -205,7 +205,7 @@ async function seedPatientProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", PATIENT_PROFILE_ID)
     .single()
 
@@ -262,7 +262,7 @@ async function seedService() {
   // Check if our E2E service exists
   const { data: e2eExisting } = await supabase
     .from("services")
-    .select("*")
+    .select("id, slug, name, short_name, description, type, price_cents, is_active, created_at")
     .eq("id", SERVICE_ID)
     .single()
 
@@ -302,7 +302,7 @@ async function seedClinicIdentity() {
   // Check if our E2E clinic identity exists by deterministic ID
   const { data: existing } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .eq("id", CLINIC_IDENTITY_ID)
     .single()
 
@@ -379,7 +379,7 @@ async function seedCertificateTemplate() {
     // Check if our specific E2E template exists by deterministic ID
     const { data: existing } = await supabase
       .from("certificate_templates")
-      .select("*")
+      .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
       .eq("id", tmpl.id)
       .single()
 
@@ -456,7 +456,7 @@ async function seedPaidIntake(serviceId: string) {
   // Check if already exists
   const { data: existing } = await supabase
     .from("intakes")
-    .select("*")
+    .select("id, patient_id, service_id, reference_number, status, payment_status, amount_cents, claimed_by, claimed_at, created_at, updated_at")
     .eq("id", INTAKE_ID)
     .single()
 
@@ -546,7 +546,7 @@ async function seedDocumentDraft() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, status, created_at, updated_at")
     .eq("id", DRAFT_ID)
     .single()
 

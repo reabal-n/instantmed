@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
@@ -19,9 +18,9 @@ export async function POST(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser) {
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
     const { intakeId, content } = parsed.data
 
     const supabase = createServiceRoleClient()
-    const patientId = authUser.profile.id
+    const patientId = authResult.profile.id
 
     // Verify the intake belongs to this patient
     const { data: intake } = await supabase
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest) {
         sender_id: patientId,
         content: content.trim(),
       })
-      .select()
+      .select("id, created_at")
       .single()
 
     if (error) {
@@ -89,9 +88,9 @@ export async function GET(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser) {
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -99,11 +98,11 @@ export async function GET(request: NextRequest) {
     const intakeId = searchParams.get("intakeId")
 
     const supabase = createServiceRoleClient()
-    const patientId = authUser.profile.id
+    const patientId = authResult.profile.id
 
     let query = supabase
       .from("patient_messages")
-      .select("*")
+      .select("id, sender_type, read_at, content, created_at, intake_id, patient_id")
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
 

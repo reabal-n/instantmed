@@ -21,10 +21,10 @@ export default async function EncryptionDashboardPage() {
     { count: totalDocDrafts },
     { count: encryptedDocDrafts },
   ] = await Promise.all([
-    supabase.from("intake_drafts").select("*", { count: "exact", head: true }),
-    supabase.from("intake_drafts").select("*", { count: "exact", head: true }).not("data_encrypted", "is", null),
-    supabase.from("document_drafts").select("*", { count: "exact", head: true }),
-    supabase.from("document_drafts").select("*", { count: "exact", head: true }).not("data_encrypted", "is", null),
+    supabase.from("intake_drafts").select("id", { count: "exact", head: true }),
+    supabase.from("intake_drafts").select("id", { count: "exact", head: true }).not("data_encrypted", "is", null),
+    supabase.from("document_drafts").select("id", { count: "exact", head: true }),
+    supabase.from("document_drafts").select("id", { count: "exact", head: true }).not("data_encrypted", "is", null),
   ])
 
   // Get recent encryption audit events

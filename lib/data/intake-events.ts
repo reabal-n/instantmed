@@ -298,7 +298,7 @@ export async function getIntakeEvents(
 
     const { data, error } = await supabase
       .from("intake_events")
-      .select("*")
+      .select("id, intake_id, actor_role, actor_id, event_type, from_status, to_status, metadata, created_at")
       .eq("intake_id", intakeId)
       .order("created_at", { ascending: false })
       .limit(limit)

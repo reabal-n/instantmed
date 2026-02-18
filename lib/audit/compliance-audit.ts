@@ -615,7 +615,7 @@ export async function checkAuditReadiness(requestId: string): Promise<AuditReadi
 
   const { data, error } = await supabase
     .from("compliance_audit_summary")
-    .select("*")
+    .select("intake_id, reviewed_by, decision_at, final_outcome, has_human_review, prescribing_location, call_required, call_completed_before_decision")
     .eq("intake_id", requestId)
     .single()
 

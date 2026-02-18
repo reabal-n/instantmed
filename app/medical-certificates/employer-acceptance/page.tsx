@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { 
   ArrowRight, 
   Check, 
@@ -276,14 +276,15 @@ export default function EmployerAcceptancePage() {
               <p className="text-muted-foreground mb-8">
                 Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
               </p>
-              <Button 
-                as={Link}
-                href="/request?service=med-cert"
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-8"
               >
-                Get started
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <Link href="/request?service=med-cert">
+                  Get started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
               <p className="mt-4 text-sm text-muted-foreground">$19.95 • Refund if we can&apos;t help</p>
             </div>

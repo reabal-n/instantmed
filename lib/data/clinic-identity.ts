@@ -17,7 +17,7 @@ export async function getActiveClinicIdentity(): Promise<ClinicIdentity | null> 
 
   const { data, error } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .eq("is_active", true)
     .maybeSingle()
 
@@ -37,7 +37,7 @@ export async function getClinicIdentityById(id: string): Promise<ClinicIdentity 
 
   const { data, error } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .eq("id", id)
     .single()
 
@@ -75,7 +75,7 @@ export async function saveClinicIdentity(
         created_by: actorId,
         updated_by: actorId,
       })
-      .select()
+      .select("id, created_at, updated_at")
       .single()
 
     if (error) {
@@ -100,7 +100,7 @@ export async function getClinicIdentityHistory(): Promise<ClinicIdentity[]> {
 
   const { data, error } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .order("created_at", { ascending: false })
 
   if (error) {

@@ -83,7 +83,7 @@ export async function upsertDraft(params: UpsertDraftParams): Promise<DocumentDr
         ignoreDuplicates: false,
       }
     )
-    .select()
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, created_at, updated_at")
     .single()
 
   if (error) {
@@ -105,7 +105,7 @@ export async function getDraftsForIntake(intakeId: string): Promise<DocumentDraf
   
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
 
@@ -128,7 +128,7 @@ export async function getDraft(
   
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("type", type)
     .single()

@@ -9,7 +9,7 @@ import { serviceCategories } from '@/lib/marketing/homepage'
 const pricingFetcher = (url: string) => fetch(url).then(r => r.json())
 
 import { motion } from 'framer-motion'
-import { Divider } from '@heroui/react'
+import { Separator } from '@/components/ui/separator'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -283,7 +283,7 @@ export function ServicePicker() {
                         )}
                       </div>
                       
-                      <Divider className="opacity-50" />
+                      <Separator className="opacity-50" />
                       
                       <div className="flex items-center justify-between px-3 py-2.5 shrink-0">
                         {/* #2: Price with savings framing */}

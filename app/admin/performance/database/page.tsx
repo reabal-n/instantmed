@@ -18,8 +18,8 @@ export default async function DatabaseMonitoringPage() {
   ] = await Promise.all([
     supabase.rpc("get_table_sizes").then(r => r, () => ({ data: null, error: null })),
     supabase.rpc("get_connection_count").then(r => r, () => ({ data: null, error: null })),
-    supabase.from("intakes").select("*", { count: "exact", head: true }),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("intakes").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
   ])
 
   return (

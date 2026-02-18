@@ -178,7 +178,7 @@ export function QueueClient({
           if (payload.eventType === "INSERT") {
             // Play notification sound for new intakes
             if (audioEnabledRef.current && audioRef.current) {
-              audioRef.current.play().catch(() => {})
+              audioRef.current.play().catch(() => { /* Browser may block autoplay — non-critical */ })
             }
             // Show visible toast notification
             const newPatientName = (payload.new as { patient_name?: string }).patient_name
@@ -276,7 +276,8 @@ export function QueueClient({
     return `${diffMins}m left`
   }
 
-  const calculateAge = (dob: string): number => {
+  const calculateAge = (dob: string | null): number | null => {
+    if (!dob) return null
     const birthDate = new Date(dob)
     const today = new Date()
     let age = today.getFullYear() - birthDate.getFullYear()
@@ -952,7 +953,7 @@ export function QueueClient({
                           )}
                           <UserCard
                             name={intake.patient.full_name}
-                            description={`${patientAge}y`}
+                            description={patientAge != null ? `${patientAge}y` : "Age N/A"}
                             size="sm"
                             className="shrink-0"
                           />
@@ -973,7 +974,7 @@ export function QueueClient({
                                   Clinical flag
                                 </Badge>
                               )}
-                              {(intake as unknown as { ai_draft_status?: string }).ai_draft_status === "completed" && (
+                              {intake.ai_draft_status === "completed" && (
                                 <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700">
                                   <Sparkles className="w-3 h-3 mr-1" />
                                   AI draft ready
@@ -1085,7 +1086,7 @@ export function QueueClient({
                           <div>
                             <p className="text-xs text-muted-foreground">DOB</p>
                             <p className="text-sm font-medium">
-                              {new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU")}
+                              {intake.patient.date_of_birth ? new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU") : "Not provided"}
                             </p>
                           </div>
                         </div>

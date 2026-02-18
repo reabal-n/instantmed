@@ -26,7 +26,7 @@ export function SocialProofToast({
       .then((data) => {
         if (data.length > 0) setItems(data)
       })
-      .catch(() => {})
+      .catch(() => { /* Non-critical: social proof is cosmetic */ })
   }, [])
 
   const showNext = useCallback(() => {

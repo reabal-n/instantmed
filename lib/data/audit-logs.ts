@@ -118,12 +118,12 @@ export async function getAuditLogStats(): Promise<{
   // Get total count
   const { count: total } = await supabase
     .from("audit_logs")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
 
   // Get today's count
   const { count: today } = await supabase
     .from("audit_logs")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .gte("created_at", todayStart.toISOString())
 
   // Get recent logs for aggregation

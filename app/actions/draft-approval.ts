@@ -71,7 +71,7 @@ export async function getAIDraftsForIntake(intakeId: string): Promise<AIDraft[]>
   
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("is_ai_generated", true)
     .order("created_at", { ascending: false })
@@ -106,7 +106,7 @@ export async function approveDraft(
   // Fetch the draft to verify it exists and get intake_id
   const { data: draft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, content, approved_at, rejected_at, input_hash, version, edited_content")
     .eq("id", draftId)
     .single()
 
@@ -224,7 +224,7 @@ export async function rejectDraft(
   // Fetch the draft
   const { data: draft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, approved_at, rejected_at")
     .eq("id", draftId)
     .single()
 

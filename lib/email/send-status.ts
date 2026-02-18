@@ -249,7 +249,7 @@ export async function sendStatusEmail(params: SendStatusEmailParams): Promise<{ 
       subject,
       status: 'pending',
       metadata: { data },
-    }).select().single()
+    }).select("id").single()
 
     // Send via Resend
     const result = await sendViaResend({
@@ -303,8 +303,8 @@ export async function sendStatusTransitionEmail(
   const { data: intake } = await supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id (*)
+      id, patient_id, category, subtype, status,
+      patient:profiles!patient_id (id, full_name, email)
     `)
     .eq("id", intakeId)
     .single()
@@ -314,8 +314,11 @@ export async function sendStatusTransitionEmail(
     return
   }
 
-  // Get patient email from profile
-  const email = intake.patient.email
+  // Unwrap patient join (Supabase may return array or object)
+  const patientRaw = intake.patient as unknown as { id: string; full_name: string; email: string }[] | { id: string; full_name: string; email: string } | null
+  const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
+
+  const email = patient?.email
 
   if (!email) {
     logger.error("Could not find patient email")
@@ -323,7 +326,7 @@ export async function sendStatusTransitionEmail(
   }
 
   const baseData = {
-    patientName: intake.patient.full_name || "there",
+    patientName: patient.full_name || "there",
     requestType: formatRequestType(intake.category, intake.subtype),
     requestId: intake.id,
     ...additionalData,

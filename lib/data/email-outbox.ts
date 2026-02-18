@@ -161,7 +161,7 @@ export async function getEmailOutboxById(
 
     const { data, error } = await supabase
       .from("email_outbox")
-      .select("*")
+      .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at")
       .eq("id", id)
       .single()
 
@@ -206,22 +206,22 @@ export async function getEmailOutboxStats(): Promise<{
         await Promise.all([
           supabase
             .from("email_outbox")
-            .select("*", { count: "exact", head: true }),
+            .select("id", { count: "exact", head: true }),
           supabase
             .from("email_outbox")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("status", "sent"),
           supabase
             .from("email_outbox")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("status", "failed"),
           supabase
             .from("email_outbox")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("status", "skipped_e2e"),
           supabase
             .from("email_outbox")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("status", "pending"),
         ])
 

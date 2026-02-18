@@ -10,7 +10,7 @@ import { MediaMentions } from "@/components/marketing/media-mentions"
 import { Mail } from "lucide-react"
 import { motion, useInView, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
 import { RotatingText } from "@/components/marketing/rotating-text"
-import { Accordion, AccordionItem } from "@heroui/react"
+import { Accordion, AccordionItem } from "@/components/ui/accordion"
 import {
   AHPRALogo,
   SSLLogo,

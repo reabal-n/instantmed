@@ -35,7 +35,7 @@ interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
   draft: DocumentDraft
   existingDocument: GeneratedDocument | null
-  patientAge: number
+  patientAge: number | null
   hasCredentials: boolean
   aiDrafts?: AIDrafts | null
 }
@@ -307,7 +307,7 @@ export function DocumentBuilderClient({
           </div>
           <div>
             <Label>Age</Label>
-            <Input value={`${patientAge} years`} disabled />
+            <Input value={patientAge != null ? `${patientAge} years` : "Unknown"} disabled />
           </div>
         </CardContent>
       </Card>

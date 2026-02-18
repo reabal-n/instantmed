@@ -21,7 +21,7 @@ interface PatientDataExport {
     email: string | null
     fullName: string
     phone: string | null
-    dateOfBirth: string
+    dateOfBirth: string | null
     address: {
       line1: string | null
       suburb: string | null
@@ -81,6 +81,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
       .select("id, category, subtype, status, created_at, updated_at, intake_answers:intake_answers(answers)")
       .eq("patient_id", profile.id)
       .order("created_at", { ascending: false })
+      .limit(10000)
 
     if (intakesError) {
       logger.error("Failed to fetch intakes for export", { error: intakesError.message })
@@ -92,6 +93,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
       .select("id, certificate_type, created_at, intake_id")
       .eq("patient_id", profile.id)
       .order("created_at", { ascending: false })
+      .limit(10000)
 
     if (documentsError) {
       logger.error("Failed to fetch certificates for export", { error: documentsError.message })
@@ -103,6 +105,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
       .select("id, type, title, message, created_at, read")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
+      .limit(10000)
 
     if (notificationsError) {
       logger.error("Failed to fetch notifications for export", { error: notificationsError.message })

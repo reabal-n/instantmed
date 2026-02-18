@@ -48,7 +48,7 @@ export async function updateMedCertDraftData(
       updated_at: new Date().toISOString(),
     })
     .eq("id", draftId)
-    .select()
+    .select("id, intake_id, type, subtype, data, created_at, updated_at")
     .single()
 
   if (updateError) {
@@ -68,7 +68,7 @@ export async function getDraftById(draftId: string): Promise<DocumentDraft | nul
 
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase.from("document_drafts").select("*").eq("id", draftId).single()
+  const { data, error } = await supabase.from("document_drafts").select("id, intake_id, type, subtype, data, created_at, updated_at").eq("id", draftId).single()
 
   if (error) {
     return null
@@ -95,7 +95,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   // Check if a document-builder draft already exists
   const { data: existingDraft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("*")
+    .select("id, intake_id, type, subtype, data, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("type", "med_cert")
     .maybeSingle()
@@ -112,9 +112,9 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   const { data: intake, error: intakeError } = await supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id (*),
-      answers:intake_answers (*)
+      id, patient_id, service_id, status, category, subtype, created_at, updated_at,
+      patient:profiles!patient_id (id, full_name, date_of_birth, email, phone),
+      answers:intake_answers (id, answers)
     `)
     .eq("id", intakeId)
     .single()
@@ -123,7 +123,8 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
     return null
   }
 
-  const patient = intake.patient
+  // Supabase returns join relations as arrays — unwrap to single object
+  const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
   const answers = intake.answers?.[0]?.answers || {}
 
   // ─── AI DRAFT BRIDGE ────────────────────────────────────────
@@ -214,7 +215,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
       type: "med_cert",
       data: initialData,
     })
-    .select()
+    .select("id, intake_id, type, subtype, data, created_at, updated_at")
     .single()
 
   if (insertError) {
@@ -222,7 +223,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
     if (insertError.code === "23505") {
       const { data: raceDraft } = await supabase
         .from("document_drafts")
-        .select("*")
+        .select("id, intake_id, type, subtype, data, created_at, updated_at")
         .eq("intake_id", intakeId)
         .eq("type", "med_cert")
         .single()
@@ -297,7 +298,7 @@ export async function getLatestDocumentForIntake(intakeId: string): Promise<Gene
 
   const { data } = await supabase
     .from("documents")
-    .select("*")
+    .select("id, intake_id, type, subtype, pdf_url, verification_code, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -318,7 +319,7 @@ export async function getMedCertCertificateForIntake(intakeId: string): Promise<
 
   const { data: certificate, error } = await supabase
     .from("issued_certificates")
-    .select("*")
+    .select("id, certificate_type, storage_path, verification_code, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })

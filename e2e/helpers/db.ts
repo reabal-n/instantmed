@@ -113,15 +113,15 @@ export async function getTemplateById(id: string): Promise<CertificateTemplate |
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("certificate_templates")
-    .select("*")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
     .eq("id", id)
     .single()
-  
+
   if (error) {
     console.error("Error fetching template:", error.message)
     return null
   }
-  
+
   return data as CertificateTemplate
 }
 
@@ -132,16 +132,16 @@ export async function getActiveTemplate(templateType: string): Promise<Certifica
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("certificate_templates")
-    .select("*")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
     .eq("template_type", templateType)
     .eq("is_active", true)
     .single()
-  
+
   if (error) {
     console.error("Error fetching active template:", error.message)
     return null
   }
-  
+
   return data as CertificateTemplate
 }
 
@@ -152,15 +152,15 @@ export async function getClinicIdentityById(id: string): Promise<ClinicIdentity 
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .eq("id", id)
     .single()
-  
+
   if (error) {
     console.error("Error fetching clinic identity:", error.message)
     return null
   }
-  
+
   return data as ClinicIdentity
 }
 
@@ -171,15 +171,15 @@ export async function getActiveClinicIdentity(): Promise<ClinicIdentity | null> 
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("clinic_identity")
-    .select("*")
+    .select("id, clinic_name, trading_name, address_line_1, address_line_2, suburb, state, postcode, abn, phone, email, logo_storage_path, footer_disclaimer, is_active, created_at, updated_at, created_by, updated_by")
     .eq("is_active", true)
     .single()
-  
+
   if (error) {
     console.error("Error fetching active clinic identity:", error.message)
     return null
   }
-  
+
   return data as ClinicIdentity
 }
 
@@ -269,15 +269,15 @@ export async function getIntakeById(id: string): Promise<Intake | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("intakes")
-    .select("*")
+    .select("id, patient_id, service_id, status, reference_number, payment_status, claimed_by, claimed_at, created_at, updated_at")
     .eq("id", id)
     .single()
-  
+
   if (error) {
     console.error("Error fetching intake:", error.message)
     return null
   }
-  
+
   return data as Intake
 }
 
@@ -303,17 +303,17 @@ export async function getIssuedCertificateForIntake(intakeId: string): Promise<I
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("*, template_config_snapshot, clinic_identity_snapshot")
+    .select("id, intake_id, certificate_number, verification_code, status, patient_id, doctor_id, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, email_sent_at, email_failed_at, email_failure_reason, email_retry_count, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
     .single()
-  
+
   if (error) {
     console.error("Error fetching issued certificate:", error.message)
     return null
   }
-  
+
   return data as IssuedCertificate
 }
 
@@ -324,17 +324,17 @@ export async function getIntakeDocumentForIntake(intakeId: string): Promise<Inta
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("intake_documents")
-    .select("*")
+    .select("id, intake_id, document_type, storage_path, created_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
     .single()
-  
+
   if (error) {
     console.error("Error fetching intake document:", error.message)
     return null
   }
-  
+
   return data as IntakeDocument
 }
 
@@ -421,7 +421,7 @@ export async function countIssuedCertificatesForIntake(intakeId: string): Promis
   const supabase = getSupabaseClient()
   const { count, error } = await supabase
     .from("issued_certificates")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("intake_id", intakeId)
   
   if (error) {
@@ -439,7 +439,7 @@ export async function countIntakeDocumentsForIntake(intakeId: string): Promise<n
   const supabase = getSupabaseClient()
   const { count, error } = await supabase
     .from("intake_documents")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("intake_id", intakeId)
   
   if (error) {
@@ -461,7 +461,7 @@ export async function countCertificateAuditLogs(
   
   let query = supabase
     .from("certificate_audit_log")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("intake_id", intakeId)
   
   if (eventType) {
@@ -511,18 +511,18 @@ export async function getLatestActiveTemplateByType(templateType: string): Promi
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("certificate_templates")
-    .select("*")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
     .eq("template_type", templateType)
     .eq("is_active", true)
     .order("version", { ascending: false })
     .limit(1)
     .single()
-  
+
   if (error) {
     console.error("Error fetching latest active template:", error.message)
     return null
   }
-  
+
   return data as CertificateTemplate
 }
 
@@ -694,7 +694,7 @@ export async function testEmailOutboxInsertSelect(): Promise<{ success: boolean;
     // Verify we can read it back
     const { data: selected, error: selectError } = await supabase
       .from("email_outbox")
-      .select("*")
+      .select("id, email_type, subject, status")
       .eq("id", inserted.id)
       .single()
     
@@ -723,15 +723,15 @@ export async function getEmailOutboxForIntake(intakeId: string): Promise<EmailOu
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("email_outbox")
-    .select("*")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
-  
+
   if (error) {
     console.error("Error fetching email_outbox entries:", error.message)
     return []
   }
-  
+
   return data as EmailOutboxEntry[]
 }
 
@@ -745,18 +745,18 @@ export async function getEmailOutboxByType(
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("email_outbox")
-    .select("*")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at")
     .eq("intake_id", intakeId)
     .eq("email_type", emailType)
     .order("created_at", { ascending: false })
     .limit(1)
     .single()
-  
+
   if (error) {
     console.error("Error fetching email_outbox entry:", error.message)
     return null
   }
-  
+
   return data as EmailOutboxEntry
 }
 
@@ -792,7 +792,7 @@ export async function countEmailOutboxEntries(
   
   let query = supabase
     .from("email_outbox")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("intake_id", intakeId)
   
   if (emailType) {

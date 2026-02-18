@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("update-intake")
 
@@ -11,6 +12,12 @@ export async function POST(request: NextRequest) {
   let clerkUserId: string | null = null
 
   try {
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
     // Apply rate limiting for sensitive operations
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
@@ -106,7 +113,7 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", intake_id)
       .in("status", actionableStatuses) // Prevent race conditions
-      .select()
+      .select("id, status, updated_at")
       .single()
 
     if (error) {

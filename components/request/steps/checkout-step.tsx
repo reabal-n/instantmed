@@ -65,7 +65,9 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const [estimatedWait, setEstimatedWait] = useState("~1 hour")
 
   useEffect(() => {
-    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {})
+    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {
+      // Non-critical: fall back to default estimate if queue API is unavailable
+    })
   }, [])
 
   const pricing = PRICING[serviceType] || PRICING['med-cert']

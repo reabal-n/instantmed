@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRight, ClipboardList, Stethoscope, FileCheck, CheckCircle2 } from 'lucide-react'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
@@ -119,7 +119,7 @@ export function HowItWorks() {
           <Button
             as={Link}
             href="/request"
-            color="primary"
+            variant="default"
             size="lg"
             className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
             endContent={<ArrowRight className="h-4 w-4" />}

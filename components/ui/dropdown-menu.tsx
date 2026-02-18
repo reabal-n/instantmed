@@ -111,9 +111,6 @@ interface DropdownMenuItemProps extends Omit<React.ComponentProps<typeof Dropdow
   onClick?: () => void
 }
 
-// Use a counter for stable keys
-let dropdownItemCounter = 0
-
 function DropdownMenuItem({
   className,
   variant = "default",
@@ -125,8 +122,9 @@ function DropdownMenuItem({
   onPress,
   ...props
 }: DropdownMenuItemProps) {
-  // HeroUI requires a key prop, so we generate one from children if not provided
-  const itemKey = (props as any).key || `dropdown-item-${++dropdownItemCounter}`
+  // HeroUI requires a key prop — derive from children text or use React.useId for stability
+  const generatedId = React.useId()
+  const itemKey = (props as any).key || generatedId
   
   // Map shadcn/ui API to HeroUI API
   const heroIsDisabled = isDisabled ?? disabled

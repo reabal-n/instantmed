@@ -20,7 +20,7 @@ export async function getHealthProfile(patientId: string): Promise<HealthProfile
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("patient_health_profiles")
-    .select("*")
+    .select("id, patient_id, allergies, conditions, current_medications, blood_type, emergency_contact_name, emergency_contact_phone, notes, updated_at")
     .eq("patient_id", patientId)
     .maybeSingle()
 

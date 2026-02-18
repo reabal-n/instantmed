@@ -42,7 +42,7 @@ export async function addPatientNoteAction(
         created_by: profile.id,
         created_by_name: profile.full_name,
       })
-      .select()
+      .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_by_name, created_at, updated_at")
       .single()
 
     if (error) {
@@ -72,7 +72,7 @@ export async function getPatientNotesAction(patientId: string): Promise<{ notes:
 
     const { data, error } = await supabase
       .from("patient_notes")
-      .select("*")
+      .select("id, content, note_type, created_at, created_by, created_by_name")
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
 

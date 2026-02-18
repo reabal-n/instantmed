@@ -155,7 +155,7 @@ async function addToDeadLetterQueue(
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
     const { count: dlqCount } = await supabase
       .from("stripe_webhook_dead_letter")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .gte("created_at", oneHourAgo)
       .is("resolved_at", null)
     
@@ -346,7 +346,7 @@ export async function POST(request: Request) {
         // Check if we've already retried this event multiple times
         const { count } = await supabase
           .from("stripe_webhook_dead_letter")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("event_id", event.id)
         
         const retryCount = count || 0
@@ -419,7 +419,7 @@ export async function POST(request: Request) {
         })
         .eq("id", intakeId)
         .in("payment_status", ["pending", "unpaid"]) // Only update if still pending
-        .select()
+        .select("id, status")
         .single()
 
       if (intakeError) {
@@ -464,9 +464,9 @@ export async function POST(request: Request) {
               stripe_customer_id: stripeCustomerId,
             })
             .eq("id", intakeId)
-            .select()
+            .select("id, status")
             .single()
-          
+
           if (!forceError && forceData) {
             log.info("Force update succeeded", { intakeId, newStatus: forceData.status })
             // Don't return early - fall through to continue webhook flow
@@ -606,7 +606,7 @@ export async function POST(request: Request) {
 
             const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
 
-            await sendEmail({
+            const emailResult = await sendEmail({
               to: patientProfile.email,
               toName: patientProfile.full_name || "Patient",
               subject: `Payment confirmed for your ${serviceName}`,
@@ -625,7 +625,11 @@ export async function POST(request: Request) {
               },
             })
 
-            log.info("Payment confirmed email sent", { intakeId, email: patientProfile.email })
+            if (emailResult?.success === false) {
+              log.error("Payment confirmed email failed", { intakeId, email: patientProfile.email, error: emailResult.error })
+            } else {
+              log.info("Payment confirmed email sent", { intakeId, email: patientProfile.email })
+            }
           } catch (emailErr) {
             // Non-critical -- logged to outbox for retry by dispatcher
             log.error("Payment confirmed email error (non-fatal)", { intakeId }, emailErr)

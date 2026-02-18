@@ -1,9 +1,11 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { auth as _auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createLogger } from "@/lib/observability/logger"
 import { z } from "zod"
+
+const log = createLogger("refill-prescription")
 
 const refillSchema = z.object({
   prescription_id: z.string().uuid(),
@@ -15,9 +17,9 @@ export async function POST(request: Request) {
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser || authUser.profile.role !== "patient") {
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -36,9 +38,9 @@ export async function POST(request: Request) {
     // Verify prescription belongs to patient
     const { data: prescription, error: prescriptionError } = await supabase
       .from("prescriptions")
-      .select("*")
+      .select("id, patient_id, status, prescriber_id, medication_name")
       .eq("id", prescription_id)
-      .eq("patient_id", authUser.profile.id)
+      .eq("patient_id", authResult.profile.id)
       .single()
 
     if (prescriptionError || !prescription) {
@@ -61,12 +63,12 @@ export async function POST(request: Request) {
       .from("prescription_refills")
       .insert({
         prescription_id,
-        patient_id: authUser.profile.id,
+        patient_id: authResult.profile.id,
         quantity_requested: quantity,
         status: "pending",
         requested_at: new Date().toISOString(),
       })
-      .select()
+      .select("id")
       .single()
 
     if (refillError || !refill) {
@@ -77,13 +79,17 @@ export async function POST(request: Request) {
     }
 
     // Create notification for doctor
-    await supabase.from("notifications").insert({
+    const { error: notifyError } = await supabase.from("notifications").insert({
       user_id: prescription.prescriber_id,
       type: "prescription_refill_request",
       title: "Prescription Refill Request",
-      message: `${authUser.profile.full_name} has requested a refill for ${prescription.medication_name}`,
+      message: `${authResult.profile.full_name} has requested a refill for ${prescription.medication_name}`,
       related_id: refill.id,
     })
+
+    if (notifyError) {
+      log.warn("Failed to create refill notification for prescriber", { refillId: refill.id, error: notifyError.message })
+    }
 
     return NextResponse.json(
       {
@@ -103,9 +109,9 @@ export async function POST(request: Request) {
 
 export async function GET(_request: Request) {
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
+    const authResult = await getApiAuth()
 
-    if (!authUser || authUser.profile.role !== "patient") {
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -116,11 +122,17 @@ export async function GET(_request: Request) {
       .from("prescription_refills")
       .select(
         `
-        *,
-        prescription:prescriptions(*)
+        id,
+        prescription_id,
+        patient_id,
+        quantity_requested,
+        status,
+        requested_at,
+        created_at,
+        prescription:prescriptions(id, medication_name, status, dosage, frequency, prescriber_id, created_at)
       `
       )
-      .eq("patient_id", authUser.profile.id)
+      .eq("patient_id", authResult.profile.id)
       .order("requested_at", { ascending: false })
 
     if (error) {

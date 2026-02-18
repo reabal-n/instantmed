@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X, Sparkles } from 'lucide-react'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { 
   getUserData, 
@@ -91,8 +91,7 @@ export function ReturningUserBanner({ className, variant = 'banner' }: Returning
               as={Link}
               href={SERVICE_URLS[suggestedService.service] || '/'}
               size="sm"
-              color="primary"
-              variant="flat"
+              variant="secondary"
             >
               {suggestedService.name}
               <ArrowRight className="w-4 h-4 ml-1" />
@@ -141,7 +140,7 @@ export function ReturningUserBanner({ className, variant = 'banner' }: Returning
                   as={Link}
                   href={SERVICE_URLS[suggestedService.service] || '/'}
                   size="sm"
-                  color="primary"
+                  variant="default"
                   className="hidden sm:flex"
                 >
                   Continue
