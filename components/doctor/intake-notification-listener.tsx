@@ -1,46 +1,24 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
 interface IntakeNotificationListenerProps {
   doctorId: string
-  enableSound?: boolean
 }
 
-const NOTIFICATION_SOUND_URL = "/sounds/notification.mp3"
-
-export function IntakeNotificationListener({ 
-  doctorId, 
-  enableSound = true 
+export function IntakeNotificationListener({
+  doctorId,
 }: IntakeNotificationListenerProps) {
   const router = useRouter()
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const lastNotificationRef = useRef<string | null>(null)
-
-  const playNotificationSound = useCallback(() => {
-    if (!enableSound) return
-    
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(NOTIFICATION_SOUND_URL)
-        audioRef.current.volume = 0.5
-      }
-      audioRef.current.currentTime = 0
-      audioRef.current.play().catch(() => {
-        // Audio play failed - user hasn't interacted with page yet
-      })
-    } catch {
-      // Audio not supported
-    }
-  }, [enableSound])
+  // Track notified intake IDs to prevent duplicates across all handlers
+  const notifiedIdsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     const supabase = createClient()
 
-    // Listen for new intakes (status = 'paid' means ready for review)
     const channel = supabase
       .channel("doctor-intake-notifications")
       .on(
@@ -52,15 +30,13 @@ export function IntakeNotificationListener({
         },
         (payload) => {
           const intake = payload.new
-          
+
           // Only notify for paid intakes (ready for doctor review)
           if (intake.status === "paid") {
-            // Prevent duplicate notifications
-            if (lastNotificationRef.current === intake.id) return
-            lastNotificationRef.current = intake.id
+            // Prevent duplicate notifications across all handlers
+            if (notifiedIdsRef.current.has(intake.id)) return
+            notifiedIdsRef.current.add(intake.id)
 
-            playNotificationSound()
-            
             toast.info("New request received", {
               description: `${intake.category || "Medical"} request is ready for review`,
               action: {
@@ -70,7 +46,6 @@ export function IntakeNotificationListener({
               duration: 10000,
             })
 
-            // Refresh to update queue
             router.refresh()
           }
         }
@@ -85,37 +60,35 @@ export function IntakeNotificationListener({
         (payload) => {
           const intake = payload.new
           const oldIntake = payload.old
-          
-          // Notify when intake becomes paid (payment completed)
-          if (oldIntake.status !== "paid" && intake.status === "paid") {
-            if (lastNotificationRef.current === intake.id) return
-            lastNotificationRef.current = intake.id
 
-            playNotificationSound()
-            
-            toast.info("New request ready", {
-              description: `${intake.category || "Medical"} request payment completed`,
+          // Notify when patient responds to info request (pending_info → paid)
+          if (oldIntake.status === "pending_info" && intake.status === "paid") {
+            if (notifiedIdsRef.current.has(`info-${intake.id}`)) return
+            notifiedIdsRef.current.add(`info-${intake.id}`)
+
+            toast.info("Patient responded", {
+              description: "Patient has provided additional information",
               action: {
-                label: "View",
+                label: "Review",
                 onClick: () => router.push(`/doctor/intakes/${intake.id}`),
               },
               duration: 10000,
             })
 
             router.refresh()
+            return
           }
 
-          // Notify when patient responds to info request
-          if (oldIntake.status === "pending_info" && intake.status === "paid") {
-            if (lastNotificationRef.current === `info-${intake.id}`) return
-            lastNotificationRef.current = `info-${intake.id}`
+          // Notify when intake becomes paid (payment completed after creation)
+          // Skip if we already notified for this intake via INSERT
+          if (oldIntake.status !== "paid" && intake.status === "paid") {
+            if (notifiedIdsRef.current.has(intake.id)) return
+            notifiedIdsRef.current.add(intake.id)
 
-            playNotificationSound()
-            
-            toast.info("Patient responded", {
-              description: "Patient has provided additional information",
+            toast.info("New request ready", {
+              description: `${intake.category || "Medical"} request payment completed`,
               action: {
-                label: "Review",
+                label: "View",
                 onClick: () => router.push(`/doctor/intakes/${intake.id}`),
               },
               duration: 10000,
@@ -130,7 +103,7 @@ export function IntakeNotificationListener({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [doctorId, playNotificationSound, router])
+  }, [doctorId, router])
 
   return null
 }

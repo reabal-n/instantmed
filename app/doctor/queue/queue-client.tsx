@@ -51,8 +51,6 @@ import {
   Focus,
   Maximize2,
   Sparkles,
-  Volume2,
-  VolumeX,
   Loader2,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
@@ -113,41 +111,7 @@ export function QueueClient({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [newIntakeCount, setNewIntakeCount] = useState(0)
-  const [audioEnabled, setAudioEnabled] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("queue-audio-notifications") === "true"
-    }
-    return false
-  })
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const audioEnabledRef = useRef(audioEnabled)
   const listId = useId()
-
-  // Keep ref in sync with state
-  useEffect(() => {
-    audioEnabledRef.current = audioEnabled
-  }, [audioEnabled])
-
-  // Initialize audio element
-  useEffect(() => {
-    audioRef.current = new Audio("/sounds/notification.mp3")
-    audioRef.current.volume = 0.5
-  }, [])
-
-  // Toggle audio notifications
-  const toggleAudio = useCallback(() => {
-    setAudioEnabled(prev => {
-      const newValue = !prev
-      localStorage.setItem("queue-audio-notifications", String(newValue))
-      if (newValue && audioRef.current) {
-        // Play a test sound when enabling
-        audioRef.current.play().catch(() => {
-          toast.error("Enable audio in browser settings to hear notifications")
-        })
-      }
-      return newValue
-    })
-  }, [])
 
   // Real-time subscription for intakes with stale data detection
   useEffect(() => {
@@ -176,10 +140,6 @@ export function QueueClient({
           setIsStale(false)
           
           if (payload.eventType === "INSERT") {
-            // Play notification sound for new intakes
-            if (audioEnabledRef.current && audioRef.current) {
-              audioRef.current.play().catch(() => { /* Browser may block autoplay — non-critical */ })
-            }
             // Show visible toast notification
             const newPatientName = (payload.new as { patient_name?: string }).patient_name
             const serviceData = (payload.new as { service?: { short_name?: string } }).service
@@ -746,16 +706,7 @@ export function QueueClient({
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
               <RefreshCw className="h-3.5 w-3.5" />
             </Button>
-            <Button 
-              variant={audioEnabled ? "default" : "ghost"}
-              size="icon"
-              className={cn("h-8 w-8", audioEnabled && "bg-emerald-600 hover:bg-emerald-700 text-white")}
-              onClick={toggleAudio}
-              title={audioEnabled ? "Disable sound notifications" : "Enable sound notifications"}
-            >
-              {audioEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </Button>
-            <Button 
+            <Button
               variant="ghost" 
               size="sm" 
               className="h-8 text-[12px] text-muted-foreground"
@@ -790,14 +741,6 @@ export function QueueClient({
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
               <RefreshCw className="h-3.5 w-3.5" />
-            </Button>
-            <Button 
-              variant={audioEnabled ? "default" : "ghost"}
-              size="icon"
-              className={cn("h-8 w-8", audioEnabled && "bg-emerald-600 hover:bg-emerald-700 text-white")}
-              onClick={toggleAudio}
-            >
-              {audioEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             </Button>
           </div>
         </div>

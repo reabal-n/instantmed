@@ -61,7 +61,8 @@ export async function generateMedCertPdfAndApproveAction(
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()
 
-    // Fetch draft data - use draftId if provided, otherwise look up by intake_id
+    // Fetch draft data - use draftId if provided, otherwise look up by intake_id.
+    // Exclude AI-generated drafts (they use `content` column, not `data`).
     let draft = null
     if (draftId) {
       const { data: draftById } = await supabase
@@ -74,12 +75,13 @@ export async function generateMedCertPdfAndApproveAction(
     }
 
     if (!draft) {
-      // Fallback: try intake_id
+      // Fallback: try intake_id, but exclude AI drafts
       const { data: draftByIntakeId } = await supabase
         .from("document_drafts")
         .select("data")
         .eq("intake_id", intakeId)
         .eq("type", "med_cert")
+        .or("is_ai_generated.is.null,is_ai_generated.eq.false")
         .maybeSingle()
 
       if (draftByIntakeId) {
@@ -89,10 +91,18 @@ export async function generateMedCertPdfAndApproveAction(
 
     const draftData = draft?.data as MedCertDraftData | null
 
-    // P1 FIX: Require draft data with dates - don't silently fall back to today's date
+    // Require draft data with dates
     if (!draftData?.date_from || !draftData?.date_to) {
-      logger.warn("Draft data missing or incomplete - cannot approve without valid dates", { intakeId, hasDraft: !!draft, hasDraftData: !!draftData })
-      return { success: false, error: "Certificate draft is missing required date information. Please review the certificate details before approving." }
+      logger.warn("Draft data missing or incomplete - cannot approve without valid dates", {
+        intakeId,
+        draftId,
+        hasDraft: !!draft,
+        hasDraftData: !!draftData,
+        draftDataKeys: draftData ? Object.keys(draftData) : [],
+        dateFrom: draftData?.date_from ?? "MISSING",
+        dateTo: draftData?.date_to ?? "MISSING",
+      })
+      return { success: false, error: "Certificate draft is missing required date information. Please save the draft first, then try approving again." }
     }
 
     // Validate dates are valid and in correct order

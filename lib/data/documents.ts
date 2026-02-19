@@ -92,12 +92,16 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
 
   const supabase = createServiceRoleClient()
 
-  // Check if a document-builder draft already exists
+  // Check if a document-builder draft already exists.
+  // IMPORTANT: Exclude AI-generated drafts (is_ai_generated=true) which use the
+  // `content` column. The document builder uses the `data` column. Mixing them up
+  // causes the "missing date information" error on approve.
   const { data: existingDraft, error: fetchError } = await supabase
     .from("document_drafts")
     .select("id, intake_id, type, subtype, data, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("type", "med_cert")
+    .or("is_ai_generated.is.null,is_ai_generated.eq.false")
     .maybeSingle()
 
   if (fetchError) {

@@ -8,7 +8,6 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 interface UseRealtimeRequestsOptions {
   onNewRequest?: (intake: IntakeWithPatient) => void
   onRequestUpdate?: (intake: IntakeWithPatient) => void
-  enableSound?: boolean
 }
 
 interface UseRealtimeRequestsReturn {
@@ -18,10 +17,6 @@ interface UseRealtimeRequestsReturn {
   isConnected: boolean
 }
 
-// Notification sound (base64 encoded short beep)
-const NOTIFICATION_SOUND = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU" +
-  "tvT19" + "A".repeat(100)
-
 /**
  * Hook for real-time intake updates on the doctor dashboard
  * Subscribes to Supabase realtime for intake changes (intakes is single source of truth)
@@ -30,29 +25,12 @@ export function useRealtimeRequests(
   initialIntakes: IntakeWithPatient[],
   options: UseRealtimeRequestsOptions = {}
 ): UseRealtimeRequestsReturn {
-  const { onNewRequest, onRequestUpdate, enableSound = true } = options
+  const { onNewRequest, onRequestUpdate } = options
   const [newRequestCount, setNewRequestCount] = useState(0)
   const [lastNewRequest, setLastNewRequest] = useState<IntakeWithPatient | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const channelRef = useRef<RealtimeChannel | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
   const knownIntakeIds = useRef<Set<string>>(new Set(initialIntakes.map(r => r.id)))
-
-  // Initialize audio element
-  useEffect(() => {
-    if (typeof window !== "undefined" && enableSound) {
-      audioRef.current = new Audio(NOTIFICATION_SOUND)
-      audioRef.current.volume = 0.5
-    }
-  }, [enableSound])
-
-  const playNotificationSound = useCallback(() => {
-    if (audioRef.current && enableSound) {
-      audioRef.current.play().catch(() => {
-        // Ignore autoplay errors - user hasn't interacted yet
-      })
-    }
-  }, [enableSound])
 
   const clearNewRequestCount = useCallback(() => {
     setNewRequestCount(0)
@@ -75,7 +53,7 @@ export function useRealtimeRequests(
         },
         async (payload) => {
           const newIntake = payload.new as { id: string; patient_id: string }
-          
+
           // Skip if we already know about this intake
           if (knownIntakeIds.current.has(newIntake.id)) return
 
@@ -95,7 +73,6 @@ export function useRealtimeRequests(
             knownIntakeIds.current.add(fullIntake.id)
             setNewRequestCount((prev) => prev + 1)
             setLastNewRequest(fullIntake as unknown as IntakeWithPatient)
-            playNotificationSound()
             onNewRequest?.(fullIntake as unknown as IntakeWithPatient)
           }
         }
@@ -138,7 +115,7 @@ export function useRealtimeRequests(
         supabase.removeChannel(channelRef.current)
       }
     }
-  }, [onNewRequest, onRequestUpdate, playNotificationSound])
+  }, [onNewRequest, onRequestUpdate])
 
   return {
     newRequestCount,
