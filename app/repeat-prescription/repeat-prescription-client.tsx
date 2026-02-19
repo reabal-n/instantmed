@@ -197,120 +197,105 @@ export default function RepeatPrescriptionPage() {
                 <AvailabilityIndicator variant="badge" />
               </motion.div>
 
-              {/* Main content */}
-              <div className="text-center max-w-4xl mx-auto">
-                <motion.h1 
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  Repeat prescriptions.{' '}
-                  <span className="text-premium-gradient">Assessed online.</span>
-                </motion.h1>
-
-                <motion.p 
-                  className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  Request repeats of your existing medication. A doctor assesses your request and issues an e-script valid at any Australian pharmacy.
-                </motion.p>
-
-                {/* CTAs */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 justify-center mb-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <Button 
-                    asChild
-                    size="lg"
-                    className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
+              {/* Main content — text + hero image */}
+              <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-16">
+                {/* Text */}
+                <div className="flex-1 text-center lg:text-left max-w-2xl">
+                  <motion.h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    <Link href="/request?service=prescription">
-                      Request your prescription <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button 
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="h-12 px-8 active:scale-[0.98]"
+                    Repeat prescriptions.{' '}
+                    <span className="text-premium-gradient">Assessed online.</span>
+                  </motion.h1>
+
+                  <motion.p
+                    className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    <Link href="#how-it-works">See how it works</Link>
-                  </Button>
-                </motion.div>
+                    Request repeats of your existing medication. A doctor assesses your request and issues an e-script valid at any Australian pharmacy.
+                  </motion.p>
 
-                {/* Safety notice + Guarantee badge */}
-                <motion.div
-                  className="flex flex-col items-center gap-2 mb-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.35 }}
-                >
-                  <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                    Full refund if we can&apos;t help
-                  </p>
-                </motion.div>
-
-
-
-                {/* Trust signals row */}
-                <motion.div 
-                  className="flex flex-wrap justify-center gap-6 sm:gap-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  {[
-                    { icon: Clock, text: "Under 1 hour review" },
-                    { icon: Smartphone, text: "E-script to your phone" },
-                    { icon: Shield, text: "AHPRA registered doctors" },
-                  ].map((signal) => (
-                    <div 
-                      key={signal.text} 
-                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                  {/* CTAs */}
+                  <motion.div
+                    className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <Button
+                      asChild
+                      size="lg"
+                      className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
                     >
-                      <signal.icon className="h-4 w-4 text-primary/70" />
-                      <span>{signal.text}</span>
-                    </div>
-                  ))}
+                      <Link href="/request?service=prescription">
+                        Request your prescription <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="h-12 px-8 active:scale-[0.98]"
+                    >
+                      <Link href="#how-it-works">See how it works</Link>
+                    </Button>
+                  </motion.div>
+
+                  {/* Safety notice */}
+                  <motion.div
+                    className="mb-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.35 }}
+                  >
+                    <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
+                  </motion.div>
+
+                  {/* Stats ticker — sleek inline */}
+                  <motion.div
+                    className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <span className="font-semibold text-foreground">$29.95</span>
+                    <span className="hidden sm:inline text-border">·</span>
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-semibold text-foreground">{liveStats.rating}</span> rating
+                    </span>
+                    <span className="hidden sm:inline text-border">·</span>
+                    <span>&lt;1 hr review</span>
+                    <span className="hidden sm:inline text-border">·</span>
+                    <span>PBS subsidies apply</span>
+                  </motion.div>
+                </div>
+
+                {/* Hero image — eRx on phone */}
+                <motion.div
+                  className="hidden lg:block relative shrink-0 mt-0"
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                  <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                    <Image
+                      src="/images/rptrx-1.jpeg"
+                      alt="Woman holding phone showing electronic prescription QR code"
+                      fill
+                      className="object-cover"
+                      priority
+                      sizes="(min-width: 1024px) 384px, 0px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
+                  </div>
                 </motion.div>
               </div>
-
-              {/* Stats bar */}
-              <motion.div
-                className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">$29.95</div>
-                  <p className="text-xs text-muted-foreground">Consultation fee</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">&lt;1 hr</div>
-                  <p className="text-xs text-muted-foreground">Typical review</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="flex justify-center gap-0.5 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{liveStats.rating} rating</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">PBS</div>
-                  <p className="text-xs text-muted-foreground">Subsidies apply</p>
-                </div>
-              </motion.div>
             </div>
           </section>
         </ParallaxSection>
@@ -481,82 +466,90 @@ export default function RepeatPrescriptionPage() {
 
         {/* How It Works */}
         <ParallaxSection speed={0.2}>
-          <section id="how-it-works" className="py-16 lg:py-20 scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              {/* Section Header */}
-              <motion.div 
-                className="text-center mb-12"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground/80">How it works</span>
-                </div>
-                
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps. Doctor assessment. E-script issued.
-                </h2>
-                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  Tell us what you need, a doctor reviews, and your eScript is sent to your phone via SMS.
-                </p>
-              </motion.div>
-
-              {/* Steps */}
-              <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
-                {steps.map((step, index) => (
+          <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
+                {/* Steps — clean vertical list */}
+                <div className="flex-1">
                   <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, y: 30 }}
+                    className="mb-8"
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.5 }}
                   >
-                    <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
-                      {/* Step number */}
-                      <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-background text-sm font-bold shadow-lg`}>
-                        {step.number}
-                      </div>
-                      
-                      {/* Content */}
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                        {step.description}
-                      </p>
-                      
-                      {/* Time badge */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-white/10 border border-black/5 dark:border-white/10">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs font-medium text-foreground">{step.time}</span>
-                      </div>
-                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
+                      How it works
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Tell us what you need. Doctor reviews. E-script to your phone.
+                    </p>
                   </motion.div>
-                ))}
-              </div>
 
-              {/* CTA */}
-              <motion.div 
-                className="flex flex-col items-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <Button asChild size="lg" className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
-                  <Link href="/request?service=prescription">
-                    Renew your medication
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Most scripts reviewed in under an hour
-                </p>
-              </motion.div>
+                  <div className="space-y-0">
+                    {steps.map((step, index) => (
+                      <motion.div
+                        key={step.number}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="relative flex items-start gap-4 py-5"
+                      >
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-semibold">
+                            {step.number.replace('0', '')}
+                          </div>
+                          {index < steps.length - 1 && (
+                            <div className="w-px h-full bg-border absolute top-12 left-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 pb-1">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">{step.time}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-0.5">{step.description}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  <motion.div
+                    className="mt-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Button asChild size="lg" className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+                      <Link href="/request?service=prescription">
+                        Renew your medication <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2.5">
+                      Most scripts reviewed in under an hour
+                    </p>
+                  </motion.div>
+                </div>
+
+                {/* Image — pharmacy pickup */}
+                <motion.div
+                  className="hidden lg:block shrink-0 w-72 xl:w-80 aspect-[4/5] rounded-2xl overflow-hidden shadow-lg"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Image
+                    src="/images/rptrx-2.png"
+                    alt="Patient picking up prescription at an Australian pharmacy"
+                    width={400}
+                    height={500}
+                    className="object-cover w-full h-full"
+                  />
+                </motion.div>
+              </div>
             </div>
           </section>
         </ParallaxSection>

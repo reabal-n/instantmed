@@ -328,50 +328,28 @@ export default function MedicalCertificatePage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.7, delay: 0.5 }}
                 >
-                  <div className="relative">
-                    {/* Main doctor image */}
-                    <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
-                      <Image
-                        src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face"
-                        alt="Australian GP ready to help"
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
-                    </div>
-                    
+                  <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                    <Image
+                      src="/images/medcert-1.jpeg"
+                      alt="Man on couch requesting a medical certificate on his phone"
+                      fill
+                      className="object-cover"
+                      priority
+                      sizes="(min-width: 1024px) 384px, 0px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
+
                     {/* Floating AHPRA badge */}
                     <motion.div
-                      className="absolute -bottom-4 -left-6 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      className="absolute bottom-4 left-4 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.9 }}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                          <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
-                          <p className="text-xs text-muted-foreground">Australian Doctor</p>
-                        </div>
+                        <Shield className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-semibold text-foreground">AHPRA Verified Doctors</span>
                       </div>
-                    </motion.div>
-                    
-                    {/* Secondary floating image */}
-                    <motion.div
-                      className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 1.1 }}
-                    >
-                      <Image
-                        src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face"
-                        alt="Healthcare team member"
-                        fill
-                        className="object-cover"
-                      />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -645,41 +623,61 @@ export default function MedicalCertificatePage() {
         <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-              <motion.div
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
-                  Recognised by all Australian employers and institutions
-                </h2>
-                <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                  Certificates meet Fair Work Act requirements and are legally equivalent to those issued by in-person GPs.
-                </p>
-                
-                {/* Trust indicators */}
-                <div className="flex flex-wrap justify-center gap-4">
-                  {[
-                    { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-blue-500" },
-                    { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-violet-500" },
-                    { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-amber-500" },
-                    { label: "Government", sub: "Public sector", icon: Landmark, color: "text-emerald-500" },
-                  ].map((item) => (
-                    <div 
-                      key={item.label}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/50"
-                    >
-                      <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                        <p className="text-xs text-muted-foreground">{item.sub}</p>
+              <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
+                {/* Image — certificate in hands */}
+                <motion.div
+                  className="shrink-0 w-64 lg:w-72 aspect-square rounded-2xl overflow-hidden shadow-lg"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Image
+                    src="/images/medcert-2.jpeg"
+                    alt="Person holding an InstantMed medical certificate"
+                    width={400}
+                    height={400}
+                    className="object-cover w-full h-full"
+                  />
+                </motion.div>
+
+                {/* Text + badges */}
+                <motion.div
+                  className="flex-1 text-center lg:text-left"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
+                    Recognised by all Australian employers and institutions
+                  </h2>
+                  <p className="text-muted-foreground mb-6 max-w-xl lg:mx-0 mx-auto">
+                    Certificates meet Fair Work Act requirements and are legally equivalent to those issued by in-person GPs.
+                  </p>
+
+                  {/* Trust indicators */}
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+                    {[
+                      { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-blue-500" },
+                      { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-violet-500" },
+                      { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-amber-500" },
+                      { label: "Government", sub: "Public sector", icon: Landmark, color: "text-emerald-500" },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/50"
+                      >
+                        <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">{item.sub}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </section>
         </ParallaxSection>
