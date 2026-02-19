@@ -198,7 +198,7 @@ export default function HowItWorksPage() {
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 w-full bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 hover:border-primary/20 transition-colors">
+                      <div className="flex-1 w-full bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover:border-primary/20 transition-colors">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">
                             STEP {step.number}
@@ -244,7 +244,7 @@ export default function HowItWorksPage() {
                 {features.map((feature) => (
                   <div
                     key={feature.title}
-                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 text-center hover-lift card-warm-hover"
+                    className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 text-center hover-lift card-warm-hover"
                   >
                     <div className="text-2xl mb-2">{feature.emoji}</div>
                     <h3 className="text-sm font-semibold text-foreground mb-1">{feature.title}</h3>
@@ -276,7 +276,7 @@ export default function HowItWorksPage() {
                 {useCases.map((useCase, index) => (
                   <div
                     key={index}
-                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
+                    className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
                     style={{ animationDelay: `${0.8 + index * 0.1}s`, animationFillMode: "forwards" }}
                   >
                     <div className="text-3xl">{useCase.emoji}</div>

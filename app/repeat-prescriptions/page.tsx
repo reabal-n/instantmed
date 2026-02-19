@@ -6,7 +6,7 @@ import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: 'Online Repeat Prescriptions | Same-Day Scripts | InstantMed',
+  title: 'Online Repeat Prescriptions | Same-Day Scripts',
   description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments needed.',
   openGraph: {
     title: 'Online Repeat Prescriptions | InstantMed',

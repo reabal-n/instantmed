@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { ContactClient } from "./contact-client"
 
 export const metadata: Metadata = {
-  title: "Contact Us | Support | InstantMed",
+  title: "Contact Us | Support",
   description: "Get in touch with InstantMed. Our support team is here to help with any questions about our telehealth services.",
   openGraph: {
     title: "Contact InstantMed | Get Support",

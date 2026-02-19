@@ -435,7 +435,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 Ready to try telehealth?
               </h2>
               <p className="text-muted-foreground mb-8">
-                See why thousands of Australians choose InstantMed for their healthcare needs.
+                See why Australians choose InstantMed for their healthcare needs.
               </p>
               <Button asChild size="lg" className="h-14 px-10 rounded-full">
                 <Link href="/request">

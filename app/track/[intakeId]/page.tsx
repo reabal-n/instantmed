@@ -10,7 +10,7 @@ interface PageProps {
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Track Your Request | InstantMed",
+  title: "Track Your Request",
   description: "Track the real-time status of your medical request",
 }
 

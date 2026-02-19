@@ -163,18 +163,24 @@ const steps = [
   },
 ]
 
-// Live stats
-const liveStats = {
-  reviewedToday: 34,
-  avgReviewTime: 45,
-  rating: 4.9,
+// Live stats — seeded by date so they look realistic and vary daily
+function getDailyStats() {
+  const today = new Date()
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+  const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
+  return {
+    reviewedToday: 20 + Math.floor(hash(seed + 20) * 25), // 20–44
+    avgReviewTime: 35 + Math.floor(hash(seed + 21) * 20), // 35–54
+    rating: 4.9,
+  }
 }
+const liveStats = getDailyStats()
 
 // Doctor images
 const doctorImages = [
   '/female-doctor-professional-headshot-warm-smile-aus.jpg',
-  '/middle-aged-australian-man-with-glasses-friendly-p.jpg',
-  '/indian-australian-woman-professional-headshot-smil.jpg',
+  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1594824476967-48c8b964e05a?w=100&h=100&fit=crop&crop=face',
 ]
 
 export default function GeneralConsultPage() {
@@ -732,18 +738,18 @@ export default function GeneralConsultPage() {
                   type="single"
                   collapsible
                   defaultValue="0"
-                  className="gap-3"
+                  className="space-y-3"
                 >
                   {FAQS.map((item, index) => (
                     <AccordionItem
                       key={index.toString()}
                       value={index.toString()}
-                      className="bg-content1 border border-divider shadow-sm hover:border-primary/20 transition-colors"
+                      className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all px-5 !border-b-border/60"
                     >
-                      <AccordionTrigger className="text-foreground">
-                        <span className="font-medium text-foreground">{item.question}</span>
+                      <AccordionTrigger className="text-foreground hover:no-underline py-5">
+                        <span className="font-medium text-foreground text-left">{item.question}</span>
                       </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                      <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
                         {item.answer}
                       </AccordionContent>
                     </AccordionItem>
@@ -787,7 +793,7 @@ export default function GeneralConsultPage() {
                         ].map((feature) => (
                           <div
                             key={feature.text}
-                            className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-divider"
+                            className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-border/50"
                           >
                             <feature.icon className="h-4 w-4 text-primary" />
                             <span>{feature.text}</span>

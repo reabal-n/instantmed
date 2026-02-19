@@ -7,7 +7,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Health Conditions We Can Help With | Online Doctor | InstantMed",
+  title: "Health Conditions We Can Help With | Online Doctor",
   description: "Get assessed for common health conditions by Australian doctors online. Medical certificates, treatment advice, and prescriptions for conditions like cold & flu, back pain, anxiety, and more.",
   openGraph: {
     title: "Health Conditions | InstantMed",

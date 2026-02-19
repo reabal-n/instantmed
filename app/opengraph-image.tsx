@@ -74,7 +74,7 @@ export default async function Image() {
             maxWidth: '800px',
           }}
         >
-          Reviewed by AHPRA-registered Australian doctors in under 30 minutes
+          Reviewed by AHPRA-registered Australian doctors in under an hour
         </div>
 
         {/* Trust badges */}

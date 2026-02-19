@@ -6,7 +6,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Shift Workers | 24/7 Available | InstantMed",
+  title: "Medical Certificates for Shift Workers | 24/7 Available",
   description: "Get a medical certificate any time of day or night. 15-minute turnaround. Perfect for nurses, hospitality, retail, and anyone working outside 9-5. Valid for all employers.",
   keywords: [
     "medical certificate shift workers",
@@ -87,15 +87,15 @@ export default function ShiftWorkersPage() {
 
                   {/* Trust badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Clock className="h-3.5 w-3.5 text-purple-600" />
                       <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-purple-600" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-purple-600" />
                       <span className="font-medium text-muted-foreground">All employers</span>
                     </div>
@@ -151,7 +151,7 @@ export default function ShiftWorkersPage() {
                     { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery" },
                     { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <item.icon className="h-5 w-5 text-purple-600 shrink-0" />
                       <div>
                         <h3 className="text-sm font-semibold">{item.title}</h3>
@@ -226,7 +226,7 @@ export default function ShiftWorkersPage() {
                       quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -313,7 +313,7 @@ export default function ShiftWorkersPage() {
                       a: "Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>

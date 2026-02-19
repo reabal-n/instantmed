@@ -18,7 +18,7 @@ import {
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: "Carer's Leave Certificate | Family Member Illness | InstantMed",
+  title: "Carer's Leave Certificate | Family Member Illness",
   description: "Get a medical certificate for carer's leave when caring for a sick family member. Reviewed by AHPRA-registered doctors. Most requests sorted in under an hour.",
   openGraph: {
     title: "Carer's Leave Certificate | InstantMed",

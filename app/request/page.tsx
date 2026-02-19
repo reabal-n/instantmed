@@ -7,7 +7,7 @@ import { mapServiceParam } from "@/lib/request/step-registry"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Get Started | InstantMed",
+  title: "Get Started",
   description:
     "Medical certificates from $19, repeat prescriptions $29.95, doctor consultations from $49.95. Reviewed by Australian doctors. Most requests completed within 1 hour.",
   openGraph: {

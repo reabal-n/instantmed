@@ -5,7 +5,7 @@ import { BreadcrumbSchema, MedicalServiceSchema } from '@/components/seo/healthc
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 
 export const metadata: Metadata = {
-  title: 'Online Doctor Consultation | Speak with an Australian Doctor | InstantMed',
+  title: 'Online Doctor Consultation | Speak with an Australian Doctor',
   description: 'A proper doctor consult without the clinic visit. Australian AHPRA-registered doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
   openGraph: {
     title: 'Online Doctor Consultation | InstantMed',

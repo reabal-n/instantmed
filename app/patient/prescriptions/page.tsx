@@ -4,7 +4,7 @@ import { PrescriptionsClient } from "./client"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "My Prescriptions | InstantMed",
+  title: "My Prescriptions",
   description: "View your prescription history and manage repeat prescriptions.",
 }
 

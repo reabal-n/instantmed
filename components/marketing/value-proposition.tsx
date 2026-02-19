@@ -36,16 +36,16 @@ export function HeroValueProp({ className }: { className?: string }) {
         </Badge>
 
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-          Scripts &amp; Med Certs
+          Too sick to visit a GP?
           <br />
           <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">
-            in 15 minutes
+            Sorted from your couch.
           </span>
         </h1>
 
         <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          No phone calls. No waiting rooms. Just fast, convenient healthcare
-          from Australian-registered doctors.
+          Get a valid medical certificate or renew your script — reviewed by an
+          AHPRA-registered doctor, usually in under an hour.
         </p>
       </motion.div>
 
@@ -66,7 +66,7 @@ export function HeroValueProp({ className }: { className?: string }) {
         </div>
         <div className="flex items-center gap-2 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 shadow-sm border">
           <Shield className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-medium">AHPRA verified doctors</span>
+          <span className="text-sm font-medium">AHPRA-registered doctors</span>
         </div>
       </motion.div>
     </div>
@@ -313,7 +313,7 @@ export function HowItWorksSection({ className }: { className?: string }) {
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold">How it works</h2>
         <p className="text-muted-foreground mt-2">
-          From request to script in under 15 minutes
+          Three steps. Stay in bed. Certificate in your inbox.
         </p>
       </div>
 
@@ -348,11 +348,11 @@ export function HowItWorksSection({ className }: { className?: string }) {
       <div className="text-center mt-10">
         <p className="text-sm text-muted-foreground mb-4">
           <strong>No phone call required</strong> for medical certificates and
-          repeat prescriptions
+          repeat prescriptions. Pay only after the doctor reviews.
         </p>
         <Link href="/request">
           <Button size="lg" className="bg-primary hover:bg-primary/90">
-            Get started now
+            Get your certificate
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </Link>

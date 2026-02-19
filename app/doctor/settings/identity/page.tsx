@@ -4,7 +4,7 @@ import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
 import { Loader2 } from "lucide-react"
 
 export const metadata = {
-  title: "Certificate Identity | Settings | InstantMed",
+  title: "Certificate Identity | Settings",
   description: "Configure your certificate identity settings",
 }
 

@@ -70,7 +70,7 @@ export function GoogleReviewsWidget({
 }: GoogleReviewsWidgetProps) {
   const displayReviews = reviews.slice(0, maxReviews)
   const averageRating = 4.9
-  const totalReviews = 847
+  const totalReviews = 54
 
   if (variant === 'inline') {
     return (

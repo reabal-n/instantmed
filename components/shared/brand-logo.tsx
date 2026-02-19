@@ -29,7 +29,7 @@ export function BrandLogo({
 
   const content = (
     <Image
-      src="/branding/wordmark.svg"
+      src="/branding/wordmark.png"
       alt="InstantMed"
       width={width}
       height={height}

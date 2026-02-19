@@ -4,7 +4,7 @@ import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns
 import { getTestimonialsForColumns } from "@/lib/data/testimonials"
 
 // Use centralized testimonials data
-const reviewsForColumns = getTestimonialsForColumns().slice(0, 12)
+const reviewsForColumns = getTestimonialsForColumns().slice(0, 6)
 
 export function TrustpilotReviews() {
   return (

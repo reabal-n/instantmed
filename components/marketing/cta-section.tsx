@@ -53,10 +53,10 @@ export function CTASection() {
               </motion.div>
               
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                Ready when you are
+                Feeling too sick to visit a GP?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Quick form. Real doctor review. Sorted.
+                Get a valid medical certificate in minutes from the comfort of your couch. AHPRA-registered doctors. Employer-verifiable certificates.
               </p>
               
               {/* Features */}
@@ -64,7 +64,7 @@ export function CTASection() {
                 {features.map((feature) => (
                   <div
                     key={feature.text}
-                    className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-divider interactive-pill"
+                    className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-border/50 interactive-pill"
                   >
                     <feature.Icon className="h-4 w-4 text-primary" />
                     <span>{feature.text}</span>

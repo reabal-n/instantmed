@@ -21,9 +21,9 @@ import {
   getReviewsPageTestimonials 
 } from "@/lib/data/testimonials"
 
-// Get reviews from centralized data
-const reviewsData = getReviewsPageTestimonials()
-const featuredReviews = getFeaturedTestimonials()
+// Get reviews from centralized data — limited to a curated selection
+const reviewsData = getReviewsPageTestimonials().slice(0, 10)
+const featuredReviews = getFeaturedTestimonials().slice(0, 3)
 
 // Review item type from centralized data
 type ReviewItem = ReturnType<typeof getReviewsPageTestimonials>[number]
@@ -64,7 +64,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 filter === filterOption
                   ? "bg-primary text-primary-foreground"
-                  : "bg-background/80 text-muted-foreground hover:bg-background border border-divider/50"
+                  : "bg-background/80 text-muted-foreground hover:bg-background border border-border/50"
               }`}
             >
               {filterOption}
@@ -221,15 +221,15 @@ export function ReviewsClientPageComponent() {
         {/* Trust Badges */}
         <div className="px-4 py-6">
           <div className="mx-auto max-w-5xl flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
               <Shield className="w-3.5 h-3.5 text-primary" />
               <span>AHPRA registered doctors</span>
             </div>
-            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
               <Clock className="w-3.5 h-3.5 text-primary" />
               <span>~{PLATFORM_STATS.averageResponseMinutes} min avg response</span>
             </div>
-            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
               <Zap className="w-3.5 h-3.5 text-success" />
               <span className="text-success font-medium">100% refund guarantee</span>
             </div>
@@ -322,7 +322,7 @@ export function ReviewsClientPageComponent() {
                   Ready to experience it yourself?
                 </h2>
                 <p className="text-muted-foreground mb-8">
-                  Join thousands of Australians who&apos;ve made the switch to smarter healthcare.
+                  Join the Australians who&apos;ve already made the switch to smarter healthcare.
                 </p>
                 <Link href="/request">
                   <ShimmerButton className="px-8 h-14 font-semibold text-base">

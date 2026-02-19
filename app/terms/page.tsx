@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const metadata = {
-  title: "Terms of Service | InstantMed",
+  title: "Terms of Service",
   description: "Terms and conditions for using InstantMed telehealth services.",
 }
 

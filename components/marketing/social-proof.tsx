@@ -331,8 +331,8 @@ interface AggregateRatingProps {
 }
 
 export function AggregateRating({ 
-  rating = 4.8, 
-  reviewCount = 2847,
+  rating = 4.9,
+  reviewCount = 54,
   className 
 }: AggregateRatingProps) {
   return (

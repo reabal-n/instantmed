@@ -10,16 +10,16 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   
   hero: {
     badge: 'Doctors online now',
-    headline: 'Medical certificate.',
-    headlineRotatingWords: ['Sorted.', 'Delivered.', 'Done.'],
-    subheadline: 'Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.',
+    headline: 'Too sick to see a GP?',
+    headlineRotatingWords: ['Sorted.', 'From your couch.', 'Done.'],
+    subheadline: 'Get a valid medical certificate in minutes — without leaving bed. AHPRA-registered doctors. Employer-verifiable. Reviewed in under an hour, 7 days a week.',
     reassurances: [
-      'No signup to get started',
-      'Most requests reviewed via text',
-      'Refund if we can\'t help',
-      'AHPRA registered doctors',
+      '\u2705 No account required',
+      '\uD83D\uDCB3 Pay only after doctor review',
+      '\uD83D\uDD12 Full refund if we can\'t help',
+      '\uD83E\uDE7A AHPRA-registered doctors',
     ],
-    ctaText: 'Get started',
+    ctaText: 'Get your certificate',
     ctaHref: '/request?service=med-cert',
     images: {
       primary: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face',
@@ -63,28 +63,28 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   },
   
   howItWorks: {
-    title: 'Three steps. Done in minutes.',
-    subtitle: 'No appointments, no waiting rooms. Just answer a few questions from your phone.',
+    title: 'Three steps. Stay in bed. \uD83D\uDECB\uFE0F',
+    subtitle: 'No appointments. No waiting rooms. Just your phone and a few minutes.',
     steps: [
       {
         number: '1',
         icon: 'ClipboardList',
-        title: 'Tell us about your absence',
-        description: 'Select the type of certificate (work, study, carer\'s) and answer a few health questions.',
+        title: 'Answer a few questions',
+        description: 'Tell us what kind of certificate you need (work, uni, or carer\'s leave) and answer some quick health questions.',
         time: '2 min',
       },
       {
         number: '2',
         icon: 'Stethoscope',
-        title: 'Doctor reviews your request',
-        description: 'An AHPRA-registered doctor reviews your submission. They may message you if they need clarification.',
+        title: 'A real doctor reviews it',
+        description: 'An AHPRA-registered GP reviews your request. If they need more info, they\'ll message you directly.',
         time: 'Under 1 hour',
       },
       {
         number: '3',
         icon: 'FileCheck',
-        title: 'Certificate delivered',
-        description: 'If approved, your certificate is sent as a secure PDF to your email. Valid for all employers.',
+        title: 'Certificate in your inbox',
+        description: 'Approved certificates are sent as a secure PDF straight to your email. Accepted by all Australian employers.',
         time: 'Instant delivery',
       },
     ],
@@ -118,43 +118,43 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'Simple, transparent pricing',
-    subtitle: 'One flat fee. No hidden costs.',
+    title: 'One flat fee. No surprises.',
+    subtitle: 'Pay after the doctor reviews your request — not before.',
     price: 19.95,
     features: [
-      'Valid for all employers & institutions',
-      'Reviewed by AHPRA-registered doctor',
-      'Secure PDF delivery to email',
-      'Doctor\'s name & provider number included',
-      'Message your doctor if needed',
-      'Covers work, study, or carer\'s leave',
+      'Accepted by all Australian employers',
+      'Reviewed by an AHPRA-registered GP',
+      'Secure PDF delivered to your inbox',
+      'Doctor\'s name & provider number on every cert',
+      'Message your doctor if you have questions',
+      'Covers work, uni, or carer\'s leave',
     ],
     refundNote: 'Full refund if we can\'t help (minus $4.95 admin fee)',
     medicareNote: 'Medicare rebates do not apply to telehealth consultations',
   },
   
   trust: {
-    title: 'Your certificate is legitimate',
+    title: 'A real certificate from a real doctor',
     badges: [
       {
         icon: 'BadgeCheck',
         title: 'AHPRA Registered',
-        description: 'All doctors are registered with the Australian Health Practitioner Regulation Agency',
+        description: 'Every certificate is issued by a doctor registered with the Australian Health Practitioner Regulation Agency',
       },
       {
         icon: 'Building2',
-        title: 'Australian-based',
-        description: 'Our doctors and team are 100% based in Australia',
+        title: '100% Australian',
+        description: 'Our doctors and our team are based in Australia. No offshore call centres.',
       },
       {
         icon: 'Lock',
         title: 'Secure & Private',
-        description: 'Bank-level encryption. Your information stays confidential.',
+        description: 'Bank-level encryption. Your health information stays between you and your doctor.',
       },
       {
         icon: 'Shield',
         title: 'Employer Accepted',
-        description: 'Our certificates are legally valid and accepted by all Australian employers',
+        description: 'Legally valid certificates accepted by all Australian employers and universities',
       },
     ],
   },
@@ -164,7 +164,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     subtitle: 'Real reviews from Australians who\'ve used our service',
     reviews: [
       {
-        text: 'Got my med cert in under 30 minutes. The doctor was professional and the whole process was seamless. My employer accepted it no questions asked.',
+        text: 'Got my med cert really quickly. The doctor was professional and the whole process was seamless. My employer accepted it no questions asked.',
         author: 'Sarah M.',
         location: 'Sydney',
         rating: 5,
@@ -185,11 +185,11 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   },
   
   finalCta: {
-    headline: 'Ready to get your certificate?',
-    subheadline: 'Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.',
-    ctaText: 'Request your certificate',
+    headline: 'Still feeling rough? Let us handle the paperwork.',
+    subheadline: 'Two minutes on your phone. A real doctor reviews it. Certificate in your inbox.',
+    ctaText: 'Get your certificate',
   },
-  
+
   accentColor: 'emerald',
 }
 
@@ -203,15 +203,15 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   
   hero: {
     badge: 'Prescription Renewals',
-    headline: 'Renew your regular medication from home',
-    subheadline: 'For medications you already take. A doctor reviews your request and sends an eScript to your phone via SMS.',
+    headline: 'Running low? Renew your script from the couch.',
+    subheadline: 'For medications you already take. An AHPRA-registered doctor reviews your request and sends an eScript straight to your phone.',
     reassurances: [
-      'No signup to get started',
-      'Most requests reviewed via text',
-      'Refund if we can\'t help',
-      'Any pharmacy Australia-wide',
+      '\u2705 No account required',
+      '\uD83D\uDCB3 Pay only after doctor review',
+      '\uD83D\uDD12 Full refund if we can\'t help',
+      '\uD83C\uDFE5 Any pharmacy Australia-wide',
     ],
-    ctaText: 'Request your script',
+    ctaText: 'Renew your script',
     ctaHref: '/request?service=prescription',
     highlightBadge: {
       text: 'Most requests don\'t need a call',
@@ -251,8 +251,8 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   howItWorks: {
-    title: 'Three steps. Done in minutes.',
-    subtitle: 'Tell us what you need, a doctor reviews, and your eScript is sent to your phone.',
+    title: 'Three steps. Script on your phone. \uD83D\uDCF1',
+    subtitle: 'Tell us what you need. A doctor checks it\'s safe. eScript sent via SMS.',
     steps: [
       {
         number: '1',
@@ -306,15 +306,15 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'Simple, transparent pricing',
-    subtitle: 'Consultation fee only. Medication cost is separate at your pharmacy.',
+    title: 'One consultation fee. That\'s it.',
+    subtitle: 'Pay after the doctor reviews. Medication cost is separate at your pharmacy.',
     price: 29.95,
     features: [
-      'Doctor review of your request',
-      'eScript sent to your phone',
-      'Works at any pharmacy',
+      'Reviewed by an AHPRA-registered GP',
+      'eScript sent straight to your phone',
+      'Works at any pharmacy in Australia',
       'Repeats included where appropriate',
-      'Message your doctor if needed',
+      'Message your doctor with questions',
       'PBS subsidies may apply at pharmacy',
     ],
     refundNote: 'Full refund if we can\'t help',
@@ -373,9 +373,9 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   finalCta: {
-    headline: 'Ready to renew your prescription?',
-    subheadline: 'Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.',
-    ctaText: 'Renew your prescription',
+    headline: 'Don\'t wait a week for a 5-minute script.',
+    subheadline: 'Answer a few questions. A doctor reviews it. eScript on your phone, same day.',
+    ctaText: 'Renew your script',
   },
   
   accentColor: 'blue',
@@ -391,15 +391,15 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   
   hero: {
     badge: 'Online Doctor Consultation',
-    headline: 'A proper doctor consult, without the clinic visit',
-    subheadline: 'For new health concerns or treatment advice. Speak with an Australian doctor who\'ll assess your situation and recommend next steps.',
+    headline: 'Need a doctor? Skip the waiting room.',
+    subheadline: 'Speak with an AHPRA-registered Australian GP about new health concerns, treatment advice, or anything you\'d normally book a clinic visit for.',
     reassurances: [
-      'No signup to get started',
-      'Refund if we can\'t help',
-      'AHPRA-registered doctors',
-      'Prescriptions if appropriate',
+      '\u2705 No account required',
+      '\uD83D\uDD12 Full refund if we can\'t help',
+      '\uD83E\uDE7A AHPRA-registered doctors',
+      '\uD83D\uDC8A Prescriptions if appropriate',
     ],
-    ctaText: 'Book a consult',
+    ctaText: 'Talk to a doctor',
     ctaHref: '/request?service=consult',
   },
   
@@ -490,16 +490,16 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'Consultation pricing',
-    subtitle: 'A fraction of typical clinic costs, with the same quality of care.',
+    title: 'See a doctor for less than a clinic visit.',
+    subtitle: 'Same quality of care. No gap fees. No surprises.',
     price: 49.95,
     features: [
-      'Full clinical assessment',
+      'Full clinical assessment by an AHPRA-registered GP',
       'Phone or video consultation',
       'Prescriptions if clinically appropriate',
       'Referral letters if needed',
       'Follow-up messaging with your doctor',
-      'Written summary of consultation',
+      'Written summary of your consultation',
     ],
     refundNote: 'Full refund if we can\'t help with your concern',
     medicareNote: 'Medicare rebates do not apply to telehealth consultations',
@@ -557,9 +557,9 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
   
   finalCta: {
-    headline: 'Ready to speak with a doctor?',
-    subheadline: 'Start with a quick questionnaire. A doctor will review and typically call within 2 hours.',
-    ctaText: 'Book your consultation',
+    headline: 'Why wait days for a GP appointment?',
+    subheadline: 'Start with a quick questionnaire. A doctor reviews and typically calls within 2 hours.',
+    ctaText: 'Talk to a doctor today',
   },
   
   accentColor: 'violet',

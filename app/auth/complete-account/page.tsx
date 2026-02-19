@@ -8,7 +8,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Complete Your Account | InstantMed",
+  title: "Complete Your Account",
   description: "Create your account to access your medical certificate",
 }
 

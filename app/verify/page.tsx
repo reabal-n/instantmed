@@ -7,7 +7,7 @@ import { Shield, Lock, Building2, ExternalLink } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 export const metadata: Metadata = {
-  title: "Verify Medical Certificate | InstantMed",
+  title: "Verify Medical Certificate",
   description: "Employers and institutions can verify the authenticity of medical certificates issued by InstantMed. Enter the verification code to confirm document validity.",
   openGraph: {
     title: "Verify Medical Certificate | InstantMed",

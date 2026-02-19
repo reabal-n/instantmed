@@ -4,7 +4,7 @@ import { loadTemplateStudioData } from "@/app/actions/template-studio"
 import { Loader2 } from "lucide-react"
 
 export const metadata = {
-  title: "Template Studio | Admin | InstantMed",
+  title: "Template Studio | Admin",
   description: "Configure medical certificate templates",
 }
 

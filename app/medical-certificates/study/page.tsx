@@ -21,7 +21,7 @@ import {
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: 'Medical Certificate for University | Special Consideration | InstantMed',
+  title: 'Medical Certificate for University | Special Consideration',
   description: 'Get a medical certificate for special consideration, deferred exams, or assignment extensions. Accepted by all Australian universities and TAFEs. Most requests sorted in under an hour.',
   openGraph: {
     title: 'Medical Certificate for University | InstantMed',

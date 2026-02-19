@@ -6,7 +6,7 @@ import { ReviewAggregateSchema, BreadcrumbSchema } from "@/components/seo/health
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Patient Reviews | InstantMed",
+  title: "Patient Reviews",
   description:
     "Read real reviews from Australian patients who've used InstantMed for medical certificates, prescriptions, and referrals.",
   keywords: ["telehealth reviews", "online doctor reviews", "InstantMed reviews", "Australia telehealth"],
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default function ReviewsPage() {
   return (
     <>
-      <ReviewAggregateSchema ratingValue={4.9} reviewCount={2847} />
+      <ReviewAggregateSchema ratingValue={4.9} reviewCount={54} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Reviews", url: "https://instantmed.com.au/reviews" },

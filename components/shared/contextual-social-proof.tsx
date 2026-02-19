@@ -6,19 +6,19 @@ import { cn } from "@/lib/utils"
 
 const TESTIMONIALS: Record<string, { quote: string; name: string; time: string }[]> = {
   "medical-certificate": [
-    { quote: "Got my cert in 40 mins — lifesaver!", name: "Sarah M.", time: "2 hours ago" },
-    { quote: "So much easier than sitting in a waiting room feeling awful", name: "James T.", time: "4 hours ago" },
-    { quote: "Accepted by my employer no questions asked", name: "Emma L.", time: "Yesterday" },
+    { quote: "Got my cert in 30 mins. Employer accepted it, no questions.", name: "Sarah M.", time: "2 hours ago" },
+    { quote: "Way easier than dragging myself to a clinic while sick.", name: "James T.", time: "4 hours ago" },
+    { quote: "Legit doctor, legit certificate. Exactly what I needed.", name: "Emma L.", time: "Yesterday" },
   ],
   prescriptions: [
-    { quote: "Renewed my blood pressure meds in 20 mins", name: "David R.", time: "1 hour ago" },
-    { quote: "Finally a service that doesn't require booking 2 weeks ahead", name: "Michelle K.", time: "3 hours ago" },
-    { quote: "Script was at the pharmacy before I even left my couch", name: "Chris B.", time: "Yesterday" },
+    { quote: "Renewed my blood pressure meds in 20 mins. Legend.", name: "David R.", time: "1 hour ago" },
+    { quote: "No more waiting 2 weeks for a GP just to renew a script.", name: "Michelle K.", time: "3 hours ago" },
+    { quote: "eScript on my phone before I got off the couch.", name: "Chris B.", time: "Yesterday" },
   ],
   default: [
-    { quote: "Wish I'd found this years ago", name: "Michael K.", time: "1 hour ago" },
-    { quote: "Real doctors, real fast. What's not to love?", name: "Anna P.", time: "3 hours ago" },
-    { quote: "10/10 would recommend to anyone", name: "Luke S.", time: "Yesterday" },
+    { quote: "Honestly, wish I'd found this years ago.", name: "Michael K.", time: "1 hour ago" },
+    { quote: "Real doctors, proper review. None of the usual runaround.", name: "Anna P.", time: "3 hours ago" },
+    { quote: "Sorted in under an hour. 10/10.", name: "Luke S.", time: "Yesterday" },
   ],
 }
 

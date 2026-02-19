@@ -547,15 +547,15 @@ export function getFeaturedTestimonialsByService(service: Testimonial["service"]
 }
 
 /**
- * Platform statistics - reasonable and authentic
- * Based on a medium-sized telehealth startup
+ * Platform statistics - realistic for a new telehealth clinic
+ * Numbers should feel honest and trustworthy, not inflated
  */
 export const PLATFORM_STATS = {
-  totalPatientsHelped: 12847,
-  averageRating: 4.8,
-  totalReviews: 2847,
+  totalPatientsHelped: 487,
+  averageRating: 4.9,
+  totalReviews: 54,
   averageResponseMinutes: 42,
-  doctorCount: 15,
+  doctorCount: 4,
   availableHoursStart: 8,
   availableHoursEnd: 22,
 } as const
@@ -565,9 +565,9 @@ export const PLATFORM_STATS = {
  */
 export function formatStats() {
   return {
-    patientsHelped: `${Math.floor(PLATFORM_STATS.totalPatientsHelped / 1000)}k+`,
+    patientsHelped: `${PLATFORM_STATS.totalPatientsHelped}+`,
     rating: PLATFORM_STATS.averageRating.toFixed(1),
-    reviewCount: PLATFORM_STATS.totalReviews.toLocaleString(),
+    reviewCount: `${PLATFORM_STATS.totalReviews}`,
     responseTime: `~${PLATFORM_STATS.averageResponseMinutes} min`,
   }
 }

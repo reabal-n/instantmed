@@ -16,7 +16,7 @@ import {
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: "Are Online Medical Certificates Valid? | Employer Acceptance | InstantMed",
+  title: "Are Online Medical Certificates Valid? | Employer Acceptance",
   description: "Yes, online medical certificates from AHPRA-registered doctors are legally valid and accepted by all Australian employers. Learn what makes a certificate legitimate.",
   openGraph: {
     title: "Are Online Medical Certificates Valid? | InstantMed",

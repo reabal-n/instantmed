@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Offline | InstantMed",
+  title: "Offline",
 }
 
 export default function OfflinePage() {

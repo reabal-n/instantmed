@@ -20,7 +20,7 @@ import {
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const metadata: Metadata = {
-  title: "Our Doctors | AHPRA-Registered Australian GPs | InstantMed",
+  title: "Our Doctors | AHPRA-Registered Australian GPs",
   description:
     "Every InstantMed request is reviewed by AHPRA-registered Australian doctors with experience in general practice, emergency medicine, and telehealth.",
   openGraph: {

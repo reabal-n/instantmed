@@ -7,7 +7,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Compare Healthcare Options | Telehealth vs GP | InstantMed",
+  title: "Compare Healthcare Options | Telehealth vs GP",
   description: "Compare telehealth with traditional GP visits and other healthcare options. Honest comparisons to help you choose the right care for your needs.",
   openGraph: {
     title: "Compare Healthcare Options | InstantMed",
@@ -117,7 +117,7 @@ export default function CompareIndexPage() {
                 Ready to Try Telehealth?
               </h2>
               <p className="text-muted-foreground mb-8">
-                See why thousands of Australians choose InstantMed for quick, convenient healthcare.
+                See why Australians choose InstantMed for quick, convenient healthcare.
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/request">

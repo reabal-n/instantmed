@@ -118,7 +118,7 @@ export default function SignUpPage() {
             </Link>
             
             <h1 className="text-4xl font-bold text-foreground mb-4 leading-tight">
-              Join thousands of Australians
+              Join Australians
               <span className="text-primary">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">

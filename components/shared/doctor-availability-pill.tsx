@@ -96,7 +96,7 @@ export function DoctorAvailabilityPill() {
               Doctors back at 8am AEST
             </span>
             <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-muted-foreground">
-              Submit now, reviewed in morning
+              Submit now — reviewed first thing in the morning
             </span>
           </>
         )}

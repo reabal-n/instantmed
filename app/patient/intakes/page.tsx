@@ -4,7 +4,7 @@ import { IntakesClient } from "./intakes-client"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "My Requests | InstantMed",
+  title: "My Requests",
   description: "View and manage all your medical requests.",
 }
 

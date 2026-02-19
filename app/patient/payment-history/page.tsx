@@ -8,7 +8,7 @@ import { PaymentHistoryContent } from "@/components/patient/payment-history-cont
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Payment History | InstantMed",
+  title: "Payment History",
   description: "View your payment history and invoices",
 }
 

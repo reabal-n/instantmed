@@ -21,7 +21,7 @@ const testimonials: Testimonial[] = [
     name: "Sarah M.",
     location: "Sydney",
     rating: 5,
-    text: "Got my medical certificate in under 30 minutes. The doctor was professional and the whole process was seamless.",
+    text: "Got my medical certificate really quickly. The doctor was professional and the whole process was seamless.",
     service: "med-cert",
     avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Sarah&backgroundColor=b6e3f4",
   },
@@ -122,9 +122,9 @@ export function TestimonialMarquee() {
       <TestimonialsColumnsWrapper
         testimonials={testimonialsForColumns}
         title="Real patients. Real results."
-        subtitle="See why thousands of Australians choose InstantMed."
-        badgeText="4.9 ★ from 2,400+ reviews"
-        className="py-16 lg:py-20 bg-content2/30"
+        subtitle="See why Australians are choosing InstantMed."
+        badgeText="4.9 ★ Patient Reviews"
+        className="py-16 lg:py-20 bg-muted/20"
       />
 
       {/* CRO Stats Section */}
@@ -138,7 +138,7 @@ export function TestimonialMarquee() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {[
             { value: "4.9", label: "Rating", showStars: true },
-            { value: "<30 min", label: "Typical response" },
+            { value: "<1 hour", label: "Typical response" },
             { value: "7 days", label: "A week availability" },
             { value: "AHPRA", label: "Registered doctors" },
           ].map((stat) => (

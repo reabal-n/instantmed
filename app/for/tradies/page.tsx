@@ -6,7 +6,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Tradies | 15 Min Script | InstantMed",
+  title: "Medical Certificates for Tradies | 15 Min Script",
   description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Valid for all employers. No appointments, no waiting rooms. Built for tradies.",
   keywords: [
     "medical certificate tradies",
@@ -87,15 +87,15 @@ export default function TradiesPage() {
 
                   {/* Speed badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Smartphone className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">100% on your phone</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">Boss-proof</span>
                     </div>
@@ -157,7 +157,7 @@ export default function TradiesPage() {
                       desc: "No computer needed. PDF delivered to your email, ready to forward.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <item.icon className="h-5 w-5 text-dawn-500 shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -198,7 +198,7 @@ export default function TradiesPage() {
                       quote: "Works even in remote WA. Had my cert before I could drive to a doctor.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -266,7 +266,7 @@ export default function TradiesPage() {
                       a: "Med certs from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95. No surprises.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>

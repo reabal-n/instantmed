@@ -7,7 +7,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Symptom Checker | What Could Be Causing Your Symptoms | InstantMed",
+  title: "Symptom Checker | What Could Be Causing Your Symptoms",
   description: "Understand your symptoms and learn when you should see a doctor. Browse common symptoms like sore throat, headache, fatigue, cough, and fever. Get assessed by Australian doctors online.",
   openGraph: {
     title: "Symptom Checker | InstantMed",

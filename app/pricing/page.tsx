@@ -3,7 +3,7 @@ import { PricingClient } from "./pricing-client"
 import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Pricing | Transparent Telehealth Costs | InstantMed",
+  title: "Pricing | Transparent Telehealth Costs",
   description:
     "Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from $24.95, prescriptions from $19.95. No hidden fees, full refund if we can't help.",
   keywords: [

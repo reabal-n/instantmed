@@ -217,7 +217,7 @@ export function TrustLogos({ className }: { className?: string }) {
     <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
       <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-white/5 border border-border/50">
         <Image
-          src="/branding/erx-logo.svg"
+          src="/branding/eRx-logo.png"
           alt="eRx Script Exchange"
           width={100}
           height={40}

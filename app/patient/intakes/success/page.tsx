@@ -7,7 +7,7 @@ import { SuccessClient } from "./success-client"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Request Submitted | InstantMed",
+  title: "Request Submitted",
   description: "Your request has been submitted and is being reviewed by our medical team.",
 }
 

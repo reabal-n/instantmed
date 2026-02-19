@@ -178,19 +178,19 @@ export function WeightLossClient() {
 
                   {/* Trust badges */}
                   <div className="flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-violet-600" />
                       <span className="font-medium text-muted-foreground">Reviewed within hours</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Activity className="h-3.5 w-3.5 text-violet-600" />
                       <span className="font-medium text-muted-foreground">Ongoing support</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-violet-600" />
                       <span className="font-medium text-muted-foreground">AHPRA doctors</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Lock className="h-3.5 w-3.5 text-violet-600" />
                       <span className="font-medium text-muted-foreground">Private & secure</span>
                     </div>
@@ -221,7 +221,7 @@ export function WeightLossClient() {
                   {treatments.map((treatment) => (
                     <div
                       key={treatment.id}
-                      className="bg-content1/50 backdrop-blur-sm rounded-xl p-4 border border-divider/50 hover:border-violet-500/30 transition-all"
+                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-violet-500/30 transition-all"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -282,7 +282,7 @@ export function WeightLossClient() {
 
                 <GridStagger columns={2} staggerDelay={0.1} className="grid sm:grid-cols-2 gap-4">
                   {platformFeatures.map((feature, i) => (
-                    <div key={i} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={i} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
                         <feature.icon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                       </div>
@@ -314,7 +314,7 @@ export function WeightLossClient() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-content1/50 backdrop-blur-sm rounded-xl p-4 border border-divider/50">
+                  <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -331,7 +331,7 @@ export function WeightLossClient() {
                     </ul>
                   </div>
 
-                  <div className="bg-content1/50 backdrop-blur-sm rounded-xl p-4 border border-divider/50">
+                  <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                         <Shield className="h-4 w-4 text-slate-600" />
@@ -391,7 +391,7 @@ export function WeightLossClient() {
 
                 <div className="space-y-3 max-w-3xl mx-auto">
                   {faqs.map((faq, i) => (
-                    <details key={i} className="group bg-content1/50 backdrop-blur-sm rounded-xl border border-divider/50">
+                    <details key={i} className="group bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-border/50">
                       <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
                         <span className="text-sm font-medium pr-4">{faq.question}</span>
                         <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform shrink-0" />

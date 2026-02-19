@@ -20,7 +20,7 @@ import {
 import { SampleCertificate } from "@/components/marketing/sample-certificate"
 
 export const metadata: Metadata = {
-  title: "For Employers | Verify Medical Certificates | InstantMed",
+  title: "For Employers | Verify Medical Certificates",
   description:
     "Information for employers on how to verify InstantMed medical certificates. Learn about our verification process, what certificates include, and how to confirm authenticity.",
   openGraph: {

@@ -4,7 +4,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | InstantMed",
+  title: "Cookie Policy",
   description: "Learn how InstantMed uses cookies and similar technologies to provide, improve, and protect our telehealth services.",
   alternates: {
     canonical: "https://instantmed.com.au/cookie-policy",

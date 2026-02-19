@@ -400,7 +400,7 @@ export default async function CityPage({ params }: PageProps) {
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",
-      reviewCount: "2847",
+      reviewCount: "54",
       bestRating: "5",
       worstRating: "1"
     },

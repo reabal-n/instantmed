@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Clinical Governance | InstantMed",
+  title: "Clinical Governance",
   description:
     "Learn how InstantMed maintains clinical standards through Medical Director oversight, RACGP-aligned protocols, and regular audits.",
   openGraph: {

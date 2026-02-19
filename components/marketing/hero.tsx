@@ -50,7 +50,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          Skip the waiting room. A real Australian doctor reviews your request — usually within an hour. No signup needed to get started.
+          AHPRA-registered doctors. Employer-verifiable certificates. Skip the waiting room and get your medical certificate online — reviewed in under an hour, 7 days a week.
         </motion.p>
 
         {/* CTAs -- shadcn buttons, clean press effect */}
@@ -91,7 +91,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-          <span>{'AHPRA-registered doctors \u00b7 Refund if we can\'t help \u00b7 Usually sorted in under an hour'}</span>
+          <span>{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
         </motion.p>
       </div>
     </section>

@@ -126,7 +126,7 @@ const itemVariants = {
 
 export function HealthCategories() {
   return (
-    <section className="relative py-12 lg:py-16 bg-content2/30">
+    <section className="relative py-12 lg:py-16 bg-muted/20">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 

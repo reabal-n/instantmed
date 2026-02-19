@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {
-  title: "Weight Loss Treatment | Medical Weight Loss | InstantMed",
+  title: "Weight Loss Treatment | Medical Weight Loss",
   description:
     "GLP-1 medications, personalised plans and ongoing doctor support. Start with a confidential online consultation.",
   keywords: [

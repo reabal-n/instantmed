@@ -971,7 +971,7 @@ export default function TrustPage() {
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Join thousands of Australians who trust InstantMed for their healthcare needs.
+                Join the Australians who trust InstantMed for their healthcare needs.
               </p>
               <Link href="/request">
                 <ShimmerButton className="inline-flex items-center gap-2 px-8 py-4 text-lg">

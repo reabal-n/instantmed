@@ -139,7 +139,7 @@ export function AboutClient() {
                   ].map((value) => {
                     const Icon = value.icon
                     return (
-                      <div key={value.title} className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 hover-lift card-warm-hover">
+                      <div key={value.title} className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover-lift card-warm-hover">
                         <div
                           className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mb-3"
                           style={{
@@ -264,7 +264,7 @@ export function AboutClient() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-emerald-600" />
                     Guided by RACGP Standards
@@ -273,7 +273,7 @@ export function AboutClient() {
                     Our clinical processes align with the Royal Australian College of General Practitioners guidelines for telehealth and general practice.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <ClipboardCheck className="h-4 w-4 text-primary" />
                     Regular Clinical Audits
@@ -282,7 +282,7 @@ export function AboutClient() {
                     Peer review of clinical decisions ensures consistency and quality. We learn from every case.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <Shield className="h-4 w-4 text-primary" />
                     Clear Scope of Practice
@@ -291,7 +291,7 @@ export function AboutClient() {
                     We focus on what telehealth does well — low-complexity, high-frequency presentations. Complex cases are referred to in-person care.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <Users className="h-4 w-4 text-primary" />
                     Medical Director Oversight
@@ -334,7 +334,7 @@ export function AboutClient() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     AHPRA-Registered Doctors
@@ -344,7 +344,7 @@ export function AboutClient() {
                     Australia. You can verify any doctor&apos;s registration on the AHPRA website.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     Australian-Based
@@ -353,7 +353,7 @@ export function AboutClient() {
                     Our team and servers are based in Australia, ensuring your data stays local and secure under Australian law.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     Privacy-First
@@ -362,7 +362,7 @@ export function AboutClient() {
                     We use bank-level 256-bit encryption and comply with all Australian Privacy Principles and health records legislation.
                   </p>
                 </div>
-                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     TGA Compliant
@@ -405,7 +405,7 @@ export function AboutClient() {
                   Ready to experience better healthcare?
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Join thousands of Australians who have made the switch to InstantMed.
+                  Join the Australians who have made the switch to InstantMed.
                 </p>
                 <Link href="/request">
                   <ShimmerButton className="px-8 h-12 font-semibold">

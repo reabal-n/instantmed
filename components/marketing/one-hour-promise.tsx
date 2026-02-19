@@ -26,12 +26,12 @@ export function OneHourPromise() {
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Med certs &amp; repeats in 15 minutes
+              Reviewed by a real doctor. Usually within the hour.
             </h2>
-            
+
             <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
-              No phone calls for med certificates and repeat prescriptions. 
-              New scripts just need a quick 2-minute consult.
+              No phone calls needed for med certificates and repeat prescriptions.
+              AHPRA-registered GPs. Employer-accepted certificates. 7 days a week.
             </p>
 
             <div className="space-y-4 mb-8">

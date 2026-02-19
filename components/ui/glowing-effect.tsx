@@ -498,7 +498,7 @@ export function GradientBorderChase({
       />
       
       {/* Content */}
-      <div className="relative z-10 bg-background dark:bg-content1" style={{ borderRadius }}>
+      <div className="relative z-10 bg-background dark:bg-card" style={{ borderRadius }}>
         {children}
       </div>
     </div>

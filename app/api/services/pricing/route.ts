@@ -24,23 +24,25 @@ export async function GET() {
     }
 
     // Map type/slug to price for easy lookup
+    // NOTE: price_cents is stored in cents, convert to dollars for display
     const prices: Record<string, number> = {}
     for (const service of data || []) {
+      const priceInDollars = service.price_cents / 100
       // Map service type to the ServicePicker's service IDs
       if (service.type === "med_certs" || service.slug?.includes("medical-certificate")) {
         // Use the lowest price for this category
-        if (!prices["med-cert"] || service.price_cents < prices["med-cert"]) {
-          prices["med-cert"] = service.price_cents
+        if (!prices["med-cert"] || priceInDollars < prices["med-cert"]) {
+          prices["med-cert"] = priceInDollars
         }
       }
       if (service.type === "common_scripts" || service.slug?.includes("prescription")) {
-        if (!prices["scripts"] || service.price_cents < prices["scripts"]) {
-          prices["scripts"] = service.price_cents
+        if (!prices["scripts"] || priceInDollars < prices["scripts"]) {
+          prices["scripts"] = priceInDollars
         }
       }
       if (service.type === "consult" || service.slug?.includes("consult")) {
-        if (!prices["consult"] || service.price_cents < prices["consult"]) {
-          prices["consult"] = service.price_cents
+        if (!prices["consult"] || priceInDollars < prices["consult"]) {
+          prices["consult"] = priceInDollars
         }
       }
     }

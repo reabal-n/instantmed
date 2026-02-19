@@ -13,7 +13,7 @@ const log = createLogger("doctor-dashboard")
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Doctor Dashboard | InstantMed",
+  title: "Doctor Dashboard",
 }
 
 export default async function DoctorDashboardPage({

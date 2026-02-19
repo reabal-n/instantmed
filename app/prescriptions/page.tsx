@@ -4,7 +4,7 @@ import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs
 import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: 'Online Repeat Prescriptions | Same-Day Scripts | InstantMed',
+  title: 'Online Repeat Prescriptions | Same-Day Scripts',
   description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments, no waiting rooms.',
   openGraph: {
     title: 'Online Repeat Prescriptions | InstantMed',

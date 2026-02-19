@@ -110,7 +110,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
               Healthcare on your schedule
             </h3>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Trusted by thousands of Australians. Most requests reviewed within an hour.
+              Trusted by Australians across the country. Most requests reviewed within an hour.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

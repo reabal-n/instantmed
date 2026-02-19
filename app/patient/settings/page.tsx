@@ -7,7 +7,7 @@ import { getEmailPreferences } from "@/app/actions/email-preferences"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Settings | InstantMed",
+  title: "Settings",
   description: "Manage your profile and account settings",
 }
 

@@ -4,7 +4,7 @@ import { ConfirmedClient } from "./confirmed-client"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Request Confirmed | InstantMed",
+  title: "Request Confirmed",
   description: "Your request has been received and is being reviewed",
 }
 

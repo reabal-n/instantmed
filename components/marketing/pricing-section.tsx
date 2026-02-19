@@ -19,11 +19,11 @@ export function PricingSection() {
         {/* Header */}
         <div className="text-center space-y-6 mb-16">
           <div className="font-handwritten text-xl text-blue-500 rotate-[-1deg]">
-            Simple Pricing
+            Transparent Pricing
           </div>
           <div className="relative">
             <h2 className="text-4xl md:text-5xl font-bold font-handwritten text-zinc-900 dark:text-white rotate-[-1deg]">
-              Pay per consult. No subscriptions.
+              One flat fee. Pay after the doctor reviews.
             </h2>
             <div
               className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-44 h-3 bg-primary/20 
@@ -31,7 +31,7 @@ export function PricingSection() {
             />
           </div>
           <p className="font-handwritten text-xl text-zinc-600 dark:text-zinc-400 rotate-[-1deg]">
-            No hidden fees. Only pay when you need care.
+            No subscriptions. No hidden fees. Full refund if we can&apos;t help.
           </p>
         </div>
 

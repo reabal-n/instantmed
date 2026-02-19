@@ -6,10 +6,10 @@ import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
 
-// Base patient count (realistic for a growing Australian telehealth)
-const BASE_PATIENT_COUNT = 127500
-const DAILY_GROWTH_MIN = 45
-const DAILY_GROWTH_MAX = 120
+// Base patient count (realistic for a new Australian telehealth clinic)
+const BASE_PATIENT_COUNT = 420
+const DAILY_GROWTH_MIN = 2
+const DAILY_GROWTH_MAX = 6
 
 function useHasMounted() {
   return useSyncExternalStore(
@@ -264,7 +264,7 @@ export function StatsStrip({
         <div className="flex items-center gap-2 text-sm">
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           <span>
-            <span className="font-semibold text-foreground">2,400+</span>
+            <span className="font-semibold text-foreground">50+</span>
             <span className="text-muted-foreground ml-1">reviews</span>
           </span>
         </div>

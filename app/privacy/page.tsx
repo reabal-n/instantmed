@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const metadata = {
-  title: "Privacy Policy | InstantMed",
+  title: "Privacy Policy",
   description: "How InstantMed collects, uses, and protects your personal and health information.",
 }
 

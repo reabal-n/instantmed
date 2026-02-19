@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'InstantMed - Online Doctor Consultations Australia',
-    description: 'Medical certificates and prescriptions sorted in under 30 minutes by Australian-registered doctors.',
+    description: 'Medical certificates and prescriptions sorted in under an hour by Australian-registered doctors.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates and prescriptions in under 30 minutes.',
+    description: 'Medical certificates and prescriptions in under an hour.',
     images: ['/og-image.png'],
   },
   alternates: {

@@ -90,7 +90,7 @@ export function renderRequestInReviewEmail({
   dashboardUrl,
   serviceType,
   doctorName,
-  estimatedTime = "under 30 minutes",
+  estimatedTime = "under an hour",
 }: RequestInReviewEmailProps): string {
   const baseUrl = dashboardUrl.split("/patient")[0]
 
@@ -258,7 +258,7 @@ export function renderCartAbandonmentEmail({
     <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; margin: 24px 0;">
       <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.8;">
         AHPRA-registered doctors<br>
-        Reviewed in under 30 minutes<br>
+        Reviewed in under an hour<br>
         Pay only if approved
       </p>
     </div>

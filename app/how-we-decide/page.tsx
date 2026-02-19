@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "How Doctors Review Your Request | InstantMed",
+  title: "How Doctors Review Your Request",
   description:
     "Learn how our doctors assess requests, why some are declined, and how we prioritise your safety. No algorithms — just real medical judgment.",
   openGraph: {
@@ -162,7 +162,7 @@ export default function HowWeDecidePage() {
                   {reviewFactors.map((factor, index) => (
                     <div
                       key={factor.title}
-                      className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
+                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
                       style={{
                         animationDelay: `${0.2 + index * 0.1}s`,
                         animationFillMode: "forwards",
@@ -210,7 +210,7 @@ export default function HowWeDecidePage() {
                   {declineReasons.map((reason, index) => (
                     <div
                       key={reason.title}
-                      className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 flex items-start gap-3 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
+                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 flex items-start gap-3 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
                       style={{
                         animationDelay: `${0.3 + index * 0.08}s`,
                         animationFillMode: "forwards",
@@ -263,7 +263,7 @@ export default function HowWeDecidePage() {
                   {safetyPoints.map((point, index) => (
                     <div
                       key={point.title}
-                      className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
+                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 animate-fade-in-up opacity-0 hover-lift card-warm-hover"
                       style={{
                         animationDelay: `${0.4 + index * 0.1}s`,
                         animationFillMode: "forwards",
@@ -325,7 +325,7 @@ export default function HowWeDecidePage() {
                   ].map((item, index) => (
                     <div
                       key={item.step}
-                      className="flex items-start gap-4 bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 animate-fade-in-up opacity-0"
+                      className="flex items-start gap-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50 rounded-xl p-4 animate-fade-in-up opacity-0"
                       style={{
                         animationDelay: `${0.5 + index * 0.1}s`,
                         animationFillMode: "forwards",

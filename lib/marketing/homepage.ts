@@ -22,18 +22,18 @@ export const siteConfig = {
 }
 
 export const heroRotatingTexts = [
-  "Need a sick note? Sorted.",
-  "Prescription running low? We've got you.",
-  "Under the weather? Stay in bed.",
-  "Need a med cert? Done in minutes.",
-  "Real doctors. Real reviews. Real simple.",
+  "Get a valid medical certificate in minutes — from your couch.",
+  "Too sick to visit a GP? Get your cert online, right now.",
+  "Need a sick note? Sorted in under an hour.",
+  "Feeling awful? Stay in bed. We'll handle the paperwork.",
+  "Real doctors. Employer-accepted certificates. Done.",
 ]
 
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Under 30 min review",
-    description: "Fast response times",
+    text: "Reviewed in under an hour",
+    description: "Most requests sorted same day",
   },
   {
     icon: "Clock",
@@ -58,21 +58,21 @@ export const serviceCategories = [
     slug: "medical-certificate",
     title: "Medical Certificates",
     shortTitle: "Med Certs",
-    benefitQuestion: "Need proof you're unwell?",
-    description: "For work, uni, or when you're caring for someone",
+    benefitQuestion: "Too sick to see a doctor in person?",
+    description: "Get a valid certificate for work, uni, or carer's leave — without leaving bed",
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
     href: "/request?service=med-cert",
     popular: true,
-    cta: "Request certificate",
+    cta: "Get your certificate",
     benefits: [
-      "Valid for all employers",
-      "Same-day delivery",
-      "Backdating if appropriate"
+      "Accepted by all Australian employers",
+      "Delivered to your inbox same-day",
+      "AHPRA-registered doctor on every cert",
     ],
     testimonial: {
-      quote: "Got my cert in 20 mins",
+      quote: "Got my cert in 20 mins. Employer accepted it no questions asked.",
       author: "Sarah, Sydney"
     },
   },
@@ -119,23 +119,27 @@ export const serviceCategories = [
 export const proofMetrics = [
   {
     label: "Typical turnaround",
-    value: "~1 hour",
+    value: "Under 1 hour",
     icon: "Zap",
+    emoji: "\u26A1",
   },
   {
-    label: "Doctor reviewed",
-    value: "Every request",
+    label: "Every request",
+    value: "Real GP reviewed",
     icon: "MessageSquare",
+    emoji: "\uD83E\uDE7A",
   },
   {
-    label: "Clear eligibility",
-    value: "Know upfront",
+    label: "No account needed",
+    value: "Start in 2 mins",
     icon: "CheckCircle",
+    emoji: "\u2705",
   },
   {
     label: "Flat pricing",
-    value: "No surprises",
+    value: "Pay after review",
     icon: "CreditCard",
+    emoji: "\uD83D\uDCB3",
   },
 ]
 
@@ -166,15 +170,15 @@ export const howItWorks = [
 export const featuredServices = [
   {
     title: "Medical Certificates",
-    description: "For when you're unwell and need proof for work or uni. Employers accept these — we've issued thousands.",
-    priceFrom: 24.95,
+    description: "Feeling too sick to visit a GP? Get a valid, employer-accepted certificate from an AHPRA-registered doctor — without leaving bed.",
+    priceFrom: 19.95,
     href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
   {
     title: "Prescriptions",
-    description: "For treatments you already take. Reviewed by a doctor, eScript sent to your phone.",
-    priceFrom: 19.95,
+    description: "Running low on your regular medication? A doctor reviews your request and sends an eScript to your phone. Any pharmacy, Australia-wide.",
+    priceFrom: 29.95,
     href: "/request?service=prescription",
     features: ["Contraception", "Blood pressure", "Skin treatments", "eScript to your phone"],
   },
@@ -183,7 +187,7 @@ export const featuredServices = [
 export const pricingTiers = [
   {
     name: "Prescription",
-    price: 19.95,
+    price: 29.95,
     description: "Running low on your regular meds?",
     features: [
       "eScript sent to your phone",
@@ -199,15 +203,15 @@ export const pricingTiers = [
   },
   {
     name: "Medical Certificate",
-    price: 24.95,
-    description: "Unwell and need proof for work?",
+    price: 19.95,
+    description: "Too sick to see a GP? Get your cert from bed.",
     features: [
-      "Reviewed in about an hour",
-      "Valid for all employers",
-      "Emailed as a PDF",
-      "Backdating if appropriate",
+      "AHPRA-registered doctor reviews it",
+      "Accepted by all Australian employers",
+      "Delivered to your inbox as a PDF",
+      "Backdating if clinically appropriate",
     ],
-    cta: "Request certificate",
+    cta: "Get your certificate",
     href: "/request?service=med-cert",
     popular: true,
     icon: "FileText",
@@ -215,7 +219,7 @@ export const pricingTiers = [
   },
   {
     name: "General Consult",
-    price: 44.95,
+    price: 49.95,
     description: "Something on your mind?",
     features: [
       "Talk through what's going on",

@@ -7,7 +7,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Healthcare Guides | How-To Articles | InstantMed",
+  title: "Healthcare Guides | How-To Articles",
   description: "Practical guides on getting medical certificates, using telehealth in Australia, and navigating the healthcare system. Written and reviewed by healthcare professionals.",
   openGraph: {
     title: "Healthcare Guides | InstantMed",

@@ -57,10 +57,10 @@ export function TrustSection() {
             className="mb-4"
           />
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-            Healthcare you can trust
+            Real doctors. Legitimate certificates.
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Real Australian GPs. Legitimate documents. Complete peace of mind.
+            Every certificate is issued by an AHPRA-registered Australian GP. Accepted by all employers and universities.
           </p>
         </motion.div>
 

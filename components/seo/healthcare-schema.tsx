@@ -461,8 +461,8 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
   return (
     <HowToSchema
       name="How to Get a Medical Certificate Online in Australia"
-      description="Get a valid medical certificate from an AHPRA-registered doctor in under 30 minutes, completely online. No appointment needed."
-      totalTime="PT30M"
+      description="Get a valid medical certificate from an AHPRA-registered doctor in under an hour, completely online. No appointment needed."
+      totalTime="PT60M"
       estimatedCost="19.95"
       baseUrl={baseUrl}
       steps={[

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { WeightManagementClient } from "./weight-management-client"
 
 export const metadata: Metadata = {
-  title: "Weight Management | Doctor-Supervised Programs | InstantMed",
+  title: "Weight Management | Doctor-Supervised Programs",
   description:
     "Achieve sustainable weight loss with doctor-supervised programs. Personalised treatment plans, GLP-1 options, and ongoing support from Australian GPs. Start your journey today.",
   keywords: [

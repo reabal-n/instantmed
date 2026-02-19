@@ -6,7 +6,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Uni Students | Special Consideration | InstantMed",
+  title: "Medical Certificates for Uni Students | Special Consideration",
   description: "Get a medical certificate for university special consideration or missed exams. 15-minute turnaround. Accepted by all Australian universities. No GP wait times.",
   keywords: [
     "medical certificate uni student",
@@ -87,15 +87,15 @@ export default function StudentsPage() {
 
                   {/* Speed badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-indigo-600" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <GraduationCap className="h-3.5 w-3.5 text-indigo-600" />
                       <span className="font-medium text-muted-foreground">All unis accept</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-indigo-600" />
                       <span className="font-medium text-muted-foreground">AHPRA doctors</span>
                     </div>
@@ -224,7 +224,7 @@ export default function StudentsPage() {
                       desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <item.icon className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -265,7 +265,7 @@ export default function StudentsPage() {
                       quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -310,7 +310,7 @@ export default function StudentsPage() {
                       a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
