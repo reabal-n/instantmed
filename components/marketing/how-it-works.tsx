@@ -1,132 +1,109 @@
 'use client'
 
-import { ArrowRight, ClipboardList, Stethoscope, FileCheck, CheckCircle2 } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 const steps = [
   {
-    number: "01",
-    icon: ClipboardList,
-    title: "Answer a few questions",
-    description: "Tell us what's going on. Takes about 2 minutes.",
+    number: "1",
+    title: "Tell us what's going on",
+    description: "Quick form — takes about 2 minutes.",
     time: "2 min",
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
   },
   {
-    number: "02",
-    icon: Stethoscope,
-    title: "A doctor reviews it",
-    description: "A real Australian GP looks at your request and makes the call.",
+    number: "2",
+    title: "A GP reviews your request",
+    description: "A real Australian doctor looks it over and makes the call.",
     time: "~1 hour",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
   },
   {
-    number: "03",
-    icon: FileCheck,
-    title: "Done",
-    description: "Certificate to your inbox, eScript to your phone. That's it.",
+    number: "3",
+    title: "Sorted",
+    description: "Certificate to your inbox, eScript to your phone. Done.",
     time: "Same day",
-    color: "from-emerald-500 to-green-600",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/20",
   },
 ]
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-16 lg:py-20 scroll-mt-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div 
-          className="text-center mb-12"
+        <motion.div
+          className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
-            <CheckCircle2 className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground/80">How it works</span>
-          </div>
-          
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-            Three steps. That&apos;s it.
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
+            How it works
           </h2>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            No appointments, no phone tag. A registered GP reviews every request.
+          <p className="text-sm text-muted-foreground">
+            No appointments. No phone calls. Just results.
           </p>
         </motion.div>
 
-        {/* Steps - Horizontal Cards */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+        {/* Steps - Clean vertical list */}
+        <div className="space-y-0">
           {steps.map((step, index) => (
             <motion.div
               key={step.number}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -10 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
-              className="group"
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="relative flex items-start gap-4 py-5"
             >
-              <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-none`}>
-                {/* Step number */}
-                <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
+              {/* Number + connector */}
+              <div className="flex flex-col items-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-semibold">
                   {step.number}
                 </div>
-                
-                {/* Icon */}
-                <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${step.color} flex items-center justify-center mb-4 shadow-md`}>
-                  <step.icon className="w-6 h-6 text-white" />
+                {index < steps.length - 1 && (
+                  <div className="w-px h-full bg-border absolute top-12 left-4" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 pb-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-base font-semibold text-foreground">
+                    {step.title}
+                  </h3>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                    {step.time}
+                  </span>
                 </div>
-                
-                {/* Content */}
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {step.description}
                 </p>
-                
-                {/* Time badge */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-white/10 border border-black/5 dark:border-white/10">
-                  <span className="text-xs font-medium text-foreground">{step.time}</span>
-                </div>
-                
-                {/* Connector line (not on last item) */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 lg:-right-5 w-8 lg:w-10 h-0.5 bg-linear-to-r from-border to-transparent" />
-                )}
               </div>
             </motion.div>
           ))}
         </div>
 
         {/* CTA */}
-        <motion.div 
-          className="flex flex-col items-center"
-          initial={{ opacity: 0, y: 20 }}
+        <motion.div
+          className="flex flex-col items-center mt-8"
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.3 }}
         >
           <Button
             asChild
             variant="default"
             size="lg"
-            className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
           >
             <Link href="/request">
-              Get started now <ArrowRight className="h-4 w-4" />
+              Get started <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="text-xs text-muted-foreground mt-2.5">
             Most people are sorted in under an hour
           </p>
         </motion.div>

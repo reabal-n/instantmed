@@ -34,7 +34,7 @@ function FAQSchema({ items }: { items: Array<{ question: string; answer: string 
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
+    <section id="faq" className="py-10 lg:py-14 scroll-mt-20">
       {/* FAQ Schema for SEO */}
       <FAQSchema items={faqItems} />
       

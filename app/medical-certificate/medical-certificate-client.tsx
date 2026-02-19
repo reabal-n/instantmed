@@ -415,33 +415,25 @@ export default function MedicalCertificatePage() {
                 <LiveWaitTime variant="compact" services={['med-cert']} />
               </motion.div>
 
-              {/* Stats bar */}
+              {/* Stats ticker — sleek inline */}
               <motion.div
-                className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
+                className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">From $19.95</div>
-                  <p className="text-xs text-muted-foreground">1-2 days</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="flex justify-center gap-0.5 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{liveStats.rating} rating</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">100%</div>
-                  <p className="text-xs text-muted-foreground">Digital process</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">AHPRA</div>
-                  <p className="text-xs text-muted-foreground">Registered doctors</p>
-                </div>
+                <span className="flex items-center gap-1.5">
+                  <span className="font-semibold text-foreground">From $19.95</span>
+                </span>
+                <span className="hidden sm:inline text-border">·</span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-foreground">{liveStats.rating}</span> rating
+                </span>
+                <span className="hidden sm:inline text-border">·</span>
+                <span>100% online</span>
+                <span className="hidden sm:inline text-border">·</span>
+                <span>AHPRA doctors</span>
               </motion.div>
             </div>
           </section>
@@ -694,68 +686,58 @@ export default function MedicalCertificatePage() {
 
         {/* How It Works */}
         <ParallaxSection speed={0.2}>
-          <section id="how-it-works" className="py-16 lg:py-20 scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               {/* Section Header */}
-              <motion.div 
-                className="text-center mb-12"
+              <motion.div
+                className="text-center mb-10"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground/80">How it works</span>
-                </div>
-                
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps. That&apos;s it.
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
+                  How it works
                 </h2>
-                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  No appointments, no phone tag. A registered GP reviews every request.
+                <p className="text-sm text-muted-foreground">
+                  No appointments. No phone calls. Just results.
                 </p>
               </motion.div>
 
-              {/* Steps */}
-              <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+              {/* Steps — clean vertical list */}
+              <div className="space-y-0">
                 {steps.map((step, index) => (
                   <motion.div
                     key={step.number}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="relative flex items-start gap-4 py-5"
                   >
-                    <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
-                      {/* Step number */}
-                      <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-background text-sm font-bold shadow-lg`}>
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-semibold">
                         {step.number}
                       </div>
-                      
-                      {/* Content */}
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                        {step.description}
-                      </p>
-                      
-                      {/* Time badge */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-white/10 border border-black/5 dark:border-white/10">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs font-medium text-foreground">{step.time}</span>
+                      {index < steps.length - 1 && (
+                        <div className="w-px h-full bg-border absolute top-12 left-4" />
+                      )}
+                    </div>
+                    <div className="flex-1 pb-1">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">{step.time}</span>
                       </div>
+                      <p className="text-sm text-muted-foreground mt-0.5">{step.description}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
 
               {/* CTA */}
-              <motion.div 
-                className="flex flex-col items-center"
-                initial={{ opacity: 0, y: 20 }}
+              <motion.div
+                className="flex flex-col items-center mt-8"
+                initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
@@ -763,15 +745,14 @@ export default function MedicalCertificatePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                  className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                 >
                   <Link href="/request?service=med-cert">
-                    Get started now
-                    <ArrowRight className="h-4 w-4" />
+                    Get started <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Most people are done in under an hour ✅
+                <p className="text-xs text-muted-foreground mt-2.5">
+                  Most people are sorted in under an hour
                 </p>
               </motion.div>
             </div>

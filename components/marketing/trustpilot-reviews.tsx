@@ -8,7 +8,7 @@ const reviewsForColumns = getTestimonialsForColumns().slice(0, 6)
 
 export function TrustpilotReviews() {
   return (
-    <section className="py-8 overflow-hidden relative">
+    <section className="py-4 overflow-hidden relative">
       {/* Testimonials Columns */}
       <TestimonialsColumnsWrapper
         testimonials={reviewsForColumns}
