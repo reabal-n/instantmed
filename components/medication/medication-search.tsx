@@ -146,13 +146,7 @@ export function MedicationSearch({
             </button>
           ) : null
         }
-        classNames={{
-          inputWrapper: cn(
-            "h-12 bg-white border border-slate-200 shadow-none",
-            "hover:border-slate-300",
-            "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20"
-          ),
-        }}
+        className="h-12"
       />
 
       {/* Dropdown Results */}

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Input, InputProps } from "@heroui/react"
 import { Check, AlertCircle, Info, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -10,7 +9,7 @@ interface ValidationRule {
   message: string
 }
 
-interface EnhancedValidatedInputProps extends Omit<InputProps, "onChange"> {
+interface EnhancedValidatedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "size"> {
   value: string
   onChange: (value: string) => void
   validationRules?: ValidationRule[]
@@ -44,7 +43,7 @@ export function EnhancedValidatedInput({
   ...props
 }: EnhancedValidatedInputProps) {
   // Generate stable IDs for accessibility
-  const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, '-')}`
+  const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, "-")}`
   const errorId = `${inputId}-error`
   const helperId = `${inputId}-helper`
   const [touched, setTouched] = useState(false)
@@ -108,84 +107,88 @@ export function EnhancedValidatedInput({
   return (
     <div className="space-y-1.5">
       <div className="relative">
-        <Input
-          {...props}
-          id={inputId}
-          type={inputType}
-          label={label}
-          value={displayValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          maxLength={maxLength}
-          aria-invalid={!!(error && touched)}
-          aria-describedby={error && touched ? errorId : helperText ? helperId : undefined}
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground/80 mb-1.5">
+            {label}
+          </label>
+        )}
+        <div
           className={cn(
+            "flex items-center w-full rounded-lg",
+            "bg-transparent",
+            "border border-slate-200 dark:border-slate-700",
+            "shadow-none",
             "transition-all duration-200",
-            error && touched && "border-red-500 focus:border-red-500",
-            isValid && touched && !error && "border-green-500 focus:border-green-500",
-            focused && !error && !isValid && "border-primary focus:border-primary",
+            "hover:border-slate-300 dark:hover:border-slate-600",
+            "focus-within:border-primary",
+            error && touched && "!border-red-500",
+            isValid && touched && !error && "!border-green-500",
+            focused && !error && !isValid && "border-primary",
             className
           )}
-          classNames={{
-            input: cn(
+        >
+          <input
+            {...props}
+            id={inputId}
+            type={inputType}
+            value={displayValue}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            maxLength={maxLength}
+            aria-invalid={!!(error && touched)}
+            aria-describedby={error && touched ? errorId : helperText ? helperId : undefined}
+            className={cn(
+              "flex-1 bg-transparent px-3 py-2 h-10",
+              "text-foreground placeholder:text-slate-400",
+              "border-none shadow-none outline-none",
+              "text-base md:text-sm font-sans",
               error && touched && "text-red-700 dark:text-red-400",
               isValid && touched && !error && "text-green-700 dark:text-green-400"
-            ),
-            inputWrapper: cn(
-              // Single border layer - error/success states only change border color
-              error && touched && "!border-red-500",
-              isValid && touched && !error && "!border-green-500"
-            ),
-          }}
-          endContent={
-            <div className="flex items-center gap-2">
-              {/* Character Counter */}
-              {showCharacterCounter && maxLength && (
-                <span
-                  className={cn(
-                    "text-xs font-medium transition-colors",
-                    remainingChars !== null && remainingChars < 10
-                      ? "text-dawn-600 dark:text-dawn-400"
-                      : remainingChars === 0
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {characterCount}/{maxLength}
-                </span>
-              )}
-              
-              {/* Password Toggle */}
-              {type === "password" && (
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              )}
-              
-              {/* Success/Error Indicator */}
-              {touched && (
-                <div className="flex items-center">
-                  {isValid && showSuccessIndicator && !error && (
-                    <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
-                  )}
-                  {error && (
-                    <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
-                  )}
-                </div>
-              )}
-            </div>
-          }
-        />
+            )}
+          />
+          <div className="flex items-center gap-2 pr-3">
+            {/* Character Counter */}
+            {showCharacterCounter && maxLength && (
+              <span
+                className={cn(
+                  "text-xs font-medium transition-colors",
+                  remainingChars !== null && remainingChars < 10
+                    ? "text-dawn-600 dark:text-dawn-400"
+                    : remainingChars === 0
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-muted-foreground"
+                )}
+              >
+                {characterCount}/{maxLength}
+              </span>
+            )}
+
+            {/* Password Toggle */}
+            {type === "password" && (
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            )}
+
+            {/* Success/Error Indicator */}
+            {touched && (
+              <div className="flex items-center">
+                {isValid && showSuccessIndicator && !error && (
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
+                )}
+                {error && (
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Helper Text / Format Hint */}
@@ -198,7 +201,7 @@ export function EnhancedValidatedInput({
               {helperText}
             </p>
           )}
-          
+
           {/* Format Hint - shows on focus */}
           {formatHint && showFormatHintOnFocus && focused && !error && (
             <p className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in duration-200">
@@ -206,7 +209,7 @@ export function EnhancedValidatedInput({
               Format: <span className="font-mono font-medium">{formatHint}</span>
             </p>
           )}
-          
+
           {/* Error Message - Progressive disclosure: only after blur/touch */}
           {error && touched && (
             <p id={errorId} role="alert" className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
@@ -214,7 +217,7 @@ export function EnhancedValidatedInput({
               {error}
             </p>
           )}
-          
+
           {/* Success Message - subtle feedback */}
           {isValid && touched && !error && showSuccessIndicator && (
             <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
@@ -236,7 +239,7 @@ export const enhancedValidationRules = {
   },
   required: {
     validate: (value: string) => value.trim().length > 0,
-    message: "Looks like something was skipped — can you fill this in?",
+    message: "Looks like something was skipped -- can you fill this in?",
   },
   minLength: (min: number) => ({
     validate: (value: string) => value.length >= min,
@@ -287,4 +290,3 @@ export const enhancedValidationRules = {
     message: "Password needs uppercase, lowercase, and a number",
   },
 }
-

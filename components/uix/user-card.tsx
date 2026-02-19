@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { User, type UserProps } from "@heroui/react"
+import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
-export interface UserCardProps extends Omit<UserProps, "name" | "description"> {
+export interface UserCardProps {
   /** User's display name */
   name: string
   /** Secondary text (role, email, etc.) */
@@ -20,11 +20,11 @@ export interface UserCardProps extends Omit<UserProps, "name" | "description"> {
 }
 
 /**
- * UserCard - HeroUI User component wrapper
- * 
+ * UserCard - User display component with avatar, name, and description
+ *
  * Displays user information with avatar, name, and description.
  * Automatically generates initials if no avatar is provided.
- * 
+ *
  * @example
  * ```tsx
  * <UserCard
@@ -41,7 +41,6 @@ export function UserCard({
   avatarFallback,
   size = "md",
   className,
-  ...props
 }: UserCardProps) {
   // Generate initials from name if no fallback provided
   const initials = React.useMemo(() => {
@@ -54,29 +53,39 @@ export function UserCard({
       .slice(0, 2)
   }, [name, avatarFallback])
 
-  // Map size to HeroUI sizes
   const avatarSize = size === "sm" ? "sm" : size === "lg" ? "lg" : "md"
 
   return (
-    <User
-      name={name}
-      description={description}
-      avatarProps={{
-        src: avatarUrl,
-        name: initials,
-        size: avatarSize,
-        showFallback: true,
-        classNames: {
-          base: "bg-gradient-to-br from-primary-400 to-primary-600",
-          name: "text-white font-medium",
-        },
-      }}
-      classNames={{
-        base: cn("gap-3", className),
-        name: size === "sm" ? "text-sm" : size === "lg" ? "text-lg font-semibold" : "text-base font-medium",
-        description: size === "sm" ? "text-xs" : "text-sm text-default-500",
-      }}
-      {...props}
-    />
+    <div className={cn("flex items-center gap-3", className)}>
+      <Avatar
+        src={avatarUrl}
+        name={name}
+        fallback={<span className="text-white font-medium">{initials}</span>}
+        size={avatarSize}
+        className="bg-gradient-to-br from-primary-400 to-primary-600"
+      />
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "truncate",
+            size === "sm" && "text-sm",
+            size === "md" && "text-base font-medium",
+            size === "lg" && "text-lg font-semibold"
+          )}
+        >
+          {name}
+        </p>
+        {description && (
+          <p
+            className={cn(
+              "truncate text-muted-foreground",
+              size === "sm" ? "text-xs" : "text-sm"
+            )}
+          >
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }

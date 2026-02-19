@@ -1,7 +1,7 @@
 "use client"
 
 import { HelpCircle } from "lucide-react"
-import { Tooltip } from "@/components/ui/tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface HelpTooltipProps {
@@ -10,34 +10,38 @@ interface HelpTooltipProps {
   placement?: "top" | "right" | "bottom" | "left"
 }
 
-export function HelpTooltip({ 
-  content, 
+export function HelpTooltip({
+  content,
   className,
   placement = "top"
 }: HelpTooltipProps) {
   return (
-    <Tooltip
-      content={content}
-      placement={placement}
-      delay={200}
-      closeDelay={0}
-      className="max-w-xs p-3 text-sm bg-popover text-popover-foreground border border-border shadow-lg rounded-lg"
-    >
-      <button
-        type="button"
-        className={cn(
-          "inline-flex items-center justify-center",
-          "w-4 h-4 rounded-full",
-          "text-muted-foreground hover:text-foreground",
-          "transition-colors duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-          className
-        )}
-        aria-label="Help information"
-      >
-        <HelpCircle className="w-4 h-4" />
-      </button>
-    </Tooltip>
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "inline-flex items-center justify-center",
+              "w-4 h-4 rounded-full",
+              "text-muted-foreground hover:text-foreground",
+              "transition-colors duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+              className
+            )}
+            aria-label="Help information"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent
+          side={placement}
+          className="max-w-xs p-3 text-sm bg-popover text-popover-foreground border border-border shadow-lg rounded-lg"
+        >
+          {content}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
 

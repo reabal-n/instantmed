@@ -9,7 +9,8 @@ import { requireRoleOrNull } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/posthog-server"
-import { renderMedCertPdf, generateVerificationCode, generateCertificateNumber } from "@/lib/pdf/med-cert-render"
+import { generateVerificationCode, generateCertificateNumber, generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import {
   findExistingCertificate,
   atomicApproveCertificate,
@@ -30,6 +31,7 @@ interface ApproveCertResult {
   error?: string
   certificateId?: string
   isExisting?: boolean
+  emailSent?: boolean
 }
 
 /**
@@ -189,31 +191,32 @@ export async function approveAndSendCert(
     }
 
     // 3. Prepare PDF data
+    // Determine certificate type from service slug (must be before generateCertificateRef)
+    const certSubtype = service.slug.includes("carer") ? "carer" : service.slug.includes("uni") ? "uni" : "work"
+    const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
+
     const certificateNumber = generateCertificateNumber()
+    const certificateRef = generateCertificateRef(certificateType)
     const generatedAt = new Date().toISOString()
 
     // Validate and calculate duration days
     const startDate = new Date(reviewData.startDate)
     const endDate = new Date(reviewData.endDate)
-    
+
     // Date validation: end date must be >= start date
     if (endDate < startDate) {
       logger.warn("Invalid certificate dates: end date before start date", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
       return { success: false, error: "End date cannot be before start date" }
     }
-    
+
     // Validate reasonable date range (max 30 days)
     const maxDurationMs = 30 * 24 * 60 * 60 * 1000
     if (endDate.getTime() - startDate.getTime() > maxDurationMs) {
       logger.warn("Certificate duration exceeds maximum", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
       return { success: false, error: "Certificate duration cannot exceed 30 days" }
     }
-    
-    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
-    // Get certificate type from service slug or default to "work"
-    const certSubtype = service.slug.includes("carer") ? "carer" : service.slug.includes("uni") ? "uni" : "work"
-    const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
+    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
     // Get intake answers for carer details extraction
     const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
@@ -239,24 +242,34 @@ export async function approveAndSendCert(
     // Generate verification code for the certificate
     const verificationCode = generateVerificationCode(certificateNumber)
 
-    // 4. Generate PDF Buffer using new config-driven renderer
-    Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating PDF", level: "info", data: { intakeId, certificateNumber, certificateType } })
-    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber })
-    
-    const pdfResult = await renderMedCertPdf({
-      certificateNumber,
-      verificationCode,
+    // 4. Generate PDF using template renderer (pdf-lib)
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating PDF", level: "info", data: { intakeId, certificateNumber, certificateRef, certificateType } })
+    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber, certificateRef })
+
+    // Get doctor identity for template rendering
+    const doctorIdentityForPdf = await getDoctorIdentity(doctorProfile.id)
+    if (!doctorIdentityForPdf) {
+      return { success: false, error: "Doctor identity not found" }
+    }
+
+    // Format display dates for template (e.g. "18 February 2026")
+    const formatDisplayDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
+    }
+    const formatShortDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
+    }
+
+    const pdfResult = await renderTemplatePdf({
       certificateType,
       patientName: patient.full_name,
-      patientDob,
-      issueDate: generatedAt.split("T")[0],
-      startDate: reviewData.startDate,
-      endDate: reviewData.endDate,
-      durationDays,
-      carerPersonName,
-      carerRelationship,
-      doctorProfileId: doctorProfile.id,
-      generatedAt,
+      consultationDate: formatDisplayDate(generatedAt.split("T")[0]!),
+      startDate: formatDisplayDate(reviewData.startDate),
+      endDate: formatDisplayDate(reviewData.endDate),
+      certificateRef,
+      issueDate: formatShortDate(generatedAt.split("T")[0]!),
     })
 
     if (!pdfResult.success || !pdfResult.buffer) {
@@ -266,7 +279,10 @@ export async function approveAndSendCert(
       if (releaseErr) {
         logger.warn("Failed to release claim after PDF failure", { intakeId, error: releaseErr.message })
       }
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      const { error: revertErr } = await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      if (revertErr) {
+        logger.warn("Failed to revert intake status after PDF failure — intake may be stuck", { intakeId, error: revertErr.message })
+      }
       return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
 
@@ -274,7 +290,7 @@ export async function approveAndSendCert(
     
     // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
     Sentry.addBreadcrumb({ category: "cert.flow", message: "Uploading PDF to storage", level: "info", data: { intakeId, pdfSizeBytes: pdfBuffer.length } })
-    const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
+    const storagePath = `certificates/${certificateRef}.pdf`
     
     // Retry upload once on failure before continuing
     let uploadError: Error | null = null
@@ -304,24 +320,25 @@ export async function approveAndSendCert(
         error: uploadError 
       })
       // Release the claim since we can't proceed without storage
-      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      const { error: releaseErr2 } = await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      if (releaseErr2) {
+        logger.warn("Failed to release claim after storage failure — intake may be stuck", { intakeId, error: releaseErr2.message })
+      }
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
-
-    // 5.6 Get doctor identity for snapshot
-    const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
 
     // 5.6.5 Generate PDF hash for integrity verification
     const pdfHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex")
 
     // 5.7 ATOMIC APPROVAL: Create certificate, document record, and update status in single transaction
     // This ensures consistency - either all operations succeed or all fail
-    Sentry.addBreadcrumb({ category: "cert.flow", message: "Atomic approval transaction", level: "info", data: { intakeId, certificateNumber } })
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Atomic approval transaction", level: "info", data: { intakeId, certificateNumber, certificateRef } })
     const atomicResult = await atomicApproveCertificate({
       intake_id: intakeId,
       certificate_number: certificateNumber,
       verification_code: verificationCode,
       certificate_type: certificateType,
+      certificate_ref: certificateRef,
       issue_date: generatedAt.split("T")[0],
       start_date: reviewData.startDate,
       end_date: reviewData.endDate,
@@ -330,21 +347,24 @@ export async function approveAndSendCert(
       patient_dob: patientDob,
       doctor_id: doctorProfile.id,
       doctor_name: doctorProfile.full_name,
-      doctor_nominals: doctorIdentity?.nominals || null,
+      doctor_nominals: doctorIdentityForPdf?.nominals || null,
       doctor_provider_number: doctorProfile.provider_number!,
       doctor_ahpra_number: doctorProfile.ahpra_number!,
-      template_config_snapshot: (pdfResult.templateConfig ?? DEFAULT_TEMPLATE_CONFIG) as unknown as Record<string, unknown>,
-      clinic_identity_snapshot: (pdfResult.clinicIdentity ?? {}) as unknown as Record<string, unknown>,
+      template_config_snapshot: DEFAULT_TEMPLATE_CONFIG as unknown as Record<string, unknown>,
+      clinic_identity_snapshot: {} as Record<string, unknown>,
       storage_path: storagePath,
       file_size_bytes: pdfBuffer.length,
-      filename: `Medical_Certificate_${certificateNumber}.pdf`,
+      filename: `Medical_Certificate_${certificateRef}.pdf`,
       pdf_hash: pdfHash,
     })
 
     if (!atomicResult.success) {
       logger.error("Atomic approval failed", { intakeId, error: atomicResult.error })
       // Release the claim since atomic operation failed
-      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      const { error: releaseErr3 } = await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      if (releaseErr3) {
+        logger.warn("Failed to release claim after atomic approval failure — intake may be stuck", { intakeId, error: releaseErr3.message })
+      }
       // Clean up orphaned PDF from storage (non-blocking — don't let cleanup failure mask the real error)
       try {
         await supabase.storage.from("documents").remove([storagePath])
@@ -539,7 +559,7 @@ export async function approveAndSendCert(
     revalidatePath("/doctor/queue")
     revalidatePath(`/patient/intakes/${intakeId}`)
 
-    return { success: true, certificateId }
+    return { success: true, certificateId, emailSent: emailResult.success }
   } catch (error) {
     logger.error("[ApproveCert] Error approving certificate", { 
       intakeId,

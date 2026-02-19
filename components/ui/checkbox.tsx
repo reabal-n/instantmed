@@ -1,16 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { Checkbox as HeroCheckbox, type CheckboxProps as HeroCheckboxProps } from "@heroui/react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface CheckboxProps extends Omit<HeroCheckboxProps, "isSelected" | "onValueChange"> {
+export interface CheckboxProps extends Omit<React.ComponentProps<typeof CheckboxPrimitive.Root>, "checked" | "onCheckedChange"> {
   // Support shadcn/ui API
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
-  // Support HeroUI API
+  // Support HeroUI API (backward compat)
   isSelected?: boolean
   onValueChange?: (isSelected: boolean) => void
+  children?: React.ReactNode
 }
 
 function Checkbox({
@@ -19,23 +21,32 @@ function Checkbox({
   onCheckedChange,
   isSelected,
   onValueChange,
+  children,
   ...props
 }: CheckboxProps) {
-  // Map shadcn/ui API to HeroUI API
-  const heroIsSelected = isSelected ?? checked
-  const heroOnValueChange = onValueChange ?? onCheckedChange
+  const resolvedChecked = isSelected ?? checked
+  const resolvedOnChange = onValueChange ?? onCheckedChange
 
   return (
-    <HeroCheckbox
-      radius="md"
-      isSelected={heroIsSelected}
-      onValueChange={heroOnValueChange}
-      classNames={{
-        base: cn("max-w-fit", className),
-        label: "text-foreground",
-      }}
-      {...props}
-    />
+    <label className={cn("flex items-center gap-2 max-w-fit cursor-pointer", className)}>
+      <CheckboxPrimitive.Root
+        checked={resolvedChecked}
+        onCheckedChange={(val) => resolvedOnChange?.(val === true)}
+        className={cn(
+          "peer h-4 w-4 shrink-0 rounded-md border border-border",
+          "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          "data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground",
+          "transition-colors duration-150"
+        )}
+        {...props}
+      >
+        <CheckboxPrimitive.Indicator className="flex items-center justify-center">
+          <Check className="h-3 w-3" />
+        </CheckboxPrimitive.Indicator>
+      </CheckboxPrimitive.Root>
+      {children && <span className="text-sm text-foreground">{children}</span>}
+    </label>
   )
 }
 

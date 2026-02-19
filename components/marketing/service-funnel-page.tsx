@@ -306,13 +306,14 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
               className={cn('flex flex-col sm:flex-row items-center gap-4 mb-8', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
               <Button
-                as={Link}
-                href={config.hero.ctaHref}
+                asChild
                 size="lg"
                 className={cn('px-8 h-14 text-lg font-semibold text-white shadow-lg', colors.button)}
               >
-                {config.hero.ctaText}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <Link href={config.hero.ctaHref}>
+                  {config.hero.ctaText}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
               
               {/* Glowing highlight badge */}
@@ -557,13 +558,14 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
           className="text-center mt-12"
         >
           <Button
-            as={Link}
-            href={config.hero.ctaHref}
+            asChild
             size="lg"
             className={cn('px-8 h-12 font-semibold text-white', colors.button)}
           >
-            Get started now
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <Link href={config.hero.ctaHref}>
+              Get started now
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
           </Button>
         </motion.div>
       </div>
@@ -668,13 +670,14 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
 
           {/* CTA */}
           <Button
-            as={Link}
-            href={config.hero.ctaHref}
+            asChild
             size="lg"
             className={cn('w-full sm:w-auto px-10 h-12 text-base font-semibold text-white', colors.button)}
           >
-            Get started
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <Link href={config.hero.ctaHref}>
+              Get started
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
           </Button>
 
           {/* Notes */}
@@ -802,13 +805,14 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
             {config.finalCta.subheadline}
           </p>
           <Button
-            as={Link}
-            href={config.hero.ctaHref}
+            asChild
             size="lg"
             className="bg-white text-foreground hover:bg-white/90 px-10 h-14 text-lg font-semibold shadow-lg"
           >
-            {config.finalCta.ctaText}
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <Link href={config.hero.ctaHref}>
+              {config.finalCta.ctaText}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
           </Button>
           <p className="mt-6 text-white/70 text-sm">
             Takes about 2 minutes · No obligation

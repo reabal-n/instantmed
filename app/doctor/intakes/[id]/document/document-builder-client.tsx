@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -75,7 +75,15 @@ export function DocumentBuilderClient({
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error" | "warning"; text: string } | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Clean up any pending timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
 
   // Get certificate type from answers or default
   const answers = intake.answers?.answers || {}
@@ -112,7 +120,8 @@ export function DocumentBuilderClient({
       const result = await saveMedCertDraftAction(draft.id, updatedData)
       if (result.success) {
         setActionMessage({ type: "success", text: "Draft saved" })
-        setTimeout(() => setActionMessage(null), 3000)
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+        timeoutRef.current = setTimeout(() => setActionMessage(null), 3000)
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to save" })
       }
@@ -150,11 +159,15 @@ export function DocumentBuilderClient({
       const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
 
       if (result.success) {
-        const emailNote = result.emailStatus === "sent"
-          ? "Certificate sent to patient."
-          : "Certificate issued. Patient will receive email shortly."
-        setActionMessage({ type: "success", text: emailNote })
-        setTimeout(() => router.push("/doctor/queue"), 1500)
+        if (result.emailStatus === "failed") {
+          setActionMessage({ type: "warning", text: "Certificate approved but email failed to send. The patient can still download it from their dashboard." })
+        } else if (result.emailStatus === "pending") {
+          setActionMessage({ type: "warning", text: "Certificate approved. Email is queued and will be sent shortly." })
+        } else {
+          setActionMessage({ type: "success", text: "Certificate approved and sent to patient." })
+        }
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+        timeoutRef.current = setTimeout(() => router.push("/doctor/queue"), 2000)
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to approve" })
       }
@@ -186,9 +199,9 @@ export function DocumentBuilderClient({
       {actionMessage && (
         <div
           className={`p-4 rounded-lg ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
+            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800" : actionMessage.type === "warning" ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-800"
           }`}
-          data-testid={actionMessage.type === "success" ? "success-message" : "error-message"}
+          data-testid={actionMessage.type === "success" ? "success-message" : actionMessage.type === "warning" ? "warning-message" : "error-message"}
         >
           {actionMessage.text}
         </div>

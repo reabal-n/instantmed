@@ -1,7 +1,12 @@
 "use client"
 
 import { Info, HelpCircle, AlertCircle } from "lucide-react"
-import { Tooltip } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface ContextualHelpProps {
@@ -64,12 +69,16 @@ export function ContextualHelp({
   }
 
   return (
-    <Tooltip
-      content={typeof content === "string" ? content : undefined}
-      placement={placement}
-    >
-      {trigger || defaultTrigger}
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {trigger || defaultTrigger}
+        </TooltipTrigger>
+        <TooltipContent side={placement}>
+          {typeof content === "string" ? content : content}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
 

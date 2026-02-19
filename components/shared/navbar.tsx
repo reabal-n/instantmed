@@ -285,12 +285,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
                     <Button
-                      as={Link}
-                      href="/request"
+                      asChild
                       size="sm"
                       className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                     >
-                      Get started
+                      <Link href="/request">
+                        Get started
+                      </Link>
                     </Button>
                     <SignedOut>
                       <SignInButton mode="modal">
@@ -346,10 +347,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       {services.map((service) => (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           key={service.href}
                           className="cursor-pointer"
-                          onPress={() => router.push(service.href)}
+                          onClick={() => router.push(service.href)}
                         >
                           <div className="flex items-center gap-2">
                             <service.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
@@ -377,7 +378,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onPress={() => router.push("/patient/settings")}
+                        onClick={() => router.push("/patient/settings")}
                       >
                         <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4" aria-hidden="true" />
@@ -427,7 +428,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onPress={() => router.push("/doctor/admin")}
+                        onClick={() => router.push("/doctor/admin")}
                       >
                         <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4" aria-hidden="true" />
@@ -484,11 +485,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </div>
                 </SignedIn>
                 <Button
-                  as={Link}
-                  href="/request"
+                  asChild
                   className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
-                  Get started
+                  <Link href="/request">
+                    Get started
+                  </Link>
                 </Button>
               </>
             )}

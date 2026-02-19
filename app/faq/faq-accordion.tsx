@@ -1,6 +1,6 @@
 "use client"
 
-import { Accordion, AccordionItem } from "@/components/ui/accordion"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 
 interface FAQItem {
   q: string
@@ -32,26 +32,23 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
           </h2>
           <div className="relative rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl overflow-hidden">
             <Accordion
-              variant="light"
               type="multiple"
               className="px-0"
             >
               {category.faqs.map((faq, faqIndex) => (
                 <AccordionItem
                   key={`${catIndex}-${faqIndex}`}
-                  aria-label={faq.q}
-                  title={
+                  value={`${catIndex}-${faqIndex}`}
+                  className="px-6 border-b border-white/10 last:border-0"
+                >
+                  <AccordionTrigger className="py-4 hover:bg-white/5 transition-colors">
                     <span className="font-medium text-foreground pr-4 text-left">
                       {faq.q}
                     </span>
-                  }
-                  className="px-6 border-b border-white/10 last:border-0"
-                  classNames={{
-                    trigger: "py-4 hover:bg-white/5 transition-colors",
-                    content: "pb-4 text-muted-foreground leading-relaxed",
-                  }}
-                >
-                  {faq.a}
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

@@ -104,7 +104,7 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
                 id="disable_med_cert"
                 isSelected={flags.disable_med_cert}
                 onValueChange={() => handleToggle("DISABLE_MED_CERT", flags.disable_med_cert)}
-                isDisabled={isPending}
+                disabled={isPending}
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
                 id="disable_repeat_scripts"
                 isSelected={flags.disable_repeat_scripts}
                 onValueChange={() => handleToggle("DISABLE_REPEAT_SCRIPTS", flags.disable_repeat_scripts)}
-                isDisabled={isPending}
+                disabled={isPending}
               />
             </div>
           </div>
@@ -154,7 +154,7 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
                 id="disable_consults"
                 isSelected={flags.disable_consults}
                 onValueChange={() => handleToggle("DISABLE_CONSULTS", flags.disable_consults)}
-                isDisabled={isPending}
+                disabled={isPending}
               />
             </div>
           </div>

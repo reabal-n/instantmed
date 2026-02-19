@@ -1,6 +1,6 @@
 'use client'
 
-import { Accordion, AccordionItem } from '@/components/ui/accordion'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { ExternalLink } from 'lucide-react'
 import { faqItems } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
@@ -66,23 +66,24 @@ export function FAQSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <Accordion 
-            variant="splitted"
-            defaultExpandedKeys={["0"]}
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="0"
             className="gap-3"
           >
             {faqItems.map((item, index) => (
               <AccordionItem
                 key={index.toString()}
-                aria-label={item.question}
-                title={<span className="font-medium text-foreground">{item.question}</span>}
-                classNames={{
-                  base: "bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-colors",
-                  title: "text-foreground",
-                  content: "text-muted-foreground leading-relaxed pb-4",
-                }}
+                value={index.toString()}
+                className="bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-colors"
               >
-                {item.answer}
+                <AccordionTrigger className="text-foreground">
+                  <span className="font-medium text-foreground">{item.question}</span>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                  {item.answer}
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

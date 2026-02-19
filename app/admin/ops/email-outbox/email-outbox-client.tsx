@@ -531,7 +531,7 @@ export function EmailOutboxClient({
 
       {/* Table */}
       <Card>
-        <ScrollShadow orientation="horizontal">
+        <ScrollShadow className="overflow-x-auto">
           <table className="w-full text-sm" data-testid="email-outbox-table">
             <thead>
               <tr className="border-b bg-muted/50">

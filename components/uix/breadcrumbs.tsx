@@ -1,8 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Breadcrumbs, BreadcrumbItem } from "@heroui/react"
-import { ChevronRight, Home } from "lucide-react"
+import { ChevronRight, Home, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -33,10 +32,10 @@ export interface PageBreadcrumbsProps {
 }
 
 /**
- * PageBreadcrumbs - HeroUI Breadcrumbs wrapper
- * 
+ * PageBreadcrumbs - Pure Tailwind breadcrumbs with Next.js Link
+ *
  * Navigation breadcrumbs with optional home icon and collapsing.
- * 
+ *
  * @example
  * ```tsx
  * <PageBreadcrumbs
@@ -61,7 +60,7 @@ export function PageBreadcrumbs({
   // Build full links array with optional home
   const allLinks = React.useMemo(() => {
     const result: BreadcrumbLink[] = []
-    
+
     if (showHome) {
       result.push({
         label: "Home",
@@ -69,46 +68,81 @@ export function PageBreadcrumbs({
         icon: <Home className="h-4 w-4" />,
       })
     }
-    
+
     result.push(...links)
     return result
   }, [links, showHome, homeHref])
 
+  // Collapse logic: show first itemsBeforeCollapse, ellipsis, then last itemsAfterCollapse
+  const [collapsed, setCollapsed] = React.useState(true)
+
+  const displayLinks = React.useMemo(() => {
+    if (!maxItems || allLinks.length <= maxItems || !collapsed) {
+      return allLinks
+    }
+
+    const itemsBeforeCollapse = 1
+    const itemsAfterCollapse = 2
+    const before = allLinks.slice(0, itemsBeforeCollapse)
+    const after = allLinks.slice(allLinks.length - itemsAfterCollapse)
+
+    return [...before, { label: "__ellipsis__" } as BreadcrumbLink, ...after]
+  }, [allLinks, maxItems, collapsed])
+
+  const sizeClasses = {
+    sm: "text-xs gap-1",
+    md: "text-sm gap-1.5",
+    lg: "text-base gap-2",
+  }
+
   return (
-    <Breadcrumbs
-      size={size}
-      separator={separator}
-      maxItems={maxItems}
-      itemsBeforeCollapse={1}
-      itemsAfterCollapse={2}
-      classNames={{
-        list: cn("flex-wrap", className),
-      }}
-    >
-      {allLinks.map((link, index) => {
-        const isLast = index === allLinks.length - 1
-        
-        return (
-          <BreadcrumbItem
-            key={link.href || link.label}
-            isCurrent={isLast}
-            startContent={link.icon}
-          >
-            {link.href && !isLast ? (
-              <Link
-                href={link.href}
-                className="text-default-500 hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </Link>
-            ) : (
-              <span className={isLast ? "text-foreground font-medium" : ""}>
-                {link.label}
-              </span>
-            )}
-          </BreadcrumbItem>
-        )
-      })}
-    </Breadcrumbs>
+    <nav aria-label="Breadcrumb" className={className}>
+      <ol className={cn("flex flex-wrap items-center", sizeClasses[size])}>
+        {displayLinks.map((link, index) => {
+          const isLast = index === displayLinks.length - 1
+          const isEllipsis = link.label === "__ellipsis__"
+
+          return (
+            <li key={link.href || link.label + index} className="flex items-center gap-1.5">
+              {index > 0 && (
+                <span className="text-muted-foreground" aria-hidden="true">
+                  {separator}
+                </span>
+              )}
+
+              {isEllipsis ? (
+                <button
+                  type="button"
+                  onClick={() => setCollapsed(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors px-1"
+                  aria-label="Show more breadcrumbs"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              ) : link.href && !isLast ? (
+                <Link
+                  href={link.href}
+                  className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </Link>
+              ) : (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    isLast ? "text-foreground font-medium" : "text-muted-foreground"
+                  )}
+                  aria-current={isLast ? "page" : undefined}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
 }

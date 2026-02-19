@@ -1,19 +1,26 @@
 "use client"
 
 /**
- * UIX Accordion - Re-exports HeroUI Accordion with built-in animations
+ * UIX Accordion - Re-exports from ui/accordion with Radix primitives
  * Provides convenient access through the UIX layer
  */
 
-// Re-export HeroUI Accordion components directly
-// These already have excellent built-in animations
-export { 
-  Accordion, 
-  AccordionItem 
-} from "@heroui/react"
+// Re-export Radix-based Accordion components
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion"
 
 // Type exports for convenience
-export type { AccordionProps, AccordionItemProps } from "@heroui/react"
+export type {
+  AccordionSingleProps,
+  AccordionMultipleProps,
+} from "@radix-ui/react-accordion"
 
 // Aliases for consistency
-export { Accordion as UIXAccordion, AccordionItem as UIXAccordionItem } from "@heroui/react"
+export {
+  Accordion as UIXAccordion,
+  AccordionItem as UIXAccordionItem,
+} from "@/components/ui/accordion"

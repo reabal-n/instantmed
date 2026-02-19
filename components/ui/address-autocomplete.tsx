@@ -85,12 +85,21 @@ export function AddressAutocomplete({
     }
   }, [])
 
+  // Track whether a search has been attempted (for "no results" UI)
+  const [hasSearched, setHasSearched] = useState(false)
+
   // Trigger search when debounced value changes
   useEffect(() => {
     const searchValue = shouldSearch ? debouncedValue : ""
+    if (!searchValue) {
+      setHasSearched(false)
+    }
     // Wrap in IIFE to satisfy lint rule about async effects
     void (async () => {
       await doSearch(searchValue)
+      if (searchValue) {
+        setHasSearched(true)
+      }
     })()
   }, [debouncedValue, shouldSearch, doSearch])
 
@@ -147,6 +156,7 @@ export function AddressAutocomplete({
         break
       case "Escape":
         setIsOpen(false)
+        setHasSearched(false)
         break
     }
   }, [isOpen, suggestions, highlightedIndex, handleSelect])
@@ -156,6 +166,7 @@ export function AddressAutocomplete({
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        setHasSearched(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -245,6 +256,23 @@ export function AddressAutocomplete({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* No results state */}
+      {!isOpen && !isSearching && hasSearched && suggestions.length === 0 && value.length >= 3 && !isVerified && (
+        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+          <p className="text-sm text-muted-foreground text-center">No addresses found. Try a different search.</p>
+        </div>
+      )}
+
+      {/* Loading state during search */}
+      {isSearching && value.length >= 3 && (
+        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Searching addresses...</span>
+          </div>
+        </div>
       )}
 
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}

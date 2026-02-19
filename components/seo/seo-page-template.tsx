@@ -8,7 +8,8 @@
 import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { Button, Accordion, AccordionItem } from '@/components/uix'
+import { Button } from '@/components/uix'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import {
   AlertCircle,
   Check,
@@ -289,16 +290,18 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               Frequently asked questions
             </h2>
 
-            <Accordion variant="splitted" defaultExpandedKeys={["0"]}>
+            <Accordion type="single" collapsible defaultValue="0">
               {page.faqs.map((faq, idx) => (
                 <AccordionItem
                   key={idx.toString()}
-                  aria-label={faq.q}
-                  title={faq.q}
+                  value={idx.toString()}
                 >
-                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {faq.a}
-                  </p>
+                  <AccordionTrigger>{faq.q}</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {faq.a}
+                    </p>
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

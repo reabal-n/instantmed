@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Card as HeroCard } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
 export interface CardProps {
@@ -16,49 +15,48 @@ export interface CardProps {
   pressable?: boolean
 }
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ 
-  className, 
-  children, 
-  style, 
-  glass = "normal",
-  hoverable = true,
-  pressable = false,
-  ...props 
-}, ref) => {
-  // Unified glass card styles - consistent dark mode support
-  const craftCardStyles = {
-    subtle: "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10",
-    normal: "bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none",
-    elevated: "bg-white/90 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-md dark:shadow-none",
-  }
+const craftCardStyles = {
+  subtle:
+    "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10",
+  normal:
+    "bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none",
+  elevated:
+    "bg-white/90 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-md dark:shadow-none",
+}
 
-  return (
-    <HeroCard
-      ref={ref}
-      className={cn("text-card-foreground", className)}
-      style={style}
-      classNames={{
-        base: cn(
-          // Craft surface (no backdrop-blur)
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  (
+    {
+      className,
+      children,
+      style,
+      glass = "normal",
+      hoverable = true,
+      pressable = false,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        style={style}
+        className={cn(
+          "text-card-foreground",
           craftCardStyles[glass],
-          // Restrained radius
           "rounded-xl",
-          // Subtle transition
           "transition-all duration-200",
-          hoverable && [
-            "hover:shadow-md",
-            "hover:border-border/80",
-          ],
-          // Press effect - subtle
+          hoverable && "hover:shadow-md hover:border-border/80",
           pressable && "active:scale-[0.99]",
-        ),
-      }}
-      {...props}
-    >
-      {children}
-    </HeroCard>
-  )
-})
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  }
+)
 
 Card.displayName = "Card"
 
@@ -108,12 +106,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("px-6", className)}
-      {...props}
-    />
-  )
+  return <div className={cn("px-6", className)} {...props} />
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {

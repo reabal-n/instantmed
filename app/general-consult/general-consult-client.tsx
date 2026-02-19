@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { Accordion, AccordionItem } from "@/components/ui/accordion"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
@@ -728,23 +728,24 @@ export default function GeneralConsultPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <Accordion 
-                  variant="splitted"
-                  defaultExpandedKeys={["0"]}
+                <Accordion
+                  type="single"
+                  collapsible
+                  defaultValue="0"
                   className="gap-3"
                 >
                   {FAQS.map((item, index) => (
                     <AccordionItem
                       key={index.toString()}
-                      aria-label={item.question}
-                      title={<span className="font-medium text-foreground">{item.question}</span>}
-                      classNames={{
-                        base: "bg-content1 border border-divider shadow-sm hover:border-primary/20 transition-colors",
-                        title: "text-foreground",
-                        content: "text-muted-foreground leading-relaxed pb-4",
-                      }}
+                      value={index.toString()}
+                      className="bg-content1 border border-divider shadow-sm hover:border-primary/20 transition-colors"
                     >
-                      {item.answer}
+                      <AccordionTrigger className="text-foreground">
+                        <span className="font-medium text-foreground">{item.question}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                        {item.answer}
+                      </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>

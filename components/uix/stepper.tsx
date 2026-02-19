@@ -1,12 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Progress } from "@heroui/react"
+import { Progress } from "@/components/ui/progress"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /**
- * UIX Stepper - Modern step progress component using HeroUI Progress
+ * UIX Stepper - Modern step progress component using Radix Progress
  * Built-in smooth animations without Framer Motion
  */
 
@@ -31,8 +31,8 @@ export function Stepper({
   orientation = "horizontal",
   showLabels = true,
 }: StepperProps) {
-  const progress = steps.length > 1 
-    ? (currentStep / (steps.length - 1)) * 100 
+  const progress = steps.length > 1
+    ? (currentStep / (steps.length - 1)) * 100
     : 100
 
   if (orientation === "vertical") {
@@ -104,7 +104,7 @@ export function Stepper({
         <div className="relative flex items-start justify-between">
           {/* Background line */}
           <div className="absolute top-4 left-4 right-4 h-0.5 bg-default-200" />
-          
+
           {/* Animated progress line */}
           <div
             className="absolute top-4 left-4 h-0.5 bg-primary rounded-full transition-all duration-500 ease-out"
@@ -172,17 +172,10 @@ export function Stepper({
           </span>
         </div>
 
-        {/* HeroUI Progress component */}
+        {/* Radix Progress component */}
         <Progress
           value={((currentStep + 1) / steps.length) * 100}
-          color="primary"
-          size="sm"
-          radius="full"
-          classNames={{
-            base: "max-w-full",
-            track: "bg-default-100",
-            indicator: "bg-primary",
-          }}
+          className="h-1.5"
         />
 
         {/* Step dots */}
@@ -220,10 +213,10 @@ export function CompactStepper({ total, current, className }: CompactStepperProp
           key={index}
           className={cn(
             "h-1 rounded-full transition-all duration-300",
-            index === current 
-              ? "w-6 bg-primary" 
-              : index < current 
-                ? "w-1.5 bg-primary/60" 
+            index === current
+              ? "w-6 bg-primary"
+              : index < current
+                ? "w-1.5 bg-primary/60"
                 : "w-1.5 bg-default-200"
           )}
         />

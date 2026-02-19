@@ -10,7 +10,7 @@ import { MediaMentions } from "@/components/marketing/media-mentions"
 import { Mail } from "lucide-react"
 import { motion, useInView, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
 import { RotatingText } from "@/components/marketing/rotating-text"
-import { Accordion, AccordionItem } from "@/components/ui/accordion"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import {
   AHPRALogo,
   SSLLogo,
@@ -827,23 +827,24 @@ export default function TrustPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Accordion 
-                variant="splitted"
-                defaultExpandedKeys={["0"]}
+              <Accordion
+                type="single"
+                collapsible
+                defaultValue="0"
                 className="gap-3"
               >
                 {trustFAQs.map((faq, index) => (
                   <AccordionItem
                     key={index.toString()}
-                    aria-label={faq.question}
-                    title={<span className="font-medium text-foreground">{faq.question}</span>}
-                    classNames={{
-                      base: "bg-card border border-border/50 shadow-sm hover:border-primary/20 transition-colors",
-                      title: "text-foreground",
-                      content: "text-muted-foreground leading-relaxed pb-4 text-sm",
-                    }}
+                    value={index.toString()}
+                    className="bg-card border border-border/50 shadow-sm hover:border-primary/20 transition-colors"
                   >
-                    {faq.answer}
+                    <AccordionTrigger className="text-foreground">
+                      <span className="font-medium text-foreground">{faq.question}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground leading-relaxed pb-4 text-sm">
+                      {faq.answer}
+                    </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>

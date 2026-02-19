@@ -117,14 +117,14 @@ export function HowItWorks() {
           transition={{ delay: 0.4 }}
         >
           <Button
-            as={Link}
-            href="/request"
+            asChild
             variant="default"
             size="lg"
             className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-            endContent={<ArrowRight className="h-4 w-4" />}
           >
-            Get started now
+            <Link href="/request">
+              Get started now <ArrowRight className="h-4 w-4" />
+            </Link>
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
             Most people are sorted in under 30 minutes

@@ -1,78 +1,50 @@
 "use client"
 
 import * as React from "react"
-import {
-  Popover as HeroPopover,
-  PopoverTrigger,
-  PopoverContent,
-  type PopoverProps as HeroPopoverProps,
-} from "@heroui/react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { cn } from "@/lib/utils"
 
-export interface PopoverProps extends Omit<HeroPopoverProps, "isOpen" | "onOpenChange" | "children"> {
-  children?: React.ReactNode
-  // Support shadcn/ui API
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  // Support HeroUI API
-  isOpen?: boolean
-}
+const Popover = PopoverPrimitive.Root
 
-function Popover({
-  children,
-  open,
-  onOpenChange,
-  isOpen,
-  ...props
-}: PopoverProps) {
-  // Map shadcn/ui API to HeroUI API
-  const heroIsOpen = isOpen ?? open
-  const heroOnOpenChange = onOpenChange
+const PopoverTrigger = PopoverPrimitive.Trigger
 
-  return (
-    <HeroPopover
-      placement="bottom"
-      showArrow
-      backdrop="blur"
-      isOpen={heroIsOpen}
-      onOpenChange={heroOnOpenChange}
-      classNames={{
-        base: "before:bg-white/90 dark:before:bg-white/10",
-        content: cn(
-          // Glass surface
-          "bg-white/85 dark:bg-white/10 backdrop-blur-xl",
-          // Border
-          "border border-white/50 dark:border-white/15",
-          // Shape
-          "rounded-2xl",
-          // Glow shadow
-          "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]"
-        ),
-      }}
+const PopoverAnchor = PopoverPrimitive.Anchor
+
+const PopoverContent = React.forwardRef<
+  React.ComponentRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        // Glass surface
+        "bg-white/85 dark:bg-white/10 backdrop-blur-xl",
+        // Border
+        "border border-white/50 dark:border-white/15",
+        // Shape
+        "rounded-2xl p-4",
+        // Glow shadow
+        "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]",
+        // Z-index
+        "z-50",
+        // Width
+        "w-72",
+        // Outline
+        "outline-none",
+        // Animation
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
       {...props}
-    >
-      {React.Children.toArray(children)}
-    </HeroPopover>
-  )
-}
+    />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = "PopoverContent"
 
-function PopoverAnchor({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
-
-// Wrap PopoverContent to accept side and onPointerDownOutside props for API compatibility
-const WrappedPopoverContent = React.forwardRef<
-  HTMLDivElement,
-  Omit<React.ComponentProps<typeof PopoverContent>, "ref"> & { 
-    side?: "top" | "right" | "bottom" | "left"
-    onPointerDownOutside?: (event: PointerEvent) => void
-  }
->(({ side: _side, onPointerDownOutside: _onPointerDownOutside, ...props }, _ref) => {
-  // Note: HeroUI handles placement on the Popover component, not the content
-  // The side and onPointerDownOutside props are accepted for API compatibility
-  return <PopoverContent {...props} />
-})
-
-WrappedPopoverContent.displayName = "PopoverContent"
-
-export { Popover, PopoverTrigger, WrappedPopoverContent as PopoverContent, PopoverAnchor }
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

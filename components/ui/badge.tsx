@@ -1,28 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Chip as HeroChip, type ChipProps as HeroChipProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface BadgeProps extends Omit<HeroChipProps, "variant" | "color"> {
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: "default" | "secondary" | "destructive" | "outline" | "success"
   asChild?: boolean
-}
-
-const colorMap: Record<string, HeroChipProps["color"]> = {
-  default: "primary",
-  secondary: "secondary",
-  destructive: "danger",
-  outline: "default",
-  success: "success",
-}
-
-const variantMap: Record<string, HeroChipProps["variant"]> = {
-  default: "solid",
-  secondary: "flat",
-  destructive: "solid",
-  outline: "bordered",
-  success: "solid",
 }
 
 // Craft Design System badge styles - no glow, subtle tints
@@ -46,21 +29,16 @@ function Badge({
   }
 
   return (
-    <HeroChip
-      variant={variantMap[variant]}
-      color={colorMap[variant]}
-      size="sm"
-      radius="md" // Craft: restrained radius
+    <span
       className={cn(
-        "text-xs font-medium",
-        // Craft badge styles (no glow)
+        "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium transition-colors",
         craftBadgeStyles[variant],
         className
       )}
       {...props}
     >
       {children}
-    </HeroChip>
+    </span>
   )
 }
 

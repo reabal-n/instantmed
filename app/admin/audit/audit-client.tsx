@@ -262,7 +262,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
             </Select>
           </div>
 
-          <ScrollShadow orientation="horizontal" className="rounded-lg border">
+          <ScrollShadow className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -355,7 +355,6 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                 onChange={(newPage) => fetchLogs(filters, newPage)}
                 showControls
                 size="sm"
-                isDisabled={isLoading}
               />
             </div>
           )}

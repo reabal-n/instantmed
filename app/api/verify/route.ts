@@ -128,8 +128,8 @@ export async function GET(request: Request) {
   const code = rawCode.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "")
 
   // Validate code format - allow various formats
-  // MC-XXXXXXXX (certificate number) or XXXXXXXX (verification code)
-  const isValidFormat = /^(MC-)?[A-Z0-9]{6,16}$/.test(code)
+  // MC-YYYY-XXXXXXXX (certificate number), IM-TYPE-YYYYMMDD-NNNNN (certificate ref), or XXXXXXXX (verification code)
+  const isValidFormat = /^(MC-)?[A-Z0-9]{6,16}$/.test(code) || /^IM-(WORK|STUDY|CARER)-\d{8}-\d{5}$/.test(code)
   if (!isValidFormat) {
     // Apply stricter rate limit for invalid format attempts (potential brute force)
     await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
@@ -184,12 +184,38 @@ export async function GET(request: Request) {
           patient_name,
           doctor_name,
           doctor_nominals,
-          clinic_identity_snapshot
+          clinic_identity_snapshot,
+          certificate_ref
         `)
         .eq("certificate_number", code)
         .maybeSingle()
-      
-      issuedCert = certByCertNumber
+
+      if (certByCertNumber) {
+        issuedCert = certByCertNumber
+      } else {
+        // Try certificate_ref (e.g. IM-WORK-20260218-04827)
+        const { data: certByRef } = await supabase
+          .from("issued_certificates")
+          .select(`
+            id,
+            certificate_number,
+            verification_code,
+            certificate_type,
+            status,
+            issue_date,
+            start_date,
+            end_date,
+            patient_name,
+            doctor_name,
+            doctor_nominals,
+            clinic_identity_snapshot,
+            certificate_ref
+          `)
+          .eq("certificate_ref", code)
+          .maybeSingle()
+
+        issuedCert = certByRef
+      }
     }
 
     if (issuedCert) {

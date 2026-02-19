@@ -88,13 +88,14 @@ export function ReturningUserBanner({ className, variant = 'banner' }: Returning
           </div>
           {suggestedService && (
             <Button
-              as={Link}
-              href={SERVICE_URLS[suggestedService.service] || '/'}
+              asChild
               size="sm"
               variant="secondary"
             >
-              {suggestedService.name}
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <Link href={SERVICE_URLS[suggestedService.service] || '/'}>
+                {suggestedService.name}
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
             </Button>
           )}
         </div>
@@ -137,14 +138,15 @@ export function ReturningUserBanner({ className, variant = 'banner' }: Returning
             <div className="flex items-center gap-2">
               {suggestedService && (
                 <Button
-                  as={Link}
-                  href={SERVICE_URLS[suggestedService.service] || '/'}
+                  asChild
                   size="sm"
                   variant="default"
                   className="hidden sm:flex"
                 >
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <Link href={SERVICE_URLS[suggestedService.service] || '/'}>
+                    Continue
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
                 </Button>
               )}
               <button

@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Divider, type DividerProps as HeroDividerProps } from "@heroui/react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
 import { cn } from "@/lib/utils"
 
-export interface SeparatorProps extends HeroDividerProps {
+export interface SeparatorProps extends React.ComponentProps<typeof SeparatorPrimitive.Root> {
   orientation?: "horizontal" | "vertical"
   decorative?: boolean
 }
@@ -12,11 +12,12 @@ export interface SeparatorProps extends HeroDividerProps {
 function Separator({
   className,
   orientation = "horizontal",
-  decorative: _decorative = true,
+  decorative = true,
   ...props
 }: SeparatorProps) {
   return (
-    <Divider
+    <SeparatorPrimitive.Root
+      decorative={decorative}
       orientation={orientation}
       className={cn(
         "bg-border shrink-0",

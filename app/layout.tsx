@@ -10,7 +10,7 @@ import { SkyBackground } from "@/components/ui/sky-background"
 import { NightSkyBackground } from "@/components/ui/night-sky-background"
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 import { ThemeProvider } from "next-themes"
-import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
+
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { PostHogProvider } from "@/components/providers/posthog-provider"
@@ -208,7 +208,6 @@ export default function RootLayout({
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-              <HeroUIProviderWrapper>
                 <NetworkStatus />
                 <SkyBackground fullPage />
                 <NightSkyBackground starCount={100} showShootingStars />
@@ -226,7 +225,6 @@ export default function RootLayout({
                 <PostHogIdentify />
                 <ServiceWorkerRegistration />
                 <CookieBanner />
-              </HeroUIProviderWrapper>
           </ThemeProvider>
           </PostHogProvider>
         </body>

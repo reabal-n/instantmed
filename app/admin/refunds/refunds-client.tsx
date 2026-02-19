@@ -401,7 +401,6 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                 onChange={(newPage) => fetchPayments(filters, newPage)}
                 showControls
                 size="sm"
-                isDisabled={isLoading}
               />
             </div>
           )}

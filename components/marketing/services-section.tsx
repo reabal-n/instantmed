@@ -63,13 +63,14 @@ export function ServicesSection() {
                     From ${service.priceFrom.toFixed(2)}
                   </Badge>
                   <Button
-                    as={Link}
-                    href={service.href}
+                    asChild
                     variant="ghost"
                     className="magnetic-button scale-spring"
-                    endContent={<ArrowRight className="h-4 w-4 icon-spin-hover" />}
                   >
-                    {service.title.includes('Certificate') ? 'Request certificate' : 'Renew prescription'}
+                    <Link href={service.href}>
+                      {service.title.includes('Certificate') ? 'Request certificate' : 'Renew prescription'}
+                      <ArrowRight className="h-4 w-4 icon-spin-hover" />
+                    </Link>
                   </Button>
                 </div>
               </div>

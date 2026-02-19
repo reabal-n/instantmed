@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Input, InputProps } from "@heroui/react"
 import { Check, AlertCircle, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -10,7 +9,7 @@ interface ValidationRule {
   message: string
 }
 
-interface ValidatedInputProps extends Omit<InputProps, "onChange"> {
+interface ValidatedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "size"> {
   value: string
   onChange: (value: string) => void
   validationRules?: ValidationRule[]
@@ -39,10 +38,13 @@ export function ValidatedInput({
   label,
   type = "text",
   className,
+  id,
   ...props
 }: ValidatedInputProps) {
   const [touched, setTouched] = useState(false)
   const [focused, setFocused] = useState(false)
+
+  const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, "-")}`
 
   // Compute validation state directly instead of storing in state
   const validationState = (() => {
@@ -96,70 +98,73 @@ export function ValidatedInput({
 
   return (
     <div className="space-y-1">
-      <Input
-        {...props}
-        type={type}
-        label={label}
-        variant="bordered"
-        radius="lg"
-        value={displayValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
-        maxLength={maxLength}
-        className={className}
-        classNames={{
-          base: "bg-transparent",
-          mainWrapper: "bg-transparent",
-          input: cn(
-            "text-foreground placeholder:text-slate-400 bg-transparent",
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-foreground/80 mb-1">
+          {label}
+        </label>
+      )}
+      <div
+        className={cn(
+          "flex items-center w-full rounded-lg",
+          "bg-transparent",
+          "border border-slate-200 dark:border-slate-700",
+          "shadow-none",
+          "transition-all duration-200",
+          "hover:border-slate-300 dark:hover:border-slate-600",
+          "focus-within:border-primary",
+          error && touched && "!border-red-500",
+          isValid && touched && !error && "!border-green-500",
+          className
+        )}
+      >
+        <input
+          {...props}
+          id={inputId}
+          type={type}
+          value={displayValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          maxLength={maxLength}
+          className={cn(
+            "flex-1 bg-transparent px-3 py-2 h-10",
+            "text-foreground placeholder:text-slate-400",
+            "border-none shadow-none outline-none",
+            "text-base md:text-sm font-sans",
             error && touched && "text-red-700 dark:text-red-400",
             isValid && touched && "text-green-700 dark:text-green-400"
-          ),
-          inputWrapper: cn(
-            // Single border layer from variant="bordered"
-            "bg-transparent shadow-none",
-            "transition-all duration-200",
-            "hover:border-slate-300 dark:hover:border-slate-600",
-            // Focus: border color only, no ring (single visual boundary)
-            "data-[focused=true]:border-primary",
-            error && touched && "!border-red-500",
-            isValid && touched && !error && "!border-green-500"
-          ),
-          innerWrapper: "bg-transparent",
-        }}
-        endContent={
-          <div className="flex items-center gap-2">
-            {/* Character Counter */}
-            {showCharacterCounter && maxLength && (
-              <span
-                className={cn(
-                  "text-xs font-medium transition-colors",
-                  remainingChars !== null && remainingChars < 10
-                    ? "text-dawn-600 dark:text-dawn-400"
-                    : remainingChars === 0
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-muted-foreground"
-                )}
-              >
-                {characterCount}/{maxLength}
-              </span>
-            )}
-            
-            {/* Success/Error Indicator */}
-            {touched && (
-              <div className="flex items-center">
-                {isValid && showSuccessIndicator && !error && (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
-                )}
-                {error && (
-                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
-                )}
-              </div>
-            )}
-          </div>
-        }
-      />
+          )}
+        />
+        <div className="flex items-center gap-2 pr-3">
+          {/* Character Counter */}
+          {showCharacterCounter && maxLength && (
+            <span
+              className={cn(
+                "text-xs font-medium transition-colors",
+                remainingChars !== null && remainingChars < 10
+                  ? "text-dawn-600 dark:text-dawn-400"
+                  : remainingChars === 0
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-muted-foreground"
+              )}
+            >
+              {characterCount}/{maxLength}
+            </span>
+          )}
+
+          {/* Success/Error Indicator */}
+          {touched && (
+            <div className="flex items-center">
+              {isValid && showSuccessIndicator && !error && (
+                <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
+              )}
+              {error && (
+                <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Helper Text / Format Hint */}
       <div className="flex items-start justify-between gap-2">
@@ -171,7 +176,7 @@ export function ValidatedInput({
               {helperText}
             </p>
           )}
-          
+
           {/* Format Hint - shows on focus */}
           {formatHint && showFormatHintOnFocus && focused && !error && (
             <p className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in duration-200">
@@ -179,7 +184,7 @@ export function ValidatedInput({
               Format: <span className="font-mono font-medium">{formatHint}</span>
             </p>
           )}
-          
+
           {/* Error Message - Progressive disclosure: only after blur/touch */}
           {error && touched && (
             <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
@@ -187,7 +192,7 @@ export function ValidatedInput({
               {error}
             </p>
           )}
-          
+
           {/* Success Message - subtle feedback */}
           {isValid && touched && !error && showSuccessIndicator && (
             <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
@@ -258,16 +263,16 @@ interface ValidationFeedbackProps {
   showSuccess?: boolean
 }
 
-export function ValidationFeedback({ 
-  value, 
-  touched, 
+export function ValidationFeedback({
+  value,
+  touched,
   validate,
-  showSuccess = true 
+  showSuccess = true,
 }: ValidationFeedbackProps) {
   if (!touched && !value) return null
-  
+
   const result = validate(value)
-  
+
   if (result.valid && showSuccess && value) {
     return (
       <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1 animate-in fade-in duration-200">
@@ -276,20 +281,22 @@ export function ValidationFeedback({
       </p>
     )
   }
-  
+
   if (!result.valid && touched && result.message) {
     const isWarning = result.type === "warning"
     return (
-      <p className={cn(
-        "text-xs flex items-center gap-1 mt-1 animate-in slide-in-from-top-1 duration-200",
-        isWarning ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
-      )}>
+      <p
+        className={cn(
+          "text-xs flex items-center gap-1 mt-1 animate-in slide-in-from-top-1 duration-200",
+          isWarning ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
+        )}
+      >
         {isWarning ? <Info className="w-3 h-3 shrink-0" /> : <AlertCircle className="w-3 h-3 shrink-0" />}
         {result.message}
       </p>
     )
   }
-  
+
   // In-progress hint (e.g., "3 more digits needed")
   if (!result.valid && result.type === "info" && result.message) {
     return (
@@ -299,6 +306,6 @@ export function ValidationFeedback({
       </p>
     )
   }
-  
+
   return null
 }

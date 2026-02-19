@@ -1212,9 +1212,17 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     }
 
     // Generate a signed download URL (7-day expiry)
-    const { data: signedUrlData } = await supabase.storage
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from("documents")
       .createSignedUrl(cert.storage_path, 60 * 60 * 24 * 7)
+
+    if (signedUrlError) {
+      logger.warn("[Email Dispatcher] Failed to create signed URL for employer email, using fallback", {
+        certificateId: row.certificate_id,
+        storagePath: cert.storage_path,
+        error: signedUrlError.message,
+      })
+    }
 
     const downloadUrl = signedUrlData?.signedUrl || `${env.appUrl}/api/certificates/${row.certificate_id}/download`
 
@@ -1279,6 +1287,9 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
 /**
  * Generate PDF for a certificate and upload to storage.
  * Called by the email dispatcher when metadata.needs_pdf_generation is true.
+ *
+ * Uses the template renderer (pdf-lib) — the same pipeline used for initial
+ * certificate generation in approve-cert.ts.
  */
 async function generateAndUploadPdfForCertificate(
   certificateId: string,
@@ -1287,10 +1298,10 @@ async function generateAndUploadPdfForCertificate(
   const supabase = createServiceRoleClient()
 
   try {
-    // Fetch certificate with all needed fields
+    // Fetch certificate with fields needed for template rendering
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
-      .select("id, intake_id, certificate_number, verification_code, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, created_at, updated_at")
+      .select("id, certificate_number, certificate_type, certificate_ref, issue_date, start_date, end_date, patient_id, patient_name, storage_path")
       .eq("id", certificateId)
       .single()
 
@@ -1299,34 +1310,54 @@ async function generateAndUploadPdfForCertificate(
     }
 
     // Skip if PDF already generated (storage_path doesn't start with 'pending:')
-    if (!cert.storage_path.startsWith("pending:")) {
+    if (!cert.storage_path || !cert.storage_path.startsWith("pending:")) {
       logger.info("[Email Dispatcher] PDF already exists, skipping generation", { certificateId })
       return { success: true }
     }
 
-    // Calculate duration days
-    const startDate = new Date(cert.start_date)
-    const endDate = new Date(cert.end_date)
-    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-
-    // Build render input matching CertificateRenderInput interface
-    const renderInput = {
-      certificateNumber: cert.certificate_number,
-      verificationCode: cert.verification_code,
-      certificateType: cert.certificate_type as "work" | "study" | "carer",
-      patientName: cert.patient_name,
-      patientDob: cert.patient_dob,
-      issueDate: cert.issue_date,
-      startDate: cert.start_date,
-      endDate: cert.end_date,
-      durationDays,
-      doctorProfileId: cert.doctor_id,
-      generatedAt: new Date().toISOString(),
+    // Validate required date fields before rendering
+    if (!cert.issue_date || !cert.start_date || !cert.end_date) {
+      logger.error("[Email Dispatcher] Certificate missing required date fields", { certificateId, hasIssueDate: !!cert.issue_date, hasStartDate: !!cert.start_date, hasEndDate: !!cert.end_date })
+      return { success: false, error: "Certificate missing required date fields" }
     }
 
-    // Generate PDF using canonical render function
-    const { renderMedCertPdf } = await import("@/lib/pdf/med-cert-render")
-    const result = await renderMedCertPdf(renderInput)
+    // Format dates for the template renderer (ISO strings → display strings)
+    const formatDisplayDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) {
+        throw new Error(`Invalid date: ${dateStr}`)
+      }
+      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
+    }
+    const formatShortDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) {
+        throw new Error(`Invalid date: ${dateStr}`)
+      }
+      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
+    }
+
+    const certificateType = cert.certificate_type as "work" | "study" | "carer"
+
+    // Use stored certificate_ref, or generate one as fallback
+    let certificateRef = cert.certificate_ref
+    if (!certificateRef) {
+      logger.warn("[Email Dispatcher] Certificate missing certificate_ref, generating fallback", { certificateId })
+      const { generateCertificateRef } = await import("@/lib/pdf/cert-identifiers")
+      certificateRef = generateCertificateRef(certificateType)
+    }
+
+    // Generate PDF using template renderer (same pipeline as approve-cert.ts)
+    const { renderTemplatePdf } = await import("@/lib/pdf/template-renderer")
+    const result = await renderTemplatePdf({
+      certificateType,
+      patientName: cert.patient_name,
+      consultationDate: formatDisplayDate(cert.issue_date),
+      startDate: formatDisplayDate(cert.start_date),
+      endDate: formatDisplayDate(cert.end_date),
+      certificateRef,
+      issueDate: formatShortDate(cert.issue_date),
+    })
 
     if (!result.success || !result.buffer) {
       logger.error("[Email Dispatcher] PDF render failed", { certificateId, error: result.error })
@@ -1347,14 +1378,10 @@ async function generateAndUploadPdfForCertificate(
       return { success: false, error: `PDF upload failed: ${uploadError.message}` }
     }
 
-    // Update certificate with real storage path and snapshots
+    // Update certificate with real storage path
     const { error: updateError } = await supabase
       .from("issued_certificates")
-      .update({ 
-        storage_path: storagePath,
-        template_config_snapshot: result.templateConfig || cert.template_config_snapshot,
-        clinic_identity_snapshot: result.clinicIdentity || cert.clinic_identity_snapshot,
-      })
+      .update({ storage_path: storagePath })
       .eq("id", certificateId)
 
     if (updateError) {

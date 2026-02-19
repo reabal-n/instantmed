@@ -9,7 +9,7 @@ import {
   LiveWaitTime,
   StatsStrip,
 } from '@/components/marketing'
-import { LazyFAQSection } from '@/components/marketing/lazy-faq-section'
+import { FAQSection } from '@/components/marketing/faq-section'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
 import { Navbar } from '@/components/shared/navbar'
@@ -122,7 +122,7 @@ export default function HomePage() {
         {/* FAQs */}
         <Suspense fallback={<SectionSkeleton />}>
           <ParallaxSection speed={0.15}>
-            <LazyFAQSection />
+            <FAQSection />
           </ParallaxSection>
         </Suspense>
         

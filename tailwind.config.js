@@ -1,5 +1,3 @@
-import { heroui } from "@heroui/theme"
-
 const {
   default: flattenColorPalette,
 } = require("tailwindcss/lib/util/flattenColorPalette");
@@ -10,7 +8,6 @@ const config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
@@ -163,101 +160,6 @@ const config = {
   darkMode: "class",
   plugins: [
     addVariablesForColors,
-    heroui({
-      themes: {
-        light: {
-          colors: {
-            // InstantMed — Morning sky pastel palette
-            background: "#FAFBFC",
-            foreground: "#1E293B",
-            primary: {
-              50: "#EFF6FF",
-              100: "#DBEAFE",
-              200: "#BFDBFE",
-              300: "#93C5FD",
-              400: "#60A5FA",
-              500: "#3B82F6",
-              600: "#2563EB",
-              700: "#1D4ED8",
-              800: "#1E40AF",
-              900: "#1E3A8A",
-              DEFAULT: "#3B82F6",
-              foreground: "#ffffff",
-            },
-            secondary: {
-              50: "#F8FAFC",
-              100: "#F1F5F9",
-              200: "#E2E8F0",
-              300: "#CBD5E1",
-              400: "#94A3B8",
-              500: "#64748B",
-              600: "#475569",
-              700: "#334155",
-              800: "#1E293B",
-              900: "#0F172A",
-              DEFAULT: "#F1F5F9",
-              foreground: "#334155",
-            },
-            success: {
-              DEFAULT: "#22C55E",
-              foreground: "#ffffff",
-            },
-            warning: {
-              DEFAULT: "#F59E0B",
-              foreground: "#1E293B",
-            },
-            danger: {
-              DEFAULT: "#F87171",
-              foreground: "#ffffff",
-            },
-          },
-        },
-        dark: {
-          colors: {
-            // InstantMed — Clean dark mode with sky accents
-            background: "#0F172A",
-            foreground: "#F1F5F9",
-            primary: {
-              50: "#1E3A8A",
-              100: "#1E40AF",
-              200: "#1D4ED8",
-              300: "#2563EB",
-              400: "#3B82F6",
-              500: "#60A5FA",
-              600: "#93C5FD",
-              700: "#BFDBFE",
-              800: "#DBEAFE",
-              900: "#EFF6FF",
-              DEFAULT: "#60A5FA",
-              foreground: "#0F172A",
-            },
-            secondary: {
-              DEFAULT: "#334155",
-              foreground: "#F1F5F9",
-            },
-            success: {
-              DEFAULT: "#22C55E",
-              foreground: "#0F172A",
-            },
-            warning: {
-              DEFAULT: "#F59E0B",
-              foreground: "#0F172A",
-            },
-            danger: {
-              DEFAULT: "#F87171",
-              foreground: "#ffffff",
-            },
-          },
-        },
-      },
-      layout: {
-        radius: {
-          small: "10px",
-          medium: "12px",
-          large: "16px",
-        },
-      },
-    }),
   ],
 }
 

@@ -1,111 +1,56 @@
 "use client"
 
 import * as React from "react"
-import {
-  Modal as HeroModal,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  useDisclosure,
-  type ModalProps as HeroModalProps,
-} from "@heroui/react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface DialogProps extends Omit<HeroModalProps, "children" | "isOpen" | "onClose"> {
-  children?: React.ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-}
-
-function Dialog({
-  open,
-  onOpenChange,
-  children,
-  ...props
-}: DialogProps) {
-  return (
-    <HeroModal
-      isOpen={open}
-      onClose={() => onOpenChange?.(false)}
-      // Soft Pop Glass styling
-      classNames={{
-        // Glass backdrop
-        backdrop: cn(
-          "bg-black/40",
-          "backdrop-blur-sm",
-        ),
-        // Elevated glass wrapper
-        wrapper: "z-50",
-      }}
-      // Spring physics motion (Linear style)
-      motionProps={{
-        variants: {
-          enter: {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            transition: {
-              type: "spring",
-              stiffness: 200,
-              damping: 30,
-            },
-          },
-          exit: {
-            y: 20,
-            opacity: 0,
-            scale: 0.95,
-            transition: {
-              duration: 0.2,
-              ease: "easeOut",
-            },
-          },
-        },
-      }}
-      {...props}
-    >
-      {children}
-    </HeroModal>
-  )
-}
-
-function DialogTrigger({
-  children,
-  asChild,
-  ...props
-}: React.ComponentProps<"button"> & { asChild?: boolean }) {
-  if (asChild && React.isValidElement(children)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.cloneElement requires any for props spread
-    return React.cloneElement(children, props as any)
+function useDisclosure(initial = false) {
+  const [isOpen, setIsOpen] = React.useState(initial)
+  return {
+    isOpen,
+    onOpen: () => setIsOpen(true),
+    onClose: () => setIsOpen(false),
+    onOpenChange: setIsOpen,
   }
-  return <button {...props}>{children}</button>
 }
 
-function DialogPortal({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
+const Dialog = DialogPrimitive.Root
 
-function DialogClose({
-  children,
-  ...props
-}: React.ComponentProps<"button">) {
-  return <button {...props}>{children}</button>
-}
+const DialogTrigger = DialogPrimitive.Trigger
 
-function DialogOverlay({ className: _className }: { className?: string }) {
-  return null // Handled by HeroUI Modal
-}
+const DialogPortal = DialogPrimitive.Portal
 
-function DialogContent({
-  className,
-  children,
-  showCloseButton: _showCloseButton = true,
-  ...props
-}: React.ComponentProps<typeof ModalContent> & {
-  showCloseButton?: boolean
-}) {
-  return (
-    <ModalContent
+const DialogClose = DialogPrimitive.Close
+
+const DialogOverlay = React.forwardRef<
+  React.ComponentRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50",
+      "bg-black/40 backdrop-blur-sm",
+      "data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+  />
+))
+DialogOverlay.displayName = "DialogOverlay"
+
+const DialogContent = React.forwardRef<
+  React.ComponentRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
       className={cn(
+        "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 p-6",
         // Clean surface
         "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
         "border border-border",
@@ -115,18 +60,33 @@ function DialogContent({
         "shadow-xl",
         // Mobile optimizations
         "max-h-[90vh] overflow-y-auto",
+        // Animation
+        "duration-200",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+        "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
         className
       )}
       {...props}
     >
-      {(_onClose) => children as React.ReactNode}
-    </ModalContent>
-  )
-}
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <X className="size-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContent.displayName = "DialogContent"
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function DialogHeader({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <ModalHeader
+    <div
       className={cn(
         "flex flex-col gap-2 text-center sm:text-left",
         "border-b border-border",
@@ -137,10 +97,14 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
     />
   )
 }
+DialogHeader.displayName = "DialogHeader"
 
-function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+function DialogFooter({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <ModalFooter
+    <div
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         "border-t border-border",
@@ -151,30 +115,31 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     />
   )
 }
+DialogFooter.displayName = "DialogFooter"
 
-function DialogTitle({
-  className,
-  ...props
-}: React.ComponentProps<"h2">) {
-  return (
-    <h2
-      className={cn("text-lg leading-none font-semibold", className)}
-      {...props}
-    />
-  )
-}
+const DialogTitle = React.forwardRef<
+  React.ComponentRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn("text-lg leading-none font-semibold", className)}
+    {...props}
+  />
+))
+DialogTitle.displayName = "DialogTitle"
 
-function DialogDescription({
-  className,
-  ...props
-}: React.ComponentProps<"p">) {
-  return (
-    <p
-      className={cn("text-muted-foreground text-sm", className)}
-      {...props}
-    />
-  )
-}
+const DialogDescription = React.forwardRef<
+  React.ComponentRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-muted-foreground text-sm", className)}
+    {...props}
+  />
+))
+DialogDescription.displayName = "DialogDescription"
 
 export {
   Dialog,

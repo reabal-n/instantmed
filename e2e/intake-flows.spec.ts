@@ -98,11 +98,10 @@ async function waitForStep(page: Page, text: string | RegExp, timeout = 15000) {
 }
 
 /**
- * Fill a HeroUI Textarea.
+ * Fill a textarea on the page.
  *
- * HeroUI Textarea renders TWO <textarea> elements — the visible one and
- * a hidden one for auto-sizing. Using `page.locator("textarea")` fails
- * with "strict mode violation". We target the visible textbox by role.
+ * Targets the visible textbox by role for reliability across
+ * different component implementations.
  */
 async function fillTextarea(page: Page, text: string) {
   const textarea = page.getByRole("textbox").first()
@@ -290,7 +289,7 @@ async function completeConsultReasonStep(page: Page, opts?: { subtype?: string }
     await page.getByRole("button", { name: categoryLabel }).click()
   }
 
-  // Fill in details (min 20 chars) — use fillTextarea to avoid HeroUI double-textarea issue
+  // Fill in details (min 20 chars)
   await fillTextarea(page,
     "I have been experiencing persistent lower back pain for the last two weeks and would like to discuss treatment options and possible referrals."
   )
@@ -330,7 +329,7 @@ test.describe("Intake: Medical Certificate — full flow", () => {
     await clickChip(page, /Headache/i)
     // Symptom duration
     await clickChip(page, /1-2 days/i)
-    // Symptom details (min 20 chars) — use fillTextarea for HeroUI compatibility
+    // Symptom details (min 20 chars)
     await fillTextarea(page,
       "I have had a cold and headache since yesterday, with body aches and a runny nose."
     )
@@ -439,7 +438,7 @@ test.describe("Intake: Consultation without subtype — category selection", () 
     // Select "General consultation" — button name includes emoji: "🩺General consultation"
     await page.getByRole("button", { name: /General consultation/i }).click()
 
-    // Fill details — use fillTextarea for HeroUI compatibility
+    // Fill details
     await fillTextarea(page,
       "I need a referral to a specialist for ongoing knee pain that has lasted several months."
     )

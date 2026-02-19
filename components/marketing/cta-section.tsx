@@ -74,14 +74,14 @@ export function CTASection() {
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
-                  as={Link}
-                  href="/request"
+                  asChild
                   variant="default"
                   size="lg"
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
-                  endContent={<ArrowRight className="h-4 w-4" />}
                 >
-                  Get started
+                  <Link href="/request">
+                    Get started <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
               

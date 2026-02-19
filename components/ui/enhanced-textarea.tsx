@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Textarea as HeroTextarea, type TextAreaProps as HeroTextareaProps } from "@heroui/react"
 import { AlertCircle, Check, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface EnhancedTextareaProps extends Omit<HeroTextareaProps, "onChange" | "value"> {
+interface EnhancedTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange" | "value"> {
   value: string
   onChange: (value: string) => void
   maxLength?: number
@@ -30,14 +29,15 @@ export function EnhancedTextarea({
 }: EnhancedTextareaProps) {
   const [_focused, setFocused] = useState(false)
   const [touched, setTouched] = useState(false)
-  
+
   const characterCount = value.length
   const remainingChars = maxLength ? maxLength - characterCount : null
   const isValid = maxLength ? characterCount <= maxLength && characterCount > 0 : value.length > 0
   const isNearLimit = remainingChars !== null && remainingChars < 20 && remainingChars > 0
   const isAtLimit = remainingChars === 0
 
-  const handleValueChange = (newValue: string) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value
     // Respect maxLength if provided
     if (maxLength && newValue.length > maxLength) {
       return
@@ -55,49 +55,38 @@ export function EnhancedTextarea({
     <div className="space-y-1.5">
       {/* overflow-visible prevents bottom border clipping */}
       <div className="relative overflow-visible">
-        <HeroTextarea
+        {label && (
+          <label className="block text-sm font-medium text-foreground mb-1.5">
+            {label}
+          </label>
+        )}
+        <textarea
           {...props}
-          label={label || undefined}
           value={value}
-          onValueChange={handleValueChange}
+          onChange={handleChange}
           onBlur={handleBlur}
           onFocus={() => setFocused(true)}
           maxLength={maxLength}
-          variant="bordered"
-          radius="lg"
           className={cn(
+            "w-full rounded-lg px-3 py-2",
+            "bg-white/90 dark:bg-white/5",
+            "border border-slate-200 dark:border-slate-700",
+            "shadow-none outline-none",
+            "min-h-[120px]",
             "transition-all duration-200",
+            "hover:border-slate-300 dark:hover:border-slate-600",
+            "focus:border-primary focus:ring-0",
+            "text-foreground placeholder:text-slate-400",
+            "font-sans text-base md:text-sm",
+            "resize-y",
+            error && touched && "!border-red-500",
+            isValid && touched && !error && showSuccessIndicator && "!border-green-500",
+            error && touched && "text-red-700 dark:text-red-400",
+            isValid && touched && !error && showSuccessIndicator && "text-green-700 dark:text-green-400",
             className
           )}
-          classNames={{
-            // Ensure base doesn't clip content
-            base: "gap-0 bg-transparent overflow-visible",
-            mainWrapper: "bg-transparent overflow-visible",
-            inputWrapper: cn(
-              // Single border layer - no duplicate with variant="bordered"
-              "bg-white/90 dark:bg-white/5 rounded-lg shadow-none",
-              // Stable min-height to prevent clipping
-              "min-h-[120px]",
-              "transition-all duration-200",
-              "hover:border-slate-300 dark:hover:border-slate-600",
-              // Focus: border color only, no ring (single visual boundary)
-              "data-[focused=true]:border-primary",
-              error && touched && "!border-red-500",
-              isValid && touched && !error && showSuccessIndicator && "!border-green-500"
-            ),
-            innerWrapper: "bg-transparent",
-            input: cn(
-              "text-foreground placeholder:text-slate-400 bg-transparent",
-              // Ensure textarea itself has stable min-height
-              "min-h-[100px]",
-              error && touched && "text-red-700 dark:text-red-400",
-              isValid && touched && !error && showSuccessIndicator && "text-green-700 dark:text-green-400"
-            ),
-            label: "text-foreground font-medium",
-            helperWrapper: "hidden", // Hide HeroUI's helper wrapper, we render our own
-          }}
         />
-        
+
         {/* Success/Error Indicator */}
         {touched && (
           <div className="absolute right-3 top-3 pointer-events-none">
@@ -121,7 +110,7 @@ export function EnhancedTextarea({
               {helperText}
             </p>
           )}
-          
+
           {/* Error Message */}
           {error && touched && (
             <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
@@ -129,7 +118,7 @@ export function EnhancedTextarea({
               {error}
             </p>
           )}
-          
+
           {/* Success Message */}
           {isValid && touched && !error && showSuccessIndicator && (
             <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
@@ -138,7 +127,7 @@ export function EnhancedTextarea({
             </p>
           )}
         </div>
-        
+
         {/* Character Counter */}
         {showCharacterCounter && maxLength && (
           <span
@@ -158,4 +147,3 @@ export function EnhancedTextarea({
     </div>
   )
 }
-

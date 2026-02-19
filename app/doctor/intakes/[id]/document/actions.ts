@@ -129,26 +129,15 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: result.error || "Failed to generate certificate" }
     }
 
-    // Check email status from email_outbox if we have a certificate ID
-    let emailStatus: "sent" | "failed" | "pending" = "pending"
-    if (result.certificateId) {
-      const { data: outboxRow } = await supabase
-        .from("email_outbox")
-        .select("status")
-        .eq("certificate_id", result.certificateId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      
-      if (outboxRow?.status === "sent" || outboxRow?.status === "skipped_e2e") {
-        emailStatus = "sent"
-      } else if (outboxRow?.status === "failed") {
-        emailStatus = "failed"
-      }
-    }
+    // Use emailSent from approveAndSendCert result directly
+    const emailStatus: "sent" | "failed" | "pending" = result.emailSent === true
+      ? "sent"
+      : result.emailSent === false
+        ? "failed"
+        : "pending"
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       certificateId: result.certificateId,
       emailStatus,
     }

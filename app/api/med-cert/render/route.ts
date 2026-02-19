@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
+import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
+import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
 import { requireValidCsrf } from "@/lib/security/csrf"
 
 /**
- * Render API endpoint for generating and uploading medical certificate PDFs
- * Called by issueMedCertificate server action
- * Doctor-only access
+ * Render API endpoint for generating and uploading medical certificate PDFs.
+ * Uses the same template renderer as the production approval pipeline
+ * (lib/pdf/template-renderer.ts) so output matches exactly.
+ *
+ * Called by issueMedCertificate server action.
+ * Doctor-only access.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -62,33 +66,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert MedCertDraft to factory's expected format (MedCertDraftData)
-    // Note: doctor_ahpra is AHPRA registration number, NOT provider number
-    // The factory uses provider_number for the Medicare provider number displayed on cert
-    const draftDataForFactory = {
-      patient_name: draftData.patient_full_name,
-      dob: draftData.patient_dob,
-      reason: draftData.reason_summary,
-      date_from: draftData.date_from,
-      date_to: draftData.date_to,
-      work_capacity: null,
-      notes: null,
-      doctor_name: draftData.doctor_typed_name || "",
-      provider_number: draftData.doctor_ahpra || "", // Note: MedCertDraft stores provider info in doctor_ahpra field
-      created_date: new Date().toISOString().split("T")[0],
+    // Map certificate_type to template renderer's expected type
+    const certTypeMap: Record<string, "work" | "study" | "carer"> = {
+      work: "work",
+      uni: "study",
+      carer: "carer",
+    }
+    const certificateType = certTypeMap[draftData.certificate_type || "work"] || "work"
+
+    // Format dates for display
+    const formatDisplayDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
+    }
+    const formatShortDate = (dateStr: string) => {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
     }
 
-    // Generate PDF using factory
-    const result = await generateMedCertPdfFactory({
-      data: draftDataForFactory,
-      subtype: draftData.certificate_type,
-      requestId,
+    const certificateRef = generateCertificateRef(certificateType)
+    const today = new Date().toISOString().split("T")[0]!
+
+    // Generate PDF using template renderer (same pipeline as approve-cert.ts)
+    const result = await renderTemplatePdf({
+      certificateType,
+      patientName: draftData.patient_full_name,
+      consultationDate: formatDisplayDate(today),
+      startDate: formatDisplayDate(draftData.date_from),
+      endDate: formatDisplayDate(draftData.date_to),
+      certificateRef,
+      issueDate: formatShortDate(today),
     })
+
+    if (!result.success || !result.buffer) {
+      log.error("PDF render failed", { requestId, error: result.error })
+      return NextResponse.json(
+        { success: false, error: result.error || "Failed to render PDF" },
+        { status: 500 }
+      )
+    }
 
     log.info("PDF generated successfully", {
       requestId,
-      certId: result.certId,
-      size: result.size,
+      certificateRef,
+      size: result.buffer.length,
     })
 
     // Upload to Supabase Storage (documents bucket — matches canonical approve-cert pipeline)
@@ -146,13 +169,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       pdfUrl,
-      certId: result.certId,
-      size: result.size,
+      certId: certificateRef,
+      size: result.buffer.length,
     })
   } catch (error) {
-    log.error("Error rendering medical certificate", {
-      error: error instanceof Error ? error.message : String(error),
-    })
+    log.error("Error rendering medical certificate", {}, error instanceof Error ? error : undefined)
     return NextResponse.json(
       {
         success: false,

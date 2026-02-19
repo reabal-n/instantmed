@@ -1,6 +1,5 @@
 "use client"
 
-import { Input, InputProps } from "@heroui/react"
 import { useState, useCallback } from "react"
 import {
   formatMedicareNumber,
@@ -25,7 +24,7 @@ type FormatType =
   | "irn"
   | "none"
 
-interface FormattedInputProps extends Omit<InputProps, "onChange" | "value"> {
+interface FormattedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "size"> {
   /** Format type */
   format?: FormatType
   /** Controlled value */
@@ -34,6 +33,12 @@ interface FormattedInputProps extends Omit<InputProps, "onChange" | "value"> {
   onChange?: (value: string) => void
   /** Get unformatted value for validation */
   getUnformattedValue?: (formatted: string) => string
+  /** Label text */
+  label?: string
+  /** Mark as invalid */
+  isInvalid?: boolean
+  /** Error message */
+  errorMessage?: string
 }
 
 export function FormattedInput({
@@ -42,11 +47,16 @@ export function FormattedInput({
   onChange,
   getUnformattedValue,
   className,
+  label,
+  isInvalid,
+  errorMessage,
+  id,
   ...props
 }: FormattedInputProps) {
   const [internalValue, setInternalValue] = useState("")
 
   const value = controlledValue !== undefined ? controlledValue : internalValue
+  const inputId = id || (label ? `formatted-input-${label.toLowerCase().replace(/\s+/g, "-")}` : undefined)
 
   const formatValue = useCallback(
     (inputValue: string): string => {
@@ -112,15 +122,35 @@ export function FormattedInput({
   )
 
   return (
-    <Input
-      {...props}
-      value={value}
-      onChange={handleChange}
-      className={cn(
-        "transition-all duration-200",
-        className
+    <div className={cn("w-full", className)}>
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-foreground/80 mb-1.5">
+          {label}
+        </label>
       )}
-    />
+      <input
+        {...props}
+        id={inputId}
+        value={value}
+        onChange={handleChange}
+        aria-invalid={isInvalid || undefined}
+        className={cn(
+          "w-full rounded-md px-3 py-2 h-10",
+          "bg-white dark:bg-slate-900",
+          "border border-slate-200 dark:border-slate-700",
+          "text-foreground placeholder:text-muted-foreground/80",
+          "font-sans text-base md:text-sm",
+          "shadow-none outline-none",
+          "transition-all duration-200",
+          "hover:border-slate-300 dark:hover:border-slate-600",
+          "focus:border-primary focus:ring-2 focus:ring-primary/20",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          isInvalid && "!border-red-500 focus:!border-red-500 focus:!ring-red-500/20"
+        )}
+      />
+      {isInvalid && errorMessage && (
+        <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{errorMessage}</p>
+      )}
+    </div>
   )
 }
-

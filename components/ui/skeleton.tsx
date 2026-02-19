@@ -1,33 +1,34 @@
 "use client"
 
 import * as React from "react"
-import { Skeleton as HeroSkeleton, type SkeletonProps as HeroSkeletonProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
 // =============================================================================
 // BASE SKELETON
 // =============================================================================
 
-export type SkeletonProps = HeroSkeletonProps
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  isLoaded?: boolean
+}
 
 function Skeleton({
   className,
+  isLoaded,
+  children,
   ...props
 }: SkeletonProps) {
+  if (isLoaded) {
+    return <>{children}</>
+  }
+
   return (
-    <HeroSkeleton
+    <div
       className={cn(
-        "rounded-xl",
-        // Glass shimmer effect
-        "bg-gradient-to-r from-white/40 via-white/60 to-white/40",
-        "dark:from-slate-800/40 dark:via-slate-700/60 dark:to-slate-800/40",
+        "animate-pulse rounded-xl",
+        "bg-white/30 dark:bg-white/5",
         "backdrop-blur-sm",
         className
       )}
-      classNames={{
-        base: "bg-white/30 dark:bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden",
-        content: "bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10",
-      }}
       {...props}
     />
   )
@@ -66,8 +67,8 @@ function Spinner({ size = 'md', className }: SpinnerProps) {
 }
 
 /** Spinner with text */
-function SpinnerWithText({ 
-  text = 'Loading...', 
+function SpinnerWithText({
+  text = 'Loading...',
   size = 'md',
   className,
 }: SpinnerProps & { text?: string }) {
