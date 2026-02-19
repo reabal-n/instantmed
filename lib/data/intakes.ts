@@ -1258,7 +1258,7 @@ export async function getPatientNotes(
 
   let query = supabase
     .from("patient_notes")
-    .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_at, updated_at")
+    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -1285,10 +1285,7 @@ export async function createPatientNote(
   createdBy: string,
   content: string,
   options?: {
-    intakeId?: string
     noteType?: string
-    title?: string
-    metadata?: Record<string, unknown>
   }
 ): Promise<PatientNote | null> {
   const supabase = createServiceRoleClient()
@@ -1297,14 +1294,11 @@ export async function createPatientNote(
     .from("patient_notes")
     .insert({
       patient_id: patientId,
-      intake_id: options?.intakeId || null,
       note_type: options?.noteType || "encounter",
-      title: options?.title || null,
       content,
-      metadata: options?.metadata || {},
       created_by: createdBy,
     })
-    .select("id, patient_id, note_type, created_at")
+    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
     .single()
 
   if (error) {
@@ -1320,8 +1314,7 @@ export async function createPatientNote(
  */
 export async function updatePatientNote(
   noteId: string,
-  content: string,
-  title?: string
+  content: string
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
@@ -1329,7 +1322,6 @@ export async function updatePatientNote(
     .from("patient_notes")
     .update({
       content,
-      title: title || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", noteId)

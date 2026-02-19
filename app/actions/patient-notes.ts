@@ -42,7 +42,7 @@ export async function addPatientNoteAction(
         created_by: profile.id,
         created_by_name: profile.full_name,
       })
-      .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_by_name, created_at, updated_at")
+      .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
       .single()
 
     if (error) {

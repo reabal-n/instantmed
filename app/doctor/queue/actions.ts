@@ -236,9 +236,7 @@ export async function addPatientNoteAction(
   patientId: string,
   content: string,
   options?: {
-    intakeId?: string
     noteType?: string
-    title?: string
   }
 ): Promise<{ success: boolean; error?: string }> {
   const { profile } = await requireRole(["doctor", "admin"])

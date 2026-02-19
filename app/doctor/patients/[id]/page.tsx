@@ -85,7 +85,7 @@ async function getPatientWithHistory(patientId: string) {
   // Get patient notes/flags
   const { data: patientNotes, error: notesError } = await supabase
     .from("patient_notes")
-    .select("id, patient_id, intake_id, note_type, title, content, metadata, created_by, created_by_name, created_at, updated_at")
+    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 

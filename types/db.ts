@@ -257,11 +257,8 @@ export interface Service {
 export interface PatientNote {
   id: string
   patient_id: string
-  intake_id: string | null
   note_type: "encounter" | "general" | "allergy" | "medication" | "history" | "admin"
-  title: string | null
   content: string
-  metadata: Record<string, unknown>
   created_by: string
   created_by_name: string | null
   created_at: string
