@@ -8,10 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { UserCard, Skeleton, Tooltip, Pagination } from "@/components/uix"
+import { UserCard, Pagination } from "@/components/uix"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -37,23 +35,13 @@ import {
   FileText,
   Search,
   MoreVertical,
-  CreditCard,
-  User,
-  Calendar,
-  MapPin,
   RefreshCw,
   Zap,
-  History,
-  Pill,
-  Filter,
   ShieldAlert,
-  ArrowUpDown,
-  Focus,
-  Maximize2,
   Sparkles,
   Loader2,
 } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
+import { updateStatusAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { MessageSquare } from "lucide-react"
 import {
@@ -65,10 +53,8 @@ import {
 } from "@/components/ui/select"
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
-import { PatientHealthProfilePanel } from "@/components/doctor/patient-health-profile-panel"
 import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
-import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { cn } from "@/lib/utils"
 
 export function QueueClient({
@@ -80,7 +66,6 @@ export function QueueClient({
   const router = useRouter()
   const [intakes, setIntakes] = useState(initialIntakes)
 
-  // Calculate pagination info
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -96,24 +81,13 @@ export function QueueClient({
   const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
-  const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
-  const [sortOption, setSortOption] = useState<"sla" | "flagged" | "wait" | "service">("sla")
-  const [filterService, setFilterService] = useState<string>("all")
-  const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
-  const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
-  const [focusMode, setFocusMode] = useState(false)
+  const [newIntakeCount, setNewIntakeCount] = useState(0)
   const lastSyncTimeRef = useRef<Date>(new Date())
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
-  const [newIntakeCount, setNewIntakeCount] = useState(0)
   const listId = useId()
 
-  // Real-time subscription for intakes with stale data detection
+  // Real-time subscription
   useEffect(() => {
     const supabase = createClient()
     const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
@@ -135,17 +109,15 @@ export function QueueClient({
           filter: "status=in.(paid,in_review,pending_info)",
         },
         (payload) => {
-          // Update last sync time on any message
           lastSyncTimeRef.current = new Date()
           setIsStale(false)
-          
+
           if (payload.eventType === "INSERT") {
-            // Show visible toast notification
             const newPatientName = (payload.new as { patient_name?: string }).patient_name
             const serviceData = (payload.new as { service?: { short_name?: string } }).service
             const serviceName = serviceData?.short_name || "New request"
             toast.info(
-              newPatientName 
+              newPatientName
                 ? `${serviceName} from ${newPatientName}`
                 : `${serviceName} added to queue`,
               { duration: 5000 }
@@ -182,58 +154,40 @@ export function QueueClient({
     const diffMs = now.getTime() - created.getTime()
     const diffMins = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMins / 60)
-
-    if (diffHours > 0) {
-      return `${diffHours}h ${diffMins % 60}m`
-    }
+    if (diffHours > 0) return `${diffHours}h ${diffMins % 60}m`
     return `${diffMins}m`
   }
 
   const getWaitTimeSeverity = (createdAt: string, slaDeadline?: string | null) => {
-    // Use SLA deadline if available for severity calculation
     if (slaDeadline) {
       const deadline = new Date(slaDeadline)
       const now = new Date()
       const diffMins = Math.floor((deadline.getTime() - now.getTime()) / (1000 * 60))
-      
-      if (diffMins < 0) return "critical" // Past SLA
-      if (diffMins < 30) return "warning" // Within 30 mins of SLA
+      if (diffMins < 0) return "critical"
+      if (diffMins < 30) return "warning"
       return "normal"
     }
-    
-    // Fallback to wait time based severity
     const created = new Date(createdAt)
     const now = new Date()
     const diffMins = Math.floor((now.getTime() - created.getTime()) / (1000 * 60))
-
     if (diffMins > 60) return "critical"
     if (diffMins > 30) return "warning"
     return "normal"
   }
 
-  // Calculate time until SLA deadline (countdown)
   const calculateSlaCountdown = (slaDeadline: string | null | undefined): string | null => {
     if (!slaDeadline) return null
-    
     const deadline = new Date(slaDeadline)
     const now = new Date()
     const diffMs = deadline.getTime() - now.getTime()
     const diffMins = Math.floor(diffMs / (1000 * 60))
-    
     if (diffMins < 0) {
       const overdueMins = Math.abs(diffMins)
       const overdueHours = Math.floor(overdueMins / 60)
-      if (overdueHours > 0) {
-        return `${overdueHours}h ${overdueMins % 60}m overdue`
-      }
-      return `${overdueMins}m overdue`
+      return overdueHours > 0 ? `${overdueHours}h ${overdueMins % 60}m overdue` : `${overdueMins}m overdue`
     }
-    
     const hours = Math.floor(diffMins / 60)
-    if (hours > 0) {
-      return `${hours}h ${diffMins % 60}m left`
-    }
-    return `${diffMins}m left`
+    return hours > 0 ? `${hours}h ${diffMins % 60}m left` : `${diffMins}m left`
   }
 
   const calculateAge = (dob: string | null): number | null => {
@@ -242,30 +196,22 @@ export function QueueClient({
     const today = new Date()
     let age = today.getFullYear() - birthDate.getFullYear()
     const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--
     return age
   }
 
-
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
-    // Med certs MUST go through the document builder for proper review
     if (serviceType === "med_certs") {
       router.push(`/doctor/intakes/${intakeId}/document`)
       return
     }
-
     startTransition(async () => {
-      // For prescriptions, set status to awaiting_script (external Parchment entry needed)
-      // For other services, set to approved directly
       const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx"
         ? "awaiting_script"
         : "approved"
       const result = await updateStatusAction(intakeId, newStatus, doctorId)
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
-        // Navigate to intake detail for scripts to mark as sent
         if (serviceType === "common_scripts" || serviceType === "repeat_rx") {
           router.push(`/doctor/intakes/${intakeId}`)
         } else {
@@ -277,43 +223,31 @@ export function QueueClient({
     })
   }
 
-  // Fetch decline and info templates on mount
+  // Fetch templates on mount
   useEffect(() => {
     getDeclineReasonTemplatesAction().then((result) => {
-      if (result.success && result.templates) {
-        setDeclineTemplates(result.templates)
-      }
+      if (result.success && result.templates) setDeclineTemplates(result.templates)
     })
     getInfoRequestTemplatesAction().then((result) => {
-      if (result.success && result.templates) {
-        setInfoTemplates(result.templates)
-      }
+      if (result.success && result.templates) setInfoTemplates(result.templates)
     })
   }, [])
 
   const selectedTemplate = declineTemplates.find(t => t.code === declineReasonCode)
   const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
-  const selectedInfoTemplate = infoTemplates.find(t => t.code === infoTemplateCode)
 
-  // Pre-populate decline note when template is selected
   const handleDeclineTemplateChange = (code: string) => {
     setDeclineReasonCode(code)
     const template = declineTemplates.find(t => t.code === code)
-    if (template?.description && !declineReasonNote) {
-      setDeclineReasonNote(template.description)
-    }
+    if (template?.description && !declineReasonNote) setDeclineReasonNote(template.description)
   }
 
-  // Pre-populate info message when template is selected
   const handleInfoTemplateChange = (code: string) => {
     setInfoTemplateCode(code)
     const template = infoTemplates.find(t => t.code === code)
-    if (template?.message_template) {
-      setInfoMessage(template.message_template)
-    }
+    if (template?.message_template) setInfoMessage(template.message_template)
   }
 
-  // Handle request more info
   const handleRequestInfo = async () => {
     if (!infoDialog || !infoTemplateCode) return
     startTransition(async () => {
@@ -330,81 +264,45 @@ export function QueueClient({
     })
   }
 
-  // Check if intake has clinical red flags using built-in risk assessment
   const hasRedFlags = useCallback((intake: typeof intakes[0]): boolean => {
-    // Check for flagged_for_followup
     if (intake.flagged_for_followup) return true
-    
-    // Check risk tier (high or critical)
     if (intake.risk_tier === "high" || intake.risk_tier === "critical") return true
-    
-    // Check if there are any risk flags
     if (intake.risk_flags && Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) return true
-    
-    // Check risk score threshold (>= 7 indicates clinical concern)
     if (intake.risk_score >= 7) return true
-    
-    // Check if live consult is required
     if (intake.requires_live_consult) return true
-    
     return false
   }, [])
 
-  // Count flagged cases
-  const flaggedCount = useMemo(() => {
-    return intakes.filter(hasRedFlags).length
+  // Sort: priority → flagged → SLA deadline → wait time
+  const sortedIntakes = useMemo(() => {
+    return [...intakes].sort((a, b) => {
+      if (a.is_priority && !b.is_priority) return -1
+      if (!a.is_priority && b.is_priority) return 1
+      const aFlagged = hasRedFlags(a)
+      const bFlagged = hasRedFlags(b)
+      if (aFlagged && !bFlagged) return -1
+      if (!aFlagged && bFlagged) return 1
+      const aSla = a.sla_deadline ? new Date(a.sla_deadline).getTime() : Infinity
+      const bSla = b.sla_deadline ? new Date(b.sla_deadline).getTime() : Infinity
+      if (aSla !== bSla) return aSla - bSla
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    })
   }, [intakes, hasRedFlags])
 
-  // Get unique service types for filter
-  const serviceTypes = useMemo(() => {
-    const types = new Set<string>()
-    intakes.forEach(intake => {
-      const service = intake.service as { type?: string; short_name?: string } | undefined
-      if (service?.type) types.add(service.type)
-    })
-    return Array.from(types)
-  }, [intakes])
-
-  // Batch selection helpers
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  const selectAll = () => {
-    const allIds = new Set(filteredIntakes.map(i => i.id))
-    setSelectedIds(allIds)
-  }
-
-  const clearSelection = () => setSelectedIds(new Set())
-
-  const handleBatchClaim = async () => {
-    if (selectedIds.size === 0) return
-    setIsBatchProcessing(true)
-    let successCount = 0
-    try {
-      for (const id of selectedIds) {
-        const result = await updateStatusAction(id, "in_review" as IntakeStatus, doctorId)
-        if (result?.success) successCount++
-      }
-      toast.success(`Claimed ${successCount} of ${selectedIds.size} intakes`)
-      clearSelection()
-      router.refresh()
-    } catch {
-      toast.error("Failed to claim some intakes")
-    } finally {
-      setIsBatchProcessing(false)
-    }
-  }
+  const filteredIntakes = sortedIntakes.filter((r) => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    const service = r.service as { name?: string; type?: string } | undefined
+    return (
+      r.patient.full_name.toLowerCase().includes(query) ||
+      r.patient.medicare_number?.includes(query) ||
+      formatServiceType(service?.type || "").toLowerCase().includes(query)
+    )
+  })
 
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
     if (requiresNote && !declineReasonNote.trim()) return
-
     startTransition(async () => {
       const result = await declineIntakeAction(declineDialog, declineReasonCode, declineReasonNote || undefined)
       if (result.success) {
@@ -418,7 +316,6 @@ export function QueueClient({
 
   const handleFlag = async () => {
     if (!flagDialog || !flagReason.trim()) return
-
     startTransition(async () => {
       const result = await flagForFollowupAction(flagDialog, flagReason)
       if (result.success) {
@@ -429,196 +326,11 @@ export function QueueClient({
     })
   }
 
-  const handleSaveNotes = async (intakeId: string) => {
-    const notes = doctorNotes[intakeId]
-    if (!notes?.trim()) return
-
-    startTransition(async () => {
-      await saveDoctorNotesAction(intakeId, notes)
-    })
-  }
-
-  // Fetch patient history when expanding an intake
-  const fetchPatientHistory = async (patientId: string) => {
-    if (patientHistory[patientId] || loadingHistory[patientId]) return
-    
-    setLoadingHistory(prev => ({ ...prev, [patientId]: true }))
-    try {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('intakes')
-        .select('id, status, created_at, category')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: false })
-        .limit(10)
-      
-      if (data) {
-        setPatientHistory(prev => ({
-          ...prev,
-          [patientId]: {
-            intakes: data.map(d => ({
-              id: d.id,
-              status: d.status,
-              created_at: d.created_at,
-              service_type: d.category || 'Request'
-            }))
-          }
-        }))
-      }
-    } catch {
-      toast.error("Failed to load patient history")
-    } finally {
-      setLoadingHistory(prev => ({ ...prev, [patientId]: false }))
-    }
-  }
-
-  // Sort intakes based on selected sort option
-  const sortedIntakes = useMemo(() => {
-    return [...intakes].sort((a, b) => {
-      // Priority intakes always come first
-      if (a.is_priority && !b.is_priority) return -1
-      if (!a.is_priority && b.is_priority) return 1
-      
-      // Then apply selected sort
-      switch (sortOption) {
-        case "sla": {
-          // SLA urgency: breached first, then approaching deadline, then by wait time
-          const aSla = a.sla_deadline ? new Date(a.sla_deadline).getTime() : Infinity
-          const bSla = b.sla_deadline ? new Date(b.sla_deadline).getTime() : Infinity
-          // Flagged cases bubble up within SLA sort
-          const aFlagged = hasRedFlags(a)
-          const bFlagged = hasRedFlags(b)
-          if (aFlagged && !bFlagged) return -1
-          if (!aFlagged && bFlagged) return 1
-          // Then sort by SLA deadline (earliest/breached first)
-          if (aSla !== bSla) return aSla - bSla
-          // Fallback: longest wait first
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        }
-
-        case "flagged": {
-          // Flagged cases first
-          const aFlagged = hasRedFlags(a)
-          const bFlagged = hasRedFlags(b)
-          if (aFlagged && !bFlagged) return -1
-          if (!aFlagged && bFlagged) return 1
-          // Then by wait time
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        }
-
-        case "wait":
-          // Longest wait first
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-
-        case "service": {
-          // Group by service type
-          const aService = (a.service as { type?: string })?.type || ""
-          const bService = (b.service as { type?: string })?.type || ""
-          if (aService !== bService) return aService.localeCompare(bService)
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        }
-
-        default:
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      }
-    })
-  }, [intakes, sortOption, hasRedFlags])
-
-  const filteredIntakes = sortedIntakes.filter((r) => {
-    // Filter by service type
-    if (filterService !== "all") {
-      const service = r.service as { type?: string } | undefined
-      if (service?.type !== filterService) return false
-    }
-    
-    // Filter by status
-    if (filterStatus !== "all") {
-      if (r.status !== filterStatus) return false
-    }
-    
-    // Then filter by search query
-    if (!searchQuery.trim()) return true
-    const query = searchQuery.toLowerCase()
-    const service = r.service as { name?: string; type?: string } | undefined
-    return (
-      r.patient.full_name.toLowerCase().includes(query) ||
-      r.patient.medicare_number?.includes(query) ||
-      formatServiceType(service?.type || "").toLowerCase().includes(query)
-    )
-  })
-
-  // Keyboard shortcuts for queue navigation
-  const keyboardShortcuts = useMemo(() => [
-    {
-      key: "j",
-      action: () => setSelectedIndex(prev => Math.min(prev + 1, filteredIntakes.length - 1)),
-      description: "Next case",
-    },
-    {
-      key: "k", 
-      action: () => setSelectedIndex(prev => Math.max(prev - 1, 0)),
-      description: "Previous case",
-    },
-    {
-      key: "Enter",
-      action: () => {
-        const intake = filteredIntakes[selectedIndex]
-        if (intake) router.push(`/doctor/intakes/${intake.id}`)
-      },
-      description: "View selected case",
-    },
-    {
-      key: "a",
-      action: () => {
-        const intake = filteredIntakes[selectedIndex]
-        if (intake) {
-          const service = intake.service as { type?: string } | undefined
-          handleApprove(intake.id, service?.type)
-        }
-      },
-      description: "Approve selected case",
-    },
-    {
-      key: "d",
-      action: () => {
-        const intake = filteredIntakes[selectedIndex]
-        if (intake) setDeclineDialog(intake.id)
-      },
-      description: "Decline selected case",
-    },
-    {
-      key: "?",
-      shift: true,
-      action: () => setShowShortcutsHelp(prev => !prev),
-      description: "Toggle shortcuts help",
-    },
-    {
-      key: "Escape",
-      action: () => {
-        setShowShortcutsHelp(false)
-        setDeclineDialog(null)
-        setFlagDialog(null)
-      },
-      description: "Close dialogs",
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [filteredIntakes.length, selectedIndex, router])
-
-  useKeyboardShortcuts({
-    shortcuts: keyboardShortcuts,
-    enabled: !declineDialog && !flagDialog,
-  })
-
-  // Reset selected index when filtered list changes
-  useEffect(() => {
-    setSelectedIndex(0)
-  }, [filterService, filterStatus, searchQuery])
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Stale Data Warning */}
       {isStale && (
-        <div 
+        <div
           role="alert"
           className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20"
         >
@@ -627,15 +339,12 @@ export function QueueClient({
             <p className="text-[13px] font-medium text-amber-800 dark:text-amber-200">
               {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
             </p>
-            <p className="text-[12px] text-amber-700/80 dark:text-amber-300/80">
-              Last synced: {lastSyncTimeRef.current.toLocaleTimeString()}
-            </p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => router.refresh()}
-            className="shrink-0 h-7 text-[12px] border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/10"
+            className="shrink-0 h-7 text-[12px]"
           >
             <RefreshCw className="h-3 w-3 mr-1" />
             Refresh
@@ -645,9 +354,9 @@ export function QueueClient({
 
       {/* New Intakes Banner */}
       {newIntakeCount > 0 && (
-        <div 
+        <div
           role="status"
-          className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 animate-in fade-in slide-in-from-top-2 duration-300"
+          className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20"
         >
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
@@ -658,205 +367,39 @@ export function QueueClient({
               {newIntakeCount} new {newIntakeCount === 1 ? "request" : "requests"} arrived
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => { setNewIntakeCount(0); router.refresh() }}
             className="h-7 text-xs"
           >
             <RefreshCw className="h-3 w-3 mr-1" />
-            Refresh queue
+            Refresh
           </Button>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col gap-3" data-testid="queue-header">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-foreground font-sans" data-testid="queue-heading">Review Queue</h2>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
-              {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
-            </p>
-          </div>
-          {/* Desktop controls */}
-          <div className="hidden md:flex items-center gap-2">
-            {!focusMode && (
-              <Input
-                placeholder="Search patients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-56 h-8 text-[13px]"
-                startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-              />
-            )}
-            <Button
-              variant={focusMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFocusMode(!focusMode)}
-              className={cn("h-8 text-[12px]", focusMode && "bg-primary hover:bg-primary/90 text-primary-foreground")}
-              aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
-            >
-              {focusMode ? (
-                <><Maximize2 className="h-3.5 w-3.5 mr-1" />Exit Focus</>
-              ) : (
-                <><Focus className="h-3.5 w-3.5 mr-1" />Focus</>
-              )}
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
-              <RefreshCw className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost" 
-              size="sm" 
-              className="h-8 text-[12px] text-muted-foreground"
-              onClick={() => setShowShortcutsHelp(prev => !prev)}
-            >
-              <kbd className="px-1 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
-              Keys
-            </Button>
-          </div>
-        </div>
-        {/* Mobile controls */}
-        <div className="flex md:hidden flex-col gap-2">
-          {!focusMode && (
-            <Input
-              placeholder="Search patients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 text-[13px]"
-              startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-            />
-          )}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Button
-              variant={focusMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFocusMode(!focusMode)}
-              className={cn("h-8 text-[12px] flex-1 sm:flex-none", focusMode && "bg-primary hover:bg-primary/90 text-primary-foreground")}
-              aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
-            >
-              {focusMode ? <Maximize2 className="h-3.5 w-3.5 mr-1" /> : <Focus className="h-3.5 w-3.5 mr-1" />}
-              {focusMode ? "Exit" : "Focus"}
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.refresh()}>
-              <RefreshCw className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+      {/* Header + Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-testid="queue-header">
+        <h2 className="text-lg font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
+          {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
+        </h2>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Search patients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full sm:w-56 h-8 text-[13px]"
+            startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+          />
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.refresh()}>
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
-      {/* Keyboard Shortcuts */}
-      {showShortcutsHelp && (
-        <Card className="border-border/50">
-          <CardContent className="py-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[13px] font-medium">Keyboard Shortcuts</h3>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => setShowShortcutsHelp(false)}>
-                <span className="sr-only">Close</span>
-                <span aria-hidden>{"x"}</span>
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" id={listId}>
-              {keyboardShortcuts.slice(0, -1).map((s, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs text-muted-foreground">
-                    {s.shift && "⇧"}{s.key === "Enter" ? "↵" : s.key.toUpperCase()}
-                  </kbd>
-                  <span className="text-[12px] text-muted-foreground">{s.description}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Flagged Cases */}
-      {!focusMode && flaggedCount > 0 && (
-        <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/15">
-          <div className="flex items-center gap-2 text-destructive">
-            <ShieldAlert className="h-4 w-4" />
-            <span className="text-[13px] font-medium">
-              {flaggedCount} case{flaggedCount !== 1 ? "s" : ""} with clinical flags
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-[12px] text-destructive hover:bg-destructive/10"
-            onClick={() => setSortOption("flagged")}
-          >
-            Review flagged first
-          </Button>
-        </div>
-      )}
-
-      {/* Sort & Filter */}
-      {!focusMode && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-2">
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
-            <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
-              <SelectTrigger className="w-full lg:w-[160px]">
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sla">SLA Urgency</SelectItem>
-                <SelectItem value="flagged">Flagged first</SelectItem>
-                <SelectItem value="wait">Longest wait</SelectItem>
-                <SelectItem value="service">By service type</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground hidden sm:block" />
-            <Select value={filterService} onValueChange={setFilterService}>
-              <SelectTrigger className="w-full lg:w-[160px]">
-                <SelectValue placeholder="Filter service..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All services</SelectItem>
-                {serviceTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {formatServiceType(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full lg:w-[140px]">
-                <SelectValue placeholder="Filter status..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="paid">New (Paid)</SelectItem>
-                <SelectItem value="in_review">In Review</SelectItem>
-                <SelectItem value="pending_info">Pending Info</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
-
-      {/* Batch Actions Bar */}
-      {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
-          <Button size="sm" variant="outline" onClick={handleBatchClaim} disabled={isBatchProcessing}>
-            {isBatchProcessing ? <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> : <Zap className="h-3 w-3 mr-1" />}
-            Claim All
-          </Button>
-          <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
-          <div className="ml-auto">
-            <Button size="sm" variant="ghost" onClick={selectAll}>Select All</Button>
-          </div>
-        </div>
-      )}
-
       {/* Queue List */}
-      <div className="space-y-3">
+      <div className="space-y-2" aria-labelledby={listId}>
         {filteredIntakes.length === 0 ? (
           <Card className="py-12">
             <CardContent className="text-center text-muted-foreground">
@@ -866,319 +409,134 @@ export function QueueClient({
             </CardContent>
           </Card>
         ) : (
-          filteredIntakes.map((intake, index) => {
+          filteredIntakes.map((intake) => {
             const isExpanded = expandedId === intake.id
             const waitSeverity = getWaitTimeSeverity(intake.created_at, intake.sla_deadline)
             const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
             return (
-              <Collapsible
+              <Card
                 key={intake.id}
-                open={isExpanded}
-                onOpenChange={() => setExpandedId(isExpanded ? null : intake.id)}
+                className={cn("transition-all", isExpanded && "ring-2 ring-primary/20")}
               >
-                <Card className={`transition-all ${isExpanded ? "ring-2 ring-primary/20" : ""}`}>
-                  <CollapsibleTrigger asChild onClick={() => fetchPatientHistory(intake.patient_id)}>
-                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <Checkbox
-                            checked={selectedIds.has(intake.id)}
-                            onCheckedChange={() => toggleSelect(intake.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="shrink-0"
-                          />
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          )}
-                          <UserCard
-                            name={intake.patient.full_name}
-                            description={patientAge != null ? `${patientAge}y` : "Age N/A"}
-                            size="sm"
-                            className="shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant="outline" className="text-xs">
-                                {service?.short_name || formatServiceType(service?.type || "")}
-                              </Badge>
-                              {intake.is_priority && (
-                                <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700 ml-2">
-                                  <Zap className="w-3 h-3 mr-1" />
-                                  Priority
-                                </Badge>
-                              )}
-                              {hasRedFlags(intake) && (
-                                <Badge className="bg-destructive/10 text-destructive border-destructive/20 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800">
-                                  <ShieldAlert className="w-3 h-3 mr-1" />
-                                  Clinical flag
-                                </Badge>
-                              )}
-                              {intake.ai_draft_status === "completed" && (
-                                <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700">
-                                  <Sparkles className="w-3 h-3 mr-1" />
-                                  AI draft ready
-                                </Badge>
-                              )}
-                            </div>
-                            {/* P2 DOCTOR_WORKLOAD_AUDIT: Queue preview - show key info without expanding */}
-                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                              <span className="text-xs text-muted-foreground">#{index + 1} in queue</span>
-                              {(() => {
-                                const answers = (intake as unknown as { answers?: { symptoms?: string; duration?: string; medication_name?: string } }).answers
-                                if (!answers) return null
-                                return (
-                                  <>
-                                    {answers.symptoms && (
-                                      <>
-                                        <span className="text-xs text-muted-foreground">•</span>
-                                        {String(answers.symptoms).length > 50 ? (
-                                          <Tooltip content={String(answers.symptoms)}>
-                                            <span className="text-xs text-muted-foreground truncate max-w-[200px] cursor-help">
-                                              {String(answers.symptoms).substring(0, 50)}...
-                                            </span>
-                                          </Tooltip>
-                                        ) : (
-                                          <span className="text-xs text-muted-foreground">
-                                            {String(answers.symptoms)}
-                                          </span>
-                                        )}
-                                      </>
-                                    )}
-                                    {answers.duration && (
-                                      <>
-                                        <span className="text-xs text-muted-foreground">•</span>
-                                        <Badge variant="outline" className="text-xs h-4 px-1">
-                                          {answers.duration}d
-                                        </Badge>
-                                      </>
-                                    )}
-                                    {answers.medication_name && (
-                                      <>
-                                        <span className="text-xs text-muted-foreground">•</span>
-                                        <span className="text-xs font-medium truncate max-w-[150px]">
-                                          {String(answers.medication_name)}
-                                        </span>
-                                      </>
-                                    )}
-                                  </>
-                                )
-                              })()}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          {/* SLA Countdown - Primary metric */}
-                          {intake.sla_deadline && (
-                            <div
-                              className={`flex items-center gap-1.5 text-sm font-medium ${
-                                waitSeverity === "critical"
-                                  ? "text-destructive"
-                                  : waitSeverity === "warning"
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-emerald-600 dark:text-emerald-400"
-                              }`}
-                            >
-                              <Clock className="h-4 w-4" />
-                              <span>{calculateSlaCountdown(intake.sla_deadline)}</span>
-                            </div>
-                          )}
-                          {/* Wait time - Secondary if no SLA */}
-                          {!intake.sla_deadline && (
-                            <div
-                              className={`flex items-center gap-1.5 text-sm ${
-                                waitSeverity === "critical"
-                                  ? "text-destructive"
-                                  : waitSeverity === "warning"
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-muted-foreground"
-                              }`}
-                            >
-                              <Clock className="h-4 w-4" />
-                              <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
-                            </div>
-                          )}
-                          {/* Icons for colorblind accessibility - not just color */}
-                          {waitSeverity === "critical" && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" aria-label="Critical urgency" />
-                          )}
-                          {waitSeverity === "warning" && (
-                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 animate-pulse" aria-label="Approaching deadline" />
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent>
-                    <CardContent className="pt-0 pb-4 space-y-4">
-                      {/* Patient Details */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Patient</p>
-                            <p className="text-sm font-medium">{intake.patient.full_name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">DOB</p>
-                            <p className="text-sm font-medium">
-                              {intake.patient.date_of_birth ? new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU") : "Not provided"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Medicare</p>
-                            <p className="text-sm font-medium font-mono">
-                              {intake.patient.medicare_number?.slice(0, 4) || "N/A"} ••••
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Location</p>
-                            <p className="text-sm font-medium">
-                              {intake.patient.suburb || "N/A"}, {intake.patient.state || ""}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* View Details Link */}
-                      <div>
-                        <Link 
-                          href={`/doctor/intakes/${intake.id}`}
-                          className="inline-flex items-center text-sm text-primary hover:underline"
-                        >
-                          <FileText className="h-3.5 w-3.5 mr-1" />
-                          View full details & questionnaire responses
-                        </Link>
-                      </div>
-
-                      {/* Patient Health Profile */}
-                      <PatientHealthProfilePanel patientId={intake.patient_id} />
-
-                      {/* Patient History */}
-                      <div className="p-4 bg-muted rounded-lg">
-                        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                          <History className="h-4 w-4 text-muted-foreground" />
-                          Patient History
-                        </h4>
-                        {loadingHistory[intake.patient_id] ? (
-                          <div className="space-y-2">
-                            <Skeleton className="h-8 w-full rounded" />
-                            <Skeleton className="h-8 w-3/4 rounded" />
-                          </div>
-                        ) : patientHistory[intake.patient_id]?.intakes?.length > 0 ? (
-                          <div className="space-y-2">
-                            {patientHistory[intake.patient_id].intakes
-                              .filter(h => h.id !== intake.id)
-                              .slice(0, 5)
-                              .map(historyItem => (
-                                <div key={historyItem.id} className="flex items-center justify-between text-sm py-1.5 px-2 bg-card rounded">
-                                  <div className="flex items-center gap-2">
-                                    {historyItem.service_type.includes('script') ? (
-                                      <Pill className="h-3.5 w-3.5 text-muted-foreground" />
-                                    ) : (
-                                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                                    )}
-                                    <span>{historyItem.service_type}</span>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant={historyItem.status === 'approved' || historyItem.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                                      {historyItem.status}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(historyItem.created_at).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            {patientHistory[intake.patient_id].intakes.filter(h => h.id !== intake.id).length === 0 && (
-                              <p className="text-sm text-muted-foreground">First request from this patient</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">First request from this patient</p>
+                {/* Collapsed row */}
+                <CardHeader
+                  className="cursor-pointer hover:bg-muted/50 transition-colors py-3 px-4"
+                  onClick={() => setExpandedId(isExpanded ? null : intake.id)}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      )}
+                      <UserCard
+                        name={intake.patient.full_name}
+                        description={patientAge != null ? `${patientAge}y` : ""}
+                        size="sm"
+                        className="shrink-0"
+                      />
+                      <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs">
+                          {service?.short_name || formatServiceType(service?.type || "")}
+                        </Badge>
+                        {intake.is_priority && (
+                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700">
+                            <Zap className="w-3 h-3 mr-1" />
+                            Priority
+                          </Badge>
+                        )}
+                        {hasRedFlags(intake) && (
+                          <Badge className="bg-destructive/10 text-destructive border-destructive/20">
+                            <ShieldAlert className="w-3 h-3 mr-1" />
+                            Flagged
+                          </Badge>
+                        )}
+                        {intake.ai_draft_status === "completed" && (
+                          <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            AI ready
+                          </Badge>
                         )}
                       </div>
-
-                      {/* Doctor Notes */}
-                      <div>
-                        <h4 className="text-sm font-medium mb-2">Private Notes</h4>
-                        <div className="flex gap-2">
-                          <Textarea
-                            placeholder="Add clinical notes (private, not shared with patient)..."
-                            value={doctorNotes[intake.id] || ""}
-                            onChange={(e) =>
-                              setDoctorNotes((prev) => ({
-                                ...prev,
-                                [intake.id]: e.target.value,
-                              }))
-                            }
-                            className="min-h-20 text-sm"
-                          />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {intake.sla_deadline ? (
+                        <div className={cn(
+                          "flex items-center gap-1.5 text-sm font-medium",
+                          waitSeverity === "critical" ? "text-destructive"
+                            : waitSeverity === "warning" ? "text-amber-600 dark:text-amber-400"
+                            : "text-emerald-600 dark:text-emerald-400"
+                        )}>
+                          <Clock className="h-4 w-4" />
+                          <span>{calculateSlaCountdown(intake.sla_deadline)}</span>
                         </div>
-                        {doctorNotes[intake.id] && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => handleSaveNotes(intake.id)}
-                            disabled={isPending}
-                          >
-                            Save notes
+                      ) : (
+                        <div className={cn(
+                          "flex items-center gap-1.5 text-sm",
+                          waitSeverity === "critical" ? "text-destructive"
+                            : waitSeverity === "warning" ? "text-amber-600 dark:text-amber-400"
+                            : "text-muted-foreground"
+                        )}>
+                          <Clock className="h-4 w-4" />
+                          <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
+                        </div>
+                      )}
+                      {waitSeverity === "critical" && (
+                        <AlertTriangle className="h-4 w-4 text-destructive" aria-label="Critical" />
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {/* Expanded — just link + actions, detailed review on the detail page */}
+                {isExpanded && (
+                  <CardContent className="pt-0 pb-4 space-y-3">
+                    <Link
+                      href={`/doctor/intakes/${intake.id}`}
+                      className="inline-flex items-center text-sm text-primary hover:underline"
+                    >
+                      <FileText className="h-3.5 w-3.5 mr-1" />
+                      View full details & questionnaire
+                    </Link>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                      <Button
+                        onClick={() => handleApprove(intake.id, service?.type)}
+                        disabled={isPending || !identityComplete}
+                        className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50"
+                        title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
+                      >
+                        {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                        {service?.type === "med_certs" ? "Review & Build" : service?.type === "common_scripts" ? "Approve Script" : "Approve"}
+                      </Button>
+                      <Button variant="destructive" onClick={() => setDeclineDialog(intake.id)} disabled={isPending}>
+                        <XCircle className="h-4 w-4 mr-1.5" />
+                        Decline
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
-                        <Button
-                          onClick={() => handleApprove(intake.id, service?.type)}
-                          disabled={isPending || !identityComplete}
-                          className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50"
-                          title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
-                        >
-                          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                          {isPending && service?.type === "med_certs" ? "Generating..." : service?.type === "common_scripts" ? "Approve Script" : "Approve & Send"}
-                        </Button>
-                        <Button variant="destructive" onClick={() => setDeclineDialog(intake.id)} disabled={isPending}>
-                          <XCircle className="h-4 w-4 mr-1.5" />
-                          Decline
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline">
-                              <MoreVertical className="h-4 w-4 mr-1.5" />
-                              More
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setInfoDialog(intake.id)}>
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              Request more info
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setFlagDialog(intake.id)}>
-                              <Flag className="h-4 w-4 mr-2" />
-                              Flag for follow-up
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setInfoDialog(intake.id)}>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Request more info
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setFlagDialog(intake.id)}>
+                            <Flag className="h-4 w-4 mr-2" />
+                            Flag for follow-up
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
             )
           })
         )}
@@ -1188,7 +546,7 @@ export function QueueClient({
       {pagination && totalPages > 1 && (
         <div className="flex items-center justify-between py-4 px-2 border-t">
           <div className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pagination.pageSize + 1} - {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total} requests
+            {(currentPage - 1) * pagination.pageSize + 1} – {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}
           </div>
           <Pagination
             total={totalPages}
@@ -1214,7 +572,7 @@ export function QueueClient({
           <DialogHeader>
             <DialogTitle>Decline Request</DialogTitle>
             <DialogDescription>
-              Select a reason for declining. The patient will be notified by email.
+              Select a reason. The patient will be notified by email.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1232,23 +590,17 @@ export function QueueClient({
                   ))}
                 </SelectContent>
               </Select>
-              {selectedTemplate?.description && (
-                <p className="text-xs text-muted-foreground mt-1">{selectedTemplate.description}</p>
-              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Note for patient {requiresNote ? "(required)" : "(optional)"}
+                Note {requiresNote ? "(required)" : "(optional)"}
               </label>
               <Textarea
-                placeholder="Provide additional details for the patient..."
+                placeholder="Additional details for the patient..."
                 value={declineReasonNote}
                 onChange={(e) => setDeclineReasonNote(e.target.value)}
                 className="min-h-[100px]"
               />
-              {selectedTemplate?.description && declineReasonNote === selectedTemplate.description && (
-                <p className="text-xs text-muted-foreground mt-1">Template pre-filled. Edit as needed.</p>
-              )}
             </div>
           </div>
           <DialogFooter>
@@ -1259,12 +611,12 @@ export function QueueClient({
             }}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDecline} 
+            <Button
+              variant="destructive"
+              onClick={handleDecline}
               disabled={!declineReasonCode || (requiresNote && !declineReasonNote.trim()) || isPending}
             >
-              Decline & Notify Patient
+              Decline & Notify
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1280,15 +632,15 @@ export function QueueClient({
           <DialogHeader>
             <DialogTitle>Request More Information</DialogTitle>
             <DialogDescription>
-              Select what information you need. The patient will be notified by email.
+              The patient will be notified by email.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Information needed</label>
+              <label className="text-sm font-medium mb-2 block">What do you need?</label>
               <Select value={infoTemplateCode} onValueChange={handleInfoTemplateChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select what you need..." />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {infoTemplates.map((template) => (
@@ -1298,14 +650,11 @@ export function QueueClient({
                   ))}
                 </SelectContent>
               </Select>
-              {selectedInfoTemplate?.description && (
-                <p className="text-xs text-muted-foreground mt-1">{selectedInfoTemplate.description}</p>
-              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block">Message to patient</label>
               <Textarea
-                placeholder="Explain what information you need..."
+                placeholder="Explain what you need..."
                 value={infoMessage}
                 onChange={(e) => setInfoMessage(e.target.value)}
                 className="min-h-[100px]"
@@ -1320,8 +669,8 @@ export function QueueClient({
             }}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleRequestInfo} 
+            <Button
+              onClick={handleRequestInfo}
               disabled={!infoTemplateCode || !infoMessage.trim() || isPending}
             >
               Send Request
