@@ -15,8 +15,8 @@ const stats = [
   },
   {
     icon: Clock,
-    value: "~42 min",
-    label: "Average response",
+    value: "~15 min",
+    label: "Average review time",
     color: "#4f46e5",
     emoji: "⚡",
   },
@@ -165,7 +165,7 @@ export function StatsSection() {
               >
                 <span className="text-2xl">⚡</span>
                 <div>
-                  <p className="text-xs font-bold text-foreground">~42 min</p>
+                  <p className="text-xs font-bold text-foreground">~15 min</p>
                   <p className="text-[10px] text-muted-foreground">Average response</p>
                 </div>
               </motion.div>

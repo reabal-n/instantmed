@@ -237,7 +237,7 @@ export function StatsBar({ className }: { className?: string }) {
   const stats = [
     { value: "Hundreds", label: "Satisfied patients" },
     { value: "4.9★", label: "Patient satisfaction" },
-    { value: "~42 min", label: "Typical response" },
+    { value: "~15 min", label: "Typical review time" },
     { value: "8am–10pm", label: "7 days a week" },
   ]
 

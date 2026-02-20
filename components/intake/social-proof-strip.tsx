@@ -106,7 +106,7 @@ export function SocialProofStrip({
           <div className="flex items-center gap-2 text-sm">
             <Clock className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">
-              Avg. <span className="font-semibold text-foreground">42 min</span> response
+              Avg. <span className="font-semibold text-foreground">15 min</span> review time
             </span>
           </div>
         </div>
