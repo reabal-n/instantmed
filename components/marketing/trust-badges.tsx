@@ -72,8 +72,8 @@ export function TrustBadges({
     return (
       <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
         {badges.map((badge, i) => (
-          <div key={i} className="flex items-center gap-2 text-sm">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+          <div key={i} className="group flex items-center gap-2 text-sm cursor-default">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary group-hover:bg-primary/15 group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300">
               {badge.icon}
             </div>
             <span className="font-medium text-foreground">{badge.title}</span>
@@ -87,8 +87,8 @@ export function TrustBadges({
     return (
       <div className={cn("space-y-4", className)}>
         {badges.map((badge, i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0">
+          <div key={i} className="group flex items-start gap-3 p-3 -mx-3 rounded-xl hover:bg-primary/[0.03] dark:hover:bg-primary/[0.05] transition-colors duration-300">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0 group-hover:bg-primary/15 group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300">
               {badge.icon}
             </div>
             <div>
@@ -103,15 +103,17 @@ export function TrustBadges({
     )
   }
 
-  // Default: horizontal grid
+  // Default: horizontal grid with glow/float/hover
   return (
     <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6", className)}>
       {badges.map((badge, i) => (
-        <div 
-          key={i} 
-          className="flex flex-col items-center text-center p-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none"
+        <div
+          key={i}
+          className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
+          {/* Subtle glow behind icon on hover */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/8 blur-xl transition-all duration-500" />
+          <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3 group-hover:bg-primary/15 group-hover:scale-105 transition-all duration-300">
             {badge.icon}
           </div>
           <h4 className="font-medium text-foreground text-sm">{badge.title}</h4>
@@ -198,7 +200,7 @@ export function SecurityFooter({ className }: { className?: string }) {
 export function AHPRABadge({ className }: { className?: string }) {
   return (
     <div className={cn(
-      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800",
+      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300",
       className
     )}>
       <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -233,8 +235,8 @@ export function TrustLogos({ className }: { className?: string }) {
  */
 export function StatsBar({ className }: { className?: string }) {
   const stats = [
-    { value: "12,000+", label: "Patients helped" },
-    { value: "4.8★", label: "From 2,847 reviews" },
+    { value: "Hundreds", label: "Satisfied patients" },
+    { value: "4.9★", label: "Patient satisfaction" },
     { value: "~42 min", label: "Typical response" },
     { value: "8am–10pm", label: "7 days a week" },
   ]

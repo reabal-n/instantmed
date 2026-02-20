@@ -397,13 +397,6 @@ export default async function CityPage({ params }: PageProps) {
         closes: "22:00"
       }
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "54",
-      bestRating: "5",
-      worstRating: "1"
-    },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Telehealth Services",
@@ -627,7 +620,7 @@ export default async function CityPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
               <p className="text-muted-foreground mb-6">
-                Join thousands of {cityData.name} residents who trust InstantMed for their telehealth needs.
+                Join hundreds of {cityData.name} residents who trust InstantMed for their telehealth needs.
               </p>
               <Link href="/request">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

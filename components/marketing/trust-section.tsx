@@ -53,7 +53,7 @@ export function TrustSection() {
           <SectionPill 
             emoji="🛡️" 
             text="Trusted by Australians" 
-            hoverText="50,000+ patients served"
+            hoverText="Trusted across Australia"
             className="mb-4"
           />
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
@@ -88,8 +88,8 @@ export function TrustSection() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 px-6 lg:px-12 rounded-3xl bg-gradient-to-r from-primary/90 via-primary to-violet-500"
         >
           {stats.map((stat) => (
-            <div key={stat.label} className="text-center text-white">
-              <div className="text-2xl lg:text-3xl font-bold mb-1">
+            <div key={stat.label} className="group text-center text-white p-3 rounded-xl hover:bg-white/10 transition-all duration-300 cursor-default">
+              <div className="text-2xl lg:text-3xl font-bold mb-1 group-hover:scale-105 transition-transform duration-300">
                 {stat.value}
               </div>
               <div className="text-sm text-white/80">

@@ -505,7 +505,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
-                Join thousands of {data.name} residents who skip the waiting room with InstantMed.
+                Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>
               <Link href="/medical-certificate/request">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

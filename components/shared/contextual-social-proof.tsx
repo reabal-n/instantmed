@@ -130,7 +130,7 @@ export function TrustBadge({ className }: { className?: string }) {
   return (
     <div className={cn("inline-flex items-center gap-1.5 text-xs font-medium", className)}>
       <Users className="w-3.5 h-3.5 text-primary" />
-      <span>Trusted by 10,000+ Aussies</span>
+      <span>Trusted by Australians</span>
     </div>
   )
 }

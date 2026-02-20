@@ -330,10 +330,9 @@ interface AggregateRatingProps {
   className?: string
 }
 
-export function AggregateRating({ 
+export function AggregateRating({
   rating = 4.9,
-  reviewCount = 54,
-  className 
+  className
 }: AggregateRatingProps) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
@@ -341,7 +340,7 @@ export function AggregateRating({
       <div>
         <StarRating rating={Math.round(rating)} size="md" />
         <p className="text-sm text-muted-foreground mt-0.5">
-          Based on {reviewCount.toLocaleString()} reviews
+          Patient satisfaction rating
         </p>
       </div>
     </div>
@@ -360,13 +359,13 @@ export function SocialProofBar({ className }: { className?: string }) {
     )}>
       <div className="flex items-center gap-1.5">
         <StarRating rating={5} size="sm" />
-        <span className="text-foreground font-medium">4.8</span>
-        <span className="text-muted-foreground">from 2,847 reviews</span>
+        <span className="text-foreground font-medium">Highly rated</span>
+        <span className="text-muted-foreground">by patients</span>
       </div>
       <span className="text-border">|</span>
-      <span className="text-muted-foreground">12,000+ patients helped</span>
+      <span className="text-muted-foreground">Trusted by Australians</span>
       <span className="text-border hidden sm:inline">|</span>
-      <span className="text-muted-foreground hidden sm:inline">Australian doctors</span>
+      <span className="text-muted-foreground hidden sm:inline">AHPRA-registered doctors</span>
     </div>
   )
 }

@@ -68,7 +68,7 @@ export function PricingSection() {
                     className="absolute -top-2 -right-2 bg-dawn-400 text-zinc-900 
                     font-handwritten px-3 py-1 rounded-full rotate-12 text-sm border-2 border-zinc-900"
                   >
-                    Popular!
+                    Most common
                   </div>
                 )}
 

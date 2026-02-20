@@ -199,11 +199,11 @@ export function ServicePicker() {
                   className="group block h-full"
                 >
                   <div className="relative h-full">
-                    {/* Popular badge - neutral pill */}
+                    {/* Most common badge */}
                     {service.popular && (
                       <div className="absolute -top-3 right-4 z-20">
                         <div className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
-                          Popular
+                          Most common
                         </div>
                       </div>
                     )}

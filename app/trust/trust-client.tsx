@@ -103,7 +103,7 @@ const trustTestimonials = [
     location: "Melbourne",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Google",
+    source: "Verified Patient",
   },
   {
     text: "The doctor asked thorough follow-up questions. Felt legitimate and properly reviewed.",
@@ -111,7 +111,7 @@ const trustTestimonials = [
     location: "Sydney",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Google",
+    source: "Verified Patient",
   },
   {
     text: "I checked the doctor's AHPRA registration myself. They're legit. Made me feel much more comfortable.",
@@ -119,7 +119,7 @@ const trustTestimonials = [
     location: "Perth",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Trustpilot",
+    source: "Verified Patient",
   },
   {
     text: "Was skeptical at first, but the whole process was professional. Real Australian doctors.",
@@ -127,7 +127,7 @@ const trustTestimonials = [
     location: "Brisbane",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Google",
+    source: "Verified Patient",
   },
   {
     text: "Used it for a uni extension. Special consideration was approved same day.",
@@ -135,7 +135,7 @@ const trustTestimonials = [
     location: "UNSW Student",
     image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Trustpilot",
+    source: "Verified Patient",
   },
   {
     text: "Much better than waiting 3 days for a doctor appointment just to get a medical certificate.",
@@ -143,7 +143,7 @@ const trustTestimonials = [
     location: "Gold Coast",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
     verified: true,
-    source: "Google",
+    source: "Verified Patient",
   },
 ]
 
@@ -155,7 +155,7 @@ const trustFAQs = [
   },
   {
     question: "Will my employer accept certificates from InstantMed?",
-    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details. Thousands of employers and universities accept our certificates.",
+    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details. Employers and universities across Australia accept our certificates.",
   },
   {
     question: "What happens to my personal health information?",
@@ -455,7 +455,7 @@ export default function TrustPage() {
 
             {/* Animated Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
-              <AnimatedStat value={10000} suffix="+" label="Patients helped" icon={Users} />
+              <AnimatedStat value={4.9} suffix="/5" label="Patient satisfaction" icon={Users} />
               <AnimatedStat value={100} suffix="%" label="AHPRA verified" icon={BadgeCheck} />
               <AnimatedStat value={256} suffix="-bit" label="SSL encryption" icon={Lock} />
               <AnimatedStat value={7} suffix=" days" label="Week availability" icon={Clock} />

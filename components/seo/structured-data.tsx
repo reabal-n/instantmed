@@ -111,13 +111,6 @@ export function MedicalBusinessSchema() {
         description: "Text-based consultations with Australian doctors",
       },
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "2500",
-      bestRating: "5",
-      worstRating: "1",
-    },
   }
 
   return (

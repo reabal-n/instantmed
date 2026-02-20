@@ -167,6 +167,7 @@ export function SecureCheckoutBadge({
       <div className={cn(
         "flex items-center gap-3 p-3 rounded-xl",
         "bg-green-50/80 dark:bg-green-950/20 border border-green-200/60 dark:border-green-800/30",
+        "hover:shadow-md hover:shadow-green-500/10 hover:border-green-300/80 dark:hover:border-green-700/50 transition-all duration-300",
         className
       )}>
         <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">

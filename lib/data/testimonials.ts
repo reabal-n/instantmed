@@ -547,13 +547,11 @@ export function getFeaturedTestimonialsByService(service: Testimonial["service"]
 }
 
 /**
- * Platform statistics - realistic for a new telehealth clinic
- * Numbers should feel honest and trustworthy, not inflated
+ * Platform statistics - keep vague to avoid Google penalty from unverifiable numbers.
+ * Do NOT add specific review counts or patient totals unless backed by a real data source.
  */
 export const PLATFORM_STATS = {
-  totalPatientsHelped: 487,
   averageRating: 4.9,
-  totalReviews: 54,
   averageResponseMinutes: 42,
   doctorCount: 4,
   availableHoursStart: 8,
@@ -565,9 +563,7 @@ export const PLATFORM_STATS = {
  */
 export function formatStats() {
   return {
-    patientsHelped: `${PLATFORM_STATS.totalPatientsHelped}+`,
     rating: PLATFORM_STATS.averageRating.toFixed(1),
-    reviewCount: `${PLATFORM_STATS.totalReviews}`,
     responseTime: `~${PLATFORM_STATS.averageResponseMinutes} min`,
   }
 }

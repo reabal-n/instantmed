@@ -53,8 +53,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {trustBadges.map((badge, index) => {
             const content = (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all h-full">
-                <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/20 dark:hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 h-full">
+                <div className={`relative w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300 ${badge.color}`}>
                   <badge.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -134,6 +134,9 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
             <p className="text-xs text-muted-foreground mt-4">
               <Shield className="w-3.5 h-3.5 inline mr-1" />
               Full refund if we can&apos;t help
+            </p>
+            <p className="text-[11px] text-muted-foreground/60 mt-3">
+              Operating since 2025 · ABN 64 694 559 334
             </p>
           </div>
         </motion.div>

@@ -11,7 +11,7 @@ import {
 } from '@/components/marketing'
 import { FAQSection } from '@/components/marketing/faq-section'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
-import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
+import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
@@ -109,10 +109,10 @@ export default function HomePage() {
           </ParallaxSection>
         </Suspense>
         
-        {/* Trustpilot reviews - authentic social proof */}
+        {/* Patient reviews - authentic social proof */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>
           <ParallaxSection speed={0.25}>
-            <TrustpilotReviews />
+            <PatientReviews />
           </ParallaxSection>
         </Suspense>
         

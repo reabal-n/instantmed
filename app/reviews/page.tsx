@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { ReviewsClientPageComponent as ReviewsClientPage } from "./reviewsClientPage"
-import { ReviewAggregateSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // Prevent static generation for dynamic auth
 
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default function ReviewsPage() {
   return (
     <>
-      <ReviewAggregateSchema ratingValue={4.9} reviewCount={54} />
+      {/* ReviewAggregateSchema removed to avoid Google penalty from unverifiable review counts */}
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Reviews", url: "https://instantmed.com.au/reviews" },

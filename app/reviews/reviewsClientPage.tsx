@@ -141,7 +141,6 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
 export function ReviewsClientPageComponent() {
   const prefersReducedMotion = useReducedMotion()
   const avgRating = PLATFORM_STATS.averageRating.toFixed(1)
-  const totalReviews = PLATFORM_STATS.totalReviews.toLocaleString()
 
   // Generate initials for avatar fallback
   const getInitials = (name: string) => {
@@ -206,10 +205,8 @@ export function ReviewsClientPageComponent() {
                       </div>
                     </div>
                     <div className="border-l border-foreground/10 pl-6">
-                      <p className="text-2xl font-bold" style={{ fontFamily: "var(--font-mono)" }}>
-                        {totalReviews}+
-                      </p>
-                      <p className="text-sm text-muted-foreground">Verified reviews</p>
+                      <p className="text-sm font-medium text-foreground">Patient</p>
+                      <p className="text-sm text-muted-foreground">satisfaction</p>
                     </div>
                   </div>
                 </TiltCard>

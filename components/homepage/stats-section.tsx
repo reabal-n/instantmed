@@ -1,43 +1,46 @@
 "use client"
 
-import Image from "next/image"
-import { Users, Clock, Star, Shield } from "lucide-react"
+import { Users, Clock, Star, Shield, Stethoscope, CalendarCheck, Building2, BadgeCheck } from "lucide-react"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 const stats = [
   {
     icon: Users,
-    value: "12,000+",
-    label: "Aussies helped",
+    value: "Hundreds",
+    label: "Satisfied patients",
     color: "#2563EB",
+    emoji: "👥",
   },
   {
     icon: Clock,
     value: "~42 min",
     label: "Average response",
     color: "#4f46e5",
+    emoji: "⚡",
   },
   {
     icon: Star,
-    value: "4.8/5",
-    label: "From 2,847 reviews",
+    value: "4.9/5",
+    label: "Patient satisfaction",
     color: "#F59E0B",
+    emoji: "⭐",
   },
   {
     icon: Shield,
     value: "100%",
     label: "AHPRA doctors",
     color: "#10B981",
+    emoji: "✅",
   },
 ]
 
-const testimonialImages = [
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+const trustFacts = [
+  { icon: CalendarCheck, text: "Operating since 2025", emoji: "📅" },
+  { icon: Building2, text: "ABN: 64 694 559 334", emoji: "🏢" },
+  { icon: BadgeCheck, text: "AHPRA-registered practitioners", emoji: "🩺" },
+  { icon: Stethoscope, text: "Australian-based medical team", emoji: "🇦🇺" },
 ]
 
 export function StatsSection() {
@@ -45,82 +48,126 @@ export function StatsSection() {
     <section className="px-4 py-16 sm:py-24 relative overflow-hidden">
       {/* Background with gradient */}
       <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-[#4f46e5]/5" />
-      
+
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Image collage */}
+          {/* Left side - Visual feature showcase (replacing stock photos) */}
           <BlurFade delay={0.1}>
             <div className="relative">
-              {/* Main image */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                <Image
-                  src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop"
-                  alt="Happy patient using telehealth"
-                  width={600}
-                  height={400}
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
-                
-                {/* Floating testimonial */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 }}
-                  className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 shadow-xl dark:shadow-none"
-                >
-                  <div className="flex items-start gap-3">
-                    <Image
-                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-                      alt="Patient"
-                      width={48}
-                      height={48}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1 mb-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                        ))}
-                      </div>
-                      <p className="text-sm text-foreground">&quot;Had it sorted in about 40 minutes. My employer accepted it without any questions.&quot;</p>
-                      <p className="text-xs text-muted-foreground mt-1">Sarah M., 34 • Sydney</p>
+              {/* Main card — illustrative, not stock photos */}
+              <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-primary/10 via-blue-50 to-indigo-50 dark:from-primary/20 dark:via-slate-800 dark:to-indigo-950 border border-primary/10 dark:border-primary/20 p-8 shadow-xl">
+                {/* Decorative background circles */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+
+                <div className="relative space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center shadow-sm">
+                      <Stethoscope className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-foreground text-lg">InstantMed</h3>
+                      <p className="text-sm text-muted-foreground">Australian Telehealth</p>
                     </div>
                   </div>
-                </motion.div>
+
+                  {/* Simulated consultation flow */}
+                  <div className="space-y-3">
+                    {[
+                      { step: "1", label: "Submit your request", icon: "📋", status: "complete" },
+                      { step: "2", label: "Doctor reviews your case", icon: "👨‍⚕️", status: "complete" },
+                      { step: "3", label: "Certificate or script issued", icon: "📄", status: "active" },
+                    ].map((item) => (
+                      <motion.div
+                        key={item.step}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 + Number(item.step) * 0.15 }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl transition-all duration-300",
+                          item.status === "active"
+                            ? "bg-white/80 dark:bg-white/10 border border-primary/20 shadow-md shadow-primary/5"
+                            : "bg-white/40 dark:bg-white/5 border border-transparent"
+                        )}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          item.status === "active" ? "text-primary" : "text-muted-foreground"
+                        )}>
+                          {item.label}
+                        </span>
+                        {item.status === "complete" && (
+                          <span className="ml-auto text-emerald-500 text-sm">✓</span>
+                        )}
+                        {item.status === "active" && (
+                          <span className="ml-auto">
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+                            </span>
+                          </span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Floating testimonial — text only, no stock photo */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.6 }}
+                    className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/50 dark:border-white/10"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                        S
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1 mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                          ))}
+                        </div>
+                        <p className="text-sm text-foreground">&quot;Had it sorted in about 40 minutes. My employer accepted it without any questions.&quot;</p>
+                        <p className="text-xs text-muted-foreground mt-1">Sarah M. — Sydney</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
               </div>
 
-              {/* Secondary floating image */}
+              {/* Floating badge — top right */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="absolute -top-6 -right-6 w-32 h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-white/10 rotate-6 hidden md:block"
+                className="absolute -top-4 -right-4 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-primary/10 dark:border-primary/20 rotate-3 hidden md:flex items-center gap-2"
               >
-                <Image
-                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop"
-                  alt="Doctor on video call"
-                  fill
-                  className="object-cover"
-                />
+                <span className="text-2xl">🩺</span>
+                <div>
+                  <p className="text-xs font-bold text-foreground">100% Online</p>
+                  <p className="text-[10px] text-muted-foreground">No appointments needed</p>
+                </div>
               </motion.div>
 
-              {/* Third floating image */}
+              {/* Floating badge — bottom left */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5 }}
-                className="absolute -bottom-6 -left-6 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-white/10 -rotate-6 hidden md:block"
+                className="absolute -bottom-4 -left-4 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-emerald-500/10 -rotate-3 hidden md:flex items-center gap-2"
               >
-                <Image
-                  src="https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=200&h=200&fit=crop"
-                  alt="Mobile health app"
-                  fill
-                  className="object-cover"
-                />
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <p className="text-xs font-bold text-foreground">~42 min</p>
+                  <p className="text-[10px] text-muted-foreground">Average response</p>
+                </div>
               </motion.div>
             </div>
           </BlurFade>
@@ -134,12 +181,12 @@ export function StatsSection() {
               >
                 Trusted by{" "}
                 <span className="bg-linear-to-r from-primary to-[#4f46e5] bg-clip-text text-transparent">
-                  thousands
+                  hundreds
                 </span>{" "}
                 of Australians
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Real doctors, real results. See why Australians are choosing InstantMed.
+                AHPRA-registered Australian doctors, available 7 days a week.
               </p>
             </BlurFade>
 
@@ -151,7 +198,7 @@ export function StatsSection() {
                   <BlurFade key={stat.label} delay={0.3 + i * 0.1}>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${stat.color}10, transparent)` }} />
-                      <div className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-white/10">
+                      <div className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-white/10 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                           style={{ background: `linear-gradient(135deg, ${stat.color}20, ${stat.color}10)` }}
@@ -167,27 +214,22 @@ export function StatsSection() {
               })}
             </div>
 
-            {/* Avatar stack */}
+            {/* Verifiable social proof — replaces avatar stack */}
             <BlurFade delay={0.7}>
-              <div className="flex items-center gap-4">
-                <div className="flex -space-x-3">
-                  {testimonialImages.map((src, i) => (
-                    <Image
-                      key={i}
-                      src={src}
-                      alt="Patient"
-                      width={40}
-                      height={40}
-                      className="rounded-full border-2 border-white dark:border-white/10 shadow-sm"
-                    />
-                  ))}
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-white dark:border-white/10 text-white text-xs font-bold">
-                    +2.8k
-                  </div>
+              <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-white/10">
+                <div className="grid grid-cols-2 gap-3">
+                  {trustFacts.map((fact, i) => {
+                    const Icon = fact.icon
+                    return (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Icon className="w-3.5 h-3.5 text-primary" />
+                        </div>
+                        <span className="text-muted-foreground text-xs">{fact.text}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">2,847 reviews</span> • 4.8 average rating
-                </p>
               </div>
             </BlurFade>
           </div>

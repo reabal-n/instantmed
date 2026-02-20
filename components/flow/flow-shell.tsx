@@ -8,7 +8,6 @@ import { FlowStepper } from './flow-stepper'
 import { FlowCTA } from './flow-cta'
 import { FlowErrorBoundary } from './flow-error-boundary'
 import { SkipLink } from '@/components/a11y/skip-link'
-import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 import { useFlowStore, useFlowProgress, useFlowUI } from '@/lib/flow'
 import type { FlowConfig, FlowState } from '@/lib/flow'
 import { cn } from '@/lib/utils'
@@ -191,11 +190,6 @@ export function FlowShell({
         />
       )}
 
-      {/* Exit intent popup for save-for-later */}
-      <ExitIntentPopup 
-        variant="save" 
-        service={config.serviceSlug?.includes('med-cert') ? 'med-cert' : config.serviceSlug?.includes('script') ? 'repeat-prescription' : 'consult'}
-      />
     </div>
   )
 }

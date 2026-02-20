@@ -163,7 +163,7 @@ export function MarketingFooter() {
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          ABN: 64 694 559 334
+          Operating since 2025 · ABN: 64 694 559 334
         </p>
       </div>
     </footer>

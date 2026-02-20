@@ -148,13 +148,6 @@ function JsonLd() {
       name: "Australia",
     },
     serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Doctor Consultations"],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "200",
-      bestRating: "5",
-      worstRating: "1",
-    },
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -203,7 +196,7 @@ export default function RootLayout({
           </Script>
           <JsonLd />
           <OrganizationSchema />
-          <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
+          {/* ReviewAggregateSchema removed to avoid Google penalty from unverifiable review counts */}
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogProvider>
