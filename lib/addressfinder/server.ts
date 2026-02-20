@@ -1,10 +1,8 @@
 /**
- * AddressFinder Server-Side Verification
- * 
- * Uses AddressFinder's Address Verification API to validate addresses
- * against GNAF (Geocoded National Address File) on the server.
- * 
- * This provides an additional layer of verification before storing addresses.
+ * Server-Side Address Verification
+ *
+ * Uses Google Geocoding API to validate Australian addresses.
+ * Provides an additional layer of verification before storing addresses.
  */
 
 export interface VerifiedAddress {
@@ -33,28 +31,11 @@ export interface AddressVerificationResult {
   error?: string
 }
 
-interface AddressFinderVerifyResponse {
-  matched: boolean
-  success: boolean
-  address?: {
-    full_address: string
-    address_line_1: string
-    address_line_2: string | null
-    locality_name: string
-    state_territory: string
-    postcode: string
-    gnaf_id?: string
-    longitude?: number
-    latitude?: number
-  }
-  canonical?: string
-}
-
 /**
- * Verify an address using AddressFinder's Verification API
- * 
- * This should be called server-side before storing addresses to ensure
- * they are valid GNAF-verified Australian addresses.
+ * Verify an address using Google Geocoding API
+ *
+ * Called server-side before storing addresses to ensure
+ * they are valid Australian addresses.
  */
 export async function verifyAddress(address: {
   addressLine1: string
@@ -63,47 +44,56 @@ export async function verifyAddress(address: {
   state: string
   postcode: string
 }): Promise<AddressVerificationResult> {
-  const apiKey = process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY
-  const apiSecret = process.env.ADDRESSFINDER_SECRET
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
 
   if (!apiKey) {
+    // Gracefully degrade — accept the address as-is without verification
     return {
-      success: false,
+      success: true,
       verified: false,
-      error: "AddressFinder API key not configured",
+      address: {
+        verified: false,
+        confidence: "none",
+        canonical: {
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          suburb: address.suburb,
+          state: address.state,
+          postcode: address.postcode,
+          fullAddress: [
+            address.addressLine1,
+            address.suburb,
+            address.state,
+            address.postcode,
+          ]
+            .filter(Boolean)
+            .join(", "),
+        },
+      },
     }
   }
 
-  // Construct the full address string for verification
+  // Construct the full address string for geocoding
   const fullAddress = [
     address.addressLine1,
     address.addressLine2,
     address.suburb,
     address.state,
     address.postcode,
+    "Australia",
   ]
     .filter(Boolean)
     .join(", ")
 
   const params = new URLSearchParams({
+    address: fullAddress,
+    components: "country:AU",
     key: apiKey,
-    q: fullAddress,
-    format: "json",
-    gnaf: "1", // Request GNAF ID
   })
-
-  // Add secret for server-side calls
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  }
-  if (apiSecret) {
-    headers["Authorization"] = apiSecret
-  }
 
   try {
     const response = await fetch(
-      `https://api.addressfinder.io/api/au/address/verification/?${params}`,
-      { headers }
+      `https://maps.googleapis.com/maps/api/geocode/json?${params}`
     )
 
     if (!response.ok) {
@@ -114,18 +104,57 @@ export async function verifyAddress(address: {
       }
     }
 
-    const data: AddressFinderVerifyResponse = await response.json()
+    const data = await response.json()
 
-    if (!data.matched || !data.address) {
+    if (data.status !== "OK" || !data.results || data.results.length === 0) {
+      // Can't verify, but don't block — accept as-is
       return {
         success: true,
         verified: false,
-        error: "Address could not be verified. Please check and try again.",
+        address: {
+          verified: false,
+          confidence: "none",
+          canonical: {
+            addressLine1: address.addressLine1,
+            addressLine2: address.addressLine2,
+            suburb: address.suburb,
+            state: address.state,
+            postcode: address.postcode,
+            fullAddress,
+          },
+        },
       }
     }
 
-    // Determine confidence based on response
-    const confidence = determineConfidence(address, data.address)
+    const result = data.results[0]
+    const components = result.address_components || []
+
+    const get = (type: string, useShort = false): string => {
+      const comp = components.find((c: { types: string[] }) =>
+        c.types.includes(type)
+      )
+      return comp
+        ? useShort
+          ? comp.short_name
+          : comp.long_name
+        : ""
+    }
+
+    const streetNumber = get("street_number")
+    const streetName = get("route")
+    const verifiedSuburb = get("locality") || get("sublocality_level_1") || get("administrative_area_level_2")
+    const verifiedState = get("administrative_area_level_1", true)
+    const verifiedPostcode = get("postal_code")
+
+    const canonicalAddress1 = `${streetNumber} ${streetName}`.trim()
+
+    // Determine confidence
+    const confidence = determineConfidence(address, {
+      address_line_1: canonicalAddress1,
+      locality_name: verifiedSuburb,
+      state_territory: verifiedState,
+      postcode: verifiedPostcode,
+    })
 
     return {
       success: true,
@@ -133,29 +162,40 @@ export async function verifyAddress(address: {
       address: {
         verified: true,
         confidence,
-        gnafId: data.address.gnaf_id,
         canonical: {
-          addressLine1: data.address.address_line_1,
-          addressLine2: data.address.address_line_2,
-          suburb: data.address.locality_name,
-          state: data.address.state_territory,
-          postcode: data.address.postcode,
-          fullAddress: data.address.full_address,
+          addressLine1: canonicalAddress1 || address.addressLine1,
+          addressLine2: address.addressLine2,
+          suburb: verifiedSuburb || address.suburb,
+          state: verifiedState || address.state,
+          postcode: verifiedPostcode || address.postcode,
+          fullAddress: result.formatted_address || fullAddress,
         },
         coordinates:
-          data.address.latitude && data.address.longitude
+          result.geometry?.location
             ? {
-                latitude: data.address.latitude,
-                longitude: data.address.longitude,
+                latitude: result.geometry.location.lat,
+                longitude: result.geometry.location.lng,
               }
             : undefined,
       },
     }
   } catch {
+    // Gracefully degrade on error
     return {
-      success: false,
+      success: true,
       verified: false,
-      error: "Address verification service unavailable",
+      address: {
+        verified: false,
+        confidence: "none",
+        canonical: {
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          suburb: address.suburb,
+          state: address.state,
+          postcode: address.postcode,
+          fullAddress,
+        },
+      },
     }
   }
 }
@@ -164,25 +204,30 @@ export async function verifyAddress(address: {
  * Determine confidence level based on how closely the input matches the verified address
  */
 function determineConfidence(
-  input: { addressLine1: string; suburb: string; state: string; postcode: string },
-  verified: { address_line_1: string; locality_name: string; state_territory: string; postcode: string }
+  input: {
+    addressLine1: string
+    suburb: string
+    state: string
+    postcode: string
+  },
+  verified: {
+    address_line_1: string
+    locality_name: string
+    state_territory: string
+    postcode: string
+  }
 ): "high" | "medium" | "low" {
   let score = 0
 
-  // Exact postcode match
   if (input.postcode === verified.postcode) score += 3
-
-  // State match
   if (input.state.toUpperCase() === verified.state_territory.toUpperCase()) score += 2
 
-  // Suburb similarity
   if (input.suburb.toLowerCase() === verified.locality_name.toLowerCase()) {
     score += 3
   } else if (verified.locality_name.toLowerCase().includes(input.suburb.toLowerCase())) {
     score += 1
   }
 
-  // Address line similarity (basic)
   const inputNormalized = input.addressLine1.toLowerCase().replace(/[^a-z0-9]/g, "")
   const verifiedNormalized = verified.address_line_1.toLowerCase().replace(/[^a-z0-9]/g, "")
   if (inputNormalized === verifiedNormalized) {
@@ -198,7 +243,6 @@ function determineConfidence(
 
 /**
  * Validate address without full verification (lighter check)
- * Use this for real-time validation before submit
  */
 export async function quickValidateAddress(address: {
   addressLine1: string
@@ -206,7 +250,6 @@ export async function quickValidateAddress(address: {
   state: string
   postcode: string
 }): Promise<{ valid: boolean; suggestion?: string }> {
-  // Basic structural validation
   if (!address.addressLine1 || address.addressLine1.length < 5) {
     return { valid: false, suggestion: "Please enter a complete street address" }
   }
@@ -219,7 +262,6 @@ export async function quickValidateAddress(address: {
     return { valid: false, suggestion: "Please enter a valid 4-digit postcode" }
   }
 
-  // Postcode-state validation (imported from australian-address)
   const { validatePostcodeState } = await import("@/lib/validation/australian-address")
   const postcodeResult = validatePostcodeState(
     address.postcode,

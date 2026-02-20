@@ -4,7 +4,12 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MapPin, Loader2, AlertTriangle, CheckCircle } from "lucide-react"
-import { searchAddresses, getAddressMetadata, type AddressFinderSuggestion } from "@/lib/addressfinder/client"
+import {
+  searchAddresses,
+  getPlaceDetails,
+  generateSessionToken,
+  type PlaceSuggestion,
+} from "@/lib/google-places/client"
 import { useDebounce } from "@/hooks/use-debounce"
 
 export interface AddressComponents {
@@ -17,9 +22,9 @@ export interface AddressComponents {
   fullAddress: string
   addressLine1?: string
   addressLine2?: string | null
-  /** True if address was selected from AddressFinder (GNAF-verified) */
+  /** True if address was selected from Google Places */
   isVerified?: boolean
-  /** AddressFinder pxid for audit trail */
+  /** Google Place ID for audit trail */
   pxid?: string
 }
 
@@ -31,7 +36,7 @@ interface AddressAutocompleteProps {
   className?: string
   error?: string
   disabled?: boolean
-  /** If true, user MUST select from AddressFinder suggestions */
+  /** If true, user MUST select from suggestions */
   requireVerified?: boolean
   /** Callback when verification status changes */
   onVerificationChange?: (isVerified: boolean) => void
@@ -48,16 +53,17 @@ export function AddressAutocomplete({
   requireVerified = false,
   onVerificationChange,
 }: AddressAutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<AddressFinderSuggestion[]>([])
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [isVerified, setIsVerified] = useState(false)
-  const [lastSelectedPxid, setLastSelectedPxid] = useState<string | null>(null)
+  const [lastSelectedPlaceId, setLastSelectedPlaceId] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSearchRef = useRef<string>("")
-  
+  const sessionTokenRef = useRef<string>(generateSessionToken())
+
   const debouncedValue = useDebounce(value, 300)
   const shouldSearch = debouncedValue && debouncedValue.length >= 3
 
@@ -69,13 +75,15 @@ export function AddressAutocomplete({
       setIsSearching(false)
       return
     }
-    
+
     if (lastSearchRef.current === searchValue) return
     lastSearchRef.current = searchValue
-    
+
     setIsSearching(true)
-    const results = await searchAddresses(searchValue)
-    
+    const results = await searchAddresses(searchValue, {
+      sessionToken: sessionTokenRef.current,
+    })
+
     // Only update if this is still the current search
     if (lastSearchRef.current === searchValue) {
       setSuggestions(results)
@@ -94,7 +102,6 @@ export function AddressAutocomplete({
     if (!searchValue) {
       setHasSearched(false)
     }
-    // Wrap in IIFE to satisfy lint rule about async effects
     void (async () => {
       await doSearch(searchValue)
       if (searchValue) {
@@ -103,68 +110,84 @@ export function AddressAutocomplete({
     })()
   }, [debouncedValue, shouldSearch, doSearch])
 
-  // Handle selection from AddressFinder (GNAF-verified)
-  const handleSelect = useCallback(async (suggestion: AddressFinderSuggestion) => {
-    setIsOpen(false)
-    setSuggestions([])
-    onChange(suggestion.full_address)
-    
-    // Mark as verified since user selected from AddressFinder
-    setIsVerified(true)
-    setLastSelectedPxid(suggestion.pxid)
-    onVerificationChange?.(true)
+  // Handle selection from Google Places
+  const handleSelect = useCallback(
+    async (suggestion: PlaceSuggestion) => {
+      setIsOpen(false)
+      setSuggestions([])
+      onChange(suggestion.description)
 
-    // Fetch full metadata
-    const metadata = await getAddressMetadata(suggestion.pxid)
-    if (metadata) {
-      onAddressSelect({
-        streetNumber: "",
-        streetName: "",
-        suburb: metadata.suburb,
-        state: metadata.state,
-        postcode: metadata.postcode,
-        country: "AU",
-        fullAddress: metadata.fullAddress,
-        addressLine1: metadata.addressLine1,
-        addressLine2: metadata.addressLine2,
-        isVerified: true,
-        pxid: suggestion.pxid,
-      })
-    }
-  }, [onChange, onAddressSelect, onVerificationChange])
+      // Mark as verified since user selected from Google Places
+      setIsVerified(true)
+      setLastSelectedPlaceId(suggestion.place_id)
+      onVerificationChange?.(true)
+
+      // Fetch full place details (this completes the session for billing)
+      const details = await getPlaceDetails(
+        suggestion.place_id,
+        sessionTokenRef.current
+      )
+
+      // Generate a new session token for the next autocomplete flow
+      sessionTokenRef.current = generateSessionToken()
+
+      if (details) {
+        onAddressSelect({
+          streetNumber: "",
+          streetName: "",
+          suburb: details.suburb,
+          state: details.state,
+          postcode: details.postcode,
+          country: "AU",
+          fullAddress: details.fullAddress,
+          addressLine1: details.addressLine1,
+          addressLine2: details.addressLine2,
+          isVerified: true,
+          pxid: suggestion.place_id,
+        })
+      }
+    },
+    [onChange, onAddressSelect, onVerificationChange]
+  )
 
   // Keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen || suggestions.length === 0) return
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isOpen || suggestions.length === 0) return
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault()
-        setHighlightedIndex((prev) => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        )
-        break
-      case "ArrowUp":
-        e.preventDefault()
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-        break
-      case "Enter":
-        e.preventDefault()
-        if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-          handleSelect(suggestions[highlightedIndex])
-        }
-        break
-      case "Escape":
-        setIsOpen(false)
-        setHasSearched(false)
-        break
-    }
-  }, [isOpen, suggestions, highlightedIndex, handleSelect])
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault()
+          setHighlightedIndex((prev) =>
+            prev < suggestions.length - 1 ? prev + 1 : prev
+          )
+          break
+        case "ArrowUp":
+          e.preventDefault()
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+          break
+        case "Enter":
+          e.preventDefault()
+          if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+            handleSelect(suggestions[highlightedIndex])
+          }
+          break
+        case "Escape":
+          setIsOpen(false)
+          setHasSearched(false)
+          break
+      }
+    },
+    [isOpen, suggestions, highlightedIndex, handleSelect]
+  )
 
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false)
         setHasSearched(false)
       }
@@ -174,20 +197,24 @@ export function AddressAutocomplete({
   }, [])
 
   // Handle manual typing - invalidates verification
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    onChange(newValue)
-    
-    // If user is manually editing after selecting, invalidate verification
-    if (isVerified && lastSelectedPxid) {
-      setIsVerified(false)
-      setLastSelectedPxid(null)
-      onVerificationChange?.(false)
-    }
-  }, [onChange, isVerified, lastSelectedPxid, onVerificationChange])
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value
+      onChange(newValue)
+
+      // If user is manually editing after selecting, invalidate verification
+      if (isVerified && lastSelectedPlaceId) {
+        setIsVerified(false)
+        setLastSelectedPlaceId(null)
+        onVerificationChange?.(false)
+      }
+    },
+    [onChange, isVerified, lastSelectedPlaceId, onVerificationChange]
+  )
 
   // Determine if we should show verification warning
-  const showVerificationWarning = requireVerified && value.length > 0 && !isVerified && !isSearching
+  const showVerificationWarning =
+    requireVerified && value.length > 0 && !isVerified && !isSearching
 
   return (
     <div ref={containerRef} className="relative">
@@ -199,7 +226,7 @@ export function AddressAutocomplete({
         onFocus={() => suggestions.length > 0 && setIsOpen(true)}
         placeholder={placeholder}
         className={cn(
-          className, 
+          className,
           error && "border-red-500",
           isVerified && "border-green-500/50",
           showVerificationWarning && "border-amber-500/50"
@@ -220,7 +247,7 @@ export function AddressAutocomplete({
           ) : null
         }
       />
-      
+
       {/* Verification hint */}
       {showVerificationWarning && (
         <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
@@ -237,7 +264,7 @@ export function AddressAutocomplete({
         >
           {suggestions.map((suggestion, index) => (
             <li
-              key={suggestion.pxid}
+              key={suggestion.place_id}
               role="option"
               aria-selected={index === highlightedIndex}
               className={cn(
@@ -251,7 +278,15 @@ export function AddressAutocomplete({
             >
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                <span>{suggestion.full_address}</span>
+                <div>
+                  <span className="font-medium">{suggestion.main_text}</span>
+                  {suggestion.secondary_text && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      {suggestion.secondary_text}
+                    </span>
+                  )}
+                </div>
               </div>
             </li>
           ))}
@@ -259,11 +294,18 @@ export function AddressAutocomplete({
       )}
 
       {/* No results state */}
-      {!isOpen && !isSearching && hasSearched && suggestions.length === 0 && value.length >= 3 && !isVerified && (
-        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
-          <p className="text-sm text-muted-foreground text-center">No addresses found. Try a different search.</p>
-        </div>
-      )}
+      {!isOpen &&
+        !isSearching &&
+        hasSearched &&
+        suggestions.length === 0 &&
+        value.length >= 3 &&
+        !isVerified && (
+          <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+            <p className="text-sm text-muted-foreground text-center">
+              No addresses found. Try a different search.
+            </p>
+          </div>
+        )}
 
       {/* Loading state during search */}
       {isSearching && value.length >= 3 && (

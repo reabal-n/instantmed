@@ -72,7 +72,7 @@ export async function completeOnboardingAction(
     return { success: false, error: "Please correct the errors below", fieldErrors }
   }
 
-  // Verify address with AddressFinder (GNAF verification)
+  // Verify address with Google Geocoding API
   const addressVerification = await verifyAddress({
     addressLine1: data.address_line1,
     suburb: data.suburb,

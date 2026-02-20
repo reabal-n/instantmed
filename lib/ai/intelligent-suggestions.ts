@@ -368,7 +368,7 @@ class IntelligentSuggestionsEngine {
 
       // Address suggestions
       if (fieldType === 'address' && normalizedInput.length > 3) {
-        // This would integrate with AddressFinder API
+        // This would integrate with Google Places API
         // For now, return mock suggestions
         const commonAddresses = [
           '123 Main Street, Sydney NSW 2000',
