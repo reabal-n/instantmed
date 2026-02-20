@@ -155,21 +155,37 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   }
 
   // Extract date info from answers (baseline)
-  const dateNeeded = (answers.date_needed as string) || null
+  // Intake answers may have: startDate/start_date (YYYY-MM-DD), duration (days count),
+  // OR legacy date_needed ("Yesterday", "Last 7 days")
   const today = todayAEST()
 
   let dateFrom = today
   let dateTo = today
-  if (dateNeeded === "Yesterday") {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    dateFrom = yesterday.toISOString().split("T")[0]
-    dateTo = today
-  } else if (dateNeeded === "Last 7 days") {
-    const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-    dateFrom = weekAgo.toISOString().split("T")[0]
-    dateTo = today
+
+  // Prefer explicit startDate from answers (new intake flow)
+  const answerStartDate = (answers.startDate as string) || (answers.start_date as string) || null
+  const answerDuration = parseInt((answers.duration as string) || "1", 10) || 1
+
+  if (answerStartDate) {
+    dateFrom = answerStartDate
+    // Compute endDate from startDate + duration
+    const start = new Date(answerStartDate)
+    start.setDate(start.getDate() + answerDuration - 1) // duration includes start day
+    dateTo = start.toISOString().split("T")[0]
+  } else {
+    // Legacy: check date_needed field
+    const dateNeeded = (answers.date_needed as string) || null
+    if (dateNeeded === "Yesterday") {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      dateFrom = yesterday.toISOString().split("T")[0]
+      dateTo = today
+    } else if (dateNeeded === "Last 7 days") {
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      dateFrom = weekAgo.toISOString().split("T")[0]
+      dateTo = today
+    }
   }
 
   // If AI draft has dates, prefer them (AI extracts from intake answers more intelligently)
@@ -212,12 +228,18 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   }
 
   // Insert draft
+  // NOTE: Production DB has request_id NOT NULL (legacy column from old requests table).
+  // We bridge by setting request_id = intakeId. Also explicitly set is_ai_generated = false
+  // since this is a document-builder draft, not an AI draft. The content and status columns
+  // have NOT NULL defaults ('{}' and 'pending') so they auto-fill.
   const { data: newDraft, error: insertError } = await supabase
     .from("document_drafts")
     .insert({
+      request_id: intakeId,  // Bridge: legacy NOT NULL column
       intake_id: intakeId,
       type: "med_cert",
       data: initialData,
+      is_ai_generated: false,
     })
     .select("id, intake_id, type, subtype, data, created_at, updated_at")
     .single()

@@ -95,10 +95,23 @@ export async function generateMedCertPdfAndApproveAction(
     // failed due to a prior DB issue like a missing enum value).
     if (!draft) {
       logger.info("No draft found, auto-creating from intake data", { intakeId, draftId })
-      const autoCreatedDraft = await getOrCreateMedCertDraftForIntake(intakeId)
-      if (autoCreatedDraft?.data) {
-        draft = { data: autoCreatedDraft.data }
-        logger.info("Auto-created draft successfully", { intakeId, newDraftId: autoCreatedDraft.id })
+      try {
+        const autoCreatedDraft = await getOrCreateMedCertDraftForIntake(intakeId)
+        if (autoCreatedDraft?.data) {
+          draft = { data: autoCreatedDraft.data }
+          logger.info("Auto-created draft successfully", {
+            intakeId,
+            newDraftId: autoCreatedDraft.id,
+            draftDataKeys: Object.keys(autoCreatedDraft.data as Record<string, unknown>),
+          })
+        } else {
+          logger.warn("Auto-create returned null or empty data", { intakeId, hasResult: !!autoCreatedDraft })
+        }
+      } catch (autoCreateError) {
+        logger.error("Auto-create draft failed with exception", {
+          intakeId,
+          error: autoCreateError instanceof Error ? autoCreateError.message : String(autoCreateError),
+        })
       }
     }
 
