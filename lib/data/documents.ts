@@ -228,16 +228,16 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   }
 
   // Insert draft
-  // NOTE: Production DB has request_id NOT NULL (legacy column from old requests table).
-  // We bridge by setting request_id = intakeId. Also explicitly set is_ai_generated = false
-  // since this is a document-builder draft, not an AI draft. The content and status columns
-  // have NOT NULL defaults ('{}' and 'pending') so they auto-fill.
+  // NOTE: Production DB has NOT NULL constraints on legacy columns (request_id, subtype)
+  // that aren't in the original migration. We bridge by setting them explicitly.
+  const subtype = certType === "uni" ? "study" : certType  // "work" | "study" | "carer"
   const { data: newDraft, error: insertError } = await supabase
     .from("document_drafts")
     .insert({
       request_id: intakeId,  // Bridge: legacy NOT NULL column
       intake_id: intakeId,
       type: "med_cert",
+      subtype,               // Bridge: legacy NOT NULL column
       data: initialData,
       is_ai_generated: false,
     })
