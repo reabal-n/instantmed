@@ -5,7 +5,6 @@ import { AuthenticatedShell } from '@/components/shell'
 import { usePanel, SessionPanel } from '@/components/panels'
 import { ServiceSelector } from '@/components/patient/service-selector'
 import { MobileNav } from '@/components/ui/mobile-nav'
-import { SessionTimeoutWarning } from '@/components/shared/session-timeout-warning'
 
 /**
  * PatientShell - Wraps all patient pages with panel-based interface
@@ -65,7 +64,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <SessionTimeoutWarning warningMinutes={5} />
+      {/* Session timeout warning removed - Clerk handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 md:pb-8">
         {children}
       </div>
