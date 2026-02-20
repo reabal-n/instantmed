@@ -136,7 +136,9 @@ export function getResendApiKey(): string {
  * Format: "Name <email@domain.com>"
  */
 export function getResendFromEmail(): string {
-  return process.env.RESEND_FROM_EMAIL || "InstantMed <noreply@instantmed.com.au>"
+  const raw = process.env.RESEND_FROM_EMAIL || "InstantMed <noreply@instantmed.com.au>"
+  // Strip wrapping quotes — a common env var misconfiguration that causes Resend 422 errors
+  return raw.replace(/^["']|["']$/g, "")
 }
 
 /**
