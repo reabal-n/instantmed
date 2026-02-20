@@ -6,6 +6,7 @@ import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
 import type { CertReviewData } from "@/types/db"
 import { getCurrentProfile } from "@/lib/data/profiles"
+import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { logger } from "@/lib/observability/logger"
 
 export async function saveMedCertDraftAction(
@@ -86,6 +87,18 @@ export async function generateMedCertPdfAndApproveAction(
 
       if (draftByIntakeId) {
         draft = draftByIntakeId
+      }
+    }
+
+    // If no draft exists at all, auto-create one from intake data.
+    // This handles cases where the draft was never created (e.g. page load
+    // failed due to a prior DB issue like a missing enum value).
+    if (!draft) {
+      logger.info("No draft found, auto-creating from intake data", { intakeId, draftId })
+      const autoCreatedDraft = await getOrCreateMedCertDraftForIntake(intakeId)
+      if (autoCreatedDraft?.data) {
+        draft = { data: autoCreatedDraft.data }
+        logger.info("Auto-created draft successfully", { intakeId, newDraftId: autoCreatedDraft.id })
       }
     }
 

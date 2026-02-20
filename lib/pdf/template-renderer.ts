@@ -104,24 +104,44 @@ const LAYOUT = {
 // Body text generators — single string per paragraph, auto-wrapped at render
 // ---------------------------------------------------------------------------
 
+function getDatePhrase(input: TemplatePdfInput): string {
+  // Single day: "on 18 February 2026"
+  // Multi-day: "from 18 February 2026 to 20 February 2026 inclusive"
+  if (input.startDate === input.endDate) {
+    return `on ${input.startDate}`
+  }
+  return `from ${input.startDate} to ${input.endDate} inclusive`
+}
+
 function getBodyText(input: TemplatePdfInput): string {
+  const datePart = getDatePhrase(input)
   switch (input.certificateType) {
     case "work":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties from ${input.startDate} to ${input.endDate} inclusive.`
+      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties ${datePart}.`
     case "study":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend classes, sit examinations, or complete academic assessments from ${input.startDate} to ${input.endDate} inclusive.`
+      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend classes, sit examinations, or complete academic assessments ${datePart}.`
     case "carer":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. They are required to provide full-time care for a dependent family member who is currently unwell and are therefore unable to attend work or fulfil their usual duties from ${input.startDate} to ${input.endDate} inclusive.`
+      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. They are required to provide full-time care for a dependent family member who is currently unwell and are therefore unable to attend work or fulfil their usual duties ${datePart}.`
   }
 }
 
 function getReturnText(input: TemplatePdfInput): string {
+  const isSingleDay = input.startDate === input.endDate
   switch (input.certificateType) {
     case "work":
+      if (isSingleDay) {
+        return `They are advised to rest and recover and are expected to return to work the following day.`
+      }
       return `They are advised to rest and recover during this period and are expected to return to work on ${input.endDate}, or earlier if symptoms resolve.`
     case "study":
+      if (isSingleDay) {
+        return `They require rest and recovery and are expected to resume academic activities the following day. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
+      }
       return `They require this period for rest and recovery and are expected to resume academic activities on ${input.endDate}, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
     case "carer":
+      if (isSingleDay) {
+        return `They are expected to return to work the following day, subject to the dependent's recovery.`
+      }
       return `They are expected to return to work on ${input.endDate}, subject to the dependent's recovery.`
   }
 }
