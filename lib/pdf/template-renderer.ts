@@ -189,13 +189,28 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     const sanitisedInput = { ...input, patientName: trimmedName }
 
     const templateFile = `${sanitisedInput.certificateType}_template.pdf`
-    const templatePath = path.join(process.cwd(), "public", "templates", templateFile)
 
+    // Load template PDF — try filesystem first (local dev), then HTTP fetch (Vercel serverless).
+    // Vercel serverless functions don't have /public on the filesystem; files are served via CDN.
     let templateBytes: Buffer
     try {
+      const templatePath = path.join(process.cwd(), "public", "templates", templateFile)
       templateBytes = await fs.readFile(templatePath)
     } catch {
-      return { success: false, error: `Template not found: ${templateFile}` }
+      // Filesystem not available (Vercel serverless) — fetch from public URL
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000")
+        const res = await fetch(`${baseUrl}/templates/${templateFile}`)
+        if (!res.ok) {
+          return { success: false, error: `Template not found: ${templateFile} (HTTP ${res.status})` }
+        }
+        templateBytes = Buffer.from(await res.arrayBuffer())
+      } catch (fetchErr) {
+        log.error("Template load failed (both fs and fetch)", { templateFile, error: fetchErr instanceof Error ? fetchErr.message : String(fetchErr) })
+        return { success: false, error: `Template not found: ${templateFile}` }
+      }
     }
 
     const pdfDoc = await PDFDocument.load(templateBytes)
