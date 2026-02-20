@@ -265,11 +265,6 @@ export default function RepeatPrescriptionPage() {
                   >
                     <span className="font-semibold text-foreground">$29.95</span>
                     <span className="hidden sm:inline text-border">·</span>
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      <span className="font-semibold text-foreground">{liveStats.rating}</span> rating
-                    </span>
-                    <span className="hidden sm:inline text-border">·</span>
                     <span>&lt;1 hr review</span>
                     <span className="hidden sm:inline text-border">·</span>
                     <span>PBS subsidies apply</span>

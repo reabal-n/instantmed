@@ -143,13 +143,13 @@ export default function HowItWorksPage() {
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-primary" />
                   <span className="text-muted-foreground">
-                    Average response: <strong className="text-foreground">2.4 hours</strong>
+                    Average response: <strong className="text-foreground">~30 min</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Heart className="w-4 h-4 text-primary" />
                   <span className="text-muted-foreground">
-                    Patient satisfaction: <strong className="text-foreground">98%</strong>
+                    <strong className="text-foreground">AHPRA-registered</strong> doctors
                   </span>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function HowItWorksPage() {
                   className="text-2xl sm:text-3xl font-bold text-foreground mb-2"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Why 10,000+ Aussies trust us
+                  Why Aussies trust us
                 </h2>
                 <p className="text-sm text-muted-foreground">Real reasons, not marketing fluff.</p>
               </div>

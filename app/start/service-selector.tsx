@@ -77,17 +77,8 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
-                  ))}
-                </div>
-                <span className="text-muted-foreground">4.9/5 rating</span>
-              </div>
-              <span className="h-4 w-px bg-border" />
-              <div className="flex items-center gap-2 text-muted-foreground">
                 <Shield className="h-4 w-4 text-primary" />
-                <span>AHPRA registered</span>
+                <span>AHPRA-registered doctors</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">

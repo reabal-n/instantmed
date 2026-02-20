@@ -487,10 +487,6 @@ export default async function CityPage({ params }: PageProps) {
                   <Shield className="h-4 w-4 text-primary" />
                   <span>AHPRA-registered</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 text-primary" />
-                  <span>4.9/5 rating</span>
-                </div>
               </div>
             </div>
           </section>

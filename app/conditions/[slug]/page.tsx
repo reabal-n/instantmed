@@ -711,12 +711,8 @@ export default async function ConditionPage({ params }: PageProps) {
               {/* Social proof */}
               <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <span>{condition.stats.satisfaction} rating</span>
-                </div>
-                <div className="flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-primary" />
-                  <span>10,000+ consultations</span>
+                  <span>AHPRA-registered doctors</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-emerald-600" />

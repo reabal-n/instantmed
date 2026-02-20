@@ -161,7 +161,7 @@ export default function SignUpPage() {
                     <Star key={i} className="w-3 h-3 fill-current" />
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">Trusted by 10,000+ Australians</p>
+                <p className="text-xs text-muted-foreground">AHPRA-registered doctors · Operating since 2025</p>
               </div>
             </div>
           </div>

@@ -155,7 +155,7 @@ export function HeroTypewriter() {
         <span className="hidden sm:inline text-border">•</span>
         <span>Full refund if we can&apos;t help</span>
         <span className="hidden sm:inline text-border">•</span>
-        <span>4.9/5 from 200+ reviews</span>
+        <span>AHPRA-registered doctors</span>
       </div>
     </div>
   )

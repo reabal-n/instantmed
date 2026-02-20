@@ -492,10 +492,6 @@ export default async function GuidePage({ params }: PageProps) {
                   <Zap className="w-4 h-4 text-primary" />
                   <span>Fast response</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" />
-                  <span>4.9/5 rating</span>
-                </div>
               </div>
             </div>
           </section>

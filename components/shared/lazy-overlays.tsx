@@ -13,11 +13,6 @@ const ChatIntakeButton = dynamic(
   { ssr: false }
 )
 
-const SocialProofPopup = dynamic(
-  () => import("@/components/shared/social-proof-popup").then((mod) => ({ default: mod.SocialProofPopup })),
-  { ssr: false }
-)
-
 const StickyCTABar = dynamic(
   () => import("@/components/shared/sticky-cta-bar").then((mod) => ({ default: mod.StickyCTABar })),
   { ssr: false }
@@ -26,7 +21,6 @@ const StickyCTABar = dynamic(
 export function LazyOverlays() {
   return (
     <>
-      <SocialProofPopup />
       <StickyCTABar />
       <ChatIntakeButton />
     </>

@@ -99,10 +99,6 @@ export default function ConditionsIndexPage() {
                   <Clock className="w-4 h-4 text-primary" />
                   <span>Response in ~1 hour</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" />
-                  <span>4.9/5 patient rating</span>
-                </div>
               </div>
             </div>
           </section>

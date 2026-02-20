@@ -308,14 +308,6 @@ export default function GeneralConsultPage() {
                   <p className="text-xs text-muted-foreground">Doctor response</p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="flex justify-center gap-0.5 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{liveStats.rating} rating</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
                   <p className="text-xs text-muted-foreground">A week</p>
                 </div>

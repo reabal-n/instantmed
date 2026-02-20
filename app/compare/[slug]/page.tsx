@@ -452,10 +452,6 @@ export default async function ComparisonPage({ params }: PageProps) {
                   <Clock className="w-4 h-4 text-primary" />
                   <span>Under 1 hour</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" />
-                  <span>4.9/5 rating</span>
-                </div>
               </div>
             </div>
           </section>

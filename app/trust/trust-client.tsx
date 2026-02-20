@@ -449,7 +449,7 @@ export default function TrustPage() {
   </div>
   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
   <Users className="w-4 h-4 text-emerald-500" />
-  <span className="text-sm font-medium text-foreground">10,000+ Aussies Helped</span>
+  <span className="text-sm font-medium text-foreground">Operating Since 2025</span>
   </div>
   </div>
 
@@ -965,7 +965,7 @@ export default function TrustPage() {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-6">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground/80">Trusted by 10,000+ Australians</span>
+                <span className="text-sm font-medium text-foreground/80">Australian-owned telehealth · ABN 64 694 559 334</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
                 Ready to get started?

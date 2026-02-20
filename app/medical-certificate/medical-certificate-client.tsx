@@ -404,11 +404,6 @@ export default function MedicalCertificatePage() {
                   <span className="font-semibold text-foreground">From $19.95</span>
                 </span>
                 <span className="hidden sm:inline text-border">·</span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="font-semibold text-foreground">{liveStats.rating}</span> rating
-                </span>
-                <span className="hidden sm:inline text-border">·</span>
                 <span>100% online</span>
                 <span className="hidden sm:inline text-border">·</span>
                 <span>AHPRA doctors</span>
