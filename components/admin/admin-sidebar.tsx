@@ -13,27 +13,16 @@ import {
   Cog,
   ToggleLeft,
   Mail,
-  Palette,
-  Edit,
   TrendingUp,
   DollarSign,
   Activity,
-  Trophy,
-  ClipboardList,
   CreditCard,
-  Webhook,
-  Send,
   ScrollText,
-  Zap,
   ListOrdered,
   Settings,
   ShieldCheck,
-  Shield,
-  Timer,
-  HelpCircle,
-  Database,
+  ChevronRight,
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 
 interface AdminSidebarProps {
   userName: string
@@ -48,49 +37,35 @@ interface NavItem {
   badge?: number
 }
 
+// ── Doctor quick-access ──────────────────────────────────────
 const doctorNavItems: NavItem[] = [
   { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered },
-  { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },
-  { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
+  { href: "/doctor/patients", label: "Patients", icon: Users },
 ]
 
+// ── Configuration ────────────────────────────────────────────
 const configNavItems: NavItem[] = [
   { href: "/admin/clinic", label: "Clinic Identity", icon: Building2 },
-  { href: "/admin/doctors", label: "Doctor Profiles", icon: Stethoscope },
+  { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
   { href: "/admin/services", label: "Services", icon: Cog },
   { href: "/admin/features", label: "Feature Flags", icon: ToggleLeft },
-  { href: "/admin/settings/encryption", label: "Encryption", icon: Shield },
-  { href: "/admin/performance/database", label: "Database", icon: Database },
+  { href: "/admin/emails", label: "Email Templates", icon: Mail },
 ]
 
-const emailNavItems: NavItem[] = [
-  { href: "/admin/email-hub", label: "Email Hub", icon: Mail },
-  { href: "/admin/email-test", label: "Email Test Studio", icon: Palette },
-  { href: "/admin/emails", label: "Email Templates", icon: Edit },
-  { href: "/admin/content", label: "Content Editor", icon: FileText },
-  { href: "/admin/studio", label: "Template Studio", icon: Palette },
-]
-
-const dashboardNavItems: NavItem[] = [
+// ── Analytics ────────────────────────────────────────────────
+const analyticsNavItems: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: TrendingUp },
   { href: "/admin/finance", label: "Finance", icon: DollarSign },
   { href: "/admin/ops", label: "Operations", icon: Activity },
-  { href: "/admin/doctors/performance", label: "Doctor Performance", icon: Trophy },
-  { href: "/doctor/queue", label: "Doctor Queue", icon: ClipboardList },
   { href: "/admin/compliance", label: "Compliance", icon: ShieldCheck },
-  { href: "/admin/finance/revenue", label: "Revenue", icon: DollarSign },
 ]
 
-const opsNavItems: NavItem[] = [
-  { href: "/admin/refunds", label: "Refunds", icon: CreditCard },
-  { href: "/admin/webhook-dlq", label: "Webhook DLQ", icon: Webhook },
-  { href: "/admin/email-queue", label: "Email Queue", icon: Mail },
-  { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Send },
+// ── System ───────────────────────────────────────────────────
+const systemNavItems: NavItem[] = [
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
-  { href: "/admin/ops/sla", label: "SLA Monitor", icon: Timer },
-  { href: "/admin/support", label: "Support", icon: HelpCircle },
+  { href: "/admin/refunds", label: "Refunds", icon: CreditCard },
+  { href: "/admin/settings/encryption", label: "Settings", icon: Settings },
 ]
 
 export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }: AdminSidebarProps) {
@@ -103,142 +78,127 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
     return pathname === href
   }
 
-  const renderNavSection = (title: string, items: NavItem[], accentColor: "indigo" | "amber" | "slate" | "emerald" = "indigo") => {
-    const colorClasses = {
-      indigo: {
-        active: "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25",
-        inactive: "text-muted-foreground hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-300",
-        badge: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
-        header: "text-indigo-700 dark:text-indigo-400",
-      },
-      amber: {
-        active: "bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25",
-        inactive: "text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10",
-        badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
-        header: "text-amber-700 dark:text-amber-400",
-      },
-      slate: {
-        active: "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25",
-        inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-500/10",
-        badge: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300",
-        header: "text-slate-600 dark:text-slate-400",
-      },
-      emerald: {
-        active: "bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25",
-        inactive: "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10",
-        badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
-        header: "text-emerald-600 dark:text-emerald-400",
-      },
-    }
-
-    const colors = colorClasses[accentColor]
-
-    return (
-      <div className="space-y-1">
-        <p className={cn("px-3 py-1.5 text-xs font-semibold uppercase tracking-wider", colors.header)}>
-          {title}
-        </p>
-        {items.map((item) => {
-          const active = isActive(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                active ? colors.active : colors.inactive
-              )}
-            >
-              <span className="flex items-center gap-3">
-                <item.icon className={cn("w-4 h-4 transition-transform", !active && "group-hover:scale-110")} />
-                {item.label}
+  const renderNavSection = (title: string, items: NavItem[]) => (
+    <div className="space-y-0.5">
+      <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+        {title}
+      </p>
+      {items.map((item) => {
+        const active = isActive(item.href)
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "group flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
+              active
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            )}
+          >
+            <span className="flex items-center gap-2.5">
+              <item.icon className={cn(
+                "w-[18px] h-[18px]",
+                active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+              )} />
+              {item.label}
+            </span>
+            {item.badge !== undefined && item.badge > 0 && (
+              <span className={cn(
+                "min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-xs font-semibold",
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {item.badge}
               </span>
-              {item.badge !== undefined && item.badge > 0 && (
-                <Badge className={cn("text-xs", active ? "bg-white/20 text-white" : colors.badge)}>
-                  {item.badge}
-                </Badge>
-              )}
-            </Link>
-          )
-        })}
-      </div>
-    )
-  }
+            )}
+            {!item.badge && active && (
+              <ChevronRight className="w-3.5 h-3.5 text-primary/50" />
+            )}
+          </Link>
+        )
+      })}
+    </div>
+  )
+
+  const initials = userName
+    .split(" ")
+    .map(n => n.charAt(0))
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border/40 bg-linear-to-b from-white via-slate-50/50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <div className="sticky top-0 h-screen overflow-y-auto">
-        {/* Logo/Brand Header */}
-        <div className="p-4 border-b border-border/40">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
-              <Zap className="h-5 w-5 text-white" />
+    <aside className="hidden lg:flex w-[260px] shrink-0 flex-col">
+      <div className="sticky top-6 flex flex-col gap-1 pb-6">
+        {/* Brand */}
+        <div className="px-4 py-4 mb-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="text-sm font-bold tracking-tight">IM</span>
             </div>
             <div>
-              <span className="text-lg font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              <span className="text-[15px] font-semibold tracking-tight text-foreground">
                 InstantMed
               </span>
-              <p className="text-xs text-muted-foreground">Admin Portal</p>
+              <p className="text-xs text-muted-foreground leading-none mt-0.5">Admin</p>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-3 space-y-4">
-          {/* Main Admin Dashboard Link */}
+        {/* Admin Dashboard Link */}
+        <div className="px-3 mb-1">
           <Link
             href="/admin"
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+              "flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
               pathname === "/admin"
-                ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25"
-                : "text-muted-foreground hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >
-            <LayoutDashboard className="w-4 h-4" />
-            Admin Dashboard
+            <span className="flex items-center gap-2.5">
+              <LayoutDashboard className={cn(
+                "w-[18px] h-[18px]",
+                pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+              )} />
+              Dashboard
+            </span>
             {pendingCount > 0 && (
-              <Badge className={cn("ml-auto text-xs", pathname === "/admin" ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-700")}>
+              <span className="min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
                 {pendingCount}
-              </Badge>
+              </span>
             )}
           </Link>
+        </div>
 
-          {/* Doctor Nav */}
-          <div className="pt-2 border-t border-border/40">
-            {renderNavSection("Doctor Tools", doctorNavItems, "indigo")}
-          </div>
+        {/* Navigation Sections */}
+        <nav className="flex flex-col gap-4 px-3">
+          {renderNavSection("Doctor Tools", doctorNavItems)}
 
-          {/* Configuration */}
-          <div className="pt-2 border-t border-border/40">
-            {renderNavSection("Configuration", configNavItems, "amber")}
-          </div>
+          <div className="mx-3 border-t border-border/30" />
+          {renderNavSection("Configuration", configNavItems)}
 
-          {/* Email Operations */}
-          <div className="pt-2 border-t border-border/40">
-            {renderNavSection("Email & Content", emailNavItems, "emerald")}
-          </div>
+          <div className="mx-3 border-t border-border/30" />
+          {renderNavSection("Analytics", analyticsNavItems)}
 
-          {/* Dashboards */}
-          <div className="pt-2 border-t border-border/40">
-            {renderNavSection("Dashboards", dashboardNavItems, "slate")}
-          </div>
-
-          {/* Operations */}
-          <div className="pt-2 border-t border-border/40">
-            {renderNavSection("Operations", opsNavItems, "slate")}
-          </div>
+          <div className="mx-3 border-t border-border/30" />
+          {renderNavSection("System", systemNavItems)}
         </nav>
 
-        {/* User Profile Card */}
-        <div className="mt-auto p-4 border-t border-border/40">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white font-semibold">
-              {userName.charAt(0).toUpperCase()}
+        {/* Spacer */}
+        <div className="flex-1 min-h-4" />
+
+        {/* User Profile */}
+        <div className="px-4 mt-auto">
+          <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/50 transition-colors cursor-default">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-[12px] font-semibold">
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground truncate">{userName}</p>
-              <p className="text-xs text-muted-foreground">{userRole}</p>
+              <p className="text-[13px] font-medium text-foreground truncate leading-tight">{userName}</p>
+              <p className="text-xs text-muted-foreground leading-tight">{userRole}</p>
             </div>
           </div>
         </div>

@@ -3,22 +3,16 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { 
-  FileText, 
-  Users, 
-  BarChart3, 
-  Download, 
+import {
+  FileText,
+  Users,
+  BarChart3,
+  Download,
   ListOrdered,
   ClipboardList,
   Settings,
-  Palette,
-  Building2,
   Shield,
   Keyboard,
-  Wrench,
-  Mail,
-  AlertTriangle,
-  CreditCard,
   ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -44,26 +38,13 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },
+  { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]
 
 const adminNavItems: NavItem[] = [
-  { href: "/admin/studio", label: "Certificate Studio", icon: Palette },
-  { href: "/admin/clinic", label: "Clinic Settings", icon: Building2 },
-  { href: "/admin", label: "Admin Dashboard", icon: Shield },
-]
-
-const opsNavItemsBase: NavItem[] = [
-  { href: "/admin/ops", label: "Ops Overview", icon: Wrench },
-  { href: "/admin/ops/intakes-stuck", label: "Stuck Intakes", icon: AlertTriangle },
-]
-
-const opsNavItemsAdminOnly: NavItem[] = [
-  { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Mail },
-  { href: "/admin/ops/reconciliation", label: "Reconciliation", icon: CreditCard },
-  { href: "/admin/ops/doctors", label: "Doctor Ops", icon: Users },
+  { href: "/admin", label: "Admin Panel", icon: Shield },
 ]
 
 function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
@@ -176,51 +157,8 @@ export function DashboardSidebar({
           </nav>
         )}
 
-        {/* Ops Navigation */}
-        {variant === "doctor" && (
-          <nav className="flex flex-col gap-0.5 px-3 mt-4" data-testid="ops-nav-section">
-            <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Ops</p>
-            {opsNavItemsBase.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/admin/ops" && pathname?.startsWith(item.href))
-              return (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  isActive={!!isActive}
-                />
-              )
-            })}
-            {isAdmin && opsNavItemsAdminOnly.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href)
-              return (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  isActive={!!isActive}
-                />
-              )
-            })}
-          </nav>
-        )}
-
         {/* Divider */}
         <div className="mx-6 my-3 border-t border-border/50" />
-
-        {/* Stats - Doctor only */}
-        {variant === "doctor" && (
-          <div className="px-6 flex flex-col gap-2">
-            <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Queue</p>
-            <div className="flex items-center justify-between py-1.5">
-              <span className="text-[13px] text-muted-foreground">Pending</span>
-              <span className={cn(
-                "text-[13px] font-semibold tabular-nums",
-                pendingCount > 0 ? "text-primary" : "text-muted-foreground"
-              )}>
-                {pendingCount}
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Patient Quick Action */}
         {variant === "patient" && (
