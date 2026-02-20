@@ -517,18 +517,19 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       const data = await response.json()
 
       if (!response.ok) {
-        lastError = data.error?.message || "Failed to send email"
-        
+        // Resend API returns { message, statusCode, name } at top level, not nested under .error
+        lastError = data.message || data.error?.message || `Resend API error (${response.status})`
+
         if (isRetryableError(response.status, lastError) && attempt < RETRY_CONFIG.maxRetries) {
           logger.warn(`[Email] Retryable error (${response.status}): ${lastError}`, { to, attempt })
           continue
         }
-        
-        logger.error("[Email] Send failed", { error: lastError, emailType, to: sanitizeEmailForLog(to) })
+
+        logger.error("[Email] Send failed", { error: lastError, emailType, to: sanitizeEmailForLog(to), statusCode: response.status, resendErrorName: data.name })
         Sentry.captureMessage(`Email send failed: ${emailType}`, {
           level: "error",
           tags: { action: "send_email", email_type: emailType },
-          extra: { error: lastError, statusCode: response.status },
+          extra: { error: lastError, statusCode: response.status, resendErrorName: data.name },
         })
 
         // TWO-PHASE WRITE: Update existing row to failed
@@ -684,8 +685,9 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     const data = await response.json()
 
     if (!response.ok) {
-      const error = data.error?.message || "Failed to send email"
-      logger.error("[Email Dispatcher] Send failed", { outboxId: row.id, error })
+      // Resend API returns { message, statusCode, name } at top level, not nested under .error
+      const error = data.message || data.error?.message || `Resend API error (${response.status})`
+      logger.error("[Email Dispatcher] Send failed", { outboxId: row.id, error, statusCode: response.status, resendErrorName: data.name })
       
       await updateOutboxStatus(row.id, "failed", {
         error_message: error,

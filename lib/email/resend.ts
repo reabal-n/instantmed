@@ -65,6 +65,10 @@ interface ResendEmailParams {
 
 interface ResendResponse {
   id?: string
+  // Resend API returns errors at top level: { message, statusCode, name }
+  message?: string
+  statusCode?: number
+  name?: string
   error?: { message: string; statusCode: number }
 }
 
@@ -272,15 +276,16 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
       const data: ResendResponse = await response.json()
 
       if (!response.ok) {
-        lastError = data.error?.message || "Failed to send email"
-        
+        // Resend API returns { message, statusCode, name } at top level, not nested under .error
+        lastError = data.message || data.error?.message || `Resend API error (${response.status})`
+
         // Check if we should retry
         if (isRetryableError(response.status, lastError) && attempt < RETRY_CONFIG.maxRetries) {
           logger.warn(`[Resend] Retryable error (${response.status}): ${lastError}`, { to, attempt })
           continue
         }
-        
-        logger.error("[Resend Error] " + lastError, data.error)
+
+        logger.error("[Resend Error] " + lastError, { statusCode: response.status, resendErrorName: data.name })
         return { success: false, error: lastError }
       }
       
