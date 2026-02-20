@@ -305,7 +305,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </SignedOut>
                     <SignedIn>
                       <Link
-                        href="/patient"
+                        href="/dashboard"
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <LayoutDashboard className="h-3.5 w-3.5" />

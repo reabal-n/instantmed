@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { 
   Mail, 
@@ -93,11 +93,11 @@ export function WhatHappensNext({
   const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
 
   // Trigger confetti on mount
-  useState(() => {
+  useEffect(() => {
     if (showConfetti) {
       setTimeout(() => setConfettiTrigger(true), 300)
     }
-  })
+  }, [showConfetti])
 
   return (
     <>
