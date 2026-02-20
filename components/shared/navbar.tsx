@@ -17,7 +17,7 @@ import {
   Settings,
   Stethoscope,
   Shield,
-  Star,
+  ListChecks,
 } from "lucide-react"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from "@/components/uix"
@@ -274,9 +274,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink href="/trust" isActive={isActivePath("/trust")}>
                     Why us?
                   </AnimatedNavLink>
-                  <AnimatedNavLink href="/reviews" isActive={isActivePath("/reviews")}>
-                    <Star className="h-3 w-3 mr-1" />
-                    Reviews
+                  <AnimatedNavLink href="/how-it-works" isActive={isActivePath("/how-it-works")}>
+                    How it Works
                   </AnimatedNavLink>
                   <AnimatedNavLink href="/blog" isActive={isActivePath("/blog")}>
                     Health Guides
@@ -550,7 +549,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               onClose={() => setMobileMenuOpen(false)}
             />
             <AnimatedMobileMenu.Item
-              item={{ label: "Reviews", href: "/reviews", icon: <Star className="h-5 w-5" /> }}
+              item={{ label: "How it Works", href: "/how-it-works", icon: <ListChecks className="h-5 w-5" /> }}
               index={4}
               onClose={() => setMobileMenuOpen(false)}
             />
