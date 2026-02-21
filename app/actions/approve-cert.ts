@@ -446,16 +446,35 @@ export async function approveAndSendCert(
       }
     }
 
-    // 6. Send email notification via centralized sendEmail (NO attachment - patient downloads from dashboard)
-    Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
+    // 6. Generate signed download URL so patient can download without login (7-day expiry)
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating signed download URL", level: "info", data: { intakeId, storagePath } })
+    let downloadUrl: string | undefined
+    try {
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(storagePath, 7 * 24 * 60 * 60) // 7 days
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        logger.warn("Failed to generate signed download URL for patient email — will fall back to dashboard link", {
+          intakeId, storagePath, error: signedUrlError?.message,
+        })
+      } else {
+        downloadUrl = signedUrlData.signedUrl
+      }
+    } catch (signedUrlErr) {
+      logger.warn("Exception generating signed download URL", { intakeId, error: signedUrlErr })
+    }
+
+    // 7. Send email notification with direct download link
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId, hasDownloadUrl: !!downloadUrl } })
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
-    
+
     const emailResult = await sendEmail({
       to: patient.email,
       toName: patient.full_name,
       subject: medCertPatientEmailSubject,
       template: MedCertPatientEmail({
         patientName: patient.full_name,
+        downloadUrl,
         dashboardUrl,
         verificationCode,
         certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",

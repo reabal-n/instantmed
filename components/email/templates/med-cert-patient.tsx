@@ -1,24 +1,28 @@
 /**
  * Medical Certificate Patient Email Template
- * 
+ *
  * Sent to patient when their medical certificate is approved and ready.
- * Links to dashboard for download.
+ * Primary CTA: direct signed download link (works for guests & auth users).
+ * Secondary: dashboard link for account holders.
  */
 
 import * as React from "react"
 import {
   BaseEmail,
-  StatusBanner,
   Text,
   Button,
   Box,
   Heading,
   List,
   VerificationCode,
+  colors,
 } from "../base-email"
 
 export interface MedCertPatientEmailProps {
   patientName: string
+  /** Direct signed download URL for the PDF (7-day expiry) */
+  downloadUrl?: string
+  /** Dashboard URL (requires auth — fallback for account holders) */
   dashboardUrl: string
   verificationCode?: string
   certType?: "work" | "study" | "carer"
@@ -27,6 +31,7 @@ export interface MedCertPatientEmailProps {
 
 export function MedCertPatientEmail({
   patientName,
+  downloadUrl,
   dashboardUrl,
   verificationCode,
   certType = "work",
@@ -40,40 +45,106 @@ export function MedCertPatientEmail({
 
   return (
     <BaseEmail
-      previewText="Your medical certificate is ready to download"
+      previewText={`Your medical certificate for ${certTypeLabel} is ready to download`}
       appUrl={appUrl}
     >
-      <StatusBanner title="Your medical certificate is ready" variant="success" />
+      {/* Success header with check icon */}
+      <div
+        style={{
+          textAlign: "center" as const,
+          padding: "8px 0 20px",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-block",
+            width: "56px",
+            height: "56px",
+            borderRadius: "50%",
+            backgroundColor: colors.successBg,
+            lineHeight: "56px",
+            textAlign: "center" as const,
+            fontSize: "28px",
+            marginBottom: "12px",
+          }}
+        >
+          ✓
+        </div>
+        <h1
+          style={{
+            margin: "0 0 4px 0",
+            fontSize: "22px",
+            fontWeight: "700",
+            color: colors.text,
+            letterSpacing: "-0.3px",
+            lineHeight: "1.3",
+          }}
+        >
+          Your certificate is ready
+        </h1>
+        <p
+          style={{
+            margin: 0,
+            fontSize: "14px",
+            color: colors.textMuted,
+          }}
+        >
+          Medical Certificate — {certTypeLabel}
+        </p>
+      </div>
 
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Your <strong>Medical Certificate -- {certTypeLabel}</strong> has been reviewed and
-        approved by one of our doctors. You can download it from your dashboard.
+        Great news — your <strong>Medical Certificate ({certTypeLabel})</strong>{" "}
+        has been reviewed and approved by one of our doctors. You can download
+        it right away using the button below.
       </Text>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={dashboardUrl}>View Dashboard</Button>
+      {/* Primary CTA — direct download (works without login) */}
+      <div style={{ textAlign: "center" as const }}>
+        <Button href={downloadUrl || dashboardUrl}>
+          Download Certificate
+        </Button>
       </div>
 
+      {/* Secondary: dashboard link for account holders */}
+      <Text muted small style={{ textAlign: "center" as const }}>
+        You can also access your certificate anytime from your{" "}
+        <a href={dashboardUrl} style={{ color: colors.accent, fontWeight: 500 }}>
+          patient dashboard
+        </a>
+        .
+      </Text>
+
+      {/* Verification code block */}
       {verificationCode && (
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
       )}
 
+      {/* Next steps */}
       <Box>
-        <Heading as="h3">What happens next?</Heading>
+        <Heading as="h3">What to do next</Heading>
         <List
           items={[
-            "Download your certificate from your dashboard",
+            "Download and save your certificate",
             "Forward it to your employer, university, or relevant institution",
-            "Keep a copy for your records",
+            "Your employer can verify it at instantmed.com.au/verify",
           ]}
         />
       </Box>
 
+      {/* Download link expiry notice */}
+      {downloadUrl && (
+        <Text muted small>
+          The download link expires in 7 days. After that, sign in to your
+          dashboard to re-download.
+        </Text>
+      )}
+
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#3B82F6", fontWeight: 500 }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>
         .

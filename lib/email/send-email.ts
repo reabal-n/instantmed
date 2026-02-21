@@ -747,7 +747,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     // Fetch certificate and patient data
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
-      .select("intake_id, patient_name, verification_code, certificate_type")
+      .select("intake_id, patient_name, verification_code, certificate_type, storage_path")
       .eq("id", row.certificate_id)
       .single()
 
@@ -755,12 +755,26 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       return { success: false, error: "Certificate not found for retry" }
     }
 
+    // Generate signed download URL for guest-friendly download
+    let downloadUrl: string | undefined
+    if (cert.storage_path) {
+      try {
+        const { data: signedUrlData } = await supabase.storage
+          .from("documents")
+          .createSignedUrl(cert.storage_path, 7 * 24 * 60 * 60)
+        downloadUrl = signedUrlData?.signedUrl ?? undefined
+      } catch {
+        // Non-fatal: email will fall back to dashboard link
+      }
+    }
+
     // Render the template
     const { MedCertPatientEmail } = await import("@/components/email/templates")
     const dashboardUrl = `${env.appUrl}/patient/intakes/${cert.intake_id}`
-    
+
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
+      downloadUrl,
       dashboardUrl,
       verificationCode: cert.verification_code,
       certType: cert.certificate_type as "work" | "study" | "carer",
