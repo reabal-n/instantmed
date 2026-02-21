@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useTransition, useMemo, useCallback, useRef, useId } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -56,6 +55,8 @@ import { formatServiceType } from "@/lib/format-intake"
 import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
 import { cn } from "@/lib/utils"
+import { usePanel } from "@/components/panels/panel-provider"
+import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 
 export function QueueClient({
   intakes: initialIntakes,
@@ -64,6 +65,7 @@ export function QueueClient({
   pagination,
 }: QueueClientProps) {
   const router = useRouter()
+  const { openPanel } = usePanel()
   const [intakes, setIntakes] = useState(initialIntakes)
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
@@ -202,8 +204,8 @@ export function QueueClient({
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === "med_certs") {
-      // Navigate to intake detail — doctor uses the certificate preview dialog there
-      router.push(`/doctor/intakes/${intakeId}`)
+      // Open review panel — doctor uses the certificate preview dialog there
+      openReviewPanel(intakeId)
       return
     }
     startTransition(async () => {
@@ -214,7 +216,8 @@ export function QueueClient({
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
         if (serviceType === "common_scripts" || serviceType === "repeat_rx") {
-          router.push(`/doctor/intakes/${intakeId}`)
+          // Open panel for script workflow (mark sent, etc.)
+          openReviewPanel(intakeId)
         } else {
           toast.success("Request approved")
         }
@@ -273,6 +276,20 @@ export function QueueClient({
     if (intake.requires_live_consult) return true
     return false
   }, [])
+
+  // Open intake review in a slide-over panel (stays on queue)
+  const openReviewPanel = useCallback((intakeId: string) => {
+    openPanel({
+      id: `intake-review-${intakeId}`,
+      type: "sheet",
+      component: (
+        <IntakeReviewPanel
+          intakeId={intakeId}
+          onActionComplete={() => router.refresh()}
+        />
+      ),
+    })
+  }, [openPanel, router])
 
   // Sort: priority → flagged → SLA deadline → wait time
   const sortedIntakes = useMemo(() => {
@@ -495,13 +512,14 @@ export function QueueClient({
                 {/* Expanded — just link + actions, detailed review on the detail page */}
                 {isExpanded && (
                   <CardContent className="pt-0 pb-4 space-y-3">
-                    <Link
-                      href={`/doctor/intakes/${intake.id}`}
+                    <button
+                      type="button"
+                      onClick={() => openReviewPanel(intake.id)}
                       className="inline-flex items-center text-sm text-primary hover:underline"
                     >
                       <FileText className="h-3.5 w-3.5 mr-1" />
-                      View full details & questionnaire
-                    </Link>
+                      Review case
+                    </button>
 
                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
                       <Button
