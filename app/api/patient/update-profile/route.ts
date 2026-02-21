@@ -1,6 +1,7 @@
 import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
 
 const updateProfileSchema = z.object({
@@ -16,6 +17,9 @@ export async function POST(request: Request) {
     if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json()
     const parsed = updateProfileSchema.safeParse(body)

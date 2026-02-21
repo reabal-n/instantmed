@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
 const log = createLogger("route")
 import type {
@@ -69,7 +70,10 @@ export async function POST(request: Request) {
         { status: 429, headers: { 'Retry-After': '300' } }
       )
     }
-    
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
+
     // Parse and validate request body with Zod
     const rawBody = await request.json()
     const parseResult = repeatRxSubmitSchema.safeParse(rawBody)

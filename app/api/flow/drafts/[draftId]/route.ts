@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("flow-drafts-api")
 
@@ -87,6 +88,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
+
     const { draftId } = await context.params
     const body = await request.json()
     const { sessionId, currentStep, currentGroupIndex, data } = body

@@ -241,7 +241,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }}
       />
       <div className="flex min-h-screen flex-col bg-foreground text-background">
         <Navbar variant="marketing" />

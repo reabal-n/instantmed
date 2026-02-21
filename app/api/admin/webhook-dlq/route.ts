@@ -3,6 +3,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { logAdminAction } from "@/lib/security/audit-log"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("admin-webhook-dlq")
 
@@ -92,6 +93,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json()
     const { action, entryId, notes } = body as {

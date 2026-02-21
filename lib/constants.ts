@@ -7,8 +7,11 @@ export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
   "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs."
 
-// Contact info
+// Contact info — use these constants instead of hardcoded strings
 export const CONTACT_EMAIL = "support@instantmed.com.au"
+export const CONTACT_EMAIL_HELLO = "hello@instantmed.com.au"
+export const CONTACT_EMAIL_NOREPLY = "noreply@instantmed.com.au"
+export const CONTACT_EMAIL_ADMIN = "admin@instantmed.com.au"
 export const CONTACT_PHONE = "1800 INSTANT"
 export const CONTACT_PHONE_NUMBER = "1800467826"
 

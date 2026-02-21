@@ -85,8 +85,7 @@ async function getTemplate(slug: string): Promise<TemplateEmail | null> {
 function replaceMergeTags(content: string, data: Record<string, string>): string {
   let result = content
   for (const [key, value] of Object.entries(data)) {
-    const tag = new RegExp(`\\{\\{${key}\\}\\}`, "g")
-    result = result.replace(tag, value || "")
+    result = result.replaceAll(`{{${key}}}`, value || "")
   }
   return result
 }

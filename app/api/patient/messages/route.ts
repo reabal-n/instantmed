@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
 
 const log = createLogger("patient-messages")
@@ -23,6 +24,9 @@ export async function POST(request: NextRequest) {
     if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json()
     const parsed = messageSchema.safeParse(body)

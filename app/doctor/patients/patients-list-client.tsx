@@ -2,19 +2,25 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { UserCard } from "@/components/uix"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight } from "lucide-react"
+import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import type { Profile } from "@/types/db"
 
 interface PatientsListClientProps {
   patients: Profile[]
+  currentPage: number
+  totalPages: number
+  totalPatients: number
 }
 
-export function PatientsListClient({ patients }: PatientsListClientProps) {
+export function PatientsListClient({ patients, currentPage, totalPages, totalPatients }: PatientsListClientProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [stateFilter, setStateFilter] = useState<string>("all")
   const [onboardingFilter, setOnboardingFilter] = useState<string>("all")
@@ -70,7 +76,7 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
             <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
             <Users className="h-4 w-4 text-primary" />
           </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{patients.length}</div>
+          <div className="mt-2 text-3xl font-semibold text-foreground">{totalPatients}</div>
         </div>
 
         <div
@@ -144,7 +150,7 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
         </div>
 
         <div className="mt-4 text-sm text-muted-foreground">
-          Showing {filteredPatients.length} of {patients.length} patients
+          Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
         </div>
       </div>
 
@@ -262,6 +268,35 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
           </Table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between animate-fade-in-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => router.push(`/doctor/patients?page=${currentPage - 1}`)}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => router.push(`/doctor/patients?page=${currentPage + 1}`)}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

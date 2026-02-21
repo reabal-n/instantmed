@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("test-email-api")
 
@@ -15,6 +16,9 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const { to, subject, html } = await request.json()
 

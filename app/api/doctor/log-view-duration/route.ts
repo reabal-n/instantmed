@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,9 @@ export async function POST(request: NextRequest) {
     if (!auth || (auth.profile.role !== "doctor" && auth.profile.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json()
     const { intakeId, durationMs } = body

@@ -57,7 +57,7 @@ export default function VerifyPage() {
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
-                    <Shield className="w-6 h-6 text-emerald-600" />
+                    <Shield className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">AHPRA Doctors</h3>
                   <p className="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export default function VerifyPage() {
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
-                    <Lock className="w-6 h-6 text-emerald-600" />
+                    <Lock className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">Tamper-Proof</h3>
                   <p className="text-sm text-muted-foreground">
@@ -75,7 +75,7 @@ export default function VerifyPage() {
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
-                    <Building2 className="w-6 h-6 text-emerald-600" />
+                    <Building2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">Australian Business</h3>
                   <p className="text-sm text-muted-foreground">

@@ -3,6 +3,7 @@ import { getApiAuth } from "@/lib/auth"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { createLogger } from "@/lib/observability/logger"
+import { requireValidCsrf } from "@/lib/security/csrf"
 const log = createLogger("med-cert-preview-route")
 import type { MedCertDraft } from "@/types/db"
 
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
     if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json() as { draftData?: MedCertDraft; requestId?: string; draftId?: string }
     const { draftData } = body

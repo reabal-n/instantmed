@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("assign-intake")
 
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
     if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const { intake_id, doctor_id } = await request.json()
 

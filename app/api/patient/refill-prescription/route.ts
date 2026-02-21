@@ -2,6 +2,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { createLogger } from "@/lib/observability/logger"
 import { z } from "zod"
 
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
     if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body = await request.json()
     const parsed = refillSchema.safeParse(body)

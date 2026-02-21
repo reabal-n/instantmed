@@ -573,7 +573,7 @@ export function QueueClient({
             onChange={(page) => {
               const params = new URLSearchParams(window.location.search)
               params.set("page", String(page))
-              router.push(`/doctor?${params.toString()}`)
+              router.push(`/doctor/queue?${params.toString()}`)
             }}
             showControls
             size="sm"

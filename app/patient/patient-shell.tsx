@@ -47,7 +47,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
                 if (service === 'medical-certificate') {
                   window.location.href = '/medical-certificate/request'
                 } else if (service === 'prescription') {
-                  window.location.href = '/repeat-prescription/request'
+                  window.location.href = '/prescriptions'
                 } else if (service === 'consultation') {
                   window.location.href = '/consult/request'
                 }

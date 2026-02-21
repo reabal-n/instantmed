@@ -2,11 +2,15 @@ import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PatientsListClient } from "./patients-list-client"
 
-async function getAllPatients() {
+const PAGE_SIZE = 50
+
+async function getPatients(page: number) {
   const supabase = createServiceRoleClient()
 
-  // Add pagination to prevent crash with thousands of patients
-  const { data, error } = await supabase
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
+  const { data, error, count } = await supabase
     .from("profiles")
     .select(`
       id, auth_user_id, clerk_user_id, email, full_name, first_name, last_name,
@@ -16,29 +20,43 @@ async function getAllPatients() {
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, created_at, updated_at
-    `)
+    `, { count: "exact" })
     .eq("role", "patient")
     .order("created_at", { ascending: false })
-    .limit(100)
+    .range(from, to)
 
   if (error) {
-    // Server-side error - use logger in production, console in dev
-    // eslint-disable-next-line no-console
     if (process.env.NODE_ENV === 'development') console.error("Error fetching patients:", error)
-    return []
+    return { patients: [], total: 0 }
   }
 
-  return data as unknown as import("@/types/db").Profile[]
+  return {
+    patients: data as unknown as import("@/types/db").Profile[],
+    total: count ?? 0,
+  }
 }
 
 // Prevent static generation for dynamic auth
-
 export const dynamic = "force-dynamic"
-export default async function PatientsPage() {
-  // Layout enforces doctor/admin role
+
+export default async function PatientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   await requireRole(["doctor", "admin"])
 
-  const patients = await getAllPatients()
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
+  const { patients, total } = await getPatients(page)
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  return <PatientsListClient patients={patients} />
+  return (
+    <PatientsListClient
+      patients={patients}
+      currentPage={page}
+      totalPages={totalPages}
+      totalPatients={total}
+    />
+  )
 }

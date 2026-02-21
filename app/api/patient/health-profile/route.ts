@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
 
 const log = createLogger("patient-health-profile")
@@ -27,6 +28,9 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const supabase = createServiceRoleClient()
     const { data: profile } = await supabase

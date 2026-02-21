@@ -88,20 +88,23 @@ function sanitizeAttribute(tag: string, attr: string, value: string): string | n
 }
 
 /**
- * Simple HTML sanitizer using regex (for basic cases)
- * For production, consider using DOMPurify on the client
+ * HTML sanitizer using regex + tag/attribute whitelist.
+ * Handles common XSS vectors including event handlers, javascript: URIs,
+ * and disallowed tags. For untrusted rich-text from external sources,
+ * consider DOMPurify on the client for maximum robustness.
  */
 export function sanitizeHtml(html: string): string {
   if (!html) return ''
-  
+
   // Remove script tags and their content
   let sanitized = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  
+
   // Remove style tags and their content
   sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-  
-  // Remove event handlers (onclick, onerror, etc.)
+
+  // Remove event handlers (onclick, onerror, etc.) — covers quoted, unquoted, and backtick-quoted values
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
+  sanitized = sanitized.replace(/\s+on\w+\s*=\s*`[^`]*`/gi, '')
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')
   
   // Remove javascript: URLs

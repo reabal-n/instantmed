@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("resend-confirmation")
 
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
     if (!clerkUserId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const supabase = createServiceRoleClient()
 

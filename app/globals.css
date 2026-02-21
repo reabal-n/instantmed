@@ -45,6 +45,9 @@ body {
   /* Add test banner height variable */
   --test-banner-height: 0px;
 
+  /* Display font — maps to the sans font for heading contexts */
+  --font-display: var(--font-sans), "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+
   /* Seamless scrolling */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;

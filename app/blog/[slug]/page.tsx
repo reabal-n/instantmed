@@ -284,9 +284,9 @@ export default async function BlogPostPage({ params }: PageProps) {
             ]}
           />
         )}
-        <script 
-          type="application/ld+json" 
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} 
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }}
         />
 
         <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
@@ -338,7 +338,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }} />
 
       <div className="flex min-h-screen flex-col bg-hero">
         <Navbar variant="marketing" />

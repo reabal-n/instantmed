@@ -988,7 +988,7 @@ export default function TrustPage() {
       <Script
         id="faq-structured-data"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData).replace(/</g, '\\u003c') }}
       />
 
       {/* Sticky Mobile CTA - shows after scrolling past hero */}

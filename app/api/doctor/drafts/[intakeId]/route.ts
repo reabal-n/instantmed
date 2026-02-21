@@ -3,6 +3,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("doctor-drafts-api")
 
@@ -65,6 +66,9 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const { intakeId } = await params
 

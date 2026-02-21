@@ -7,6 +7,7 @@ import { renderPaymentRetryEmailToHtml } from "@/lib/email/templates/payment-ret
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("api-retry-payment")
 
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
     if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
     const body: RetryPaymentRequest = await request.json()
     const { invoiceId } = body
