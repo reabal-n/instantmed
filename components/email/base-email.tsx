@@ -1,29 +1,29 @@
 /**
  * BaseEmail - Premium email layout component
- * 
+ *
  * Provides consistent header/footer/typography across all transactional emails.
  * Optimized for email client compatibility (inline styles, table-based layout).
- * 
- * Design: Clean, minimal, professional. No gradients on body elements.
- * Brand color: #1A1A1A (dark) with #3B82F6 (blue) accent.
+ *
+ * Design: Premium, modern, sleek. Dark header with wordmark. Refined typography.
+ * Brand color: #0F172A (slate-900) primary with #3B82F6 (blue-500) accent.
  */
 
 import * as React from "react"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
-// Brand colors - refined, premium palette
+// Brand colors - premium palette
 const colors = {
-  primary: "#1A1A1A",
+  primary: "#0F172A",
   accent: "#3B82F6",
   accentLight: "#EFF6FF",
-  background: "#F8F9FA",
+  background: "#F1F5F9",
   cardBg: "#ffffff",
-  text: "#1A1A1A",
-  textSecondary: "#4B5563",
-  textMuted: "#9CA3AF",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
+  text: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+  border: "#E2E8F0",
+  borderLight: "#F1F5F9",
   success: "#059669",
   successBg: "#ECFDF5",
   successBorder: "#A7F3D0",
@@ -36,6 +36,9 @@ const colors = {
   error: "#DC2626",
   errorBg: "#FEF2F2",
   errorBorder: "#FECACA",
+  headerBg: "#0F172A",
+  headerText: "#ffffff",
+  footerBg: "#F8FAFC",
 }
 
 const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
@@ -47,6 +50,8 @@ interface BaseEmailProps {
 }
 
 export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au" }: BaseEmailProps) {
+  const wordmarkUrl = `${appUrl}/branding/wordmark.png`
+
   return (
     <html>
       <head>
@@ -100,43 +105,45 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                     maxWidth: "560px",
                     margin: "0 auto",
                     backgroundColor: colors.cardBg,
-                    borderRadius: "12px",
-                    border: `1px solid ${colors.border}`,
+                    borderRadius: "16px",
                     overflow: "hidden",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)",
                   }}
                 >
                   <tbody>
-                    {/* Header */}
+                    {/* Header - Dark with wordmark */}
                     <tr>
-                      <td style={{ padding: "28px 32px 20px 32px" }}>
+                      <td
+                        style={{
+                          backgroundColor: colors.headerBg,
+                          padding: "24px 32px",
+                          textAlign: "center" as const,
+                        }}
+                      >
                         <a
                           href={appUrl}
                           style={{ textDecoration: "none", display: "inline-block" }}
                         >
-                          <span
+                          <img
+                            src={wordmarkUrl}
+                            alt="InstantMed"
+                            width="140"
+                            height="auto"
                             style={{
-                              fontSize: "18px",
-                              fontWeight: "700",
-                              color: colors.primary,
-                              letterSpacing: "-0.3px",
+                              display: "block",
+                              margin: "0 auto",
+                              maxWidth: "140px",
+                              height: "auto",
+                              filter: "brightness(0) invert(1)",
                             }}
-                          >
-                            InstantMed
-                          </span>
+                          />
                         </a>
-                      </td>
-                    </tr>
-
-                    {/* Divider */}
-                    <tr>
-                      <td style={{ padding: "0 32px" }}>
-                        <div style={{ borderTop: `1px solid ${colors.borderLight}` }} />
                       </td>
                     </tr>
 
                     {/* Content */}
                     <tr>
-                      <td style={{ padding: "24px 32px 32px 32px" }}>
+                      <td style={{ padding: "32px 32px 36px 32px" }}>
                         {children}
                       </td>
                     </tr>
@@ -145,36 +152,36 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                     <tr>
                       <td
                         style={{
-                          padding: "20px 32px",
-                          borderTop: `1px solid ${colors.borderLight}`,
-                          backgroundColor: "#FAFAFA",
+                          padding: "24px 32px",
+                          borderTop: `1px solid ${colors.border}`,
+                          backgroundColor: colors.footerBg,
                         }}
                       >
                         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
                           <tbody>
                             <tr>
-                              <td style={{ textAlign: "center" }}>
+                              <td style={{ textAlign: "center" as const }}>
                                 <p
                                   style={{
-                                    margin: "0 0 8px 0",
+                                    margin: "0 0 10px 0",
                                     fontSize: "12px",
                                     color: colors.textMuted,
-                                    lineHeight: "1.6",
+                                    lineHeight: "1.8",
                                   }}
                                 >
-                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
+                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textMuted, textDecoration: "none" }}>
                                     Privacy
                                   </a>
-                                  {"  ·  "}
-                                  <a href={`${appUrl}/terms`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>|</span>
+                                  <a href={`${appUrl}/terms`} style={{ color: colors.textMuted, textDecoration: "none" }}>
                                     Terms
                                   </a>
-                                  {"  ·  "}
-                                  <a href={`${appUrl}/contact`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>|</span>
+                                  <a href={`${appUrl}/contact`} style={{ color: colors.textMuted, textDecoration: "none" }}>
                                     Contact
                                   </a>
-                                  {"  ·  "}
-                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textMuted, textDecoration: "underline" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>|</span>
+                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textMuted, textDecoration: "none" }}>
                                     Preferences
                                   </a>
                                 </p>
@@ -183,6 +190,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                     margin: 0,
                                     fontSize: "11px",
                                     color: colors.textMuted,
+                                    letterSpacing: "0.02em",
                                   }}
                                 >
                                   InstantMed Pty Ltd · ABN 64 694 559 334 · Australia
@@ -213,7 +221,7 @@ interface HeadingProps {
 
 export function Heading({ children, as = "h1" }: HeadingProps) {
   const sizes = {
-    h1: { fontSize: "22px", marginBottom: "16px" },
+    h1: { fontSize: "24px", marginBottom: "16px" },
     h2: { fontSize: "18px", marginBottom: "12px" },
     h3: { fontSize: "15px", marginBottom: "8px" },
   }
@@ -223,10 +231,10 @@ export function Heading({ children, as = "h1" }: HeadingProps) {
       style={{
         margin: `0 0 ${sizes[as].marginBottom} 0`,
         fontSize: sizes[as].fontSize,
-        fontWeight: "600",
+        fontWeight: "700",
         color: colors.text,
-        lineHeight: "1.35",
-        letterSpacing: "-0.2px",
+        lineHeight: "1.3",
+        letterSpacing: "-0.3px",
       }}
     >
       {children}
@@ -248,7 +256,7 @@ export function Text({ children, muted, small, style }: TextProps) {
         margin: "0 0 16px 0",
         fontSize: small ? "13px" : "15px",
         color: muted ? colors.textMuted : colors.textSecondary,
-        lineHeight: "1.6",
+        lineHeight: "1.7",
         ...style,
       }}
     >
@@ -274,15 +282,15 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
               href={href}
               style={{
                 display: "inline-block",
-                padding: isPrimary ? "12px 24px" : "10px 20px",
+                padding: isPrimary ? "14px 28px" : "12px 24px",
                 fontSize: "14px",
                 fontWeight: "600",
                 textDecoration: "none",
-                borderRadius: "8px",
+                borderRadius: "10px",
                 letterSpacing: "0.01em",
                 ...(isPrimary
                   ? {
-                      backgroundColor: colors.primary,
+                      backgroundColor: colors.accent,
                       color: "#ffffff",
                     }
                   : {
@@ -308,7 +316,7 @@ interface BoxProps {
 
 export function Box({ children, variant = "default" }: BoxProps) {
   const variantStyles = {
-    default: { backgroundColor: "#F9FAFB", borderColor: colors.border },
+    default: { backgroundColor: "#F8FAFC", borderColor: colors.border },
     success: { backgroundColor: colors.successBg, borderColor: colors.successBorder },
     info: { backgroundColor: colors.infoBg, borderColor: colors.infoBorder },
     warning: { backgroundColor: colors.warningBg, borderColor: colors.warningBorder },
@@ -320,8 +328,8 @@ export function Box({ children, variant = "default" }: BoxProps) {
       style={{
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
-        borderRadius: "8px",
-        padding: "16px",
+        borderRadius: "10px",
+        padding: "16px 20px",
         margin: "20px 0",
       }}
     >
@@ -337,9 +345,9 @@ interface StatusBannerProps {
 
 export function StatusBanner({ title, variant = "success" }: StatusBannerProps) {
   const config = {
-    success: { bg: colors.successBg, border: colors.successBorder, color: colors.success, icon: "check_circle" },
-    info: { bg: colors.infoBg, border: colors.infoBorder, color: colors.info, icon: "info" },
-    warning: { bg: colors.warningBg, border: colors.warningBorder, color: colors.warning, icon: "warning" },
+    success: { bg: colors.successBg, border: colors.successBorder, color: colors.success },
+    info: { bg: colors.infoBg, border: colors.infoBorder, color: colors.info },
+    warning: { bg: colors.warningBg, border: colors.warningBorder, color: colors.warning },
   }
   const c = config[variant]
   return (
@@ -347,7 +355,7 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
       style={{
         backgroundColor: c.bg,
         border: `1px solid ${c.border}`,
-        borderRadius: "8px",
+        borderRadius: "10px",
         padding: "16px 20px",
         marginBottom: "24px",
       }}
@@ -385,23 +393,23 @@ interface VerificationCodeProps {
 export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
   return (
     <Box variant="success">
-      <p style={{ margin: "0 0 6px 0", fontSize: "12px", color: colors.success, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>
+      <p style={{ margin: "0 0 6px 0", fontSize: "11px", color: colors.success, fontWeight: "700", textTransform: "uppercase" as const, letterSpacing: "0.8px" }}>
         Verification Code
       </p>
       <p
         style={{
           margin: 0,
-          fontSize: "20px",
-          fontFamily: "monospace",
+          fontSize: "22px",
+          fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace",
           fontWeight: "bold",
           color: colors.success,
-          letterSpacing: "3px",
+          letterSpacing: "4px",
         }}
       >
         {code}
       </p>
       {verifyUrl && (
-        <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: colors.textMuted }}>
+        <p style={{ margin: "10px 0 0 0", fontSize: "12px", color: colors.textMuted }}>
           Employers can verify at{" "}
           <a href={verifyUrl} style={{ color: colors.accent }}>
             {verifyUrl.replace("https://", "")}
@@ -424,7 +432,7 @@ export function List({ items }: ListProps) {
         paddingLeft: "20px",
         color: colors.textSecondary,
         fontSize: "14px",
-        lineHeight: "1.7",
+        lineHeight: "1.8",
       }}
     >
       {items.map((item, i) => (

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
-const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 export async function GET(request: NextRequest) {
+  // Rate limit: standard (100 req/min per IP)
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
+
   const { searchParams } = new URL(request.url)
   const input = searchParams.get("input")
 

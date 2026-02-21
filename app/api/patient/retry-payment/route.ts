@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/nextjs"
 import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderPaymentRetryEmailToHtml } from "@/lib/email/templates/payment-retry"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const logger = createLogger("api-retry-payment")
 
@@ -13,8 +14,12 @@ interface RetryPaymentRequest {
   invoiceId: string
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Rate limit: sensitive (20 req/hour) — prevents payment retry email spam
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const authResult = await getApiAuth()
 
     if (!authResult || authResult.profile.role !== "patient") {

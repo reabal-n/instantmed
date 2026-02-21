@@ -6,14 +6,12 @@ export const metadata: Metadata = {
   description:
     "Renew your regular medication online. Same medication, same dose, delivered to any pharmacy. $29.95 flat fee. AHPRA-registered Australian doctors.",
   keywords: [
-    "repeat prescription online",
-    "online prescription renewal",
+    "repeat script online",
+    "online script renewal",
     "escript online",
-    "prescription refill online",
     "repeat script australia",
-    "medication renewal",
-    "telehealth prescription",
-    "online doctor prescription",
+    "telehealth script renewal",
+    "online doctor script",
   ],
   openGraph: {
     title: "Repeat Prescription Online | Same Day E-Script | InstantMed",

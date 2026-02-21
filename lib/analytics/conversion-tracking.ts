@@ -1,6 +1,11 @@
 /**
  * Google Ads Conversion Tracking
  * Fires conversion events for checkout completion and funnel steps
+ *
+ * Includes:
+ * - Enhanced Conversions (hashed email for better attribution)
+ * - Conversion value optimization (actual $ values for micro-conversions)
+ * - Google Consent Mode v2 support
  */
 
 // Conversion action IDs - configure these in Google Ads
@@ -15,6 +20,14 @@ const CONVERSION_IDS = {
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS
+
+// Estimated conversion values for micro-conversions (used for Smart Bidding optimization)
+const MICRO_CONVERSION_VALUES: Record<string, number> = {
+  LANDING_VIEW: 0.50,
+  START_INTAKE: 2.00,
+  INTAKE_COMPLETE: 5.00,
+  CHECKOUT_START: 10.00,
+}
 
 interface ConversionData {
   value?: number
@@ -36,6 +49,113 @@ declare global {
 }
 
 /**
+ * SHA-256 hash a string (for Enhanced Conversions)
+ * Returns hex-encoded hash, or null if crypto unavailable
+ */
+async function sha256Hash(value: string): Promise<string | null> {
+  if (typeof window === 'undefined' || !window.crypto?.subtle) return null
+  try {
+    const normalized = value.trim().toLowerCase()
+    const encoder = new TextEncoder()
+    const data = encoder.encode(normalized)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Set Enhanced Conversions user data (hashed email/phone)
+ * Call this when you have the user's email (e.g. after patient details step)
+ */
+export async function setEnhancedConversionsData(params: {
+  email?: string
+  phone?: string
+  firstName?: string
+  lastName?: string
+}) {
+  if (typeof window === 'undefined' || !window.gtag) return
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userData: Record<string, any> = {}
+
+  if (params.email) {
+    const hashedEmail = await sha256Hash(params.email)
+    if (hashedEmail) userData.sha256_email_address = hashedEmail
+  }
+
+  if (params.phone) {
+    const hashedPhone = await sha256Hash(params.phone)
+    if (hashedPhone) userData.sha256_phone_number = hashedPhone
+  }
+
+  // Address-level Enhanced Conversions data
+  const address: Record<string, string> = {}
+  if (params.firstName) {
+    const hashed = await sha256Hash(params.firstName)
+    if (hashed) address.sha256_first_name = hashed
+  }
+  if (params.lastName) {
+    const hashed = await sha256Hash(params.lastName)
+    if (hashed) address.sha256_last_name = hashed
+  }
+  if (Object.keys(address).length > 0) {
+    userData.address = address
+  }
+
+  if (Object.keys(userData).length > 0) {
+    window.gtag('set', 'user_data', userData)
+  }
+}
+
+/**
+ * Initialize Google Consent Mode v2
+ * Call this before any gtag calls (typically in layout)
+ * Default: deny all, then update based on user consent
+ */
+export function initConsentMode() {
+  if (typeof window === 'undefined') return
+
+  window.dataLayer = window.dataLayer || []
+  function gtag(...args: unknown[]) {
+    window.dataLayer!.push(args)
+  }
+
+  // Set defaults - deny all until user consents
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'granted', // We need basic analytics
+    functionality_storage: 'granted',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500, // Wait 500ms for CMP to load
+  })
+}
+
+/**
+ * Update consent state (call after user accepts cookies/consent)
+ */
+export function updateConsent(granted: {
+  adStorage?: boolean
+  adUserData?: boolean
+  adPersonalization?: boolean
+  analyticsStorage?: boolean
+}) {
+  if (typeof window === 'undefined' || !window.gtag) return
+
+  window.gtag('consent', 'update', {
+    ad_storage: granted.adStorage ? 'granted' : 'denied',
+    ad_user_data: granted.adUserData ? 'granted' : 'denied',
+    ad_personalization: granted.adPersonalization ? 'granted' : 'denied',
+    analytics_storage: granted.analyticsStorage !== false ? 'granted' : 'denied',
+  })
+}
+
+/**
  * Fire a Google Ads conversion event
  */
 export function trackConversion(event: ConversionEvent, data?: ConversionData) {
@@ -44,10 +164,13 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
   }
 
   const conversionId = CONVERSION_IDS[event]
-  
+
+  // Use micro-conversion value if no explicit value provided
+  const value = data?.value ?? MICRO_CONVERSION_VALUES[event] ?? undefined
+
   window.gtag('event', 'conversion', {
     send_to: conversionId,
-    value: data?.value,
+    value,
     currency: data?.currency || 'AUD',
     transaction_id: data?.transaction_id,
   })
@@ -56,7 +179,7 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
   window.gtag('event', event.toLowerCase(), {
     event_category: 'conversion',
     event_label: data?.service,
-    value: data?.value,
+    value,
     currency: data?.currency || 'AUD',
     transaction_id: data?.transaction_id,
     items: data?.items,
@@ -71,7 +194,13 @@ export function trackPurchase(params: {
   value: number
   service: string
   serviceName: string
+  email?: string
 }) {
+  // Set enhanced conversions data if email provided
+  if (params.email) {
+    setEnhancedConversionsData({ email: params.email })
+  }
+
   trackConversion('PURCHASE', {
     transaction_id: params.transactionId,
     value: params.value,
@@ -95,7 +224,7 @@ export function trackPurchase(params: {
 }
 
 /**
- * Track funnel step progression
+ * Track funnel step progression with conversion values
  */
 export function trackFunnelStep(step: 'landing' | 'start' | 'intake_complete' | 'checkout', service?: string) {
   const eventMap: Record<string, ConversionEvent> = {
@@ -140,8 +269,8 @@ function storeFunnelStep(step: string, service?: string) {
 
   try {
     const existing = localStorage.getItem(FUNNEL_KEY)
-    const data: FunnelData = existing 
-      ? JSON.parse(existing) 
+    const data: FunnelData = existing
+      ? JSON.parse(existing)
       : { steps: [], startedAt: Date.now() }
 
     data.steps.push({

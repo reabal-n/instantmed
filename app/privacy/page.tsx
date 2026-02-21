@@ -238,7 +238,10 @@ export default function PrivacyPage() {
                 <a href="mailto:privacy@instantmed.com.au" className="text-primary hover:underline">
                   privacy@instantmed.com.au
                 </a>{" "}
-                or call 1300 123 456.
+                or call{" "}
+                <a href="tel:0450722549" className="text-primary hover:underline">
+                  0450 722 549
+                </a>.
               </p>
             </section>
           </div>

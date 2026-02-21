@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { 
-  Mail, 
-  FileText, 
+import {
+  Mail,
+  FileText,
   ChevronDown,
   HelpCircle,
   CheckCircle2,
   User,
+  Users,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
@@ -91,6 +95,8 @@ export function WhatHappensNext({
   const [confettiTrigger, setConfettiTrigger] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
+  const [queuePosition, setQueuePosition] = useState<number | null>(null)
+  const [referralCopied, setReferralCopied] = useState(false)
 
   // Trigger confetti on mount
   useEffect(() => {
@@ -98,6 +104,28 @@ export function WhatHappensNext({
       setTimeout(() => setConfettiTrigger(true), 300)
     }
   }, [showConfetti])
+
+  // Fetch queue position estimate
+  useEffect(() => {
+    async function fetchQueue() {
+      try {
+        const res = await fetch("/api/queue/position")
+        const data = await res.json()
+        if (data.position) setQueuePosition(data.position)
+      } catch {
+        // Non-critical — just don't show position
+      }
+    }
+    fetchQueue()
+  }, [])
+
+  const handleCopyReferral = () => {
+    const referralUrl = `${window.location.origin}?ref=${intakeId.slice(0, 8)}`
+    navigator.clipboard.writeText(referralUrl).then(() => {
+      setReferralCopied(true)
+      setTimeout(() => setReferralCopied(false), 2000)
+    }).catch(() => {})
+  }
 
   return (
     <>
@@ -189,11 +217,73 @@ export function WhatHappensNext({
           />
         </motion.div>
 
-        {/* FAQ accordion */}
+        {/* Queue position */}
+        {queuePosition !== null && queuePosition > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/10">
+              <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Queue position: #{queuePosition}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {queuePosition <= 3
+                    ? "You're near the front — should be reviewed very soon"
+                    : `${queuePosition} requests ahead of yours`}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Referral prompt — highest-intent moment */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+        >
+          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-border/50">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Share2 className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">Know someone who needs this?</p>
+                <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+                  Share InstantMed with a friend or colleague
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyReferral}
+                  className="gap-2"
+                >
+                  {referralCopied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      Link copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      Copy referral link
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* FAQ accordion */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
         >
           <Card className="overflow-hidden">
             <button
@@ -249,7 +339,7 @@ export function WhatHappensNext({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.65 }}
           className="space-y-3"
         >
           <Button asChild size="lg" className="w-full">
@@ -269,7 +359,7 @@ export function WhatHappensNext({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.75 }}
           className="text-center text-xs text-muted-foreground"
         >
           Questions?{" "}

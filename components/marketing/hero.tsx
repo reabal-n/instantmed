@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion, useReducedMotion } from 'framer-motion'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion()
@@ -49,7 +50,7 @@ export function Hero() {
 
             {/* Single subtext line */}
             <motion.p
-              className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed text-balance"
+              className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
@@ -57,9 +58,25 @@ export function Hero() {
               AHPRA-registered doctors. Employer-verifiable certificates. Skip the waiting room and get your medical certificate online — reviewed in under an hour, 7 days a week.
             </motion.p>
 
+            {/* Price anchor above CTAs */}
+            <motion.div
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-6"
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
+            >
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                {PRICING_DISPLAY.FROM_MED_CERT}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                <span className="line-through">$60–90 at a GP</span>
+                {' '}<span className="font-medium text-emerald-600 dark:text-emerald-400">Save $40–70</span>
+              </span>
+            </motion.div>
+
             {/* CTAs */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
@@ -69,8 +86,8 @@ export function Hero() {
                 size="lg"
                 className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
               >
-                <Link href="/request">
-                  Get started
+                <Link href="/request?service=med-cert">
+                  Get your medical certificate
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -81,22 +98,28 @@ export function Hero() {
                 className="h-12 px-6 text-base active:scale-[0.98]"
               >
                 <Link href="/request?service=prescription">
-                  Renew your prescription
+                  Renew a prescription
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </motion.div>
 
-            {/* Compact trust line */}
-            <motion.p
-              className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2"
+            {/* Trust signals */}
+            <motion.div
+              className="flex flex-col gap-2"
               initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              <span>{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
-            </motion.p>
+              <p className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                <span>{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
+              </p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                <span>No account required &middot; Pay only after doctor review</span>
+              </p>
+            </motion.div>
           </div>
 
           {/* Hero image — desktop */}

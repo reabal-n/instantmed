@@ -76,6 +76,8 @@ const COMMON_CONCERNS = [
   { title: "Allergies", examples: "Hay fever, food allergies, skin reactions" },
   { title: "Mental health", examples: "Anxiety check-in, stress, low mood" },
   { title: "Women's health", examples: "Contraception, period issues, UTI" },
+  { title: "Men's health", examples: "ED, hair loss, prostate check-in" },
+  { title: "Weight management", examples: "Weight loss advice, treatment options" },
 ]
 
 // FAQ items
@@ -292,7 +294,7 @@ export default function GeneralConsultPage() {
                 </motion.div>
               </div>
 
-              {/* Stats bar */}
+              {/* Stats bar with price justification */}
               <motion.div
                 className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
                 initial={{ opacity: 0, y: 30 }}
@@ -301,7 +303,8 @@ export default function GeneralConsultPage() {
               >
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
-                  <p className="text-xs text-muted-foreground">Consultation fee</p>
+                  <p className="text-xs text-muted-foreground">Flat fee</p>
+                  <p className="text-xs text-muted-foreground/60 line-through">$80–120 at GP</p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
@@ -311,7 +314,21 @@ export default function GeneralConsultPage() {
                   <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
                   <p className="text-xs text-muted-foreground">A week</p>
                 </div>
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-foreground mb-1">$0</div>
+                  <p className="text-xs text-muted-foreground">If we can&apos;t help</p>
+                </div>
               </motion.div>
+
+              {/* No account required */}
+              <motion.p
+                className="mt-4 text-center text-xs text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                No account required &middot; Pay only after doctor review
+              </motion.p>
             </div>
           </section>
         </ParallaxSection>
@@ -479,8 +496,11 @@ export default function GeneralConsultPage() {
                             {/* Price and CTA */}
                             <div className="flex items-center justify-between pt-4 border-t border-border/50">
                               <div>
-                                <span className="text-2xl font-bold text-foreground">${consult.price.toFixed(2)}</span>
-                                <span className="text-xs text-muted-foreground ml-2">{consult.time}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl font-bold text-foreground">${consult.price.toFixed(2)}</span>
+                                  <span className="text-xs text-muted-foreground line-through">$80–120</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{consult.time}</span>
                               </div>
                               <div className="flex items-center gap-1 text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
                                 Get started <ArrowRight className="w-4 h-4" />
@@ -549,26 +569,20 @@ export default function GeneralConsultPage() {
           </section>
         </ParallaxSection>
 
-        {/* Important Notice */}
+        {/* Safety Notice — softened */}
         <ParallaxSection speed={0.15}>
           <section className="py-8">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <motion.div
-                className="p-5 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                className="p-4 rounded-xl bg-muted/30 border border-border/50"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm mb-1">This is not for emergencies</h3>
-                    <p className="text-sm text-muted-foreground">
-                      If you have chest pain, difficulty breathing, severe symptoms, or any emergency — call <strong>000</strong> or go to your nearest emergency department immediately.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  For emergencies (chest pain, difficulty breathing, severe symptoms), call <strong>000</strong> or go to your nearest emergency department.
+                </p>
               </motion.div>
             </div>
           </section>
@@ -804,7 +818,7 @@ export default function GeneralConsultPage() {
                       </Button>
                       
                       <p className="mt-6 text-xs text-muted-foreground">
-                        $49.95 consultation fee • Prescriptions if appropriate
+                        $49.95 flat fee <span className="line-through">$80–120 at GP</span> &middot; No account required &middot; Pay after review
                       </p>
                     </div>
 

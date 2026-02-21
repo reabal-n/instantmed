@@ -4,19 +4,18 @@ import { WeightManagementClient } from "./weight-management-client"
 export const metadata: Metadata = {
   title: "Weight Management | Doctor-Supervised Programs",
   description:
-    "Achieve sustainable weight loss with doctor-supervised programs. Personalised treatment plans, GLP-1 options, and ongoing support from Australian GPs. Start your journey today.",
+    "Achieve sustainable results with doctor-supervised weight management. Personalised treatment plans and ongoing support from AHPRA-registered Australian GPs.",
   keywords: [
     "weight management australia",
-    "weight loss doctor",
-    "GLP-1 medication",
-    "medical weight loss",
-    "telehealth weight loss",
-    "doctor supervised weight loss",
+    "doctor supervised weight management",
+    "healthy weight program",
+    "telehealth weight management",
+    "weight management support online",
   ],
   openGraph: {
     title: "Weight Management | Doctor-Supervised Programs | InstantMed",
     description:
-      "Achieve sustainable weight loss with doctor-supervised programs. Personalised treatment plans and ongoing support from Australian GPs.",
+      "Doctor-supervised weight management programs with personalised plans and ongoing GP support.",
     url: "https://instantmed.com.au/weight-management",
   },
   twitter: {

@@ -223,7 +223,7 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
       decline_reason: "Unable to verify identity",
       recommendations: "Please visit your local GP.",
       medication_name: "Amoxicillin 500mg",
-      amount: "$29.00",
+      amount: "$29.95",
       refund_reason: "Request declined",
     }
     for (const tag of tags) {

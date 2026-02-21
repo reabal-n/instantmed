@@ -138,13 +138,52 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
  * Prevents multi-account medication stacking
  */
 export async function checkMedicareDuplication(
-  _medicareNumber: string,
-  _medicationCode: string,
-  _excludePatientId?: string
+  medicareNumber: string,
+  medicationCode: string,
+  excludePatientId?: string
 ): Promise<FraudFlag | null> {
-  // TODO: Enable when repeat_rx_requests table is created
-  // This function checks for multi-account medication stacking via Medicare number dedup.
-  // The repeat_rx_requests table does not exist yet — this is a future feature.
+  const supabase = getServiceClient()
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  // Step 1: Find all patient profiles with the same Medicare number
+  // (different accounts may share a Medicare number in stacking attacks)
+  const { data: matchingProfiles } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("medicare_number", medicareNumber)
+
+  if (!matchingProfiles || matchingProfiles.length === 0) return null
+
+  const patientIds = matchingProfiles
+    .map((p) => p.id as string)
+    .filter((id) => id !== excludePatientId)
+
+  if (patientIds.length === 0) return null
+
+  // Step 2: Check for active repeat_rx_requests for the same medication
+  // from any of those profiles in the last 30 days
+  const { data: existingRequests } = await supabase
+    .from("repeat_rx_requests")
+    .select("id, patient_id, status, created_at")
+    .in("patient_id", patientIds)
+    .eq("medication_code", medicationCode)
+    .in("status", ["pending", "approved"])
+    .gte("created_at", thirtyDaysAgo.toISOString())
+
+  if (existingRequests && existingRequests.length > 0) {
+    return {
+      type: "duplicate_medication",
+      severity: "critical",
+      details: {
+        medicationCode,
+        matchingRequestCount: existingRequests.length,
+        matchingPatientIds: existingRequests.map((r) => r.patient_id),
+        existingRequestIds: existingRequests.map((r) => r.id),
+        reason: "Same Medicare number used across accounts for the same medication",
+      },
+    }
+  }
+
   return null
 }
 
@@ -197,12 +236,32 @@ export async function checkRollingWindowCertificates(
  * Users who abandon and restart may be testing what triggers flags
  */
 export async function checkChatRestarts(
-  _patientId: string,
+  patientId: string,
   _sessionId: string
 ): Promise<FraudFlag | null> {
-  // TODO: Enable when chat_sessions table is created
-  // This function detects users who abandon and restart chats to test flag triggers.
-  // The chat_sessions table does not exist yet — this is a future feature.
+  const supabase = getServiceClient()
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+
+  // Count abandoned sessions in the last hour
+  const { count } = await supabase
+    .from("chat_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("patient_id", patientId)
+    .eq("status", "abandoned")
+    .gte("abandoned_at", oneHourAgo.toISOString())
+
+  if (count && count >= 3) {
+    return {
+      type: "chat_restart_abuse",
+      severity: count >= 5 ? "high" : "medium",
+      details: {
+        abandonedCount: count,
+        period: "1_hour",
+        reason: "Multiple abandoned chat sessions may indicate flag-testing behavior",
+      },
+    }
+  }
+
   return null
 }
 

@@ -53,6 +53,13 @@ const serverEnvSchema = z.object({
   // Encryption (required for PHI protection)
   ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY must be at least 32 bytes base64 encoded").optional(),
 
+  // Google Places API (server-only — NOT NEXT_PUBLIC_)
+  GOOGLE_PLACES_API_KEY: z.string().optional(),
+
+  // PHI encryption
+  PHI_ENCRYPTION_ENABLED: z.string().optional(),
+  PHI_MASTER_KEY: z.string().optional(),
+
   // Monitoring
   SENTRY_DSN: z.string().optional(),
 

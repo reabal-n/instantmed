@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Textarea } from "@/components/ui/textarea"
 import {
   AlertTriangle,
   ArrowLeft,
@@ -29,6 +30,7 @@ import {
   FileText,
   Plus,
   X,
+  Wrench,
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
@@ -58,7 +60,9 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [newBlockedTerm, setNewBlockedTerm] = useState("")
   const [newSafetySymptom, setNewSafetySymptom] = useState("")
-  
+  const [maintenanceMessage, setMaintenanceMessage] = useState(flags.maintenance_message || "")
+  const [isSavingMessage, setIsSavingMessage] = useState(false)
+
   // Kill switch confirmation state
   const [pendingToggle, setPendingToggle] = useState<{ key: FlagKey; currentValue: boolean } | null>(null)
 
@@ -91,6 +95,25 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
       executeToggle(key, currentValue)
     }
   }, [executeToggle])
+
+  const handleSaveMaintenanceMessage = useCallback(async () => {
+    if (!maintenanceMessage.trim()) return
+    setIsSavingMessage(true)
+    try {
+      const result = await updateFeatureFlagAction(FLAG_KEYS.MAINTENANCE_MESSAGE, maintenanceMessage.trim())
+      if (result.success) {
+        setFlags(prev => ({ ...prev, maintenance_message: maintenanceMessage.trim() }))
+        toast.success("Maintenance message updated")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to update message")
+      }
+    } catch {
+      toast.error("Failed to update message")
+    } finally {
+      setIsSavingMessage(false)
+    }
+  }, [maintenanceMessage, router])
 
   const handleUpdateList = useCallback(async (key: FlagKey, newList: string[]) => {
     setIsSaving(key)
@@ -177,6 +200,75 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
                 Disabling a service will immediately prevent patients from creating new requests.
                 Existing requests will continue processing. Changes take effect within 30 seconds.
               </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Maintenance Mode - Global Kill Switch */}
+      <Card className={flags.maintenance_mode ? "border-red-300 bg-red-50/50" : ""}>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Wrench className="h-4 w-4" />
+            Maintenance Mode
+            {flags.maintenance_mode && (
+              <Badge variant="destructive" className="ml-2">ACTIVE</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Close the entire intake form. Patients will see a maintenance message and cannot submit or pay.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-lg border">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${flags.maintenance_mode ? "bg-red-100" : "bg-muted"}`}>
+                <Wrench className={`h-5 w-5 ${flags.maintenance_mode ? "text-red-600" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="font-medium">Platform Status</p>
+                <p className="text-sm text-muted-foreground">
+                  {flags.maintenance_mode
+                    ? "Platform is CLOSED — no new requests accepted"
+                    : "Platform is open — accepting requests normally"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={!flags.maintenance_mode}
+                onCheckedChange={() => {
+                  if (!flags.maintenance_mode) {
+                    // Enabling maintenance mode — requires confirmation
+                    setPendingToggle({ key: FLAG_KEYS.MAINTENANCE_MODE, currentValue: flags.maintenance_mode })
+                  } else {
+                    executeToggle(FLAG_KEYS.MAINTENANCE_MODE, flags.maintenance_mode)
+                  }
+                }}
+                disabled={isSaving === FLAG_KEYS.MAINTENANCE_MODE}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Maintenance message shown to patients</label>
+            <Textarea
+              value={maintenanceMessage}
+              onChange={(e) => setMaintenanceMessage(e.target.value)}
+              placeholder="We're currently performing scheduled maintenance..."
+              rows={3}
+              className="resize-none"
+            />
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSaveMaintenanceMessage}
+                disabled={isSavingMessage || maintenanceMessage === flags.maintenance_message}
+              >
+                {isSavingMessage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save message
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -378,16 +470,31 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Disable {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key] : "Service"}?
+              {pendingToggle?.key === FLAG_KEYS.MAINTENANCE_MODE
+                ? "Enable Maintenance Mode?"
+                : `Disable ${pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key] : "Service"}?`}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>
-                This will immediately prevent patients from creating new{" "}
-                {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key].toLowerCase() : "requests"}.
-              </p>
-              <p className="font-medium text-amber-700">
-                Existing requests will continue processing, but no new ones can be submitted.
-              </p>
+              {pendingToggle?.key === FLAG_KEYS.MAINTENANCE_MODE ? (
+                <>
+                  <p>
+                    This will immediately close the entire platform. No patients will be able to submit new requests or make payments.
+                  </p>
+                  <p className="font-medium text-amber-700">
+                    Existing requests will continue processing. Remember to disable maintenance mode when you&apos;re done.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    This will immediately prevent patients from creating new{" "}
+                    {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key].toLowerCase() : "requests"}.
+                  </p>
+                  <p className="font-medium text-amber-700">
+                    Existing requests will continue processing, but no new ones can be submitted.
+                  </p>
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -404,7 +511,7 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
               {isSaving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : null}
-              Disable Service
+              {pendingToggle?.key === FLAG_KEYS.MAINTENANCE_MODE ? "Enable Maintenance Mode" : "Disable Service"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

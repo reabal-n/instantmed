@@ -22,6 +22,7 @@ import { FormField } from "../form-field"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface PatientDetailsStepProps {
@@ -85,6 +86,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script'
+  // Only show address for services that might need physical delivery
+  const showAddress = serviceType !== 'med-cert'
 
   // Real-time validation on blur
   const validateField = useCallback((field: string, value: string | undefined) => {
@@ -161,6 +164,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         state,
         postcode,
       })
+      // Send hashed user data to Google for Enhanced Conversions
+      setEnhancedConversionsData({ email, phone, firstName, lastName })
       onNext()
     } else {
       // Scroll to first error field for better UX
@@ -312,25 +317,27 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         )}
       </FormField>
 
-      {/* Address - for certificate delivery */}
-      <FormField
-        label="Address"
-        hint="Optional - for certificate delivery if required"
-        icon={MapPin}
-      >
-        <AddressAutocomplete
-          value={addressLine1}
-          onChange={(val) => setAnswer("addressLine1", val)}
-          onAddressSelect={handleAddressSelect}
-          placeholder="Start typing your address..."
-          className="h-11"
-        />
-        {(suburb || state || postcode) && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {[suburb, state, postcode].filter(Boolean).join(", ")}
-          </p>
-        )}
-      </FormField>
+      {/* Address - only for services that need physical delivery (not med-cert) */}
+      {showAddress && (
+        <FormField
+          label="Address"
+          hint="Optional - for prescription or referral delivery"
+          icon={MapPin}
+        >
+          <AddressAutocomplete
+            value={addressLine1}
+            onChange={(val) => setAnswer("addressLine1", val)}
+            onAddressSelect={handleAddressSelect}
+            placeholder="Start typing your address..."
+            className="h-11"
+          />
+          {(suburb || state || postcode) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {[suburb, state, postcode].filter(Boolean).join(", ")}
+            </p>
+          )}
+        </FormField>
+      )}
 
       {/* Data security reassurance */}
       <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground py-1">

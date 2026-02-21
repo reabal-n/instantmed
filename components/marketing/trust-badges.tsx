@@ -231,6 +231,33 @@ export function TrustLogos({ className }: { className?: string }) {
 }
 
 /**
+ * Payment method logos strip
+ * Shows accepted payment methods to reduce checkout friction
+ */
+export function PaymentLogos({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex flex-wrap items-center justify-center gap-3", className)}>
+      <span className="text-xs text-muted-foreground mr-1">We accept</span>
+      {[
+        { name: "Visa", path: "M2 6.5h20v11H2zm7.5 2v7m2.5-7l2 3.5L16 8.5m-10 0v7" },
+        { name: "Mastercard", path: "M2 6.5h20v11H2zm6 5.5a3 3 0 106 0 3 3 0 00-6 0m2 0a3 3 0 106 0" },
+        { name: "Amex", path: "M2 6.5h20v11H2zm5 3l2 2.5L7 14.5m4-6v7m3-7l2 2.5L14 14.5" },
+        { name: "Apple Pay", path: "M2 6.5h20v11H2zm6 3.5a2 2 0 00-2 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 00-2-2H8z" },
+        { name: "Google Pay", path: "M2 6.5h20v11H2zm5 5.5h4m-4 0v-2a2 2 0 012-2h0a2 2 0 012 2v2m-4 0v2" },
+      ].map((method) => (
+        <div
+          key={method.name}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-muted/50 border border-border/40"
+          title={method.name}
+        >
+          <span className="text-xs font-medium text-muted-foreground">{method.name}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
  * Stats bar showing key metrics
  */
 export function StatsBar({ className }: { className?: string }) {

@@ -12,24 +12,36 @@ export const CONTACT_EMAIL = "support@instantmed.com.au"
 export const CONTACT_PHONE = "1800 INSTANT"
 export const CONTACT_PHONE_NUMBER = "1800467826"
 
-// Service pricing (in AUD)
+// Service pricing (in AUD) — SINGLE SOURCE OF TRUTH
+// All display prices MUST use PRICING_DISPLAY, never hardcoded strings
 export const PRICING = {
   MED_CERT: 19.95,
   MED_CERT_2DAY: 29.95,
   REPEAT_SCRIPT: 29.95,
   NEW_SCRIPT: 49.95,
   CONSULT: 49.95,
-  // PRIORITY_ADDON removed - feature disabled
+  MENS_HEALTH: 39.95,
+  WOMENS_HEALTH: 39.95,
+  REFERRAL: 29.95,
+  PATHOLOGY: 29.95,
 } as const
 
-// Formatted pricing strings for display
+// Formatted pricing strings for display — use these everywhere in UI/SEO/marketing
 export const PRICING_DISPLAY = {
   MED_CERT: `$${PRICING.MED_CERT.toFixed(2)}`,
   MED_CERT_2DAY: `$${PRICING.MED_CERT_2DAY.toFixed(2)}`,
   REPEAT_SCRIPT: `$${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
   NEW_SCRIPT: `$${PRICING.NEW_SCRIPT.toFixed(2)}`,
   CONSULT: `$${PRICING.CONSULT.toFixed(2)}`,
-  // PRIORITY_ADDON removed - feature disabled
+  MENS_HEALTH: `$${PRICING.MENS_HEALTH.toFixed(2)}`,
+  WOMENS_HEALTH: `$${PRICING.WOMENS_HEALTH.toFixed(2)}`,
+  REFERRAL: `$${PRICING.REFERRAL.toFixed(2)}`,
+  PATHOLOGY: `$${PRICING.PATHOLOGY.toFixed(2)}`,
+  // Common display patterns
+  FROM_MED_CERT: `From $${PRICING.MED_CERT.toFixed(2)}`,
+  FROM_SCRIPT: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+  FROM_CONSULT: `From $${PRICING.CONSULT.toFixed(2)}`,
+  RANGE: `$${PRICING.MED_CERT.toFixed(2)} - $${PRICING.CONSULT.toFixed(2)}`,
 } as const
 
 // GP comparison pricing (for context, not exact)

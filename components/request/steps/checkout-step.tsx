@@ -3,22 +3,29 @@
 /**
  * Checkout Step - Review and payment
  * Uses shared CheckoutButton and integrates with Stripe checkout
+ *
+ * UX improvements:
+ * - Single combined consent toggle (accuracy + terms)
+ * - Enlarged price with "one-time fee" callout
+ * - Payment method logos (Visa, MC, Amex, Apple Pay, Google Pay)
+ * - "No account required" messaging
+ * - Refund guarantee badge next to pay button
  */
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock, CreditCard, ShieldCheck, UserX } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
+import { Confetti } from "@/components/ui/confetti"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
+import { PRICING as APP_PRICING } from "@/lib/constants"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
@@ -27,27 +34,27 @@ interface CheckoutStepProps {
   onComplete: () => void
 }
 
-// Prices from environment variables with fallback to defaults
-// These should match Stripe prices exactly
-// Note: prescription and repeat-script share the same price (NEXT_PUBLIC_PRICE_PRESCRIPTION)
+// Prices sourced from lib/constants.ts (single source of truth)
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
-  'med-cert': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_MED_CERT || '19.95'), 
-    label: 'Medical Certificate' 
+  'med-cert': {
+    base: APP_PRICING.MED_CERT,
+    label: 'Medical Certificate'
   },
-  'prescription': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_PRESCRIPTION || '29.95'), 
-    label: 'Prescription Request' 
+  'prescription': {
+    base: APP_PRICING.NEW_SCRIPT,
+    label: 'Prescription Request'
   },
-  'repeat-script': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_PRESCRIPTION || '29.95'), 
-    label: 'Repeat Prescription' 
+  'repeat-script': {
+    base: APP_PRICING.REPEAT_SCRIPT,
+    label: 'Repeat Prescription'
   },
-  'consult': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_CONSULT || '49.95'), 
-    label: 'Doctor Consultation' 
+  'consult': {
+    base: APP_PRICING.CONSULT,
+    label: 'Doctor Consultation'
   },
 }
+
+const PAYMENT_METHODS = ['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay']
 
 function ReviewItem({ label, value }: { label: string; value: string }) {
   return (
@@ -59,15 +66,15 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 }
 
 export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
-  const { answers, getIdentity, agreedToTerms, confirmedAccuracy, setConsent, chatSessionId } = useRequestStore()
+  const { answers, getIdentity, setConsent, chatSessionId } = useRequestStore()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimatedWait, setEstimatedWait] = useState("~1 hour")
+  const [triggerConfetti, setTriggerConfetti] = useState(false)
+  const [consentGiven, setConsentGiven] = useState(false)
 
   useEffect(() => {
-    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {
-      // Non-critical: fall back to default estimate if queue API is unavailable
-    })
+    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {})
   }, [])
 
   const pricing = PRICING[serviceType] || PRICING['med-cert']
@@ -76,7 +83,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
 
-  // Calculate price: med-cert uses duration, consult uses subtype (from env vars), others use base
   let price = pricing.base
   if (serviceType === 'med-cert' && duration === '2') {
     price = 29.95
@@ -96,40 +102,47 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     ? CONSULT_SUBTYPE_LABELS[consultSubtype] || pricing.label
     : pricing.label
 
-  const canCheckout = agreedToTerms && confirmedAccuracy
+  // Single consent controls both toggles
+  const handleConsentChange = (checked: boolean) => {
+    setConsentGiven(checked)
+    setConsent('agreedToTerms', checked)
+    setConsent('confirmedAccuracy', checked)
+  }
+
+  const canCheckout = consentGiven
 
   const handleCheckout = async () => {
     if (!canCheckout) return
-    
+
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       const identity = getIdentity()
-      // Merge consent fields into answers for server-side validation
       const answersWithConsents = {
         ...answers,
-        agreedToTerms,
-        confirmedAccuracy,
-        telehealthConsentGiven: true, // Implicitly consented by reaching checkout
+        agreedToTerms: true,
+        confirmedAccuracy: true,
+        telehealthConsentGiven: true,
       }
       const result = await createCheckoutFromUnifiedFlow({
         serviceType,
         answers: answersWithConsents,
         identity,
-        chatSessionId: chatSessionId || undefined, // Pass chat session ID for transcript linking
+        chatSessionId: chatSessionId || undefined,
       })
-      
+
       if (!result.success) {
         setError(result.error || 'Failed to create checkout session')
         return
       }
-      
-      // Redirect to Stripe checkout
+
       if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
+        setTriggerConfetti(true)
+        setTimeout(() => {
+          window.location.href = result.checkoutUrl!
+        }, 600)
       } else {
-        // Handle edge case where success is true but no URL returned
         setError('Unable to create payment session. Please try again.')
       }
     } catch (err) {
@@ -146,22 +159,28 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       initial="initial"
       animate="animate"
     >
-      {/* Summary card */}
+      {/* No account required badge */}
+      <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <UserX className="w-4 h-4 text-primary" />
+        <span>No account required — pay as a guest</span>
+      </motion.div>
+
+      {/* Summary card with enlarged price */}
       <motion.div variants={stagger.item} className="p-4 rounded-xl border bg-card space-y-3">
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-green-600" />
           Request Summary
         </h3>
-        
+
         <div className="space-y-2 pt-2 border-t">
           <ReviewItem label="Service" value={displayLabel} />
-          
+
           {serviceType === 'med-cert' && (
             <>
               {answers.certType && (
-                <ReviewItem 
-                  label="Certificate type" 
-                  value={String(answers.certType).charAt(0).toUpperCase() + String(answers.certType).slice(1)} 
+                <ReviewItem
+                  label="Certificate type"
+                  value={String(answers.certType).charAt(0).toUpperCase() + String(answers.certType).slice(1)}
                 />
               )}
               {duration && (
@@ -169,7 +188,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
               )}
             </>
           )}
-          
+
           {(serviceType === 'prescription' || serviceType === 'repeat-script') && (() => {
             const meds = answers.medications as Array<{ name: string }> | undefined
             if (meds && meds.length > 1) {
@@ -182,12 +201,21 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             ) : null
           })()}
         </div>
-        
+
+        {/* Enlarged price section */}
         <div className="pt-3 border-t">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Total</span>
-            <span className="text-xl font-bold text-primary">${price.toFixed(2)}</span>
+          <div className="flex justify-between items-baseline">
+            <div>
+              <span className="font-medium">Total</span>
+              <span className="text-xs text-muted-foreground ml-2">one-time fee</span>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-primary">${price.toFixed(2)}</span>
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Pay after your request is created. Full refund if we can&apos;t help.
+          </p>
         </div>
       </motion.div>
 
@@ -236,32 +264,37 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </div>
       )}
 
-      {/* Consents */}
-      <motion.div variants={stagger.item} className="space-y-3 p-4 rounded-xl border bg-muted/30">
-        <div className="flex items-start gap-3">
-          <Switch
-            id="accuracy"
-            checked={confirmedAccuracy}
-            onCheckedChange={(checked) => setConsent('confirmedAccuracy', checked)}
-          />
-          <Label htmlFor="accuracy" className="text-sm leading-relaxed cursor-pointer">
-            I confirm the information I&apos;ve provided is accurate and complete
-          </Label>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <Switch
-            id="terms"
-            checked={agreedToTerms}
-            onCheckedChange={(checked) => setConsent('agreedToTerms', checked)}
-          />
-          <Label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-            I agree to the{' '}
-            <a href="/terms" className="text-primary underline" target="_blank">Terms of Service</a>
+      {/* Single combined consent */}
+      <motion.div variants={stagger.item}>
+        <button
+          type="button"
+          onClick={() => handleConsentChange(!consentGiven)}
+          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 ${
+            consentGiven
+              ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+              : "border-border hover:border-primary/40 cursor-pointer"
+          }`}
+        >
+          <div
+            className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+              consentGiven
+                ? "border-green-500 bg-green-500"
+                : "border-muted-foreground/30"
+            }`}
+          >
+            {consentGiven && <Check className="w-3.5 h-3.5 text-white" />}
+          </div>
+          <p className="text-sm leading-relaxed">
+            By paying, I confirm the information I&apos;ve provided is accurate and I agree to the{' '}
+            <a href="/terms" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
+              Terms of Service
+            </a>
             {' '}and{' '}
-            <a href="/privacy" className="text-primary underline" target="_blank">Privacy Policy</a>
-          </Label>
-        </div>
+            <a href="/privacy" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
+              Privacy Policy
+            </a>
+          </p>
+        </button>
       </motion.div>
 
       {/* Error message */}
@@ -272,11 +305,11 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       )}
 
       {/* Spacer for sticky CTA on mobile */}
-      <div className="h-36 sm:hidden" />
+      <div className="h-44 sm:hidden" />
 
-      {/* Checkout button - sticky on mobile */}
+      {/* Checkout button with guarantee badge - sticky on mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
-        <div className="max-w-lg mx-auto space-y-2">
+        <div className="max-w-lg mx-auto space-y-2.5">
           <CheckoutSection>
             <CheckoutButton
               onClick={handleCheckout}
@@ -288,16 +321,34 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
               variant="prominent"
             />
           </CheckoutSection>
-          <div className="hidden sm:block pt-2">
-            <RefundGuaranteeBadge />
+
+          {/* Refund guarantee right next to pay button */}
+          <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span className="font-medium">Full refund if we can&apos;t help — guaranteed</span>
+          </div>
+
+          {/* Payment method logos */}
+          <div className="flex items-center justify-center gap-1.5">
+            <CreditCard className="h-3.5 w-3.5 text-muted-foreground/50" />
+            {PAYMENT_METHODS.map((method) => (
+              <span
+                key={method}
+                className="text-[10px] text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30"
+              >
+                {method}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Refund guarantee - visible above sticky bar on mobile */}
-      <div className="pt-2 sm:hidden">
-        <RefundGuaranteeBadge />
-      </div>
+      {/* Confetti on successful checkout creation */}
+      <Confetti
+        trigger={triggerConfetti}
+        options={{ particleCount: 100, spread: 70 }}
+        onComplete={() => setTriggerConfetti(false)}
+      />
     </motion.div>
   )
 }

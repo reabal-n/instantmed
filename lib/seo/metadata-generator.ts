@@ -13,6 +13,7 @@
 import type { Metadata } from 'next'
 import type { SEOPage, PageType, MedicationPageData as _MedicationPageData, IntentPageData as _IntentPageData } from './registry'
 import { getCanonicalUrl, getRobotsConfig, isMedicationPage, isIntentPage } from './registry'
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // ============================================
 // TITLE TEMPLATES
@@ -79,7 +80,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
     if (!isMedicationPage(page)) return page.content.intro.substring(0, 155)
     const use = page.clinicalInfo?.uses?.[0] || 'various conditions'
     const turnaround = page.consultInfo?.turnaroundTime || '24 hours'
-    return `Get ${page.medication.genericName || page.slug} prescribed online for ${use}. Australian doctors review within ${turnaround}. E-script sent to your phone. From ${page.consultInfo?.pricing || '$29.95'}.`
+    return `Get ${page.medication.genericName || page.slug} prescribed online for ${use}. Australian doctors review within ${turnaround}. E-script sent to your phone. From ${page.consultInfo?.pricing || PRICING_DISPLAY.REPEAT_SCRIPT}.`
   },
   
   condition: (page) => {
@@ -96,7 +97,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   audience: (page) => {
-    return `Medical certificates and prescriptions online for ${page.slug.replace(/-/g, ' ')}. Fast, convenient, and employer-accepted. From $19.95.`
+    return `Medical certificates and prescriptions online for ${page.slug.replace(/-/g, ' ')}. Fast, convenient, and employer-accepted. From ${PRICING_DISPLAY.MED_CERT}.`
   },
   
   symptom: (page) => {
@@ -345,7 +346,7 @@ export function generateMedicalBusinessSchema() {
     description: 'Online medical certificates and prescriptions from Australian doctors',
     url: 'https://instantmed.com.au',
     email: 'hello@instantmed.com.au',
-    priceRange: '$19.95 - $49.95',
+    priceRange: PRICING_DISPLAY.RANGE,
     areaServed: {
       '@type': 'Country',
       name: 'Australia',

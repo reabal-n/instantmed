@@ -13,6 +13,7 @@ export {
   getFlagInfo,
   isServiceKillSwitch,
   isArrayFlag,
+  isStringFlag,
 } from "@/lib/data/types/feature-flags"
 
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
@@ -57,7 +58,11 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
     // Build flags object from DB rows
     const flags: FeatureFlags = { ...DEFAULT_FLAGS }
     for (const row of data) {
-      if (row.key === FLAG_KEYS.DISABLE_MED_CERT) {
+      if (row.key === FLAG_KEYS.MAINTENANCE_MODE) {
+        flags.maintenance_mode = row.value === true
+      } else if (row.key === FLAG_KEYS.MAINTENANCE_MESSAGE) {
+        flags.maintenance_message = typeof row.value === "string" ? row.value : DEFAULT_FLAGS.maintenance_message
+      } else if (row.key === FLAG_KEYS.DISABLE_MED_CERT) {
         flags.disable_med_cert = row.value === true
       } else if (row.key === FLAG_KEYS.DISABLE_REPEAT_SCRIPTS) {
         flags.disable_repeat_scripts = row.value === true
@@ -117,6 +122,17 @@ export async function refreshFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
+ * Check if the platform is in maintenance mode
+ */
+export async function isMaintenanceMode(): Promise<{ enabled: boolean; message: string }> {
+  const flags = await getFeatureFlags()
+  return {
+    enabled: flags.maintenance_mode,
+    message: flags.maintenance_message || DEFAULT_FLAGS.maintenance_message,
+  }
+}
+
+/**
  * Check if a service category is disabled
  */
 export async function isServiceDisabled(
@@ -168,7 +184,7 @@ export async function isMedicationBlocked(
  */
 export async function updateFeatureFlag(
   key: FlagKey,
-  value: boolean | string[],
+  value: boolean | string | string[],
   updatedBy: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getServiceClient()

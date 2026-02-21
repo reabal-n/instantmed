@@ -74,13 +74,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!med) return {}
 
   return {
-    title: `${med.name} Prescription Online Australia | InstantMed`,
-    description: `Request ${med.name} (${med.genericName}) online. ${med.description} Reviewed by Australian doctors.`,
-    keywords: [`${med.name} online`, `${med.name} prescription australia`, `buy ${med.name} online`],
+    title: `${med.name} Information | InstantMed`,
+    description: `Learn about ${med.name} (${med.genericName}). ${med.description} Educational information reviewed by Australian doctors.`,
+    keywords: [`${med.name} information`, `${med.name} side effects`, `${med.name} uses`],
     openGraph: {
-      title: `${med.name} Online | InstantMed`,
-      description: `Request ${med.name} online from AHPRA-registered doctors.`,
+      title: `${med.name} Information | InstantMed`,
+      description: `Educational information about ${med.name} reviewed by AHPRA-registered doctors.`,
     },
+    robots: { index: false, follow: false },
   }
 }
 
@@ -96,14 +97,17 @@ export default async function MedicationPage({ params }: PageProps) {
     notFound()
   }
 
-  // Medical schema
+  // Educational health information schema (NOT Drug schema — avoids Google pharma policy triggers)
   const medSchema = {
     "@context": "https://schema.org",
-    "@type": "Drug",
-    name: med.name,
-    nonProprietaryName: med.genericName,
-    drugClass: med.category,
-    description: med.description,
+    "@type": "MedicalWebPage",
+    name: `${med.name} Information`,
+    description: `Educational information about ${med.name}`,
+    lastReviewed: new Date().toISOString().split("T")[0],
+    medicalAudience: {
+      "@type": "MedicalAudience",
+      audienceType: "Patient",
+    },
   }
 
   return (

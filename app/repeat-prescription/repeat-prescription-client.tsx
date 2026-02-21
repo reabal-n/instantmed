@@ -264,11 +264,20 @@ export default function RepeatPrescriptionPage() {
                     transition={{ duration: 0.5, delay: 0.4 }}
                   >
                     <span className="font-semibold text-foreground">$29.95</span>
+                    <span className="text-muted-foreground/50 line-through text-xs">$60–90 at GP</span>
                     <span className="hidden sm:inline text-border">·</span>
                     <span>&lt;1 hr review</span>
                     <span className="hidden sm:inline text-border">·</span>
                     <span>PBS subsidies apply</span>
                   </motion.div>
+                  <motion.p
+                    className="text-xs text-muted-foreground mt-2 flex items-center justify-center lg:justify-start gap-1.5"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.45 }}
+                  >
+                    No account required &middot; Pay only after doctor review
+                  </motion.p>
                 </div>
 
                 {/* Hero image — eRx on phone */}
@@ -438,21 +447,45 @@ export default function RepeatPrescriptionPage() {
           <section className="py-8">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <motion.div
-                className="p-5 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                className="p-5 rounded-xl bg-blue-500/5 border border-blue-500/15"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-foreground text-sm mb-1">Important: This is for existing medications only</h3>
+                    <h3 className="font-semibold text-foreground text-sm mb-1">For medications you already take</h3>
                     <p className="text-sm text-muted-foreground">
-                      This service is for renewing medications you already take. If you need a new medication or want to change your dose, please use our{' '}
-                      <Link href="/general-consult" className="text-primary hover:underline">general consultation</Link> service instead.
+                      This service renews existing prescriptions. Know your medication name and dose for a faster process. Need a <em>new</em> medication?{' '}
+                      <Link href="/general-consult" className="text-primary hover:underline">Start a general consult</Link> instead.
                     </p>
                   </div>
+                </div>
+              </motion.div>
+
+              {/* What you'll need section */}
+              <motion.div
+                className="mt-4 p-5 rounded-xl bg-card/50 border border-border/50"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <h3 className="font-semibold text-foreground text-sm mb-3">Have these ready to speed things up</h3>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {[
+                    "Your medication name and dose",
+                    "When you last took it",
+                    "Your prescribing doctor's name",
+                    "Any recent blood test results (if applicable)",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>

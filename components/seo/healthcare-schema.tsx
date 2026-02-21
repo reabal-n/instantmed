@@ -1,5 +1,6 @@
 import Script from "next/script"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -72,7 +73,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       "Medical Certificate",
       "Online Prescription"
     ],
-    priceRange: "$19.95 - $49.95",
+    priceRange: PRICING_DISPLAY.RANGE,
     currenciesAccepted: "AUD",
     paymentAccepted: ["Credit Card", "Debit Card"],
     openingHoursSpecification: {
@@ -476,7 +477,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
         },
         {
           name: "Make payment",
-          text: "Pay securely online. 1-day certificates $19.95, 2-day certificates $29.95."
+          text: `Pay securely online. 1-day certificates ${PRICING_DISPLAY.MED_CERT}, 2-day certificates ${PRICING_DISPLAY.MED_CERT_2DAY}.`
         },
         {
           name: "Doctor reviews your request",
@@ -517,7 +518,7 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
         },
         {
           name: "Make payment",
-          text: "Pay securely online. Prescriptions are $29.95."
+          text: `Pay securely online. Prescriptions are ${PRICING_DISPLAY.REPEAT_SCRIPT}.`
         },
         {
           name: "Doctor reviews your request",

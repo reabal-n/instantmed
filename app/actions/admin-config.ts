@@ -172,7 +172,7 @@ export async function getFeatureFlagsAction() {
   return getFeatureFlags()
 }
 
-export async function updateFeatureFlagAction(key: FlagKey, value: boolean | string[]) {
+export async function updateFeatureFlagAction(key: FlagKey, value: boolean | string | string[]) {
   const admin = await requireAdmin()
   const result = await updateFeatureFlag(key, value, admin.id)
   if (result.success) {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import lottie, { type AnimationItem } from "lottie-web"
+import type { AnimationItem } from "lottie-web"
 
 // Inline Lottie JSON data for our icons - these are lightweight custom animations
 const medCertAnimation = {
@@ -634,15 +634,20 @@ export function AnimatedIcon({ type, className = "", size = 56 }: AnimatedIconPr
       lock: lockAnimation,
     }
 
-    animationRef.current = lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: "svg",
-      loop: true,
-      autoplay: true,
-      animationData: animations[type],
+    let cancelled = false
+    import("lottie-web").then((mod) => {
+      if (cancelled || !containerRef.current) return
+      animationRef.current = mod.default.loadAnimation({
+        container: containerRef.current,
+        renderer: "svg",
+        loop: true,
+        autoplay: true,
+        animationData: animations[type],
+      })
     })
 
     return () => {
+      cancelled = true
       animationRef.current?.destroy()
     }
   }, [type])

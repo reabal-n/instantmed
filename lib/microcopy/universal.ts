@@ -3,6 +3,7 @@
  * Tone: professional, witty, relatable, friendly, slightly irreverent, reassuring
  * Never: "asynchronous", "automated", "no doctor involved"
  */
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const COPY = {
   // Global messaging
@@ -18,10 +19,10 @@ export const COPY = {
     slaPendingMessage: "Most requests are reviewed within 1–2 hours during business hours (8am–10pm AEST).",
     slaInReviewMessage: "A doctor is reviewing your request. Most reviews are completed within 1–2 hours.",
     price: {
-      medcert: "From $19.95",
-      medcertOneDay: "$19.95",
-      medcertTwoDay: "$29.95",
-      prescription: "$29.95",
+      medcert: PRICING_DISPLAY.FROM_MED_CERT,
+      medcertOneDay: PRICING_DISPLAY.MED_CERT,
+      medcertTwoDay: PRICING_DISPLAY.MED_CERT_2DAY,
+      prescription: PRICING_DISPLAY.REPEAT_SCRIPT,
     },
   },
 

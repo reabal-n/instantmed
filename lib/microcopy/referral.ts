@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 /**
  * Pathology & Imaging Referral Flow Microcopy Dictionary
  *
@@ -19,7 +21,7 @@ export const REFERRAL_COPY = {
     heading: "Request a test referral",
     subtitle: "A GP will review your request and issue a referral if clinically appropriate.",
     cta: "Start request",
-    price: "$49.95",
+    price: PRICING_DISPLAY.CONSULT,
     features: [
       "GP reviews your clinical information",
       "Referral issued if appropriate",
@@ -175,7 +177,7 @@ export const REFERRAL_COPY = {
   payment: {
     heading: "Complete payment",
     subtitle: "A GP will review and issue a referral if clinically appropriate",
-    price: "$49.95",
+    price: PRICING_DISPLAY.CONSULT,
     includes: ["GP review of your request", "Referral issued if appropriate", "Valid at any collection centre"],
     disclaimer:
       "A GP will assess whether a referral is clinically appropriate. Some tests may require an in-person consultation. Advanced imaging (CT/MRI) requires clear clinical indication.",

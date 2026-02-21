@@ -10,6 +10,8 @@
 // ============================================================================
 
 export const FLAG_KEYS = {
+  MAINTENANCE_MODE: "maintenance_mode",
+  MAINTENANCE_MESSAGE: "maintenance_message",
   DISABLE_MED_CERT: "disable_med_cert",
   DISABLE_REPEAT_SCRIPTS: "disable_repeat_scripts",
   DISABLE_CONSULTS: "disable_consults",
@@ -32,6 +34,8 @@ export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
 // ============================================================================
 
 export interface FeatureFlags {
+  maintenance_mode: boolean
+  maintenance_message: string
   disable_med_cert: boolean
   disable_repeat_scripts: boolean
   disable_consults: boolean
@@ -60,6 +64,8 @@ export const DEFAULT_SAFETY_SYMPTOMS = [
 ]
 
 export const DEFAULT_FLAGS: FeatureFlags = {
+  maintenance_mode: false,
+  maintenance_message: "We're currently performing scheduled maintenance. Please check back shortly — we'll be back online soon.",
   disable_med_cert: false,
   disable_repeat_scripts: false,
   disable_consults: false,
@@ -84,6 +90,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
  */
 export function getFlagInfo(key: FlagKey): { label: string; description: string } {
   const info: Record<FlagKey, { label: string; description: string }> = {
+    maintenance_mode: {
+      label: "Maintenance Mode",
+      description: "Close the entire intake form — prevents all new submissions and payments",
+    },
+    maintenance_message: {
+      label: "Maintenance Message",
+      description: "Custom message shown to patients when maintenance mode is active",
+    },
     disable_med_cert: {
       label: "Disable Medical Certificates",
       description: "Temporarily disable the medical certificate service",
@@ -161,4 +175,14 @@ export function isArrayFlag(key: FlagKey): boolean {
     FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS,
   ]
   return arrayFlags.includes(key)
+}
+
+/**
+ * Check if a flag is a string type (not boolean, not array)
+ */
+export function isStringFlag(key: FlagKey): boolean {
+  const stringFlags: FlagKey[] = [
+    FLAG_KEYS.MAINTENANCE_MESSAGE,
+  ]
+  return stringFlags.includes(key)
 }

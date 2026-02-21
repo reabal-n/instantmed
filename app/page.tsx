@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     'medical certificate online',
     'online doctor',
     'sick certificate',
-    'repeat prescription online',
+    'repeat script online',
     'telehealth doctor',
     'virtual doctor australia',
   ],

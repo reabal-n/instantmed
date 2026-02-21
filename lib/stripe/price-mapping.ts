@@ -1,6 +1,8 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 /**
  * Stripe Price ID Mapping
- * 
+ *
  * Maps service categories and subtypes to Stripe price IDs.
  * Extracted from client.ts for testability (no "server-only" restriction).
  */
@@ -169,13 +171,13 @@ export function getDisplayPriceForCategory(
   
   switch (category) {
     case "medical_certificate":
-      return absenceDays === 2 ? "$29.95" : "$19.95"
+      return absenceDays === 2 ? PRICING_DISPLAY.MED_CERT_2DAY : PRICING_DISPLAY.MED_CERT
     case "prescription":
-      return "$29.95"
+      return PRICING_DISPLAY.REPEAT_SCRIPT
     case "consult":
       return `$${getConsultSubtypePrice(consultSubtype).toFixed(2)}`
     default:
-      return "$19.95"
+      return PRICING_DISPLAY.MED_CERT
   }
 }
 

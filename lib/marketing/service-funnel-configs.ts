@@ -1,4 +1,5 @@
 import type { ServiceFunnelConfig } from '@/components/marketing/service-funnel-page'
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // ===========================================
 // MEDICAL CERTIFICATES LANDING PAGE
@@ -12,21 +13,21 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     badge: 'Doctors online now',
     headline: 'Too sick to see a GP?',
     headlineRotatingWords: ['Sorted.', 'From your couch.', 'Done.'],
-    subheadline: 'Get a valid medical certificate in minutes — without leaving bed. AHPRA-registered doctors. Employer-verifiable. Reviewed in under an hour, 7 days a week.',
+    subheadline: `Get a valid, employer-accepted medical certificate from ${PRICING_DISPLAY.MED_CERT} — without leaving bed. AHPRA-registered doctors. Reviewed in under an hour, 7 days a week.`,
     reassurances: [
       '\u2705 No account required',
-      '\uD83D\uDCB3 Pay only after doctor review',
+      `\uD83D\uDCB3 Pay only after doctor review — from ${PRICING_DISPLAY.MED_CERT}`,
       '\uD83D\uDD12 Full refund if we can\'t help',
       '\uD83E\uDE7A AHPRA-registered doctors',
     ],
-    ctaText: 'Get your certificate',
+    ctaText: `Get your certificate — ${PRICING_DISPLAY.MED_CERT}`,
     ctaHref: '/request?service=med-cert',
     images: {
       primary: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face',
       secondary: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face',
     },
     highlightBadge: {
-      text: 'Most requests don\'t need a call',
+      text: 'Save $40–70 vs a GP visit',
       glow: false,
     },
   },
@@ -48,10 +49,10 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
         type: 'positive',
       },
       {
-        icon: 'AlertCircle',
-        title: 'Same-day or recent absence',
-        description: 'Certificates can cover absences up to 48 hours ago if clinically appropriate. Beyond that, see your doctor.',
-        type: 'info',
+        icon: 'Check',
+        title: 'Backdating available',
+        description: 'Already missed a day? Certificates can cover absences up to 48 hours ago if clinically appropriate.',
+        type: 'positive',
       },
       {
         icon: 'AlertCircle',
@@ -118,8 +119,8 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'One flat fee. No surprises.',
-    subtitle: 'Pay after the doctor reviews your request — not before.',
+    title: 'One flat fee. Save $40–70 vs a GP.',
+    subtitle: 'Pay after the doctor reviews your request — not before. No hidden fees.',
     price: 19.95,
     features: [
       'Accepted by all Australian employers',
@@ -204,17 +205,17 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Prescription Renewals',
     headline: 'Running low? Renew your script from the couch.',
-    subheadline: 'For medications you already take. An AHPRA-registered doctor reviews your request and sends an eScript straight to your phone.',
+    subheadline: `For medications you already take. An AHPRA-registered doctor reviews your request and sends an eScript straight to your phone. From ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,
     reassurances: [
       '\u2705 No account required',
-      '\uD83D\uDCB3 Pay only after doctor review',
+      `\uD83D\uDCB3 Pay only after doctor review — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
       '\uD83D\uDD12 Full refund if we can\'t help',
       '\uD83C\uDFE5 Any pharmacy Australia-wide',
     ],
-    ctaText: 'Renew your script',
+    ctaText: `Renew your script — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
     highlightBadge: {
-      text: 'Most requests don\'t need a call',
+      text: 'Save $30–60 vs a GP visit',
       glow: false,
     },
   },
@@ -306,8 +307,8 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'One consultation fee. That\'s it.',
-    subtitle: 'Pay after the doctor reviews. Medication cost is separate at your pharmacy.',
+    title: 'Save $30–60 vs a GP visit.',
+    subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Pay after the doctor reviews. Medication cost is separate at your pharmacy.`,
     price: 29.95,
     features: [
       'Reviewed by an AHPRA-registered GP',
@@ -392,14 +393,14 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Online Doctor Consultation',
     headline: 'Need a doctor? Skip the waiting room.',
-    subheadline: 'Speak with an AHPRA-registered Australian GP about new health concerns, treatment advice, or anything you\'d normally book a clinic visit for.',
+    subheadline: `Speak with an AHPRA-registered Australian GP about new health concerns, treatment advice, or anything you'd normally book a clinic visit for. From ${PRICING_DISPLAY.CONSULT} — save $30–70 vs a clinic visit.`,
     reassurances: [
       '\u2705 No account required',
+      `\uD83D\uDCB3 Pay only after doctor review — ${PRICING_DISPLAY.CONSULT}`,
       '\uD83D\uDD12 Full refund if we can\'t help',
-      '\uD83E\uDE7A AHPRA-registered doctors',
-      '\uD83D\uDC8A Prescriptions if appropriate',
+      '\uD83D\uDC8A Prescriptions & referrals if appropriate',
     ],
-    ctaText: 'Talk to a doctor',
+    ctaText: `Talk to a doctor — ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
   },
   
@@ -490,8 +491,8 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
   
   pricing: {
-    title: 'See a doctor for less than a clinic visit.',
-    subtitle: 'Same quality of care. No gap fees. No surprises.',
+    title: 'Save $30–70 vs a clinic visit.',
+    subtitle: `${PRICING_DISPLAY.CONSULT} flat fee — no gap fees, no surprises. Same quality of care as in-person.`,
     price: 49.95,
     features: [
       'Full clinical assessment by an AHPRA-registered GP',

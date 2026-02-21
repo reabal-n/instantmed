@@ -563,7 +563,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
             className={cn('px-8 h-12 font-semibold text-white', colors.button)}
           >
             <Link href={config.hero.ctaHref}>
-              Get started now
+              {config.hero.ctaText}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
@@ -675,10 +675,20 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
             className={cn('w-full sm:w-auto px-10 h-12 text-base font-semibold text-white', colors.button)}
           >
             <Link href={config.hero.ctaHref}>
-              Get started
+              {config.hero.ctaText}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
+          <p className="mt-3 text-xs text-muted-foreground">
+            No account required &middot; Pay only after doctor review
+          </p>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((m) => (
+              <span key={m} className="text-xs text-muted-foreground/50 px-1.5 py-0.5 rounded bg-background/50 border border-border/30">
+                {m}
+              </span>
+            ))}
+          </div>
 
           {/* Notes */}
           <div className="mt-6 space-y-2 text-sm text-muted-foreground">
@@ -692,6 +702,48 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
             </p>
           </div>
         </motion.div>
+
+        {/* Comparison Table — shows for med-cert */}
+        {config.serviceId === 'med-cert' && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-12"
+          >
+            <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-muted-foreground font-medium"></th>
+                    <th className="text-center py-3 px-4 font-semibold text-primary">InstantMed</th>
+                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">GP Clinic</th>
+                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">Walk-in</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {[
+                    { label: 'Cost', instant: '$19.95', gp: '$60–90', walkin: '$80–120' },
+                    { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours' },
+                    { label: 'Leave your couch?', instant: 'No', gp: 'Yes', walkin: 'Yes' },
+                    { label: 'Employer accepted', instant: 'Yes', gp: 'Yes', walkin: 'Yes' },
+                    { label: 'AHPRA doctor', instant: 'Yes', gp: 'Yes', walkin: 'Yes' },
+                    { label: 'Open 7 days', instant: 'Yes', gp: 'Sometimes', walkin: 'Varies' },
+                    { label: 'No appointment', instant: 'Yes', gp: 'No', walkin: 'Yes' },
+                  ].map((row, i) => (
+                    <tr key={i}>
+                      <td className="py-3 px-4 text-muted-foreground">{row.label}</td>
+                      <td className="py-3 px-4 text-center font-medium text-foreground">{row.instant}</td>
+                      <td className="py-3 px-4 text-center text-muted-foreground">{row.gp}</td>
+                      <td className="py-3 px-4 text-center text-muted-foreground">{row.walkin}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   )
@@ -814,8 +866,11 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
-          <p className="mt-6 text-white/70 text-sm">
-            Takes about 2 minutes · No obligation
+          <p className="mt-4 text-white/80 text-sm font-medium">
+            From ${config.pricing.price.toFixed(2)} · No account required
+          </p>
+          <p className="mt-1 text-white/60 text-xs">
+            Takes about 2 minutes · Pay only after doctor review
           </p>
         </motion.div>
       </div>

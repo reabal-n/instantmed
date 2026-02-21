@@ -5,13 +5,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { X, Clock } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
-  "/medical-certificate": { name: "Medical Certificate", price: "from $19.95", href: "/medical-certificate/new" },
-  "/prescriptions": { name: "Prescription", price: "$29.95", href: "/prescriptions/new" },
+  "/medical-certificate": { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" },
+  "/prescriptions": { name: "Prescription", price: PRICING_DISPLAY.REPEAT_SCRIPT, href: "/prescriptions/new" },
 }
 
-const DEFAULT_CONFIG = { name: "Medical Certificate", price: "from $19.95", href: "/medical-certificate/new" }
+const DEFAULT_CONFIG = { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" }
 
 // Session limiting
 const SESSION_KEY = "sticky_cta_shown"

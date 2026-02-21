@@ -181,6 +181,24 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
+          {/* Google Consent Mode v2 - must load BEFORE gtag */}
+          <Script id="google-consent-mode" strategy="beforeInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                'analytics_storage': 'granted',
+                'functionality_storage': 'granted',
+                'personalization_storage': 'denied',
+                'security_storage': 'granted',
+                'wait_for_update': 500
+              });
+            `}
+          </Script>
+
           {/* Google tag (gtag.js) */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
@@ -191,7 +209,9 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'AW-17795889471');
+              gtag('config', 'AW-17795889471', {
+                'allow_enhanced_conversions': true
+              });
             `}
           </Script>
           <JsonLd />

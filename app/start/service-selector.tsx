@@ -16,26 +16,26 @@ const services = [
     title: "Medical Certificate",
     description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     icon: FileText,
-    href: "/request?service=med-cert",
+    href: "/medical-certificate",
     price: PRICING_DISPLAY.MED_CERT,
     estimatedTime: "~1 hour",
     popular: true,
     features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=300&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     color: "hsl(var(--primary))",
     gradient: "from-primary/20 to-emerald-500/20",
   },
   {
     id: "prescription",
     title: "Prescription",
-    description: "Need your regular medications? eScript sent to your phone via SMS.",
+    description: "Need your regular medications? We'll send a script to your pharmacy.",
     icon: Pill,
-    href: "/request?service=prescription",
+    href: "/prescriptions",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
     estimatedTime: "~1 hour",
     popular: false,
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],
-    image: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
     color: "hsl(var(--primary))",
     gradient: "from-indigo-600/20 to-pink-500/20",
   },
@@ -49,7 +49,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
       {/* Hero Header */}
       <section className="relative pt-28 pb-12 px-4 overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-emerald-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
         
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
@@ -77,8 +77,17 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
+                  ))}
+                </div>
+                <span className="text-muted-foreground">4.9/5 rating</span>
+              </div>
+              <span className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Shield className="h-4 w-4 text-primary" />
-                <span>AHPRA-registered doctors</span>
+                <span>AHPRA registered</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -99,7 +108,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                 <Link href={service.href} className="group block h-full">
                   <GlowingBorder>
                     <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-                      <div className="h-full bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                      <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
                         {/* Image section */}
                         <div className="relative h-40 overflow-hidden">
                           <Image
@@ -119,7 +128,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           )}
 
                           {/* Price tag */}
-                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
                           </div>
 
@@ -134,7 +143,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           </div>
                           
                           {/* Time badge */}
-                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
                             <Clock className="h-3 w-3" style={{ color: service.color }} />
                             <span className="font-medium">{service.estimatedTime}</span>
                           </div>
@@ -156,7 +165,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                             {service.features.map((feature) => (
                               <span 
                                 key={feature} 
-                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-muted-foreground"
+                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-muted-foreground"
                               >
                                 <Check className="h-3 w-3" style={{ color: service.color }} />
                                 {feature}

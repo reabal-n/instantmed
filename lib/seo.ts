@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 const siteConfig = {
   name: "InstantMed",
   description:
-    "An asynchronous telehealth platform for Australians. Get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.",
+    `An asynchronous telehealth platform for Australians. Get medical certificates (${PRICING_DISPLAY.MED_CERT}), repeat prescriptions (${PRICING_DISPLAY.REPEAT_SCRIPT}), and new consultations (${PRICING_DISPLAY.CONSULT}) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.`,
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au",
   ogImage: "/og-image.png",
   keywords: [

@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 /**
  * Medical Certificate Flow Microcopy Dictionary - REDESIGNED
  *
@@ -147,8 +149,8 @@ export const MED_CERT_COPY = {
     subtitle: "Pay securely to submit for review",
     
     // Pricing
-    price: "$19.95",
-    priceExtended: "$29.95", // For >3 days or backdated
+    price: PRICING_DISPLAY.MED_CERT,
+    priceExtended: PRICING_DISPLAY.MED_CERT_2DAY, // For >3 days or backdated
     
     // What's included
     includes: [

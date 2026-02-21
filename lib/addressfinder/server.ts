@@ -44,7 +44,7 @@ export async function verifyAddress(address: {
   state: string
   postcode: string
 }): Promise<AddressVerificationResult> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY
 
   if (!apiKey) {
     // Gracefully degrade — accept the address as-is without verification

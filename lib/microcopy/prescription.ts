@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 /**
  * Prescription Flow Microcopy Dictionary
  *
@@ -188,7 +190,7 @@ export const RX_MICROCOPY = {
   // Step: Payment
   payment: {
     heading: "Complete payment",
-    price: "$29.95",
+    price: PRICING_DISPLAY.REPEAT_SCRIPT,
     subtitle: "A doctor will review your request",
     includes: ["GP assessment of your request", "E-script sent to your phone (if approved)", "Valid at any pharmacy"],
     disclaimer:

@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 // Homepage Marketing Data
 // All content centralized for easy updates
 
@@ -22,11 +24,11 @@ export const siteConfig = {
 }
 
 export const heroRotatingTexts = [
-  "Get a valid medical certificate in minutes — from your couch.",
-  "Too sick to visit a GP? Get your cert online, right now.",
-  "Need a sick note? Sorted in under an hour.",
-  "Feeling awful? Stay in bed. We'll handle the paperwork.",
-  "Real doctors. Employer-accepted certificates. Done.",
+  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — sorted in under an hour.`,
+  "Too sick to visit a GP? Get your cert from bed.",
+  "Skip the waiting room. Real doctors, real certificates.",
+  `Prescriptions renewed from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy.`,
+  "Save $40–70 vs a GP. AHPRA doctors. Done.",
 ]
 
 export const trustSignals = [
@@ -267,6 +269,22 @@ export const faqItems = [
   {
     question: "What if I have questions during the process?",
     answer: "The doctor might message you if they need more info. You can reply right there. If something's unclear on your end, our support team is around to help. We're real people, not a call centre.",
+  },
+  {
+    question: "Can I get a backdated medical certificate?",
+    answer: "Yes, if it's clinically appropriate. Certificates can cover absences up to 48 hours ago. Just let the doctor know when your symptoms started and they'll make the call.",
+  },
+  {
+    question: "How much does it cost compared to a GP?",
+    answer: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from ${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and time spent in the waiting room. Medicare rebates don't apply here, but you'll likely still save money — and definitely save time.`,
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer: "We accept Visa, Mastercard, American Express, Apple Pay, and Google Pay. Payments are processed securely through Stripe. You're only charged after a doctor reviews your request.",
+  },
+  {
+    question: "Can I use this for my kids?",
+    answer: "Currently our service is designed for adults (18+). For children, we recommend visiting your GP or calling Healthdirect on 1800 022 222.",
   },
 ]
 

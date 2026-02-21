@@ -80,9 +80,9 @@ export function SuccessClient({
     if (!intakeId || initialStatus !== "pending_payment") return
 
     // Poll for status update if still pending_payment
-    // Increased timeout to 45 seconds to handle webhook delays
+    // Extended to 90 seconds to handle webhook delays from Stripe
     let attempts = 0
-    const maxAttempts = 15 // 15 attempts * 3s = 45 seconds max wait
+    const maxAttempts = 30 // 30 attempts * 3s = 90 seconds max wait
 
     const checkStatus = async () => {
       try {

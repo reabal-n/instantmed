@@ -2,27 +2,26 @@ import type { Metadata } from "next"
 import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {
-  title: "Weight Loss Treatment | Medical Weight Loss",
+  title: "Weight Management | Doctor-Guided Programs",
   description:
-    "GLP-1 medications, personalised plans and ongoing doctor support. Start with a confidential online consultation.",
+    "Personalised weight management plans with ongoing doctor support. Start with a confidential online assessment from AHPRA-registered Australian doctors.",
   keywords: [
-    "weight loss treatment australia",
-    "GLP-1 weight loss",
-    "medical weight loss online",
-    "ozempic alternative",
-    "weight loss medication",
-    "telehealth weight loss australia",
+    "weight management australia",
+    "doctor supervised weight management",
+    "weight management program online",
+    "telehealth weight management australia",
+    "healthy weight support",
   ],
   openGraph: {
-    title: "Weight Loss Treatment | Medical Weight Loss | InstantMed",
+    title: "Weight Management | Doctor-Guided Programs | InstantMed",
     description:
-      "Access clinically proven weight loss treatments online. GLP-1 medications, personalised plans, and ongoing doctor support.",
+      "Personalised weight management plans with ongoing doctor support. AHPRA-registered Australian doctors.",
     url: "https://instantmed.com.au/weight-loss",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Weight Loss Treatment | InstantMed",
-    description: "Clinically proven weight loss treatments with ongoing doctor support.",
+    title: "Weight Management | InstantMed",
+    description: "Doctor-guided weight management programs with personalised support.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/weight-loss",

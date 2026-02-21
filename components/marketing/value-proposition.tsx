@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import {
   Clock,
   PhoneOff,
@@ -109,14 +110,14 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={FileText}
             title="Medical Certificates"
             description="Sick leave, carer's leave, fitness"
-            price="$19.95"
+            price={PRICING_DISPLAY.MED_CERT}
             time="~15 mins"
           />
           <ServiceItem
             icon={Pill}
             title="Repeat Prescriptions"
             description="Ongoing medications you already take"
-            price="$29.95"
+            price={PRICING_DISPLAY.REPEAT_SCRIPT}
             time="~15 mins"
           />
         </div>
@@ -170,7 +171,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={Stethoscope}
             title="New Prescriptions"
             description="First-time medications"
-            price="$49.95"
+            price={PRICING_DISPLAY.NEW_SCRIPT}
             time="2 min call"
             variant="blue"
           />
@@ -178,7 +179,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={Stethoscope}
             title="Men's & Women's Health"
             description="Sensitive health consultations"
-            price="$49.95"
+            price={PRICING_DISPLAY.CONSULT}
             time="2 min call"
             variant="blue"
           />

@@ -1,4 +1,5 @@
 import type { FlowConfig, FlowStep, QuestionnaireConfig } from './types'
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // ============================================
 // 5-STEP MODEL PER REFINED SPEC
@@ -1321,7 +1322,7 @@ export const serviceCategories = [
     slug: 'medical-certificate',
     name: 'Medical Certificate',
     description: 'Sick leave, carer\'s leave, or fitness certificates',
-    price: '$19.95',
+    price: PRICING_DISPLAY.MED_CERT,
     time: '~15 mins',
     icon: 'FileText',
     popular: true,
@@ -1331,7 +1332,7 @@ export const serviceCategories = [
     slug: 'common-scripts',
     name: 'Repeat Prescription',
     description: 'Repeat scripts for ongoing medications',
-    price: '$29.95',
+    price: PRICING_DISPLAY.REPEAT_SCRIPT,
     time: '~15 mins',
     icon: 'Pill',
     features: ['Doctor reviewed', 'E-script to your phone', 'Use at any pharmacy'],
@@ -1340,7 +1341,7 @@ export const serviceCategories = [
     slug: 'consult',
     name: 'Doctor Consultation',
     description: 'Speak with an Australian doctor about any health concern',
-    price: '$49.95',
+    price: PRICING_DISPLAY.CONSULT,
     time: '~20 mins',
     icon: 'Stethoscope',
     features: ['Doctor reviewed', 'Personalized advice', 'Prescriptions if appropriate'],

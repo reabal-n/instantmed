@@ -7,6 +7,7 @@
  * Handles draft detection and resume/clear functionality.
  */
 
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { usePostHog } from "posthog-js/react"
@@ -57,25 +58,25 @@ const CONSULT_SUBTYPES = [
     bullets: ['New prescriptions', 'General health concerns', 'Referrals & specialist letters'],
     callBadge: 'Sometimes requires a call',
     callVariant: 'secondary' as const,
-    price: '$49.95',
+    price: PRICING_DISPLAY.CONSULT,
   },
   {
     id: 'ed',
-    label: 'Erectile dysfunction',
+    label: "Men's intimate health",
     icon: Heart,
-    bullets: ['Sildenafil or tadalafil prescriptions', 'Discreet, no phone call needed'],
+    bullets: ['Doctor-assessed treatment options', 'Discreet, no phone call needed'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
-    price: '$39.95',
+    price: PRICING_DISPLAY.MENS_HEALTH,
   },
   {
     id: 'hair_loss',
     label: 'Hair loss treatment',
     icon: Scissors,
-    bullets: ['Finasteride or minoxidil prescriptions', 'Treatment plan assessment'],
+    bullets: ['Doctor-assessed treatment options', 'Treatment plan assessment'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
-    price: '$39.95',
+    price: PRICING_DISPLAY.MENS_HEALTH,
   },
   {
     id: 'womens_health',
@@ -90,7 +91,7 @@ const CONSULT_SUBTYPES = [
     id: 'weight_loss',
     label: 'Weight management',
     icon: Scale,
-    bullets: ['GLP-1 medication assessment', 'Includes brief phone consultation'],
+    bullets: ['Doctor-guided treatment assessment', 'Includes brief phone consultation'],
     callBadge: 'Quick call required',
     callVariant: 'outline' as const,
     price: '$79.95',
@@ -278,7 +279,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             title="Repeat prescription"
             description="Refill your regular medication"
             badge={{ text: "No call needed", variant: "success" }}
-            price="$29.95"
+            price={PRICING_DISPLAY.REPEAT_SCRIPT}
             pricePrefix=""
             onClick={() => handleSelectService('prescription')}
             index={1}
@@ -291,7 +292,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             title="Doctor consultation"
             description="New prescriptions, referrals, or health concerns"
             badge={{ text: "Usually requires a call", variant: "secondary" }}
-            price="$49.95"
+            price={PRICING_DISPLAY.CONSULT}
             pricePrefix="From"
             onClick={() => setShowConsultSubtypes(!showConsultSubtypes)}
             expanded={showConsultSubtypes}

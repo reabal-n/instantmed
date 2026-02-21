@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { ArrowRight, ShieldCheck, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { SparklesPremium, ClockPremium, ShieldPremiumAlt } from '@/components/icons/certification-logos'
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 
 // Credit card icon inline since we only need it once
@@ -55,9 +56,16 @@ export function CTASection() {
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
                 Feeling too sick to visit a GP?
               </h2>
-              <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+              <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
                 Get a valid medical certificate in minutes from the comfort of your couch. AHPRA-registered doctors. Employer-verifiable certificates.
               </p>
+              <div className="flex items-center justify-center gap-2 mb-8 text-sm">
+                <span className="font-semibold text-foreground">{PRICING_DISPLAY.FROM_MED_CERT}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground line-through">$60–90 at a GP</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">Save $40–70</span>
+              </div>
               
               {/* Features */}
               <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -79,8 +87,8 @@ export function CTASection() {
                   size="lg"
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
                 >
-                  <Link href="/request">
-                    Get started <ArrowRight className="h-4 w-4" />
+                  <Link href="/request?service=med-cert">
+                    Get your certificate now <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -94,6 +102,16 @@ export function CTASection() {
                   <ShieldCheck className="h-3.5 w-3.5" />
                   Full refund if we can&apos;t help
                 </span>
+              </div>
+
+              {/* Payment methods */}
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60" />
+                {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((method) => (
+                  <span key={method} className="text-xs text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
+                    {method}
+                  </span>
+                ))}
               </div>
             </CardContent>
           </Card>
