@@ -294,11 +294,11 @@ export default function MedicalCertificatePage() {
                       className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                     >
                       <Link href="/request?service=med-cert">
-                        Request your certificate
+                        Get your certificate — $19.95
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
-                    
+
                     {/* 100% online badge */}
                     <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />

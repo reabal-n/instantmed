@@ -1,10 +1,9 @@
 'use client'
 
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, CheckCircle2 } from 'lucide-react'
 import { faqItems } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
-import { HelpCirclePremium } from '@/components/icons/certification-logos'
 
 /**
  * Generate FAQ Schema markup for SEO
@@ -34,25 +33,25 @@ function FAQSchema({ items }: { items: Array<{ question: string; answer: string 
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-10 lg:py-14 scroll-mt-20">
+    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
       {/* FAQ Schema for SEO */}
       <FAQSchema items={faqItems} />
-      
+
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default">
-            <HelpCirclePremium className="h-4 w-4 text-primary" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
+            <CheckCircle2 className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-foreground/80">FAQ</span>
           </div>
-          
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
+
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
             Common questions
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
@@ -70,18 +69,18 @@ export function FAQSection() {
             type="single"
             collapsible
             defaultValue="0"
-            className="gap-3"
+            className="space-y-3"
           >
             {faqItems.map((item, index) => (
               <AccordionItem
                 key={index.toString()}
                 value={index.toString()}
-                className="bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-colors"
+                className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all px-5 !border-b-border/60"
               >
-                <AccordionTrigger className="text-foreground">
-                  <span className="font-medium text-foreground">{item.question}</span>
+                <AccordionTrigger className="text-foreground hover:no-underline py-5">
+                  <span className="font-medium text-foreground text-left">{item.question}</span>
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -90,7 +89,7 @@ export function FAQSection() {
         </motion.div>
 
         {/* Contact support */}
-        <motion.div 
+        <motion.div
           className="mt-10 text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

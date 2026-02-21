@@ -243,10 +243,6 @@ export const faqItems = [
     answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
   },
   {
-    question: "Will my employer accept an online medical certificate?",
-    answer: "Yes. Our certificates are legally valid and accepted by all Australian employers, unis, and government bodies. Telehealth certificates are legally equivalent to those issued in-person.",
-  },
-  {
     question: "What if the doctor says no?",
     answer: "Full refund, no questions. We'd rather be upfront than take your money for something we can't help with.",
   },
@@ -256,35 +252,11 @@ export const faqItems = [
   },
   {
     question: "Is my information private?",
-    answer: "Completely. Your health info is encrypted and only seen by the treating doctor. We don't share anything with employers, insurers, or anyone else. Ever. 🔒",
-  },
-  {
-    question: "What treatments can you provide?",
-    answer: "Most common ones — contraception, blood pressure treatments, cholesterol management, skin treatments, and more. We can't do anything controlled (like strong painkillers) or treatments that need a physical exam first.",
-  },
-  {
-    question: "Do I need to create an account?",
-    answer: "Nope. You can go through the whole process as a guest. We just need an email to send your documents to.",
-  },
-  {
-    question: "What if I have questions during the process?",
-    answer: "The doctor might message you if they need more info. You can reply right there. If something's unclear on your end, our support team is around to help. We're real people, not a call centre.",
-  },
-  {
-    question: "Can I get a backdated medical certificate?",
-    answer: "Yes, if it's clinically appropriate. Certificates can cover absences up to 48 hours ago. Just let the doctor know when your symptoms started and they'll make the call.",
+    answer: "Completely. Your health info is encrypted and only seen by the treating doctor. We don't share anything with employers, insurers, or anyone else. Ever.",
   },
   {
     question: "How much does it cost compared to a GP?",
-    answer: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from ${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and time spent in the waiting room. Medicare rebates don't apply here, but you'll likely still save money — and definitely save time.`,
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept Visa, Mastercard, American Express, Apple Pay, and Google Pay. Payments are processed securely through Stripe. You're only charged after a doctor reviews your request.",
-  },
-  {
-    question: "Can I use this for my kids?",
-    answer: "Currently our service is designed for adults (18+). For children, we recommend visiting your GP or calling Healthdirect on 1800 022 222.",
+    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, prescriptions from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save — and definitely save time.`,
   },
 ]
 
