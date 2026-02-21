@@ -60,7 +60,7 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
   }
 
   return (
-    <div className="flex flex-col gap-1 p-3 rounded-lg bg-muted/40 border border-border/30">
+    <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-muted/40 border border-border/30">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <Icon className="h-3 w-3" />
         {label}
@@ -130,9 +130,9 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {/* Primary Metrics */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCell
             label="Today"
             value={stats.todaySubmissions}
