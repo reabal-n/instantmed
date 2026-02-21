@@ -1,14 +1,12 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Source_Sans_3, Lora, JetBrains_Mono, Caveat } from "next/font/google"
+import { Source_Sans_3, JetBrains_Mono } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
 import { SkipToContent } from "@/components/shared/skip-to-content"
-import { SkyBackground } from "@/components/ui/sky-background"
-import { NightSkyBackground } from "@/components/ui/night-sky-background"
-import { ScrollProgress } from "@/components/ui/scroll-progress"
+// SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
@@ -29,13 +27,6 @@ const sourceSans = Source_Sans_3({
   weight: ["400", "500", "600", "700"],
 })
 
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-  weight: ["400", "600", "700"],
-})
-
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -43,12 +34,8 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400"],
 })
 
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-handwritten",
-  display: "swap",
-  weight: ["400", "700"],
-})
+// Lora (serif) and Caveat (handwritten) moved to local imports in the
+// few components that use them, so they don't block initial page load.
 
 export const metadata: Metadata = {
   title: {
@@ -168,7 +155,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={`${sourceSans.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+        className={`${sourceSans.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
       >
         <head>
@@ -222,9 +209,6 @@ export default function RootLayout({
           <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <NetworkStatus />
-                <SkyBackground fullPage />
-                <NightSkyBackground starCount={100} showShootingStars />
-                <ScrollProgress color="gradient" />
                 <SkipToContent />
                 <div id="main-content" className="relative z-10">
                   <PageTransitionProvider>

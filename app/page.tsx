@@ -18,6 +18,9 @@ import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
+import { SkyBackground } from '@/components/ui/sky-background'
+import { NightSkyBackground } from '@/components/ui/night-sky-background'
+import { ScrollProgress } from '@/components/ui/scroll-progress'
 
 export const revalidate = 3600
 
@@ -76,6 +79,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {/* Backgrounds & progress — scoped to marketing homepage for performance */}
+      <SkyBackground fullPage />
+      <NightSkyBackground starCount={80} showShootingStars />
+      <ScrollProgress color="gradient" />
+
       {/* SEO Structured Data - FAQ Schema for rich snippets */}
       <FAQSchema faqs={faqSchemaData} />
       

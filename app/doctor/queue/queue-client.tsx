@@ -202,7 +202,8 @@ export function QueueClient({
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === "med_certs") {
-      router.push(`/doctor/intakes/${intakeId}/document`)
+      // Navigate to intake detail — doctor uses the certificate preview dialog there
+      router.push(`/doctor/intakes/${intakeId}`)
       return
     }
     startTransition(async () => {

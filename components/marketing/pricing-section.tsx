@@ -1,10 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { Caveat } from 'next/font/google'
 import { Check, FileText, Pill, Stethoscope } from 'lucide-react'
 import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-handwritten',
+  display: 'swap',
+  weight: ['400', '700'],
+})
 
 const iconMap = {
   FileText,
@@ -14,7 +22,7 @@ const iconMap = {
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
+    <section id="pricing" className={cn("py-20 lg:py-28 scroll-mt-20 relative overflow-hidden", caveat.variable)}>
       <div className="w-full max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center space-y-6 mb-16">

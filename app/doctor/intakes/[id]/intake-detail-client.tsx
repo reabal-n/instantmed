@@ -273,11 +273,13 @@ export function IntakeDetailClient({
   })
 
   // Auto-advance: go to next intake in queue, or back to queue if none
+  // Uses window.location for clean navigation to avoid React hydration/hook
+  // mismatches when transitioning between pages during async state updates
   const advanceToNext = () => {
     if (nextIntakeId) {
-      router.push(`/doctor/intakes/${nextIntakeId}`)
+      window.location.href = `/doctor/intakes/${nextIntakeId}`
     } else {
-      router.push("/doctor/queue")
+      window.location.href = "/doctor/queue"
     }
   }
 
@@ -304,9 +306,11 @@ export function IntakeDetailClient({
         setCertPreviewData(result.data)
         setShowCertPreview(true)
       } else {
+        console.error("[cert-preview] fetchCertPreviewDataAction failed:", result.error)
         toast.error(result.error || "Failed to load certificate data")
       }
-    } catch {
+    } catch (err) {
+      console.error("[cert-preview] Exception in fetchCertPreviewDataAction:", err)
       toast.error("Failed to load certificate preview")
     } finally {
       setIsLoadingPreview(false)
@@ -762,7 +766,7 @@ export function IntakeDetailClient({
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
             {/* For med certs - preview then approve: shows preview dialog first */}
-            {service?.type === "med_certs" && intake.status !== "approved" && (
+            {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
               <Button onClick={handleMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
                 {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Review & Send Certificate"}

@@ -164,6 +164,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       postcode,
       stripe_customer_id,
       onboarding_completed,
+      provider_number,
       created_at,
       updated_at
     `)
