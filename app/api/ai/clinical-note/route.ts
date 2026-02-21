@@ -36,6 +36,15 @@ interface IntakeAnswers {
   duration_days?: number
   carer_person_name?: string
   carer_relationship?: string
+  hasAllergies?: boolean
+  has_allergies?: boolean
+  allergyDetails?: string
+  allergy_details?: string
+  allergies?: string
+  currentMedications?: string
+  current_medications?: string
+  medicalConditions?: string
+  medical_conditions?: string
   [key: string]: unknown
 }
 
@@ -244,11 +253,30 @@ function formatIntakeForPrompt(answers: IntakeAnswers): string {
     lines.push(`Relationship: ${answers.carer_relationship}`)
   }
 
+  // Clinical history fields
+  if (answers.hasAllergies === true || answers.has_allergies === true) {
+    const allergyDetail = answers.allergyDetails || answers.allergy_details || answers.allergies
+    lines.push(`Allergies: ${allergyDetail ? String(allergyDetail) : "Yes (not specified)"}`)
+  } else if (answers.hasAllergies === false || answers.has_allergies === false) {
+    lines.push("Allergies: Nil known")
+  }
+
+  if (answers.currentMedications || answers.current_medications) {
+    lines.push(`Current Medications: ${String(answers.currentMedications || answers.current_medications)}`)
+  }
+
+  if (answers.medicalConditions || answers.medical_conditions) {
+    lines.push(`Medical Conditions: ${String(answers.medicalConditions || answers.medical_conditions)}`)
+  }
+
   // Include any other relevant fields
   const excludedKeys = [
     'certificate_type', 'symptoms', 'other_symptom_details',
     'start_date', 'end_date', 'duration_days',
     'carer_person_name', 'carer_relationship',
+    'hasAllergies', 'has_allergies', 'allergyDetails', 'allergy_details', 'allergies',
+    'currentMedications', 'current_medications',
+    'medicalConditions', 'medical_conditions',
     'emergency_disclaimer_confirmed', 'emergency_disclaimer_timestamp',
     'patient_confirmed_accurate', 'patient_confirmed_timestamp',
     'template_version', 'submitted_at'

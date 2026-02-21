@@ -278,22 +278,43 @@ function DraftContent({ content }: { content: Record<string, unknown> }) {
     return JSON.stringify(value)
   }
 
-  // Common fields to display nicely
+  // Clinical note fields with nice labels
   const displayFields = [
+    { key: "presentingComplaint", label: "Presenting Complaint" },
+    { key: "historyOfPresentIllness", label: "History of Present Illness" },
+    { key: "relevantInformation", label: "Relevant Information" },
+    { key: "certificateDetails", label: "Certificate Details" },
+    { key: "certificateStatement", label: "Certificate Statement" },
+    { key: "symptomsSummary", label: "Symptoms Summary" },
+    { key: "clinicalNotes", label: "Clinical Notes" },
+    { key: "medicationSummary", label: "Medication Summary" },
+    { key: "indicationStatement", label: "Indication" },
+    { key: "treatmentHistory", label: "Treatment History" },
+    { key: "complianceNotes", label: "Compliance Notes" },
+    { key: "clinicalConsiderations", label: "Clinical Considerations" },
+    { key: "chiefComplaint", label: "Chief Complaint" },
+    { key: "relevantHistory", label: "Relevant History" },
+    { key: "systemsReview", label: "Systems Review" },
+    { key: "urgencyAssessment", label: "Urgency" },
     { key: "reason", label: "Reason / Description" },
     { key: "symptoms", label: "Symptoms" },
     { key: "assessment", label: "Assessment" },
     { key: "plan", label: "Plan" },
+    { key: "startDate", label: "Start Date" },
+    { key: "endDate", label: "End Date" },
     { key: "date_from", label: "Date From" },
     { key: "date_to", label: "Date To" },
+    { key: "durationDays", label: "Duration (days)" },
     { key: "duration", label: "Duration" },
+    { key: "certificateType", label: "Certificate Type" },
     { key: "work_capacity", label: "Work Capacity" },
     { key: "notes", label: "Notes" },
+    { key: "suggestedConsultType", label: "Suggested Consult Type" },
   ]
 
   const fieldsToShow = displayFields.filter(f => content[f.key] !== undefined && content[f.key] !== null)
   const otherFields = Object.entries(content).filter(
-    ([key]) => !displayFields.some(f => f.key === key) && !key.startsWith("_")
+    ([key]) => !displayFields.some(f => f.key === key) && key !== "flags" && !key.startsWith("_")
   )
 
   return (

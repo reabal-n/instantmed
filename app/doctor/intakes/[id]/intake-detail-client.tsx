@@ -41,6 +41,7 @@ import {
   Loader2,
   Send,
   Mail,
+  Sparkles,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
@@ -118,6 +119,19 @@ const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: strin
     template: ""
   },
 ]
+
+/**
+ * Format AI draft content into readable clinical note text.
+ * Converts structured JSON fields into a formatted note string.
+ */
+function formatDraftAsNote(content: Record<string, unknown>): string {
+  const lines: string[] = []
+  if (content.presentingComplaint) lines.push(`Presenting Complaint: ${content.presentingComplaint}`)
+  if (content.historyOfPresentIllness) lines.push(`Hx of Present Illness: ${content.historyOfPresentIllness}`)
+  if (content.relevantInformation) lines.push(`Relevant Information: ${content.relevantInformation}`)
+  if (content.certificateDetails) lines.push(`Certificate Details: ${content.certificateDetails}`)
+  return lines.join("\n\n")
+}
 
 // Format consult subtype for display
 function formatConsultSubtype(subtype: string): string {
@@ -664,6 +678,31 @@ export function IntakeDetailClient({
           ) : (
             // Editable view for pending intakes
             <>
+              {/* Use AI Draft button — show when clinical note draft is ready and notes are empty */}
+              {(() => {
+                const clinicalDraft = aiDrafts.find(d => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at)
+                if (clinicalDraft && !doctorNotes.trim()) {
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950"
+                      onClick={() => {
+                        const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
+                        const formatted = formatDraftAsNote(content)
+                        if (formatted) {
+                          setDoctorNotes(formatted)
+                          toast.success("AI draft loaded into notes — review and edit before saving")
+                        }
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Use AI Draft as Notes
+                    </Button>
+                  )
+                }
+                return null
+              })()}
               <Textarea
                 ref={notesRef}
                 placeholder="Add your clinical notes here... (⌘+N to focus)"

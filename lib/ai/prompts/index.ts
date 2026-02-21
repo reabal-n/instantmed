@@ -5,7 +5,7 @@
  * Version bumps enable A/B testing and rollback.
  */
 
-export const PROMPT_VERSION = '2.1'
+export const PROMPT_VERSION = '2.2'
 
 // =============================================================================
 // CLINICAL NOTE PROMPT
@@ -31,7 +31,7 @@ OUTPUT FORMAT:
 [Details from intake including duration, symptom specifics]
 
 **Relevant Information:**
-[Any additional context from intake answers]
+[Any additional context from intake answers including allergies, current medications, medical conditions]
 
 **Certificate Details:**
 [If medical certificate: type, dates, duration]

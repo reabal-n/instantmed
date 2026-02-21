@@ -258,7 +258,7 @@ export function validateClinicalNoteAgainstIntake(
       aiOutput.presentingComplaint.toLowerCase().includes(symptom.toLowerCase()) ||
       aiOutput.historyOfPresentIllness.toLowerCase().includes(symptom.toLowerCase())
     )
-    
+
     if (!hasSymptomReference) {
       // This is a warning, not a hard fail
       errors.push({

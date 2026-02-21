@@ -78,8 +78,8 @@ OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact
 {
   "presentingComplaint": "Brief summary of symptoms/reason for consultation",
   "historyOfPresentIllness": "Details from intake including duration, symptom specifics",
-  "relevantInformation": "Any additional context from intake answers",
-  "certificateDetails": "If medical certificate: type, dates, duration",
+  "relevantInformation": "Any additional context from intake answers including allergies, current medications, medical conditions",
+  "certificateDetails": "If medical certificate: type, dates, duration. If prescription: medication details. If consult: consultation type.",
   "flags": {
     "requiresReview": false,
     "flagReason": null
@@ -1019,6 +1019,34 @@ function formatIntakeContext(
     if (answers.duration || answers.symptomDuration) {
       parts.push(`Duration of Concern: ${sanitizeAnswerValue(answers.duration || answers.symptomDuration, intakeId)}`)
     }
+  }
+
+  // Clinical history fields (all service types — useful for Relevant Information section)
+  if (answers.hasAllergies === true || answers.has_allergies === true) {
+    const allergyDetail = answers.allergyDetails || answers.allergy_details || answers.allergies
+    parts.push(`Allergies: ${allergyDetail ? sanitizeAnswerValue(allergyDetail, intakeId) : "Yes (not specified)"}`)
+  } else if (answers.hasAllergies === false || answers.has_allergies === false) {
+    parts.push("Allergies: Nil known")
+  }
+
+  if (answers.currentMedications || answers.current_medications) {
+    parts.push(`Current Medications: ${sanitizeAnswerValue(answers.currentMedications || answers.current_medications, intakeId)}`)
+  }
+
+  if (answers.medicalConditions || answers.medical_conditions) {
+    parts.push(`Medical Conditions: ${sanitizeAnswerValue(answers.medicalConditions || answers.medical_conditions, intakeId)}`)
+  }
+
+  if (answers.medicalHistory || answers.medical_history) {
+    parts.push(`Medical History: ${sanitizeAnswerValue(answers.medicalHistory || answers.medical_history, intakeId)}`)
+  }
+
+  // Carer information (med certs)
+  if (answers.carerPersonName || answers.carer_person_name) {
+    parts.push(`Caring for: ${sanitizeAnswerValue(answers.carerPersonName || answers.carer_person_name, intakeId)}`)
+  }
+  if (answers.carerRelationship || answers.carer_relationship) {
+    parts.push(`Relationship: ${sanitizeAnswerValue(answers.carerRelationship || answers.carer_relationship, intakeId)}`)
   }
 
   // Additional notes (all service types)
