@@ -45,7 +45,8 @@ import {
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
-import { generateMedCertPdfAndApproveAction } from "@/app/doctor/intakes/[id]/document/actions"
+import { generateMedCertPdfAndApproveAction, fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
+import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
@@ -164,6 +165,11 @@ export function IntakeDetailClient({
   // P0 SAFETY: Red flag acknowledgment before approval
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
 
+  // Certificate preview dialog
+  const [showCertPreview, setShowCertPreview] = useState(false)
+  const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   
   // P0 SAFETY: Detect red flags that require acknowledgment before approval
@@ -275,7 +281,7 @@ export function IntakeDetailClient({
     }
   }
 
-  // 1-click med cert approval: uses existing draft data to generate PDF + email atomically
+  // Med cert approval: show preview dialog first, then approve on confirm
   const handleMedCertApprove = async () => {
     // P0 SAFETY: Block approval if red flags not acknowledged
     if (hasRedFlags && !redFlagsAcknowledged) {
@@ -290,12 +296,39 @@ export function IntakeDetailClient({
       return
     }
 
+    // Fetch draft data and show preview dialog
+    setIsLoadingPreview(true)
+    try {
+      const result = await fetchCertPreviewDataAction(intake.id, draftId || "")
+      if (result.success && result.data) {
+        setCertPreviewData(result.data)
+        setShowCertPreview(true)
+      } else {
+        toast.error(result.error || "Failed to load certificate data")
+      }
+    } catch {
+      toast.error("Failed to load certificate preview")
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }
+
+  // Called when doctor confirms the preview dialog
+  const handleCertPreviewConfirm = async (editedData: CertificatePreviewData) => {
     startTransition(async () => {
-      // Save notes first
+      // Save clinical notes first
       await saveDoctorNotesAction(intake.id, doctorNotes)
 
-      const result = await generateMedCertPdfAndApproveAction(intake.id, draftId || "")
+      const result = await approveWithPreviewDataAction(intake.id, {
+        startDate: editedData.startDate,
+        endDate: editedData.endDate,
+        medicalReason: editedData.medicalReason,
+        doctorName: editedData.doctorName,
+        consultDate: editedData.consultDate,
+      })
+
       if (result.success) {
+        setShowCertPreview(false)
         const emailNote = result.emailStatus === "sent"
           ? "Certificate approved and sent to patient."
           : "Certificate approved. Email will be sent shortly."
@@ -728,11 +761,11 @@ export function IntakeDetailClient({
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            {/* For med certs - 1-click approve: generates PDF + emails patient */}
+            {/* For med certs - preview then approve: shows preview dialog first */}
             {service?.type === "med_certs" && intake.status !== "approved" && (
-              <Button onClick={handleMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
-                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
+              <Button onClick={handleMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
+                {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Review & Send Certificate"}
               </Button>
             )}
 
@@ -914,6 +947,17 @@ export function IntakeDetailClient({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Certificate Preview Dialog */}
+      {certPreviewData && (
+        <CertificatePreviewDialog
+          open={showCertPreview}
+          onOpenChange={setShowCertPreview}
+          data={certPreviewData}
+          onConfirm={handleCertPreviewConfirm}
+          isPending={isPending}
+        />
+      )}
     </div>
   )
 }
