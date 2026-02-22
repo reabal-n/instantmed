@@ -1,4 +1,4 @@
-# Lumen Health Developer Guide
+# InstantMed Developer Guide
 
 ## Quick Start
 
@@ -12,8 +12,8 @@
 
 1. **Clone and install dependencies:**
 ```bash
-git clone https://github.com/reabal-n/lumen-health.git
-cd lumen-health
+git clone https://github.com/reabal-n/instantmed.git
+cd instantmed
 pnpm install
 ```
 
@@ -39,7 +39,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Email (Resend)
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=Lumen Health <noreply@lumenhealth.com.au>
+RESEND_FROM_EMAIL=InstantMed <noreply@instantmed.com.au>
 ```
 
 3. **Start development server:**
@@ -58,7 +58,7 @@ supabase db push
 ## Project Structure
 
 ```
-lumen-health/
+instantmed/
 ├── app/                    # Next.js App Router
 │   ├── (marketing)/        # Public pages (home, about, etc.)
 │   ├── patient/            # Patient dashboard & flows

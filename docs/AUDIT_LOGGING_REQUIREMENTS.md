@@ -1,7 +1,7 @@
-# Lumen Health — Audit Logging Requirements
+# InstantMed — Audit Logging Requirements
 Version 1.0 — High-Level Guardrails
 
-This document defines **what must be observable and provable** if Lumen Health is audited.
+This document defines **what must be observable and provable** if InstantMed is audited.
 It does not dictate implementation details.
 
 The goal is to demonstrate:

@@ -17,7 +17,7 @@ interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   glowColor?: "blue" | "purple" | "emerald" | "none"
 }
 
-// Lumen Glass styles - Night sky compatible in dark mode
+// Glass styles
 const glassStyles = {
   subtle: cn(
     "bg-white/60 dark:bg-white/5",
@@ -36,7 +36,7 @@ const glassStyles = {
   ),
 }
 
-// Lumen glow colors - warm dawn (light) / subtle starlight (dark)
+// Glow colors
 const glowColors = {
   blue: "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)] dark:hover:shadow-[0_8px_30px_rgba(148,163,184,0.15)]",
   purple: "hover:shadow-[0_8px_30px_rgba(245,169,98,0.20)] dark:hover:shadow-[0_8px_30px_rgba(249,201,146,0.12)]",
@@ -57,9 +57,9 @@ export function GlassCard({
     <motion.div
       className={cn(
         "relative rounded-2xl",
-        // Lumen Glass surface
+        // Glass surface
         glassStyles[glass],
-        // Lumen soft shadow (sky-tinted)
+        // Soft shadow
         "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
         // Hover glow
         hover && glowColors[glowColor],
@@ -67,7 +67,7 @@ export function GlassCard({
         "transition-shadow duration-300",
         className,
       )}
-      // Lumen gentle motion
+      // Gentle motion
       whileHover={hover ? {
         y: -2,
         transition: {

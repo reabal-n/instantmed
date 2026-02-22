@@ -840,6 +840,6 @@ className="min-h-screen bg-gradient-to-b from-sky-100 via-ivory-50 to-peach-50"
 
 *Last updated: January 2026*
 *Design System Version: 3.0 — Clarity Emerging*
-*Brand: Lumen Health*
-*Reference: /brand/LUMEN_BRAND_STYLE.md*
+*Brand: InstantMed*
+*Reference: /brand/INSTANTMED_BRAND_STYLE.md*
 

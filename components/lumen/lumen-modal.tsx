@@ -4,7 +4,7 @@ import * as React from "react"
 import { Lora } from "next/font/google"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { lumenDurations, lumenEasing } from "@/components/ui/motion"
+import { motionDurations, motionEasing } from "@/components/ui/motion"
 import { X } from "lucide-react"
 
 const lora = Lora({
@@ -47,14 +47,14 @@ const backdropVariants = {
   visible: { 
     opacity: 1,
     transition: {
-      duration: lumenDurations.normal,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.normal,
+      ease: motionEasing.gentle,
     },
   },
   exit: { 
     opacity: 0,
     transition: {
-      duration: lumenDurations.fast,
+      duration: motionDurations.fast,
     },
   },
 }
@@ -70,8 +70,8 @@ const modalVariants = {
     scale: 1,
     y: 0,
     transition: {
-      duration: lumenDurations.slow,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.slow,
+      ease: motionEasing.gentle,
     },
   },
   exit: {
@@ -79,7 +79,7 @@ const modalVariants = {
     scale: 0.98,
     y: 8,
     transition: { 
-      duration: lumenDurations.fast,
+      duration: motionDurations.fast,
     },
   },
 }
@@ -143,7 +143,7 @@ export function LumenModal({
               // Base styles
               "relative w-full",
               sizeStyles[size],
-              // Lumen Glass elevated surface
+              // Glass elevated surface
               "bg-white/90 dark:bg-white/10",
               "backdrop-blur-2xl",
               "border border-sky-300/45 dark:border-white/15",

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
  */
 
 // ===========================================
-// LUMEN MOTION PRESETS (Calm, Intentional)
+// INSTANTMED MOTION PRESETS (Calm, Intentional)
 // ===========================================
 
 export const springPresets = {
@@ -43,15 +43,15 @@ export const springPresets = {
   } as Transition,
 }
 
-// Lumen easing functions (CSS-compatible)
-export const lumenEasing = {
+// InstantMed easing functions (CSS-compatible)
+export const motionEasing = {
   standard: [0.4, 0, 0.2, 1] as [number, number, number, number],
   gentle: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
   calm: [0.33, 0, 0.2, 1] as [number, number, number, number],
 }
 
-// Lumen durations
-export const lumenDurations = {
+// InstantMed durations
+export const motionDurations = {
   fast: 0.2,      // 200ms
   normal: 0.3,    // 300ms
   slow: 0.4,      // 400ms
@@ -62,7 +62,7 @@ export const lumenDurations = {
 // VARIANT PRESETS
 // ===========================================
 
-/** Hover variants for interactive elements - Lumen: subtle, not energetic */
+/** Hover variants for interactive elements - InstantMed: subtle, not energetic */
 export const hoverVariants: Variants = {
   rest: { 
     scale: 1,
@@ -72,18 +72,18 @@ export const hoverVariants: Variants = {
     scale: 1.01,
     y: -2,
     transition: {
-      duration: lumenDurations.normal,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.normal,
+      ease: motionEasing.gentle,
     },
   },
   tap: { 
     scale: 0.99,
     y: 0,
-    transition: { duration: lumenDurations.fast },
+    transition: { duration: motionDurations.fast },
   },
 }
 
-/** Modal/dialog entrance variants - Lumen: slow, intentional */
+/** Modal/dialog entrance variants - InstantMed: slow, intentional */
 export const modalVariants: Variants = {
   hidden: { 
     opacity: 0, 
@@ -95,8 +95,8 @@ export const modalVariants: Variants = {
     scale: 1,
     y: 0,
     transition: {
-      duration: lumenDurations.slow,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.slow,
+      ease: motionEasing.gentle,
     },
   },
   exit: {
@@ -104,8 +104,8 @@ export const modalVariants: Variants = {
     scale: 0.98,
     y: 8,
     transition: { 
-      duration: lumenDurations.fast, 
-      ease: lumenEasing.standard,
+      duration: motionDurations.fast, 
+      ease: motionEasing.standard,
     },
   },
 }
@@ -121,7 +121,7 @@ export const fadeInVariants: Variants = {
   },
 }
 
-/** Slide-up variants for cards, list items - Lumen: gentle rise */
+/** Slide-up variants for cards, list items - InstantMed: gentle rise */
 export const slideUpVariants: Variants = {
   hidden: { 
     opacity: 0, 
@@ -131,8 +131,8 @@ export const slideUpVariants: Variants = {
     opacity: 1, 
     y: 0,
     transition: {
-      duration: lumenDurations.normal,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.normal,
+      ease: motionEasing.gentle,
     },
   },
 }
@@ -148,7 +148,7 @@ export const staggerContainerVariants: Variants = {
   },
 }
 
-/** Stagger item for list children - Lumen: no scale, just opacity + position */
+/** Stagger item for list children - InstantMed: no scale, just opacity + position */
 export const staggerItemVariants: Variants = {
   hidden: { 
     opacity: 0, 
@@ -158,8 +158,8 @@ export const staggerItemVariants: Variants = {
     opacity: 1, 
     y: 0,
     transition: {
-      duration: lumenDurations.normal,
-      ease: lumenEasing.gentle,
+      duration: motionDurations.normal,
+      ease: motionEasing.gentle,
     },
   },
 }
@@ -193,7 +193,7 @@ export function MotionCard({
   return (
     <motion.div
       className={cn(
-        // Lumen Glass surface
+        // Glass surface
         "bg-white/75 dark:bg-white/5",
         "backdrop-blur-xl",
         "border border-sky-300/35 dark:border-white/10",
@@ -208,15 +208,15 @@ export function MotionCard({
         y: -2, 
         boxShadow: "0 8px 30px rgba(197, 221, 240, 0.20)",
         transition: {
-          duration: lumenDurations.normal,
-          ease: lumenEasing.gentle,
+          duration: motionDurations.normal,
+          ease: motionEasing.gentle,
         },
       } : undefined}
       whileTap={pressable ? { 
         scale: 0.99,
-        transition: { duration: lumenDurations.fast },
+        transition: { duration: motionDurations.fast },
       } : undefined}
-      transition={{ duration: lumenDurations.normal, ease: lumenEasing.gentle, delay }}
+      transition={{ duration: motionDurations.normal, ease: motionEasing.gentle, delay }}
       {...(props as any)}
     >
       {children}
@@ -240,7 +240,7 @@ export function MotionButton({
   glowColor = "primary",
   ...props 
 }: MotionButtonProps) {
-  // Lumen glow styles - warm dawn tones
+  // Glow styles - warm dawn tones
   const glowStyles = {
     primary: "hover:shadow-[0_8px_30px_rgba(245,169,98,0.30)]",
     accent: "hover:shadow-[0_8px_30px_rgba(197,221,240,0.25)]",
@@ -355,7 +355,7 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
       {isOpen && (
         <motion.div
           className={cn(
-            // Lumen Glass elevated surface
+            // Glass elevated surface
             "bg-white/90 dark:bg-white/10",
             "backdrop-blur-2xl",
             "border border-sky-300/45 dark:border-white/15",
@@ -390,7 +390,7 @@ export function MotionScale({ children, className, ...props }: MotionScaleProps)
       className={className}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: lumenDurations.normal, ease: lumenEasing.gentle }}
+      transition={{ duration: motionDurations.normal, ease: motionEasing.gentle }}
       {...(props as any)}
     >
       {children}

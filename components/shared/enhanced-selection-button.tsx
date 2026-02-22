@@ -28,7 +28,7 @@ export function EnhancedSelectionButton({
 }: EnhancedSelectionButtonProps) {
   const baseClasses = "relative transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
   
-  // Lumen brand: Selections feel like light settling, not color switching
+  // Brand: Selections feel like light settling, not color switching
   // Subtle outline emphasis, gentle surface change, soft light shift
   const variantClasses = {
     chip: cn(

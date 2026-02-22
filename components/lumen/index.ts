@@ -8,7 +8,7 @@
  * - Gentle, intentional motion
  * - Glass effects with subtle warmth
  *
- * Note: Components named "Lumen*" are legacy naming, kept for backwards compatibility.
+ * Note: Components use legacy "Lumen" naming. They are being kept for backwards compatibility.
  */
 
 export { LumenButton } from "./lumen-button"

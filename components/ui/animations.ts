@@ -19,7 +19,7 @@ function getPrefersReducedMotion(): boolean {
   return prefersReducedMotion
 }
 
-// Lumen duration constants - intentionally slower
+// Duration constants - intentionally slower
 export const durations = {
   fast: 0.2,    // 200ms - quick confirmations
   normal: 0.3,  // 300ms - standard transitions
@@ -27,7 +27,7 @@ export const durations = {
   slower: 0.5,  // 500ms - page transitions
 } as const
 
-// Lumen easing functions - gentle, calm
+// Easing functions - gentle, calm
 export const easing = {
   easeOut: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
   easeIn: [0.4, 0, 1, 1] as [number, number, number, number],
@@ -205,7 +205,7 @@ export const pageTransition: Variants = {
 }
 
 /**
- * Modal/Dialog Animation - Lumen: slow, intentional
+ * Modal/Dialog Animation - slow, intentional
  * Gentle fade + minimal movement
  */
 export const modalAnimation: Variants = {
@@ -230,7 +230,7 @@ export const modalAnimation: Variants = {
 }
 
 /**
- * Bottom Sheet Animation - Lumen: smooth slide
+ * Bottom Sheet Animation - smooth slide
  * Slide up from bottom
  */
 export const bottomSheetAnimation: Variants = {
@@ -251,7 +251,7 @@ export const bottomSheetAnimation: Variants = {
 }
 
 /**
- * Hover Lift Animation - Lumen: subtle, not energetic
+ * Hover Lift Animation - subtle, not energetic
  * For cards, buttons
  */
 export const hoverLift = {
@@ -260,7 +260,7 @@ export const hoverLift = {
 }
 
 /**
- * Press Animation - Lumen: minimal, confirmatory
+ * Press Animation - minimal, confirmatory
  * For button clicks
  */
 export const press = {

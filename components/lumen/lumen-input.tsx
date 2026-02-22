@@ -61,7 +61,7 @@ export const LumenInput = React.forwardRef<HTMLInputElement, LumenInputProps>(
               "w-full font-sans text-base",
               "rounded-xl",
               "px-4 py-3",
-              // Lumen Glass surface
+              // Glass surface
               "bg-white/65 dark:bg-white/5",
               "backdrop-blur-lg",
               "border border-sky-300/30 dark:border-white/10",

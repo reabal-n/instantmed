@@ -1,13 +1,13 @@
-# Lumen Health — Prescribing Workflow Boundary
+# InstantMed — Prescribing Workflow Boundary
 Version 1.0 — Non-Negotiable Separation
 
-This document defines the **hard boundary** between the Lumen Health platform and prescribing activity.
+This document defines the **hard boundary** between the InstantMed platform and prescribing activity.
 
 ---
 
 ## Core Principle
 
-Lumen Health does **not prescribe**.
+InstantMed does **not prescribe**.
 
 It facilitates intake, triage, and clinician review.
 All prescribing decisions and actions occur **outside the platform**.
@@ -16,7 +16,7 @@ All prescribing decisions and actions occur **outside the platform**.
 
 ## Platform Scope (Allowed)
 
-Within Lumen Health, the platform may:
+Within InstantMed, the platform may:
 - Collect patient-reported information
 - Present intake data to clinicians
 - Support triage decisions
@@ -30,22 +30,22 @@ The platform may **never** generate a prescription.
 ## Prescribing Scope (External Only)
 
 Prescribing actions must occur:
-- Outside the Lumen Health system
+- Outside the InstantMed system
 - Within a dedicated prescribing platform (e.g. Parchment)
 - Through explicit clinician action
 
-No prescribing logic exists inside Lumen Health.
+No prescribing logic exists inside InstantMed.
 
 ---
 
 ## Data Boundary
 
-Lumen Health may:
+InstantMed may:
 - Display intake data to clinicians
 - Allow clinicians to reference patient details
 - Export or copy information for external use
 
-Lumen Health must not:
+InstantMed must not:
 - Generate dosage instructions
 - Create prescription artefacts
 - Imply prescription approval
@@ -80,7 +80,7 @@ Prescribing is framed as:
 ## Audit Narrative Alignment
 
 If reviewed, the system must clearly show:
-- Lumen Health ends at clinical assessment and triage
+- InstantMed ends at clinical assessment and triage
 - Prescribing responsibility lies entirely with the clinician
 - External systems are used for prescription generation
 

@@ -6,7 +6,7 @@
 
 ## Overview
 
-InstantMed (Lumen Health) collects and processes personal health information (PHI) in accordance with:
+InstantMed collects and processes personal health information (PHI) in accordance with:
 - Privacy Act 1988 (Cth) and Australian Privacy Principles (APPs)
 - My Health Records Act 2012 (Cth)
 - Health Records Act 2001 (Vic) where applicable

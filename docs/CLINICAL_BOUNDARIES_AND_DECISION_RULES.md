@@ -1,4 +1,4 @@
-# Lumen Health — Clinical Boundaries & Decision Rules
+# InstantMed — Clinical Boundaries & Decision Rules
 Version 1.0 — Firm Constraints
 
 This document defines the non-negotiable operational boundaries of the platform.
@@ -8,7 +8,7 @@ These rules govern triage, clinician authority, and request outcomes.
 
 ## Platform Role (Audit Narrative)
 
-Lumen Health is **not a prescribing system**.
+InstantMed is **not a prescribing system**.
 
 It is an **intake, triage, and documentation platform** that supports clinician decision-making.
 

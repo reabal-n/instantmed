@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion, type HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { lumenDurations, lumenEasing } from "@/components/ui/motion"
+import { motionDurations, motionEasing } from "@/components/ui/motion"
 
 export interface LumenButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   children: React.ReactNode
@@ -106,13 +106,13 @@ export function LumenButton({
       whileHover={!isDisabled ? {
         y: -2,
         transition: {
-          duration: lumenDurations.normal,
-          ease: lumenEasing.gentle,
+          duration: motionDurations.normal,
+          ease: motionEasing.gentle,
         },
       } : undefined}
       whileTap={!isDisabled ? {
         y: 0,
-        transition: { duration: lumenDurations.fast },
+        transition: { duration: motionDurations.fast },
       } : undefined}
       {...props}
     >

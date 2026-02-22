@@ -1,4 +1,4 @@
-# Lumen Health Design System
+# InstantMed Design System
 
 **Version:** 2.1  
 **Last Updated:** January 2026  
@@ -10,7 +10,7 @@
 
 > **Calm, Radiant, Human**
 >
-> Our solarpunk-inspired aesthetic brings warmth and hope, like sunlight through glass. *Lumen* means light — we illuminate the path to better health.
+> Our solarpunk-inspired aesthetic brings warmth and hope, like sunlight through glass. We illuminate the path to better health.
 
 ---
 
