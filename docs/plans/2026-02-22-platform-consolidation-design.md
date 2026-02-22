@@ -64,33 +64,19 @@ $pageview (url contains "/")
 
 ## Section B: Supabase — Conservative Consolidation
 
-### B1. Drop clearly dead tables (code-verified, 0 rows, superseded)
-| Table | Rows | Reason |
-|---|---|---|
-| `audit_events` | 0 | Superseded by `audit_logs` (27 rows, richer schema) |
-| `med_cert_audit_events` | 0 | Duplicate of `audit_events`, itself a duplicate |
-| `documents` | 0 | Dead — `document_drafts` + `issued_certificates` serve this role |
+### B1. Drop clearly dead tables (code-verified, 0 rows, 0 code references)
+| Table | Rows | Code Refs | Reason |
+|---|---|---|---|
+| `med_cert_audit_events` | 0 | 0 | No code references anywhere. Truly dead. |
 
-### B2. Consolidate template tables
-Merge `decline_reason_templates` (10 rows) + `info_request_templates` (9 rows) into:
-```sql
-CREATE TABLE doctor_action_templates (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  template_type TEXT NOT NULL CHECK (template_type IN ('decline_reason', 'info_request')),
-  code TEXT NOT NULL,
-  label TEXT NOT NULL,
-  description TEXT,
-  category TEXT,
-  display_order INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE,
-  service_types TEXT[],
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-- Migrate data from both tables
-- Update all code references
-- Drop original tables after verification
+### B1-CORRECTED. Tables originally planned for removal but KEPT:
+| Table | Rows | Code Refs | Why Kept |
+|---|---|---|---|
+| `audit_events` | 0 | 4 | Actively used by repeat-rx flow (eligibility, submission, decision, view) |
+| `documents` | 0 rows in table | 62 | NOT a data table — it's a Supabase Storage bucket name used across certificate generation, email, approval, and download flows |
+
+### B2-CANCELLED. Template table merge
+`decline_reason_templates` has `requires_note` field, `info_request_templates` has `message_template` field. Different schemas serving different workflows. Merging adds risk for minimal benefit. Leaving both as-is.
 
 ### B3. Tables explicitly NOT touched
 - All AI tables (6) — pre-built for AI features
