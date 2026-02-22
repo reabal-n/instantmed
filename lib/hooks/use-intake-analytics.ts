@@ -1,3 +1,10 @@
+/**
+ * @deprecated Exported from lib/hooks/index.ts but NOT used by any component — last verified 2026-02-22.
+ *
+ * The request flow tracks steps directly via posthog.capture() in request-flow.tsx.
+ * This hook provides richer timing data (step duration, abandonment) that could be useful
+ * if wired into the request flow in the future.
+ */
 "use client"
 
 import { useCallback, useRef, useEffect } from "react"

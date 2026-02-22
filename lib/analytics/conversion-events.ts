@@ -1,8 +1,21 @@
+/**
+ * @deprecated NOT IMPORTED ANYWHERE — last verified 2026-02-22.
+ *
+ * The request flow uses direct posthog.capture() calls in:
+ * - components/request/request-flow.tsx (request_step_viewed, request_step_completed, request_flow_exited)
+ * - components/request/service-hub-screen.tsx (service_selected)
+ * Server-side tracking uses lib/posthog-server.ts (intake_funnel_*, safety_*, business_alert_*)
+ *
+ * This file defines event names that DON'T match production events (e.g. "intake_step_completed"
+ * instead of "request_step_completed", "payment_completed" instead of "intake_funnel_payment_completed").
+ *
+ * Consider deleting this file or updating event names if GA4/Google Ads tracking is needed.
+ */
 "use client"
 
 /**
  * Conversion Events Library
- * 
+ *
  * Tracks key conversion events across the patient journey.
  * Integrates with Google Analytics 4, Google Ads, and PostHog.
  */
