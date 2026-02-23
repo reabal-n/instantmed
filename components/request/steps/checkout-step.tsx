@@ -15,7 +15,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock, CreditCard, ShieldCheck, UserX } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
@@ -234,10 +234,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         <span className="flex items-center gap-1">
           <RefreshCw className="w-3.5 h-3.5 text-green-600" />
           Money-back guarantee
-        </span>
-        <span className="flex items-center gap-1">
-          <Lock className="w-3.5 h-3.5 text-green-600" />
-          256-bit encrypted
         </span>
       </motion.div>
 

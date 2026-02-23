@@ -343,11 +343,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .single()
 
     if (intakeError || !intake) {
-      logger.error("Failed to create intake", { error: intakeError })
+      logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
       if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please try again." }
       }
-      return { success: false, error: "Failed to create your request. Please try again." }
+      if (intakeError?.code === "42501") {
+        return { success: false, error: "Permission denied. Please try again or contact support." }
+      }
+      return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)

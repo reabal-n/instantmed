@@ -373,11 +373,14 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         }
       }
       
-      logger.error("Failed to create intake", { error: intakeError })
+      logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
       if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
       }
-      return { success: false, error: "Failed to create your request. Please try again." }
+      if (intakeError?.code === "42501") {
+        return { success: false, error: "Permission denied. Please sign out and sign in again, or try as a guest." }
+      }
+      return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
 
     // 6a. Save fraud flags if any were detected (non-blocking)
