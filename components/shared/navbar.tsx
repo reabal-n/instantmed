@@ -289,7 +289,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                     >
                       <Link href="/request">
-                        Get started
+                        Start a request
                       </Link>
                     </Button>
                     <SignedOut>
@@ -488,7 +488,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   <Link href="/request">
-                    Get started
+                    Start a request
                   </Link>
                 </Button>
               </>

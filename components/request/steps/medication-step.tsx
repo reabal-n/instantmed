@@ -11,14 +11,15 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { Info, Plus, X } from "lucide-react"
+import { Info, Plus, X, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, addRecentMedication } from "@/lib/request/preferences"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { isControlledSubstance, CONTROLLED_SUBSTANCE_DISCLAIMER } from "@/lib/clinical/intake-validation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface MedicationStepProps {
@@ -61,6 +62,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [controlledBlock, setControlledBlock] = useState<string | null>(null)
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
 
   // Load recent medications on mount
@@ -89,6 +91,17 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     }
   }, [setAnswer, setAnswers])
 
+  const checkForControlledSubstance = useCallback((meds: MedicationEntry[]) => {
+    for (const med of meds) {
+      const name = med.product?.drug_name || med.name
+      if (name && isControlledSubstance(name)) {
+        setControlledBlock(CONTROLLED_SUBSTANCE_DISCLAIMER.message)
+        return
+      }
+    }
+    setControlledBlock(null)
+  }, [])
+
   const handleMedicationSelect = (index: number, product: SelectedPBSProduct | null) => {
     const updated = [...medications]
     updated[index] = {
@@ -99,6 +112,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       pbsCode: product?.pbs_code || "",
     }
     syncToStore(updated)
+    checkForControlledSubstance(updated)
   }
 
   const handleRecentMedClick = (med: RecentMedication) => {
@@ -111,11 +125,14 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       pbsCode: med.pbsCode || "",
     }
     syncToStore(updated)
+    checkForControlledSubstance(updated)
   }
 
   const addMedication = () => {
     if (medications.length < 5) {
-      syncToStore([...medications, { product: null, name: "" }])
+      const updated = [...medications, { product: null, name: "" }]
+      syncToStore(updated)
+      checkForControlledSubstance(updated)
     }
   }
 
@@ -123,6 +140,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     if (medications.length <= 1) return
     const updated = medications.filter((_, i) => i !== index)
     syncToStore(updated)
+    checkForControlledSubstance(updated)
   }
 
   const validate = useCallback(() => {
@@ -130,6 +148,14 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     const hasAtLeastOne = medications.some(m => m.product || m.name)
     if (!hasAtLeastOne) {
       newErrors.medication = "Please search for and select your medication"
+    }
+    // Belt-and-suspenders: recheck controlled substances in validate
+    for (const med of medications) {
+      const name = med.product?.drug_name || med.name
+      if (name && isControlledSubstance(name)) {
+        newErrors.medication = "Controlled substances cannot be prescribed online"
+        break
+      }
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -156,7 +182,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
   const isComplete = medications.some(m => m.product || m.name)
   const hasNoErrors = Object.keys(errors).length === 0
-  const canContinue = isComplete && hasNoErrors
+  const canContinue = isComplete && hasNoErrors && !controlledBlock
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -173,6 +199,18 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
           Search using the PBS database. If you can&apos;t find your exact medication, type the name manually.
         </AlertDescription>
       </Alert>
+
+      {/* Controlled substance block */}
+      {controlledBlock && (
+        <Alert variant="destructive">
+          <ShieldAlert className="w-4 h-4" />
+          <AlertTitle>{CONTROLLED_SUBSTANCE_DISCLAIMER.title}</AlertTitle>
+          <AlertDescription className="text-xs">
+            <p>{controlledBlock}</p>
+            <p className="mt-1 font-medium">{CONTROLLED_SUBSTANCE_DISCLAIMER.advice}</p>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Recent medications suggestion */}
       {recentMeds.length > 0 && !selectedMedication && !medicationName && (

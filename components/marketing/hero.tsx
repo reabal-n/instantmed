@@ -8,7 +8,6 @@ import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-
 import { motion, useReducedMotion } from 'framer-motion'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
-import { PRICING_DISPLAY } from "@/lib/constants"
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion()
@@ -66,12 +65,11 @@ export function Hero() {
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                {PRICING_DISPLAY.FROM_MED_CERT}
+                Medical certificates from $19.95
               </span>
-              <span className="text-sm text-muted-foreground">
-                <span className="line-through">$60–90 at a GP</span>
-                {' '}<span className="font-medium text-emerald-600 dark:text-emerald-400">Save $40–70</span>
-              </span>
+              <p className="text-xs text-muted-foreground mt-1 text-center lg:text-left">
+                Typically $60–90 at a GP clinic
+              </p>
             </motion.div>
 
             {/* CTAs */}

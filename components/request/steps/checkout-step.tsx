@@ -16,6 +16,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock, CreditCard, ShieldCheck, UserX } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
@@ -25,7 +26,7 @@ import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
-import { PRICING as APP_PRICING } from "@/lib/constants"
+import { PRICING as APP_PRICING, MED_CERT_DURATIONS } from "@/lib/constants"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
@@ -84,8 +85,9 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const consultSubtype = answers.consultSubtype as string | undefined
 
   let price = pricing.base
-  if (serviceType === 'med-cert' && duration === '2') {
-    price = 29.95
+  if (serviceType === 'med-cert' && duration) {
+    const durationNum = Number(duration) as keyof typeof MED_CERT_DURATIONS.prices
+    price = MED_CERT_DURATIONS.prices[durationNum] ?? pricing.base
   } else if (serviceType === 'consult') {
     price = getConsultSubtypePrice(consultSubtype)
   }
@@ -266,25 +268,22 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
 
       {/* Single combined consent */}
       <motion.div variants={stagger.item}>
-        <button
-          type="button"
-          onClick={() => handleConsentChange(!consentGiven)}
-          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 ${
+        <div
+          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
             consentGiven
               ? "border-green-500 bg-green-50 dark:bg-green-950/30"
-              : "border-border hover:border-primary/40 cursor-pointer"
+              : "border-border hover:border-primary/40"
           }`}
+          onClick={() => handleConsentChange(!consentGiven)}
         >
-          <div
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-              consentGiven
-                ? "border-green-500 bg-green-500"
-                : "border-muted-foreground/30"
-            }`}
-          >
-            {consentGiven && <Check className="w-3.5 h-3.5 text-white" />}
-          </div>
-          <p className="text-sm leading-relaxed">
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+          <span onClick={(e) => e.stopPropagation()} className="mt-0.5 shrink-0">
+            <Checkbox
+              checked={consentGiven}
+              onCheckedChange={(checked) => handleConsentChange(checked)}
+            />
+          </span>
+          <p className="text-sm leading-relaxed cursor-pointer">
             By paying, I confirm the information I&apos;ve provided is accurate and I agree to the{' '}
             <a href="/terms" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
               Terms of Service
@@ -294,7 +293,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
               Privacy Policy
             </a>
           </p>
-        </button>
+        </div>
       </motion.div>
 
       {/* Error message */}

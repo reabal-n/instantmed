@@ -48,10 +48,10 @@ const colorConfig: Record<string, {
 }
 
 // Service metadata for additional info
-const serviceMetadata: Record<string, { time: string; callNote: string; gpCost: string; savings: string }> = {
-  'med-cert': { time: 'GP reviewed', callNote: 'Usually online review', gpCost: '$60-90', savings: '$40–70' },
-  'scripts': { time: 'GP reviewed', callNote: 'Usually online review', gpCost: '$60-90', savings: '$30–60' },
-  'consult': { time: 'GP reviewed', callNote: 'May include a call', gpCost: '$80-120', savings: '$30–70' },
+const serviceMetadata: Record<string, { time: string; callNote: string; gpCompare: string }> = {
+  'med-cert': { time: 'GP reviewed', callNote: 'Usually online review', gpCompare: '60–90' },
+  'scripts': { time: 'GP reviewed', callNote: 'Usually online review', gpCompare: '60–90' },
+  'consult': { time: 'GP reviewed', callNote: 'May include a call', gpCompare: '80–120' },
 }
 
 // Dynamic daily stats — seeded by date so they stay consistent per day
@@ -60,18 +60,18 @@ function getDailyStats() {
   const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
   const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
   return {
-    reviewedToday: 8 + Math.floor(hash(seed) * 15), // 8–22
-    avgReviewTime: 25 + Math.floor(hash(seed + 1) * 20), // 25–44 min
-    rating: 4.9,
+    reviewedToday: 2 + Math.floor(hash(seed) * 7), // 2–8
+    avgReviewTime: 45 + Math.floor(hash(seed + 1) * 76), // 45–120 min
+    rating: (4.8 + hash(seed + 2) * 0.1) as number, // 4.8–4.9
   }
 }
 const liveStats = getDailyStats()
 
-// Doctor images for social proof
-const doctorImages = [
-  '/female-doctor-professional-headshot-warm-smile-aus.jpg',
-  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1594824476967-48c8b964e05a?w=100&h=100&fit=crop&crop=face',
+// Doctor avatar illustrations (DiceBear)
+const doctorAvatars = [
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor10',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor11',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor12',
 ]
 
 const containerVariants = {
@@ -148,9 +148,9 @@ export function ServicePicker() {
             {/* Doctor avatars */}
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                {doctorImages.map((src, i) => (
-                  <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background">
-                    <Image src={src} alt="AHPRA-registered doctor" fill className="object-cover" />
+                {doctorAvatars.map((src, i) => (
+                  <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
+                    <img src={src} alt="Doctor illustration" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -167,12 +167,12 @@ export function ServicePicker() {
             
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>Typically <strong className="text-foreground">under 1 hour</strong></span>
+              <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong> review</span>
             </div>
             
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span><strong className="text-foreground">{liveStats.rating}</strong> avg rating</span>
+              <span><strong className="text-foreground">{liveStats.rating.toFixed(1)}</strong> avg rating</span>
             </div>
           </motion.div>
         </motion.div>
@@ -291,18 +291,13 @@ export function ServicePicker() {
                       <Separator className="opacity-50" />
                       
                       <div className="flex items-center justify-between px-3 py-2.5 shrink-0">
-                        {/* #2: Price with savings framing */}
+                        {/* Price */}
                         <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-semibold text-foreground">
-                              ${displayPrice.toFixed(2)}
-                            </span>
-                            <span className="text-xs text-muted-foreground line-through">
-                              {meta.gpCost}
-                            </span>
-                          </div>
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                            Save {meta.savings} vs GP
+                          <span className="text-base font-semibold text-foreground">
+                            From ${displayPrice.toFixed(2)}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            Typically ${meta.gpCompare || '60–90'} at a GP
                           </span>
                         </div>
                         

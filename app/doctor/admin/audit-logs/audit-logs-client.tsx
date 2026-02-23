@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { Pagination } from "@/components/uix"
 import {
   ArrowLeft,
@@ -18,6 +26,8 @@ import {
   CreditCard,
   Shield,
   Activity,
+  Calendar,
+  Filter,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -63,6 +73,9 @@ interface AuditLogsClientProps {
   filters: {
     intakeId?: string
     patientId?: string
+    dateFrom?: string
+    dateTo?: string
+    eventType?: string
   }
 }
 
@@ -76,12 +89,28 @@ export function AuditLogsClient({
 }: AuditLogsClientProps) {
   const router = useRouter()
   const [searchIntakeId, setSearchIntakeId] = useState(filters.intakeId || "")
+  const [dateFrom, setDateFrom] = useState(filters.dateFrom || "")
+  const [dateTo, setDateTo] = useState(filters.dateTo || "")
+  const [eventType, setEventType] = useState(filters.eventType || "all")
   const totalPages = Math.ceil(total / pageSize)
+
+  const hasActiveFilters = !!(filters.intakeId || filters.dateFrom || filters.dateTo || (filters.eventType && filters.eventType !== "all"))
 
   const handleSearch = () => {
     const params = new URLSearchParams()
     if (searchIntakeId) params.set("intake_id", searchIntakeId)
+    if (dateFrom) params.set("date_from", dateFrom)
+    if (dateTo) params.set("date_to", dateTo)
+    if (eventType && eventType !== "all") params.set("event_type", eventType)
     router.push(`/doctor/admin/audit-logs?${params.toString()}`)
+  }
+
+  const handleClearFilters = () => {
+    setSearchIntakeId("")
+    setDateFrom("")
+    setDateTo("")
+    setEventType("all")
+    router.push("/doctor/admin/audit-logs")
   }
 
   const getEventIcon = (eventType: string) => {
@@ -172,27 +201,83 @@ export function AuditLogsClient({
         </Badge>
       </div>
 
-      {/* Search */}
+      {/* Search & Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search by Intake ID..."
-                value={searchIntakeId}
-                onChange={(e) => setSearchIntakeId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
+          <div className="space-y-4">
+            {/* Row 1: Intake ID search + Event type filter */}
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <Label htmlFor="intake-search" className="text-xs text-muted-foreground mb-1.5 block">
+                  Intake ID
+                </Label>
+                <Input
+                  id="intake-search"
+                  placeholder="Search by Intake ID..."
+                  value={searchIntakeId}
+                  onChange={(e) => setSearchIntakeId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </div>
+              <div className="w-[200px]">
+                <Label htmlFor="event-type-filter" className="text-xs text-muted-foreground mb-1.5 block">
+                  <Filter className="h-3 w-3 inline mr-1" />
+                  Event Type
+                </Label>
+                <Select value={eventType} onValueChange={setEventType}>
+                  <SelectTrigger id="event-type-filter">
+                    <SelectValue placeholder="All events" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="status_change">Status Change</SelectItem>
+                    <SelectItem value="payment_received">Payment</SelectItem>
+                    <SelectItem value="document_generated">Document Generated</SelectItem>
+                    <SelectItem value="email_sent">Email</SelectItem>
+                    <SelectItem value="refund_processed">Refund</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Button onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-            {filters.intakeId && (
-              <Button variant="outline" onClick={() => router.push("/doctor/admin/audit-logs")}>
-                Clear
-              </Button>
-            )}
+
+            {/* Row 2: Date range + actions */}
+            <div className="flex gap-4 items-end flex-wrap">
+              <div className="w-[180px]">
+                <Label htmlFor="date-from" className="text-xs text-muted-foreground mb-1.5 block">
+                  <Calendar className="h-3 w-3 inline mr-1" />
+                  From
+                </Label>
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div className="w-[180px]">
+                <Label htmlFor="date-to" className="text-xs text-muted-foreground mb-1.5 block">
+                  <Calendar className="h-3 w-3 inline mr-1" />
+                  To
+                </Label>
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2 ml-auto">
+                <Button onClick={handleSearch}>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+                {hasActiveFilters && (
+                  <Button variant="outline" onClick={handleClearFilters}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -333,8 +418,8 @@ export function AuditLogsClient({
             <div className="text-center py-12 text-muted-foreground">
               <Activity className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p>No audit events found</p>
-              {filters.intakeId && (
-                <p className="text-sm mt-2">Try searching for a different intake ID</p>
+              {hasActiveFilters && (
+                <p className="text-sm mt-2">Try adjusting your search filters</p>
               )}
             </div>
           )}
@@ -348,6 +433,9 @@ export function AuditLogsClient({
                 onChange={(newPage) => {
                   const params = new URLSearchParams()
                   if (filters.intakeId) params.set("intake_id", filters.intakeId)
+                  if (filters.dateFrom) params.set("date_from", filters.dateFrom)
+                  if (filters.dateTo) params.set("date_to", filters.dateTo)
+                  if (filters.eventType && filters.eventType !== "all") params.set("event_type", filters.eventType)
                   params.set("page", String(newPage))
                   router.push(`/doctor/admin/audit-logs?${params.toString()}`)
                 }}

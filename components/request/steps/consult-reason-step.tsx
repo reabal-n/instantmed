@@ -27,16 +27,22 @@ interface ConsultReasonStepProps {
 }
 
 const CONSULT_CATEGORIES = [
-  { value: "general", label: "General consultation", icon: "🩺" },
-  { value: "ed", label: "Erectile dysfunction", icon: "🔵" },
-  { value: "hair_loss", label: "Hair loss", icon: "💇" },
-  { value: "weight_loss", label: "Weight loss", icon: "⚖️" },
-  { value: "womens_health", label: "Women's health", icon: "🌸" },
+  { value: "skin", label: "Skin condition", icon: "🩹", description: "Rash, acne, eczema, or other skin concern" },
+  { value: "infection", label: "Infection", icon: "💊", description: "May need antibiotics or antiviral treatment" },
+  { value: "new_medication", label: "Starting new medication", icon: "📋", description: "Need a new prescription or recommendation" },
+  { value: "general", label: "Other / General concern", icon: "🩺", description: "Something else not listed above" },
+  { value: "ed", label: "Erectile dysfunction", icon: "🔵", description: "ED assessment and treatment" },
+  { value: "hair_loss", label: "Hair loss", icon: "💇", description: "Hair loss assessment and treatment" },
+  { value: "weight_loss", label: "Weight loss", icon: "⚖️", description: "Weight management consultation" },
+  { value: "womens_health", label: "Women's health", icon: "🌸", description: "Women's health concern" },
 ] as const
 
 // Map hub subtypes to category values (hub uses underscores: hair_loss, womens_health, weight_loss)
 const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
+  'skin': 'skin',
+  'infection': 'infection',
+  'new_medication': 'new_medication',
   'ed': 'ed',
   'hair_loss': 'hair_loss',
   'womens_health': 'womens_health',
@@ -49,6 +55,21 @@ const CATEGORY_GUIDANCE: Record<string, {
   helperText: string
   suggestedTopics: string[]
 }> = {
+  skin: {
+    placeholder: "Describe the skin condition — where it is, how long you've had it, any itching/pain, and what you've tried...",
+    helperText: "Include location, appearance, duration, and any triggers or treatments tried.",
+    suggestedTopics: ["Location on body", "Appearance", "Duration", "Triggers", "Treatments tried"],
+  },
+  infection: {
+    placeholder: "Describe your symptoms — e.g., sore throat, ear pain, wound infection — how long, and any fever...",
+    helperText: "Include symptoms, duration, and whether you think antibiotics may be needed.",
+    suggestedTopics: ["Main symptoms", "Duration", "Fever", "Previous antibiotics"],
+  },
+  new_medication: {
+    placeholder: "Describe what medication you need, what it's for, and any relevant medical history...",
+    helperText: "Include the medication name (if known), reason for starting, and any allergies.",
+    suggestedTopics: ["Medication name", "Reason for starting", "Allergies", "Current medications"],
+  },
   ed: {
     placeholder: "Describe when you first noticed symptoms, how often they occur, and any relevant health conditions...",
     helperText: "Include information about onset, frequency, and any medications you currently take.",
@@ -70,7 +91,7 @@ const CATEGORY_GUIDANCE: Record<string, {
     suggestedTopics: ["Main concern", "Symptom timing", "Current contraception", "Relevant history"],
   },
   general: {
-    placeholder: "Describe your health concern — this could be a new prescription, referral, general health question, or anything else...",
+    placeholder: "Describe your health concern — this could be a referral, general health question, or anything else...",
     helperText: "Include symptoms, duration, and any relevant history. The more detail, the better we can help.",
     suggestedTopics: ["Main concern", "Duration", "Current medications", "What you've tried"],
   },
@@ -152,18 +173,16 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             What would you like help with?
             <span className="text-destructive ml-0.5">*</span>
           </Label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
             {CONSULT_CATEGORIES.map((category) => (
               <EnhancedSelectionButton
                 key={category.value}
-                variant="card"
+                variant="option"
                 selected={consultCategory === category.value}
                 onClick={() => setAnswer("consultCategory", category.value)}
-                className="justify-start gap-2 h-auto py-3 px-3"
-              >
-                <span className="text-lg">{category.icon}</span>
-                <span className="text-sm">{category.label}</span>
-              </EnhancedSelectionButton>
+                label={`${category.icon} ${category.label}`}
+                description={category.description}
+              />
             ))}
           </div>
           {errors.consultCategory && (

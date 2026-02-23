@@ -46,7 +46,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Marketing Manager",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=SarahM",
     featured: true,
   },
   {
@@ -60,7 +60,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Teacher",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MichelleT",
     featured: true,
   },
   {
@@ -86,7 +86,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Hospitality",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=ChrisP",
   },
   {
     id: "t8",
@@ -99,7 +99,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "UniMelb Student",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=TomH",
     featured: true,
   },
   {
@@ -113,7 +113,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Stay-at-home Mum",
-    image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=PriyaN",
   },
   {
     id: "t10",
@@ -150,7 +150,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Consultant",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=NickB",
   },
   {
     id: "t14",
@@ -163,7 +163,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "FIFO Worker",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=JamesL",
     featured: true,
   },
   {
@@ -201,7 +201,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "medical-certificate",
     verified: true,
     role: "Creative",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MarcusW",
   },
   {
     id: "t18",
@@ -226,7 +226,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "Sales",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=SophieT",
   },
   {
     id: "t20",
@@ -253,7 +253,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "Accountant",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=DavidR",
     featured: true,
   },
   {
@@ -267,7 +267,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "Analyst",
-    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=JessicaW",
   },
   {
     id: "t7",
@@ -280,7 +280,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "Executive",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MichaelK",
   },
   {
     id: "t11",
@@ -330,7 +330,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "Flight Attendant",
-    image: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=TanyaR",
   },
   {
     id: "t24",
@@ -391,7 +391,7 @@ export const TESTIMONIALS: Testimonial[] = [
     service: "prescription",
     verified: true,
     role: "FIFO Worker",
-    image: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=RobM",
   },
   
   // === GENERAL / MIXED ===

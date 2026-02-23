@@ -394,7 +394,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
         </p>
         <Button asChild size="lg" className="rounded-full">
           <Link href="/request">
-            Get started
+            Start a request
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>
         </Button>

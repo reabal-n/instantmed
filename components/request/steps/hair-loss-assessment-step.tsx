@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Scissors, AlertCircle } from "lucide-react"
+import { Scissors, AlertCircle, Pill, Droplets } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
@@ -19,10 +20,9 @@ interface HairLossAssessmentStepProps {
 }
 
 const PATTERN_OPTIONS = [
-  { value: 'receding_hairline', label: 'Receding hairline' },
-  { value: 'thinning_crown', label: 'Thinning at the crown' },
+  { value: 'male_pattern', label: 'Male pattern baldness (receding hairline / thinning crown)' },
   { value: 'overall_thinning', label: 'Overall thinning' },
-  { value: 'patchy', label: 'Patchy hair loss' },
+  { value: 'patchy', label: 'Patchy hair loss (alopecia areata)' },
   { value: 'other', label: 'Other pattern' },
 ]
 
@@ -41,12 +41,21 @@ const FAMILY_HISTORY_OPTIONS = [
   { value: 'unknown', label: 'Not sure' },
 ]
 
-const PREVIOUS_TREATMENT_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'minoxidil', label: 'Minoxidil (Rogaine)' },
-  { value: 'finasteride', label: 'Finasteride (Propecia)' },
-  { value: 'both', label: 'Both minoxidil and finasteride' },
-  { value: 'other', label: 'Other treatments' },
+const PREVIOUS_TREATMENTS = [
+  { key: 'triedMinoxidil', label: 'Minoxidil (Rogaine) — topical' },
+  { key: 'triedFinasteride', label: 'Finasteride (Propecia) — oral' },
+  { key: 'triedBiotin', label: 'Biotin / hair supplements' },
+  { key: 'triedShampoos', label: 'Medicated shampoos (e.g., Nizoral)' },
+  { key: 'triedPRP', label: 'PRP (Platelet-rich plasma) therapy' },
+  { key: 'triedOther', label: 'Other treatment' },
+]
+
+const SCALP_CONDITIONS = [
+  { key: 'scalpDandruff', label: 'Dandruff / seborrheic dermatitis' },
+  { key: 'scalpPsoriasis', label: 'Scalp psoriasis' },
+  { key: 'scalpItching', label: 'Persistent itching or irritation' },
+  { key: 'scalpFolliculitis', label: 'Folliculitis (infected hair follicles)' },
+  { key: 'scalpNone', label: 'No scalp conditions' },
 ]
 
 export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentStepProps) {
@@ -56,12 +65,12 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
   const hairPattern = answers.hairPattern as string | undefined
   const hairDuration = answers.hairDuration as string | undefined
   const hairFamilyHistory = answers.hairFamilyHistory as string | undefined
-  const hairPreviousTreatment = answers.hairPreviousTreatment as string | undefined
+  const hairMedicationPreference = answers.hairMedicationPreference as string | undefined
   const hairAdditionalInfo = (answers.hairAdditionalInfo as string) || ""
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!hairPattern) {
       newErrors.hairPattern = "Please select your hair loss pattern"
     }
@@ -71,10 +80,10 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
     if (!hairFamilyHistory) {
       newErrors.hairFamilyHistory = "Please select your family history"
     }
-    if (!hairPreviousTreatment) {
-      newErrors.hairPreviousTreatment = "Please select previous treatments"
+    if (!hairMedicationPreference) {
+      newErrors.hairMedicationPreference = "Please select your preferred treatment"
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -85,7 +94,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
     }
   }
 
-  const isComplete = hairPattern && hairDuration && hairFamilyHistory && hairPreviousTreatment
+  const isComplete = hairPattern && hairDuration && hairFamilyHistory && hairMedicationPreference
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -100,14 +109,14 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
       {/* Pattern */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
-          What pattern of hair loss are you experiencing?
+          What type of hair loss are you experiencing?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         <RadioGroup
           value={hairPattern}
           onValueChange={(value) => setAnswer("hairPattern", value)}
           className="space-y-2"
-          aria-label="What pattern of hair loss are you experiencing"
+          aria-label="What type of hair loss are you experiencing"
         >
           {PATTERN_OPTIONS.map((option) => (
             <label
@@ -202,39 +211,127 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         )}
       </div>
 
-      {/* Previous treatments */}
+      {/* Previous treatments — toggle list */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
-          Have you tried any hair loss treatments before?
+          Which treatments have you tried before?
+        </Label>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Toggle on any treatments you have previously used.
+        </p>
+        <div className="space-y-2">
+          {PREVIOUS_TREATMENTS.map((treatment) => (
+            <div
+              key={treatment.key}
+              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+            >
+              <Label htmlFor={treatment.key} className="text-sm cursor-pointer leading-snug flex-1">
+                {treatment.label}
+              </Label>
+              <Switch
+                id={treatment.key}
+                checked={answers[treatment.key] === true}
+                onCheckedChange={(checked) => setAnswer(treatment.key, checked)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Preferred medication — styled option cards */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Which treatment option interests you?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup
-          value={hairPreviousTreatment}
-          onValueChange={(value) => setAnswer("hairPreviousTreatment", value)}
-          className="space-y-2"
-          aria-label="Have you tried any hair loss treatments before"
-        >
-          {PREVIOUS_TREATMENT_OPTIONS.map((option) => (
-            <label
-              key={option.value}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
-                hairPreviousTreatment === option.value
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              )}
-            >
-              <RadioGroupItem value={option.value} />
-              <span className="text-sm">{option.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.hairPreviousTreatment && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Finasteride card */}
+          <button
+            type="button"
+            onClick={() => setAnswer("hairMedicationPreference", "finasteride")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              hairMedicationPreference === "finasteride"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              hairMedicationPreference === "finasteride"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Pill className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Finasteride (oral)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Daily tablet. Blocks DHT to slow hair loss and promote regrowth.
+              </p>
+            </div>
+          </button>
+
+          {/* Minoxidil card */}
+          <button
+            type="button"
+            onClick={() => setAnswer("hairMedicationPreference", "minoxidil")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              hairMedicationPreference === "minoxidil"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              hairMedicationPreference === "minoxidil"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Droplets className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Minoxidil (topical)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Applied to scalp. Stimulates hair follicles and improves blood flow.
+              </p>
+            </div>
+          </button>
+        </div>
+        {errors.hairMedicationPreference && (
           <p className="text-xs text-destructive flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
-            {errors.hairPreviousTreatment}
+            {errors.hairMedicationPreference}
           </p>
         )}
+      </div>
+
+      {/* Scalp conditions — toggle list */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Do you have any scalp conditions?
+        </Label>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Toggle on any that apply.
+        </p>
+        <div className="space-y-2">
+          {SCALP_CONDITIONS.map((condition) => (
+            <div
+              key={condition.key}
+              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+            >
+              <Label htmlFor={condition.key} className="text-sm cursor-pointer leading-snug flex-1">
+                {condition.label}
+              </Label>
+              <Switch
+                id={condition.key}
+                checked={answers[condition.key] === true}
+                onCheckedChange={(checked) => setAnswer(condition.key, checked)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Additional info */}
@@ -245,7 +342,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         <Textarea
           value={hairAdditionalInfo}
           onChange={(e) => setAnswer("hairAdditionalInfo", e.target.value)}
-          placeholder="Optional: scalp conditions, recent changes, etc..."
+          placeholder="Optional: recent changes, stress, medications, etc..."
           className="min-h-[80px] resize-none"
         />
       </div>

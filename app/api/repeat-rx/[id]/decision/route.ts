@@ -19,13 +19,7 @@ import { requireValidCsrf } from "@/lib/security/csrf"
 interface DecisionPayload {
   decision: ClinicianDecision
   decisionReason: string
-  pbsSchedule?: string | null
-  packQuantity?: number | null
-  doseInstructions?: string | null
-  frequency?: string | null
-  repeatsGranted?: number
   clinicalNotes?: string | null
-  redFlagReview?: string | null
 }
 
 /**
@@ -115,7 +109,7 @@ export async function POST(
       needs_call: "requires_consult", // Alias for requires_consult
     }
     
-    // Create clinician decision record
+    // Create clinician decision record (simplified for Parchment workflow)
     const { error: decisionError } = await supabase
       .from("clinician_decisions")
       .insert({
@@ -123,13 +117,7 @@ export async function POST(
         clinician_id: profile.id,
         decision: body.decision,
         decision_reason: body.decisionReason,
-        pbs_schedule: body.pbsSchedule,
-        pack_quantity: body.packQuantity,
-        dose_instructions: body.doseInstructions,
-        frequency: body.frequency,
-        repeats_granted: body.repeatsGranted || 0,
         clinical_notes: body.clinicalNotes,
-        red_flag_review: body.redFlagReview,
       })
     
     if (decisionError) {
@@ -158,7 +146,6 @@ export async function POST(
         decision: body.decision,
         clinician_id: profile.id,
         has_clinical_notes: Boolean(body.clinicalNotes),
-        has_red_flag_review: Boolean(body.redFlagReview),
       },
       actor_type: "clinician",
       actor_id: profile.id,
@@ -188,9 +175,9 @@ export async function POST(
     
     if (body.decision === "approved") {
       compliancePromises.push(
-        logTriageApproved(id, "repeat_rx", profile.id, { repeatsGranted: body.repeatsGranted }),
-        // Repeat Rx requires external prescribing (Parchment/PBS)
-        logExternalPrescribingIndicated(id, "repeat_rx", profile.id, "Parchment/PBS")
+        logTriageApproved(id, "repeat_rx", profile.id, {}),
+        // Script sent via Parchment
+        logExternalPrescribingIndicated(id, "repeat_rx", profile.id, "Parchment")
       )
     } else if (body.decision === "declined") {
       compliancePromises.push(

@@ -5,6 +5,7 @@
 ### Prerequisites
 - Node.js 18+
 - pnpm (recommended) or npm
+- Clerk account (auth provider)
 - Supabase CLI
 - Stripe CLI (for webhook testing)
 
@@ -24,7 +25,11 @@ cp .env.example .env.local
 
 Required variables:
 ```env
-# Supabase
+# Clerk (Auth)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+# Supabase (Database only — auth handled by Clerk)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
@@ -91,10 +96,12 @@ instantmed/
 ## Key Concepts
 
 ### Authentication Flow
-1. User signs up via email/password or Google OAuth
-2. Profile created in `profiles` table
-3. Patients complete onboarding (contact, address, Medicare)
-4. Session managed via Supabase Auth + cookies
+1. User signs up via Clerk (email/password or Google OAuth)
+2. Clerk issues a session JWT; a custom JWT template forwards claims to Supabase
+3. Supabase RLS policies validate the Clerk-issued `sub` claim via `auth.jwt()`
+4. Profile created in `profiles` table (server-side upsert keyed on Clerk user ID)
+5. Patients complete onboarding (contact, address, Medicare)
+6. Session managed via Clerk middleware + cookies
 
 ### Request Flow
 1. Patient fills questionnaire
@@ -142,9 +149,14 @@ export async function GET(request: Request) {
 }
 ```
 
-> **Note:** As of June 2025, authentication is handled by Clerk, not Supabase Auth.
+> **Note:** Authentication is handled by Clerk, not Supabase Auth.
 > Supabase is used only for database operations. Always use `auth()` from Clerk
 > for authentication checks in server-side code.
+>
+> **Clerk-to-Supabase JWT Bridge:** Clerk is configured with a custom JWT template
+> that includes the user's `sub` claim. The Supabase client is initialised with this
+> Clerk-issued JWT so that RLS policies can reference `auth.jwt() ->> 'sub'` to
+> identify the current user. See `lib/supabase/server.ts` for the integration.
 
 ### Adding a Database Migration
 ```bash
@@ -246,7 +258,8 @@ psql $SUPABASE_DB_URL -f scripts/024_med_cert_drafts.sql
 - Test mode prices don't work with live mode keys
 
 **Profile not found after OAuth:**
-- Check that `ensureProfile` action is called in auth callback
+- Check that `ensureProfile` action is called in Clerk webhook or auth callback
+- Verify Clerk JWT template includes the `sub` claim
 - Verify RLS policies allow profile creation
 
 **Webhook not processing:**
@@ -267,15 +280,16 @@ psql $SUPABASE_DB_URL -f scripts/024_med_cert_drafts.sql
 - Built-in streaming and suspense
 - Simplified data fetching with server actions
 
-### Why Supabase?
-- PostgreSQL with real-time subscriptions
-- Built-in auth with RLS
+### Why Clerk + Supabase?
+- Clerk provides robust auth with SSO, MFA, and session management
+- Clerk JWTs are bridged to Supabase so RLS policies work seamlessly
+- Supabase provides PostgreSQL with real-time subscriptions and RLS
 - Edge functions for serverless compute
 
 ### Why Stripe?
 - Industry-standard payment processing
 - Webhook-driven architecture
-- Strong Australia/healthcare compliance
+- Compliant with Australian Privacy Act 1988 / Health Records Act 2001 (Vic)
 
 ---
 

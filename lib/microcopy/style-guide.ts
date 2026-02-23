@@ -42,7 +42,7 @@ export const BUTTONS = {
   signIn: "Sign in",
   signUp: "Create account",
   signOut: "Sign out",
-  getStarted: "Get started",
+  getStarted: "Start a request",
 
   // Secondary actions
   back: "Back",

@@ -10,9 +10,7 @@ import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
 import { PRICING } from "@/lib/constants"
-import { useReducedMotion } from "framer-motion"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
@@ -64,8 +62,6 @@ const faqs = [
 ]
 
 export function PricingClient() {
-  const prefersReducedMotion = useReducedMotion()
-  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
@@ -74,13 +70,6 @@ export function PricingClient() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
-            {/* Animated background orbs - respects reduced motion */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs 
-                orbCount={3} 
-                className="opacity-40"
-              />
-            )}
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
@@ -171,7 +160,7 @@ export function PricingClient() {
                     }`}
                   >
                     <Link href={service.href}>
-                      Get started
+                      Start a request
                       <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" />
                     </Link>
                   </Button>

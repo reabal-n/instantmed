@@ -7,9 +7,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { MediaMentions } from "@/components/marketing/media-mentions"
 import { ComplianceBar } from "@/components/shared/compliance-marquee"
-import { useReducedMotion } from "framer-motion"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
@@ -17,8 +15,6 @@ import { GridStagger } from "@/components/effects/stagger-container"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 
 export function AboutClient() {
-  const prefersReducedMotion = useReducedMotion()
-  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
@@ -27,10 +23,6 @@ export function AboutClient() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative px-4 py-12 sm:py-16 lg:py-20 overflow-hidden">
-            {/* Animated background orbs */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs orbCount={3} className="opacity-40" />
-            )}
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-4xl mx-auto text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
@@ -225,17 +217,16 @@ export function AboutClient() {
                   &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-emerald-500/20">
-                    <Image 
-                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" 
-                      alt="Dr. Sarah M. - Medical Director"
-                      fill
-                      className="object-cover"
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-emerald-500/20 bg-muted">
+                    <img
+                      src="https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector"
+                      alt="Our Medical Director"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground text-sm">Dr. Sarah M.</p>
-                    <p className="text-xs text-muted-foreground">Medical Director, MBBS FRACGP</p>
+                    <p className="font-medium text-foreground text-sm">Our Medical Director</p>
+                    <p className="text-xs text-muted-foreground">MBBS FRACGP, AHPRA Registered</p>
                   </div>
                 </div>
               </blockquote>
@@ -409,7 +400,7 @@ export function AboutClient() {
                 </p>
                 <Link href="/request">
                   <ShimmerButton className="px-8 h-12 font-semibold">
-                    Get started
+                    Start a request
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </ShimmerButton>
                 </Link>

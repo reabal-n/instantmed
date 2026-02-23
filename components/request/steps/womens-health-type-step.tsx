@@ -15,28 +15,33 @@ interface WomensHealthTypeStepProps {
 }
 
 const WOMENS_HEALTH_OPTIONS = [
-  { 
-    value: 'contraception', 
-    label: 'Birth control / Contraception',
-    description: 'Start or continue contraceptive medication',
+  {
+    value: 'uti',
+    label: 'UTI symptoms',
+    description: 'Burning, frequency, or urgency when urinating',
   },
-  { 
-    value: 'morning_after', 
-    label: 'Morning-after pill',
-    description: 'Emergency contraception',
+  {
+    value: 'ocp_new',
+    label: 'Oral contraceptive pill (new)',
+    description: 'Start the pill for the first time or switch brands',
   },
-  { 
-    value: 'uti', 
-    label: 'UTI treatment',
-    description: 'Urinary tract infection symptoms',
+  {
+    value: 'ocp_repeat',
+    label: 'Oral contraceptive pill (repeat)',
+    description: 'Continue or renew your current pill prescription',
   },
-  { 
-    value: 'period_pain', 
+  {
+    value: 'morning_after',
+    label: 'Emergency contraception (morning-after pill)',
+    description: 'Time-sensitive — most effective when taken early',
+  },
+  {
+    value: 'period_pain',
     label: 'Period pain / Menstrual issues',
     description: 'Pain relief or cycle concerns',
   },
-  { 
-    value: 'other', 
+  {
+    value: 'other',
     label: 'Other women\'s health concern',
     description: 'Something else not listed above',
   },

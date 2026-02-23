@@ -8,9 +8,7 @@ import { TiltCard } from "@/components/shared/tilt-card"
 import { FAQAccordion } from "./faq-accordion"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { MessageCircle, HelpCircle, BadgeCheck } from "lucide-react"
-import { useReducedMotion } from "framer-motion"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
@@ -135,8 +133,6 @@ const faqCategories = [
 ]
 
 export default function FAQPage() {
-  const prefersReducedMotion = useReducedMotion()
-  
   const allFaqs = faqCategories.flatMap(cat => cat.faqs.map(f => ({ question: f.q, answer: f.a })))
 
   return (
@@ -148,10 +144,6 @@ export default function FAQPage() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-32 pb-16 overflow-hidden">
-            {/* Animated background orbs */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs orbCount={3} className="opacity-40" />
-            )}
             <div className="absolute inset-0 bg-gradient-hero" />
 
             <div className="container mx-auto px-4 relative">

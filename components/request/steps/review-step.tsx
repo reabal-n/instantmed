@@ -6,9 +6,11 @@
  */
 
 import { useState } from "react"
-import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -28,16 +30,8 @@ const SERVICE_LABELS: Record<UnifiedServiceType, string> = {
 
 const CERT_TYPE_LABELS: Record<string, string> = {
   'work': 'Work/Sick Leave',
-  'uni': 'Study/University',
+  'study': 'Study / University',
   'carer': 'Carer\'s Leave',
-}
-
-const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
-  'less_than_3_months': 'Less than 3 months ago',
-  '3_to_6_months': '3-6 months ago',
-  '6_to_12_months': '6-12 months ago',
-  'over_12_months': 'Over 12 months ago',
-  'never': 'Never prescribed',
 }
 
 const TRUNCATE_THRESHOLD = 60
@@ -105,7 +99,7 @@ function ReviewSection({
 }
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
-  const { answers, firstName, lastName, email, phone, goToStep } = useRequestStore()
+  const { answers, firstName, lastName, email, phone, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
 
   // Build review sections based on service type
   const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []
@@ -189,17 +183,6 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       })
     }
 
-    const prescriptionHistory = answers.prescriptionHistory as string
-    const hasSideEffects = answers.hasSideEffects as boolean
-    
-    sections.push({
-      title: 'Prescription History',
-      items: [
-        { label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory || '' },
-        { label: 'Side effects', value: hasSideEffects ? 'Yes' : 'No' },
-      ],
-      stepId: 'medication-history',
-    })
   }
 
   // Consult-specific sections
@@ -313,14 +296,23 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const allergies = answers.allergies as string
   const hasConditions = answers.hasConditions as boolean
   const conditions = answers.conditions as string
+  const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
+  const hasAdverseMedicationReactions = answers.hasAdverseMedicationReactions as boolean | undefined
 
   if (hasAllergies !== undefined || hasConditions !== undefined) {
+    const medHistoryItems = [
+      { label: 'Allergies', value: hasAllergies ? (allergies || 'Yes') : 'None' },
+      { label: 'Conditions', value: hasConditions ? (conditions || 'Yes') : 'None' },
+    ]
+    if (isPregnantOrBreastfeeding !== undefined) {
+      medHistoryItems.push({ label: 'Pregnant/breastfeeding', value: isPregnantOrBreastfeeding ? 'Yes' : 'No' })
+    }
+    if (hasAdverseMedicationReactions !== undefined) {
+      medHistoryItems.push({ label: 'Adverse medication reactions', value: hasAdverseMedicationReactions ? 'Yes' : 'No' })
+    }
     sections.push({
       title: 'Medical History',
-      items: [
-        { label: 'Allergies', value: hasAllergies ? (allergies || 'Yes') : 'None' },
-        { label: 'Conditions', value: hasConditions ? (conditions || 'Yes') : 'None' },
-      ],
+      items: medHistoryItems,
       stepId: 'medical-history',
     })
   }
@@ -377,8 +369,30 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         </span>
       </div>
 
+      {/* Safety consent — required before proceeding to checkout */}
+      <Card className={`border-2 ${safetyConfirmed ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'}`}>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${safetyConfirmed ? 'text-emerald-600' : 'text-amber-600'}`} />
+            <div className="flex-1 space-y-3">
+              <p className="text-sm font-medium">Emergency declaration</p>
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="safety-consent"
+                  checked={safetyConfirmed}
+                  onCheckedChange={setSafetyConfirmed}
+                />
+                <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug">
+                  I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
+                </Label>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Continue button */}
-      <Button onClick={onNext} className="w-full h-12 mt-6">
+      <Button onClick={onNext} className="w-full h-12 mt-6" disabled={!safetyConfirmed}>
         Continue to payment
       </Button>
     </div>

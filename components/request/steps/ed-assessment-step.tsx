@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, AlertCircle, ShieldCheck } from "lucide-react"
+import { Heart, AlertCircle, ShieldCheck, CalendarDays, Clock } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -47,6 +47,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
   const edMorningErections = answers.edMorningErections as string | undefined
   const edAdditionalInfo = (answers.edAdditionalInfo as string) || ""
   const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
+  const edPreference = answers.edPreference as string | undefined
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -60,7 +61,10 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
     if (!edMorningErections) {
       newErrors.edMorningErections = "Please answer this question"
     }
-    
+    if (!edPreference) {
+      newErrors.edPreference = "Please select your preferred option"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -71,7 +75,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
     }
   }
 
-  const isComplete = edAgeConfirmed && edOnset && edFrequency && edMorningErections
+  const isComplete = edAgeConfirmed && edOnset && edFrequency && edMorningErections && edPreference
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -206,6 +210,75 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
           <p className="text-xs text-destructive flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
             {errors.edMorningErections}
+          </p>
+        )}
+      </div>
+
+      {/* Medication preference */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Which option suits you best?
+          <span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Daily tablet option */}
+          <button
+            type="button"
+            onClick={() => setAnswer("edPreference", "daily")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              edPreference === "daily"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              edPreference === "daily"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <CalendarDays className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Daily tablet (Tadalafil 5mg)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Take once daily for spontaneity. No planning required.
+              </p>
+            </div>
+          </button>
+
+          {/* As-needed option */}
+          <button
+            type="button"
+            onClick={() => setAnswer("edPreference", "prn")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              edPreference === "prn"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              edPreference === "prn"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Clock className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">As-needed (Sildenafil / Tadalafil 20mg)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Take 30-60 minutes before. Use as required.
+              </p>
+            </div>
+          </button>
+        </div>
+        {errors.edPreference && (
+          <p className="text-xs text-destructive flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.edPreference}
           </p>
         )}
       </div>

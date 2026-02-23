@@ -132,18 +132,16 @@ export function BenefitsSection() {
                         className="bg-green-50 dark:bg-green-900/30 rounded-2xl p-4 mb-4"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                            <Image
-                              src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
-                              alt="Doctor"
-                              width={40}
-                              height={40}
-                              className="object-cover"
+                          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-muted">
+                            <img
+                              src="https://api.dicebear.com/7.x/notionists/svg?seed=ApprovalDoc"
+                              alt="Doctor illustration"
+                              className="w-full h-full object-cover"
                             />
                           </div>
                           <div>
                             <p className="font-semibold text-sm text-green-800 dark:text-green-200">Request Approved!</p>
-                            <p className="text-xs text-green-600 dark:text-green-300">Dr. Sarah has approved your prescription</p>
+                            <p className="text-xs text-green-600 dark:text-green-300">Your doctor has approved your prescription</p>
                             <p className="text-xs text-green-500 dark:text-green-400 mt-1">Just now</p>
                           </div>
                         </div>

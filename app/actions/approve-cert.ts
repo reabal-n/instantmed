@@ -76,9 +76,20 @@ export async function approveAndSendCert(
         hasProvider: !!doctorProfile.provider_number,
         hasAhpra: !!doctorProfile.ahpra_number,
       })
-      return { 
-        success: false, 
-        error: "Your certificate credentials are not configured. Please complete your Certificate Identity in Settings before approving certificates." 
+      return {
+        success: false,
+        error: "Your certificate credentials are not configured. Please complete your Certificate Identity in Settings before approving certificates."
+      }
+    }
+
+    // P2 FIX: Validate AHPRA number format (3 uppercase letters + 10 digits)
+    if (!/^[A-Z]{3}\d{10}$/.test(doctorProfile.ahpra_number)) {
+      logger.warn("Doctor AHPRA number failed format validation", {
+        doctorId: doctorProfile.id,
+      })
+      return {
+        success: false,
+        error: "Invalid AHPRA number format. Please update your profile.",
       }
     }
 

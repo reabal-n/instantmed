@@ -76,7 +76,7 @@ const CONSULT_SUBTYPES = [
     bullets: ['Doctor-assessed treatment options', 'Treatment plan assessment'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
-    price: PRICING_DISPLAY.MENS_HEALTH,
+    price: PRICING_DISPLAY.HAIR_LOSS,
   },
   {
     id: 'womens_health',
@@ -85,7 +85,7 @@ const CONSULT_SUBTYPES = [
     bullets: ['Contraception', 'UTI treatment', 'Period & hormonal concerns'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
-    price: '$59.95',
+    price: PRICING_DISPLAY.WOMENS_HEALTH,
   },
   {
     id: 'weight_loss',
@@ -94,7 +94,7 @@ const CONSULT_SUBTYPES = [
     bullets: ['Doctor-guided treatment assessment', 'Includes brief phone consultation'],
     callBadge: 'Quick call required',
     callVariant: 'outline' as const,
-    price: '$79.95',
+    price: PRICING_DISPLAY.WEIGHT_LOSS,
   },
 ] as const
 
@@ -263,9 +263,9 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           <ServiceCard
             icon={FileText}
             title="Medical certificate"
-            description="For work, uni, or caring for someone"
+            description="For work, study, or caring for someone"
             badge={{ text: "No call needed", variant: "success" }}
-            price="$19"
+            price={PRICING_DISPLAY.MED_CERT}
             pricePrefix="From"
             popularBadge
             onClick={() => handleSelectService('med-cert')}
@@ -281,7 +281,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             badge={{ text: "No call needed", variant: "success" }}
             price={PRICING_DISPLAY.REPEAT_SCRIPT}
             pricePrefix=""
-            onClick={() => handleSelectService('prescription')}
+            onClick={() => handleSelectService('repeat-script')}
             index={1}
             testId="service-card-prescription"
           />

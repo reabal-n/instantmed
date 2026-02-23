@@ -60,6 +60,6 @@ export function generateCertificateNumber(): string {
 export function generateCertificateRef(type: "work" | "study" | "carer"): string {
   const typeCode = type.toUpperCase()
   const date = new Date().toISOString().split("T")[0]!.replace(/-/g, "")
-  const random = String(Math.floor(Math.random() * 100000)).padStart(5, "0")
+  const random = String(crypto.randomInt(100000)).padStart(5, "0")
   return `IM-${typeCode}-${date}-${random}`
 }

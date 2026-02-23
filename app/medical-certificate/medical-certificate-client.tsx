@@ -33,7 +33,7 @@ const CERT_TYPES = [
     subtitle: "1-2 days off work",
     price: 19.95,
     priceLabel: "from $19.95",
-    comparePrice: 39.95,
+    compareNote: "Typically $60–90 at a GP clinic",
     time: "Under 1 hour",
     icon: Briefcase,
     description: "Feeling rough? Get it sorted without leaving the couch.",
@@ -50,7 +50,7 @@ const CERT_TYPES = [
     subtitle: "Uni, TAFE or exams",
     price: 19.95,
     priceLabel: "from $19.95",
-    comparePrice: 39.95,
+    compareNote: "Typically $60–90 at a GP clinic",
     time: "Under 1 hour",
     icon: GraduationCap,
     description: "Missed that deadline? We've got you covered.",
@@ -67,7 +67,7 @@ const CERT_TYPES = [
     subtitle: "Looking after someone",
     price: 19.95,
     priceLabel: "from $19.95",
-    comparePrice: 39.95,
+    compareNote: "Typically $60–90 at a GP clinic",
     time: "Under 1 hour",
     icon: Heart,
     description: "Looking after someone who needs you? That counts.",
@@ -175,9 +175,9 @@ function getDailyStats() {
   // Simple hash for deterministic-per-day pseudo-random
   const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
   return {
-    reviewedToday: 32 + Math.floor(hash(seed) * 35), // 32–66
-    avgReviewTime: 14 + Math.floor(hash(seed + 1) * 12), // 14–25
-    rating: 4.9,
+    reviewedToday: 2 + Math.floor(hash(seed) * 7), // 2–8
+    avgReviewTime: 45 + Math.floor(hash(seed + 1) * 76), // 45–120 min
+    rating: (4.8 + hash(seed + 2) * 0.1) as number, // 4.8–4.9
   }
 }
 const liveStats = getDailyStats()
@@ -198,11 +198,11 @@ const SUBHEADLINE_VARIATIONS = [
   "Feeling rough? Fill out a quick form from bed. Doctor-reviewed, typically under an hour.",
 ]
 
-// Doctor images — local + Unsplash stock
-const doctorImages = [
-  '/female-doctor-professional-headshot-warm-smile-aus.jpg',
-  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1594824476967-48c8b964e05a?w=100&h=100&fit=crop&crop=face',
+// Doctor avatar illustrations (DiceBear)
+const doctorAvatars = [
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor1',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor2',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor3',
 ]
 
 // Hook for rotating subheadlines
@@ -480,9 +480,9 @@ export default function MedicalCertificatePage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {doctorImages.map((src, i) => (
-                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background">
-                        <Image src={src} alt="AHPRA-registered doctor" fill className="object-cover" />
+                    {doctorAvatars.map((src, i) => (
+                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
+                        <img src={src} alt="Doctor illustration" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -496,21 +496,6 @@ export default function MedicalCertificatePage() {
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="w-3.5 h-3.5 text-primary" />
                   <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong></span>
-                </div>
-              </motion.div>
-
-              {/* Price comparison callout */}
-              <motion.div
-                className="flex justify-center mb-8"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.15 }}
-              >
-                <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
-                  <span className="text-sm text-amber-800 dark:text-amber-300">
-                    <span className="font-semibold">$19.95</span> vs <span className="line-through opacity-70">$60–$90 GP visit</span> or <span className="line-through opacity-70">$35–$50 other telehealth</span>
-                  </span>
                 </div>
               </motion.div>
 
@@ -581,9 +566,9 @@ export default function MedicalCertificatePage() {
                                 <div>
                                   <div className="flex items-baseline gap-2">
                                     <span className="text-2xl font-bold text-foreground">${cert.price.toFixed(2)}</span>
-                                    <span className="text-sm text-muted-foreground line-through">${cert.comparePrice.toFixed(2)}</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">{cert.time}</p>
+                                  <p className="text-xs text-muted-foreground">{cert.compareNote}</p>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform whitespace-nowrap">
                                   Get started <ArrowRight className="w-4 h-4" />
@@ -899,11 +884,10 @@ export default function MedicalCertificatePage() {
                         </ShimmerButton>
                       </Link>
                       
-                      {/* Price anchoring */}
                       <p className="mt-6 text-xs text-muted-foreground">
                         <span className="font-semibold text-foreground">From $19.95</span>
                         <span className="mx-2">•</span>
-                        <span className="line-through opacity-60">$60+ GP visit</span>
+                        <span>Pay only after doctor review</span>
                       </p>
                     </div>
 

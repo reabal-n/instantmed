@@ -630,43 +630,11 @@ export function RepeatRxIntakeFlow({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase])
 
-  // Check eligibility when moving to review
+  // Eligibility check removed - simplified Parchment workflow
+  // All requests go directly to doctor review
   const checkEligibility = async () => {
     if (!medication) return
-    
-    setIsCheckingEligibility(true)
-    
-    try {
-      const response = await fetch("/api/repeat-rx/eligibility", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          medication,
-          answers: {
-            stabilityDuration: stability,
-            doseChangedRecently: doseChanged,
-            sideEffects,
-            sideEffectsDetails,
-            pregnantOrBreastfeeding,
-            allergies,
-            allergyDetails,
-            pmhxFlags,
-            gpAttestationAccepted,
-          },
-        }),
-      })
-      
-      const result = await response.json()
-      setEligibilityResult(result)
-      
-      if (result.passed) {
-        goNext() // Go to review
-      }
-    } catch {
-      setError("Failed to check eligibility. Please try again.")
-    } finally {
-      setIsCheckingEligibility(false)
-    }
+    goNext()
   }
   
   // Validate current step

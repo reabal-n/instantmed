@@ -343,7 +343,7 @@ export default async function OurDoctorsPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild className="rounded-full">
-                  <Link href="/request">Get started</Link>
+                  <Link href="/request">Start a request</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full bg-transparent">
                   <Link href="/clinical-governance">

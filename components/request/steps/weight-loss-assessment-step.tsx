@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Scale, AlertCircle, AlertTriangle } from "lucide-react"
+import { Scale, AlertCircle, AlertTriangle, Syringe, Pill } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
@@ -27,6 +28,15 @@ const PREVIOUS_ATTEMPTS_OPTIONS = [
   { value: 'multiple', label: 'Multiple methods' },
 ]
 
+const MEDICAL_HISTORY_TOGGLES = [
+  { key: 'wlHistoryDiabetes', label: 'Type 2 diabetes' },
+  { key: 'wlHistoryHeartCondition', label: 'Heart condition or cardiovascular disease' },
+  { key: 'wlHistoryHighBP', label: 'High blood pressure' },
+  { key: 'wlHistoryThyroid', label: 'Thyroid disorder' },
+  { key: 'wlHistorySleepApnea', label: 'Sleep apnea' },
+  { key: 'wlHistoryPCOS', label: 'PCOS (polycystic ovary syndrome)' },
+]
+
 export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -38,6 +48,9 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
   const previousAttempts = answers.previousAttempts as string | undefined
   const eatingDisorderHistory = answers.eatingDisorderHistory as string | undefined
   const weightLossGoals = (answers.weightLossGoals as string) || ""
+  const weightLossMedPreference = answers.weightLossMedPreference as string | undefined
+  const wlAdverseReactions = answers.wlAdverseReactions as string | undefined
+  const wlAdverseReactionsDetails = (answers.wlAdverseReactionsDetails as string) || ""
 
   // Calculate BMI
   const calculateBMI = () => {
@@ -66,7 +79,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!currentWeight || parseFloat(currentWeight) < 30 || parseFloat(currentWeight) > 300) {
       newErrors.currentWeight = "Please enter a valid weight (30-300 kg)"
     }
@@ -82,10 +95,19 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
     if (!eatingDisorderHistory) {
       newErrors.eatingDisorderHistory = "Please answer this question"
     }
+    if (!weightLossMedPreference) {
+      newErrors.weightLossMedPreference = "Please select your preferred medication type"
+    }
+    if (!wlAdverseReactions) {
+      newErrors.wlAdverseReactions = "Please answer this question"
+    }
+    if (wlAdverseReactions === 'yes' && wlAdverseReactionsDetails.length < 10) {
+      newErrors.wlAdverseReactionsDetails = "Please describe the adverse reaction(s)"
+    }
     if (!weightLossGoals || weightLossGoals.length < 20) {
       newErrors.weightLossGoals = "Please describe your goals (at least 20 characters)"
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -96,7 +118,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
     }
   }
 
-  const isComplete = currentWeight && currentHeight && targetWeight && previousAttempts && eatingDisorderHistory && weightLossGoals.length >= 20
+  const isComplete = currentWeight && currentHeight && targetWeight && previousAttempts && eatingDisorderHistory && weightLossMedPreference && wlAdverseReactions && (wlAdverseReactions !== 'yes' || wlAdverseReactionsDetails.length >= 10) && weightLossGoals.length >= 20
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -128,7 +150,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             </p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <Label className="text-sm font-medium">
             Height (cm)<span className="text-destructive ml-0.5">*</span>
@@ -216,6 +238,102 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
       </div>
 
+      {/* Preferred medication type — styled option cards */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Which type of medication interests you?
+          <span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* GLP-1 card */}
+          <button
+            type="button"
+            onClick={() => setAnswer("weightLossMedPreference", "glp1")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              weightLossMedPreference === "glp1"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              weightLossMedPreference === "glp1"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Syringe className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">GLP-1 (Ozempic / Mounjaro)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Weekly injection. Reduces appetite and slows gastric emptying.
+              </p>
+            </div>
+          </button>
+
+          {/* Duromine card */}
+          <button
+            type="button"
+            onClick={() => setAnswer("weightLossMedPreference", "duromine")}
+            className={cn(
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              weightLossMedPreference === "duromine"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-lg",
+              weightLossMedPreference === "duromine"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Pill className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Duromine (Phentermine)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Daily capsule. Appetite suppressant for short-term use.
+              </p>
+            </div>
+          </button>
+        </div>
+        {errors.weightLossMedPreference && (
+          <p className="text-xs text-destructive flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.weightLossMedPreference}
+          </p>
+        )}
+      </div>
+
+      {/* Relevant medical history — toggles */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Relevant medical history
+        </Label>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Toggle on any conditions that apply to you.
+        </p>
+        <div className="space-y-2">
+          {MEDICAL_HISTORY_TOGGLES.map((item) => (
+            <div
+              key={item.key}
+              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+            >
+              <Label htmlFor={item.key} className="text-sm cursor-pointer leading-snug flex-1">
+                {item.label}
+              </Label>
+              <Switch
+                id={item.key}
+                checked={answers[item.key] === true}
+                onCheckedChange={(checked) => setAnswer(item.key, checked)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Eating disorder history */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -267,6 +385,68 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Previous adverse reactions to weight loss medications */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Have you had any adverse reactions to weight loss medications?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup
+          value={wlAdverseReactions}
+          onValueChange={(value) => setAnswer("wlAdverseReactions", value)}
+          className="space-y-2"
+          aria-label="Previous adverse reactions to weight loss medications"
+        >
+          <label
+            className={cn(
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              wlAdverseReactions === 'yes'
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <RadioGroupItem value="yes" />
+            <span className="text-sm">Yes</span>
+          </label>
+          <label
+            className={cn(
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              wlAdverseReactions === 'no'
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <RadioGroupItem value="no" />
+            <span className="text-sm">No</span>
+          </label>
+        </RadioGroup>
+        {errors.wlAdverseReactions && (
+          <p className="text-xs text-destructive flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.wlAdverseReactions}
+          </p>
+        )}
+
+        {wlAdverseReactions === 'yes' && (
+          <div className="space-y-2 animate-in fade-in">
+            <Label className="text-sm font-medium">
+              Please describe the reaction(s)<span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Textarea
+              value={wlAdverseReactionsDetails}
+              onChange={(e) => setAnswer("wlAdverseReactionsDetails", e.target.value)}
+              placeholder="e.g., Severe nausea with Ozempic, heart palpitations with Duromine..."
+              className="min-h-[80px] resize-none"
+            />
+            {errors.wlAdverseReactionsDetails && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {errors.wlAdverseReactionsDetails}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Goals */}
       <div className="space-y-2">

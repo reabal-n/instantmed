@@ -165,34 +165,34 @@ export const contentAuthors = {
     credentials: '',
     ahpraNumber: '',
     bio: 'Sarah writes about healthcare access and patient rights. She believes everyone deserves clear, straightforward health information.',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&q=80'
+    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=SarahChen'
   },
   marcusThompson: {
     name: 'Marcus Thompson',
     credentials: '',
     ahpraNumber: '',
     bio: 'Marcus covers telehealth and digital health trends. He\'s passionate about technology that makes healthcare more convenient.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80'
+    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=MarcusThompson'
   },
   emmaWilson: {
     name: 'Emma Wilson',
     credentials: '',
     ahpraNumber: '',
     bio: 'Emma focuses on workplace health and employee rights. She helps readers navigate the intersection of health and work.',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&q=80'
+    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=EmmaWilson'
   },
   jamesPatel: {
     name: 'James Patel',
     credentials: '',
     ahpraNumber: '',
     bio: 'James writes about the Australian healthcare system and how to access services. He makes complex topics simple.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&q=80'
+    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=JamesPatel'
   },
   oliviaNguyen: {
     name: 'Olivia Nguyen',
     credentials: '',
     ahpraNumber: '',
     bio: 'Olivia covers student health and university life. She understands the unique challenges students face accessing healthcare.',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&q=80'
+    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=OliviaNguyen'
   }
 } as const

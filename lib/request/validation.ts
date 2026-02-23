@@ -48,7 +48,7 @@ export function validateDOB(dob: string | undefined): string | null {
 export function validateName(name: string | undefined, fieldName = "Name"): string | null {
   if (!name?.trim()) return `${fieldName} is required`
   if (name.trim().length < 2) return `${fieldName} must be at least 2 characters`
-  if (!/^[a-zA-Z\s'-]+$/.test(name)) return `${fieldName} contains invalid characters`
+  if (!/^[\p{L}\s'-]+$/u.test(name)) return `${fieldName} contains invalid characters`
   return null
 }
 

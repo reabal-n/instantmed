@@ -6,10 +6,10 @@ import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
 
-// Base patient count (realistic for a new Australian telehealth clinic)
-const BASE_PATIENT_COUNT = 420
-const DAILY_GROWTH_MIN = 2
-const DAILY_GROWTH_MAX = 6
+// Base patient count (realistic for an early-stage Australian telehealth clinic)
+const BASE_PATIENT_COUNT = 25
+const DAILY_GROWTH_MIN = 0
+const DAILY_GROWTH_MAX = 2
 
 function useHasMounted() {
   return useSyncExternalStore(
@@ -66,12 +66,12 @@ export function TotalPatientsCounter({
   // Periodically increment to show real-time growth
   useEffect(() => {
     const interval = setInterval(() => {
-      if (Math.random() > 0.6) {
-        const increment = Math.floor(Math.random() * 3) + 1
+      if (Math.random() > 0.92) {
+        const increment = 1
         setCount(prev => prev + increment)
         setRecentGrowth(prev => prev + increment)
       }
-    }, 15000) // Every 15 seconds, 40% chance
+    }, 60000) // Every 60 seconds, 8% chance
 
     return () => clearInterval(interval)
   }, [])

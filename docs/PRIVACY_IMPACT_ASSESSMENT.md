@@ -243,9 +243,9 @@ Patient (Browser)
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Engineering Lead | | | |
-| Compliance Officer | | | |
-| Legal Counsel | | | |
+| Engineering Lead | [PENDING] | [PENDING] | [PENDING] |
+| Compliance Officer | [PENDING] | [PENDING] | [PENDING] |
+| Legal Counsel | [PENDING] | [PENDING] | [PENDING] |
 
 ---
 

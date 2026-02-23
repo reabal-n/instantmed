@@ -859,7 +859,7 @@ export async function POST(request: Request) {
         try {
           const { data: patientProfile } = await supabase
             .from("profiles")
-            .select("email, full_name")
+            .select("email, full_name, clerk_user_id")
             .eq("id", patientId)
             .single()
 
@@ -889,6 +889,22 @@ export async function POST(request: Request) {
               patientId,
               metadata: { amount_cents: session.amount_total },
             })
+
+            // Send guest account completion email if this was a guest checkout
+            const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
+            if (isGuestCheckout) {
+              const guestServiceName = session.metadata?.service_slug || "medical certificate"
+              sendGuestCompleteAccountEmail({
+                to: patientProfile.email,
+                patientName: patientProfile.full_name || "there",
+                serviceName: guestServiceName,
+                intakeId,
+                patientId,
+              }).catch((err) => {
+                log.error("Guest account email error in async payment (non-fatal)", { intakeId }, err)
+              })
+              log.info("Guest account completion email queued (async payment)", { intakeId, email: patientProfile.email })
+            }
           }
         } catch (emailErr) {
           log.warn("Async payment confirmation email error (non-fatal)", { intakeId }, emailErr)

@@ -9,15 +9,11 @@ import {
 } from "@/lib/data/clinic-identity"
 import {
   getActiveTemplate,
-  getTemplateVersionHistory,
-  createTemplateVersion,
 } from "@/lib/data/certificate-templates"
 import type {
   ClinicIdentity,
   ClinicIdentityInput,
   CertificateTemplate,
-  CertificateTemplateWithCreator,
-  TemplateConfig,
   TemplateType,
 } from "@/types/certificate-template"
 import { createLogger } from "@/lib/observability/logger"
@@ -43,11 +39,6 @@ export interface TemplateStudioData {
     uni: CertificateTemplate | null
     carer: CertificateTemplate | null
   }
-  versionHistory: {
-    work: CertificateTemplateWithCreator[]
-    uni: CertificateTemplateWithCreator[]
-    carer: CertificateTemplateWithCreator[]
-  }
 }
 
 export async function loadTemplateStudioData(): Promise<{
@@ -65,12 +56,6 @@ export async function loadTemplateStudioData(): Promise<{
       getActiveTemplate("med_cert_carer"),
     ])
 
-    const [workHistory, uniHistory, carerHistory] = await Promise.all([
-      getTemplateVersionHistory("med_cert_work", 5),
-      getTemplateVersionHistory("med_cert_uni", 5),
-      getTemplateVersionHistory("med_cert_carer", 5),
-    ])
-
     return {
       success: true,
       data: {
@@ -79,11 +64,6 @@ export async function loadTemplateStudioData(): Promise<{
           work: workTemplate,
           uni: uniTemplate,
           carer: carerTemplate,
-        },
-        versionHistory: {
-          work: workHistory,
-          uni: uniHistory,
-          carer: carerHistory,
         },
       },
     }
@@ -159,51 +139,5 @@ export async function uploadClinicLogoAction(
   }
 }
 
-// ============================================================================
-// SAVE TEMPLATE (Creates new version)
-// ============================================================================
-
-export async function saveTemplateAction(
-  templateType: TemplateType,
-  config: TemplateConfig,
-  versionName?: string
-): Promise<{ success: boolean; template?: CertificateTemplate; error?: string }> {
-  try {
-    const { profile } = await requireAdminAuth()
-
-    // Generate version name if not provided
-    const name = versionName || `${getTemplateTypeShortName(templateType)} v${Date.now()}`
-
-    const result = await createTemplateVersion(templateType, config, name, profile.id)
-
-    if (result.success) {
-      revalidatePath("/admin/settings/templates")
-      log.info("Template version created", {
-        templateType,
-        version: result.template?.version,
-        adminId: profile.id,
-      })
-    }
-
-    return result
-  } catch (error) {
-    log.error("Failed to save template", {}, error instanceof Error ? error : undefined)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to save template",
-    }
-  }
-}
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-function getTemplateTypeShortName(type: TemplateType): string {
-  const names: Record<TemplateType, string> = {
-    med_cert_work: "Work Cert",
-    med_cert_uni: "Uni Cert",
-    med_cert_carer: "Carer Cert",
-  }
-  return names[type] || type
-}
+// Template editing functions removed — templates are static PDFs in /public/templates/
+// Only read functions (loadTemplateStudioData) and clinic identity actions are retained.

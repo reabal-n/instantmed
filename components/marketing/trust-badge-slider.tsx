@@ -119,7 +119,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
                 size="lg"
                 className="px-8 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
               >
-                <Link href="/request">Get started</Link>
+                <Link href="/request">Start a request</Link>
               </Button>
               <Button
                 asChild

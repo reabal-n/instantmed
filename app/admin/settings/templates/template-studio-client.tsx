@@ -31,7 +31,6 @@ import type {
 } from "@/app/actions/template-studio"
 import {
   saveClinicIdentityAction,
-  saveTemplateAction,
   uploadClinicLogoAction,
 } from "@/app/actions/template-studio"
 import type {
@@ -140,7 +139,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
     setScenarios((prev) => ({ ...prev, [id]: !prev[id] }))
   }, [])
 
-  // Save all changes
+  // Save clinic identity (template editing removed — templates are static PDFs)
   const handleSave = useCallback(() => {
     startTransition(async () => {
       setMessage(null)
@@ -152,26 +151,16 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
         return
       }
 
-      // Save template (creates new version)
-      const templateResult = await saveTemplateAction(
-        selectedTemplateType,
-        templateConfig
-      )
-      if (!templateResult.success) {
-        setMessage({ type: "error", text: `Template: ${templateResult.error}` })
-        return
-      }
-
       setMessage({
         type: "success",
-        text: `Saved! Template version ${templateResult.template?.version} is now active.`,
+        text: "Clinic identity saved successfully.",
       })
       setHasChanges(false)
 
       // Clear message after 5 seconds
       setTimeout(() => setMessage(null), 5000)
     })
-  }, [clinicIdentity, templateConfig, selectedTemplateType])
+  }, [clinicIdentity])
 
   // Discard changes
   const handleDiscard = useCallback(() => {
@@ -740,44 +729,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
               </CardContent>
             </Card>
 
-            {/* Version History */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Version History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {initialData.versionHistory.work.slice(0, 5).map((template) => (
-                    <div
-                      key={template.id}
-                      className={`flex items-center justify-between p-2 rounded border ${
-                        template.is_active ? "border-primary bg-primary/5" : ""
-                      }`}
-                    >
-                      <div>
-                        <span className="text-sm font-medium">
-                          v{template.version}
-                        </span>
-                        {template.is_active && (
-                          <span className="ml-2 text-xs text-primary font-medium">
-                            Active
-                          </span>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {template.creator?.full_name || "Unknown"} •{" "}
-                          {new Date(template.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {initialData.versionHistory.work.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      No version history yet
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Version history removed — templates are static PDFs */}
           </div>
         </div>
       </div>

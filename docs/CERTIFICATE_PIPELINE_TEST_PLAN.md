@@ -256,6 +256,6 @@ curl "http://localhost:3000/api/verify?code=MC-TEST12345"
 - [ ] Edge cases rendered correctly
 - [ ] Audit events logging correctly
 
-**Tested By:** _________________  
-**Date:** _________________  
-**Environment:** _________________
+**Tested By:** [PENDING]
+**Date:** [PENDING]
+**Environment:** [PENDING]

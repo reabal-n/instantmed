@@ -81,7 +81,7 @@ const features = [
   {
     icon: Send,
     title: "Digital delivery",
-    description: "Everything sent via email or SMS. Welcome to 2024.",
+    description: "Everything sent via email or SMS. No app needed.",
     emoji: "📲",
   },
 ]
@@ -143,7 +143,7 @@ export default function HowItWorksPage() {
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-primary" />
                   <span className="text-muted-foreground">
-                    Average response: <strong className="text-foreground">~30 min</strong>
+                    Average response: <strong className="text-foreground">1-2 hours</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

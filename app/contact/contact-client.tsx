@@ -11,9 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
-import { useReducedMotion } from "framer-motion"
 import {
-  AnimatedOrbs,
   GlowLine,
 } from "@/components/ui/premium-effects"
 import { ParallaxSection } from "@/components/ui/parallax-section"
@@ -41,7 +39,6 @@ const contactReasons = [
 ]
 
 export function ContactClient() {
-  const prefersReducedMotion = useReducedMotion()
   const [selectedReason, setSelectedReason] = useState("general")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -128,10 +125,6 @@ export function ContactClient() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-32 pb-16 overflow-hidden">
-            {/* Animated background orbs */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs orbCount={3} className="opacity-40" />
-            )}
             <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
 
             <div className="container mx-auto px-4 relative">

@@ -480,7 +480,7 @@ export function EmailOutboxClient({
       <div className="flex items-center justify-between">
         <div>
           <Link 
-            href="/admin/ops" 
+            href="/doctor/admin/ops"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-1"
           >
             <ArrowLeft className="h-3 w-3 mr-1" />

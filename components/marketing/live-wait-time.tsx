@@ -11,8 +11,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Medical Certificates',
     shortLabel: 'Med Certs',
     icon: FileText,
-    minWait: 8,
-    maxWait: 28,
+    minWait: 30,
+    maxWait: 90,
     color: 'text-blue-600',
     bgColor: 'bg-blue-500/10',
   },
@@ -20,8 +20,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Repeat Prescriptions',
     shortLabel: 'Scripts',
     icon: Pill,
-    minWait: 15,
-    maxWait: 45,
+    minWait: 60,
+    maxWait: 180,
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-500/10',
   },
@@ -29,8 +29,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Consultations',
     shortLabel: 'Consults',
     icon: Phone,
-    minWait: 20,
-    maxWait: 55,
+    minWait: 90,
+    maxWait: 240,
     color: 'text-violet-600',
     bgColor: 'bg-violet-500/10',
   },
@@ -40,7 +40,7 @@ type ServiceType = keyof typeof SERVICE_WAIT_TIMES
 
 // Operating hours (AEST)
 const OPEN_HOUR = 8
-const CLOSE_HOUR = 22
+const CLOSE_HOUR = 20
 
 function getAESTTime(): Date {
   const now = new Date()
@@ -145,10 +145,16 @@ export function LiveWaitTime({
       )}>
         <Clock className="w-3.5 h-3.5 text-primary" />
         <span className="text-sm">
-          <span className="font-medium text-foreground">~{time} min</span>
-          <span className="text-muted-foreground"> typical wait</span>
+          {isOnline ? (
+            <>
+              <span className="font-medium text-foreground">~{time} min</span>
+              <span className="text-muted-foreground"> typical wait</span>
+            </>
+          ) : (
+            <span className="font-medium text-foreground">Next business day</span>
+          )}
         </span>
-        {showTrending && isFast && (
+        {showTrending && isFast && isOnline && (
           <span className="flex items-center gap-1 text-xs text-emerald-600">
             <TrendingDown className="w-3 h-3" />
             Fast
@@ -180,19 +186,23 @@ export function LiveWaitTime({
         {displayServices.map(key => {
           const config = SERVICE_WAIT_TIMES[key]
           const time = waitTimes[key]
-          
+
           return (
             <div key={key} className="flex items-center gap-1.5 text-muted-foreground">
               <config.icon className={cn('w-3.5 h-3.5', config.color)} />
               <span>{config.shortLabel}:</span>
-              <motion.span
-                key={time}
-                initial={{ opacity: 0.5, y: -2 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="font-medium text-foreground"
-              >
-                ~{time} min
-              </motion.span>
+              {isOnline ? (
+                <motion.span
+                  key={time}
+                  initial={{ opacity: 0.5, y: -2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="font-medium text-foreground"
+                >
+                  ~{time} min
+                </motion.span>
+              ) : (
+                <span className="font-medium text-foreground">Next business day</span>
+              )}
             </div>
           )
         })}
@@ -228,23 +238,29 @@ export function LiveWaitTime({
                 const config = SERVICE_WAIT_TIMES[key]
                 const time = waitTimes[key]
                 const isFast = time <= config.minWait + 5
-                
+
                 return (
                   <div key={key} className="flex items-center gap-2 text-sm">
                     <config.icon className={cn('w-4 h-4', config.color)} />
                     <span className="text-muted-foreground">{config.shortLabel}:</span>
-                    <motion.span
-                      key={time}
-                      initial={{ opacity: 0.5 }}
-                      animate={{ opacity: 1 }}
-                      className="font-semibold text-foreground"
-                    >
-                      ~{time} min
-                    </motion.span>
-                    {showTrending && isFast && (
-                      <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 font-medium">
-                        <TrendingDown className="w-3 h-3" />
-                      </span>
+                    {isOnline ? (
+                      <>
+                        <motion.span
+                          key={time}
+                          initial={{ opacity: 0.5 }}
+                          animate={{ opacity: 1 }}
+                          className="font-semibold text-foreground"
+                        >
+                          ~{time} min
+                        </motion.span>
+                        {showTrending && isFast && (
+                          <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 font-medium">
+                            <TrendingDown className="w-3 h-3" />
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="font-semibold text-foreground">Next business day</span>
                     )}
                   </div>
                 )
@@ -297,19 +313,25 @@ export function LiveWaitTime({
                 <span className="font-medium text-foreground">{config.label}</span>
               </div>
               <div className="flex items-center gap-2">
-                <motion.span
-                  key={time}
-                  initial={{ opacity: 0.5, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-lg font-bold text-foreground"
-                >
-                  ~{time} min
-                </motion.span>
-                {showTrending && isFast && (
-                  <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                    <TrendingDown className="w-3 h-3" />
-                    Fast
-                  </span>
+                {isOnline ? (
+                  <>
+                    <motion.span
+                      key={time}
+                      initial={{ opacity: 0.5, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-lg font-bold text-foreground"
+                    >
+                      ~{time} min
+                    </motion.span>
+                    {showTrending && isFast && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        <TrendingDown className="w-3 h-3" />
+                        Fast
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-lg font-bold text-foreground">Next business day</span>
                 )}
               </div>
             </div>

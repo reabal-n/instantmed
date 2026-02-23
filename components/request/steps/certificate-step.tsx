@@ -20,6 +20,7 @@ import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { MED_CERT_DURATIONS } from "@/lib/constants"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface CertificateStepProps {
@@ -35,13 +36,8 @@ const CERT_TYPES = [
   { id: "carer", label: "Carer's leave", icon: Heart, description: "To care for someone" },
 ] as const
 
-const PRICING = {
-  MED_CERT: 19.95,
-  MED_CERT_2DAY: 29.95,
-}
-
 type CertType = "work" | "study" | "carer"
-type Duration = "1" | "2"
+type Duration = "1" | "2" | "3"
 
 export default function CertificateStep({ onNext }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
@@ -134,37 +130,29 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         label="How many days?"
         required
         error={touched.duration ? errors.duration : undefined}
-        helpContent={{ 
-          title: "How long can I get?", 
-          content: `1 day: $${PRICING.MED_CERT}. 2 days: $${PRICING.MED_CERT_2DAY}. For 3+ days, a telehealth consultation is required.` 
+        helpContent={{
+          title: "How long can I get?",
+          content: `1 day: $${MED_CERT_DURATIONS.prices[1]}. 2 days: $${MED_CERT_DURATIONS.prices[2]}. 3 days: $${MED_CERT_DURATIONS.prices[3]}. For longer periods, a telehealth consultation is required.`
         }}
       >
         <div className="space-y-3 mt-2">
           <div className="flex gap-2">
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={duration === "1"}
-              onClick={() => setAnswer("duration", "1")}
-              className="flex-1 touch-manipulation"
-            >
-              <span className="flex flex-col items-center gap-0.5">
-                <span>1 day</span>
-                <span className="text-xs font-normal opacity-70">${PRICING.MED_CERT}</span>
-              </span>
-            </EnhancedSelectionButton>
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={duration === "2"}
-              onClick={() => setAnswer("duration", "2")}
-              className="flex-1 touch-manipulation"
-            >
-              <span className="flex flex-col items-center gap-0.5">
-                <span>2 days</span>
-                <span className="text-xs font-normal opacity-70">${PRICING.MED_CERT_2DAY}</span>
-              </span>
-            </EnhancedSelectionButton>
+            {MED_CERT_DURATIONS.options.map((days) => (
+              <EnhancedSelectionButton
+                key={days}
+                variant="chip"
+                selected={duration === String(days)}
+                onClick={() => setAnswer("duration", String(days))}
+                className="flex-1 touch-manipulation"
+              >
+                <span className="flex flex-col items-center gap-0.5">
+                  <span>{MED_CERT_DURATIONS.labels[days]}</span>
+                  <span className="text-xs font-normal opacity-70">${MED_CERT_DURATIONS.prices[days]}</span>
+                </span>
+              </EnhancedSelectionButton>
+            ))}
           </div>
-          
+
           {/* Soft value hint - not salesy */}
           <p className="text-xs text-muted-foreground text-center">
             No waiting rooms. Reviewed by a doctor within ~1 hour.

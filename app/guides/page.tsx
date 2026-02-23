@@ -117,7 +117,7 @@ export default function GuidesIndexPage() {
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/request">
-                  Get started
+                  Start a request
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>
               </Button>

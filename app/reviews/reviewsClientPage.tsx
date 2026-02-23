@@ -7,9 +7,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { useState } from "react"
-import { useReducedMotion } from "framer-motion"
 import {
-  AnimatedOrbs,
   GlowLine,
   ShimmerButton,
 } from "@/components/ui/premium-effects"
@@ -139,7 +137,6 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
 }
 
 export function ReviewsClientPageComponent() {
-  const prefersReducedMotion = useReducedMotion()
   const avgRating = PLATFORM_STATS.averageRating.toFixed(1)
 
   // Generate initials for avatar fallback
@@ -165,11 +162,6 @@ export function ReviewsClientPageComponent() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
-            {/* Animated background orbs */}
-            {!prefersReducedMotion && (
-              <AnimatedOrbs orbCount={3} className="opacity-40" />
-            )}
-            
             <div className="relative mx-auto max-w-5xl">
               <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
                 <div>
@@ -323,7 +315,7 @@ export function ReviewsClientPageComponent() {
                 </p>
                 <Link href="/request">
                   <ShimmerButton className="px-8 h-14 font-semibold text-base">
-                    Get started
+                    Start a request
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </ShimmerButton>
                 </Link>

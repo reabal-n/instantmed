@@ -2,11 +2,11 @@ import type { Article, ArticleAuthor } from '../types'
 import { blogImages } from '../images'
 
 const drSarahChen: ArticleAuthor = {
-  name: 'Dr. Sarah Chen',
+  name: 'Our Medical Team',
   credentials: 'MBBS, FRACGP',
   ahpraNumber: 'MED0002194837',
-  bio: 'Dr. Sarah Chen is an AHPRA-registered general practitioner with over 10 years of clinical experience. She is a Fellow of the Royal Australian College of General Practitioners and is passionate about improving healthcare access through telehealth.',
-  image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&q=80'
+  bio: 'Our doctors are AHPRA-registered general practitioners with extensive clinical experience. They are Fellows of the Royal Australian College of General Practitioners and are passionate about improving healthcare access through telehealth.',
+  image: 'https://api.dicebear.com/7.x/notionists/svg?seed=MedTeam'
 }
 
 export const highIntentKeywordArticles: Article[] = [

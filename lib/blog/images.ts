@@ -84,12 +84,12 @@ export const blogImages = {
   mentalHealthCertOnline: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=450&fit=crop&q=80',
   sameDayMedCert: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&h=450&fit=crop&q=80',
 
-  // Author Photos
-  authorSarahChen: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&q=80',
-  authorMarcusThompson: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&q=80',
-  authorEmmaWilson: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&q=80',
-  authorJamesPatel: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&q=80',
-  authorOliviaNguyen: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&q=80',
+  // Author Illustrations (DiceBear)
+  authorSarahChen: 'https://api.dicebear.com/7.x/notionists/svg?seed=SarahChen',
+  authorMarcusThompson: 'https://api.dicebear.com/7.x/notionists/svg?seed=MarcusThompson',
+  authorEmmaWilson: 'https://api.dicebear.com/7.x/notionists/svg?seed=EmmaWilson',
+  authorJamesPatel: 'https://api.dicebear.com/7.x/notionists/svg?seed=JamesPatel',
+  authorOliviaNguyen: 'https://api.dicebear.com/7.x/notionists/svg?seed=OliviaNguyen',
 } as const
 
 export type BlogImageKey = keyof typeof blogImages

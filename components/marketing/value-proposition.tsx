@@ -139,7 +139,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
 
         <Link href="/request" className="block mt-6">
           <Button className="w-full magnetic-button glow-pulse bg-green-600 hover:bg-green-700 text-white">
-            Get Started
+            Start a Request
             <ArrowRight className="h-4 w-4 ml-2 icon-spin-hover" />
           </Button>
         </Link>

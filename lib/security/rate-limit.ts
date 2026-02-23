@@ -41,6 +41,22 @@ export const RATE_LIMITS = {
   },
 } as const
 
+// In-memory fallback for when DB is unavailable.
+// Uses a higher threshold (safety net only) to prevent unlimited abuse.
+const IN_MEMORY_FALLBACK_MAX = 100
+const IN_MEMORY_FALLBACK_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+const inMemoryLimits = new Map<string, number[]>()
+
+function checkInMemoryFallback(key: string, maxActions: number, windowMs: number): boolean {
+  const now = Date.now()
+  const timestamps = inMemoryLimits.get(key) || []
+  const recent = timestamps.filter(t => t > now - windowMs)
+  recent.push(now)
+  inMemoryLimits.set(key, recent)
+  return recent.length <= maxActions
+}
+
 /**
  * Check if an action is rate limited for a user
  * Uses database-backed rate limiting for distributed systems
@@ -64,12 +80,27 @@ export async function checkRateLimit(
 
     if (error) {
       logger.error("Rate limit check failed", { userId, action: config.action }, error)
-      // Fail open - allow action but log warning
+      // DB query failed — use in-memory fallback to prevent unlimited abuse
+      const fallbackKey = `${userId}:${config.action}`
+      const fallbackAllowed = checkInMemoryFallback(
+        fallbackKey,
+        IN_MEMORY_FALLBACK_MAX,
+        IN_MEMORY_FALLBACK_WINDOW_MS
+      )
+      if (!fallbackAllowed) {
+        logger.warn("In-memory rate limit fallback triggered (DB error path)", {
+          userId,
+          action: config.action,
+          fallbackMax: IN_MEMORY_FALLBACK_MAX,
+        })
+      }
       return {
-        allowed: true,
-        remaining: config.maxRequests,
+        allowed: fallbackAllowed,
+        remaining: fallbackAllowed ? config.maxRequests : 0,
         resetAt: new Date(now.getTime() + config.windowMs),
-        error: "Rate limit check failed - allowing action",
+        error: fallbackAllowed
+          ? "Rate limit check failed - allowing action (in-memory fallback)"
+          : "Rate limit check failed - blocked by in-memory fallback",
       }
     }
 
@@ -93,12 +124,27 @@ export async function checkRateLimit(
     }
   } catch (err) {
     logger.error("Rate limit error", { userId, action: config.action }, err instanceof Error ? err : new Error(String(err)))
-    // Fail open
+    // DB unavailable — use in-memory fallback to prevent unlimited abuse
+    const fallbackKey = `${userId}:${config.action}`
+    const fallbackAllowed = checkInMemoryFallback(
+      fallbackKey,
+      IN_MEMORY_FALLBACK_MAX,
+      IN_MEMORY_FALLBACK_WINDOW_MS
+    )
+    if (!fallbackAllowed) {
+      logger.warn("In-memory rate limit fallback triggered (catch path)", {
+        userId,
+        action: config.action,
+        fallbackMax: IN_MEMORY_FALLBACK_MAX,
+      })
+    }
     return {
-      allowed: true,
-      remaining: config.maxRequests,
+      allowed: fallbackAllowed,
+      remaining: fallbackAllowed ? config.maxRequests : 0,
       resetAt: new Date(now.getTime() + config.windowMs),
-      error: "Rate limit check failed",
+      error: fallbackAllowed
+        ? "Rate limit check failed - allowing action (in-memory fallback)"
+        : "Rate limit check failed - blocked by in-memory fallback",
     }
   }
 }

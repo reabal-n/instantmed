@@ -85,7 +85,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     setAnswer("addressVerified", address.isVerified || false)
   }
 
-  const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script'
+  const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script' || serviceType === 'consult'
   // Only show address for services that might need physical delivery
   const showAddress = serviceType !== 'med-cert'
 

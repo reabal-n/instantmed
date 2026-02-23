@@ -206,19 +206,21 @@ export function IntakeDetailClient({
 
   // P1 MEDICOLEGAL: Log clinician view events for audit trail
   // P1 EFFICIENCY: Acquire soft lock to prevent duplicate review work
+  const lockAcquiredAt = useRef<number | null>(null)
+
   useEffect(() => {
     if (hasLoggedView.current) return
     hasLoggedView.current = true
-    
+
     // Log that clinician viewed intake answers
     logViewedIntakeAnswersAction(intake.id, service?.type)
-    
+
     // Log safety flags view if present
     const flagAnswers = intake.answers?.answers as Record<string, unknown> | undefined
     if (flagAnswers?.red_flags_detected || flagAnswers?.yellow_flags_detected || flagAnswers?.emergency_symptoms) {
       logViewedSafetyFlagsAction(intake.id, service?.type)
     }
-    
+
     // Acquire soft lock on intake
     acquireIntakeLockAction(intake.id).then((result) => {
       if (result.warning) {
@@ -227,13 +229,23 @@ export function IntakeDetailClient({
           text: result.warning,
         })
       }
+      lockAcquiredAt.current = Date.now()
     })
-    
-    // Extend lock periodically while viewing
+
+    // Extend lock periodically while viewing, with 60-minute max duration
+    const LOCK_MAX_DURATION_MS = 60 * 60 * 1000 // 60 minutes
     const lockInterval = setInterval(() => {
+      if (lockAcquiredAt.current && Date.now() - lockAcquiredAt.current >= LOCK_MAX_DURATION_MS) {
+        // Auto-release lock after 60 minutes
+        releaseIntakeLockAction(intake.id)
+        lockAcquiredAt.current = null
+        clearInterval(lockInterval)
+        toast.error("Lock expired after 60 minutes. Please re-claim to continue.")
+        return
+      }
       extendIntakeLockAction(intake.id)
     }, 5 * 60 * 1000) // Every 5 minutes
-    
+
     // Log page unload to capture view duration and release lock
     const handleUnload = () => {
       const duration = Date.now() - viewStartTime.current
@@ -245,7 +257,7 @@ export function IntakeDetailClient({
       // Release lock on page unload
       releaseIntakeLockAction(intake.id)
     }
-    
+
     window.addEventListener('beforeunload', handleUnload)
     return () => {
       window.removeEventListener('beforeunload', handleUnload)

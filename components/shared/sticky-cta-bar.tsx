@@ -80,7 +80,7 @@ export function StickyCTABar() {
             size="sm"
             className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
           >
-            <Link href={config.href}>Get started</Link>
+            <Link href={config.href}>Start a request</Link>
           </Button>
           <button
             onClick={() => {

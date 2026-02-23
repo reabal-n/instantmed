@@ -103,7 +103,7 @@ export function HowItWorks() {
                 className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
               >
                 <Link href="/request">
-                  Get started <ArrowRight className="h-4 w-4" />
+                  Start a request <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-2.5">

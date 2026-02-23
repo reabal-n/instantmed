@@ -150,18 +150,18 @@ function getDailyStats() {
   const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
   const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
   return {
-    reviewedToday: 65 + Math.floor(hash(seed + 10) * 50), // 65–114
-    avgReviewTime: 18 + Math.floor(hash(seed + 11) * 10), // 18–27
-    rating: 4.9,
+    reviewedToday: 2 + Math.floor(hash(seed + 10) * 7), // 2–8
+    avgReviewTime: 45 + Math.floor(hash(seed + 11) * 76), // 45–120 min
+    rating: (4.8 + hash(seed + 12) * 0.1) as number, // 4.8–4.9
   }
 }
 const liveStats = getDailyStats()
 
-// Doctor images
-const doctorImages = [
-  '/female-doctor-professional-headshot-warm-smile-aus.jpg',
-  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1594824476967-48c8b964e05a?w=100&h=100&fit=crop&crop=face',
+// Doctor avatar illustrations (DiceBear)
+const doctorAvatars = [
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor4',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor5',
+  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor6',
 ]
 
 export default function RepeatPrescriptionPage() {
@@ -264,7 +264,7 @@ export default function RepeatPrescriptionPage() {
                     transition={{ duration: 0.5, delay: 0.4 }}
                   >
                     <span className="font-semibold text-foreground">$29.95</span>
-                    <span className="text-muted-foreground/50 line-through text-xs">$60–90 at GP</span>
+                    <span className="text-muted-foreground/60 text-xs">(vs $60–90 at GP)</span>
                     <span className="hidden sm:inline text-border">·</span>
                     <span>&lt;1 hr review</span>
                     <span className="hidden sm:inline text-border">·</span>
@@ -372,9 +372,9 @@ export default function RepeatPrescriptionPage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {doctorImages.map((src, i) => (
-                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background">
-                        <Image src={src} alt="AHPRA-registered doctor" fill className="object-cover" />
+                    {doctorAvatars.map((src, i) => (
+                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
+                        <img src={src} alt="Doctor illustration" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>

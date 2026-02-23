@@ -49,7 +49,8 @@ import {
   type CertificateTextConfig,
 } from "@/lib/certificate-defaults"
 import { getTemplateTypeName } from "@/lib/data/types/certificate-templates"
-import { saveTemplateAction, getTemplateHistoryAction, activateTemplateAction } from "@/app/actions/templates"
+// Template editing actions removed — templates are static PDFs in /public/templates/
+// import { saveTemplateAction, getTemplateHistoryAction, activateTemplateAction } from "@/app/actions/templates"
 import { CertificatePreview } from "./certificate-preview"
 
 interface TemplateStudioClientProps {
@@ -196,93 +197,23 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
     setHasChanges(true)
   }, [])
 
-  // Save template
+  // Template editing disabled — templates are static PDFs in /public/templates/
   const handleSave = async () => {
-    setIsSaving(true)
-    try {
-      const currentVersion = activeTemplate?.version || 0
-      const newName = `${getTemplateTypeName(selectedType)} v${currentVersion + 1}`
-      
-      // Merge certificateText and seal into config
-      const fullConfig: TemplateConfig = {
-        ...config,
-        certificateText,
-        seal: sealConfig,
-      }
-      
-      const result = await saveTemplateAction(selectedType, fullConfig, newName)
-      
-      if (result.success && result.template) {
-        setTemplates(prev => 
-          prev.map(t => 
-            t.template_type === selectedType 
-              ? { ...result.template!, is_active: true }
-              : t
-          )
-        )
-        setHasChanges(false)
-        toast.success("Template saved", {
-          description: `Version ${result.template.version} is now active`,
-        })
-      } else {
-        toast.error("Failed to save template", {
-          description: result.error,
-        })
-      }
-    } catch (_error) {
-      toast.error("Failed to save template")
-    } finally {
-      setIsSaving(false)
-    }
+    toast.info("Template editing is disabled. Templates are now static PDFs.")
   }
 
-  // Load version history
+  // Version history disabled — templates are static PDFs
   const loadHistory = async () => {
     setIsLoadingHistory(true)
-    try {
-      const result = await getTemplateHistoryAction(selectedType)
-      if (result.success && result.versions) {
-        setVersionHistory(result.versions)
-        setShowHistory(true)
-      }
-    } catch (_error) {
-      toast.error("Failed to load version history")
-    } finally {
-      setIsLoadingHistory(false)
-    }
+    setVersionHistory([])
+    setShowHistory(true)
+    setIsLoadingHistory(false)
+    toast.info("Version history is disabled. Templates are now static PDFs.")
   }
 
-  // Rollback to a version
-  const handleRollback = async (templateId: string, version: number) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm(`Rollback to version ${version}? This will create a new active version.`)) {
-      return
-    }
-
-    try {
-      const result = await activateTemplateAction(templateId)
-      if (result.success) {
-        // Refresh history
-        await loadHistory()
-        // Update local state
-        const activated = versionHistory.find(v => v.id === templateId)
-        if (activated) {
-          setConfig(activated.config)
-          setTemplates(prev =>
-            prev.map(t =>
-              t.template_type === selectedType
-                ? { ...activated, is_active: true }
-                : t
-            )
-          )
-        }
-        toast.success(`Rolled back to version ${version}`)
-      } else {
-        toast.error("Failed to rollback", { description: result.error })
-      }
-    } catch (_error) {
-      toast.error("Failed to rollback")
-    }
+  // Rollback disabled — templates are static PDFs
+  const handleRollback = async (_templateId: string, _version: number) => {
+    toast.info("Rollback is disabled. Templates are now static PDFs.")
   }
 
   return (

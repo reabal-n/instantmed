@@ -162,7 +162,7 @@ export default function RootLayout({
           {/* Preconnect to critical third-party origins */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://images.unsplash.com" />
+          <link rel="preconnect" href="https://api.dicebear.com" />
           <link rel="preconnect" href="https://central-ostrich-48.clerk.accounts.dev" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />

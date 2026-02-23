@@ -30,7 +30,7 @@ const heroVariants: HeroVariant[] = [
     id: "trust",
     headline: "Doctor-reviewed requests. Delivered in under an hour.",
     subheadline: "Medical certificates and repeat prescriptions reviewed by AHPRA-registered Australian doctors. Most requests don't require a call.",
-    cta: "Get started",
+    cta: "Start a request",
   },
 ]
 

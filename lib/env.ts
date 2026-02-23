@@ -36,6 +36,7 @@ const serverEnvSchema = z.object({
   // Stripe price IDs (required for checkout functionality)
   STRIPE_PRICE_MEDCERT: z.string().optional(),
   STRIPE_PRICE_MEDCERT_2DAY: z.string().optional(),
+  STRIPE_PRICE_MEDCERT_3DAY: z.string().optional(),
   STRIPE_PRICE_PRESCRIPTION: z.string().optional(),
   STRIPE_PRICE_CONSULT: z.string().optional(),
   

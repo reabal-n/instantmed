@@ -11,13 +11,18 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { AlertTriangle } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface SymptomsStepProps {
@@ -57,9 +62,12 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const symptomDuration = answers.symptomDuration as string | undefined
   const certType = answers.certType as string | undefined
   
+  const emergencyWarningAcknowledged = answers.emergencyWarningAcknowledged as boolean | undefined
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [suggestedSymptoms, setSuggestedSymptoms] = useState<string[]>([])
+  const [emergencyWarning, setEmergencyWarning] = useState<{ isEmergency: boolean; matchedKeywords: string[] }>({ isEmergency: false, matchedKeywords: [] })
 
   // Load smart defaults on mount
   useEffect(() => {
@@ -68,6 +76,24 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       setSuggestedSymptoms(defaults.suggestedSymptoms as string[])
     }
   }, [])
+
+  // Run emergency symptom check when symptom details change
+  useEffect(() => {
+    if (symptomDetails.length >= 10) {
+      const result = checkEmergencySymptoms(symptomDetails)
+      setEmergencyWarning(result)
+      // Clear acknowledgment if emergency state changes to non-emergency
+      if (!result.isEmergency && emergencyWarningAcknowledged) {
+        setAnswer('emergencyWarningAcknowledged', undefined)
+      }
+    } else {
+      if (emergencyWarning.isEmergency) {
+        setEmergencyWarning({ isEmergency: false, matchedKeywords: [] })
+        setAnswer('emergencyWarningAcknowledged', undefined)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symptomDetails])
 
   const toggleSymptom = (symptom: string) => {
     const current = symptoms
@@ -100,7 +126,8 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const isCarer = certType === "carer"
   const isComplete = symptoms.length > 0 && symptomDuration && symptomDetails.length >= 20
   const hasNoErrors = Object.keys(errors).length === 0
-  const canContinue = isComplete && hasNoErrors
+  const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
+  const canContinue = isComplete && hasNoErrors && !emergencyRequiresAck
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -223,9 +250,41 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
         </div>
       </FormField>
 
+      {/* Emergency symptom warning */}
+      {emergencyWarning.isEmergency && (
+        <Alert variant="destructive" className="border-red-300 dark:border-red-800">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Emergency symptoms detected</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p className="text-sm">
+              Based on what you&apos;ve described, you may need immediate medical attention.
+              This service is not suitable for medical emergencies.
+            </p>
+            <div className="text-sm font-medium space-y-1">
+              <p>If this is an emergency:</p>
+              <ul className="list-disc pl-5 space-y-0.5">
+                <li>Call <strong>000</strong> for an ambulance</li>
+                <li>Go to your nearest Emergency Department</li>
+                <li>Call <strong>Lifeline 13 11 14</strong> for crisis support</li>
+              </ul>
+            </div>
+            <div className="flex items-center gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+              <Switch
+                id="emergency-ack"
+                checked={emergencyWarningAcknowledged === true}
+                onCheckedChange={(checked) => setAnswer('emergencyWarningAcknowledged', checked)}
+              />
+              <Label htmlFor="emergency-ack" className="text-sm cursor-pointer leading-snug">
+                I understand this is not for emergencies. I wish to continue.
+              </Label>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!canContinue}
       >

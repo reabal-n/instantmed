@@ -65,7 +65,7 @@ Optional but recommended:
 
 Run migrations in production:
 ```bash
-supabase db push --project-ref witzcrovsoumktyndqgz
+supabase db push --project-ref [SUPABASE_PROJECT_REF]
 ```
 
 Or apply via Supabase dashboard → SQL Editor.

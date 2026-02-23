@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { ShieldAlert, AlertTriangle, XCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
@@ -23,24 +23,28 @@ const SAFETY_QUESTIONS = [
     id: 'nitrates',
     question: 'Do you take nitrates (e.g., GTN spray, Anginine, Imdur) or any medication for chest pain?',
     hardBlock: true,
+    absoluteBlock: true, // No follow-up — drug interaction is dangerous regardless
     blockReason: 'ED medications can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist.',
   },
   {
     id: 'recentHeartEvent',
     question: 'Have you had a heart attack, stroke, or unstable angina in the last 6 months?',
     hardBlock: true,
+    absoluteBlock: false,
     blockReason: 'For your safety, ED medications are not suitable within 6 months of a major cardiac event. Please consult your cardiologist.',
   },
   {
     id: 'severeHeartCondition',
     question: 'Do you have severe or uncontrolled heart disease, very low blood pressure, or a condition called "HOCM"?',
     hardBlock: true,
+    absoluteBlock: false,
     blockReason: 'ED medications may not be safe for your condition. Please discuss with your cardiologist or GP.',
   },
   {
     id: 'previousEdMeds',
     question: 'Have you tried ED medication before?',
     hardBlock: false,
+    absoluteBlock: false,
   },
 ]
 
@@ -50,24 +54,50 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockReason, setBlockReason] = useState("")
+  const [showFollowUp, setShowFollowUp] = useState(false)
+
+  const advanceToNext = () => {
+    if (currentQuestion < SAFETY_QUESTIONS.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+      setShowFollowUp(false)
+    } else {
+      onNext()
+    }
+  }
 
   const handleAnswer = (questionId: string, value: string) => {
     setAnswer(`edSafety_${questionId}`, value)
-    
+
     const question = SAFETY_QUESTIONS[currentQuestion]
-    
-    // Check for hard block
+
     if (question.hardBlock && value === 'yes') {
-      setIsBlocked(true)
-      setBlockReason(question.blockReason || '')
+      if (question.absoluteBlock) {
+        // Nitrates: immediate hard-block, no follow-up
+        setIsBlocked(true)
+        setBlockReason(question.blockReason || '')
+        return
+      }
+      // Cardiac/BP soft-block: show follow-up question
+      setShowFollowUp(true)
       return
     }
-    
-    // Move to next question or complete
-    if (currentQuestion < SAFETY_QUESTIONS.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
+
+    // If answering "no", clear any follow-up state and proceed
+    setShowFollowUp(false)
+    advanceToNext()
+  }
+
+  const handleFollowUp = (managed: boolean) => {
+    if (managed) {
+      // Condition is managed by a doctor — allow to proceed with warning flag
+      setAnswer('edSafety_managedCondition', true)
+      setShowFollowUp(false)
+      advanceToNext()
     } else {
-      onNext()
+      // Condition is NOT managed — block
+      const question = SAFETY_QUESTIONS[currentQuestion]
+      setIsBlocked(true)
+      setBlockReason(question.blockReason || '')
     }
   }
 
@@ -146,45 +176,49 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
         </AlertDescription>
       </Alert>
 
-      {/* Current question */}
+      {/* Current question — toggle switch */}
       <div className="space-y-4">
-        <Label className="text-base font-medium leading-relaxed">
-          {currentQ.question}
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-
-        <RadioGroup
-          value={currentAnswer}
-          onValueChange={(value) => handleAnswer(currentQ.id, value)}
-          className="space-y-2"
-        >
-          <label
-            className={cn(
-              "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
-              currentAnswer === 'yes'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="yes" />
-            <span className="text-sm font-medium">Yes</span>
-          </label>
-          <label
-            className={cn(
-              "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
-              currentAnswer === 'no'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="no" />
-            <span className="text-sm font-medium">No</span>
-          </label>
-        </RadioGroup>
+        <div className="flex items-center justify-between p-4 rounded-xl border">
+          <Label htmlFor={currentQ.id} className="text-sm font-medium leading-relaxed flex-1 pr-4">
+            {currentQ.question}
+          </Label>
+          <Switch
+            id={currentQ.id}
+            checked={currentAnswer === 'yes'}
+            onCheckedChange={(checked) => handleAnswer(currentQ.id, checked ? 'yes' : 'no')}
+          />
+        </div>
       </div>
 
+      {/* Follow-up for soft-block cardiac/BP questions */}
+      {showFollowUp && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+          <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
+              This condition may affect your eligibility. We need a bit more information.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex items-center justify-between p-4 rounded-xl border">
+            <Label htmlFor="managedCondition" className="text-sm font-medium leading-relaxed flex-1 pr-4">
+              Is this condition currently being managed by a doctor?
+            </Label>
+            <Switch
+              id="managedCondition"
+              checked={false}
+              onCheckedChange={(checked) => handleFollowUp(checked)}
+            />
+          </div>
+
+          <p className="text-xs text-muted-foreground px-1">
+            If your condition is being actively managed, you may still be eligible. The reviewing doctor will take this into account.
+          </p>
+        </div>
+      )}
+
       {/* Warning for hard-block questions */}
-      {currentQ.hardBlock && (
+      {currentQ.hardBlock && !showFollowUp && (
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-amber-500 shrink-0" />
           <span>Answering &quot;Yes&quot; may mean this service is not suitable for you.</span>

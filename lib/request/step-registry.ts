@@ -103,13 +103,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
-      required: true,
-    },
-    {
       id: 'review',
       label: 'Review',
       shortLabel: 'Review',
@@ -136,17 +129,9 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'medication-history',
-      label: 'Prescription history',
-      shortLabel: 'History',
-      componentPath: 'medication-history-step',
-      validateFn: 'validateMedicationHistoryStep',
-      required: true,
-    },
-    {
       id: 'medical-history',
-      label: 'Medical history',
-      shortLabel: 'Health',
+      label: 'Notes & history',
+      shortLabel: 'Notes',
       componentPath: 'medical-history-step',
       validateFn: 'validateMedicalHistoryStep',
       required: true,
@@ -158,13 +143,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
       canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
-      required: true,
-    },
-    {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
       required: true,
     },
     {
@@ -184,7 +162,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
     },
   ],
 
-  // Alias for prescription
+  // Alias for prescription (same simplified flow)
   'repeat-script': [
     {
       id: 'medication',
@@ -195,17 +173,9 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'medication-history',
-      label: 'Prescription history',
-      shortLabel: 'History',
-      componentPath: 'medication-history-step',
-      validateFn: 'validateMedicationHistoryStep',
-      required: true,
-    },
-    {
       id: 'medical-history',
-      label: 'Medical history',
-      shortLabel: 'Health',
+      label: 'Notes & history',
+      shortLabel: 'Notes',
       componentPath: 'medical-history-step',
       validateFn: 'validateMedicalHistoryStep',
       required: true,
@@ -217,13 +187,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
       canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
-      required: true,
-    },
-    {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
       required: true,
     },
     {
@@ -270,13 +233,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
-      required: true,
-    },
-    {
       id: 'review',
       label: 'Review',
       shortLabel: 'Review',
@@ -312,13 +268,6 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
     componentPath: 'patient-details-step',
     validateFn: 'validateDetailsStep',
     canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
-    required: true,
-  },
-  {
-    id: 'safety',
-    label: 'Safety check',
-    shortLabel: 'Safety',
-    componentPath: 'safety-step',
     required: true,
   },
   {

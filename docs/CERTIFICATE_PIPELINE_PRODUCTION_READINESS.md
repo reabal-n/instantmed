@@ -194,10 +194,10 @@ This document provides a production readiness assessment for the certificate iss
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Engineering Lead | | | |
-| Security Review | | | |
-| Product Owner | | | |
-| Compliance | | | |
+| Engineering Lead | [PENDING] | [PENDING] | [PENDING] |
+| Security Review | [PENDING] | [PENDING] | [PENDING] |
+| Product Owner | [PENDING] | [PENDING] | [PENDING] |
+| Compliance | [PENDING] | [PENDING] | [PENDING] |
 
 ---
 

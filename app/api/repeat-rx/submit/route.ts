@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
 const log = createLogger("route")
-import type {
-  ClinicalSummary,
-  RepeatRxSubmitPayload,
-} from "@/types/repeat-rx"
 
-// Zod schema for request validation
+// Zod schema for request validation (simplified for Parchment workflow)
 const medicationSchema = z.object({
-  amt_code: z.string().min(1, "Medication code is required"),
+  amt_code: z.string().optional().default(""),
   display: z.string(),
   medication_name: z.string(),
   strength: z.string(),
@@ -43,23 +38,25 @@ const repeatRxSubmitSchema = z.object({
 
 /**
  * POST /api/repeat-rx/submit
- * Submit a repeat prescription request
- * 
+ * Submit a repeat prescription request (simplified Parchment workflow)
+ *
  * Creates:
- * - repeat_rx_requests record
+ * - repeat_rx_requests record (status: 'pending')
  * - repeat_rx_answers record (immutable)
  * - audit_events entry
- * - Generates clinical summary for doctor dashboard
+ *
+ * Eligibility rules engine removed - doctor reviews all requests directly
+ * and sends script via Parchment.
  */
 export async function POST(request: Request) {
   try {
     // Get client IP for rate limiting
     const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
     const userAgent = request.headers.get("user-agent") || "unknown"
-    
+
     // Get user session
     const { userId } = await auth()
-    
+
     // Apply rate limiting (use userId if authenticated, IP otherwise)
     const rateLimitKey = userId || `ip:${ipAddress}`
     const rateLimitResult = await rateLimit(rateLimitKey, '/api/repeat-rx/submit')
@@ -77,24 +74,24 @@ export async function POST(request: Request) {
     // Parse and validate request body with Zod
     const rawBody = await request.json()
     const parseResult = repeatRxSubmitSchema.safeParse(rawBody)
-    
+
     if (!parseResult.success) {
-      log.warn("[Repeat Rx Submit] Validation failed", { 
-        errors: parseResult.error.flatten().fieldErrors 
+      log.warn("[Repeat Rx Submit] Validation failed", {
+        errors: parseResult.error.flatten().fieldErrors
       })
       return NextResponse.json(
         { error: "Invalid request", details: parseResult.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
-    
-    const { medication, answers, consentTimestamps, pharmacyDetails, guestEmail } = parseResult.data as RepeatRxSubmitPayload
-    
+
+    const { medication, answers, consentTimestamps, pharmacyDetails, guestEmail } = parseResult.data
+
     const supabase = createServiceRoleClient()
-    
+
     let patientId: string | null = null
     let isGuest = true
-    
+
     if (userId) {
       // Get patient profile using auth user ID
       const { data: profile } = await supabase
@@ -106,75 +103,29 @@ export async function POST(request: Request) {
       patientId = profile?.id || null
       isGuest = !patientId
     }
-    
-    // Run eligibility check
-    const eligibilityResult = checkEligibility(medication, answers)
-    const suggestedDecision = generateSuggestedDecision(eligibilityResult)
-    
-    // Generate clinical summary for doctor dashboard
-    const clinicalSummary: ClinicalSummary = {
-      patient: {
-        id: patientId || undefined,
-        name: "", // Will be filled from profile later
-        dob: "",
-        email: guestEmail || "",
-        isGuest,
-      },
-      intakeId: "", // Will be filled after insert
-      requestedAt: new Date().toISOString(),
-      medication,
-      clinicalData: {
-        indication: answers.indication || "",
-        currentDose: answers.currentDose || "",
-        lastPrescribed: answers.lastPrescribedTimeframe || "",
-        stabilityDuration: answers.stabilityDuration || "",
-        prescribingDoctor: answers.prescribingDoctor || "",
-      },
-      safetyScreening: {
-        sideEffects: answers.sideEffects || "none",
-        sideEffectsDetails: answers.sideEffectsDetails,
-        pregnantOrBreastfeeding: answers.pregnantOrBreastfeeding || false,
-        allergies: answers.allergies || [],
-        allergyDetails: answers.allergyDetails,
-      },
-      medicalHistory: {
-        flags: Object.entries(answers.pmhxFlags || {})
-          .filter(([, v]) => v === true)
-          .map(([k]) => k),
-        otherMedications: answers.otherMedications || [],
-      },
-      eligibility: eligibilityResult,
-      attestations: {
-        emergencyDisclaimer: {
-          accepted: true,
-          timestamp: consentTimestamps.emergencyDisclaimer,
-        },
-        gpAttestation: {
-          accepted: true,
-          timestamp: consentTimestamps.gpAttestation,
-        },
-      },
-      suggestedDecision,
-    }
-    
+
     // Use service client for database writes (bypasses RLS for guests)
     const serviceClient = createServiceRoleClient()
-    
-    // Create the request
+
+    // Create the request - status always starts as 'pending'
     const { data: requestData, error: requestError } = await serviceClient
       .from("repeat_rx_requests")
       .insert({
         patient_id: patientId,
         is_guest: isGuest,
         guest_email: isGuest ? guestEmail : null,
-        medication_code: medication.amt_code,
+        medication_code: medication.amt_code || "",
         medication_display: medication.display,
         medication_strength: medication.strength,
         medication_form: medication.form,
-        status: eligibilityResult.passed ? "pending" : "requires_consult",
-        eligibility_passed: eligibilityResult.passed,
-        eligibility_result: eligibilityResult,
-        clinical_summary: clinicalSummary,
+        status: "pending",
+        eligibility_passed: true, // Simplified: no rules engine
+        eligibility_result: { passed: true, simplified: true },
+        clinical_summary: {
+          medication,
+          answers,
+          patientNotes: answers.patientNotes || answers.reason || "",
+        },
         emergency_consent_at: consentTimestamps.emergencyDisclaimer,
         gp_attestation_at: consentTimestamps.gpAttestation,
         terms_consent_at: consentTimestamps.terms,
@@ -186,11 +137,11 @@ export async function POST(request: Request) {
       })
       .select("id")
       .single()
-    
+
     if (requestError) {
       throw new Error(`Failed to create request: ${requestError.message}`)
     }
-    
+
     const intakeId = requestData.id
 
     // Store immutable answers
@@ -207,23 +158,19 @@ export async function POST(request: Request) {
       patient_id: patientId,
       event_type: "request_submitted",
       payload: {
-        medication_code: medication.amt_code,
+        medication_code: medication.amt_code || "",
         medication_name: medication.display,
         is_guest: isGuest,
-        eligibility_passed: eligibilityResult.passed,
-        red_flag_count: eligibilityResult.redFlags.length,
       },
       ip_address: ipAddress,
       user_agent: userAgent,
     })
-    
+
     return NextResponse.json({
       success: true,
       intakeId,
-      status: eligibilityResult.passed ? "pending" : "requires_consult",
-      message: eligibilityResult.passed
-        ? "Your request has been submitted and is awaiting review."
-        : "Your request has been submitted. A doctor will review it and may contact you.",
+      status: "pending",
+      message: "Your request has been submitted and is awaiting review.",
     })
   } catch (error) {
     log.error("Failed to submit repeat rx", {

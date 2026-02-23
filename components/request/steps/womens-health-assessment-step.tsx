@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
@@ -32,7 +33,9 @@ export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHea
   // Render different assessments based on option
   switch (womensHealthOption) {
     case 'contraception':
-      return <ContraceptionAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
+    case 'ocp_new':
+    case 'ocp_repeat':
+      return <ContraceptionAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} ocpType={womensHealthOption === 'ocp_repeat' ? 'repeat' : womensHealthOption === 'ocp_new' ? 'new' : undefined} />
     case 'morning_after':
       return <MorningAfterAssessment onNext={onNext} onBack={onBack} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} isBlocked={isBlocked} setIsBlocked={setIsBlocked} blockReason={blockReason} setBlockReason={setBlockReason} router={router} />
     case 'uti':
@@ -45,14 +48,20 @@ export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHea
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
+function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors, ocpType }: {
   onNext: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
+  ocpType?: 'new' | 'repeat'
 }) {
-  const contraceptionType = answers.contraceptionType as string | undefined
+  // Auto-set contraception type from OCP selection if not already set
+  const resolvedType = ocpType === 'repeat' ? 'continue' : ocpType === 'new' ? 'start' : undefined
+  if (resolvedType && !answers.contraceptionType) {
+    setAnswer("contraceptionType", resolvedType)
+  }
+  const contraceptionType = (answers.contraceptionType as string | undefined) || resolvedType
   const contraceptionCurrent = answers.contraceptionCurrent as string | undefined
   const pregnancyStatus = answers.pregnancyStatus as string | undefined
   const lastPeriod = (answers.lastPeriod as string) || ""
@@ -377,12 +386,25 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
         </Label>
         <div className="space-y-2">
           {SYMPTOMS.map((symptom) => (
-            <button key={symptom.value} type="button" onClick={() => toggleSymptom(symptom.value)} className={cn("w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all", utiSymptoms?.includes(symptom.value) ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <div className={cn("w-5 h-5 rounded border-2 flex items-center justify-center shrink-0", utiSymptoms?.includes(symptom.value) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground")}>
-                {utiSymptoms?.includes(symptom.value) && <span className="text-xs">✓</span>}
-              </div>
-              <span className="text-sm">{symptom.label}</span>
-            </button>
+            <div
+              key={symptom.value}
+              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+            >
+              <Label htmlFor={`uti-${symptom.value}`} className="text-sm cursor-pointer leading-snug flex-1">
+                {symptom.label}
+              </Label>
+              <Switch
+                id={`uti-${symptom.value}`}
+                checked={utiSymptoms?.includes(symptom.value) ?? false}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    toggleSymptom(symptom.value)
+                  } else {
+                    toggleSymptom(symptom.value)
+                  }
+                }}
+              />
+            </div>
           ))}
         </div>
         {errors.utiSymptoms && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.utiSymptoms}</p>}

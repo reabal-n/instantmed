@@ -21,10 +21,10 @@ date_from (DATE, editable)
 date_to (DATE, editable)
 certificate_type (work|uni|carer, editable)
 reason_summary (TEXT, editable)
-doctor_typed_name (TEXT, default: Dr Reabal Najjar)
-doctor_ahpra (TEXT, default: MED0002576546)
+doctor_typed_name (TEXT, default: [DOCTOR_NAME])
+doctor_ahpra (TEXT, default: [AHPRA_NUMBER])
 provider_name (TEXT, default: InstantMed)
-provider_address (TEXT, default: Level 12, 1 Macquarie Place, Sydney NSW 2000)
+provider_address (TEXT, default: [CLINIC_ADDRESS])
 signature_asset_url (TEXT, optional)
 status (draft|issued)
 issued_at (TIMESTAMP)
@@ -145,8 +145,8 @@ curl http://localhost:3000/api/test/med-cert-render?type=work \
 #    - Title: "Medical Certificate"
 #    - Date format: DD/MM/YYYY
 #    - Reason: "Acute respiratory infection..."
-#    - Doctor: Dr Reabal Najjar MED0002576546
-#    - Provider: InstantMed Level 12...
+#    - Doctor: [DOCTOR_NAME] [AHPRA_NUMBER]
+#    - Provider: InstantMed [CLINIC_ADDRESS]
 #    - NO phone number
 #    - A4 single page
 ```

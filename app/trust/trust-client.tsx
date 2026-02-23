@@ -101,7 +101,7 @@ const trustTestimonials = [
     text: "My employer accepted the certificate no questions asked. It looked exactly like what you'd get from a clinic.",
     name: "James T.",
     location: "Melbourne",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=JamesT",
     verified: true,
     source: "Verified Patient",
   },
@@ -109,7 +109,7 @@ const trustTestimonials = [
     text: "The doctor asked thorough follow-up questions. Felt legitimate and properly reviewed.",
     name: "Sarah M.",
     location: "Sydney",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=SarahM",
     verified: true,
     source: "Verified Patient",
   },
@@ -117,7 +117,7 @@ const trustTestimonials = [
     text: "I checked the doctor's AHPRA registration myself. They're legit. Made me feel much more comfortable.",
     name: "David L.",
     location: "Perth",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=DavidL",
     verified: true,
     source: "Verified Patient",
   },
@@ -125,7 +125,7 @@ const trustTestimonials = [
     text: "Was skeptical at first, but the whole process was professional. Real Australian doctors.",
     name: "Emma R.",
     location: "Brisbane",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=EmmaR",
     verified: true,
     source: "Verified Patient",
   },
@@ -133,7 +133,7 @@ const trustTestimonials = [
     text: "Used it for a uni extension. Special consideration was approved same day.",
     name: "Amy W.",
     location: "UNSW Student",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AmyW",
     verified: true,
     source: "Verified Patient",
   },
@@ -141,7 +141,7 @@ const trustTestimonials = [
     text: "Much better than waiting 3 days for a doctor appointment just to get a medical certificate.",
     name: "Chris B.",
     location: "Gold Coast",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=ChrisB",
     verified: true,
     source: "Verified Patient",
   },
@@ -239,7 +239,7 @@ const trustPillars = [
       "Professional indemnity insurance required",
       "Regular clinical decision audits",
     ],
-    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=400&fit=crop&crop=face",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AHPRADoctor",
     color: "from-blue-500/20 to-sky-500/20",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600 dark:text-blue-400",
@@ -895,12 +895,10 @@ export default function TrustPage() {
                   {/* Visual */}
                   <div className="relative w-48 h-48 md:w-56 md:h-56 shrink-0">
                     <div className="absolute inset-0 rounded-2xl overflow-hidden border-4 border-white/80 dark:border-slate-800/80 shadow-xl">
-                      <Image
-                        src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face"
-                        alt="Verified Australian Doctor"
-                        fill
-                        priority
-                        className="object-cover"
+                      <img
+                        src="https://api.dicebear.com/7.x/notionists/svg?seed=VerifiedDoc"
+                        alt="Doctor illustration"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     {/* Verification badge */}
@@ -975,7 +973,7 @@ export default function TrustPage() {
               </p>
               <Link href="/request">
                 <ShimmerButton className="inline-flex items-center gap-2 px-8 py-4 text-lg">
-                  Get started
+                  Start a request
                   <ArrowRight className="w-5 h-5" />
                 </ShimmerButton>
               </Link>
@@ -1003,7 +1001,7 @@ export default function TrustPage() {
       >
         <Link href="/request" className="block">
           <ShimmerButton className="w-full flex items-center justify-center gap-2 py-3">
-            Get started
+            Start a request
             <ArrowRight className="w-4 h-4" />
           </ShimmerButton>
         </Link>

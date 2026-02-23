@@ -3,39 +3,24 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-// P1 DOCTOR_WORKLOAD_AUDIT: Tabs removed - flattened into single scrollable view
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   ArrowLeft,
   CheckCircle,
   XCircle,
-  AlertTriangle,
   User,
   Pill,
-  FileText,
-  Shield,
   Phone,
   Mail,
   MapPin,
   Loader2,
-  Flag,
-  ThumbsUp,
-  ThumbsDown,
-  MessageSquare,
-  ClipboardList,
+  Copy,
+  Check,
+  FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { ClinicianDecision, RedFlag, RuleOutcome } from "@/types/repeat-rx"
 
 // ============================================================================
 // TYPES
@@ -64,49 +49,19 @@ interface RequestData {
   medication_form: string
   status: string
   eligibility_passed: boolean
-  eligibility_result: {
-    passed: boolean
-    canProceed: boolean
-    redFlags: RedFlag[]
-    ruleOutcomes: RuleOutcome[]
-  }
   clinical_summary: {
-    medication: {
-      name: string
-      strength: string
-      form: string
-      amtCode: string
+    medication?: {
+      display?: string
+      medication_name?: string
+      strength?: string
+      form?: string
     }
-    patientReported: {
-      indication: string
-      currentDose: string
-      stabilityDuration: string
-      lastPrescribed: string
-      originalPrescriber: string
-      doseChangedRecently: boolean
-      sideEffects: string
-      sideEffectsDetails?: string
-      pregnantOrBreastfeeding: boolean
-      allergies: string[]
-      allergyDetails?: string
-      pmhxFlags: Record<string, boolean | string>
-      otherMedications: string[]
-    }
-    attestations: {
-      emergencyDisclaimer: { accepted: boolean; timestamp: string }
-      gpFollowUp: { accepted: boolean; timestamp: string }
-      termsAndConditions: { accepted: boolean; timestamp: string }
-    }
-    eligibility: {
-      passed: boolean
-      canProceed: boolean
-      redFlags: RedFlag[]
-      ruleOutcomes: RuleOutcome[]
-    }
-    suggestedAction: {
-      recommendation: "approve" | "decline" | "consult"
-      reasoning: string
-      suggestedRepeats: number
+    answers?: Record<string, unknown>
+    patientNotes?: string
+    // Legacy fields (may exist on older requests)
+    patientReported?: {
+      indication?: string
+      currentDose?: string
     }
   }
   emergency_consent_at: string
@@ -137,87 +92,68 @@ interface RepeatRxReviewClientProps {
 // SUB-COMPONENTS
 // ============================================================================
 
-function SectionCard({
-  title,
-  icon: Icon,
-  children,
-  className,
-}: {
-  title: string
-  icon?: React.ComponentType<{ className?: string }>
-  children: React.ReactNode
-  className?: string
-}) {
+function StatusBadge({ status }: { status: string }) {
+  const statusConfig: Record<string, { label: string; className: string }> = {
+    pending: { label: "Pending", className: "bg-blue-100 text-blue-800" },
+    approved: { label: "Script Sent", className: "bg-green-100 text-green-800" },
+    script_sent: { label: "Script Sent", className: "bg-green-100 text-green-800" },
+    declined: { label: "Declined", className: "bg-red-100 text-red-800" },
+    requires_consult: { label: "Requires Consult", className: "bg-amber-100 text-amber-800" },
+  }
+
+  const config = statusConfig[status] || { label: status, className: "bg-muted" }
+
   return (
-    <div className={cn("rounded-xl border border-border bg-card p-5", className)}>
-      <div className="flex items-center gap-2 mb-4">
-        {Icon && <Icon className="w-5 h-5 text-primary" />}
-        <h3 className="font-semibold">{title}</h3>
-      </div>
-      {children}
-    </div>
+    <Badge className={config.className}>{config.label}</Badge>
+  )
+}
+
+function CopyButton({ text, label }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+    }
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+      title={`Copy ${label || "text"}`}
+    >
+      {copied ? (
+        <Check className="w-3 h-3 text-green-600" />
+      ) : (
+        <Copy className="w-3 h-3" />
+      )}
+    </button>
   )
 }
 
 function DataRow({
   label,
   value,
-  highlight,
+  copyable,
 }: {
   label: string
   value: React.ReactNode
-  highlight?: boolean
+  copyable?: boolean
 }) {
+  const stringValue = typeof value === "string" ? value : ""
   return (
     <div className="flex items-start justify-between py-2 border-b border-border/50 last:border-0">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn(
-        "text-sm text-right max-w-[60%]",
-        highlight && "font-semibold text-primary"
-      )}>
-        {value || "—"}
+      <span className="text-sm text-right max-w-[60%] flex items-center gap-1">
+        {value || "\u2014"}
+        {copyable && stringValue && <CopyButton text={stringValue} label={label} />}
       </span>
     </div>
-  )
-}
-
-function RedFlagCard({ flag }: { flag: RedFlag }) {
-  const severityColors = {
-    warning: "bg-amber-100 text-amber-800 border-amber-200",
-    critical: "bg-red-100 text-red-800 border-red-200",
-  }
-  
-  return (
-    <div className={cn(
-      "p-3 rounded-lg border",
-      severityColors[flag.severity]
-    )}>
-      <div className="flex items-start gap-2">
-        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-        <div>
-          <p className="font-medium text-sm">{flag.code}</p>
-          <p className="text-sm opacity-80">{flag.description}</p>
-          {flag.clinicianNote && (
-            <p className="text-xs opacity-70 mt-1">{flag.clinicianNote}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    pending: { label: "Pending", className: "bg-blue-100 text-blue-800" },
-    approved: { label: "Approved", className: "bg-green-100 text-green-800" },
-    declined: { label: "Declined", className: "bg-red-100 text-red-800" },
-    requires_consult: { label: "Requires Consult", className: "bg-amber-100 text-amber-800" },
-  }
-  
-  const config = statusConfig[status] || { label: status, className: "bg-muted" }
-  
-  return (
-    <Badge className={config.className}>{config.label}</Badge>
   )
 }
 
@@ -227,43 +163,36 @@ function StatusBadge({ status }: { status: string }) {
 
 export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: RepeatRxReviewClientProps) {
   const router = useRouter()
-  const summary = request.clinical_summary
   const patient = request.patient
-  
+
+  // Extract patient notes from answers or clinical summary
+  const latestAnswers = request.answers?.[0]?.answers || {}
+  const patientNotes = (
+    request.clinical_summary?.patientNotes ||
+    latestAnswers.patientNotes ||
+    latestAnswers.reason ||
+    request.clinical_summary?.patientReported?.indication ||
+    ""
+  ) as string
+
   // Decision form state
-  const [decision, setDecision] = useState<ClinicianDecision | null>(null)
-  const [decisionReason, setDecisionReason] = useState("")
-  const [pbsSchedule, setPbsSchedule] = useState("")
-  const [packQuantity, setPackQuantity] = useState("1")
-  const [doseInstructions, setDoseInstructions] = useState(summary.patientReported.currentDose)
-  const [frequency, _setFrequency] = useState("")
-  const [repeatsGranted, setRepeatsGranted] = useState("1")
-  const [clinicalNotes, setClinicalNotes] = useState("")
-  const [redFlagReview, setRedFlagReview] = useState("")
+  const [declineReason, setDeclineReason] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const handleSubmitDecision = async () => {
-    if (!decision) return
-    
+  const [showDecline, setShowDecline] = useState(false)
+
+  const handleMarkScriptSent = async () => {
     setIsSubmitting(true)
-    
+
     try {
       const response = await fetch(`/api/repeat-rx/${request.id}/decision`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          decision,
-          decisionReason,
-          pbsSchedule: decision === "approved" ? pbsSchedule : null,
-          packQuantity: decision === "approved" ? parseInt(packQuantity) : null,
-          doseInstructions: decision === "approved" ? doseInstructions : null,
-          frequency: decision === "approved" ? frequency : null,
-          repeatsGranted: decision === "approved" ? parseInt(repeatsGranted) : 0,
-          clinicalNotes,
-          redFlagReview: summary.eligibility.redFlags.length > 0 ? redFlagReview : null,
+          decision: "approved",
+          decisionReason: "Script sent via Parchment",
         }),
       })
-      
+
       if (response.ok) {
         router.push("/doctor/repeat-rx")
         router.refresh()
@@ -272,12 +201,37 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
       setIsSubmitting(false)
     }
   }
-  
+
+  const handleDecline = async () => {
+    if (!declineReason.trim()) return
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(`/api/repeat-rx/${request.id}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision: "declined",
+          decisionReason: declineReason,
+        }),
+      })
+
+      if (response.ok) {
+        router.push("/doctor/repeat-rx")
+        router.refresh()
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const isActionable = request.status === "pending" || request.status === "requires_consult"
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -288,420 +242,203 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
               </button>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold">Repeat Prescription Review</h1>
+                  <h1 className="text-xl font-semibold">Prescription Request</h1>
                   <StatusBadge status={request.status} />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Request #{request.id.slice(0, 8)} • Submitted {new Date(request.created_at).toLocaleDateString()}
+                  #{request.id.slice(0, 8)} &middot; {new Date(request.created_at).toLocaleDateString()}
                 </p>
               </div>
-            </div>
-            
-            {/* Eligibility quick indicator */}
-            <div className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg",
-              request.eligibility_passed
-                ? "bg-green-100 text-green-800"
-                : "bg-amber-100 text-amber-800"
-            )}>
-              {request.eligibility_passed ? (
-                <CheckCircle className="w-4 h-4" />
-              ) : (
-                <AlertTriangle className="w-4 h-4" />
-              )}
-              <span className="font-medium text-sm">
-                {request.eligibility_passed ? "Eligible" : "Requires Review"}
-              </span>
             </div>
           </div>
         </div>
       </header>
-      
-      {/* Main content */}
-      <main className="max-w-6xl mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Clinical info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Red flags section */}
-            {summary.eligibility.redFlags.length > 0 && (
-              <SectionCard title="Red Flags" icon={Flag} className="border-red-200 bg-red-50/50">
-                <div className="space-y-3">
-                  {summary.eligibility.redFlags.map((flag, i) => (
-                    <RedFlagCard key={i} flag={flag} />
-                  ))}
-                </div>
-              </SectionCard>
-            )}
-            
-            {/* Medication details */}
-            <SectionCard title="Medication" icon={Pill}>
-              <div className="space-y-0">
-                <DataRow label="Name" value={summary.medication.name} highlight />
-                <DataRow label="Strength" value={summary.medication.strength} />
-                <DataRow label="Form" value={summary.medication.form} />
-                <DataRow label="AMT Code" value={summary.medication.amtCode} />
-                <DataRow label="Current dose" value={summary.patientReported.currentDose} highlight />
-                <DataRow 
-                  label="Indication" 
-                  value={summary.patientReported.indication} 
-                />
+
+      {/* Main content - two-column request card */}
+      <main className="max-w-5xl mx-auto px-6 py-6">
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+            {/* Left: Patient details (copy-ready for Parchment) */}
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <User className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold">Patient Details</h3>
               </div>
-            </SectionCard>
-            
-            {/* P1 DOCTOR_WORKLOAD_AUDIT: Flattened clinical history - no more tabs */}
-            {/* History Section */}
-            <SectionCard title="Medication History" icon={FileText}>
-              <div className="space-y-0">
-                <DataRow 
-                  label="Stability duration" 
-                  value={summary.patientReported.stabilityDuration}
-                  highlight={summary.patientReported.stabilityDuration === "6_months_plus"}
-                />
-                <DataRow label="Last prescribed" value={summary.patientReported.lastPrescribed} />
-                <DataRow label="Original prescriber" value={summary.patientReported.originalPrescriber} />
-                <DataRow 
-                  label="Dose changed recently" 
-                  value={summary.patientReported.doseChangedRecently ? "Yes" : "No"}
-                  highlight={summary.patientReported.doseChangedRecently}
-                />
-              </div>
-            </SectionCard>
-            
-            {/* Safety Section */}
-            <SectionCard title="Safety Considerations" icon={Shield}>
-              <div className="space-y-0">
-                <DataRow 
-                  label="Side effects" 
-                  value={summary.patientReported.sideEffects}
-                  highlight={summary.patientReported.sideEffects === "significant"}
-                />
-                {summary.patientReported.sideEffectsDetails && (
-                  <DataRow 
-                    label="Side effects details" 
-                    value={summary.patientReported.sideEffectsDetails}
-                  />
-                )}
-                <DataRow 
-                  label="Pregnant/breastfeeding" 
-                  value={summary.patientReported.pregnantOrBreastfeeding ? "Yes" : "No"}
-                  highlight={summary.patientReported.pregnantOrBreastfeeding}
-                />
-                <DataRow 
-                  label="Allergies" 
-                  value={summary.patientReported.allergies.length > 0 
-                    ? summary.patientReported.allergies.join(", ")
-                    : "None reported"
-                  }
-                />
-              </div>
-            </SectionCard>
-            
-            {/* PMHx Section */}
-            <SectionCard title="Past Medical History" icon={ClipboardList}>
-              <div className="space-y-0">
-                {Object.entries(summary.patientReported.pmhxFlags).map(([key, value]) => {
-                  if (key === "otherDetails") return null
-                  return (
-                    <DataRow
-                      key={key}
-                      label={key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase())}
-                      value={value ? "Yes" : "No"}
-                      highlight={Boolean(value)}
-                    />
-                  )
-                })}
-                {summary.patientReported.otherMedications.length > 0 && (
-                  <DataRow
-                    label="Other medications"
-                    value={summary.patientReported.otherMedications.join(", ")}
-                  />
-                )}
-              </div>
-            </SectionCard>
-            
-            {/* Attestations */}
-            <SectionCard title="Attestations" icon={Shield}>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">
-                    Emergency disclaimer confirmed at{" "}
-                    {new Date(summary.attestations.emergencyDisclaimer.timestamp).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">
-                    GP follow-up attestation at{" "}
-                    {new Date(summary.attestations.gpFollowUp.timestamp).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">
-                    Terms accepted at{" "}
-                    {new Date(summary.attestations.termsAndConditions.timestamp).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </SectionCard>
-          </div>
-          
-          {/* Right column - Patient info and decision */}
-          <div className="space-y-6">
-            {/* Patient info */}
-            <SectionCard title="Patient" icon={User}>
+
               {patient ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{patient.full_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        DOB: {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : "Not provided"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 pt-2 border-t">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span>{patient.email}</span>
-                    </div>
-                    {patient.phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-4 h-4 text-muted-foreground" />
-                        <span>{patient.phone}</span>
-                      </div>
-                    )}
-                    {patient.address && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span>{patient.address}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {patient.medicare_number && (
-                    <div className="pt-2 border-t">
-                      <p className="text-xs text-muted-foreground mb-1">Medicare</p>
-                      <p className="text-sm font-mono">
-                        {patient.medicare_number} / {patient.medicare_irn}
-                      </p>
-                    </div>
-                  )}
+                <div className="space-y-0">
+                  <DataRow label="Name" value={patient.full_name} copyable />
+                  <DataRow
+                    label="DOB"
+                    value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : null}
+                    copyable
+                  />
+                  <DataRow label="Medicare" value={
+                    patient.medicare_number
+                      ? `${patient.medicare_number}${patient.medicare_irn ? ` / ${patient.medicare_irn}` : ""}`
+                      : null
+                  } copyable />
+                  <DataRow label="IHI" value={patient.ihi_number} copyable />
+                  <DataRow label="Address" value={patient.address} copyable />
+                  <DataRow label="Phone" value={patient.phone} copyable />
+                  <DataRow label="Email" value={patient.email} copyable />
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Guest patient</p>
-                  <p>{request.guest_email}</p>
-                </div>
-              )}
-            </SectionCard>
-            
-            {/* AI suggestion */}
-            <SectionCard title="Suggested Action" icon={ClipboardList}>
-              <div className={cn(
-                "p-4 rounded-lg",
-                summary.suggestedAction.recommendation === "approve"
-                  ? "bg-green-50 border border-green-200"
-                  : summary.suggestedAction.recommendation === "decline"
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-amber-50 border border-amber-200"
-              )}>
-                <div className="flex items-center gap-2 mb-2">
-                  {summary.suggestedAction.recommendation === "approve" ? (
-                    <ThumbsUp className="w-4 h-4 text-green-600" />
-                  ) : summary.suggestedAction.recommendation === "decline" ? (
-                    <ThumbsDown className="w-4 h-4 text-red-600" />
-                  ) : (
-                    <MessageSquare className="w-4 h-4 text-dawn-600" />
-                  )}
-                  <span className="font-semibold capitalize">
-                    {summary.suggestedAction.recommendation}
-                  </span>
-                </div>
-                <p className="text-sm">{summary.suggestedAction.reasoning}</p>
-                {summary.suggestedAction.recommendation === "approve" && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Suggested repeats: {summary.suggestedAction.suggestedRepeats}
-                  </p>
-                )}
-              </div>
-            </SectionCard>
-            
-            {/* Decision form */}
-            {request.status === "pending" || request.status === "requires_consult" ? (
-              <SectionCard title="Your Decision" className="border-primary/20">
-                <div className="space-y-4">
-                  {/* Decision buttons */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => setDecision("approved")}
-                      className={cn(
-                        "p-3 rounded-lg border-2 text-center transition-all",
-                        decision === "approved"
-                          ? "border-green-500 bg-green-50"
-                          : "border-border hover:border-green-300"
-                      )}
-                    >
-                      <CheckCircle className={cn(
-                        "w-5 h-5 mx-auto mb-1",
-                        decision === "approved" ? "text-green-600" : "text-muted-foreground"
-                      )} />
-                      <span className="text-xs font-medium">Approve</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => setDecision("requires_consult")}
-                      className={cn(
-                        "p-3 rounded-lg border-2 text-center transition-all",
-                        decision === "requires_consult"
-                          ? "border-dawn-500 bg-amber-50"
-                          : "border-border hover:border-amber-300"
-                      )}
-                    >
-                      <MessageSquare className={cn(
-                        "w-5 h-5 mx-auto mb-1",
-                        decision === "requires_consult" ? "text-dawn-600" : "text-muted-foreground"
-                      )} />
-                      <span className="text-xs font-medium">Consult</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => setDecision("declined")}
-                      className={cn(
-                        "p-3 rounded-lg border-2 text-center transition-all",
-                        decision === "declined"
-                          ? "border-red-500 bg-red-50"
-                          : "border-border hover:border-red-300"
-                      )}
-                    >
-                      <XCircle className={cn(
-                        "w-5 h-5 mx-auto mb-1",
-                        decision === "declined" ? "text-red-600" : "text-muted-foreground"
-                      )} />
-                      <span className="text-xs font-medium">Decline</span>
-                    </button>
-                  </div>
-                  
-                  {/* Reason (always required) */}
-                  <div className="space-y-2">
-                    <Label>Decision reason *</Label>
-                    <Textarea
-                      value={decisionReason}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDecisionReason(e.target.value)}
-                      placeholder="Explain your decision..."
-                      className="min-h-[80px]"
-                    />
-                  </div>
-                  
-                  {/* Red flag review */}
-                  {summary.eligibility.redFlags.length > 0 && (
-                    <div className="space-y-2">
-                      <Label>Red flag review *</Label>
-                      <Textarea
-                        value={redFlagReview}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRedFlagReview(e.target.value)}
-                        placeholder="Document your review of the flagged issues..."
-                        className="min-h-[80px]"
-                      />
+                  {request.guest_email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      <span>{request.guest_email}</span>
+                      <CopyButton text={request.guest_email} label="email" />
                     </div>
                   )}
-                  
-                  {/* Approval-specific fields */}
-                  {decision === "approved" && (
-                    <>
-                      <div className="space-y-2">
-                        <Label>PBS Schedule</Label>
-                        <Select value={pbsSchedule} onValueChange={setPbsSchedule}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select PBS schedule" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="s85">S85 - General Schedule</SelectItem>
-                            <SelectItem value="s100">S100 - Highly Specialised</SelectItem>
-                            <SelectItem value="private">Private (non-PBS)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label>Pack quantity</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={packQuantity}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPackQuantity(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Repeats (max 1)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="1"
-                            value={repeatsGranted}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRepeatsGranted(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Dose/frequency</Label>
-                        <Input
-                          value={doseInstructions}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDoseInstructions(e.target.value)}
-                          placeholder="e.g., 10mg once daily"
-                        />
-                      </div>
-                    </>
-                  )}
-                  
-                  {/* Clinical notes */}
-                  <div className="space-y-2">
-                    <Label>Clinical notes (optional)</Label>
-                    <Textarea
-                      value={clinicalNotes}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClinicalNotes(e.target.value)}
-                      placeholder="Any additional notes..."
-                    />
+                </div>
+              )}
+
+              {/* Quick copy all button */}
+              {patient && (
+                <button
+                  onClick={async () => {
+                    const lines = [
+                      patient.full_name,
+                      patient.date_of_birth ? `DOB: ${new Date(patient.date_of_birth).toLocaleDateString()}` : null,
+                      patient.medicare_number ? `Medicare: ${patient.medicare_number}${patient.medicare_irn ? ` / ${patient.medicare_irn}` : ""}` : null,
+                      patient.ihi_number ? `IHI: ${patient.ihi_number}` : null,
+                      patient.address,
+                      patient.phone,
+                      patient.email,
+                    ].filter(Boolean).join("\n")
+                    try {
+                      await navigator.clipboard.writeText(lines)
+                    } catch { /* ignore */ }
+                  }}
+                  className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <Copy className="w-3 h-3" />
+                  Copy all patient details
+                </button>
+              )}
+            </div>
+
+            {/* Right: Medication requested + patient notes */}
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Pill className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold">Medication Requested</h3>
+              </div>
+
+              <div className="space-y-0">
+                <DataRow label="Name" value={request.medication_display} copyable />
+                <DataRow label="Strength" value={request.medication_strength} copyable />
+                <DataRow label="Form" value={request.medication_form} copyable />
+              </div>
+
+              {/* Patient notes */}
+              {patientNotes && (
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Patient Notes</span>
                   </div>
-                  
-                  {/* Submit */}
+                  <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                    {patientNotes}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom: Actions */}
+          {isActionable ? (
+            <div className="border-t border-border px-6 py-5 bg-muted/20">
+              {!showDecline ? (
+                <div className="flex items-center gap-3">
+                  {/* Primary action: Mark Script Sent */}
                   <Button
-                    onClick={handleSubmitDecision}
-                    disabled={!decision || !decisionReason || isSubmitting}
-                    className="w-full h-12"
+                    onClick={handleMarkScriptSent}
+                    disabled={isSubmitting}
+                    className="h-12 px-8 gap-2"
+                    size="lg"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Submitting...
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
                       </>
                     ) : (
-                      <>Submit Decision</>
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Mark Script Sent
+                      </>
                     )}
                   </Button>
+
+                  {/* Secondary action: Decline */}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDecline(true)}
+                    disabled={isSubmitting}
+                    className="h-12 gap-2 text-destructive border-destructive/30 hover:bg-destructive/5"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Decline
+                  </Button>
                 </div>
-              </SectionCard>
-            ) : (
-              <SectionCard title="Decision Made">
-                <div className="space-y-2">
-                  <StatusBadge status={request.status} />
-                  {request.decisions?.[0] && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {request.decisions[0].decision_reason}
-                    </p>
-                  )}
+              ) : (
+                <div className="space-y-3 max-w-lg">
+                  <Label className="text-sm font-medium">Reason for declining *</Label>
+                  <Textarea
+                    value={declineReason}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDeclineReason(e.target.value)}
+                    placeholder="Explain why this request is being declined..."
+                    className="min-h-[80px]"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleDecline}
+                      disabled={!declineReason.trim() || isSubmitting}
+                      variant="destructive"
+                      className="gap-2"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Declining...
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-4 h-4" />
+                          Confirm Decline
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setShowDecline(false)
+                        setDeclineReason("")
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-              </SectionCard>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="border-t border-border px-6 py-5 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <StatusBadge status={request.status} />
+                {request.decisions?.[0] && (
+                  <span className="text-sm text-muted-foreground">
+                    &mdash; {request.decisions[0].decision_reason}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -23,8 +23,8 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     ctaText: `Get your certificate — ${PRICING_DISPLAY.MED_CERT}`,
     ctaHref: '/request?service=med-cert',
     images: {
-      primary: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face',
+      primary: 'https://api.dicebear.com/7.x/notionists/svg?seed=FunnelDoc1',
+      secondary: 'https://api.dicebear.com/7.x/notionists/svg?seed=FunnelDoc2',
     },
     highlightBadge: {
       text: 'Save $40–70 vs a GP visit',

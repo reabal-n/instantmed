@@ -14,6 +14,8 @@ import { HeartPulse } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
@@ -36,7 +38,9 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
   const conditions = (answers.conditions as string) || ""
   const hasOtherMedications = answers.hasOtherMedications as boolean | undefined
   const otherMedications = (answers.otherMedications as string) || ""
-  
+  const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
+  const hasAdverseMedicationReactions = answers.hasAdverseMedicationReactions as boolean | undefined
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
@@ -224,9 +228,40 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
         )}
       </FormField>
 
+      {/* Additional screening — informational flags for the doctor */}
+      <div className="space-y-4 pt-2 border-t">
+        <p className="text-xs text-muted-foreground">
+          The following help our doctors ensure your treatment is safe. These are informational only.
+        </p>
+
+        {/* Pregnancy / breastfeeding */}
+        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/30">
+          <Label htmlFor="pregnant-toggle" className="text-sm cursor-pointer leading-snug flex-1">
+            Are you currently pregnant or breastfeeding?
+          </Label>
+          <Switch
+            id="pregnant-toggle"
+            checked={isPregnantOrBreastfeeding === true}
+            onCheckedChange={(checked) => setAnswer('isPregnantOrBreastfeeding', checked)}
+          />
+        </div>
+
+        {/* Adverse medication reactions */}
+        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/30">
+          <Label htmlFor="adverse-reactions-toggle" className="text-sm cursor-pointer leading-snug flex-1">
+            Have you had any adverse reactions to medications?
+          </Label>
+          <Switch
+            id="adverse-reactions-toggle"
+            checked={hasAdverseMedicationReactions === true}
+            onCheckedChange={(checked) => setAnswer('hasAdverseMedicationReactions', checked)}
+          />
+        </div>
+      </div>
+
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!canContinue}
       >

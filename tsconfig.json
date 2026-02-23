@@ -44,6 +44,7 @@
     "next-app-template",
     "instantmed-main",
     "tina",
-    "__tests__"
+    "__tests__",
+    "_deprecated"
   ]
 }

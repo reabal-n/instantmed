@@ -22,8 +22,11 @@ export interface PriceIdInput {
 export function getAbsenceDays(answers?: Record<string, unknown>): number {
   if (!answers) return 1
   
-  // Unified flow uses 'duration' directly as "1" or "2"
+  // Unified flow uses 'duration' directly as "1", "2", or "3"
   const duration = answers.duration as string | undefined
+  if (duration === '3') {
+    return 3
+  }
   if (duration === '2') {
     return 2
   }
@@ -105,6 +108,15 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
   if (category === "medical_certificate") {
     const absenceDays = getAbsenceDays(answers)
     
+    // 3-day certificates use highest price
+    if (absenceDays === 3) {
+      const priceId = process.env.STRIPE_PRICE_MEDCERT_3DAY
+      if (!priceId) {
+        throw new Error("Missing STRIPE_PRICE_MEDCERT_3DAY environment variable")
+      }
+      return priceId
+    }
+
     // 2-day certificates use higher price
     if (absenceDays === 2) {
       const priceId = process.env.STRIPE_PRICE_MEDCERT_2DAY
@@ -113,7 +125,7 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
       }
       return priceId
     }
-    
+
     // 1-day certificates (default)
     const priceId = process.env.STRIPE_PRICE_MEDCERT
     if (!priceId) {
@@ -171,6 +183,7 @@ export function getDisplayPriceForCategory(
   
   switch (category) {
     case "medical_certificate":
+      if (absenceDays === 3) return PRICING_DISPLAY.MED_CERT_3DAY
       return absenceDays === 2 ? PRICING_DISPLAY.MED_CERT_2DAY : PRICING_DISPLAY.MED_CERT
     case "prescription":
       return PRICING_DISPLAY.REPEAT_SCRIPT
@@ -187,6 +200,7 @@ export function getDisplayPriceForCategory(
  */
 export function getBasePriceCents(category: ServiceCategory, absenceDays?: number): number {
   if (category === "medical_certificate") {
+    if (absenceDays === 3) return 3995
     return absenceDays === 2 ? 2995 : 1995
   }
   
