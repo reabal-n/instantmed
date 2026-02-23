@@ -16,7 +16,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock, CreditCard, ShieldCheck, UserX } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
@@ -277,8 +277,8 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           onClick={() => handleConsentChange(!consentGiven)}
         >
           {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-          <span onClick={(e) => e.stopPropagation()} className="mt-0.5 shrink-0">
-            <Checkbox
+          <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
+            <Switch
               checked={consentGiven}
               onCheckedChange={(checked) => handleConsentChange(checked)}
             />
