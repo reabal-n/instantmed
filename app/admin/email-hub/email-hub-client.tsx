@@ -234,7 +234,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/email-queue">
+              <Link href="/admin/email-hub">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Database className="h-5 w-5" />
@@ -514,7 +514,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
 
           {/* Links to detailed views */}
           <div className="flex gap-3">
-            <Link href="/admin/email-queue">
+            <Link href="/admin/email-hub">
               <Button variant="outline">
                 <Clock className="h-4 w-4 mr-2" />
                 Failed Certificate Queue

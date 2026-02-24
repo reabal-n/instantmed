@@ -141,7 +141,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
 
       log.info("Email retry successful via outbox", { certificateId, outboxId: emailResult.outboxId })
 
-      revalidatePath("/admin/email-queue")
+      revalidatePath("/admin/email-hub")
       revalidatePath("/doctor/admin/email-outbox")
       return { success: true }
     } else {
@@ -346,7 +346,7 @@ export async function markEmailResolved(
 
     log.info("Email marked as resolved", { certificateId, adminId: adminProfile.id, resolution })
 
-    revalidatePath("/admin/email-queue")
+    revalidatePath("/admin/email-hub")
     return { success: true }
   } catch (error) {
     log.error("Mark resolved error", {}, error instanceof Error ? error : undefined)

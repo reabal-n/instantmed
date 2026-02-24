@@ -158,8 +158,8 @@ class PushNotificationManager {
     try {
       const notification = new Notification(payload.title, {
         body: payload.body,
-        icon: payload.icon || '/favicon.ico',
-        badge: payload.badge || '/favicon.ico',
+        icon: payload.icon || '/apple-icon.png',
+        badge: payload.badge || '/apple-icon.png',
         tag: payload.tag,
         data: payload.data,
         requireInteraction: false,
@@ -303,7 +303,7 @@ export const NotificationTemplates = {
   certificateReady: (intakeId: string): NotificationPayload => ({
     title: 'Certificate Ready!',
     body: 'Your medical certificate is ready for download.',
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'certificate-ready',
     data: { intakeId, url: `/patient/intakes/${intakeId}` }
   }),
@@ -312,7 +312,7 @@ export const NotificationTemplates = {
   prescriptionReady: (prescriptionId: string): NotificationPayload => ({
     title: 'eScript Ready',
     body: 'Your eScript has been sent to your phone via SMS.',
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'prescription-ready',
     data: { prescriptionId, url: `/patient/prescriptions` }
   }),
@@ -321,7 +321,7 @@ export const NotificationTemplates = {
   reviewComplete: (intakeId: string): NotificationPayload => ({
     title: 'Doctor Review Complete',
     body: 'Your consultation has been reviewed by a doctor.',
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'review-complete',
     data: { intakeId, url: `/track/${intakeId}` }
   }),
@@ -330,7 +330,7 @@ export const NotificationTemplates = {
   paymentRequired: (intakeId: string): NotificationPayload => ({
     title: 'Payment Required',
     body: 'Complete your payment to receive your certificate.',
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'payment-required',
     data: { intakeId, url: `/patient/payment/${intakeId}` }
   }),
@@ -339,7 +339,7 @@ export const NotificationTemplates = {
   appointmentReminder: (appointmentTime: string): NotificationPayload => ({
     title: 'Appointment Reminder',
     body: `Your appointment is scheduled for ${appointmentTime}`,
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'appointment-reminder',
     data: { url: '/patient/appointments' }
   }),
@@ -348,7 +348,7 @@ export const NotificationTemplates = {
   systemMaintenance: (message: string): NotificationPayload => ({
     title: 'System Maintenance',
     body: message,
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'system-maintenance',
     data: { url: '/status' }
   }),
@@ -357,7 +357,7 @@ export const NotificationTemplates = {
   newMessage: (senderName: string, messagePreview: string): NotificationPayload => ({
     title: `New message from ${senderName}`,
     body: messagePreview,
-    icon: '/favicon.ico',
+    icon: '/apple-icon.png',
     tag: 'new-message',
     data: { url: '/patient/messages' }
   })

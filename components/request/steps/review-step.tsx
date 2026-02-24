@@ -34,6 +34,13 @@ const CERT_TYPE_LABELS: Record<string, string> = {
   'carer': 'Carer\'s Leave',
 }
 
+const SYMPTOM_DURATION_LABELS: Record<string, string> = {
+  'less_than_24h': 'Less than 24 hours',
+  '1_2_days': '1-2 days',
+  '3_5_days': '3-5 days',
+  '1_week_plus': 'Over a week',
+}
+
 const TRUNCATE_THRESHOLD = 60
 
 function ExpandableValue({ value }: { value: string }) {
@@ -149,7 +156,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       title: 'Symptoms',
       items: [
         { label: 'Symptoms', value: symptoms?.join(', ') || '' },
-        { label: 'Duration', value: symptomDuration || '' },
+        { label: 'Duration', value: SYMPTOM_DURATION_LABELS[symptomDuration] || symptomDuration || '' },
         { label: 'Details', value: symptomDetails || '' },
       ],
       stepId: 'symptoms',
@@ -239,18 +246,33 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     // Hair loss assessment
     if (consultSubtype === 'hair_loss') {
       const PATTERN_LABELS: Record<string, string> = {
+        male_pattern: 'Male pattern baldness',
         receding: 'Receding hairline',
         thinning_crown: 'Thinning at crown',
+        overall_thinning: 'Overall thinning',
         overall: 'Overall thinning',
-        patchy: 'Patchy loss',
+        patchy: 'Patchy hair loss',
         other: 'Other pattern',
+      }
+      const HAIR_DURATION_LABELS: Record<string, string> = {
+        less_than_6_months: 'Less than 6 months',
+        '6_to_12_months': '6-12 months',
+        '1_to_2_years': '1-2 years',
+        more_than_2_years: 'More than 2 years',
+      }
+      const FAMILY_HISTORY_LABELS: Record<string, string> = {
+        yes_father: "Yes, father's side",
+        yes_mother: "Yes, mother's side",
+        yes_both: 'Yes, both sides',
+        no: 'No family history',
+        unknown: 'Not sure',
       }
       sections.push({
         title: 'Hair Loss Assessment',
         items: [
           { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '—') },
-          { label: 'Duration', value: String(answers.hairDuration || '—') },
-          { label: 'Family history', value: String(answers.hairFamilyHistory || '—') },
+          { label: 'Duration', value: HAIR_DURATION_LABELS[answers.hairDuration as string] || String(answers.hairDuration || '—') },
+          { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '—') },
         ],
         stepId: 'hair-loss-assessment',
       })

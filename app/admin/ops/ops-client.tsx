@@ -145,7 +145,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
             {emails.failed > 0 && (
               <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/admin/email-queue">View Queue →</Link>
+                <Link href="/admin/email-hub">View Queue →</Link>
               </Button>
             )}
           </div>
@@ -265,7 +265,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               <Link href="/admin/webhook-dlq">Webhook DLQ</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/admin/email-queue">Email Queue</Link>
+              <Link href="/admin/email-hub">Email Queue</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/admin/audit">Audit Logs</Link>
