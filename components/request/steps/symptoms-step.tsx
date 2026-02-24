@@ -48,10 +48,9 @@ const SYMPTOMS_LIST = [
 ] as const
 
 const SYMPTOM_DURATION_OPTIONS = [
-  { value: "less_than_24h", label: "Less than 24 hours" },
-  { value: "1_2_days", label: "1-2 days" },
-  { value: "3_5_days", label: "3-5 days" },
-  { value: "1_week_plus", label: "Over a week" },
+  { value: "1_day", label: "1 day" },
+  { value: "2_days", label: "2 days" },
+  { value: "3_days", label: "3 days" },
 ] as const
 
 export default function SymptomsStep({ onNext }: SymptomsStepProps) {
@@ -194,18 +193,27 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
           content: "Symptom duration helps the doctor assess whether this is an acute illness or ongoing condition." 
         }}
       >
-        <div className="flex flex-wrap gap-2 mt-2">
-          {SYMPTOM_DURATION_OPTIONS.map((option) => (
-            <EnhancedSelectionButton
-              key={option.value}
-              variant="chip"
-              selected={symptomDuration === option.value}
-              onClick={() => setAnswer("symptomDuration", option.value)}
-              className="touch-manipulation"
-            >
-              {option.label}
-            </EnhancedSelectionButton>
-          ))}
+        <div className="space-y-2 mt-2">
+          <div className="flex gap-2">
+            {SYMPTOM_DURATION_OPTIONS.map((option) => (
+              <EnhancedSelectionButton
+                key={option.value}
+                variant="chip"
+                selected={symptomDuration === option.value}
+                onClick={() => setAnswer("symptomDuration", option.value)}
+                className="flex-1 touch-manipulation"
+              >
+                {option.label}
+              </EnhancedSelectionButton>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Symptoms lasting 4+ days may require a{" "}
+            <a href="/request?service=consult" className="text-primary underline underline-offset-2 hover:text-primary/80">
+              general consultation
+            </a>{" "}
+            instead.
+          </p>
         </div>
       </FormField>
 

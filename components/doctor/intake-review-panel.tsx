@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -581,20 +583,18 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                     </p>
                   ))}
                 </div>
-                <div className="flex items-center space-x-2 pt-2 border-t border-destructive/20">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center gap-3 pt-2 border-t border-destructive/20">
+                  <Switch
                     id="panel-acknowledge-flags"
                     checked={redFlagsAcknowledged}
-                    onChange={(e) => setRedFlagsAcknowledged(e.target.checked)}
-                    className="h-4 w-4 rounded border-destructive text-destructive focus:ring-destructive"
+                    onCheckedChange={setRedFlagsAcknowledged}
                   />
-                  <label
+                  <Label
                     htmlFor="panel-acknowledge-flags"
-                    className="text-sm font-medium text-destructive-foreground"
+                    className="text-sm font-medium text-destructive-foreground cursor-pointer"
                   >
                     I have reviewed these safety flags and determined it is appropriate to proceed
-                  </label>
+                  </Label>
                 </div>
               </CardContent>
             </Card>

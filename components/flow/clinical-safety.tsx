@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Switch } from "@/components/ui/switch"
 
 // =============================================================================
 // TYPES
@@ -167,22 +168,22 @@ export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclai
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-lg bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 cursor-pointer hover:bg-white/90 dark:hover:bg-white/10 transition-colors">
-        <input
-          type="checkbox"
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10">
+        <Switch
+          id="safety-disclaimer"
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-5 w-5 rounded border-slate-300 dark:border-white/10 text-primary focus:ring-primary"
+          onCheckedChange={onChange}
+          className="mt-0.5"
         />
-        <div className="space-y-0.5">
-          <span className="text-sm font-medium text-foreground">
+        <label htmlFor="safety-disclaimer" className="space-y-0.5 cursor-pointer">
+          <span className="text-sm font-medium text-foreground block">
             I confirm this is not a medical emergency
           </span>
           <span className="text-xs text-muted-foreground block">
             I understand this is a non-urgent telehealth service
           </span>
-        </div>
-      </label>
+        </label>
+      </div>
     </div>
   )
 }

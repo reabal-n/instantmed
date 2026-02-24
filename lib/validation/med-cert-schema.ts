@@ -12,10 +12,14 @@ export interface MedCertValidationResult {
 const VALID_CERT_TYPES = ["work", "study", "carer", "sick_leave", "uni"] as const
 
 // Valid duration values
-const VALID_DURATIONS = ["1", "2", "1 day", "2 days"] as const
+const VALID_DURATIONS = ["1", "2", "3", "1 day", "2 days", "3 days"] as const
 
 // Valid symptom duration values
 const VALID_SYMPTOM_DURATIONS = [
+  "1_day",
+  "2_days",
+  "3_days",
+  // Legacy values (for existing submissions)
   "less_than_24h",
   "1_2_days",
   "3_5_days",

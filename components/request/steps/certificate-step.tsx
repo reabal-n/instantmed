@@ -15,12 +15,12 @@ import { Briefcase, GraduationCap, Heart, Shield } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface CertificateStepProps {
@@ -99,33 +99,45 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         </AlertDescription>
       </Alert>
 
-      {/* Certificate type */}
+      {/* Certificate type — segmented control */}
       <FormField
         label="Certificate type"
         required
         error={touched.certType ? errors.certType : undefined}
         hint="Choose the type that matches your situation"
-        helpContent={{ 
-          title: "Which type should I choose?", 
-          content: "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member." 
+        helpContent={{
+          title: "Which type should I choose?",
+          content: "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member."
         }}
       >
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {CERT_TYPES.map((type) => (
-            <EnhancedSelectionButton
-              key={type.id}
-              variant="option"
-              selected={certType === type.id}
-              onClick={() => setAnswer("certType", type.id)}
-              icon={type.icon}
-              label={type.label}
-              className="touch-manipulation"
-            />
-          ))}
+        <div className="relative flex rounded-xl bg-slate-100 dark:bg-white/5 p-1 gap-1 mt-2">
+          {CERT_TYPES.map((type) => {
+            const isSelected = certType === type.id
+            const Icon = type.icon
+            return (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setAnswer("certType", type.id)}
+                className={cn(
+                  "relative flex-1 flex flex-col items-center gap-1 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation",
+                  isSelected
+                    ? "bg-white dark:bg-white/10 text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className={cn(
+                  "w-4 h-4 transition-colors duration-200",
+                  isSelected ? "text-primary" : "text-muted-foreground/60"
+                )} />
+                <span>{type.label}</span>
+              </button>
+            )
+          })}
         </div>
       </FormField>
 
-      {/* Duration with tiered pricing */}
+      {/* Duration with tiered pricing — segmented selector */}
       <FormField
         label="How many days?"
         required
@@ -136,26 +148,58 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         }}
       >
         <div className="space-y-3 mt-2">
-          <div className="flex gap-2">
-            {MED_CERT_DURATIONS.options.map((days) => (
-              <EnhancedSelectionButton
-                key={days}
-                variant="chip"
-                selected={duration === String(days)}
-                onClick={() => setAnswer("duration", String(days))}
-                className="flex-1 touch-manipulation"
-              >
-                <span className="flex flex-col items-center gap-0.5">
+          {/* Segmented control */}
+          <div className="relative flex rounded-xl bg-slate-100 dark:bg-white/5 p-1 gap-1">
+            {MED_CERT_DURATIONS.options.map((days) => {
+              const isSelected = duration === String(days)
+              return (
+                <button
+                  key={days}
+                  type="button"
+                  onClick={() => setAnswer("duration", String(days))}
+                  className={cn(
+                    "relative flex-1 flex flex-col items-center gap-0.5 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation",
+                    isSelected
+                      ? "bg-white dark:bg-white/10 text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
                   <span>{MED_CERT_DURATIONS.labels[days]}</span>
-                  <span className="text-xs font-normal opacity-70">${MED_CERT_DURATIONS.prices[days]}</span>
-                </span>
-              </EnhancedSelectionButton>
-            ))}
+                  <span className={cn(
+                    "text-xs font-semibold transition-colors duration-200",
+                    isSelected ? "text-primary" : "text-muted-foreground/60"
+                  )}>
+                    ${MED_CERT_DURATIONS.prices[days]}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* Soft value hint - not salesy */}
-          <p className="text-xs text-muted-foreground text-center">
-            No waiting rooms. Reviewed by a doctor within ~1 hour.
+          {/* Active price display */}
+          {duration && (
+            <div className="flex items-center justify-between px-1 animate-in fade-in duration-200">
+              <p className="text-xs text-muted-foreground">
+                No waiting rooms. Reviewed by a doctor within ~1 hour.
+              </p>
+              <span className="text-sm font-semibold text-primary">
+                ${MED_CERT_DURATIONS.prices[Number(duration) as 1 | 2 | 3]}
+              </span>
+            </div>
+          )}
+
+          {!duration && (
+            <p className="text-xs text-muted-foreground text-center">
+              No waiting rooms. Reviewed by a doctor within ~1 hour.
+            </p>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Need 4+ days? You&apos;ll need a{" "}
+            <a href="/request?service=consult" className="text-primary underline underline-offset-2 hover:text-primary/80">
+              general consultation
+            </a>
+            .
           </p>
         </div>
       </FormField>

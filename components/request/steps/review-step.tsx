@@ -8,7 +8,6 @@
 import { useState } from "react"
 import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
@@ -35,6 +34,10 @@ const CERT_TYPE_LABELS: Record<string, string> = {
 }
 
 const SYMPTOM_DURATION_LABELS: Record<string, string> = {
+  '1_day': '1 day',
+  '2_days': '2 days',
+  '3_days': '3 days',
+  // Legacy values (for existing submissions)
   'less_than_24h': 'Less than 24 hours',
   '1_2_days': '1-2 days',
   '3_5_days': '3-5 days',
@@ -69,28 +72,28 @@ function ExpandableValue({ value }: { value: string }) {
   )
 }
 
-function ReviewSection({ 
-  title, 
-  items, 
-  onEdit 
-}: { 
+function ReviewSection({
+  title,
+  items,
+  onEdit
+}: {
   title: string
   items: { label: string; value: string }[]
-  onEdit?: () => void 
+  onEdit?: () => void
 }) {
   return (
-    <Card className="border-muted">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <div className="rounded-2xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1">
+          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
             <Edit2 className="w-3 h-3" />
             Edit
           </Button>
         )}
-      </CardHeader>
-      <CardContent className="pt-0">
-        <dl className="space-y-1.5">
+      </div>
+      <div className="px-4 pb-3">
+        <dl className="space-y-2">
           {items.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted-foreground">{item.label}</dt>
@@ -100,8 +103,8 @@ function ReviewSection({
             </div>
           ))}
         </dl>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -375,43 +378,47 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         ))}
       </div>
 
-      {/* Reassurance micro-copy */}
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground py-2">
-        <span className="flex items-center gap-1">
-          <Shield className="w-3.5 h-3.5 text-emerald-600" />
-          Reviewed by a real Australian doctor
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5 text-primary" />
-          Most certs issued within 30 minutes
-        </span>
-        <span className="flex items-center gap-1">
-          <RefreshCw className="w-3.5 h-3.5 text-green-600" />
-          Full refund if we can&apos;t help
-        </span>
+      {/* Reassurance badges — frosted glass */}
+      <div className="grid grid-cols-3 gap-2 py-2">
+        {[
+          { icon: Shield, color: 'text-emerald-600', label: 'Real Australian doctor' },
+          { icon: Clock, color: 'text-primary', label: 'Issued within ~1 hour' },
+          { icon: RefreshCw, color: 'text-green-600', label: 'Full refund guarantee' },
+        ].map((badge) => (
+          <div
+            key={badge.label}
+            className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 backdrop-blur-sm"
+          >
+            <badge.icon className={`w-4 h-4 ${badge.color}`} />
+            <span className="text-[11px] text-muted-foreground text-center leading-tight">{badge.label}</span>
+          </div>
+        ))
+        }
       </div>
 
-      {/* Safety consent — required before proceeding to checkout */}
-      <Card className={`border-2 ${safetyConfirmed ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'}`}>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${safetyConfirmed ? 'text-emerald-600' : 'text-amber-600'}`} />
-            <div className="flex-1 space-y-3">
-              <p className="text-sm font-medium">Emergency declaration</p>
-              <div className="flex items-center gap-3">
-                <Switch
-                  id="safety-consent"
-                  checked={safetyConfirmed}
-                  onCheckedChange={setSafetyConfirmed}
-                />
-                <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug">
-                  I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
-                </Label>
-              </div>
+      {/* Safety consent — frosted glass card */}
+      <div className={`rounded-2xl border-2 p-4 backdrop-blur-sm transition-colors duration-300 ${
+        safetyConfirmed
+          ? 'border-emerald-300/60 dark:border-emerald-700/40 bg-emerald-50/40 dark:bg-emerald-950/20'
+          : 'border-amber-300/60 dark:border-amber-700/40 bg-amber-50/40 dark:bg-amber-950/20'
+      }`}>
+        <div className="flex items-start gap-3">
+          <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 transition-colors duration-300 ${safetyConfirmed ? 'text-emerald-600' : 'text-amber-600'}`} />
+          <div className="flex-1 space-y-3">
+            <p className="text-sm font-medium">Emergency declaration</p>
+            <div className="flex items-center gap-3">
+              <Switch
+                id="safety-consent"
+                checked={safetyConfirmed}
+                onCheckedChange={setSafetyConfirmed}
+              />
+              <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug">
+                I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
+              </Label>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Continue button */}
       <Button onClick={onNext} className="w-full h-12 mt-6" disabled={!safetyConfirmed}>
