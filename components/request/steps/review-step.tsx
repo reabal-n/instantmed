@@ -6,7 +6,7 @@
  */
 
 import { useState } from "react"
-import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
+import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -83,7 +83,7 @@ function ReviewSection({
 }) {
   return (
     <div className="rounded-2xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+      <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
           <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
@@ -92,8 +92,8 @@ function ReviewSection({
           </Button>
         )}
       </div>
-      <div className="px-4 pb-3">
-        <dl className="space-y-2">
+      <div className="px-5 pb-4">
+        <dl className="space-y-3">
           {items.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted-foreground">{item.label}</dt>
@@ -367,7 +367,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       </div>
 
       {/* Review sections */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {sections.map((section, i) => (
           <ReviewSection
             key={i}
@@ -396,27 +396,17 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         }
       </div>
 
-      {/* Safety consent — frosted glass card */}
-      <div className={`rounded-2xl border-2 p-4 backdrop-blur-sm transition-colors duration-300 ${
-        safetyConfirmed
-          ? 'border-emerald-300/60 dark:border-emerald-700/40 bg-emerald-50/40 dark:bg-emerald-950/20'
-          : 'border-amber-300/60 dark:border-amber-700/40 bg-amber-50/40 dark:bg-amber-950/20'
-      }`}>
-        <div className="flex items-start gap-3">
-          <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 transition-colors duration-300 ${safetyConfirmed ? 'text-emerald-600' : 'text-amber-600'}`} />
-          <div className="flex-1 space-y-3">
-            <p className="text-sm font-medium">Emergency declaration</p>
-            <div className="flex items-center gap-3">
-              <Switch
-                id="safety-consent"
-                checked={safetyConfirmed}
-                onCheckedChange={setSafetyConfirmed}
-              />
-              <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug">
-                I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
-              </Label>
-            </div>
-          </div>
+      {/* Safety consent */}
+      <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5 p-5">
+        <div className="flex items-center gap-3">
+          <Switch
+            id="safety-consent"
+            checked={safetyConfirmed}
+            onCheckedChange={setSafetyConfirmed}
+          />
+          <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
+            I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
+          </Label>
         </div>
       </div>
 
