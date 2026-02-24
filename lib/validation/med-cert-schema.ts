@@ -55,7 +55,7 @@ export function validateMedCertPayload(
   if (!duration || typeof duration !== "string") {
     return {
       valid: false,
-      error: "Please select a duration (1 or 2 days).",
+      error: "Please select a duration (1, 2, or 3 days).",
     }
   }
 
@@ -63,7 +63,7 @@ export function validateMedCertPayload(
   if (!VALID_DURATIONS.includes(duration as typeof VALID_DURATIONS[number])) {
     return {
       valid: false,
-      error: "Invalid duration. Please select 1 or 2 days.",
+      error: "Invalid duration. Please select 1, 2, or 3 days.",
     }
   }
 
