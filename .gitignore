@@ -61,6 +61,12 @@ storybook-static
 .windsurf/
 .cursor/
 
+# Playwright MCP logs
+.playwright-mcp/
+
+# Audit/debug screenshots
+*.png
+
 node_modules
 node_modules 2
 .env
