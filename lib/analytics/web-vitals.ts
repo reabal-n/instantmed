@@ -81,29 +81,79 @@ function reportMetric(metric: WebVitalMetric, config: WebVitalsConfig) {
 
 /**
  * Initialize Web Vitals monitoring
+ *
+ * Uses the PerformanceObserver API directly to avoid the web-vitals package dependency.
+ * PostHog's JS SDK also auto-captures $web_vitals events, so this provides
+ * supplemental dev-mode logging and custom analytics reporting.
  */
 export function initWebVitals(config: WebVitalsConfig = defaultConfig) {
   if (typeof window === "undefined") return
+  if (typeof PerformanceObserver === "undefined") return
 
-  // Dynamic import to reduce initial bundle size
-  import("web-vitals").then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
-    const handleMetric = (metric: { name: string; value: number; id: string; delta: number; navigationType: string }) => {
-      const webVitalMetric: WebVitalMetric = {
-        ...metric,
-        name: metric.name as WebVitalMetric["name"],
-        rating: getRating(metric.name, metric.value),
+  // Use native PerformanceObserver for Web Vitals
+  try {
+    // LCP
+    const lcpObserver = new PerformanceObserver((list) => {
+      const entries = list.getEntries()
+      const lastEntry = entries[entries.length - 1] as PerformanceEntry & { startTime: number }
+      if (lastEntry) {
+        reportMetric({
+          id: `lcp-${Date.now()}`,
+          name: "LCP",
+          value: lastEntry.startTime,
+          rating: getRating("LCP", lastEntry.startTime),
+          delta: lastEntry.startTime,
+          navigationType: "navigate",
+        }, config)
       }
-      reportMetric(webVitalMetric, config)
-    }
+    })
+    lcpObserver.observe({ type: "largest-contentful-paint", buffered: true })
 
-    onCLS(handleMetric)
-    onFCP(handleMetric)
-    onINP(handleMetric) // INP replaces FID in web-vitals v4+
-    onLCP(handleMetric)
-    onTTFB(handleMetric)
-  }).catch(() => {
-    // web-vitals not available, skip monitoring
-  })
+    // FCP
+    const fcpObserver = new PerformanceObserver((list) => {
+      const entries = list.getEntries()
+      const fcpEntry = entries.find(e => e.name === "first-contentful-paint")
+      if (fcpEntry) {
+        reportMetric({
+          id: `fcp-${Date.now()}`,
+          name: "FCP",
+          value: fcpEntry.startTime,
+          rating: getRating("FCP", fcpEntry.startTime),
+          delta: fcpEntry.startTime,
+          navigationType: "navigate",
+        }, config)
+      }
+    })
+    fcpObserver.observe({ type: "paint", buffered: true })
+
+    // CLS
+    let clsValue = 0
+    const clsObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const layoutShift = entry as PerformanceEntry & { hadRecentInput: boolean; value: number }
+        if (!layoutShift.hadRecentInput) {
+          clsValue += layoutShift.value
+        }
+      }
+    })
+    clsObserver.observe({ type: "layout-shift", buffered: true })
+
+    // Report CLS on page hide
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        reportMetric({
+          id: `cls-${Date.now()}`,
+          name: "CLS",
+          value: clsValue,
+          rating: getRating("CLS", clsValue),
+          delta: clsValue,
+          navigationType: "navigate",
+        }, config)
+      }
+    }, { once: true })
+  } catch {
+    // PerformanceObserver not fully supported, skip monitoring
+  }
 }
 
 /**

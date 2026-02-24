@@ -93,9 +93,12 @@ function encryptProfilePhi<T extends Record<string, unknown>>(
   // Encrypt medicare_number
   if (data.medicare_number) {
     encrypted.medicare_number_encrypted = encryptField(data.medicare_number)
-    // Keep plaintext during migration for backward compatibility
-    // Remove this line after migration is complete:
-    // delete encrypted.medicare_number
+    // TODO(security): Remove plaintext medicare_number column by 2026-06-01.
+    // The encrypted column has been live since launch. After this deadline:
+    //   1. Drop the `medicare_number` column from `profiles` table
+    //   2. Remove all plaintext reads/writes in this file
+    //   3. Update Supabase RLS policies referencing the column
+    // Tracking: This dual-write exists for rollback safety only.
   }
 
   // Encrypt date_of_birth

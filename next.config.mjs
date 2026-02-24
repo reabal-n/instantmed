@@ -30,11 +30,6 @@ const nextConfig = {
     if (dev) {
       config.cache = false;
     }
-    // Exclude TinaCMS generated files from build
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'tinacms/dist/client': false
-    };
     return config;
   },
   images: {
@@ -101,6 +96,27 @@ const nextConfig = {
       {
         source: "/repeat-prescriptions/:path*",
         destination: "/prescriptions/:path*",
+        permanent: true
+      },
+      // Admin redirect consolidation — replaced redirect-only page.tsx files
+      {
+        source: "/admin/email-outbox",
+        destination: "/admin/email-hub",
+        permanent: true
+      },
+      {
+        source: "/admin/email-queue",
+        destination: "/admin/email-hub",
+        permanent: true
+      },
+      {
+        source: "/admin/ops/email-outbox",
+        destination: "/doctor/admin/email-outbox",
+        permanent: true
+      },
+      {
+        source: "/admin/performance-dashboard",
+        destination: "/admin/performance",
         permanent: true
       }
     ];
