@@ -36,9 +36,9 @@ export function RepeatRxReminderEmail({
     >
       <div
         style={{
-          backgroundColor: "#f0f9ff",
-          border: "1px solid #e0f2fe",
-          borderRadius: "10px",
+          backgroundColor: colors.infoBg,
+          border: `1px solid ${colors.infoBorder}`,
+          borderRadius: "8px",
           padding: "20px 24px",
           marginBottom: "24px",
           textAlign: "center",
@@ -84,11 +84,11 @@ export function RepeatRxReminderEmail({
       <Text muted small>
         If you no longer need this medication or have questions, just reply to this email
         or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.primary, fontWeight: 500 }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help center
         </a>
         . You can also unsubscribe from these reminders in your{" "}
-        <a href={`${appUrl}/patient/settings`} style={{ color: colors.primary, fontWeight: 500 }}>
+        <a href={`${appUrl}/patient/settings`} style={{ color: colors.accent, fontWeight: 500 }}>
           account settings
         </a>
         .

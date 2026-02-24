@@ -55,7 +55,7 @@ export function RequestDeclinedEmail({
           >
             Doctor's note:
           </p>
-          <Text style={{ margin: 0, color: "#7f1d1d" }}>{reason}</Text>
+          <Text style={{ margin: 0, color: colors.errorText }}>{reason}</Text>
         </Box>
       )}
 

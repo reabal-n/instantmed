@@ -9,9 +9,9 @@ interface GuestCompleteAccountEmailProps {
   completeAccountUrl: string
 }
 
-export function GuestCompleteAccountEmail({ 
-  patientName, 
-  requestType, 
+export function GuestCompleteAccountEmail({
+  patientName,
+  requestType,
   intakeId,
   completeAccountUrl,
 }: GuestCompleteAccountEmailProps) {
@@ -20,20 +20,21 @@ export function GuestCompleteAccountEmail({
       <h1>Your request is being reviewed</h1>
       <p>Hi {patientName},</p>
       <p>
-        Your {requestType} request has been received and is now in the review queue. 
+        Your {requestType} request has been received and is now in the review queue.
         A doctor will review it shortly.
       </p>
 
-      <div className="info-box">
-        <p style={{ margin: 0 }}>
-          <strong>Reference:</strong> {intakeId.slice(0, 8).toUpperCase()}
+      <div style={{ background: "#F5F5F4", borderRadius: "8px", padding: "12px 20px", margin: "16px 0", border: "1px solid #E7E5E4" }}>
+        <p style={{ margin: 0, fontSize: "14px", color: "#78716C" }}>
+          <strong style={{ color: "#1C1917" }}>Reference:</strong>{" "}
+          <span style={{ fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: "0.5px", fontSize: "13px" }}>
+            {intakeId.slice(0, 8).toUpperCase()}
+          </span>
         </p>
       </div>
 
       <h2>Create your account</h2>
-      <p>
-        Set up your InstantMed account to:
-      </p>
+      <p>Set up your InstantMed account to:</p>
       <ul>
         <li>Track your request status in real-time</li>
         <li>Download your certificate instantly when ready</li>
@@ -41,14 +42,14 @@ export function GuestCompleteAccountEmail({
         <li>Request future certificates faster</li>
       </ul>
 
-      <p>
+      <div style={{ textAlign: "center" }}>
         <a href={completeAccountUrl} className="button">
           Create Your Account
         </a>
-      </p>
+      </div>
 
-      <p style={{ fontSize: "14px", color: "#737373" }}>
-        Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready, 
+      <p style={{ fontSize: "13px", color: "#78716C" }}>
+        Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready,
         even if you don&apos;t create an account.
       </p>
     </BaseLayout>

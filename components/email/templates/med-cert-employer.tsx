@@ -54,14 +54,14 @@ export function MedCertEmployerEmail({
       {/* Professional header banner */}
       <div
         style={{
-          backgroundColor: "#f0fdf4",
-          border: "1px solid #bbf7d0",
-          borderRadius: "12px",
+          backgroundColor: colors.successBg,
+          border: `1px solid ${colors.successBorder}`,
+          borderRadius: "8px",
           padding: "20px 24px",
           marginBottom: "24px",
         }}
       >
-        <p style={{ margin: 0, fontSize: "14px", color: colors.success, fontWeight: 600 }}>
+        <p style={{ margin: 0, fontSize: "14px", color: colors.successText, fontWeight: 600 }}>
           Medical Certificate
         </p>
         <p style={{ margin: "4px 0 0 0", fontSize: "18px", color: colors.text, fontWeight: 600 }}>
@@ -106,7 +106,7 @@ export function MedCertEmployerEmail({
               fontSize: "20px",
               fontFamily: "monospace",
               fontWeight: "bold",
-              color: "#15803d",
+              color: colors.successText,
               letterSpacing: "2px",
             }}
           >
@@ -114,7 +114,7 @@ export function MedCertEmployerEmail({
           </p>
           <Text muted small style={{ margin: 0 }}>
             You can verify the authenticity of this certificate at{" "}
-            <a href={`${appUrl}/verify`} style={{ color: "#16a34a" }}>
+            <a href={`${appUrl}/verify`} style={{ color: colors.accent }}>
               {appUrl.replace("https://", "")}/verify
             </a>
           </Text>
@@ -127,7 +127,7 @@ export function MedCertEmployerEmail({
           InstantMed is an Australian telehealth service. All medical certificates are issued by
           AHPRA-registered doctors and include verification codes for authenticity checks.
           If you have questions about this certificate, please contact us at{" "}
-          <a href={`${appUrl}/contact`} style={{ color: colors.primary }}>
+          <a href={`${appUrl}/contact`} style={{ color: colors.accent }}>
             {appUrl.replace("https://", "")}/contact
           </a>
           .

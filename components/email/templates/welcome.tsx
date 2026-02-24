@@ -12,6 +12,7 @@ import {
   Button,
   Box,
   List,
+  colors,
 } from "../base-email"
 
 export interface WelcomeEmailProps {
@@ -34,7 +35,7 @@ export function WelcomeEmail({
 
       <Text>
         Thanks for joining InstantMed. We make healthcare simple and accessible
-        -- from your phone, on your schedule.
+        — from your phone, on your schedule.
       </Text>
 
       <Box>
@@ -54,7 +55,7 @@ export function WelcomeEmail({
 
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#3B82F6", fontWeight: 500 }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>
         .

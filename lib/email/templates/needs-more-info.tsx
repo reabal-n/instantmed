@@ -20,17 +20,17 @@ export function NeedsMoreInfoEmail({ patientName, requestType, requestId, doctor
       </p>
 
       <div className="warning-box">
-        <p style={{ margin: 0, fontWeight: 600, fontSize: "14px", color: "#92400e" }}>Message from the doctor:</p>
-        <p style={{ margin: "10px 0 0 0", fontSize: "14px", color: "#78350f", lineHeight: 1.6 }}>{doctorMessage}</p>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: "14px", color: "#92400E" }}>Message from the doctor:</p>
+        <p style={{ margin: "10px 0 0 0", fontSize: "14px", color: "#78350F", lineHeight: "1.7" }}>{doctorMessage}</p>
       </div>
 
-      <p>
+      <div style={{ textAlign: "center" }}>
         <a href={`${APP_URL}/patient/intakes/${requestId}`} className="button">
           Respond Now
         </a>
-      </p>
+      </div>
 
-      <p style={{ fontSize: "13px", color: "#6b7280" }}>
+      <p style={{ fontSize: "13px", color: "#78716C" }}>
         Please respond as soon as possible so we can continue processing your request. Your spot in the queue is saved.
       </p>
     </BaseLayout>

@@ -13,6 +13,8 @@ import {
   Button,
   Box,
   Heading,
+  DetailRow,
+  colors,
 } from "../base-email"
 
 export interface PaymentReceiptEmailProps {
@@ -58,35 +60,10 @@ export function PaymentReceiptEmail({
           }}
         >
           <tbody>
-            <tr>
-              <td style={{ padding: "8px 0", color: "#6b7280" }}>Service</td>
-              <td style={{ padding: "8px 0", textAlign: "right", fontWeight: 600 }}>
-                {serviceName}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "8px 0", color: "#6b7280" }}>Amount</td>
-              <td style={{ padding: "8px 0", textAlign: "right", fontWeight: 600 }}>
-                {amount}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "8px 0", color: "#6b7280" }}>Reference</td>
-              <td
-                style={{
-                  padding: "8px 0",
-                  textAlign: "right",
-                  fontFamily: "monospace",
-                  fontSize: "13px",
-                }}
-              >
-                {intakeRef}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "8px 0", color: "#6b7280" }}>Date</td>
-              <td style={{ padding: "8px 0", textAlign: "right" }}>{paidAt}</td>
-            </tr>
+            <DetailRow label="Service" value={serviceName} bold />
+            <DetailRow label="Amount" value={amount} bold />
+            <DetailRow label="Reference" value={intakeRef} mono />
+            <DetailRow label="Date" value={paidAt} />
           </tbody>
         </table>
       </Box>
@@ -97,7 +74,7 @@ export function PaymentReceiptEmail({
 
       <Text muted small>
         This receipt is for your records. You can view your request status on your{" "}
-        <a href={dashboardUrl} style={{ color: "#00C9A7", fontWeight: 500 }}>
+        <a href={dashboardUrl} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
         </a>
         . Questions? Reply to this email.

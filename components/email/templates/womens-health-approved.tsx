@@ -120,7 +120,7 @@ export function WomensHealthApprovedEmail({
 
       <Text muted small>
         Questions about your treatment? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.primary, fontWeight: 500 }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help center
         </a>
         .

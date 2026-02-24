@@ -58,14 +58,15 @@ export function MedCertPatientEmail({
         <div
           style={{
             display: "inline-block",
-            width: "56px",
-            height: "56px",
+            width: "44px",
+            height: "44px",
             borderRadius: "50%",
             backgroundColor: colors.successBg,
-            lineHeight: "56px",
+            lineHeight: "44px",
             textAlign: "center" as const,
-            fontSize: "28px",
+            fontSize: "20px",
             marginBottom: "12px",
+            border: `1px solid ${colors.successBorder}`,
           }}
         >
           ✓
