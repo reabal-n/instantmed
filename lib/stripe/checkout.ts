@@ -315,6 +315,17 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     // 6. Create the intake with pending_payment status
     // Store category and subtype at creation for reliable retry pricing
     // Idempotency key prevents duplicate submissions on double-click
+    // Get price ID early so we can store it on the intake for retry consistency
+    const priceId = getPriceIdForRequest({
+      category: input.category as ServiceCategory,
+      subtype: input.subtype,
+      answers: input.answers,
+    })
+
+    if (!priceId) {
+      return { success: false, error: "Unable to determine pricing. Please contact support." }
+    }
+
     const intakeData: Record<string, unknown> = {
       patient_id: patientId,
       service_id: service.id,
@@ -324,6 +335,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       category: input.category,
       subtype: input.subtype,
       idempotency_key: input.idempotencyKey, // P1 FIX: Always required
+      stripe_price_id: priceId || null, // Store for retry pricing consistency
     }
 
     const { data: intake, error: intakeError } = await supabase
@@ -362,17 +374,20 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
           })
           // If already paid, redirect to success
           if (existingIntake.status !== "pending_payment") {
-            return { 
-              success: true, 
+            return {
+              success: true,
               intakeId: existingIntake.id,
-              checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}` 
+              checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`
             }
           }
-          // Otherwise, recreate checkout session for this intake
-          // (handled below by continuing with existingIntake.id)
+          // Still pending payment — retry checkout for existing intake
+          logger.info("Retrying checkout for existing pending_payment intake", {
+            intakeId: existingIntake.id,
+          })
+          return retryPaymentForIntakeAction(existingIntake.id)
         }
       }
-      
+
       logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
       if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
@@ -448,21 +463,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
     }
 
-    // 7. Get the price ID
-    const priceId = getPriceIdForRequest({
-      category: input.category as ServiceCategory,
-      subtype: input.subtype,
-      answers: input.answers,
-    })
-
-    if (!priceId) {
-      // Clean up both intake and answers to prevent orphans
-      await supabase.from("intake_answers").delete().eq("intake_id", intake.id)
-      await supabase.from("intakes").delete().eq("id", intake.id)
-      return { success: false, error: "Unable to determine pricing. Please contact support." }
-    }
-
-    // 8. Build success and cancel URLs
+    // 7. Build success and cancel URLs
     const successUrl = `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`
     const cancelUrl = `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`
 
