@@ -105,7 +105,7 @@ export function ServicePicker() {
 
   return (
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 
           className="text-center mb-8"

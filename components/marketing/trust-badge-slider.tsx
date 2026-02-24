@@ -42,7 +42,7 @@ interface TrustBadgeSliderProps {
 export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
   return (
     <section className={cn("py-12 lg:py-16", className)}>
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Trust badges grid */}
         <motion.div 
           className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10"

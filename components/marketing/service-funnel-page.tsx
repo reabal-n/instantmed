@@ -252,7 +252,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
       <div className="absolute inset-0 bg-linear-to-b from-muted/50 to-background" />
       <div className={cn('absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-30', colors.light)} />
       
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12')}>
           {/* Text content */}
           <div className={cn('text-center flex-1', hasImages && 'lg:text-left')}>
@@ -431,7 +431,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
 function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
     <section className="py-16 lg:py-24 bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -493,7 +493,7 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
 function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
     <section id="how-it-works" className="py-16 lg:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -752,7 +752,7 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
 function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
     <section className="py-16 lg:py-24 bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -793,7 +793,7 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
 function TestimonialsSection({ config, colors: _colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
     <section className="py-16 lg:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

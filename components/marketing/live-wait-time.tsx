@@ -217,7 +217,7 @@ export function LiveWaitTime({
         'py-4 px-4 bg-muted/30 border-y border-border/50',
         className
       )}>
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             {/* Live indicator */}
             {isOnline && (
