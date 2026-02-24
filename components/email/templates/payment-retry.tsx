@@ -1,14 +1,70 @@
-import { BaseLayout } from "./base-layout"
+import {
+  BaseEmail,
+  Heading,
+  Text,
+  Button,
+  Box,
+  colors,
+} from "../base-email"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-
-interface PaymentRetryEmailProps {
+export interface PaymentRetryEmailProps {
   patientName: string
   requestType: string
   amount: string
   paymentUrl: string
+  appUrl?: string
 }
 
+export function paymentRetrySubject() {
+  return "Complete your InstantMed payment"
+}
+
+export function PaymentRetryEmail({
+  patientName,
+  requestType,
+  amount,
+  paymentUrl,
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+}: PaymentRetryEmailProps) {
+  return (
+    <BaseEmail previewText={`Complete your payment for ${requestType}`} appUrl={appUrl}>
+      <Heading>Complete your payment</Heading>
+
+      <Text>Hi {patientName},</Text>
+      <Text>
+        We noticed your previous payment for your {requestType} request didn&apos;t go through.
+        No worries — you can try again using the link below.
+      </Text>
+
+      <Box>
+        <table role="presentation" cellPadding={0} cellSpacing={0} style={{ width: "100%" }}>
+          <tbody>
+            <tr>
+              <td>
+                <p style={{ margin: 0, fontSize: "14px", color: "#44403C" }}>
+                  <strong style={{ color: "#1C1917" }}>Amount due:</strong> {amount}
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Box>
+
+      <div style={{ textAlign: "center" }}>
+        <Button href={paymentUrl}>Complete Payment</Button>
+      </div>
+
+      <Text muted small>
+        If you&apos;re having trouble, ensure your card details are correct and you have
+        sufficient funds. Need help? Just reply to this email.
+      </Text>
+    </BaseEmail>
+  )
+}
+
+/**
+ * Render the email to an HTML string (used by retry-payment API route)
+ */
 export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): string {
   const { patientName, requestType, amount, paymentUrl } = props
   const baseUrl = paymentUrl.split("/checkout")[0] || "https://instantmed.com.au"
@@ -67,38 +123,4 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
   </table>
 </body>
 </html>`
-}
-
-export function PaymentRetryEmail({ patientName, requestType, amount, paymentUrl }: PaymentRetryEmailProps) {
-  return (
-    <BaseLayout previewText={`Complete your payment for ${requestType}`} appUrl={APP_URL}>
-      <h1>Complete your payment</h1>
-      <p>Hi {patientName},</p>
-      <p>
-        We noticed your previous payment for your {requestType} request didn&apos;t go through.
-        No worries — you can try again using the link below.
-      </p>
-
-      <div style={{ background: "#F5F5F4", borderRadius: "8px", padding: "14px 20px", margin: "16px 0", border: "1px solid #E7E5E4" }}>
-        <p style={{ margin: 0, fontSize: "14px", color: "#44403C" }}>
-          <strong style={{ color: "#1C1917" }}>Amount due:</strong> {amount}
-        </p>
-      </div>
-
-      <div style={{ textAlign: "center" }}>
-        <a href={paymentUrl} className="button">
-          Complete Payment
-        </a>
-      </div>
-
-      <p style={{ fontSize: "13px", color: "#78716C" }}>
-        If you&apos;re having trouble with your payment, please ensure your card details are correct
-        and that you have sufficient funds. You can also try a different payment method.
-      </p>
-
-      <p style={{ fontSize: "13px", color: "#78716C" }}>
-        Need help? Just reply to this email and we&apos;ll assist you.
-      </p>
-    </BaseLayout>
-  )
 }

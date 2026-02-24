@@ -597,7 +597,7 @@ export async function POST(request: Request) {
           try {
             const React = await import("react")
             const { sendEmail } = await import("@/lib/email/send-email")
-            const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+            const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
 
             const serviceName = session.metadata?.service_slug
               ?.replace(/-/g, " ")
@@ -866,7 +866,7 @@ export async function POST(request: Request) {
           if (patientProfile?.email) {
             const React = await import("react")
             const { sendEmail } = await import("@/lib/email/send-email")
-            const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+            const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
 
             const serviceName = session.metadata?.service_slug
               ?.replace(/-/g, " ")

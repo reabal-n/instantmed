@@ -128,7 +128,7 @@ const TEMPLATE_REGISTRY: Record<
   payment_confirmed: {
     async load() {
       const { PaymentConfirmedEmail } = await import(
-        "@/lib/email/templates/payment-confirmed"
+        "@/components/email/templates/payment-confirmed"
       )
       return { component: PaymentConfirmedEmail as unknown as React.FC<Record<string, unknown>>, subject: "Payment confirmed" }
     },

@@ -1055,7 +1055,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
     const metadata = row.metadata as { doctorMessage?: string } | null
     const doctorMessage = metadata?.doctorMessage || "Please provide additional information."
 
-    const { NeedsMoreInfoEmail } = await import("@/lib/email/templates/needs-more-info")
+    const { NeedsMoreInfoEmail } = await import("@/components/email/templates/needs-more-info")
     const template = NeedsMoreInfoEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: ctx.service.short_name || ctx.service.name,
@@ -1281,7 +1281,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
       || ctx.service.short_name || ctx.service.name || "medical request"
 
-    const { PaymentConfirmedEmail } = await import("@/lib/email/templates/payment-confirmed")
+    const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
     const template = PaymentConfirmedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: serviceName,

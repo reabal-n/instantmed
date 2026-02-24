@@ -2,7 +2,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendViaResend } from "./resend"
-import { renderAbandonedCheckoutEmail } from "./templates/abandoned-checkout"
+import { renderAbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"

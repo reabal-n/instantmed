@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { sendEmail } from "@/lib/email/send-email"
 import { sendFromOutboxRow, claimOutboxRow, type OutboxRow } from "@/lib/email/send-email"
-import { MedCertEmail } from "@/components/email/med-cert-email"
+import { MedCertPatientEmail } from "@/components/email/templates"
 import { env } from "@/lib/env"
 import {
   getFailedEmailDeliveries,
@@ -101,7 +101,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
 
     // Generate email template as React element
     const dashboardUrl = `${env.appUrl}/patient/intakes/${certificate.intake_id}`
-    const emailTemplate = MedCertEmail({
+    const emailTemplate = MedCertPatientEmail({
       patientName: certificate.patient_name,
       dashboardUrl,
     })

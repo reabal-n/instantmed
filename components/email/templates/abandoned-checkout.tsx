@@ -1,8 +1,14 @@
-import { BaseLayout } from "./base-layout"
+import {
+  BaseEmail,
+  Heading,
+  Text,
+  Button,
+  Box,
+  List,
+  colors,
+} from "../base-email"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-
-interface AbandonedCheckoutEmailProps {
+export interface AbandonedCheckoutEmailProps {
   patientName: string
   serviceName: string
   resumeUrl: string
@@ -10,62 +16,64 @@ interface AbandonedCheckoutEmailProps {
   hoursAgo: number
 }
 
-/**
- * Abandoned Checkout Email
- *
- * Sent when a patient starts a request but doesn't complete payment.
- * Uses the React BaseLayout system for consistent styling.
- */
+export function abandonedCheckoutSubject(serviceName: string) {
+  return `Your ${serviceName} request is waiting`
+}
+
 export function AbandonedCheckoutEmail({
   patientName,
   serviceName,
   resumeUrl,
-  appUrl = APP_URL,
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
   hoursAgo,
 }: AbandonedCheckoutEmailProps) {
   return (
-    <BaseLayout previewText={`Your ${serviceName} request is waiting`} appUrl={appUrl}>
-      <h1>Your request is waiting</h1>
-      <p>Hi {patientName},</p>
-      <p>
+    <BaseEmail previewText={`Your ${serviceName} request is waiting`} appUrl={appUrl}>
+      <Heading>Your request is waiting</Heading>
+
+      <Text>Hi {patientName},</Text>
+      <Text>
         You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
         but didn&apos;t complete checkout. No worries — your information is saved
         and ready when you are.
-      </p>
+      </Text>
 
       <div style={{ textAlign: "center" }}>
-        <a href={resumeUrl} className="button">
-          Resume your request
-        </a>
+        <Button href={resumeUrl}>Resume your request</Button>
       </div>
 
-      <div style={{ background: "#F5F5F4", borderRadius: "8px", padding: "16px 20px", margin: "20px 0", border: "1px solid #E7E5E4" }}>
-        <h3 style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: 600, color: "#1C1917" }}>What happens when you complete checkout?</h3>
-        <ul style={{ margin: 0 }}>
-          <li>A doctor reviews your request (usually within an hour)</li>
-          <li>You&apos;ll receive your document via email</li>
-          <li>No phone call required for most requests</li>
-        </ul>
-      </div>
+      <Box>
+        <Heading as="h3">What happens when you complete checkout?</Heading>
+        <List
+          items={[
+            "A doctor reviews your request (usually within an hour)",
+            "You'll receive your document via email",
+            "No phone call required for most requests",
+          ]}
+        />
+      </Box>
 
-      <p style={{ fontSize: "13px", color: "#78716C" }}>
+      <Text muted small>
         Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#0D9488", fontWeight: 500, textDecoration: "none" }}>help center</a>.
-      </p>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
+      </Text>
 
-      <p style={{ fontSize: "12px", color: "#A8A29E" }}>
+      <Text muted small>
         If you&apos;ve already completed your request or no longer need it,
         you can safely ignore this email.
-      </p>
-    </BaseLayout>
+      </Text>
+    </BaseEmail>
   )
 }
 
 /**
- * Legacy HTML render function — kept for backward compatibility with email dispatcher.
+ * Render the email to an HTML string (used by abandoned-checkout cron job)
  */
 export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps): string {
-  const { patientName, serviceName, resumeUrl, appUrl = APP_URL, hoursAgo } = props
+  const { patientName, serviceName, resumeUrl, appUrl = "https://instantmed.com.au", hoursAgo } = props
 
   return `<!DOCTYPE html>
 <html>
@@ -93,13 +101,9 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
                 You started a <strong>${serviceName}</strong> request about ${hoursAgo} hours ago
                 but didn't complete checkout. No worries — your information is saved and ready when you are.
               </p>
-
               <div style="text-align: center; margin: 24px 0;">
-                <a href="${resumeUrl}" style="display: inline-block; background-color: #0C1220; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
-                  Resume your request
-                </a>
+                <a href="${resumeUrl}" style="display: inline-block; background-color: #0C1220; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Resume your request</a>
               </div>
-
               <div style="background: #F5F5F4; border-radius: 8px; padding: 16px 20px; margin: 20px 0; border: 1px solid #E7E5E4;">
                 <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #1C1917;">What happens when you complete checkout?</p>
                 <ul style="margin: 0; padding-left: 18px; color: #44403C; font-size: 14px; line-height: 1.8;">
@@ -108,7 +112,6 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
                   <li>No phone call required for most requests</li>
                 </ul>
               </div>
-
               <p style="font-size: 12px; color: #A8A29E; margin: 24px 0 0 0;">
                 If you've already completed your request or no longer need it, you can safely ignore this email.
               </p>
@@ -120,8 +123,6 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
                 <a href="${appUrl}/privacy" style="color: #A8A29E; text-decoration: none;">Privacy</a>
                 <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
                 <a href="${appUrl}/terms" style="color: #A8A29E; text-decoration: none;">Terms</a>
-                <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
-                <a href="${appUrl}/patient/settings" style="color: #A8A29E; text-decoration: none;">Email Preferences</a>
               </p>
               <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0;">
                 InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Australia

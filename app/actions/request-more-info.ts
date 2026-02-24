@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email/send-email"
-import { NeedsMoreInfoEmail } from "@/lib/email/templates/needs-more-info"
+import { NeedsMoreInfoEmail } from "@/components/email/templates/needs-more-info"
 
 interface InfoRequestTemplate {
   code: string
