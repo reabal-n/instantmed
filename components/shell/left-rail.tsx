@@ -4,18 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { 
-  Home, 
-  FileText, 
-  FolderOpen, 
-  Settings, 
+import {
+  Home,
+  FileText,
+  FolderOpen,
+  Settings,
   Plus,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   Activity,
   Bell,
-  MessageSquare
+  MessageSquare,
+  ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -165,14 +166,25 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
         })}
       </nav>
 
-      {/* Footer - Optional branding */}
-      {isExpanded && (
-        <div className="p-4 border-t border-border shrink-0">
+      {/* Footer */}
+      <div className="p-4 border-t border-border shrink-0">
+        <a
+          href="https://instantmed.com.au"
+          className={cn(
+            "flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors",
+            isExpanded ? "mb-3" : "justify-center mb-2",
+          )}
+          title="Back to InstantMed.com.au"
+        >
+          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+          {isExpanded && "Back to InstantMed.com.au"}
+        </a>
+        {isExpanded && (
           <p className="text-xs text-muted-foreground text-center">
             InstantMed © {new Date().getFullYear()}
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   )
 }

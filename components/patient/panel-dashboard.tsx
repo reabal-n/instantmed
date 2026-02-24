@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils"
 import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
+import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
+import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
 import { motion } from "framer-motion"
 import posthog from "posthog-js"
 
@@ -96,6 +98,7 @@ interface PatientDashboardProps {
   intakes?: Intake[]
   prescriptions?: Prescription[]
   error?: string | null
+  profileData?: ProfileData
 }
 
 const STATUS_CONFIG = {
@@ -112,9 +115,31 @@ export function PanelDashboard({
   intakes = [],
   prescriptions = [],
   error,
+  profileData,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
+
+  const handleOpenProfileDrawer = (type: TodoDrawerType) => {
+    if (!profileData) return
+
+    const drawerConfig = {
+      phone: { title: "Phone Number", component: <PhoneDrawerContent profileData={profileData} /> },
+      address: { title: "Home Address", component: <AddressDrawerContent profileData={profileData} /> },
+      medicare: { title: "Medicare Card", component: <MedicareDrawerContent profileData={profileData} /> },
+    }
+
+    const config = drawerConfig[type]
+    openPanel({
+      id: `profile-${type}`,
+      type: "drawer",
+      component: (
+        <DrawerPanel title={config.title} width={450}>
+          {config.component}
+        </DrawerPanel>
+      ),
+    })
+  }
 
   const pendingIntakes = intakes.filter((r) => r.status === "paid" || r.status === "in_review" || r.status === "pending_info")
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
@@ -173,6 +198,14 @@ export function PanelDashboard({
             : "All caught up"}
         </p>
       </div>
+
+      {/* Profile Completion Todos */}
+      {profileData && (
+        <ProfileTodoCard
+          profileData={profileData}
+          onOpenDrawer={handleOpenProfileDrawer}
+        />
+      )}
 
       {/* Error State */}
       {error && (

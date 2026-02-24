@@ -342,11 +342,6 @@ export async function requireRole(
     }
   }
 
-  // Check onboarding for patients (unless explicitly allowed)
-  if (userRole === "patient" && !options?.allowIncompleteOnboarding && !authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
-
   return authUser
 }
 

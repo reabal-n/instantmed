@@ -58,6 +58,18 @@ export default async function PatientDashboard() {
       intakes={intakesResult.data || []}
       prescriptions={prescriptionsResult.data || []}
       error={fetchError}
+      profileData={{
+        profileId: patientId,
+        phone: authUser.profile.phone,
+        addressLine1: authUser.profile.address_line1,
+        suburb: authUser.profile.suburb,
+        state: authUser.profile.state,
+        postcode: authUser.profile.postcode,
+        medicareNumber: authUser.profile.medicare_number,
+        medicareIrn: authUser.profile.medicare_irn,
+        medicareExpiry: authUser.profile.medicare_expiry,
+        consentMyhr: authUser.profile.consent_myhr,
+      }}
     />
   )
 }
