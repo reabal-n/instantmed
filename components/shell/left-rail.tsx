@@ -19,6 +19,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BrandLogo } from '@/components/shared/brand-logo'
 import { cn } from '@/lib/utils'
 import { usePanel } from '@/components/panels'
 
@@ -67,8 +68,10 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
     >
       {/* Header */}
       <div className="h-16 border-b border-border flex items-center justify-between px-4 shrink-0">
-        {isExpanded && (
-          <span className="font-semibold text-primary">InstantMed</span>
+        {isExpanded ? (
+          <BrandLogo size="sm" href="/patient" />
+        ) : (
+          <BrandLogo size="sm" iconOnly href="/patient" />
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
