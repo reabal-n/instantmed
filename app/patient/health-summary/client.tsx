@@ -405,8 +405,8 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
           <Link href="/patient/settings">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <Shield className="w-5 h-5 text-purple-700" />
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <Shield className="w-5 h-5 text-blue-700" />
                 </div>
                 <div>
                   <p className="font-medium">Account Settings</p>

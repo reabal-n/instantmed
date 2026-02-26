@@ -1,18 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Lora } from "next/font/google"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { motionDurations, motionEasing } from "@/components/ui/motion"
 import { X } from "lucide-react"
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-  weight: ["400", "600", "700"],
-})
 
 export interface LumenModalProps {
   children: React.ReactNode
@@ -121,7 +113,7 @@ export function LumenModal({
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
-        <div className={cn("fixed inset-0 z-50 flex items-center justify-center p-4", lora.variable)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/20 backdrop-blur-sm"
@@ -182,7 +174,7 @@ export function LumenModal({
                 {title && (
                   <h2
                     id="modal-title"
-                    className="text-xl font-serif font-semibold text-foreground"
+                    className="text-xl font-semibold text-foreground"
                   >
                     {title}
                   </h2>

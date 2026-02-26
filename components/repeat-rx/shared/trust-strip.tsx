@@ -36,7 +36,7 @@ export function TrustStrip() {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1.5 cursor-help">
-              <Shield className="w-3.5 h-3.5 text-purple-600" />
+              <Shield className="w-3.5 h-3.5 text-blue-600" />
               <span>{REPEAT_RX_COPY.trust.private}</span>
             </div>
           </TooltipTrigger>

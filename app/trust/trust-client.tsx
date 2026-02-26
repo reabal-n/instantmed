@@ -239,10 +239,10 @@ const trustPillars = [
       "Professional indemnity insurance required",
       "Regular clinical decision audits",
     ],
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AHPRADoctor",
-    color: "from-blue-500/20 to-sky-500/20",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    image: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&h=400&fit=crop",
+    color: "from-sky-500/15 to-blue-500/15",
+    iconBg: "bg-sky-500/10",
+    iconColor: "text-sky-600 dark:text-sky-400",
   },
   {
     icon: Shield,
@@ -256,7 +256,7 @@ const trustPillars = [
       "Every request is human-reviewed",
     ],
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-sky-500/20",
+    color: "from-blue-500/15 to-sky-500/15",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
@@ -272,9 +272,9 @@ const trustPillars = [
       "Regular security audits and pen testing",
     ],
     image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-sky-500/20",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "from-orange-500/10 to-amber-500/10",
+    iconBg: "bg-orange-500/10",
+    iconColor: "text-orange-600 dark:text-orange-400",
   },
   {
     icon: Building2,
@@ -288,9 +288,9 @@ const trustPillars = [
       "Compliant with Therapeutic Goods Act",
     ],
     image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-sky-500/20",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "from-emerald-500/10 to-teal-500/10",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
     icon: Scale,
@@ -304,9 +304,9 @@ const trustPillars = [
       "Full refund if we can&apos;t help you",
     ],
     image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-sky-500/20",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "from-amber-500/10 to-orange-500/10",
+    iconBg: "bg-amber-500/10",
+    iconColor: "text-amber-600 dark:text-amber-400",
   },
   {
     icon: BookOpen,
@@ -320,9 +320,9 @@ const trustPillars = [
       "Quarterly protocol reviews and updates",
     ],
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop",
-    color: "from-blue-500/20 to-sky-500/20",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    color: "from-sky-500/15 to-blue-500/15",
+    iconBg: "bg-sky-500/10",
+    iconColor: "text-sky-600 dark:text-sky-400",
   },
 ]
 
@@ -342,7 +342,7 @@ function AnimatedStat({ value, suffix = "", label, icon: Icon }: { value: number
   
   return (
     <motion.div
-      className="text-center p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none"
+      className="text-center p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-sky-200/40 dark:border-white/10 backdrop-blur-xl shadow-sm shadow-sky-100/50 dark:shadow-none"
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4 }}
@@ -392,16 +392,14 @@ export default function TrustPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky-50/60 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
       <Navbar variant="marketing" />
 
       <main className="relative">
         {/* Hero Section - Enhanced with Effects */}
         <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden">
-  {/* Subtle background accent */}
-          
-          {/* Subtle gradient background */}
-          <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-background to-background" />
+          {/* Warm morning gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-sky-100/40 via-orange-50/20 to-transparent dark:from-sky-900/10 dark:via-transparent dark:to-transparent" />
           
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
   {/* Badge */}
@@ -455,7 +453,7 @@ export default function TrustPage() {
 
             {/* Animated Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
-              <AnimatedStat value={4.9} suffix="/5" label="Patient satisfaction" icon={Users} />
+              <AnimatedStat value={5} suffix="/5" label="Patient satisfaction" icon={Users} />
               <AnimatedStat value={100} suffix="%" label="AHPRA verified" icon={BadgeCheck} />
               <AnimatedStat value={256} suffix="-bit" label="SSL encryption" icon={Lock} />
               <AnimatedStat value={7} suffix=" days" label="Week availability" icon={Clock} />
@@ -494,7 +492,7 @@ export default function TrustPage() {
         </section>
 
         {/* Certification Badges */}
-        <section className="py-12 border-y border-border/30 bg-muted/20">
+        <section className="py-12 border-y border-sky-200/40 dark:border-white/5 bg-gradient-to-r from-sky-50/50 via-white to-orange-50/30 dark:from-white/[0.02] dark:via-transparent dark:to-white/[0.02]">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="flex flex-wrap justify-center items-center gap-6 md:gap-10"
@@ -611,7 +609,7 @@ export default function TrustPage() {
         </section>
 
         {/* Process Transparency Timeline */}
-        <section className="py-16 lg:py-20 bg-muted/20">
+        <section className="py-16 lg:py-20 bg-gradient-to-b from-sky-50/40 to-orange-50/20 dark:from-white/[0.02] dark:to-transparent">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="text-center mb-12"
@@ -689,7 +687,7 @@ export default function TrustPage() {
             </motion.div>
 
             <motion.div
-              className="rounded-2xl border border-white/50 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-white/5 backdrop-blur-xl"
+              className="rounded-2xl border border-sky-200/40 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-white/5 backdrop-blur-xl shadow-sm shadow-sky-100/30 dark:shadow-none"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -741,7 +739,7 @@ export default function TrustPage() {
         </section>
 
         {/* Testimonials Section */}
-        <section id={SECTION_IDS.testimonials} className="py-16 lg:py-20 bg-muted/20 scroll-mt-20">
+        <section id={SECTION_IDS.testimonials} className="py-16 lg:py-20 bg-gradient-to-b from-sky-50/40 to-orange-50/20 dark:from-white/[0.02] dark:to-transparent scroll-mt-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="text-center mb-10"
@@ -858,7 +856,7 @@ export default function TrustPage() {
         </div>
 
         {/* AHPRA Verification CTA */}
-        <section id={SECTION_IDS.verify} className="py-16 lg:py-20 bg-muted/20 scroll-mt-20">
+        <section id={SECTION_IDS.verify} className="py-16 lg:py-20 bg-gradient-to-r from-sky-50/50 via-white to-orange-50/30 dark:from-white/[0.02] dark:via-transparent dark:to-white/[0.02] scroll-mt-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -934,11 +932,11 @@ export default function TrustPage() {
                 We&apos;re happy to answer any questions about our processes, doctors, or security measures.
               </p>
               <Link 
-                href="mailto:hello@instantmed.com.au"
+                href="mailto:support@instantmed.com.au"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border/50 text-foreground hover:border-primary/30 hover:bg-card/80 transition-colors"
               >
                 <Mail className="w-4 h-4 text-primary" />
-                <span className="font-medium">hello@instantmed.com.au</span>
+                <span className="font-medium">support@instantmed.com.au</span>
               </Link>
             </motion.div>
           </div>
@@ -953,7 +951,7 @@ export default function TrustPage() {
         </div>
 
         {/* Final CTA with ShimmerButton */}
-        <section className="py-16 lg:py-20 bg-linear-to-t from-muted/30 to-transparent">
+        <section className="py-16 lg:py-20 bg-gradient-to-t from-sky-50/50 to-transparent dark:from-white/[0.02] dark:to-transparent">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

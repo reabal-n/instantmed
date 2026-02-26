@@ -90,7 +90,7 @@ export function PremiumLoader({
         />
         
         {/* Logo container */}
-        <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-primary to-violet-600 flex items-center justify-center shadow-2xl shadow-primary/25">
+        <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-primary to-blue-600 flex items-center justify-center shadow-2xl shadow-primary/25">
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}

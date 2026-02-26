@@ -385,7 +385,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       case "pending_info":
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
       case "awaiting_script":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-900/30 dark:text-dawn-300"
       default:
         return "bg-primary/10 text-primary"
     }

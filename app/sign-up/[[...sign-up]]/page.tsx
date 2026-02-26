@@ -35,7 +35,8 @@ function SignUpRedirect() {
         : `${currentOrigin}/auth/post-signin`
 
     // Redirect to Clerk Account Portal with post-signin as callback
-    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(postSignInUrl)}`
+    const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
+    const accountPortalUrl = `${clerkSignUpUrl}?redirect_url=${encodeURIComponent(postSignInUrl)}`
     window.location.href = accountPortalUrl
   }, [redirectUrl])
 
@@ -141,8 +142,8 @@ export default function SignUpPage() {
                 <span>Get reviewed in under 15 minutes</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-violet-500" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-blue-500" />
                 </div>
                 <span>Your data is always secure and private</span>
               </div>

@@ -107,16 +107,16 @@ export function RepeatPrescriptionChecklist({
   }
 
   return (
-    <Card className="border-purple-200 bg-purple-50/30">
+    <Card className="border-blue-200 bg-blue-50/30">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-purple-900">
+        <CardTitle className="flex items-center gap-2 text-blue-900">
           <ClipboardList className="h-5 w-5" />
           Repeat Prescription Checklist
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Item 1: EMR Note Drafted */}
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-purple-100">
+        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-blue-100">
           <Checkbox
             id="emr-drafted"
             checked={emrChecked}
@@ -128,7 +128,7 @@ export function RepeatPrescriptionChecklist({
               htmlFor="emr-drafted"
               className="text-sm font-medium leading-none flex items-center gap-2"
             >
-              <FileText className="h-4 w-4 text-purple-600" />
+              <FileText className="h-4 w-4 text-blue-600" />
               EMR note drafted
             </label>
             <p className="text-xs text-muted-foreground">
@@ -153,10 +153,10 @@ export function RepeatPrescriptionChecklist({
         </div>
 
         {/* Item 2: Script Sent via Parchment */}
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-purple-100">
+        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-blue-100">
           <div className="relative">
             {isPending ? (
-              <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-purple-600" />
+              <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-blue-600" />
             ) : (
               <Checkbox
                 id="script-sent"
@@ -172,7 +172,7 @@ export function RepeatPrescriptionChecklist({
               htmlFor="script-sent"
               className="text-sm font-medium leading-none flex items-center gap-2 cursor-pointer"
             >
-              <Send className="h-4 w-4 text-purple-600" />
+              <Send className="h-4 w-4 text-blue-600" />
               Script sent via {prescriptionSentChannel || "Parchment"}
             </label>
             {prescriptionSentAt ? (

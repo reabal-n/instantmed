@@ -164,7 +164,7 @@ export function WeightLossClient() {
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                     <Link href="/request?service=consult">
-                      <ShimmerButton className="px-6 h-11 font-semibold bg-violet-600">
+                      <ShimmerButton className="px-6 h-11 font-semibold bg-blue-600">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </ShimmerButton>
@@ -179,19 +179,19 @@ export function WeightLossClient() {
                   {/* Trust badges */}
                   <div className="flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Zap className="h-3.5 w-3.5 text-violet-600" />
+                      <Zap className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">Reviewed within hours</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Activity className="h-3.5 w-3.5 text-violet-600" />
+                      <Activity className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">Ongoing support</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Shield className="h-3.5 w-3.5 text-violet-600" />
+                      <Shield className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">AHPRA doctors</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Lock className="h-3.5 w-3.5 text-violet-600" />
+                      <Lock className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">Private & secure</span>
                     </div>
                   </div>
@@ -221,32 +221,32 @@ export function WeightLossClient() {
                   {treatments.map((treatment) => (
                     <div
                       key={treatment.id}
-                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-violet-500/30 transition-all"
+                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-blue-500/30 transition-all"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
                             <h3 className="text-lg font-bold">{treatment.name}</h3>
                             {treatment.popular && (
-                              <Badge className="bg-violet-100 text-violet-700 hover:bg-violet-100 text-xs">
+                              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-xs">
                                 Most Popular
                               </Badge>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">{treatment.examples}</p>
                         </div>
-                        <Pill className="h-5 w-5 text-violet-600 shrink-0" />
+                        <Pill className="h-5 w-5 text-blue-600 shrink-0" />
                       </div>
 
                       <p className="text-sm text-muted-foreground mb-3">{treatment.description}</p>
 
                       <div className="grid sm:grid-cols-2 gap-3 text-xs">
-                        <div className="bg-violet-50/50 border border-violet-100 rounded-lg p-3">
-                          <p className="font-medium mb-1 text-violet-900">How it works:</p>
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3">
+                          <p className="font-medium mb-1 text-blue-900">How it works:</p>
                           <p className="text-muted-foreground">{treatment.howItWorks}</p>
                         </div>
-                        <div className="bg-violet-50/50 border border-violet-100 rounded-lg p-3">
-                          <p className="font-medium mb-1 text-violet-900">Suitable for:</p>
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3">
+                          <p className="font-medium mb-1 text-blue-900">Suitable for:</p>
                           <p className="text-muted-foreground">{treatment.suitableFor}</p>
                         </div>
                       </div>
@@ -259,7 +259,7 @@ export function WeightLossClient() {
                     Not sure which is right for you? Our doctors will help you choose the best option.
                   </p>
                   <Link href="/request?service=consult">
-                    <Button className="bg-violet-600 hover:bg-violet-700 text-xs h-9">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-xs h-9">
                       Start Consultation
                       <ArrowRight className="h-3.5 w-3.5 ml-2" />
                     </Button>
@@ -283,8 +283,8 @@ export function WeightLossClient() {
                 <GridStagger columns={2} staggerDelay={0.1} className="grid sm:grid-cols-2 gap-4">
                   {platformFeatures.map((feature, i) => (
                     <div key={i} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                        <feature.icon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                      <div className="shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <feature.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{feature.title}</h3>
@@ -369,7 +369,7 @@ export function WeightLossClient() {
                     { step: 4, title: "Ongoing Support", desc: "Regular check-ins to monitor progress and adjust your plan as needed." },
                   ].map((item) => (
                     <div key={item.step} className="text-center">
-                      <div className="w-10 h-10 rounded-lg bg-violet-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                      <div className="w-10 h-10 rounded-lg bg-blue-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                         {item.step}
                       </div>
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -410,7 +410,7 @@ export function WeightLossClient() {
           <section className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-violet-500/20 bg-violet-50/30 dark:bg-violet-950/10">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3">
                     Ready to Start Your Journey?
                   </h2>
@@ -418,7 +418,7 @@ export function WeightLossClient() {
                     Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option.
                   </p>
                   <Link href="/request?service=consult">
-                    <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
+                    <ShimmerButton className="px-8 h-12 font-semibold bg-blue-600">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </ShimmerButton>

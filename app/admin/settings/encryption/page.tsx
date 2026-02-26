@@ -52,7 +52,7 @@ export default async function EncryptionDashboardPage() {
   return (
     <div className="space-y-6 p-6" aria-label="PHI Encryption Dashboard">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 text-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
           <Shield className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>

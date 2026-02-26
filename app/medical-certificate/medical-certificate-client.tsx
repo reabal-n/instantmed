@@ -57,9 +57,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Accepted by all unis", "PDF straight to your inbox"],
     popular: false,
     href: "/request?service=med-cert",
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+    color: "from-blue-500 to-sky-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
   },
   {
     id: "carer",
@@ -640,7 +640,7 @@ export default function MedicalCertificatePage() {
                   <div className="flex flex-wrap justify-center lg:justify-start gap-3">
                     {[
                       { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-blue-500" },
-                      { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-violet-500" },
+                      { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-sky-500" },
                       { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-amber-500" },
                       { label: "Government", sub: "Public sector", icon: Landmark, color: "text-emerald-500" },
                     ].map((item) => (

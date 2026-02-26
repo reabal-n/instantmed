@@ -9,7 +9,7 @@ import { SkipToContent } from "@/components/shared/skip-to-content"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 
-import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+import { OrganizationSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { PostHogProvider } from "@/components/providers/posthog-provider"
 import { NetworkStatus } from "@/components/ui/error-recovery"
@@ -34,8 +34,7 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400"],
 })
 
-// Lora (serif) and Caveat (handwritten) moved to local imports in the
-// few components that use them, so they don't block initial page load.
+// Source Sans 3 for all text. JetBrains Mono for code only.
 
 export const metadata: Metadata = {
   title: {
@@ -56,6 +55,10 @@ export const metadata: Metadata = {
     "virtual doctor",
     "InstantMed",
   ],
+  icons: {
+    icon: "/branding/logo.png",
+    apple: "/apple-icon.png",
+  },
   authors: [{ name: "InstantMed" }],
   creator: "InstantMed",
   publisher: "InstantMed",
@@ -104,11 +107,11 @@ export const metadata: Metadata = {
     // Copy the content value from the meta tag
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
   },
-  generator: "v0.app",
+  generator: "Next.js",
 }
 
 export const viewport: Viewport = {
-  themeColor: "#F5A962",
+  themeColor: "#3B82F6",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -117,34 +120,7 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-visual",
 }
 
-function JsonLd() {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "MedicalBusiness",
-    name: "InstantMed",
-    description: "Online telehealth consultations with Australian-registered GPs",
-    url: "https://instantmed.com.au",
-    logo: "https://instantmed.com.au/logo.png",
-    priceRange: "$$",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "AU",
-    },
-    areaServed: {
-      "@type": "Country",
-      name: "Australia",
-    },
-    serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Doctor Consultations"],
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "00:00",
-      closes: "23:59",
-    },
-  }
-
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-}
+// Inline JsonLd removed — OrganizationSchema from healthcare-schema.tsx is the single source of truth
 
 export default function RootLayout({
   children,
@@ -201,9 +177,7 @@ export default function RootLayout({
               });
             `}
           </Script>
-          <JsonLd />
           <OrganizationSchema />
-          {/* ReviewAggregateSchema removed to avoid Google penalty from unverifiable review counts */}
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogProvider>

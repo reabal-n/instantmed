@@ -57,7 +57,7 @@ export function CTASection() {
                 Feeling too sick to visit a GP?
               </h2>
               <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
-                Get a valid medical certificate in minutes from the comfort of your couch. AHPRA-registered doctors. Employer-verifiable certificates.
+                Tell us what's going on, a doctor reviews it, and your certificate lands in your inbox. No appointments, no waiting rooms.
               </p>
               <div className="flex items-center justify-center gap-2 mb-8 text-sm">
                 <span className="font-semibold text-foreground">{PRICING_DISPLAY.FROM_MED_CERT}</span>
@@ -88,7 +88,7 @@ export function CTASection() {
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
                 >
                   <Link href="/request?service=med-cert">
-                    Get your certificate now <ArrowRight className="h-4 w-4" />
+                    Get your certificate <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>

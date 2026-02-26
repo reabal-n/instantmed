@@ -88,7 +88,7 @@ export function AdminDashboardClient({
       approved: "bg-emerald-100 text-emerald-800",
       declined: "bg-red-100 text-red-800",
       completed: "bg-gray-100 text-gray-800",
-      awaiting_script: "bg-purple-100 text-purple-800",
+      awaiting_script: "bg-dawn-100 text-dawn-800",
       pending_info: "bg-orange-100 text-orange-800",
     }
     return variants[status] || "bg-gray-100 text-gray-800"
@@ -154,7 +154,7 @@ export function AdminDashboardClient({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Send className="h-5 w-5 text-purple-500" />
+              <Send className="h-5 w-5 text-dawn-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Scripts Pending</p>
                 <p className="text-2xl font-bold">{stats.scripts_pending}</p>

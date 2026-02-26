@@ -230,8 +230,8 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-purple-100">
-                <Activity className="h-5 w-5 text-purple-600" />
+              <div className="p-2.5 rounded-xl bg-dawn-100">
+                <Activity className="h-5 w-5 text-dawn-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Avg Response</p>
@@ -286,15 +286,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
+        <Card className="bg-gradient-to-br from-dawn-50 to-white border-dawn-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600 font-medium">All Time</p>
-                <p className="text-3xl font-bold text-purple-700">${analytics.totalRevenue.toFixed(0)}</p>
-                <p className="text-xs text-purple-500">{analytics.totalIntakes} total intakes</p>
+                <p className="text-sm text-dawn-600 font-medium">All Time</p>
+                <p className="text-3xl font-bold text-dawn-700">${analytics.totalRevenue.toFixed(0)}</p>
+                <p className="text-xs text-dawn-500">{analytics.totalIntakes} total intakes</p>
               </div>
-              <Users className="h-8 w-8 text-purple-400" />
+              <Users className="h-8 w-8 text-dawn-400" />
             </div>
           </CardContent>
         </Card>

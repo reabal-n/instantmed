@@ -289,9 +289,8 @@ body {
 }
 
 @theme inline {
-  /* Typography: Source Sans 3 for body, Lora for headings, JetBrains Mono for code */
+  /* Typography: Source Sans 3 for all text, JetBrains Mono for code */
   --font-sans: "Source Sans 3", "Source Sans 3 Fallback", system-ui, sans-serif;
-  --font-serif: "Lora", "Lora Fallback", Georgia, serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -401,7 +400,7 @@ body {
      Consistent, premium headings
      ================================ */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
+    font-family: var(--font-sans);
     font-weight: 500;
     letter-spacing: -0.01em;
     line-height: 1.25;

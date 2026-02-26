@@ -71,7 +71,7 @@ export function WeightManagementClient() {
               </p>
 
               <Link href="/request?service=consult">
-                <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
+                <ShimmerButton className="px-8 h-12 font-semibold bg-blue-600">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </ShimmerButton>
@@ -80,15 +80,15 @@ export function WeightManagementClient() {
               {/* Trust badges */}
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Zap className="h-4 w-4 text-violet-600" />
+                  <Zap className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">15 min assessment</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Shield className="h-4 w-4 text-violet-600" />
+                  <Shield className="h-4 w-4 text-blue-600" />
                   <span>Doctor reviewed</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Calendar className="h-4 w-4 text-violet-600" />
+                  <Calendar className="h-4 w-4 text-blue-600" />
                   <span>Ongoing support</span>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export function WeightManagementClient() {
           </div>
 
           {/* Stats Bar */}
-          <section className="px-4 py-8 bg-violet-600 text-background">
+          <section className="px-4 py-8 bg-blue-600 text-background">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-4 text-center">
                 <div>
@@ -153,7 +153,7 @@ export function WeightManagementClient() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-4 p-4 rounded-xl bg-muted/30">
-                    <item.icon className="h-6 w-6 text-violet-600 shrink-0 mt-0.5" />
+                    <item.icon className="h-6 w-6 text-blue-600 shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.desc}</p>
@@ -196,12 +196,12 @@ export function WeightManagementClient() {
                   },
                 ].map((item) => (
                   <div key={item.step} className="text-center p-4 bg-background rounded-xl">
-                    <div className="h-12 w-12 rounded-full bg-violet-600/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-xl text-violet-600">{item.step}</span>
+                    <div className="h-12 w-12 rounded-full bg-blue-600/10 flex items-center justify-center mx-auto mb-3">
+                      <span className="font-bold text-xl text-blue-600">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground mb-2">{item.desc}</p>
-                    <span className="inline-block text-xs bg-violet-600/10 text-violet-600 px-2 py-0.5 rounded-full">
+                    <span className="inline-block text-xs bg-blue-600/10 text-blue-600 px-2 py-0.5 rounded-full">
                       {item.time}
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export function WeightManagementClient() {
                 </div>
                 <div className="p-6 rounded-xl border bg-muted/30">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-violet-600" />
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
                     May need alternative care if...
                   </h3>
                   <ul className="space-y-2 text-sm text-muted-foreground">
@@ -310,7 +310,7 @@ export function WeightManagementClient() {
                 Complete your health assessment in 10 minutes. A doctor will review your case and create a personalised plan.
               </p>
               <Link href="/request?service=consult">
-                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -323,15 +323,15 @@ export function WeightManagementClient() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/weight-loss" className="text-violet-600 hover:underline">
+                <Link href="/weight-loss" className="text-blue-600 hover:underline">
                   Weight Loss
                 </Link>
                 {" • "}
-                <Link href="/prescriptions" className="text-violet-600 hover:underline">
+                <Link href="/prescriptions" className="text-blue-600 hover:underline">
                   Prescriptions
                 </Link>
                 {" • "}
-                <Link href="/how-it-works" className="text-violet-600 hover:underline">
+                <Link href="/how-it-works" className="text-blue-600 hover:underline">
                   How It Works
                 </Link>
               </p>

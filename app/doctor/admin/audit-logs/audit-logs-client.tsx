@@ -140,7 +140,7 @@ export function AuditLogsClient({
       case "payment_received":
         return "bg-emerald-100 text-emerald-700"
       case "document_generated":
-        return "bg-purple-100 text-purple-700"
+        return "bg-dawn-100 text-dawn-700"
       case "email_sent":
         return "bg-sky-100 text-sky-700"
       case "email_failed":

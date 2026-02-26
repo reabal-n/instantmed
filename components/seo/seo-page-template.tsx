@@ -48,7 +48,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         <section className="relative pt-32 pb-20 overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" />
           <div className="absolute top-20 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
@@ -266,7 +266,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
             )}
 
             {/* CTA Section */}
-            <div className="mt-16 p-8 bg-linear-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="mt-16 p-8 bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
               <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
                 Ready to get started?
               </h2>

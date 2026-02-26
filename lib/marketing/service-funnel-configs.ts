@@ -563,5 +563,5 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     ctaText: 'Talk to a doctor today',
   },
   
-  accentColor: 'violet',
+  accentColor: 'sky',
 }

@@ -39,11 +39,11 @@ const colorConfig: Record<string, {
     light: 'rgba(8, 145, 178, 0.08)', 
     chipColor: 'primary' 
   },
-  violet: { 
-    gradient: 'from-violet-400 to-purple-500',
-    accent: '#7c3aed', 
-    light: 'rgba(124, 58, 237, 0.08)', 
-    chipColor: 'secondary' 
+  blue: {
+    gradient: 'from-blue-400 to-sky-500',
+    accent: '#3B82F6',
+    light: 'rgba(59, 130, 246, 0.08)',
+    chipColor: 'primary'
   },
 }
 

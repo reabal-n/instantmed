@@ -18,9 +18,7 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
         mono: ["var(--font-mono)"],
-        handwritten: ["var(--font-handwritten)", "Caveat", "cursive"],
       },
       colors: {
         // InstantMed Brand Colors — Morning Spectrum

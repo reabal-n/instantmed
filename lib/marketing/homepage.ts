@@ -5,7 +5,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Telehealth for medical certificates and repeat prescriptions",
+  tagline: "Skip the waiting room. See a doctor online.",
   operatingHours: {
     weekdays: "7am – 10pm AEST",
     weekends: "8am – 8pm AEST",
@@ -13,22 +13,22 @@ export const siteConfig = {
   },
   contact: {
     email: "support@instantmed.com.au",
-    phone: "1800 000 000", // Placeholder
+    phone: "0450 722 549",
   },
   legal: {
-    abn: "52 426 403 844",
-    clinicName: "InstantMed Telehealth Pty Ltd",
+    abn: "64 694 559 334",
+    clinicName: "InstantMed Pty Ltd",
     clinicAddress: "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010",
     ahpraStatement: "All consulting doctors hold current AHPRA registration",
   },
 }
 
 export const heroRotatingTexts = [
-  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — sorted in under an hour.`,
+  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — most sorted in under an hour.`,
   "Too sick to visit a GP? Get your cert from bed.",
-  "Skip the waiting room. Real doctors, real certificates.",
-  `Prescriptions renewed from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy.`,
-  "Save $40–70 vs a GP. AHPRA doctors. Done.",
+  "AHPRA-registered doctors. Employer-accepted certificates.",
+  `Prescriptions renewed from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy, Australia-wide.`,
+  "Save $40–70 compared to a GP visit. Same doctor review.",
 ]
 
 export const trustSignals = [
@@ -105,7 +105,7 @@ export const serviceCategories = [
     benefitQuestion: "Have a health concern?",
     description: "Talk to a doctor about something new or ongoing",
     icon: "Stethoscope",
-    color: "violet",
+    color: "blue",
     priceFrom: 49.95,
     href: "/request?service=consult",
     popular: false,
@@ -183,57 +183,6 @@ export const featuredServices = [
     priceFrom: 29.95,
     href: "/request?service=prescription",
     features: ["Contraception", "Blood pressure", "Skin treatments", "eScript to your phone"],
-  },
-]
-
-export const pricingTiers = [
-  {
-    name: "Prescription",
-    price: 29.95,
-    description: "Running low on your regular meds?",
-    features: [
-      "eScript sent to your phone",
-      "Repeats included when suitable",
-      "Works with any chemist",
-      "eScript or paper",
-    ],
-    cta: "Renew prescription",
-    href: "/request?service=prescription",
-    popular: false,
-    icon: "Pill",
-    color: "from-cyan-500 to-blue-500",
-  },
-  {
-    name: "Medical Certificate",
-    price: 19.95,
-    description: "Too sick to see a GP? Get your cert from bed.",
-    features: [
-      "AHPRA-registered doctor reviews it",
-      "Accepted by all Australian employers",
-      "Delivered to your inbox as a PDF",
-      "Backdating if clinically appropriate",
-    ],
-    cta: "Get your certificate",
-    href: "/request?service=med-cert",
-    popular: true,
-    icon: "FileText",
-    color: "from-indigo-500 to-violet-500",
-  },
-  {
-    name: "General Consult",
-    price: 49.95,
-    description: "Something on your mind?",
-    features: [
-      "Talk through what's going on",
-      "Get advice on next steps",
-      "Prescriptions if it makes sense",
-      "Pathology requests if needed",
-    ],
-    cta: "Book a consult",
-    href: "/request?service=consult",
-    popular: false,
-    icon: "Stethoscope",
-    color: "from-violet-500 to-purple-500",
   },
 ]
 

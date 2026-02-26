@@ -39,8 +39,8 @@ const SERVICES = [
     icon: MessageSquare,
     label: 'General Consultation',
     description: 'Speak to a doctor about your health',
-    color: 'from-purple-50 to-purple-100',
-    iconColor: 'text-purple-600',
+    color: 'from-sky-50 to-sky-100',
+    iconColor: 'text-sky-600',
   },
 ]
 

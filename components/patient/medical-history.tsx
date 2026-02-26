@@ -42,7 +42,7 @@ const typeIcons = {
 }
 
 const typeColors = {
-  prescription: "bg-purple-100 text-purple-600",
+  prescription: "bg-blue-100 text-blue-600",
   medical_certificate: "bg-blue-100 text-primary",
   referral: "bg-emerald-100 text-emerald-600",
   pathology: "bg-dawn-100 text-dawn-600",

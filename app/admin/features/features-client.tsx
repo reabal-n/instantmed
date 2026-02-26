@@ -339,8 +339,8 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           {/* Consults */}
           <div className="flex items-center justify-between p-4 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100">
-                <Stethoscope className="h-5 w-5 text-purple-600" />
+              <div className="p-2 rounded-lg bg-blue-100">
+                <Stethoscope className="h-5 w-5 text-blue-600" />
               </div>
               <div>
                 <p className="font-medium">Consultations</p>

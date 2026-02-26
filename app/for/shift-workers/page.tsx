@@ -63,9 +63,9 @@ export default function ShiftWorkersPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4 interactive-pill cursor-default">
-                    <Moon className="w-3.5 h-3.5 text-purple-600" />
-                    <span className="text-xs font-medium text-purple-700">For Shift Workers</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 mb-4 interactive-pill cursor-default">
+                    <Moon className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-700">For Shift Workers</span>
                   </div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
@@ -79,7 +79,7 @@ export default function ShiftWorkersPage() {
                   </p>
 
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm px-6">
+                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -88,15 +88,15 @@ export default function ShiftWorkersPage() {
                   {/* Trust badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Clock className="h-3.5 w-3.5 text-purple-600" />
+                      <Clock className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Zap className="h-3.5 w-3.5 text-purple-600" />
+                      <Zap className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Shield className="h-3.5 w-3.5 text-purple-600" />
+                      <Shield className="h-3.5 w-3.5 text-blue-600" />
                       <span className="font-medium text-muted-foreground">All employers</span>
                     </div>
                   </div>
@@ -108,27 +108,27 @@ export default function ShiftWorkersPage() {
           {/* Availability Bar */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-purple-500/20 bg-purple-50/30 dark:bg-purple-950/10">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-4 text-center">
                     <div className="flex flex-col items-center">
-                      <Sun className="h-5 w-5 mb-2 text-purple-600" />
-                      <div className="text-xs font-medium text-purple-700">Early mornings</div>
+                      <Sun className="h-5 w-5 mb-2 text-blue-600" />
+                      <div className="text-xs font-medium text-blue-700">Early mornings</div>
                       <div className="text-xs text-muted-foreground">From 8am</div>
                     </div>
                     <div className="flex flex-col items-center">
-                      <Coffee className="h-5 w-5 mb-2 text-purple-600" />
-                      <div className="text-xs font-medium text-purple-700">Business hours</div>
+                      <Coffee className="h-5 w-5 mb-2 text-blue-600" />
+                      <div className="text-xs font-medium text-blue-700">Business hours</div>
                       <div className="text-xs text-muted-foreground">9am-5pm</div>
                     </div>
                     <div className="flex flex-col items-center">
-                      <Moon className="h-5 w-5 mb-2 text-purple-600" />
-                      <div className="text-xs font-medium text-purple-700">Evenings</div>
+                      <Moon className="h-5 w-5 mb-2 text-blue-600" />
+                      <div className="text-xs font-medium text-blue-700">Evenings</div>
                       <div className="text-xs text-muted-foreground">Until 10pm</div>
                     </div>
                     <div className="flex flex-col items-center">
-                      <Star className="h-5 w-5 mb-2 text-purple-600" />
-                      <div className="text-xs font-medium text-purple-700">Weekends</div>
+                      <Star className="h-5 w-5 mb-2 text-blue-600" />
+                      <div className="text-xs font-medium text-blue-700">Weekends</div>
                       <div className="text-xs text-muted-foreground">Sat & Sun</div>
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export default function ShiftWorkersPage() {
                     { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
                   ].map((item) => (
                     <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <item.icon className="h-5 w-5 text-purple-600 shrink-0" />
+                      <item.icon className="h-5 w-5 text-blue-600 shrink-0" />
                       <div>
                         <h3 className="text-sm font-semibold">{item.title}</h3>
                         <p className="text-xs text-muted-foreground">{item.examples}</p>
@@ -270,12 +270,12 @@ export default function ShiftWorkersPage() {
                     },
                   ].map((item) => (
                     <div key={item.step} className="glass-card rounded-xl text-center p-4">
-                      <div className="h-10 w-10 rounded-lg bg-purple-600 flex items-center justify-center mx-auto mb-3">
+                      <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center mx-auto mb-3">
                         <span className="font-bold text-lg text-background">{item.step}</span>
                       </div>
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
-                      <span className="inline-block text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                      <span className="inline-block text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                         {item.time}
                       </span>
                     </div>
@@ -327,13 +327,13 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-purple-500/20 bg-purple-50/30 dark:bg-purple-950/10">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
                   <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Works around your roster, not the other way around.
                   </p>
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm h-12 px-8">
+                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -348,15 +348,15 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/for/tradies" className="text-purple-600 hover:underline">
+                <Link href="/for/tradies" className="text-blue-600 hover:underline">
                   Tradies
                 </Link>
                 {" • "}
-                <Link href="/for/corporate" className="text-purple-600 hover:underline">
+                <Link href="/for/corporate" className="text-blue-600 hover:underline">
                   Corporate Workers
                 </Link>
                 {" • "}
-                <Link href="/prescriptions" className="text-purple-600 hover:underline">
+                <Link href="/prescriptions" className="text-blue-600 hover:underline">
                   Prescriptions
                 </Link>
               </p>

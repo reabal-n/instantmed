@@ -119,7 +119,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       case "pending_info":
         return "bg-amber-100 text-amber-800 border-amber-200"
       case "awaiting_script":
-        return "bg-purple-100 text-purple-800 border-purple-200"
+        return "bg-dawn-100 text-dawn-800 border-dawn-200"
       case "paid":
       case "in_review":
         return "bg-blue-100 text-blue-800 border-blue-200"

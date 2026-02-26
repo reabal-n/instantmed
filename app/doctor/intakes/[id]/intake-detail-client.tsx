@@ -332,11 +332,9 @@ export function IntakeDetailClient({
         setCertPreviewData(result.data)
         setShowCertPreview(true)
       } else {
-        console.error("[cert-preview] fetchCertPreviewDataAction failed:", result.error)
         toast.error(result.error || "Failed to load certificate data")
       }
-    } catch (err) {
-      console.error("[cert-preview] Exception in fetchCertPreviewDataAction:", err)
+    } catch {
       toast.error("Failed to load certificate preview")
     } finally {
       setIsLoadingPreview(false)
@@ -499,7 +497,7 @@ export function IntakeDetailClient({
       case "pending_info":
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
       case "awaiting_script":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-900/30 dark:text-dawn-300"
       default:
         return "bg-primary/10 text-primary"
     }
@@ -754,7 +752,7 @@ export function IntakeDetailClient({
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{prevService?.short_name || "Request"}</span>
                       {hasNotes && (
-                        <Badge variant="outline" className="text-xs h-4 px-1 bg-violet-50 text-violet-700 border-violet-200">
+                        <Badge variant="outline" className="text-xs h-4 px-1 bg-blue-50 text-blue-700 border-blue-200">
                           <FileText className="h-2.5 w-2.5 mr-0.5" />
                           Note
                         </Badge>
@@ -834,7 +832,7 @@ export function IntakeDetailClient({
 
             {/* Mark script as sent (for awaiting_script status) */}
             {intake.status === "awaiting_script" && (
-              <Button onClick={() => setShowScriptDialog(true)} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={() => setShowScriptDialog(true)} className="bg-blue-600 hover:bg-blue-700">
                 <Send className="h-4 w-4 mr-2" />
                 Mark Script Sent
               </Button>
@@ -965,7 +963,7 @@ export function IntakeDetailClient({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleMarkScriptSent} disabled={isPending} className="bg-purple-600">
+            <AlertDialogAction onClick={handleMarkScriptSent} disabled={isPending} className="bg-blue-600">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm Sent
             </AlertDialogAction>

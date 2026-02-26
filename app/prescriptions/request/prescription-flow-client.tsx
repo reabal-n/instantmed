@@ -172,7 +172,7 @@ function TrustStrip() {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
-            <Shield className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+            <Shield className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
             <span className="hidden sm:inline">Private</span>
           </div>
         </TooltipTrigger>
@@ -995,7 +995,7 @@ export function PrescriptionFlowClient({
                       </p>
                     </div>
                   </div>
-                  <Button asChild className="w-full rounded-lg bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white">
+                  <Button asChild className="w-full rounded-lg bg-linear-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white">
                     <Link href="/consult">
                       Continue to General Consult ($49.95)
                     </Link>

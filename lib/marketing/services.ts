@@ -59,7 +59,7 @@ export interface ServiceConfig {
   metaDescription: string
   
   // Styling
-  accentColor: 'emerald' | 'violet' | 'blue' | 'amber' | 'rose'
+  accentColor: 'emerald' | 'sky' | 'blue' | 'amber' | 'rose'
   icon: string
 }
 

@@ -473,7 +473,7 @@ export function QueueClient({
                           </Badge>
                         )}
                         {intake.ai_draft_status === "completed" && (
-                          <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700">
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
                             <Sparkles className="w-3 h-3 mr-1" />
                             AI ready
                           </Badge>

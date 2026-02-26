@@ -125,8 +125,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-violet-50">
-                  <TrendingUp className="h-5 w-5 text-violet-600" />
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Avg Approval Rate</p>
@@ -279,7 +279,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                     </TableCell>
                     <TableCell className="text-center">
                       {doctor.pending > 0 ? (
-                        <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                           {doctor.pending}
                         </Badge>
                       ) : (

@@ -314,23 +314,23 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
           <div className={cn(
             "rounded-lg p-3 flex items-center gap-3",
             callCompleted 
-              ? "bg-emerald-500/10 border border-emerald-500/30" 
-              : "bg-purple-500/10 border border-purple-500/30"
+              ? "bg-emerald-500/10 border border-emerald-500/30"
+              : "bg-blue-500/10 border border-blue-500/30"
           )}>
             <div className={cn(
               "h-8 w-8 rounded-full flex items-center justify-center",
-              callCompleted ? "bg-emerald-500/20" : "bg-purple-500/20"
+              callCompleted ? "bg-emerald-500/20" : "bg-blue-500/20"
             )}>
               {callCompleted ? (
                 <Activity className="h-4 w-4 text-emerald-600" />
               ) : (
-                <AlertCircle className="h-4 w-4 text-purple-600" />
+                <AlertCircle className="h-4 w-4 text-blue-600" />
               )}
             </div>
             <div>
               <p className={cn(
                 "font-medium text-sm",
-                callCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-purple-700 dark:text-purple-400"
+                callCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-blue-700 dark:text-blue-400"
               )}>
                 {callCompleted ? "Phone Consultation Completed" : "Phone Consultation Required"}
               </p>

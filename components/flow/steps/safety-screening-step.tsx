@@ -212,12 +212,12 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
                 <a
                   href="tel:131114"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-purple-50 border-2 border-purple-200 hover:bg-purple-100 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 transition-colors"
                 >
-                  <Heart className="w-5 h-5 text-purple-600" />
+                  <Heart className="w-5 h-5 text-blue-600" />
                   <div>
-                    <p className="font-semibold text-purple-900">Lifeline: 13 11 14</p>
-                    <p className="text-sm text-purple-700">24/7 crisis support</p>
+                    <p className="font-semibold text-blue-900">Lifeline: 13 11 14</p>
+                    <p className="text-sm text-blue-700">24/7 crisis support</p>
                   </div>
                 </a>
 

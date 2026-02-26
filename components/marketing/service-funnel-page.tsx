@@ -152,7 +152,7 @@ export interface ServiceFunnelConfig {
   }
   
   // Styling
-  accentColor: 'emerald' | 'blue' | 'violet'
+  accentColor: 'emerald' | 'blue' | 'sky'
 }
 
 const colorClasses = {
@@ -165,20 +165,20 @@ const colorClasses = {
     ring: 'ring-emerald-500/20',
   },
   blue: {
-    gradient: 'from-blue-500 to-indigo-600',
+    gradient: 'from-blue-500 to-sky-600',
     light: 'bg-blue-50 dark:bg-blue-950/30',
     text: 'text-blue-600 dark:text-blue-400',
     border: 'border-blue-200 dark:border-blue-800',
     button: 'bg-blue-600 hover:bg-blue-700',
     ring: 'ring-blue-500/20',
   },
-  violet: {
-    gradient: 'from-violet-500 to-purple-600',
-    light: 'bg-violet-50 dark:bg-violet-950/30',
-    text: 'text-violet-600 dark:text-violet-400',
-    border: 'border-violet-200 dark:border-violet-800',
-    button: 'bg-violet-600 hover:bg-violet-700',
-    ring: 'ring-violet-500/20',
+  sky: {
+    gradient: 'from-sky-500 to-blue-600',
+    light: 'bg-sky-50 dark:bg-sky-950/30',
+    text: 'text-sky-600 dark:text-sky-400',
+    border: 'border-sky-200 dark:border-sky-800',
+    button: 'bg-sky-600 hover:bg-sky-700',
+    ring: 'ring-sky-500/20',
   },
 }
 

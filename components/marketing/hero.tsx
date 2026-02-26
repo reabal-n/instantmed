@@ -54,7 +54,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              AHPRA-registered doctors. Employer-verifiable certificates. Skip the waiting room and get your medical certificate online — reviewed in under an hour, 7 days a week.
+              Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP handles the rest. Most done within the hour.
             </motion.p>
 
             {/* Price anchor above CTAs */}

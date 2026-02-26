@@ -60,9 +60,6 @@ export function Footer() {
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-we-decide">
                   How Decisions Are Made
                 </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/our-doctors">
-                  Our Doctors
-                </Link>
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/clinical-governance">
                   Clinical Governance
                 </Link>
@@ -89,7 +86,7 @@ export function Footer() {
       <div className="my-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center">
           <p className="whitespace-nowrap text-xs">
-            © {currentYear} InstantMed Telehealth Pty Ltd. All rights reserved.
+            © {currentYear} InstantMed Pty Ltd. All rights reserved.
           </p>
           <div className="flex flex-row gap-4 text-xs">
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>

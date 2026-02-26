@@ -55,7 +55,7 @@ function Avatar({
       <AvatarPrimitive.Fallback
         className={cn(
           "flex h-full w-full items-center justify-center rounded-full",
-          "bg-gradient-to-br from-primary/20 to-violet-500/20",
+          "bg-gradient-to-br from-primary/20 to-blue-500/20",
           "text-primary text-sm font-medium"
         )}
       >
@@ -84,7 +84,7 @@ function AvatarFallback({
     <div
       className={cn(
         "flex h-full w-full items-center justify-center rounded-full",
-        "bg-gradient-to-br from-primary/20 to-violet-500/20 text-primary"
+        "bg-gradient-to-br from-primary/20 to-blue-500/20 text-primary"
       )}
       {...props}
     >
