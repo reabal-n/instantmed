@@ -240,7 +240,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         url: "https://instantmed.com.au",
         logo: {
           "@type": "ImageObject",
-          url: "https://instantmed.com.au/logo.svg"
+          url: "https://instantmed.com.au/branding/logo.png"
         }
       },
       mainEntityOfPage: {

@@ -151,11 +151,11 @@ export const categories: Record<ArticleCategory, CategoryInfo> = {
 }
 
 export const defaultAuthor: ArticleAuthor = {
-  name: 'Dr. Reabal Najjar',
-  credentials: 'BHSc, MD, AFHEA',
-  ahpraNumber: 'MED0002576546',
-  bio: 'Dr. Reabal Najjar is an AHPRA-registered medical practitioner and the Medical Director at InstantMed. He is committed to making quality healthcare more accessible through responsible telehealth.',
-  image: '/doctors/dr-reabal-najjar.jpg'
+  name: 'InstantMed Medical Team',
+  credentials: '',
+  ahpraNumber: '',
+  bio: 'Written and medically reviewed by AHPRA-registered doctors at InstantMed, committed to making quality healthcare more accessible through responsible telehealth.',
+  image: 'https://api.dicebear.com/7.x/notionists/svg?seed=InstantMedTeam'
 }
 
 // Content team authors (non-medical, for informational articles)

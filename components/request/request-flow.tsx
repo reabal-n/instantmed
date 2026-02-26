@@ -30,12 +30,45 @@ import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { ConnectionBanner } from "./connection-banner"
-import { 
+import {
   getStepsForService,
   type UnifiedServiceType,
   type StepContext,
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
+import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/flow/safety"
+
+// Map UnifiedServiceType → safety config slug for client-side pre-check
+// Must match server-side getServiceSlug() in lib/stripe/checkout.ts
+function getSafetySlug(serviceType: UnifiedServiceType, answers: Record<string, unknown>): string {
+  switch (serviceType) {
+    case 'med-cert':
+      return 'med-cert-sick'
+    case 'prescription':
+    case 'repeat-script':
+      return 'common-scripts'
+    case 'consult': {
+      const subtype = answers.consultSubtype as string | undefined
+      if (subtype === 'weight_loss') return 'weight-loss'
+      if (subtype === 'ed') return 'consult'
+      return 'consult'
+    }
+    default:
+      return 'consult'
+  }
+}
+
+// Steps that trigger a safety pre-check when completed
+// These are the first clinical steps per service — catch blocks early
+const SAFETY_PRE_CHECK_STEPS = new Set([
+  'symptoms',          // med-cert: after symptom selection
+  'medication',        // prescription/repeat-script: after medication selection
+  'medical-history',   // shared: after medical history (catches drug interactions)
+  'ed-assessment',     // ED consult: after ED-specific questions
+  'ed-safety',         // ED consult: after safety screening (nitrates, cardiac)
+  'weight-loss-assessment', // Weight loss: after BMI/screening
+  'consult-reason',    // General consult: after describing concern
+])
 
 // Estimated time per step type (in seconds)
 const STEP_TIME_ESTIMATES: Record<string, number> = {
@@ -324,6 +357,7 @@ export function RequestFlow({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const dragX = useMotionValue(0)
   
@@ -526,20 +560,41 @@ export function RequestFlow({
     }
   }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
 
-  // Handle next navigation with tracking
+  // Handle next navigation with tracking + safety pre-check
   const handleNext = useCallback(() => {
     posthog?.capture('request_step_completed', {
       service_type: analyticsServiceType,
       step_id: currentStepId,
       step_index: currentStepIndex,
     })
-    
+
+    // Run safety pre-check when leaving key clinical steps
+    // This catches emergencies and hard blocks EARLY, before the patient
+    // invests more time filling out details + payment info.
+    // Full server-side check still runs at checkout as a backstop.
+    if (effectiveService && SAFETY_PRE_CHECK_STEPS.has(currentStepId)) {
+      const slug = getSafetySlug(effectiveService, answers)
+      const result = evaluateSafety(slug, answers)
+
+      if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
+        posthog?.capture('safety_precheck_blocked', {
+          service_type: analyticsServiceType,
+          step_id: currentStepId,
+          outcome: result.outcome,
+          risk_tier: result.riskTier,
+          triggered_rules: result.triggeredRules.map(r => r.ruleId),
+        })
+        setSafetyBlock(result)
+        return // Don't advance — show safety block dialog
+      }
+    }
+
     setIsTransitioning(true)
     setTimeout(() => {
       nextStep()
       setIsTransitioning(false)
     }, 150)
-  }, [analyticsServiceType, currentStepId, currentStepIndex, nextStep, posthog])
+  }, [analyticsServiceType, currentStepId, currentStepIndex, nextStep, posthog, effectiveService, answers])
 
   // Handle flow completion with tracking
   const handleComplete = useCallback(() => {
@@ -810,6 +865,81 @@ export function RequestFlow({
                   Leave
                 </Button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Safety pre-check block dialog */}
+      <AnimatePresence>
+        {safetyBlock && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl"
+            >
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">
+                    {safetyBlock.patientTitle}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {safetyBlock.patientMessage}
+                  </p>
+                </div>
+              </div>
+              {safetyBlock.outcome === 'REQUIRES_CALL' ? (
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setSafetyBlock(null)
+                      router.push('/')
+                    }}
+                  >
+                    Return home
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      setSafetyBlock(null)
+                      router.push('/contact')
+                    }}
+                  >
+                    Contact us
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setSafetyBlock(null)}
+                  >
+                    Go back
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      setSafetyBlock(null)
+                      router.push('/')
+                    }}
+                  >
+                    Return home
+                  </Button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}

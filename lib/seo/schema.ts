@@ -44,7 +44,7 @@ export function generateMedicalWebPageSchema(page: PageUnion, pageType: string) 
       name: 'InstantMed',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://instantmed.com.au/logo.png',
+        url: 'https://instantmed.com.au/branding/logo.png',
       },
     },
     dateModified: new Date().toISOString(),
@@ -58,7 +58,7 @@ export function generateOrganizationSchema() {
     name: 'InstantMed',
     description: 'Online telehealth consultations with Australian-registered GPs',
     url: 'https://instantmed.com.au',
-    logo: 'https://instantmed.com.au/logo.png',
+    logo: 'https://instantmed.com.au/branding/logo.png',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',

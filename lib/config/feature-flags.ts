@@ -17,7 +17,7 @@ import "server-only"
  *   - Redeploy (or restart dev server locally)
  *   - Flow will show "Service temporarily unavailable"
  * 
- * @see docs/FEATURE_FLAGS.md for full documentation
+ * @see SECURITY.md → Feature Flags & Kill Switches
  */
 
 import * as Sentry from "@sentry/nextjs"

@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- CLI script */
 /**
  * Test script: Generate PDFs from all 3 template types and write to /tmp/
  *

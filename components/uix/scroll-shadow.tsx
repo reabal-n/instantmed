@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 /**
  * ScrollShadow - Simple scrollable container wrapper
  *
- * Drop-in replacement for HeroUI ScrollShadow.
+ * Simple scrollable container with overflow handling.
  * Renders a div with overflow-auto and optional className.
  */
 export function ScrollShadow({

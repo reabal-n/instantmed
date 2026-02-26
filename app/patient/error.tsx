@@ -1,5 +1,4 @@
 "use client"
-/* eslint-disable no-console -- Error boundary intentionally uses console */
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -60,7 +59,6 @@ export default function PatientError({
   const IconComponent = errorInfo.icon
 
   useEffect(() => {
-    console.error("[PatientError]", error)
     Sentry.captureException(error, {
       tags: { boundary: "patient", errorType: getErrorInfo(error).type },
       extra: { digest: error.digest },

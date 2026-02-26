@@ -5,12 +5,12 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Backwards-compatible Select that accepts both shadcn/ui and HeroUI APIs
+// Backwards-compatible Select that accepts both shadcn/ui and legacy APIs
 interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
-  // HeroUI compatibility
+  // Legacy API compatibility
   selectedKeys?: string[] | Set<string>
   onSelectionChange?: (keys: Set<string>) => void
-  // Additional props that HeroUI Select accepts
+  // Additional legacy props
   placeholder?: string
   className?: string
   classNames?: Record<string, string>
@@ -24,7 +24,7 @@ function Select({
   placeholder: _placeholder, 
   ...props 
 }: SelectProps) {
-  // Map HeroUI API to Radix API
+  // Map legacy API to Radix API
   let radixValue = props.value
   let radixOnValueChange = props.onValueChange
 
@@ -181,10 +181,10 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
-// SelectItem with HeroUI compatibility (accepts `key` as alias for `value`)
+// SelectItem with legacy API compatibility (accepts `key` as alias for `value`)
 interface SelectItemProps extends Omit<React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "value"> {
   value?: string
-  // HeroUI uses `key` prop for item identification
+  // Legacy API uses `key` prop for item identification
   key?: string
 }
 

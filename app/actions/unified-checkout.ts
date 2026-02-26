@@ -137,17 +137,6 @@ export async function createCheckoutFromUnifiedFlow(
     }
   }
   
-  // DEV: Debug log for prescription flow tracing (no PHI)
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[UnifiedCheckout] Mapping:', {
-      inputServiceType: serviceType,
-      mappedCategory: category,
-      mappedSubtype: finalSubtype,
-      // Service slug will be: prescription:repeat -> common-scripts
-    })
-  }
-  
   const transformedAnswers = transformAnswers(serviceType, answers)
   
   // Check if user is authenticated

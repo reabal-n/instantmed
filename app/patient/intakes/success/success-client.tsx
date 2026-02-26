@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
+import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { createClient } from "@/lib/supabase/client"
@@ -19,13 +20,14 @@ interface SuccessClientProps {
   patientEmail?: string
 }
 
-export function SuccessClient({ 
-  intakeId, 
+export function SuccessClient({
+  intakeId,
   initialStatus,
   serviceName,
   isPriority = false,
   patientEmail,
 }: SuccessClientProps) {
+  const posthog = usePostHog()
   const [status, setStatus] = useState(initialStatus)
   const [isVerifying, setIsVerifying] = useState(initialStatus === "pending_payment")
   const [verificationFailed, setVerificationFailed] = useState(false)
@@ -96,6 +98,13 @@ export function SuccessClient({
         if (data?.status && data.status !== "pending_payment") {
           setStatus(data.status)
           setIsVerifying(false)
+          posthog?.capture('payment_verified', {
+            intake_id: intakeId,
+            status: data.status,
+            service_name: serviceName,
+            poll_attempts: attempts,
+            verification_seconds: attempts * 3,
+          })
           return true
         }
 
@@ -118,18 +127,25 @@ export function SuccessClient({
           } catch {
             // Verification fallback failed, continue to show error
           }
+          posthog?.capture('payment_verification_timeout', {
+            intake_id: intakeId,
+            service_name: serviceName,
+            poll_attempts: attempts,
+          })
           setVerificationFailed(true)
           setIsVerifying(false)
           return true
         }
 
         return false
-      } catch (err) {
-        // P2 FIX: Track polling errors and show fallback after multiple failures
-        // eslint-disable-next-line no-console
-        console.error("Status polling error:", err)
+      } catch {
         attempts++
         if (attempts >= maxAttempts) {
+          posthog?.capture('payment_verification_error', {
+            intake_id: intakeId,
+            service_name: serviceName,
+            poll_attempts: attempts,
+          })
           setPollingError(true)
           setIsVerifying(false)
           return true

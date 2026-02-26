@@ -13,7 +13,7 @@ export interface SwitchProps
   checked?: boolean
   defaultChecked?: boolean
   onCheckedChange?: (checked: boolean) => void
-  // Support HeroUI API
+  // Legacy API compatibility
   isSelected?: boolean
   defaultSelected?: boolean
   onValueChange?: (isSelected: boolean) => void

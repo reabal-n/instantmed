@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     display: "standalone",
     background_color: "#fafbfc",
-    theme_color: "#2563EB",
+    theme_color: "#3B82F6",
     orientation: "portrait",
     categories: ["health", "medical", "lifestyle"],
     // Deep link shortcuts for quick access to services
@@ -48,19 +48,6 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    screenshots: [
-      {
-        src: "/screenshots/home.png",
-        sizes: "1280x720",
-        type: "image/png",
-        form_factor: "wide",
-      },
-      {
-        src: "/screenshots/mobile.png",
-        sizes: "750x1334",
-        type: "image/png",
-        form_factor: "narrow",
-      },
-    ],
+    // screenshots omitted — files not yet created
   }
 }

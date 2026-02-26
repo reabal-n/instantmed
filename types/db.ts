@@ -553,9 +553,9 @@ export interface MedCertDraft {
   // Doctor-editable summary
   reason_summary: string | null
   
-  // Doctor details (with defaults)
-  doctor_typed_name: string // Default: "Dr Reabal Najjar, BHSc, MD, AFHEA"
-  doctor_ahpra: string // Default: "MED0002576546"
+  // Doctor details (populated from doctor_profiles at approval time)
+  doctor_typed_name: string
+  doctor_ahpra: string
   provider_name: string // Default: "InstantMed"
   provider_address: string // Default: "Level 1/457-459 Elizabeth Street, Surry Hills 2010, Sydney, Australia"
   

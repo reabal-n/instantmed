@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect } from "react"
+import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
@@ -68,6 +69,7 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 
 export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const { answers, getIdentity, setConsent, chatSessionId } = useRequestStore()
+  const posthog = usePostHog()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimatedWait, setEstimatedWait] = useState("~1 hour")
@@ -119,6 +121,13 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     setIsProcessing(true)
     setError(null)
 
+    // Track checkout funnel: initiated
+    posthog?.capture('checkout_initiated', {
+      service_type: serviceType,
+      price_dollars: price,
+      consult_subtype: consultSubtype,
+    })
+
     try {
       const identity = getIdentity()
       const answersWithConsents = {
@@ -135,19 +144,41 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       })
 
       if (!result.success) {
+        // Track checkout funnel: failed (before Stripe redirect)
+        posthog?.capture('checkout_failed', {
+          service_type: serviceType,
+          error: result.error,
+          stage: 'session_creation',
+        })
         setError(result.error || 'Failed to create checkout session')
         return
       }
 
       if (result.checkoutUrl) {
+        // Track checkout funnel: redirecting to Stripe
+        posthog?.capture('checkout_redirecting', {
+          service_type: serviceType,
+          intake_id: result.intakeId,
+          price_dollars: price,
+        })
         setTriggerConfetti(true)
         setTimeout(() => {
           window.location.href = result.checkoutUrl!
         }, 600)
       } else {
+        posthog?.capture('checkout_failed', {
+          service_type: serviceType,
+          error: 'no_checkout_url',
+          stage: 'session_creation',
+        })
         setError('Unable to create payment session. Please try again.')
       }
     } catch (err) {
+      posthog?.capture('checkout_failed', {
+        service_type: serviceType,
+        error: err instanceof Error ? err.message : 'unknown',
+        stage: 'exception',
+      })
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setIsProcessing(false)

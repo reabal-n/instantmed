@@ -57,9 +57,6 @@ export async function searchAddresses(
     const data = await response.json()
 
     if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[GooglePlaces] API error:", data.status, data.error_message)
-      }
       return []
     }
 

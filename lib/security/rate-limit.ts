@@ -42,13 +42,29 @@ export const RATE_LIMITS = {
 } as const
 
 // In-memory fallback for when DB is unavailable.
-// Uses a higher threshold (safety net only) to prevent unlimited abuse.
-const IN_MEMORY_FALLBACK_MAX = 100
-const IN_MEMORY_FALLBACK_WINDOW_MS = 60 * 60 * 1000 // 1 hour
-
+// Uses per-action limits matching RATE_LIMITS to prevent abuse.
 const inMemoryLimits = new Map<string, number[]>()
 
+// Periodic cleanup: remove stale entries every 15 minutes
+const CLEANUP_INTERVAL_MS = 15 * 60 * 1000
+let lastCleanup = Date.now()
+
+function cleanupStaleEntries(maxAge: number = 60 * 60 * 1000) {
+  const now = Date.now()
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return
+  lastCleanup = now
+  for (const [key, timestamps] of inMemoryLimits) {
+    const recent = timestamps.filter(t => t > now - maxAge)
+    if (recent.length === 0) {
+      inMemoryLimits.delete(key)
+    } else {
+      inMemoryLimits.set(key, recent)
+    }
+  }
+}
+
 function checkInMemoryFallback(key: string, maxActions: number, windowMs: number): boolean {
+  cleanupStaleEntries(windowMs)
   const now = Date.now()
   const timestamps = inMemoryLimits.get(key) || []
   const recent = timestamps.filter(t => t > now - windowMs)
@@ -84,14 +100,14 @@ export async function checkRateLimit(
       const fallbackKey = `${userId}:${config.action}`
       const fallbackAllowed = checkInMemoryFallback(
         fallbackKey,
-        IN_MEMORY_FALLBACK_MAX,
-        IN_MEMORY_FALLBACK_WINDOW_MS
+        config.maxRequests,
+        config.windowMs
       )
       if (!fallbackAllowed) {
-        logger.warn("In-memory rate limit fallback triggered (DB error path)", {
+        logger.warn("In-memory rate limit fallback triggered", {
           userId,
           action: config.action,
-          fallbackMax: IN_MEMORY_FALLBACK_MAX,
+          fallbackMax: config.maxRequests,
         })
       }
       return {
@@ -128,14 +144,14 @@ export async function checkRateLimit(
     const fallbackKey = `${userId}:${config.action}`
     const fallbackAllowed = checkInMemoryFallback(
       fallbackKey,
-      IN_MEMORY_FALLBACK_MAX,
-      IN_MEMORY_FALLBACK_WINDOW_MS
+      config.maxRequests,
+      config.windowMs
     )
     if (!fallbackAllowed) {
-      logger.warn("In-memory rate limit fallback triggered (catch path)", {
+      logger.warn("In-memory rate limit fallback triggered", {
         userId,
         action: config.action,
-        fallbackMax: IN_MEMORY_FALLBACK_MAX,
+        fallbackMax: config.maxRequests,
       })
     }
     return {

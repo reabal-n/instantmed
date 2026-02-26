@@ -23,7 +23,7 @@ export function OrganizationSchema() {
     url: SITE_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${SITE_URL}/branding/logo.svg`,
+      url: `${SITE_URL}/branding/logo.png`,
       width: 512,
       height: 512,
     },
@@ -60,7 +60,7 @@ export function MedicalBusinessSchema() {
     url: SITE_URL,
     telephone: "+61-support", // Update with actual phone if available
     email: "support@instantmed.com.au",
-    logo: `${SITE_URL}/branding/logo.svg`,
+    logo: `${SITE_URL}/branding/logo.png`,
     image: `${SITE_URL}/og-image.jpg`,
     priceRange: "$$",
     currenciesAccepted: "AUD",

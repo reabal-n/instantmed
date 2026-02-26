@@ -28,7 +28,7 @@ export interface PaginationProps {
 /**
  * Pagination - Simple page navigation component
  *
- * Drop-in replacement for the HeroUI Pagination component.
+ * Custom pagination component with page number buttons.
  * Renders Previous/Next buttons with page number buttons.
  */
 export function Pagination({

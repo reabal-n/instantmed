@@ -9,7 +9,7 @@ export interface CheckboxProps extends Omit<React.ComponentProps<typeof Checkbox
   // Support shadcn/ui API
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
-  // Support HeroUI API (backward compat)
+  // Legacy API compatibility
   isSelected?: boolean
   onValueChange?: (isSelected: boolean) => void
   children?: React.ReactNode

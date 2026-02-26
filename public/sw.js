@@ -11,8 +11,8 @@ const STATIC_CACHE_NAME = 'instantmed-static-v1';
 // Critical assets to cache for offline use
 // Only include files that are guaranteed to exist and return 200
 const STATIC_ASSETS = [
-  '/icon.svg',
-  '/branding/logo.svg',
+  '/branding/logo.png',
+  '/apple-icon.png',
 ];
 
 // API routes that can be cached for short periods
@@ -155,8 +155,8 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body || 'You have a new notification',
-      icon: '/logo.png',
-      badge: '/logo.png',
+      icon: '/branding/logo.png',
+      badge: '/branding/logo.png',
       tag: data.tag || 'instantmed-notification',
       data: {
         url: data.url || '/patient',
@@ -174,7 +174,7 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
       self.registration.showNotification('InstantMed', {
         body: event.data.text(),
-        icon: '/logo.png',
+        icon: '/branding/logo.png',
       })
     );
   }

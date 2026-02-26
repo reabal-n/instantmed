@@ -115,9 +115,7 @@ export function AccountClient() {
             completed_at: r.completed_at ?? undefined,
           })))
         }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        if (process.env.NODE_ENV === 'development') console.error('Error loading account:', err)
+      } catch {
         setError('Failed to load account data')
       } finally {
         setIsLoading(false)

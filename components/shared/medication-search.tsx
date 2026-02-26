@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils"
  * This component helps patients recall medication names using PBS (Pharmaceutical Benefits Scheme) data.
  * It is NOT a recommendation tool, prescribing tool, or clinical decision system.
  *
- * See: docs/MEDICATION_SEARCH_POLICY.md
- * See: docs/MEDICATION_SEARCH_SPEC.md
+ * See: CLINICAL.md → Medication Search Rules
+ * See: ARCHITECTURE.md → Prescription Workflow
  */
 
 export interface PBSProduct {

@@ -21,7 +21,7 @@ export interface TooltipProps {
 }
 
 /**
- * Tooltip - HeroUI-compatible API wrapper around Radix Tooltip
+ * Tooltip - Content-prop API wrapper around Radix Tooltip
  *
  * Supports the `<Tooltip content="..."><trigger /></Tooltip>` pattern
  * used throughout the app.

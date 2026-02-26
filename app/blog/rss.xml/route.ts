@@ -17,7 +17,7 @@ export async function GET() {
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${baseUrl}/blog/rss.xml" rel="self" type="application/rss+xml"/>
     <image>
-      <url>${baseUrl}/logo.png</url>
+      <url>${baseUrl}/branding/logo.png</url>
       <title>InstantMed Health Guides</title>
       <link>${baseUrl}/blog</link>
     </image>

@@ -26,7 +26,6 @@ async function getPatients(page: number) {
     .range(from, to)
 
   if (error) {
-    if (process.env.NODE_ENV === 'development') console.error("Error fetching patients:", error)
     return { patients: [], total: 0 }
   }
 

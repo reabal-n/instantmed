@@ -1,5 +1,4 @@
 "use client"
-/* eslint-disable no-console -- Global error boundary intentionally uses console for minimal dependency */
 
 import { useEffect } from "react"
 import { AlertTriangle, RefreshCw } from "lucide-react"
@@ -39,8 +38,6 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("Global application error:", error)
-
     // Gather context
     const pathname = typeof window !== "undefined" ? window.location.pathname : ""
     const searchParams = typeof window !== "undefined" ? window.location.search : ""
@@ -68,12 +65,10 @@ export default function GlobalError({
     
     // Enhanced E2E diagnostics - log full stack trace when PLAYWRIGHT=1
     if (isPlaywright) {
-      console.error("[E2E DIAGNOSTIC] Global Error Boundary Triggered")
-      console.error("[E2E DIAGNOSTIC] Sentry Event ID:", eventId)
-      console.error("[E2E DIAGNOSTIC] Error name:", error.name)
-      console.error("[E2E DIAGNOSTIC] Error message:", error.message)
-      console.error("[E2E DIAGNOSTIC] Error digest:", error.digest)
-      console.error("[E2E DIAGNOSTIC] Error stack:", error.stack)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Global Error Boundary Triggered", {
+        eventId, name: error.name, message: error.message, digest: error.digest, stack: error.stack,
+      })
     }
   }, [error])
 

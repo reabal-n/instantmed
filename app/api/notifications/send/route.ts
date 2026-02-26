@@ -155,7 +155,7 @@ function generateEmailHtml(title: string, message: string, actionUrl?: string): 
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://instantmed.com.au/logo.png" alt="InstantMed" style="height: 40px;" />
+        <img src="https://instantmed.com.au/branding/logo.png" alt="InstantMed" style="height: 40px;" />
       </div>
 
       <h1 style="color: #0A0F1C; font-size: 24px; margin-bottom: 16px;">${safeTitle}</h1>

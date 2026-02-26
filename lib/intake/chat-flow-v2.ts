@@ -2,7 +2,7 @@
  * Chat Flow V2 — Optimized Conversational Intake
  * 
  * Intent-first routing, one question per turn, button-heavy UX.
- * See docs/CHATBOT_INTAKE_UX_DESIGN.md for full specification.
+ * See ARCHITECTURE.md → AI Chat Intake for specification.
  */
 
 // =============================================================================

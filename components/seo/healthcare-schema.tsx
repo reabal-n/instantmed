@@ -16,15 +16,15 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     "@type": "MedicalOrganization",
     "@id": `${baseUrl}/#organization`,
     name: "InstantMed",
-    legalName: "InstantMed Telehealth Pty Ltd",
+    legalName: "InstantMed Pty Ltd",
     alternateName: "InstantMed Australia",
     url: baseUrl,
-    logo: `${baseUrl}/logo.svg`,
-    image: `${baseUrl}/og-image.png`,
+    logo: `${baseUrl}/branding/logo.png`,
+    image: `${baseUrl}/branding/logo.png`,
     description: "Australian telehealth service providing medical certificates and prescriptions reviewed by AHPRA-registered doctors with Medical Director oversight and RACGP-aligned clinical protocols.",
     slogan: "Healthcare that fits your schedule",
-    foundingDate: "2024",
-    taxID: "52426403844",
+    foundingDate: "2025",
+    taxID: "64694559334",
     medicalSpecialty: "GeneralPractice",
     isAccreditedBy: {
       "@type": "Organization",
@@ -88,11 +88,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       email: "hello@instantmed.com.au",
       availableLanguage: ["English"]
     }],
-    sameAs: [
-      "https://www.facebook.com/instantmedau",
-      "https://twitter.com/instantmedau",
-      "https://www.instagram.com/instantmedau"
-    ],
+    // sameAs omitted — no verified social profiles yet
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "InstantMed Services",
@@ -321,7 +317,7 @@ export function ArticleSchema({
       name: "InstantMed",
       logo: {
         "@type": "ImageObject",
-        url: `${baseUrl}/logo.svg`
+        url: `${baseUrl}/branding/logo.png`
       }
     },
     mainEntityOfPage: {

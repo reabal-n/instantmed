@@ -1,5 +1,4 @@
 "use client"
-/* eslint-disable no-console -- Error boundary intentionally uses console */
 
 import { useEffect } from "react"
 import Link from "next/link"
@@ -15,7 +14,6 @@ export default function DoctorError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("[DoctorError]", error)
     Sentry.captureException(error, {
       tags: { boundary: "doctor" },
       extra: { digest: error.digest },

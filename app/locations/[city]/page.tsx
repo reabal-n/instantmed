@@ -365,9 +365,9 @@ export default async function CityPage({ params }: PageProps) {
     name: `InstantMed - Online Doctor ${cityData.name}`,
     description: `Online doctor consultations, medical certificates, and prescriptions for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
     url: `https://instantmed.com.au/locations/${city}`,
-    logo: "https://instantmed.com.au/branding/logo.svg",
-    image: "https://instantmed.com.au/branding/logo.svg",
-    telephone: "+61-2-8005-0000",
+    logo: "https://instantmed.com.au/branding/logo.png",
+    image: "https://instantmed.com.au/branding/logo.png",
+    telephone: "+61-450-722-549",
     areaServed: {
       "@type": "City",
       name: cityData.name,

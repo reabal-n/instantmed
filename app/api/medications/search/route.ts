@@ -13,8 +13,8 @@ const log = createLogger("pbs-search")
  * 
  * NOT for: recommendations, prescribing, eligibility, clinical decisions
  * 
- * See: docs/MEDICATION_SEARCH_POLICY.md
- * See: docs/MEDICATION_SEARCH_SPEC.md
+ * See: CLINICAL.md → Medication Search Rules
+ * See: ARCHITECTURE.md → Prescription Workflow
  */
 
 interface MedicationSearchResult {

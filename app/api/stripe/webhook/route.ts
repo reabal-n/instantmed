@@ -446,14 +446,15 @@ export async function POST(request: Request) {
           return NextResponse.json({ received: true, concurrent_update: true })
         }
 
-        // If the update failed but intake exists with wrong status, try force update without the IN clause
+        // If the update failed but intake exists with wrong status, try force update
+        // Uses .neq("payment_status", "paid") as optimistic lock to prevent double-processing
         if (recheckIntake && recheckIntake.payment_status !== "paid") {
-          log.warn("Attempting force update without payment_status filter", { 
-            intakeId, 
-            currentPaymentStatus: recheckIntake.payment_status 
+          log.warn("Attempting force update with optimistic lock", {
+            intakeId,
+            currentPaymentStatus: recheckIntake.payment_status
           })
-          
-          const { error: forceError, data: forceData } = await supabase
+
+          const { error: forceError, data: forceRows } = await supabase
             .from("intakes")
             .update({
               payment_status: "paid",
@@ -464,17 +465,31 @@ export async function POST(request: Request) {
               stripe_customer_id: stripeCustomerId,
             })
             .eq("id", intakeId)
+            .neq("payment_status", "paid")
             .select("id, status")
-            .single()
 
-          if (!forceError && forceData) {
-            log.info("Force update succeeded", { intakeId, newStatus: forceData.status })
+          const rowsUpdated = forceRows?.length ?? 0
+
+          if (rowsUpdated > 1) {
+            log.error("CRITICAL: Force update affected multiple rows", {
+              intakeId,
+              rowsUpdated,
+              affectedIds: forceRows?.map((r) => r.id),
+            })
+          }
+
+          if (!forceError && rowsUpdated === 1) {
+            log.info("Force update succeeded", { intakeId, newStatus: forceRows![0].status })
             // Don't return early - fall through to continue webhook flow
+          } else if (!forceError && rowsUpdated === 0) {
+            log.info("Force update matched 0 rows — concurrent webhook already processed", { intakeId })
+            return NextResponse.json({ received: true, concurrent_update: true })
           } else {
-            log.error("Force update also failed", { 
-              intakeId, 
+            log.error("Force update also failed", {
+              intakeId,
               forceErrorCode: forceError?.code,
               forceErrorMessage: forceError?.message,
+              rowsUpdated,
             }, forceError)
             await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
             // Add to dead letter queue for critical failures

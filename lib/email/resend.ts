@@ -383,7 +383,7 @@ export async function sendScriptSentEmail(
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
       <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 24px;">
-          <img src="${appUrl}/logo.png" alt="InstantMed" style="height: 40px;" />
+          <img src="${appUrl}/branding/logo.png" alt="InstantMed" style="height: 40px;" />
         </div>
 
         <div style="background: linear-gradient(135deg, #dbeafe, #e0e7ff); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">

@@ -1,8 +1,8 @@
 "use client"
-/* eslint-disable no-console -- Error boundary intentionally uses console */
 
 import { useEffect } from "react"
 import Link from "next/link"
+import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, LogIn, Home } from "lucide-react"
 
@@ -14,7 +14,10 @@ export default function AuthError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("[AuthError]", error)
+    Sentry.captureException(error, {
+      tags: { boundary: "auth" },
+      extra: { digest: error.digest },
+    })
   }, [error])
 
   return (

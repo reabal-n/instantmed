@@ -68,7 +68,7 @@ export {
 export { Skeleton, Spinner } from "@/components/ui/skeleton"
 export { Badge, Badge as Chip } from "@/components/ui/badge"
 
-// HeroUI-compatible Tooltip wrapper (supports <Tooltip content="..."> API)
+// Tooltip wrapper (supports <Tooltip content="..."> API)
 export { Tooltip, type TooltipProps } from "./tooltip"
 
 // Re-export custom wrappers
@@ -77,7 +77,7 @@ export { PageBreadcrumbs, type PageBreadcrumbsProps, type BreadcrumbLink } from 
 export { DatePickerField, type DatePickerFieldProps } from "./date-picker"
 
 // ---------------------------------------------------------------------------
-// Inline replacement components for HeroUI components no longer re-exported
+// Custom inline replacement components
 // ---------------------------------------------------------------------------
 
 export { Pagination, type PaginationProps } from "./pagination"

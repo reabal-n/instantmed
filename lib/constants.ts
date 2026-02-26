@@ -12,8 +12,7 @@ export const CONTACT_EMAIL = "support@instantmed.com.au"
 export const CONTACT_EMAIL_HELLO = "hello@instantmed.com.au"
 export const CONTACT_EMAIL_NOREPLY = "noreply@instantmed.com.au"
 export const CONTACT_EMAIL_ADMIN = "admin@instantmed.com.au"
-export const CONTACT_PHONE = "1800 INSTANT"
-export const CONTACT_PHONE_NUMBER = "1800467826"
+export const CONTACT_PHONE = "0450 722 549"
 
 // Service pricing (in AUD) — SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings

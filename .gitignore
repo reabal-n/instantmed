@@ -66,6 +66,7 @@ storybook-static
 
 # Audit/debug screenshots
 *.png
+!public/branding/*.png
 
 node_modules
 node_modules 2

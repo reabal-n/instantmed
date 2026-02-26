@@ -16,7 +16,7 @@ export interface SnippetProps extends React.HTMLAttributes<HTMLElement> {
 /**
  * Snippet - Simple code/text display component
  *
- * Drop-in replacement for HeroUI Snippet.
+ * Simple code/text snippet display component.
  * Renders an inline code element with optional prefix symbol.
  */
 export function Snippet({
