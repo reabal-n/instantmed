@@ -50,14 +50,22 @@ function isValidUrl(url: string): boolean {
 function getServiceSlug(category: ServiceCategory, subtype: string): string {
   const slugMap: Record<string, string> = {
     "medical_certificate:work": "med-cert-sick",
-    "medical_certificate:uni": "med-cert-sick",
+    "medical_certificate:study": "med-cert-sick",
     "medical_certificate:carer": "med-cert-carer",
     "prescription:repeat": "common-scripts",
     "prescription:chronic_review": "common-scripts",
     "prescription:new": "consult",
     "consult:general": "consult",
   }
-  return slugMap[`${category}:${subtype}`] || slugMap[category] || "common-scripts"
+
+  // Category-level fallbacks (when subtype combo isn't found)
+  const categoryFallback: Record<string, string> = {
+    medical_certificate: "med-cert-sick",
+    prescription: "common-scripts",
+    consult: "consult",
+  }
+
+  return slugMap[`${category}:${subtype}`] || categoryFallback[category] || "consult"
 }
 
 /**

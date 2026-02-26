@@ -202,9 +202,12 @@ export async function approveAndSendCert(
     }
 
     // 3. Prepare PDF data
-    // Determine certificate type from service slug (must be before generateCertificateRef)
-    const certSubtype = service.slug.includes("carer") ? "carer" : service.slug.includes("uni") ? "uni" : "work"
-    const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
+    // Determine certificate type from intake subtype (canonical source), answers, or service slug as fallback
+    const intakeSubtype = (intake as Record<string, unknown>).subtype as string | undefined
+    const certificateType: "work" | "study" | "carer" =
+      intakeSubtype === "study" || intakeSubtype === "carer" || intakeSubtype === "work"
+        ? intakeSubtype
+        : service.slug.includes("carer") ? "carer" : "work"
 
     const certificateNumber = generateCertificateNumber()
     const certificateRef = generateCertificateRef(certificateType)
@@ -613,7 +616,7 @@ export async function approveAndSendCert(
     
     return {
       success: false,
-      error: error instanceof Error ? error.message : "We hit an unexpected bump. Please try again.",
+      error: (error instanceof Error && error.message) ? error.message : "We hit an unexpected bump. Please try again.",
     }
   }
 }

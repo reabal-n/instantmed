@@ -16,13 +16,15 @@ const VALID_DURATIONS = ["1", "2", "3", "1 day", "2 days", "3 days"] as const
 
 // Valid symptom duration values
 const VALID_SYMPTOM_DURATIONS = [
+  "today",
+  "1_2_days",
+  "3_5_days",
+  "week_plus",
+  // Legacy values (for existing submissions)
   "1_day",
   "2_days",
   "3_days",
-  // Legacy values (for existing submissions)
   "less_than_24h",
-  "1_2_days",
-  "3_5_days",
   "1_week_plus",
 ] as const
 

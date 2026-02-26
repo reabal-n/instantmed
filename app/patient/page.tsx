@@ -25,7 +25,7 @@ export default async function PatientDashboard() {
   const [intakesResult, prescriptionsResult] = await Promise.all([
     supabase
       .from("intakes")
-      .select(`id, status, created_at, updated_at, doctor_notes, service_id`)
+      .select(`id, status, created_at, updated_at, doctor_notes, service_id, service:services!service_id(id, name, short_name, type, slug)`)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -47,15 +47,21 @@ export default async function PatientDashboard() {
   }
 
   // Capture fetch errors for explicit display
-  const fetchError = intakesResult.error || prescriptionsResult.error 
-    ? "Unable to load some data. Please refresh the page or try again later." 
+  const fetchError = intakesResult.error || prescriptionsResult.error
+    ? "Unable to load some data. Please refresh the page or try again later."
     : null
+
+  // Unwrap service join (Supabase returns array for FK joins)
+  const intakes = (intakesResult.data || []).map(row => ({
+    ...row,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  }))
 
   return (
     <PanelDashboard
       fullName={authUser.profile.full_name || "Patient"}
       patientId={patientId}
-      intakes={intakesResult.data || []}
+      intakes={intakes}
       prescriptions={prescriptionsResult.data || []}
       error={fetchError}
       profileData={{

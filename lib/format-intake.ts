@@ -20,8 +20,12 @@ export function formatIntakeStatus(status: string): string {
 export function formatServiceType(type: string): string {
   const labels: Record<string, string> = {
     med_certs: "Medical Certificate",
-    repeat_rx: "Repeat Prescription",
-    consults: "Consultation",
+    common_scripts: "Repeat Prescription",
+    weight_loss: "Weight Management",
+    mens_health: "Men's Health",
+    womens_health: "Women's Health",
+    referrals: "Specialist Referral",
+    pathology: "Pathology Request",
   }
-  return labels[type] || type
+  return labels[type] || type.replace(/[_-]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
 }

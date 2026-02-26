@@ -29,11 +29,16 @@ export function ServiceWorkerRegistration() {
         const registration = await navigator.serviceWorker.register("/sw.js", {
           scope: "/",
         })
-        
+
+        if (!registration) {
+          logger.warn("Service worker register returned empty registration")
+          return
+        }
+
         logger.info("Service worker registered", {
           scope: registration.scope,
         })
-        
+
         // Handle updates
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing
@@ -54,7 +59,11 @@ export function ServiceWorkerRegistration() {
           })
         })
       } catch (error) {
-        logger.error("Service worker registration failed", {}, error instanceof Error ? error : undefined)
+        // Service worker registration can fail in restricted browsers, incognito mode,
+        // or when sw.js is unavailable. This is non-critical — log as warning.
+        logger.warn("Service worker registration failed", {
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
     }
     

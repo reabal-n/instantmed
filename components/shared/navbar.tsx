@@ -231,7 +231,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           />
           <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
-            <BrandLogo size="sm" className="relative z-10" />
+            <BrandLogo size="md" iconOnly className="relative z-10" />
 
             {/* Desktop Navigation */}
             <div className="relative z-10 hidden items-center gap-1 md:flex">

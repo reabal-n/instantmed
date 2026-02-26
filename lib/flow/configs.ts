@@ -148,9 +148,10 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           label: 'How long have you had these symptoms?',
           helpText: 'Required for clinical assessment',
           options: [
-            { value: '1_day', label: '1 day' },
-            { value: '2_days', label: '2 days' },
-            { value: '3_days', label: '3 days' },
+            { value: 'today', label: 'Today' },
+            { value: '1_2_days', label: '1-2 days' },
+            { value: '3_5_days', label: '3-5 days' },
+            { value: 'week_plus', label: 'A week+' },
           ],
           validation: { required: true },
         },

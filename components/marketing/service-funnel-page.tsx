@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   Shield,
@@ -32,10 +32,20 @@ import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { RotatingText } from './rotating-text'
-import { HeroTrustBadges } from '@/components/checkout/trust-badges'
 import { LiveWaitTime } from './live-wait-time'
 import { StatsStrip } from './total-patients-counter'
 import { MediaMentions } from './media-mentions'
+import { SkyBackground } from '@/components/ui/sky-background'
+import { NightSkyBackground } from '@/components/ui/night-sky-background'
+import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { ScrollProgress } from '@/components/ui/scroll-progress'
+import { TrustBadgeSlider } from './trust-badge-slider'
+import { ParallaxSection } from '@/components/ui/parallax-section'
+import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
+import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
+import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { CheckCircle2 } from 'lucide-react'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -143,7 +153,30 @@ export interface ServiceFunnelConfig {
       rating: number
     }>
   }
-  
+
+  // FAQ (optional — if provided, rendered as accordion)
+  faq?: {
+    title: string
+    subtitle: string
+    items: Array<{
+      question: string
+      answer: string
+    }>
+  }
+
+  // Specialized services (optional — grid of service cards, e.g. consult sub-types)
+  specializedServices?: {
+    title: string
+    subtitle: string
+    services: Array<{
+      icon: string
+      title: string
+      description: string
+      price: string
+      href: string
+    }>
+  }
+
   // Final CTA
   finalCta: {
     headline: string
@@ -193,43 +226,102 @@ interface ServiceFunnelPageProps {
 export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
   const colors = colorClasses[config.accentColor]
 
+  // Get testimonials for scrolling columns (filtered by service)
+  const serviceFilter = config.serviceId === 'med-cert' ? 'medical-certificate' as const : config.serviceId === 'repeat-script' ? 'prescription' as const : 'consultation' as const
+  const serviceTestimonials = getTestimonialsByService(serviceFilter)
+  const columnsData = serviceTestimonials.slice(0, 9).map(t => ({
+    text: t.text,
+    image: t.image || `https://api.dicebear.com/7.x/notionists/svg?seed=${t.name.replace(/\s/g, '')}`,
+    name: `${t.name}${t.age ? `, ${t.age}` : ''}`,
+    role: `${t.location}${t.role ? ` · ${t.role}` : ''}`,
+  }))
+  // Fallback to generic testimonials if service-specific ones are thin
+  const testimonialsForColumns = columnsData.length >= 6 ? columnsData : getTestimonialsForColumns().slice(0, 9)
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden">
+      {/* Backgrounds — same treatment as homepage */}
+      <SkyBackground fullPage />
+      <NightSkyBackground starCount={60} showShootingStars />
+      <ScrollProgress color="gradient" />
+
+      {/* Returning patient recognition */}
+      <ReturningPatientBanner className="mx-4 mt-2" />
+
       <Navbar variant="marketing" />
 
       {/* Section 1: Hero */}
       <HeroSection config={config} colors={colors} />
-      
+
+      {/* Live wait time strip — right below hero like homepage */}
+      <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
+
+      {/* Trust badge slider */}
+      <TrustBadgeSlider />
+
       {/* Section 2: Who It's For */}
-      <WhoItsForSection config={config} colors={colors} />
-      
+      <ParallaxSection speed={0.2}>
+        <WhoItsForSection config={config} colors={colors} />
+      </ParallaxSection>
+
+      {/* Specialized Services (optional — e.g. consult sub-types) */}
+      {config.specializedServices && (
+        <ParallaxSection speed={0.25}>
+          <SpecializedServicesSection config={config} colors={colors} />
+        </ParallaxSection>
+      )}
+
       {/* Section 3: How It Works */}
-      <HowItWorksSection config={config} colors={colors} />
-      
+      <ParallaxSection speed={0.25}>
+        <HowItWorksSection config={config} colors={colors} />
+      </ParallaxSection>
+
       {/* Section 4: What Happens After */}
-      <AfterSubmitSection config={config} colors={colors} />
-      
+      <ParallaxSection speed={0.2}>
+        <AfterSubmitSection config={config} colors={colors} />
+      </ParallaxSection>
+
       {/* Section 5: Pricing */}
-      <PricingSection config={config} colors={colors} />
-      
+      <ParallaxSection speed={0.25}>
+        <PricingSection config={config} colors={colors} />
+      </ParallaxSection>
+
       {/* Section 6: Trust & Compliance */}
-      <TrustSection config={config} colors={colors} />
-      
+      <ParallaxSection speed={0.2}>
+        <TrustSection config={config} colors={colors} />
+      </ParallaxSection>
+
       {/* Emergency Disclaimer */}
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
           <EmergencyDisclaimer />
         </div>
       </section>
-      
-      {/* Section 7: Social Proof */}
-      <TestimonialsSection config={config} colors={colors} />
-      
-      {/* Live Wait Time + Stats + Media Mentions */}
-      <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
-      <StatsStrip className="bg-muted/20 border-y border-border/30" />
-      <MediaMentions variant="strip" className="bg-muted/30" />
-      
+
+      {/* Section 7: Social Proof — scrolling columns like homepage */}
+      <ParallaxSection speed={0.25}>
+        <section className="py-4 overflow-hidden relative">
+          <TestimonialsColumnsWrapper
+            testimonials={testimonialsForColumns}
+            title={config.testimonials.title}
+            subtitle={config.testimonials.subtitle}
+            badgeText="Patient Feedback"
+            className="py-0 my-0"
+          />
+        </section>
+      </ParallaxSection>
+
+      {/* Stats + Media Mentions */}
+      <StatsStrip className="bg-white/30 dark:bg-white/[0.02] backdrop-blur-xs border-y border-border/30" />
+      <MediaMentions variant="strip" className="bg-white/20 dark:bg-white/[0.01] backdrop-blur-xs" />
+
+      {/* Section 8: FAQ */}
+      {config.faq && (
+        <ParallaxSection speed={0.15}>
+          <FaqSection config={config} />
+        </ParallaxSection>
+      )}
+
       {/* Final CTA */}
       <FinalCtaSection config={config} colors={colors} />
 
@@ -245,42 +337,42 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   const hasImages = config.hero.images?.primary
   const hasRotatingWords = config.hero.headlineRotatingWords && config.hero.headlineRotatingWords.length > 0
+  const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-linear-to-b from-muted/50 to-background" />
-      <div className={cn('absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-30', colors.light)} />
-      
-      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12')}>
-          {/* Text content */}
-          <div className={cn('text-center flex-1', hasImages && 'lg:text-left')}>
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6"
-            >
-              <span className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium', colors.light, colors.text, colors.border, 'border')}>
-                <Sparkles className="w-4 h-4" />
-                {config.hero.badge}
-              </span>
-            </motion.div>
+    <section className="relative pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 overflow-hidden">
+      {/* Subtle gradient accent (complements SkyBackground) */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.03] rounded-full blur-3xl" />
+      </div>
 
+      <div className="relative mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
+        {/* Doctor availability pill — same as homepage */}
+        <motion.div
+          className="flex justify-center lg:justify-start mb-8"
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <DoctorAvailabilityPill />
+        </motion.div>
+
+        <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12 xl:gap-14')}>
+          {/* Text content */}
+          <div className={cn('flex-1 text-center', hasImages && 'lg:text-left')}>
             {/* Headline with optional rotating text */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.12]"
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
             >
               {hasRotatingWords ? (
                 <>
                   {config.hero.headline}{' '}
+                  <br className="hidden sm:block" />
                   <span className="text-premium-gradient">
-                    <RotatingText texts={config.hero.headlineRotatingWords!} interval={2500} />
+                    <RotatingText texts={config.hero.headlineRotatingWords!} interval={3500} />
                   </span>
                 </>
               ) : (
@@ -290,135 +382,119 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
 
             {/* Subheadline */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className={cn('text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8 leading-relaxed', hasImages ? 'lg:mx-0' : 'mx-auto')}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className={cn('text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mb-6 leading-relaxed text-balance', hasImages ? 'lg:mx-0' : 'mx-auto')}
             >
               {config.hero.subheadline}
             </motion.p>
 
+            {/* Price anchor */}
+            <motion.div
+              className={cn('flex flex-wrap items-center gap-3 mb-6', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
+            >
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                {config.serviceName} from ${config.pricing.price.toFixed(2)}
+              </span>
+              {config.pricing.originalPrice && (
+                <p className="text-xs text-muted-foreground">
+                  Typically ${config.pricing.originalPrice}+ at a GP clinic
+                </p>
+              )}
+            </motion.div>
+
             {/* CTA + Highlight Badge Row */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className={cn('flex flex-col sm:flex-row items-center gap-4 mb-8', hasImages ? 'lg:justify-start' : 'justify-center')}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className={cn('flex flex-col sm:flex-row items-center gap-3 mb-6', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
               <Button
                 asChild
                 size="lg"
-                className={cn('px-8 h-14 text-lg font-semibold text-white shadow-lg', colors.button)}
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
               >
                 <Link href={config.hero.ctaHref}>
                   {config.hero.ctaText}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              
+
               {/* Glowing highlight badge */}
               {config.hero.highlightBadge && (
                 <div className={cn(
                   'relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all',
-                  config.hero.highlightBadge.glow 
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                    : 'bg-muted text-muted-foreground'
+                  'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                 )}>
-                  {config.hero.highlightBadge.glow && (
-                    <>
-                      <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                      </span>
-                    </>
-                  )}
+                  <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
                   <span className="relative">{config.hero.highlightBadge.text}</span>
                 </div>
               )}
             </motion.div>
 
-            {/* Reassurances */}
+            {/* Trust signals — compact like homepage */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className={cn('flex flex-wrap gap-x-6 gap-y-3', hasImages ? 'lg:justify-start' : 'justify-center')}
+              className="flex flex-col gap-2"
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {config.hero.reassurances.map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className={cn('h-4 w-4', colors.text)} />
+              {config.hero.reassurances.slice(0, 2).map((item, i) => (
+                <p key={i} className={cn('text-sm text-muted-foreground flex items-center gap-2', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}>
+                  <Check className={cn('h-4 w-4 shrink-0', colors.text)} />
                   <span>{item}</span>
-                </div>
+                </p>
               ))}
-            </motion.div>
-
-            {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="mt-8"
-            >
-              <HeroTrustBadges className={hasImages ? 'lg:justify-start' : 'justify-center'} />
             </motion.div>
           </div>
 
-          {/* Hero Images */}
+          {/* Hero Image — real photos, matching homepage treatment */}
           {hasImages && (
             <motion.div
-              className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
-              initial={{ opacity: 0, x: 40 }}
+              className="hidden lg:block relative shrink-0 mt-0"
+              initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="relative">
                 {/* Main image */}
-                <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-white/10">
+                <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src={config.hero.images!.primary}
-                    alt="Australian healthcare professional"
+                    alt="Patient using InstantMed from home"
                     fill
                     className="object-cover"
                     priority
+                    sizes="(min-width: 1024px) 320px, 0px"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
                 </div>
-                
+
                 {/* Floating trust badge */}
                 <motion.div
                   className="absolute -bottom-4 -left-6 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-white/50 dark:border-white/10"
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.9 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
                 >
                   <div className="flex items-center gap-2">
                     <div className={cn('w-8 h-8 rounded-full flex items-center justify-center', colors.light)}>
                       <Shield className={cn('w-4 h-4', colors.text)} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
-                      <p className="text-xs text-muted-foreground">Australian Doctor</p>
+                      <p className="text-xs font-semibold text-foreground">AHPRA Verified Doctors</p>
                     </div>
                   </div>
                 </motion.div>
-                
-                {/* Secondary floating image */}
-                {config.hero.images?.secondary && (
-                  <motion.div
-                    className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 rotate-6"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 1.1 }}
-                  >
-                    <Image
-                      src={config.hero.images.secondary}
-                      alt="Healthcare team member"
-                      fill
-                      className="object-cover"
-                    />
-                  </motion.div>
-                )}
               </div>
             </motion.div>
           )}
@@ -430,7 +506,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
 
 function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
-    <section className="py-16 lg:py-24 bg-muted/30">
+    <section className="py-16 lg:py-24 bg-white/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -481,6 +557,68 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{card.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function SpecializedServicesSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
+  if (!config.specializedServices) return null
+
+  return (
+    <section className="py-16 lg:py-24">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            {config.specializedServices.title}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {config.specializedServices.subtitle}
+          </p>
+        </motion.div>
+
+        <div className="grid sm:grid-cols-2 gap-6">
+          {config.specializedServices.services.map((service, i) => {
+            const Icon = iconMap[service.icon] || Stethoscope
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <Link
+                  href={service.href}
+                  className="block h-full rounded-2xl p-6 bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30 transition-all group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', colors.light)}>
+                      <Icon className={cn('w-6 h-6', colors.text)} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{service.title}</h3>
+                        <span className={cn('text-sm font-semibold whitespace-nowrap', colors.text)}>
+                          {service.price}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+                      <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                        Get started <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
             )
           })}
@@ -575,7 +713,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
 
 function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
-    <section className="py-16 lg:py-24 bg-muted/30">
+    <section className="py-16 lg:py-24 bg-white/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -712,33 +850,42 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
             className="mt-12"
           >
             <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium"></th>
-                    <th className="text-center py-3 px-4 font-semibold text-primary">InstantMed</th>
-                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">GP Clinic</th>
-                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">Walk-in</th>
+                  <tr className="border-b border-border/50">
+                    <th className="text-left py-4 px-5 text-muted-foreground font-medium"></th>
+                    <th className="text-center py-4 px-5 font-semibold text-primary bg-primary/5 dark:bg-primary/10">InstantMed</th>
+                    <th className="text-center py-4 px-5 text-muted-foreground font-medium">GP Clinic</th>
+                    <th className="text-center py-4 px-5 text-muted-foreground font-medium">Walk-in</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50">
+                <tbody className="divide-y divide-border/30">
                   {[
-                    { label: 'Cost', instant: '$19.95', gp: '$60–90', walkin: '$80–120' },
-                    { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours' },
-                    { label: 'Leave your couch?', instant: 'No', gp: 'Yes', walkin: 'Yes' },
-                    { label: 'Employer accepted', instant: 'Yes', gp: 'Yes', walkin: 'Yes' },
-                    { label: 'AHPRA doctor', instant: 'Yes', gp: 'Yes', walkin: 'Yes' },
-                    { label: 'Open 7 days', instant: 'Yes', gp: 'Sometimes', walkin: 'Varies' },
-                    { label: 'No appointment', instant: 'Yes', gp: 'No', walkin: 'Yes' },
-                  ].map((row, i) => (
-                    <tr key={i}>
-                      <td className="py-3 px-4 text-muted-foreground">{row.label}</td>
-                      <td className="py-3 px-4 text-center font-medium text-foreground">{row.instant}</td>
-                      <td className="py-3 px-4 text-center text-muted-foreground">{row.gp}</td>
-                      <td className="py-3 px-4 text-center text-muted-foreground">{row.walkin}</td>
-                    </tr>
-                  ))}
+                    { label: 'Cost', instant: '$19.95', gp: '$60–90', walkin: '$80–120', instantHighlight: true },
+                    { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours', instantHighlight: true },
+                    { label: 'Leave your couch?', instant: false, gp: true, walkin: true, instantHighlight: true },
+                    { label: 'Employer accepted', instant: true, gp: true, walkin: true },
+                    { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },
+                    { label: 'Open 7 days', instant: true, gp: 'Sometimes', walkin: 'Varies', instantHighlight: true },
+                    { label: 'No appointment needed', instant: true, gp: false, walkin: true, instantHighlight: true },
+                  ].map((row, i) => {
+                    const renderCell = (value: string | boolean) => {
+                      if (value === true) return <Check className="w-5 h-5 text-emerald-500 mx-auto" />
+                      if (value === false) return <span className="text-muted-foreground/40">—</span>
+                      return value
+                    }
+                    return (
+                      <tr key={i} className="hover:bg-muted/20 transition-colors">
+                        <td className="py-3.5 px-5 text-muted-foreground font-medium">{row.label}</td>
+                        <td className={cn('py-3.5 px-5 text-center font-semibold bg-primary/5 dark:bg-primary/10', row.instantHighlight ? 'text-foreground' : 'text-foreground')}>
+                          {renderCell(row.instant)}
+                        </td>
+                        <td className="py-3.5 px-5 text-center text-muted-foreground">{renderCell(row.gp)}</td>
+                        <td className="py-3.5 px-5 text-center text-muted-foreground">{renderCell(row.walkin)}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -751,7 +898,7 @@ function PricingSection({ config, colors }: { config: ServiceFunnelConfig; color
 
 function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
-    <section className="py-16 lg:py-24 bg-muted/30">
+    <section className="py-16 lg:py-24 bg-white/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -790,52 +937,78 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
   )
 }
 
-function TestimonialsSection({ config, colors: _colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
+function FaqSection({ config }: { config: ServiceFunnelConfig }) {
+  if (!config.faq) return null
+
   return (
-    <section className="py-16 lg:py-24">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <motion.div
+          className="text-center mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-foreground/80">FAQ</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
+            {config.faq.title}
+          </h2>
+          <p className="text-muted-foreground max-w-lg mx-auto text-sm">
+            {config.faq.subtitle}
+          </p>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            {config.testimonials.title}
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            {config.testimonials.subtitle}
-          </p>
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="0"
+            className="space-y-3"
+          >
+            {config.faq.items.map((item, index) => (
+              <AccordionItem
+                key={index.toString()}
+                value={index.toString()}
+                className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all px-5 !border-b-border/60"
+              >
+                <AccordionTrigger className="text-foreground hover:no-underline py-5">
+                  <span className="font-medium text-foreground text-left">{item.question}</span>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {config.testimonials.reviews.map((review, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/50 dark:border-white/10"
-            >
-              {/* Stars */}
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: review.rating }).map((_, j) => (
-                  <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              
-              {/* Quote */}
-              <p className="text-foreground mb-4 leading-relaxed">&ldquo;{review.text}&rdquo;</p>
-              
-              {/* Author */}
-              <div className="text-sm">
-                <span className="font-medium text-foreground">{review.author}</span>
-                <span className="text-muted-foreground"> · {review.location}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Contact support */}
+        <motion.div
+          className="mt-10 text-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
+          <p className="text-muted-foreground mb-2 text-sm">Still have questions?</p>
+          <a
+            href="mailto:support@instantmed.com.au"
+            className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors text-sm"
+          >
+            Contact our support team
+          </a>
+        </motion.div>
       </div>
     </section>
   )

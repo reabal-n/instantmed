@@ -34,13 +34,15 @@ const CERT_TYPE_LABELS: Record<string, string> = {
 }
 
 const SYMPTOM_DURATION_LABELS: Record<string, string> = {
+  'today': 'Today',
+  '1_2_days': '1-2 days',
+  '3_5_days': '3-5 days',
+  'week_plus': 'A week+',
+  // Legacy values (for existing submissions)
   '1_day': '1 day',
   '2_days': '2 days',
   '3_days': '3 days',
-  // Legacy values (for existing submissions)
   'less_than_24h': 'Less than 24 hours',
-  '1_2_days': '1-2 days',
-  '3_5_days': '3-5 days',
   '1_week_plus': 'Over a week',
 }
 

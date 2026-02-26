@@ -48,9 +48,10 @@ const SYMPTOMS_LIST = [
 ] as const
 
 const SYMPTOM_DURATION_OPTIONS = [
-  { value: "1_day", label: "1 day" },
-  { value: "2_days", label: "2 days" },
-  { value: "3_days", label: "3 days" },
+  { value: "today", label: "Today" },
+  { value: "1_2_days", label: "1-2 days" },
+  { value: "3_5_days", label: "3-5 days" },
+  { value: "week_plus", label: "A week+" },
 ] as const
 
 export default function SymptomsStep({ onNext }: SymptomsStepProps) {
@@ -207,13 +208,15 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
               </EnhancedSelectionButton>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Symptoms lasting 4+ days may require a{" "}
-            <a href="/request?service=consult" className="text-primary underline underline-offset-2 hover:text-primary/80">
-              general consultation
-            </a>{" "}
-            instead.
-          </p>
+          {symptomDuration === "week_plus" && (
+            <p className="text-xs text-muted-foreground">
+              Ongoing symptoms may benefit from a{" "}
+              <a href="/request?service=consult" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                general consultation
+              </a>{" "}
+              for a more thorough assessment.
+            </p>
+          )}
         </div>
       </FormField>
 

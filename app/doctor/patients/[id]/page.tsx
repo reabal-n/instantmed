@@ -89,8 +89,9 @@ async function getPatientWithHistory(patientId: string) {
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
-  if (notesError && notesError.code !== "42P01") {
-    // Ignore table not exists error - we'll create it
+  if (notesError && !["42P01", "42703"].includes(notesError.code)) {
+    // Suppress table-not-found (42P01) and undefined-column (42703) errors —
+    // patient_notes is non-critical and may have schema drift between migrations
     logger.error("Error fetching patient notes", { patientId }, notesError)
   }
 
