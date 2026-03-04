@@ -125,20 +125,17 @@ test.describe("Consult Sub-Services - First Step Rendering", () => {
       // Navigate directly to the subtype URL
       await page.goto(`/request?service=consult&subtype=${config.urlSubtype}`)
       await waitForPageLoad(page)
-      
-      // Wait for the step to render
-      await page.waitForTimeout(1000)
-      
+
+      // Wait for URL to stabilize and step to render
+      await page.waitForURL(new RegExp(`service=consult.*subtype=${config.urlSubtype}`), { timeout: 15000 })
+
       // Should NOT show the hub screen
       await expect(page.getByRole("heading", { name: /What do you need help with today/i })).not.toBeVisible()
-      
+
       // Should show the first step for this subtype
       // Look for the step heading or content that matches
       const stepContent = page.locator('main, [role="main"], .space-y-6')
       await expect(stepContent).toBeVisible({ timeout: 10000 })
-      
-      // Verify URL contains correct params
-      await expect(page).toHaveURL(new RegExp(`service=consult.*subtype=${config.urlSubtype}`))
     })
   }
 })
@@ -179,12 +176,13 @@ test.describe("Consult Sub-Services - Hub Navigation", () => {
   test("clicking Women's health from hub navigates with correct subtype", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
-    
+
     await page.getByText("Doctor consultation").click()
     await expect(page.getByText("Women's health")).toBeVisible({ timeout: 5000 })
     await page.getByText("Women's health").click()
-    
-    await expect(page).toHaveURL(/service=consult.*subtype=womens_health/)
+
+    // Wait for navigation to complete before asserting URL
+    await page.waitForURL(/service=consult.*subtype=womens_health/, { timeout: 15000 })
   })
 
   test("clicking Weight loss from hub navigates with correct subtype", async ({ page }) => {
@@ -268,16 +266,16 @@ test.describe("Consult Sub-Services - Subtype Mismatch Banner", () => {
 test.describe("Consult Sub-Services - Safety Gates", () => {
   test("ED safety step blocks users taking nitrates", async ({ page }) => {
     await clearDrafts(page)
-    
+
     await page.goto("/request?service=consult&subtype=ed")
     await waitForPageLoad(page)
-    
+
     // Find and complete ED assessment step first
     // This test verifies the flow exists - actual safety gate testing
     // would require filling out the ED assessment form
-    
-    // Just verify we're on the ED flow
-    await expect(page).toHaveURL(/subtype=ed/)
+
+    // Wait for page to fully render before asserting URL
+    await page.waitForURL(/subtype=ed/, { timeout: 15000 })
   })
 })
 
@@ -287,40 +285,36 @@ test.describe("Consult Sub-Services - Stripe Price ID Verification", () => {
   
   test("ED subtype uses STRIPE_PRICE_CONSULT_ED", async ({ page }) => {
     await clearDrafts(page)
-    
+
     // We can't easily test the actual server action without completing the flow
     // Instead, we verify the checkout step shows the correct price
     // The actual price ID mapping is tested via unit tests
-    
+
     await page.goto("/request?service=consult&subtype=ed")
     await waitForPageLoad(page)
-    
-    // Verify URL has correct subtype
-    await expect(page).toHaveURL(/subtype=ed/)
-    
-    // The price mapping is:
-    // ed -> STRIPE_PRICE_CONSULT_ED
-    // This is verified by the lib/stripe/client.ts getConsultPriceId function
+
+    // Wait for URL to stabilize after potential redirects
+    await page.waitForURL(/subtype=ed/, { timeout: 15000 })
   })
 
   test("hair_loss subtype uses STRIPE_PRICE_CONSULT_HAIR_LOSS", async ({ page }) => {
     await clearDrafts(page)
     await page.goto("/request?service=consult&subtype=hair_loss")
     await waitForPageLoad(page)
-    await expect(page).toHaveURL(/subtype=hair_loss/)
+    await page.waitForURL(/subtype=hair_loss/, { timeout: 15000 })
   })
 
   test("womens_health subtype uses STRIPE_PRICE_CONSULT_WOMENS_HEALTH", async ({ page }) => {
     await clearDrafts(page)
     await page.goto("/request?service=consult&subtype=womens_health")
     await waitForPageLoad(page)
-    await expect(page).toHaveURL(/subtype=womens_health/)
+    await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
   })
 
   test("weight_loss subtype uses STRIPE_PRICE_CONSULT_WEIGHT_LOSS", async ({ page }) => {
     await clearDrafts(page)
     await page.goto("/request?service=consult&subtype=weight_loss")
     await waitForPageLoad(page)
-    await expect(page).toHaveURL(/subtype=weight_loss/)
+    await page.waitForURL(/subtype=weight_loss/, { timeout: 15000 })
   })
 })

@@ -10,7 +10,7 @@ import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
-import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 import { completeTranscript } from "@/lib/chat/audit-trail"
@@ -156,6 +156,20 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     // SERVER-SIDE SAFETY ENFORCEMENT
     // Evaluate safety rules for ALL service categories to prevent client-side bypass
     const serviceSlugForSafety = input.serviceSlug || getServiceSlug(input.category, input.subtype)
+
+    // AUDIT FIX: Validate safety-critical fields are present before evaluating rules
+    const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, input.answers)
+    if (!fieldCheck.valid) {
+      logger.warn("Safety fields missing at checkout", {
+        serviceSlug: serviceSlugForSafety,
+        missingFields: fieldCheck.missingFields,
+      })
+      return {
+        success: false,
+        error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
+      }
+    }
+
     const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
     
     // Track safety outcome for analytics (P3-9)
@@ -663,7 +677,20 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const serviceForSafety = intake.service as { slug: string; price_cents: number } | null
     const serviceSlugForSafety = serviceForSafety?.slug || getServiceSlug(categoryForSafety || "medical_certificate", intake.subtype || "")
     const intakeAnswers = (intake.answers as Array<{ answers: Record<string, unknown> }> | null)?.[0]?.answers || {}
-    
+
+    // AUDIT FIX: Validate safety-critical fields are present before evaluating rules
+    const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
+    if (!fieldCheck.valid) {
+      logger.warn("Safety fields missing at checkout", {
+        serviceSlug: serviceSlugForSafety,
+        missingFields: fieldCheck.missingFields,
+      })
+      return {
+        success: false,
+        error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
+      }
+    }
+
     const safetyCheck = checkSafetyForServer(serviceSlugForSafety, intakeAnswers)
     
     if (!safetyCheck.isAllowed) {

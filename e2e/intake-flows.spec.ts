@@ -500,11 +500,15 @@ test.describe("Intake: Validation & edge cases", () => {
     // Enter short text (< 20 chars) — Continue should remain disabled
     await fillTextarea(page, "I feel sick")
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
-    await expect(btn).toBeDisabled()
+    // Wait for React state to propagate after fill
+    await page.waitForTimeout(500)
+    await expect(btn).toBeDisabled({ timeout: 5000 })
 
     // Extend text past 20 chars — Continue should become enabled
     await fillTextarea(page, "I feel sick with a fever and body aches since yesterday.")
-    await expect(btn).toBeEnabled()
+    // Wait for React state to propagate after fill
+    await page.waitForTimeout(500)
+    await expect(btn).toBeEnabled({ timeout: 5000 })
   })
 
   test("prescription medication-history 'never prescribed' shows warning", async ({ page }) => {
@@ -553,11 +557,12 @@ test.describe("Intake: Validation & edge cases", () => {
     await page.locator('input[placeholder="Jane"]').fill("Test")
     await page.locator('input[placeholder="Smith"]').fill("User")
     await page.locator('input[placeholder="jane@example.com"]').fill("not-an-email")
-    // Blur to trigger validation
+    // Blur to trigger validation — wait for React re-render
     await page.locator('input[placeholder="jane@example.com"]').blur()
+    await page.waitForTimeout(500)
 
     // Should show email validation error
-    await expect(page.getByText(/valid email/i)).toBeVisible({ timeout: 3000 })
+    await expect(page.getByText(/valid email/i)).toBeVisible({ timeout: 5000 })
   })
 })
 

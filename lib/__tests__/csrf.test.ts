@@ -69,7 +69,8 @@ describe("CSRF protection module", () => {
       const cookieValue = mockCookieStore.get("csrf_token")
       const parsed = JSON.parse(cookieValue!)
       
-      expect(parsed.expiresAt).toBe(now + 60 * 60 * 1000)
+      // AUDIT FIX: CSRF expiry changed from 1hr to 24hr for long patient intake flows
+      expect(parsed.expiresAt).toBe(now + 24 * 60 * 60 * 1000)
     })
 
     it("generates unique tokens each time", async () => {
@@ -143,8 +144,8 @@ describe("CSRF protection module", () => {
       
       const token = await generateCSRFToken()
       
-      // Advance time past expiry
-      vi.advanceTimersByTime(60 * 60 * 1000 + 1)
+      // Advance time past expiry (24 hours — AUDIT FIX: changed from 1hr)
+      vi.advanceTimersByTime(24 * 60 * 60 * 1000 + 1)
       
       const request = new Request("http://localhost/api/test", {
         method: "POST",

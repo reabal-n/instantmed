@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   },
 }
 
+export const revalidate = 86400 // AUDIT FIX: Explicit ISR for static marketing pages
+
 export default function CookiePolicyPage() {
   return (
     <div className="flex min-h-screen flex-col">

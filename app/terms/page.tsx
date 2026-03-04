@@ -7,6 +7,8 @@ export const metadata = {
   description: "Terms and conditions for using InstantMed telehealth services.",
 }
 
+export const revalidate = 86400 // AUDIT FIX: Explicit ISR for static marketing pages
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-hero pt-32 pb-20 px-4">

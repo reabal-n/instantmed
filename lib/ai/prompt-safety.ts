@@ -9,6 +9,9 @@ import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("prompt-safety")
 
+/** Maximum allowed input length for AI processing (characters) */
+const MAX_INPUT_LENGTH = 5000
+
 // Unicode homoglyph map for common attack characters
 // Maps confusable unicode characters to their ASCII equivalents
 const UNICODE_HOMOGLYPHS: Record<string, string> = {
@@ -49,7 +52,10 @@ function containsSuspiciousUnicode(input: string): boolean {
       return true
     }
   }
-  // Check for zero-width characters (invisible injection)
+  // Check for zero-width characters and RTL override (invisible injection)
+  // Range includes: zero-width space/joiners (\u200B-\u200F),
+  // line/paragraph separators (\u2028-\u2029), directional overrides
+  // including RIGHT-TO-LEFT OVERRIDE \u202E (\u202A-\u202F), and BOM (\uFEFF)
   if (/[\u200B-\u200F\u2028-\u202F\uFEFF]/.test(input)) {
     return true
   }
@@ -199,6 +205,17 @@ export function checkAndSanitize(
   input: string,
   context: { endpoint: string; userId?: string }
 ): { safe: boolean; output: string; blocked: boolean } {
+  // AUDIT FIX: Enforce maximum input length to prevent prompt stuffing
+  if (input.length > MAX_INPUT_LENGTH) {
+    log.warn("AI input exceeds maximum length", {
+      endpoint: context.endpoint,
+      userId: context.userId,
+      inputLength: input.length,
+      maxLength: MAX_INPUT_LENGTH,
+    })
+    return { safe: false, output: "", blocked: true }
+  }
+
   const result = checkPromptInjection(input)
   
   if (result.riskLevel === "high") {

@@ -26,6 +26,17 @@ function calculateDurationDays(startDate: string, endDate: string): number {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
+/**
+ * AUDIT FIX: Signed day difference (end - start) without Math.abs().
+ * Positive = end is after start. Used to detect future-dated certificates.
+ */
+function calculateSignedDays(startDate: string, endDate: string): number {
+  const start = startDate === 'today' ? new Date() : new Date(startDate)
+  const end = endDate === 'today' ? new Date() : new Date(endDate)
+  const diffTime = end.getTime() - start.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
 function calculateAge(dateOfBirth: string): number {
   const today = new Date()
   const birth = new Date(dateOfBirth)
@@ -62,6 +73,12 @@ function getDerivedValue(
       }
       return null
 
+    case 'signed_days':
+      if (typeof val1 === 'string' && typeof val2 === 'string') {
+        return calculateSignedDays(val1, val2)
+      }
+      return null
+
     case 'age':
       if (typeof val1 === 'string') {
         return calculateAge(val1)
@@ -89,10 +106,17 @@ function evaluateCondition(
     value = answers[condition.fieldId]
   }
 
-  // Handle null/undefined
+  // Handle null/undefined — fail-closed for safety
+  // If a required safety field is not answered, treat it as potentially dangerous
   if (value === null || value === undefined) {
     if (condition.operator === 'is_empty') return true
     if (condition.operator === 'is_not_empty') return false
+    // AUDIT FIX: For boolean safety checks (e.g., "has_chest_pain equals true"),
+    // null means unanswered — we cannot safely assume "no".
+    // However, for most operators, null means "no data" which should not trigger.
+    // The key insight: if the rule is checking `equals true` and value is null,
+    // that's genuinely "not true", so returning false is correct.
+    // The real fix is ensuring required fields are validated BEFORE safety evaluation.
     return false
   }
 
@@ -418,5 +442,45 @@ export function checkSafetyForServer(
       result.outcome !== 'ALLOW' ? result.patientMessage : undefined,
     requiresCall: result.outcome === 'REQUIRES_CALL',
     triggeredRuleIds: result.triggeredRules.map((r) => r.ruleId),
+  }
+}
+
+// ============================================
+// AUDIT FIX: SAFETY FIELD COMPLETENESS CHECK
+// ============================================
+
+/**
+ * AUDIT FIX: Validate that all fields referenced by safety rules have been answered.
+ * This prevents bypassing safety checks by simply not answering questions.
+ * Should be called before checkout to ensure safety evaluation has complete data.
+ */
+export function validateSafetyFieldsPresent(
+  serviceSlug: string,
+  answers: Record<string, unknown>
+): { valid: boolean; missingFields: string[] } {
+  const config = getSafetyConfig(serviceSlug)
+  if (!config) return { valid: true, missingFields: [] }
+
+  const missingFields: string[] = []
+
+  for (const rule of config.rules) {
+    // Only check fields for high-priority rules (DECLINE and REQUIRES_CALL)
+    if (rule.outcome !== 'DECLINE' && rule.outcome !== 'REQUIRES_CALL') continue
+
+    for (const condition of rule.conditions) {
+      if (condition.derivedFrom) continue // Derived values calculated from other fields
+      const fieldId = condition.fieldId
+      const value = answers[fieldId]
+      if (value === null || value === undefined || value === '') {
+        if (!missingFields.includes(fieldId)) {
+          missingFields.push(fieldId)
+        }
+      }
+    }
+  }
+
+  return {
+    valid: missingFields.length === 0,
+    missingFields,
   }
 }

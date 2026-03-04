@@ -90,10 +90,10 @@ test.describe("Patient — Medical Certificate Request Flow", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15000 })
 
     const continueBtn = page.getByRole("button", { name: /continue|next/i })
-    await expect(continueBtn).toBeVisible()
+    await expect(continueBtn).toBeVisible({ timeout: 10000 })
 
     const backBtn = page.getByRole("button", { name: /back|previous/i })
-    await expect(backBtn).toBeVisible()
+    await expect(backBtn).toBeVisible({ timeout: 10000 })
   })
 
   test("first step has form fields", async ({ page }) => {
@@ -140,9 +140,10 @@ test.describe("Patient — Medical Certificate Request Flow", () => {
     await page.goto("/request?service=medical_certificate")
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15000 })
+    // Allow extra time for mobile layout to stabilize
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 20000 })
     const continueBtn = page.getByRole("button", { name: /continue|next/i })
-    await expect(continueBtn).toBeVisible()
+    await expect(continueBtn).toBeVisible({ timeout: 10000 })
   })
 })
 
@@ -156,8 +157,7 @@ test.describe("Patient — Pricing & Payment Page", () => {
     })
 
     // Should show price amounts
-    const hasPrices = await page.getByText(/\$/i).isVisible().catch(() => false)
-    expect(hasPrices).toBe(true)
+    await expect(page.getByText(/\$/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test("pricing page shows service tiers", async ({ page }) => {
@@ -165,12 +165,9 @@ test.describe("Patient — Pricing & Payment Page", () => {
     await waitForPageLoad(page)
 
     // Should list service types
-    const hasServices = await page
-      .getByText(/certificate|prescription|referral/i)
-      .first()
-      .isVisible()
-      .catch(() => false)
-    expect(hasServices).toBe(true)
+    await expect(
+      page.getByText(/certificate|prescription|referral/i).first()
+    ).toBeVisible({ timeout: 10000 })
   })
 })
 

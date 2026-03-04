@@ -13,7 +13,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
  * Features:
  * - AES-256-GCM authenticated encryption
  * - Unique IV per encryption
- * - Key derivation with scrypt
+ * - Base64-encoded key from environment (no key derivation)
  * - Base64 encoding for storage
  */
 
@@ -21,14 +21,16 @@ const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16 // 128 bits
 const AUTH_TAG_LENGTH = 16 // 128 bits
 const KEY_LENGTH = 32 // 256 bits
-const _SALT_LENGTH = 16 // Reserved for future key derivation
+// _SALT_LENGTH removed — not used; no key derivation is applied
 
 // Encryption key from environment - validated at startup
 let encryptionKey: Buffer | null = null
 
 /**
  * Get the encryption key from environment
- * Derives a 256-bit key from the master secret using scrypt
+ * Decodes a base64-encoded 256-bit key from the master secret.
+ * Note: No key derivation (e.g. scrypt) is applied — the env var
+ * must already contain a cryptographically random 256-bit key.
  */
 function getEncryptionKey(): Buffer {
   if (encryptionKey) {

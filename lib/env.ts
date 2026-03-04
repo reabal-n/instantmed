@@ -88,6 +88,8 @@ const productionRequirements = z.object({
   STRIPE_PRICE_CONSULT: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT"),
   CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
+  PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),
+  PHI_MASTER_KEY: z.string().min(32, "Production requires PHI_MASTER_KEY (min 32 chars)"),
 })
 
 /**

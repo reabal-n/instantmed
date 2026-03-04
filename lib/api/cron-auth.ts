@@ -82,3 +82,86 @@ export function withCronAuth(
     return handler(request)
   }
 }
+
+/**
+ * AUDIT FIX: Cron job concurrency lock using database.
+ * Prevents overlapping execution when a cron job takes longer than its schedule interval.
+ * Uses Supabase to store lock state (works across serverless instances).
+ *
+ * @example
+ * const lock = await acquireCronLock("health-check", 300) // 5 min max
+ * if (!lock.acquired) return NextResponse.json({ skipped: "already running" })
+ * try {
+ *   // ... cron logic
+ * } finally {
+ *   await releaseCronLock("health-check")
+ * }
+ */
+export async function acquireCronLock(
+  jobName: string,
+  maxDurationSeconds: number = 300
+): Promise<{ acquired: boolean; existingLockAge?: number }> {
+  try {
+    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+    const supabase = createServiceRoleClient()
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + maxDurationSeconds * 1000)
+
+    // Try to claim lock — delete any expired locks first
+    await supabase
+      .from("cron_locks")
+      .delete()
+      .eq("job_name", jobName)
+      .lt("expires_at", now.toISOString())
+
+    // Attempt insert (unique constraint on job_name prevents duplicates)
+    const { error } = await supabase
+      .from("cron_locks")
+      .insert({
+        job_name: jobName,
+        locked_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+      })
+
+    if (error) {
+      if (error.code === "23505") {
+        // Lock already held — check age for monitoring
+        const { data: existing } = await supabase
+          .from("cron_locks")
+          .select("locked_at")
+          .eq("job_name", jobName)
+          .single()
+
+        const lockAge = existing
+          ? Math.round((now.getTime() - new Date(existing.locked_at).getTime()) / 1000)
+          : undefined
+
+        logger.info("Cron lock already held, skipping", { jobName, lockAgeSeconds: lockAge })
+        return { acquired: false, existingLockAge: lockAge }
+      }
+      throw error
+    }
+
+    return { acquired: true }
+  } catch (err) {
+    // If lock table doesn't exist or DB error, allow execution (fail-open for crons)
+    logger.warn("Cron lock acquisition failed, allowing execution", {
+      jobName,
+      error: err instanceof Error ? err.message : String(err)
+    })
+    return { acquired: true }
+  }
+}
+
+export async function releaseCronLock(jobName: string): Promise<void> {
+  try {
+    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+    const supabase = createServiceRoleClient()
+    await supabase.from("cron_locks").delete().eq("job_name", jobName)
+  } catch (err) {
+    logger.warn("Cron lock release failed", {
+      jobName,
+      error: err instanceof Error ? err.message : String(err)
+    })
+  }
+}

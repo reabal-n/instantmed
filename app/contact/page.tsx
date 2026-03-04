@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   },
 }
 
+export const revalidate = 86400 // AUDIT FIX: Explicit ISR for static marketing pages
+
 export default function ContactPage() {
   return <ContactClient />
 }

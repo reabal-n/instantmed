@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-cleanup-orphaned-storage")
@@ -26,6 +26,18 @@ const STORAGE_FOLDERS = ["med-certs", "pathology", "prescriptions"]
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  // Acquire concurrency lock — prevents overlapping execution in serverless
+  const lock = await acquireCronLock("cleanup-orphaned-storage")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running"
+    })
+  }
 
   try {
     const supabase = createServiceRoleClient()
@@ -108,6 +120,8 @@ export async function GET(request: NextRequest) {
 
     logger.info("Orphaned storage cleanup completed", stats)
 
+    await releaseCronLock("cleanup-orphaned-storage")
+
     return NextResponse.json({
       success: true,
       ...stats,
@@ -116,6 +130,7 @@ export async function GET(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error("Orphaned storage cleanup failed", { error: err.message })
     captureCronError(err, { jobName: "cleanup-orphaned-storage" })
+    await releaseCronLock("cleanup-orphaned-storage")
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

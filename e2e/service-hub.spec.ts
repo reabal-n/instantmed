@@ -78,12 +78,12 @@ test.describe("Service Hub - Navigation", () => {
 
   test("clicking medical certificate navigates to flow", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
-    
+
     // Click medical certificate card (using stable data-testid)
     await page.getByTestId("service-card-med-cert").click()
-    
-    // Should navigate to med-cert flow and show certificate step
-    await expect(page).toHaveURL(/service=med-cert/)
+
+    // Wait for navigation to complete before asserting URL
+    await page.waitForURL(/service=med-cert/, { timeout: 15000 })
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
   })
 
@@ -111,18 +111,18 @@ test.describe("Service Hub - Navigation", () => {
 
   test("clicking consult subtype navigates to flow", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
-    
+
     // Expand consultation (using stable data-testid)
     await page.getByTestId("service-card-consult").click()
-    
-    // Wait for subtypes (using stable data-testid)
-    await expect(page.getByTestId("consult-subtype-general")).toBeVisible()
-    
+
+    // Wait for subtypes to appear after expansion animation
+    await expect(page.getByTestId("consult-subtype-general")).toBeVisible({ timeout: 5000 })
+
     // Click a subtype (using stable data-testid)
     await page.getByTestId("consult-subtype-general").click()
-    
-    // Should navigate to consult flow
-    await expect(page).toHaveURL(/service=consult/)
+
+    // Wait for navigation to complete before asserting URL
+    await page.waitForURL(/service=consult/, { timeout: 15000 })
   })
 })
 

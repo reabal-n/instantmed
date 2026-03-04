@@ -32,7 +32,8 @@ import {
 // ============================================================================
 
 // ADVERSARIAL_SECURITY_AUDIT: Expanded emergency keywords with synonyms to prevent bypass
-const EMERGENCY_KEYWORDS = [
+// AUDIT FIX: Exported as canonical source of truth. Also referenced by intake-validation.ts (regex subset).
+export const EMERGENCY_KEYWORDS = [
   // Chest/Cardiac - expanded per EXPLOIT SF-1
   "chest pain", "chest pains", "heart attack",
   "chest discomfort", "chest tightness", "pressure in chest",

@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         .or('clerk_user_id.is.null,clerk_user_id.eq.')
         .maybeSingle()
 
-      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '') && (!guestProfile.role || guestProfile.role === 'patient')) {
+      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '') && guestProfile.role === 'patient') {
         // Link existing guest/patient profile to Clerk user (never link doctor/admin profiles)
         const { error } = await supabase
           .from('profiles')
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
           log.error('Failed to link guest profile', { errorCode: error.code, errorMessage: error.message })
           return new Response('Database error', { status: 500 })
         }
-        log.info('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id })
+        log.info('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id, previousRole: guestProfile.role })
       } else {
         // No existing profile - create new one
         const { error } = await supabase

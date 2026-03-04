@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-expire-certificates")
@@ -14,6 +14,18 @@ const logger = createLogger("cron-expire-certificates")
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  // Acquire concurrency lock — prevents overlapping execution in serverless
+  const lock = await acquireCronLock("expire-certificates")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running"
+    })
+  }
 
   try {
     const supabase = createServiceRoleClient()
@@ -78,6 +90,8 @@ export async function GET(request: NextRequest) {
       certificateNumbers: expiredCerts.map((c) => c.certificate_number),
     })
 
+    await releaseCronLock("expire-certificates")
+
     return NextResponse.json({
       success: true,
       expired: expiredCerts.length,
@@ -86,6 +100,7 @@ export async function GET(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error("Certificate expiry cron failed", { error: err.message })
     captureCronError(err, { jobName: "expire-certificates" })
+    await releaseCronLock("expire-certificates")
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

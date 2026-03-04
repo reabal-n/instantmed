@@ -122,6 +122,30 @@ const medCertRules: SafetyRule[] = [
     priority: 500,
     services: ['medical-certificate'],
   },
+  // AUDIT FIX: Future-dated certificates must be declined.
+  // Uses signed_days (start_date - today): positive = future date.
+  {
+    id: 'medcert_future_date',
+    name: 'Future-dated certificate',
+    description: 'Certificate start date cannot be in the future',
+    conditions: [
+      {
+        fieldId: 'future_days',
+        operator: 'gt',
+        value: 0,
+        derivedFrom: {
+          type: 'signed_days',
+          fields: ['today', 'start_date'], // positive when start_date is after today
+        },
+      },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Medical certificates cannot be issued for future dates. The start date must be today or in the past.',
+    doctorNote: 'Future-dated certificate requested - declined. Certificates can only cover past or current dates.',
+    priority: 600,
+    services: ['medical-certificate'],
+  },
   {
     id: 'medcert_extended_duration',
     name: 'Extended Duration',

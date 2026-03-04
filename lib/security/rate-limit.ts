@@ -1,6 +1,7 @@
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
+import * as Sentry from "@sentry/nextjs"
 
 /**
  * Rate Limiting for Doctor Actions
@@ -26,7 +27,7 @@ interface RateLimitResult {
 export const RATE_LIMITS = {
   approval: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 50,          // 50 approvals per hour
+    maxRequests: 20,          // AUDIT FIX: Lowered from 50 to 20 per hour (limits compromised account damage)
     action: "intake_approval",
   },
   decline: {
@@ -63,14 +64,22 @@ function cleanupStaleEntries(maxAge: number = 60 * 60 * 1000) {
   }
 }
 
+/**
+ * AUDIT FIX: In-memory fallback for when DB is unavailable.
+ * WARNING: In serverless environments (Vercel), each function instance gets its own Map,
+ * so rate limits are NOT shared across instances. To compensate, we use HALF the normal
+ * limits as a conservative measure. This is a best-effort fallback, not a guarantee.
+ */
 function checkInMemoryFallback(key: string, maxActions: number, windowMs: number): boolean {
+  // AUDIT FIX: Use half limits in fallback mode since limits aren't shared across instances
+  const conservativeMax = Math.ceil(maxActions / 2)
   cleanupStaleEntries(windowMs)
   const now = Date.now()
   const timestamps = inMemoryLimits.get(key) || []
   const recent = timestamps.filter(t => t > now - windowMs)
   recent.push(now)
   inMemoryLimits.set(key, recent)
-  return recent.length <= maxActions
+  return recent.length <= conservativeMax
 }
 
 /**
@@ -97,6 +106,12 @@ export async function checkRateLimit(
     if (error) {
       logger.error("Rate limit check failed", { userId, action: config.action }, error)
       // DB query failed — use in-memory fallback to prevent unlimited abuse
+      Sentry.addBreadcrumb({
+        category: "rate-limit",
+        message: "Rate limit DB unavailable — using in-memory fallback",
+        level: "warning",
+        data: { userId, action: config.action },
+      })
       const fallbackKey = `${userId}:${config.action}`
       const fallbackAllowed = checkInMemoryFallback(
         fallbackKey,
@@ -141,6 +156,12 @@ export async function checkRateLimit(
   } catch (err) {
     logger.error("Rate limit error", { userId, action: config.action }, err instanceof Error ? err : new Error(String(err)))
     // DB unavailable — use in-memory fallback to prevent unlimited abuse
+    Sentry.addBreadcrumb({
+      category: "rate-limit",
+      message: "Rate limit DB unavailable — using in-memory fallback",
+      level: "warning",
+      data: { userId, action: config.action },
+    })
     const fallbackKey = `${userId}:${config.action}`
     const fallbackAllowed = checkInMemoryFallback(
       fallbackKey,

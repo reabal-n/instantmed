@@ -94,30 +94,30 @@ test.describe("Unified Request Flow - Prescription", () => {
 test.describe("Unified Request Flow - Route Redirects", () => {
   test("/start redirects to /request", async ({ page }) => {
     await page.goto("/start", { waitUntil: "networkidle" })
-    
-    // Should redirect to /request (allow time for server redirect)
-    await expect(page).toHaveURL(/\/request/, { timeout: 10000 })
+
+    // Should redirect to /request (allow time for server redirect + cold start)
+    await page.waitForURL(/\/request/, { timeout: 15000 })
   })
 
   test("/start?service=med-cert redirects correctly", async ({ page }) => {
     await page.goto("/start?service=med-cert", { waitUntil: "networkidle" })
-    
+
     // Should redirect to /request with service param
-    await expect(page).toHaveURL(/\/request\?service=med-cert/, { timeout: 10000 })
+    await page.waitForURL(/\/request\?service=med-cert/, { timeout: 15000 })
   })
 
   test("/start?service=prescription redirects correctly", async ({ page }) => {
     await page.goto("/start?service=prescription", { waitUntil: "networkidle" })
-    
+
     // Should redirect to /request with mapped service param
-    await expect(page).toHaveURL(/\/request\?service=prescription/, { timeout: 10000 })
+    await page.waitForURL(/\/request\?service=prescription/, { timeout: 15000 })
   })
 
   test("/start?service=repeat-rx maps to prescription", async ({ page }) => {
     await page.goto("/start?service=repeat-rx", { waitUntil: "networkidle" })
-    
+
     // Legacy repeat-rx should map to prescription
-    await expect(page).toHaveURL(/\/request\?service=prescription/, { timeout: 10000 })
+    await page.waitForURL(/\/request\?service=prescription/, { timeout: 15000 })
   })
 })
 

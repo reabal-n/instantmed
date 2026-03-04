@@ -17,5 +17,6 @@ export {
   evaluateSafety,
   evaluateSafetyWithAdditionalInfo,
   checkSafetyForServer,
+  validateSafetyFieldsPresent,
   type ServerSafetyCheck,
 } from './evaluate'

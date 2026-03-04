@@ -72,7 +72,7 @@
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -85,6 +85,18 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com *.clerk.accounts.dev vercel.live *.vercel-scripts.com va.vercel-scripts.com us.posthog.com us.i.posthog.com *.sentry.io; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: blob: api.dicebear.com *.supabase.co *.stripe.com *.clerk.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.supabase.co *.stripe.com *.clerk.accounts.dev clerk.instantmed.com.au *.sentry.io *.ingest.sentry.io us.posthog.com us.i.posthog.com app.posthog.com vitals.vercel-insights.com; frame-src 'self' js.stripe.com *.clerk.accounts.dev; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     }

@@ -1,5 +1,6 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
+import * as Sentry from "@sentry/nextjs"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeAuditMetadata, assertNoPHI } from "@/lib/security/sanitize-audit"
 const logger = createLogger("audit-log")
@@ -69,13 +70,23 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   const supabase = getServiceClient()
   
   if (!supabase) {
-    // Queue failed events for later retry and log loudly
-    if (failedAuditQueue.length < MAX_FAILED_QUEUE_SIZE) {
-      failedAuditQueue.push(entry)
+    // AUDIT FIX: Silent drops of audit entries are unacceptable for healthcare compliance.
+    // Australian Privacy Act (APP 1-13) and AHPRA require complete audit trails.
+    // Every audit event MUST be preserved or trigger a critical alert.
+    if (failedAuditQueue.length >= MAX_FAILED_QUEUE_SIZE) {
+      const errorMsg = `CRITICAL COMPLIANCE VIOLATION: Audit queue full (${MAX_FAILED_QUEUE_SIZE} entries). Cannot queue event: ${entry.action}. Audit trail integrity compromised.`
+      logger.error(errorMsg, { action: entry.action, queueSize: failedAuditQueue.length })
+      Sentry.captureException(new Error(errorMsg), {
+        level: "fatal",
+        tags: { component: "audit-log", compliance: "critical" },
+        extra: { action: entry.action, queueSize: failedAuditQueue.length },
+      })
+      throw new Error(errorMsg)
     }
-    logger.error("Audit event queued (no DB connection)", { 
-      action: entry.action, 
-      queueSize: failedAuditQueue.length 
+    failedAuditQueue.push(entry)
+    logger.error("Audit event queued (no DB connection)", {
+      action: entry.action,
+      queueSize: failedAuditQueue.length
     })
     return
   }
@@ -101,20 +112,36 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
     })
 
     if (error) {
-      // Queue for retry on DB error
-      if (failedAuditQueue.length < MAX_FAILED_QUEUE_SIZE) {
-        failedAuditQueue.push(entry)
+      // AUDIT FIX: Never silently drop audit entries — compliance requires complete trails
+      if (failedAuditQueue.length >= MAX_FAILED_QUEUE_SIZE) {
+        const errorMsg = `CRITICAL COMPLIANCE VIOLATION: Audit queue full (${MAX_FAILED_QUEUE_SIZE} entries). Cannot queue event: ${entry.action}. DB error: ${error.message}`
+        logger.error(errorMsg, { action: entry.action, queueSize: failedAuditQueue.length })
+        Sentry.captureException(new Error(errorMsg), {
+          level: "fatal",
+          tags: { component: "audit-log", compliance: "critical" },
+          extra: { action: entry.action, dbError: error.message, queueSize: failedAuditQueue.length },
+        })
+        throw new Error(errorMsg)
       }
-      logger.error("Failed to log audit event - queued for retry", { 
-        error: error.message, 
-        action: entry.action 
+      failedAuditQueue.push(entry)
+      logger.error("Failed to log audit event - queued for retry", {
+        error: error.message,
+        action: entry.action
       })
     }
   } catch (error) {
-    // Queue for retry on exception
-    if (failedAuditQueue.length < MAX_FAILED_QUEUE_SIZE) {
-      failedAuditQueue.push(entry)
+    // AUDIT FIX: Never silently drop audit entries — compliance requires complete trails
+    if (failedAuditQueue.length >= MAX_FAILED_QUEUE_SIZE) {
+      const errorMsg = `CRITICAL COMPLIANCE VIOLATION: Audit queue full (${MAX_FAILED_QUEUE_SIZE} entries). Cannot queue event: ${entry.action}. Audit trail integrity compromised.`
+      logger.error(errorMsg, { action: entry.action, queueSize: failedAuditQueue.length })
+      Sentry.captureException(new Error(errorMsg), {
+        level: "fatal",
+        tags: { component: "audit-log", compliance: "critical" },
+        extra: { action: entry.action, queueSize: failedAuditQueue.length, originalError: error },
+      })
+      throw new Error(errorMsg)
     }
+    failedAuditQueue.push(entry)
     logger.error("Failed to log audit event - queued for retry", { error })
   }
 }

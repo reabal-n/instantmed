@@ -7,6 +7,8 @@ export const metadata = {
   description: "How InstantMed collects, uses, and protects your personal and health information.",
 }
 
+export const revalidate = 86400 // AUDIT FIX: Explicit ISR for static marketing pages
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-hero pt-32 pb-20 px-4">

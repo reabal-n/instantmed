@@ -16,6 +16,8 @@ export const metadata = {
     "Frequently asked questions about InstantMed online medical consultations, prescriptions, and certificates.",
 }
 
+export const revalidate = 86400 // AUDIT FIX: Explicit ISR for static marketing pages
+
 const faqCategories = [
   {
     title: "General",

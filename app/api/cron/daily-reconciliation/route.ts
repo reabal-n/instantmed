@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 import { getReconciliationRecords } from "@/lib/data/reconciliation"
 import * as Sentry from "@sentry/nextjs"
@@ -24,6 +24,18 @@ const logger = createLogger("cron-daily-reconciliation")
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  // Acquire concurrency lock — prevents overlapping execution in serverless
+  const lock = await acquireCronLock("daily-reconciliation")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running"
+    })
+  }
 
   try {
     const now = new Date()
@@ -154,6 +166,8 @@ export async function GET(request: NextRequest) {
       logger.info("Daily reconciliation clean", { ...summary })
     }
 
+    await releaseCronLock("daily-reconciliation")
+
     return NextResponse.json({
       success: true,
       summary,
@@ -168,6 +182,7 @@ export async function GET(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error("Daily reconciliation cron failed", { error: err.message })
     captureCronError(err, { jobName: "daily-reconciliation" })
+    await releaseCronLock("daily-reconciliation")
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs"
 import {
@@ -108,8 +109,33 @@ interface AnimatedNavLinkProps {
 }
 
 function AnimatedNavLink({ href, children, gradient, icon, isActive, onClick }: AnimatedNavLinkProps) {
+  const prefersReducedMotion = useReducedMotion()
   const defaultGradient = "radial-gradient(circle, rgba(0,226,181,0.15) 0%, rgba(0,226,181,0.06) 50%, rgba(0,226,181,0) 100%)"
-  
+
+  // AUDIT FIX: Skip 3D flip animation for users who prefer reduced motion
+  if (prefersReducedMotion) {
+    return (
+      <div className="relative">
+        <Link
+          href={href}
+          onClick={onClick}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",
+            isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {icon}
+          {children}
+        </Link>
+        {isActive && (
+          <div className="absolute inset-0 rounded-lg bg-primary/10 -z-10">
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <motion.div
       className="relative"
@@ -186,6 +212,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const isDarkTheme = theme === "dark"
   const { signOut } = useClerk()
   const { user, isLoaded: _isLoaded } = useUser()
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -217,18 +244,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           role="navigation"
           aria-label="Main navigation"
           initial="initial"
-          whileHover="hover"
+          whileHover={prefersReducedMotion ? undefined : "hover"}
         >
-          {/* Nav glow effect */}
-          <motion.div
-            className={cn(
-              "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
-              isDarkTheme
-                ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
-                : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
-            )}
-            variants={navGlowVariants}
-          />
+          {/* Nav glow effect — AUDIT FIX: disabled when user prefers reduced motion */}
+          {!prefersReducedMotion && (
+            <motion.div
+              className={cn(
+                "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
+                isDarkTheme
+                  ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
+                  : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
+              )}
+              variants={navGlowVariants}
+            />
+          )}
           <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
             <BrandLogo size="md" iconOnly className="relative z-10" />

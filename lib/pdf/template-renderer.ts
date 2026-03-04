@@ -178,6 +178,7 @@ function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: numbe
 export async function renderTemplatePdf(input: TemplatePdfInput): Promise<TemplatePdfResult> {
   try {
     // Validate patient name — strip control chars, zero-width chars, soft hyphens
+    // eslint-disable-next-line no-control-regex -- Intentional: strip control chars from patient names for PDF safety
     const trimmedName = input.patientName?.replace(/[\x00-\x1F\x7F\u200B-\u200D\uFEFF\u00AD]/g, "").trim()
     if (!trimmedName) {
       return { success: false, error: "Patient name is required" }

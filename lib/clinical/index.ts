@@ -10,6 +10,7 @@ export * from "./triage-types"
 
 // Triage rules engine
 export {
+  EMERGENCY_KEYWORDS,
   checkEmergencySymptoms,
   checkRedFlagPatterns,
   checkAsyncBlocked,

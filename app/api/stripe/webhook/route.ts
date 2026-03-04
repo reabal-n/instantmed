@@ -52,6 +52,10 @@ async function tryClaimEvent(
 /**
  * Legacy fallback for environments where migration hasn't been applied yet.
  * Uses check-then-insert (less safe but backward compatible).
+ *
+ * AUDIT FIX: This path should never run in production once the
+ * try_process_stripe_event RPC is deployed. The warning log below
+ * lets the team detect if we ever fall through to this code path.
  */
 async function legacyClaimEvent(
   supabase: ReturnType<typeof getServiceClient>,
@@ -60,6 +64,14 @@ async function legacyClaimEvent(
   requestId?: string,
   sessionId?: string
 ): Promise<boolean> {
+  // AUDIT FIX: Alert if this legacy path is reached in production
+  log.warn("Legacy webhook dedup fallback triggered - verify try_process_stripe_event RPC is deployed", {
+    eventId,
+    eventType,
+    requestId,
+    sessionId,
+  })
+
   // Check if already processed
   const { data: existing } = await supabase
     .from("stripe_webhook_events")
@@ -188,6 +200,11 @@ async function addToDeadLetterQueue(
   }
 }
 
+// AUDIT FIX: Stripe webhooks must respond within 3 seconds to avoid timeout retries.
+// Heavy operations (email, PDF) should be non-blocking (fire-and-forget with .catch()).
+// If email operations fail, they will be retried by the email-dispatcher cron.
+// AI draft generation is already fire-and-forget via Promise.race().
+// Refund/dispute emails are wrapped in try/catch to avoid blocking the 200 response.
 export async function POST(request: Request) {
   const startTime = Date.now()
   const body = await request.text()
@@ -869,25 +886,33 @@ export async function POST(request: Request) {
           .is("stripe_customer_id", null)
       }
 
-      // Send payment confirmation email
+      // AUDIT FIX: Send payment confirmation email (non-blocking to avoid Stripe timeout).
+      // If this fails, the email-dispatcher cron will retry from the outbox.
       if (patientId) {
-        try {
-          const { data: patientProfile } = await supabase
-            .from("profiles")
-            .select("email, full_name, clerk_user_id")
-            .eq("id", patientId)
-            .single()
+        const asyncEmailIntakeId = intakeId
+        const asyncEmailPatientId = patientId
+        const asyncEmailSessionMetadata = session.metadata
+        const asyncEmailAmountTotal = session.amount_total
 
-          if (patientProfile?.email) {
+        ;(async () => {
+          try {
+            const { data: patientProfile } = await supabase
+              .from("profiles")
+              .select("email, full_name, clerk_user_id")
+              .eq("id", asyncEmailPatientId)
+              .single()
+
+            if (!patientProfile?.email) return
+
             const React = await import("react")
             const { sendEmail } = await import("@/lib/email/send-email")
             const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
 
-            const serviceName = session.metadata?.service_slug
+            const serviceName = asyncEmailSessionMetadata?.service_slug
               ?.replace(/-/g, " ")
               ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
               || "medical request"
-            const amountFormatted = `$${((session.amount_total || 0) / 100).toFixed(2)}`
+            const amountFormatted = `$${((asyncEmailAmountTotal || 0) / 100).toFixed(2)}`
 
             await sendEmail({
               to: patientProfile.email,
@@ -897,33 +922,33 @@ export async function POST(request: Request) {
                 patientName: patientProfile.full_name || "there",
                 requestType: serviceName,
                 amount: amountFormatted,
-                requestId: intakeId,
+                requestId: asyncEmailIntakeId,
               }),
               emailType: "payment_confirmed",
-              intakeId,
-              patientId,
-              metadata: { amount_cents: session.amount_total },
+              intakeId: asyncEmailIntakeId,
+              patientId: asyncEmailPatientId,
+              metadata: { amount_cents: asyncEmailAmountTotal },
             })
 
             // Send guest account completion email if this was a guest checkout
-            const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
+            const isGuestCheckout = asyncEmailSessionMetadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
             if (isGuestCheckout) {
-              const guestServiceName = session.metadata?.service_slug || "medical certificate"
+              const guestServiceName = asyncEmailSessionMetadata?.service_slug || "medical certificate"
               sendGuestCompleteAccountEmail({
                 to: patientProfile.email,
                 patientName: patientProfile.full_name || "there",
                 serviceName: guestServiceName,
-                intakeId,
-                patientId,
-              }).catch((err) => {
-                log.error("Guest account email error in async payment (non-fatal)", { intakeId }, err)
+                intakeId: asyncEmailIntakeId,
+                patientId: asyncEmailPatientId,
+              }).catch((err: unknown) => {
+                log.error("Guest account email error in async payment (non-fatal)", { intakeId: asyncEmailIntakeId }, err)
               })
-              log.info("Guest account completion email queued (async payment)", { intakeId, email: patientProfile.email })
+              log.info("Guest account completion email queued (async payment)", { intakeId: asyncEmailIntakeId, email: patientProfile.email })
             }
+          } catch (emailErr) {
+            log.warn("Async payment confirmation email error (non-fatal)", { intakeId: asyncEmailIntakeId }, emailErr)
           }
-        } catch (emailErr) {
-          log.warn("Async payment confirmation email error (non-fatal)", { intakeId }, emailErr)
-        }
+        })()
       }
 
       log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
@@ -1041,38 +1066,44 @@ export async function POST(request: Request) {
           amountRefunded: charge.amount_refunded,
         })
 
-        // Send refund notification email to patient
-        try {
-          const { data: intake } = await supabase
-            .from("intakes")
-            .select("id, patient_id")
-            .eq("id", intakeId)
-            .single()
-
-          if (intake?.patient_id) {
-            const { data: patient } = await supabase
-              .from("profiles")
-              .select("id, full_name, email")
-              .eq("id", intake.patient_id)
+        // AUDIT FIX: Send refund notification email (non-blocking to respect Stripe 3s timeout).
+        // If this fails, the email-dispatcher cron will retry from the outbox.
+        const refundIntakeId = intakeId
+        const refundAmountCents = charge.amount_refunded
+        const refundIsFullRefund = isFullRefund
+        ;(async () => {
+          try {
+            const { data: intake } = await supabase
+              .from("intakes")
+              .select("id, patient_id")
+              .eq("id", refundIntakeId)
               .single()
 
-            if (patient?.email) {
-              const amountFormatted = `$${(charge.amount_refunded / 100).toFixed(2)}`
-              await sendRefundEmail({
-                to: patient.email,
-                patientName: patient.full_name || "there",
-                amount: amountFormatted,
-                refundReason: isFullRefund ? "Your request was declined or cancelled" : "Partial refund processed",
-                intakeId,
-                patientId: patient.id,
-              })
-              log.info("Refund notification email sent", { intakeId, to: patient.email })
+            if (intake?.patient_id) {
+              const { data: patient } = await supabase
+                .from("profiles")
+                .select("id, full_name, email")
+                .eq("id", intake.patient_id)
+                .single()
+
+              if (patient?.email) {
+                const amountFormatted = `$${(refundAmountCents / 100).toFixed(2)}`
+                await sendRefundEmail({
+                  to: patient.email,
+                  patientName: patient.full_name || "there",
+                  amount: amountFormatted,
+                  refundReason: refundIsFullRefund ? "Your request was declined or cancelled" : "Partial refund processed",
+                  intakeId: refundIntakeId,
+                  patientId: patient.id,
+                })
+                log.info("Refund notification email sent", { intakeId: refundIntakeId, to: patient.email })
+              }
             }
+          } catch (emailError) {
+            // Don't fail the webhook for email errors
+            log.error("Failed to send refund notification email", { intakeId: refundIntakeId }, emailError)
           }
-        } catch (emailError) {
-          // Don't fail the webhook for email errors
-          log.error("Failed to send refund notification email", { intakeId }, emailError)
-        }
+        })()
       } else {
         log.warn("No intake found to update for refund", { paymentIntentId })
       }
@@ -1117,31 +1148,36 @@ export async function POST(request: Request) {
         },
       })
 
-      // P1 FIX: Send payment failure notification to patient
-      try {
-        const { data: intake } = await supabase
-          .from("intakes")
-          .select("category, patient:profiles!patient_id(email, full_name)")
-          .eq("id", intakeId)
-          .single()
+      // AUDIT FIX: Send payment failure notification (non-blocking to respect Stripe 3s timeout).
+      // If this fails, the email-dispatcher cron will retry from the outbox.
+      const failedIntakeId = intakeId
+      const failureMessage = paymentIntent.last_payment_error?.message || "Your payment could not be processed"
+      ;(async () => {
+        try {
+          const { data: intake } = await supabase
+            .from("intakes")
+            .select("category, patient:profiles!patient_id(email, full_name)")
+            .eq("id", failedIntakeId)
+            .single()
 
-        const patient = intake?.patient as { email?: string; full_name?: string } | null
-        const service = { name: intake?.category || "Service" }
+          const patient = intake?.patient as { email?: string; full_name?: string } | null
+          const service = { name: intake?.category || "Service" }
 
-        if (patient?.email) {
-          await sendPaymentFailedEmail({
-            to: patient.email,
-            patientName: patient.full_name || "there",
-            serviceName: service?.name || "your request",
-            failureReason: paymentIntent.last_payment_error?.message || "Your payment could not be processed",
-            retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${intakeId}?retry=true`,
-            intakeId,
-          })
-          log.info("Sent payment failure notification", { intakeId, email: patient.email })
+          if (patient?.email) {
+            await sendPaymentFailedEmail({
+              to: patient.email,
+              patientName: patient.full_name || "there",
+              serviceName: service?.name || "your request",
+              failureReason: failureMessage,
+              retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${failedIntakeId}?retry=true`,
+              intakeId: failedIntakeId,
+            })
+            log.info("Sent payment failure notification", { intakeId: failedIntakeId, email: patient.email })
+          }
+        } catch (emailError) {
+          log.error("Failed to send payment failure notification", { intakeId: failedIntakeId }, emailError)
         }
-      } catch (emailError) {
-        log.error("Failed to send payment failure notification", { intakeId }, emailError)
-      }
+      })()
     }
   }
 
@@ -1223,22 +1259,20 @@ export async function POST(request: Request) {
       },
     })
 
-    // Send alert email to admin
-    try {
-      await sendDisputeAlertEmail({
-        disputeId: dispute.id,
-        chargeId: chargeId || "unknown",
-        intakeId,
-        amount: (dispute.amount / 100).toFixed(2),
-        currency: dispute.currency.toUpperCase(),
-        reason: dispute.reason,
-        evidenceDueBy: dispute.evidence_details?.due_by 
-          ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
-          : undefined,
-      })
-    } catch (emailError) {
+    // AUDIT FIX: Send alert email to admin (non-blocking to respect Stripe 3s timeout).
+    sendDisputeAlertEmail({
+      disputeId: dispute.id,
+      chargeId: chargeId || "unknown",
+      intakeId,
+      amount: (dispute.amount / 100).toFixed(2),
+      currency: dispute.currency.toUpperCase(),
+      reason: dispute.reason,
+      evidenceDueBy: dispute.evidence_details?.due_by
+        ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+        : undefined,
+    }).catch((emailError) => {
       log.error("Failed to send dispute alert email", { disputeId: dispute.id }, emailError)
-    }
+    })
   }
 
   // Log unhandled event types for visibility

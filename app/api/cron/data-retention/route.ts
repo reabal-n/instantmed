@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-data-retention")
@@ -35,6 +35,18 @@ const SESSION_DATA_RETENTION_DAYS = 90
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  // Acquire concurrency lock — prevents overlapping execution in serverless
+  const lock = await acquireCronLock("data-retention")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running"
+    })
+  }
 
   try {
     const supabase = createServiceRoleClient()
@@ -135,6 +147,8 @@ export async function GET(request: NextRequest) {
 
     logger.info("Data retention policy executed", stats)
 
+    await releaseCronLock("data-retention")
+
     return NextResponse.json({
       success: true,
       ...stats,
@@ -149,6 +163,7 @@ export async function GET(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error("Data retention policy failed", { error: err.message })
     captureCronError(err, { jobName: "data-retention" })
+    await releaseCronLock("data-retention")
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

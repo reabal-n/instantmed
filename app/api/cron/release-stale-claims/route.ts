@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron:release-stale-claims")
@@ -18,6 +18,18 @@ export async function GET(request: NextRequest) {
   // Verify cron authentication (fail-closed)
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  // Acquire concurrency lock — prevents overlapping execution in serverless
+  const lock = await acquireCronLock("release-stale-claims")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running"
+    })
+  }
 
   const supabase = createServiceRoleClient()
   const startTime = Date.now()
@@ -59,6 +71,8 @@ export async function GET(request: NextRequest) {
       { onConflict: "job_name" }
     )
 
+    await releaseCronLock("release-stale-claims")
+
     return NextResponse.json({
       success: true,
       released: releasedCount,
@@ -68,6 +82,7 @@ export async function GET(request: NextRequest) {
     const error = err instanceof Error ? err : new Error(String(err))
     logger.error("Cron job failed", { error: error.message })
     captureCronError(error, { jobName: "release-stale-claims" })
+    await releaseCronLock("release-stale-claims")
     return NextResponse.json(
       { success: false, error: "Cron job failed" },
       { status: 500 }

@@ -37,6 +37,13 @@ export interface IntakeValidationResult {
 // EMERGENCY KEYWORDS FOR CLIENT-SIDE CHECK
 // ============================================================================
 
+/**
+ * AUDIT FIX: Quick-check regex subset of emergency patterns for client-side validation.
+ * The canonical comprehensive keyword list lives in triage-rules-engine.ts (EMERGENCY_KEYWORDS).
+ * This list uses regex patterns with user-facing messages for real-time form validation.
+ * Keep these categories aligned with EMERGENCY_KEYWORDS — any new category there should have
+ * a corresponding pattern here.
+ */
 export const EMERGENCY_SYMPTOM_PATTERNS = [
   { pattern: /chest\s*pain/i, message: "Chest pain requires immediate emergency care" },
   { pattern: /can'?t\s*breathe/i, message: "Difficulty breathing requires immediate emergency care" },
@@ -48,6 +55,10 @@ export const EMERGENCY_SYMPTOM_PATTERNS = [
   { pattern: /unconscious/i, message: "Unconsciousness requires immediate emergency care" },
   { pattern: /seizure/i, message: "Active seizures require immediate emergency care" },
   { pattern: /overdose/i, message: "Suspected overdose - call 000 immediately" },
+  // AUDIT FIX: Added anaphylaxis and choking — were in EMERGENCY_KEYWORDS but missing here
+  { pattern: /anaphylax/i, message: "Severe allergic reaction - call 000 immediately" },
+  { pattern: /choking/i, message: "Choking requires immediate emergency care" },
+  { pattern: /throat\s*clos/i, message: "Throat closing - call 000 immediately" },
 ]
 
 // ============================================================================

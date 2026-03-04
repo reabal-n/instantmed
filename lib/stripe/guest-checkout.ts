@@ -9,7 +9,7 @@ import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from 
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getAppUrl } from "@/lib/env"
-import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 
 const logger = createLogger("guest-checkout")
@@ -147,6 +147,20 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // SERVER-SIDE SAFETY ENFORCEMENT (same as authenticated flow)
     const serviceSlugForSafety = input.serviceSlug || getServiceSlug(input.category, input.subtype)
+
+    // AUDIT FIX: Validate safety-critical fields are present before evaluating rules
+    const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, input.answers)
+    if (!fieldCheck.valid) {
+      logger.warn("Safety fields missing at checkout", {
+        serviceSlug: serviceSlugForSafety,
+        missingFields: fieldCheck.missingFields,
+      })
+      return {
+        success: false,
+        error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
+      }
+    }
+
     const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
     
     trackSafetyOutcome({
