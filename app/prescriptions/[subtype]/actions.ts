@@ -4,6 +4,7 @@ import { createIntake } from "@/lib/data/intakes"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { z } from "zod"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("prescription-actions")
 
@@ -66,7 +67,7 @@ export async function createPrescriptionRequestAction(
   } catch (error) {
     logger.error("Unexpected error in createPrescriptionRequestAction", 
       { patientId, serviceId },
-      error instanceof Error ? error : new Error(String(error))
+      toError(error)
     )
     return { success: false, error: "An unexpected error occurred." }
   }

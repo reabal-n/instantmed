@@ -11,6 +11,7 @@
 import "server-only"
 import { encryptPHI, decryptPHI, isEncryptedPHI, type EncryptedPHI } from "./phi-encryption"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("phi-field-wrappers")
 
@@ -54,7 +55,7 @@ export async function prepareDoctorNotesWrite(
       }
     } catch (error) {
       logger.error("Failed to encrypt doctor_notes, falling back to plaintext", {}, 
-        error instanceof Error ? error : new Error(String(error)))
+        toError(error))
       // Fallback to plaintext on encryption failure
       return { doctor_notes: notes, doctor_notes_enc: null }
     }
@@ -81,7 +82,7 @@ export async function readDoctorNotes(record: {
         return await decryptPHI(record.doctor_notes_enc)
       } catch (error) {
         logger.error("Failed to decrypt doctor_notes, falling back to plaintext", {},
-          error instanceof Error ? error : new Error(String(error)))
+          toError(error))
         // Fall through to plaintext
       }
     }
@@ -122,7 +123,7 @@ export async function prepareAnswersWrite(
       }
     } catch (error) {
       logger.error("Failed to encrypt answers, falling back to plaintext", {},
-        error instanceof Error ? error : new Error(String(error)))
+        toError(error))
       return { answers: answers, answers_enc: null }
     }
   }
@@ -144,7 +145,7 @@ export async function readAnswers(record: {
         return JSON.parse(plaintext) as Record<string, unknown>
       } catch (error) {
         logger.error("Failed to decrypt answers, falling back to plaintext", {},
-          error instanceof Error ? error : new Error(String(error)))
+          toError(error))
       }
     }
   }
@@ -183,7 +184,7 @@ export async function prepareMessagesWrite(
       }
     } catch (error) {
       logger.error("Failed to encrypt messages, falling back to plaintext", {},
-        error instanceof Error ? error : new Error(String(error)))
+        toError(error))
       return { messages: messages, messages_enc: null }
     }
   }
@@ -205,7 +206,7 @@ export async function readMessages(record: {
         return JSON.parse(plaintext) as unknown[]
       } catch (error) {
         logger.error("Failed to decrypt messages, falling back to plaintext", {},
-          error instanceof Error ? error : new Error(String(error)))
+          toError(error))
       }
     }
   }

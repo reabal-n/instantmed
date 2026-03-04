@@ -8,6 +8,7 @@ import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("api-retry-payment")
 
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     Sentry.captureException(error, { tags: { route: "retry-payment" } })
-    logger.error("Failed to retry payment", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Failed to retry payment", {}, toError(error))
     return NextResponse.json(
       { error: "Failed to retry payment" },
       { status: 500 }

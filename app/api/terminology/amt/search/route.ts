@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { auth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { toError } from "@/lib/errors"
 const logger = createLogger("amt-search")
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
@@ -298,7 +299,7 @@ export async function GET(request: NextRequest) {
 
     logger.error("AMT Search: Error", {
       query,
-    }, error instanceof Error ? error : new Error(String(error)))
+    }, toError(error))
     // If we have stale cache, return it as fallback
     if (cached) {
       return NextResponse.json({ ...(cached.results as object), stale: true })

@@ -3,6 +3,8 @@
  * Handles network failures and transient errors gracefully
  */
 
+import { toError } from "@/lib/errors"
+
 interface RetryOptions {
   maxRetries?: number
   initialDelayMs?: number
@@ -29,7 +31,7 @@ export async function retryWithBackoff<T>(
     try {
       return await fn()
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
+      lastError = toError(error)
 
       // Don't retry on last attempt
       if (attempt === maxRetries) {

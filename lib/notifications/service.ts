@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendRequestDeclinedEmailNew } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
+import { toError } from "@/lib/errors"
 const logger = createLogger("notifications-service")
 
 type NotificationType = "request_update" | "payment" | "document_ready" | "refill_reminder" | "system" | "promotion"
@@ -60,7 +61,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
     logger.info("Notification created", { userId, type, title })
     return { success: true }
   } catch (err) {
-    logger.error("Notification creation error", {}, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Notification creation error", {}, toError(err))
     return { success: false, error: "Failed to create notification" }
   }
 }

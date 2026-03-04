@@ -2,6 +2,7 @@
 
 import { createLogger } from "@/lib/observability/logger"
 import { SMS_TEMPLATES } from "./templates"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("sms-service")
 
@@ -106,7 +107,7 @@ export async function sendSms({ to, message, requestId }: SendSmsParams): Promis
 
     return { success: true, messageId: data.sid }
   } catch (err) {
-    logger.error("Failed to send SMS", { requestId }, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Failed to send SMS", { requestId }, toError(err))
     return { success: false, error: "Failed to send SMS" }
   }
 }

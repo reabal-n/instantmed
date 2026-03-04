@@ -1,6 +1,7 @@
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 
 /**
  * Soft Session Lock for Intake Review
@@ -105,7 +106,7 @@ export async function acquireIntakeLock(
 
     return { acquired: true }
   } catch (err) {
-    logger.error("Error in acquireIntakeLock", { intakeId, doctorId }, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Error in acquireIntakeLock", { intakeId, doctorId }, toError(err))
     return { acquired: true } // Fail open
   }
 }
@@ -141,7 +142,7 @@ export async function releaseIntakeLock(
       logger.error("Failed to release intake lock", { intakeId, doctorId }, error)
     }
   } catch (err) {
-    logger.error("Error in releaseIntakeLock", { intakeId, doctorId }, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Error in releaseIntakeLock", { intakeId, doctorId }, toError(err))
   }
 }
 

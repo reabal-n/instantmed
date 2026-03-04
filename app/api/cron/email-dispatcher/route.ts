@@ -3,6 +3,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processEmailDispatch } from "@/lib/email/email-dispatcher"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-email-dispatcher")
 
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
+    const err = toError(error)
     logger.error("Email dispatcher cron failed", { error: err.message })
     captureCronError(err, { jobName: "email-dispatcher" })
     return NextResponse.json(

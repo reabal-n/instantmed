@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/send-status"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 import { timingSafeEqual } from "crypto"
 const log = createLogger("route")
 
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    log.error("Error sending status email", {}, error instanceof Error ? error : new Error(String(error)))
+    log.error("Error sending status email", {}, toError(error))
     return NextResponse.json(
       { error: "Failed to send email" },
       { status: 500 }

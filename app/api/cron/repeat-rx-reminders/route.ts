@@ -4,6 +4,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-repeat-rx-reminders")
 
@@ -140,15 +141,15 @@ export async function GET(request: NextRequest) {
         enqueued++
       } catch (err) {
         logger.warn("Failed to process reminder for intake", { intakeId: intake.id })
-        captureCronError(err instanceof Error ? err : new Error(String(err)), { jobName: "repeat-rx-reminders" })
+        captureCronError(toError(err), { jobName: "repeat-rx-reminders" })
       }
     }
 
     logger.info("Repeat Rx reminders complete", { enqueued, skipped, total: intakes.length })
     return NextResponse.json({ enqueued, skipped, total: intakes.length })
   } catch (error) {
-    logger.error("Repeat Rx reminder cron failed", {}, error instanceof Error ? error : new Error(String(error)))
-    captureCronError(error instanceof Error ? error : new Error(String(error)), { jobName: "repeat-rx-reminders" })
+    logger.error("Repeat Rx reminder cron failed", {}, toError(error))
+    captureCronError(toError(error), { jobName: "repeat-rx-reminders" })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   } finally {
     await releaseLock()

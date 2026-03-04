@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-cleanup-orphaned-storage")
 
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
       ...stats,
     })
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
+    const err = toError(error)
     logger.error("Orphaned storage cleanup failed", { error: err.message })
     captureCronError(err, { jobName: "cleanup-orphaned-storage" })
     await releaseCronLock("cleanup-orphaned-storage")

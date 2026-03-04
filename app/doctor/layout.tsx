@@ -8,6 +8,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { DoctorShell } from "./doctor-shell"
 import { DoctorOnboardingBanner } from "@/components/doctor/onboarding-banner"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toError } from "@/lib/errors"
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -29,7 +30,7 @@ async function DoctorSidebarWithStats({
   try {
     stats = await getDoctorDashboardStats()
   } catch (error) {
-    log.error("Failed to load dashboard stats for sidebar", {}, error instanceof Error ? error : new Error(String(error)))
+    log.error("Failed to load dashboard stats for sidebar", {}, toError(error))
   }
 
   return (

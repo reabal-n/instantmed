@@ -5,6 +5,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
+import { toError } from "@/lib/errors"
 
 const log = createLogger("patient-messages")
 
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message })
   } catch (error) {
-    log.error("POST error", {}, error instanceof Error ? error : new Error(String(error)))
+    log.error("POST error", {}, toError(error))
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ messages })
   } catch (error) {
-    log.error("GET error", {}, error instanceof Error ? error : new Error(String(error)))
+    log.error("GET error", {}, toError(error))
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

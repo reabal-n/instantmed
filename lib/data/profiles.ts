@@ -1,6 +1,7 @@
 import { createServiceRoleClient } from "../supabase/service-role"
 import { auth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 import { encryptField, decryptField } from "@/lib/security/encryption"
 const logger = createLogger("data-profiles")
 import type { Profile, AustralianState } from "../../types/db"
@@ -33,7 +34,7 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
       logger.error("PHI decryption failed for medicare_number", {
         profileId: profile.id,
         hasPlaintext: !!profile.medicare_number,
-      }, error instanceof Error ? error : new Error(String(error)))
+      }, toError(error))
       throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }
@@ -47,7 +48,7 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
     } catch (error) {
       logger.error("PHI decryption failed for date_of_birth", {
         profileId: profile.id,
-      }, error instanceof Error ? error : new Error(String(error)))
+      }, toError(error))
       throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }
@@ -59,7 +60,7 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
     } catch (error) {
       logger.error("PHI decryption failed for phone", {
         profileId: profile.id,
-      }, error instanceof Error ? error : new Error(String(error)))
+      }, toError(error))
       throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }

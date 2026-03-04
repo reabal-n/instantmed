@@ -8,6 +8,7 @@
 
 import { logger } from './logger'
 import posthog from 'posthog-js'
+import { toError } from "@/lib/errors"
 
 interface ErrorContext {
   /** User ID if authenticated */
@@ -246,9 +247,7 @@ export function setupGlobalErrorHandlers(): void {
     // Unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
       captureException(
-        event.reason instanceof Error 
-          ? event.reason 
-          : new Error(String(event.reason)),
+        toError(event.reason),
         { tags: { type: 'unhandled-rejection' } }
       )
     })

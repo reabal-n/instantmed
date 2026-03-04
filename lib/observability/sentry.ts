@@ -15,6 +15,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 import { cookies } from "next/headers"
+import { toError } from "@/lib/errors"
 
 /**
  * Context for API error capture
@@ -257,7 +258,7 @@ export function withSentryApiCapture(
         headers,
       })
     } catch (error) {
-      await captureApiError(error instanceof Error ? error : new Error(String(error)), {
+      await captureApiError(toError(error), {
         route,
         method: request.method,
         statusCode: 500,

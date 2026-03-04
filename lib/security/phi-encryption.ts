@@ -14,6 +14,7 @@
 
 import crypto from "crypto"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("phi-encryption")
 
@@ -191,7 +192,7 @@ export async function encryptPHI(plaintext: string): Promise<EncryptedPHI> {
       version: CURRENT_VERSION,
     }
   } catch (error) {
-    logger.error("Failed to encrypt PHI", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Failed to encrypt PHI", {}, toError(error))
     throw new Error("PHI encryption failed")
   }
 }
@@ -232,7 +233,7 @@ export async function decryptPHI(encrypted: EncryptedPHI): Promise<string> {
     
     return plaintext
   } catch (error) {
-    logger.error("Failed to decrypt PHI", { keyId: encrypted.keyId }, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Failed to decrypt PHI", { keyId: encrypted.keyId }, toError(error))
     throw new Error("PHI decryption failed")
   }
 }

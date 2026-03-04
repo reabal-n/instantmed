@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-expire-certificates")
 
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest) {
       expired: expiredCerts.length,
     })
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
+    const err = toError(error)
     logger.error("Certificate expiry cron failed", { error: err.message })
     captureCronError(err, { jobName: "expire-certificates" })
     await releaseCronLock("expire-certificates")

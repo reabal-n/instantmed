@@ -16,6 +16,7 @@ import { requireRoleOrNull } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import { toError } from "@/lib/errors"
 import { createNotification } from "@/lib/notifications/service"
 import { EdApprovedEmail, edApprovedSubject } from "@/components/email/templates/ed-approved"
 import { HairLossApprovedEmail, hairLossApprovedSubject } from "@/components/email/templates/hair-loss-approved"
@@ -121,7 +122,7 @@ export async function approveConsultAction(
         intakeId,
         doctorId: doctorProfile.id,
         fromState: intake.status,
-      }, auditError instanceof Error ? auditError : new Error(String(auditError)))
+      }, toError(auditError))
       Sentry.captureMessage("Consult approval audit log write failed", {
         level: "error",
         tags: { intake_id: intakeId, subsystem: "audit-trail" },
@@ -222,7 +223,7 @@ export async function approveConsultAction(
       emailSent: emailResult.success,
     }
   } catch (error) {
-    logger.error("Consult approval failed", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Consult approval failed", {}, toError(error))
     return { success: false, error: "Internal server error" }
   }
 }

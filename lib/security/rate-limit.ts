@@ -2,6 +2,7 @@ import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { toError } from "@/lib/errors"
 
 /**
  * Rate Limiting for Doctor Actions
@@ -154,7 +155,7 @@ export async function checkRateLimit(
       resetAt: new Date(now.getTime() + config.windowMs),
     }
   } catch (err) {
-    logger.error("Rate limit error", { userId, action: config.action }, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Rate limit error", { userId, action: config.action }, toError(err))
     // DB unavailable — use in-memory fallback to prevent unlimited abuse
     Sentry.addBreadcrumb({
       category: "rate-limit",
@@ -204,7 +205,7 @@ export async function recordRateLimitedAction(
       created_at: new Date().toISOString(),
     })
   } catch (err) {
-    logger.error("Failed to record rate limited action", { userId, action }, err instanceof Error ? err : new Error(String(err)))
+    logger.error("Failed to record rate limited action", { userId, action }, toError(err))
   }
 }
 

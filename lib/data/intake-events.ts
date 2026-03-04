@@ -9,6 +9,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 import type { IntakeStatus } from "@/types/db"
 
 const logger = createLogger("intake-events")
@@ -130,7 +131,7 @@ export async function logIntakeEvent(
     logger.error(
       "[IntakeEvents] Exception logging event",
       { intakeId, eventType },
-      err instanceof Error ? err : new Error(String(err))
+      toError(err)
     )
     return null
   }
@@ -316,7 +317,7 @@ export async function getIntakeEvents(
     logger.error(
       "[IntakeEvents] Exception fetching events",
       { intakeId },
-      err instanceof Error ? err : new Error(String(err))
+      toError(err)
     )
     return []
   }

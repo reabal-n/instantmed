@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { unstable_cache, revalidateTag } from "next/cache"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 
 // Re-export types and constants from shared module (for backward compatibility)
 export type { FlagKey, FeatureFlags } from "@/lib/data/types/feature-flags"
@@ -93,7 +94,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
 
     return flags
   } catch (error) {
-    logger.error("Unexpected error", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Unexpected error", {}, toError(error))
     return DEFAULT_FLAGS
   }
 }
@@ -213,7 +214,7 @@ export async function updateFeatureFlag(
       .eq("key", key)
 
     if (error) {
-      logger.error("Update error", {}, error instanceof Error ? error : new Error(String(error)))
+      logger.error("Update error", {}, toError(error))
       return { success: false, error: error.message }
     }
 
@@ -237,7 +238,7 @@ export async function updateFeatureFlag(
 
     return { success: true }
   } catch (error) {
-    logger.error("Unexpected error", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Unexpected error", {}, toError(error))
     return { success: false, error: "Unexpected error" }
   }
 }

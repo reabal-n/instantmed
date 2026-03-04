@@ -15,6 +15,7 @@ import {
   logExternalPrescribingIndicated,
 } from "@/lib/audit/compliance-audit"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { toError } from "@/lib/errors"
 
 interface DecisionPayload {
   decision: ClinicianDecision
@@ -193,7 +194,7 @@ export async function POST(
     try {
       await Promise.all(compliancePromises)
     } catch (complianceError) {
-      log.error("Compliance logging failed (non-fatal)", {}, complianceError instanceof Error ? complianceError : new Error(String(complianceError)))
+      log.error("Compliance logging failed (non-fatal)", {}, toError(complianceError))
     }
 
     // After approval, create script task for Parchment dispatch

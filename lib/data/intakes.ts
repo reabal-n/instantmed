@@ -1,6 +1,7 @@
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 const logger = createLogger("data-intakes")
 import type {
   Intake,
@@ -68,7 +69,7 @@ async function triggerStatusEmail(
       logger.warn("[triggerStatusEmail] API returned error", { status: response.status, error: errorText })
     }
   } catch (error) {
-    logger.error("[triggerStatusEmail] Failed to call email API", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("[triggerStatusEmail] Failed to call email API", {}, toError(error))
   }
 }
 
@@ -124,7 +125,7 @@ export async function getPatientIntakes(
   const { data, error } = await query
 
   if (error) {
-    logger.error("Error fetching patient intakes", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching patient intakes", {}, toError(error))
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
@@ -161,7 +162,7 @@ export async function getPatientIntakeStats(patientId: string): Promise<{
     .eq("patient_id", patientId)
 
   if (error || !data) {
-    logger.error("Error fetching intake stats", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching intake stats", {}, toError(error))
     return { total: 0, pending: 0, approved: 0, declined: 0, in_review: 0, pending_info: 0, awaiting_payment: 0 }
   }
 
@@ -194,7 +195,7 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     .single()
 
   if (error || !data) {
-    logger.error("Error fetching intake", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching intake", {}, toError(error))
     return null
   }
 
@@ -259,7 +260,7 @@ export async function getAllIntakesByStatus(
     .range(offset, offset + pageSize - 1)
 
   if (error) {
-    logger.error("Error fetching intakes by status", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching intakes by status", {}, toError(error))
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
@@ -330,7 +331,7 @@ export async function getDoctorQueue(
     .range(offset, offset + pageSize - 1)
 
   if (error) {
-    logger.error("Error fetching doctor queue", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching doctor queue", {}, toError(error))
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
@@ -428,7 +429,7 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
     .single()
 
   if (error || !data) {
-    logger.error("Error fetching intake details", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching intake details", {}, toError(error))
     return null
   }
 
@@ -522,7 +523,7 @@ export async function getAllIntakesForAdmin(
     .range(offset, offset + pageSize - 1)
 
   if (error) {
-    logger.error("Error fetching all intakes", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching all intakes", {}, toError(error))
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
@@ -608,7 +609,7 @@ export async function getDoctorDashboardStats(): Promise<{
       scripts_pending: scriptsPendingResult.count ?? 0,
     }
   } catch (error) {
-    logger.error("Error fetching dashboard stats", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching dashboard stats", {}, toError(error))
     return {
       total: 0,
       in_queue: 0,
@@ -739,7 +740,7 @@ export async function getIntakeMonitoringStats(): Promise<{
       oldestInQueueMinutes,
     }
   } catch (error) {
-    logger.error("Error fetching monitoring stats", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching monitoring stats", {}, toError(error))
     return {
       todaySubmissions: 0,
       queueSize: 0,
@@ -788,7 +789,7 @@ export async function getDoctorPersonalStats(doctorId: string): Promise<{
     .or(`approved_at.gte.${monthStart.toISOString()},declined_at.gte.${monthStart.toISOString()}`)
 
   if (error || !data) {
-    logger.error("Error fetching doctor personal stats", { doctorId }, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching doctor personal stats", { doctorId }, toError(error))
     return {
       reviewedToday: 0,
       approvedToday: 0,
@@ -1026,7 +1027,7 @@ export async function updateIntakeStatus(
         { currentStatus, attemptedStatus: status }
       )
     }
-    logger.error("[updateIntakeStatus] Database error", { intakeId, status }, error instanceof Error ? error : new Error(String(error)))
+    logger.error("[updateIntakeStatus] Database error", { intakeId, status }, toError(error))
     return null
   }
 
@@ -1041,13 +1042,13 @@ export async function updateIntakeStatus(
     reviewedBy ? "doctor" : "system",
     { source: "updateIntakeStatus" }
   ).catch((err) => {
-    logger.warn("[updateIntakeStatus] Failed to log intake event", { intakeId }, err instanceof Error ? err : new Error(String(err)))
+    logger.warn("[updateIntakeStatus] Failed to log intake event", { intakeId }, toError(err))
   })
 
   // Trigger status notification email for key transitions (non-blocking)
   if (["approved", "declined", "pending_info"].includes(status)) {
     triggerStatusEmail(intakeId, status, reviewedBy).catch((err) => {
-      logger.error("[updateIntakeStatus] Failed to trigger status email", { intakeId, status }, err instanceof Error ? err : new Error(String(err)))
+      logger.error("[updateIntakeStatus] Failed to trigger status email", { intakeId, status }, toError(err))
     })
   }
 
@@ -1101,7 +1102,7 @@ export async function updateScriptSent(
         logger.info("[updateScriptSent] Intake already in terminal state, script fields saved", { intakeId })
         return true
       }
-      logger.error("Error transitioning intake to approved", {}, error instanceof Error ? error : new Error(String(error)))
+      logger.error("Error transitioning intake to approved", {}, toError(error))
       return false
     }
   }
@@ -1124,7 +1125,7 @@ export async function saveDoctorNotes(intakeId: string, notes: string): Promise<
     .eq("id", intakeId)
 
   if (error) {
-    logger.error("Error saving doctor notes", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error saving doctor notes", {}, toError(error))
     return false
   }
 
@@ -1153,7 +1154,7 @@ export async function markIntakeRefunded(
     .eq("id", intakeId)
 
   if (error) {
-    logger.error("Error marking intake as refunded", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error marking intake as refunded", {}, toError(error))
     return false
   }
 
@@ -1176,7 +1177,7 @@ export async function flagForFollowup(intakeId: string, reason: string): Promise
     .eq("id", intakeId)
 
   if (error) {
-    logger.error("Error flagging for followup", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error flagging for followup", {}, toError(error))
     return false
   }
 
@@ -1200,7 +1201,7 @@ export async function markAsReviewed(intakeId: string, doctorId: string): Promis
     .eq("id", intakeId)
 
   if (error) {
-    logger.error("Error marking as reviewed", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error marking as reviewed", {}, toError(error))
     return false
   }
 
@@ -1235,7 +1236,7 @@ export async function declineIntake(
     .eq("id", intakeId)
 
   if (error) {
-    logger.error("Error declining intake", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error declining intake", {}, toError(error))
     return false
   }
 
@@ -1270,7 +1271,7 @@ export async function getPatientNotes(
   const { data, error } = await query
 
   if (error) {
-    logger.error("Error fetching patient notes", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching patient notes", {}, toError(error))
     return []
   }
 
@@ -1302,7 +1303,7 @@ export async function createPatientNote(
     .single()
 
   if (error) {
-    logger.error("Error creating patient note", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error creating patient note", {}, toError(error))
     return null
   }
 
@@ -1327,7 +1328,7 @@ export async function updatePatientNote(
     .eq("id", noteId)
 
   if (error) {
-    logger.error("Error updating patient note", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error updating patient note", {}, toError(error))
     return false
   }
 
@@ -1428,7 +1429,7 @@ export async function getIntakeDocuments(intakeId: string): Promise<Array<{
     .order("created_at", { ascending: false })
 
   if (error) {
-    logger.error("Error fetching intake documents", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error fetching intake documents", {}, toError(error))
     return []
   }
 

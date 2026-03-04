@@ -2,6 +2,7 @@
 
 import { auth, getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("resend-verification")
 
@@ -31,7 +32,7 @@ export async function resendVerificationEmail(): Promise<ResendVerificationResul
       error: "Email verification is managed through your account settings. Please check your inbox or visit the account portal." 
     }
   } catch (error) {
-    logger.error("Unexpected error resending verification", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Unexpected error resending verification", {}, toError(error))
     return { success: false, error: "Something went wrong. Try again?" }
   }
 }

@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
+import { toError } from "@/lib/errors"
 
 const log = createLogger('clerk-webhook')
 
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
       'svix-signature': svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    log.error('Webhook verification failed', {}, err instanceof Error ? err : new Error(String(err)))
+    log.error('Webhook verification failed', {}, toError(err))
     return new Response('Invalid signature', { status: 400 })
   }
 

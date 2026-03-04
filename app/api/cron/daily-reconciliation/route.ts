@@ -5,6 +5,7 @@ import { captureCronError } from "@/lib/observability/sentry"
 import { getReconciliationRecords } from "@/lib/data/reconciliation"
 import * as Sentry from "@sentry/nextjs"
 import { trackBusinessMetric } from "@/lib/posthog-server"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-daily-reconciliation")
 
@@ -179,7 +180,7 @@ export async function GET(request: NextRequest) {
       checked_at: now.toISOString(),
     })
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
+    const err = toError(error)
     logger.error("Daily reconciliation cron failed", { error: err.message })
     captureCronError(err, { jobName: "daily-reconciliation" })
     await releaseCronLock("daily-reconciliation")

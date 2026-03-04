@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
+import { toError } from "@/lib/errors"
 import type { CertReviewData } from "@/types/db"
 
 interface RegenerateCertificateInput {
@@ -165,7 +166,7 @@ export async function regenerateCertificateAction(
 
     return { success: true, certificateId: result.certificateId }
   } catch (error) {
-    logger.error("Certificate regeneration failed", { intakeId }, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Certificate regeneration failed", { intakeId }, toError(error))
     return { success: false, error: "An unexpected error occurred" }
   }
 }

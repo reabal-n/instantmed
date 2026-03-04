@@ -8,6 +8,7 @@
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { toError } from "@/lib/errors"
 import {
   encryptJSONB,
   decryptJSONB,
@@ -123,7 +124,7 @@ export async function saveIntakeAnswers(
   } catch (error) {
     logger.error("Unexpected error saving intake answers", 
       { intakeId: input.intake_id },
-      error instanceof Error ? error : new Error(String(error))
+      toError(error)
     )
     return { success: false, error: "Internal error" }
   }
@@ -178,7 +179,7 @@ export async function updateIntakeAnswers(
   } catch (error) {
     logger.error("Unexpected error updating intake answers", 
       { id },
-      error instanceof Error ? error : new Error(String(error))
+      toError(error)
     )
     return { success: false, error: "Internal error" }
   }

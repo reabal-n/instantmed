@@ -5,6 +5,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 import * as Sentry from "@sentry/nextjs"
 import { trackBusinessMetric } from "@/lib/posthog-server"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-ahpra-reverification")
 
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
       checked_at: now.toISOString(),
     })
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
+    const err = toError(error)
     logger.error("AHPRA re-verification cron failed", { error: err.message })
     captureCronError(err, { jobName: "ahpra-reverification" })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })

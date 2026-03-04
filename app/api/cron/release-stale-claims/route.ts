@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron:release-stale-claims")
 
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       durationMs: duration,
     })
   } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
+    const error = toError(err)
     logger.error("Cron job failed", { error: error.message })
     captureCronError(error, { jobName: "release-stale-claims" })
     await releaseCronLock("release-stale-claims")

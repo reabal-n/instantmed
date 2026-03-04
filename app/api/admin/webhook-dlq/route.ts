@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { logAdminAction } from "@/lib/security/audit-log"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { toError } from "@/lib/errors"
 
 const logger = createLogger("admin-webhook-dlq")
 
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error("Webhook DLQ fetch error", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Webhook DLQ fetch error", {}, toError(error))
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -206,14 +207,14 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true, action: "retried", status: "failed" })
         }
       } catch (retryError) {
-        logger.error("Webhook retry failed", { entryId }, retryError instanceof Error ? retryError : new Error(String(retryError)))
+        logger.error("Webhook retry failed", { entryId }, toError(retryError))
         return NextResponse.json({ success: true, action: "retried", status: "error" })
       }
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
-    logger.error("Webhook DLQ action error", {}, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Webhook DLQ action error", {}, toError(error))
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

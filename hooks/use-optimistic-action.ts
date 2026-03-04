@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition } from "react"
+import { toError } from "@/lib/errors"
 
 /**
  * Optimistic Action Hook
@@ -58,7 +59,7 @@ export function useOptimisticAction<T>(
         } catch (err) {
           // Rollback on error
           setState(previousState)
-          const error = err instanceof Error ? err : new Error(String(err))
+          const error = toError(err)
           setError(error)
           onError?.(error)
         }
@@ -165,7 +166,7 @@ export function useRetry(options: UseRetryOptions = {}): UseRetryReturn {
           setIsRetrying(false)
           return result
         } catch (err) {
-          lastError = err instanceof Error ? err : new Error(String(err))
+          lastError = toError(err)
           
           if (i < maxAttempts - 1) {
             setIsRetrying(true)
