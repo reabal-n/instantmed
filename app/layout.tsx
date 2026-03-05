@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
+import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas"
 
 import { OrganizationSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
@@ -182,6 +183,7 @@ export default function RootLayout({
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+                <MeshGradientCanvas />
                 <NetworkStatus />
                 <SkipToContent />
                 <div id="main-content" className="relative z-10">
