@@ -5,16 +5,7 @@ import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react"
 import { useEffect, Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 
-// Initialize PostHog only once on the client
-if (typeof window !== "undefined" && !posthog.__loaded) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
-    person_profiles: "identified_only",
-    capture_pageview: false, // We handle this manually for SPAs
-    capture_pageleave: true,
-    autocapture: true,
-  })
-}
+// PostHog is initialized once in instrumentation-client.ts — do NOT re-init here.
 
 function PostHogPageView() {
   const pathname = usePathname()

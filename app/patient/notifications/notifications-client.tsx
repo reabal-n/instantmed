@@ -32,6 +32,7 @@ interface Notification {
 
 interface NotificationsClientProps {
   notifications: Notification[]
+  patientId: string
 }
 
 function getNotificationIcon(type: Notification["type"]) {
@@ -64,7 +65,7 @@ function getNotificationColor(type: Notification["type"]) {
   }
 }
 
-export function NotificationsClient({ notifications: initialNotifications }: NotificationsClientProps) {
+export function NotificationsClient({ notifications: initialNotifications, patientId }: NotificationsClientProps) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const [filter, setFilter] = useState<"all" | "unread">("all")
   const supabase = createClient()
@@ -82,6 +83,7 @@ export function NotificationsClient({ notifications: initialNotifications }: Not
             event: "INSERT",
             schema: "public",
             table: "notifications",
+            filter: `user_id=eq.${patientId}`,
           },
           (payload) => {
             // Add new notification to the top of the list
@@ -98,6 +100,7 @@ export function NotificationsClient({ notifications: initialNotifications }: Not
             event: "UPDATE",
             schema: "public",
             table: "notifications",
+            filter: `user_id=eq.${patientId}`,
           },
           (payload) => {
             // Update notification in state
@@ -118,7 +121,7 @@ export function NotificationsClient({ notifications: initialNotifications }: Not
         supabase.removeChannel(channel)
       }
     }
-  }, [supabase])
+  }, [supabase, patientId])
 
   const filteredNotifications = filter === "unread" 
     ? notifications.filter(n => !n.read) 

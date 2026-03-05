@@ -5,12 +5,11 @@ import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
+import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Users, Smartphone, School, Landmark } from "lucide-react"
+import { AccordionSection, CTABanner, ProcessSteps } from "@/components/sections"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
-import { ParallaxSection } from "@/components/ui/parallax-section"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
@@ -18,11 +17,6 @@ import { AvailabilityIndicator } from "@/components/shared/availability-indicato
 import { motion, useReducedMotion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import {
-  GlowLine,
-  ShimmerButton,
-} from "@/components/ui/premium-effects"
-import { GridStagger } from "@/components/effects/stagger-container"
 
 // Certificate types - 3 tiers
 // Pricing: 1-day $19.95, 2-day $29.95 (tiered based on duration selected in flow)
@@ -40,9 +34,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: true,
     href: "/request?service=med-cert",
-    color: "from-emerald-500 to-green-600",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/20",
+    color: "from-success to-success/80",
+    bgColor: "bg-success/10",
+    borderColor: "border-success/20",
   },
   {
     id: "study",
@@ -57,9 +51,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Accepted by all unis", "PDF straight to your inbox"],
     popular: false,
     href: "/request?service=med-cert",
-    color: "from-blue-500 to-sky-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
+    color: "from-primary to-primary/80",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/20",
   },
   {
     id: "carer",
@@ -74,9 +68,9 @@ const CERT_TYPES = [
     benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: false,
     href: "/request?service=med-cert",
-    color: "from-cyan-500 to-blue-600",
-    bgColor: "bg-cyan-500/10",
-    borderColor: "border-cyan-500/20",
+    color: "from-primary to-primary/80",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/20",
   },
 ]
 
@@ -131,40 +125,28 @@ const testimonials = medCertTestimonials.slice(0, 6).map((t) => ({
 
 // Trust badges
 const trustBadges = [
-  { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
-  { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-blue-600" },
-  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-blue-600" },
+  { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-success" },
+  { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-primary" },
+  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-primary" },
+  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-primary" },
 ]
 
-// How it works steps
+// How it works steps (ProcessStep format for Morning Canvas)
 const steps = [
   {
-    number: "01",
+    number: 1,
     title: "Answer a few questions",
     description: "Tell us what's going on. Takes about 2 minutes.",
-    time: "2 min",
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
   },
   {
-    number: "02",
+    number: 2,
     title: "Doctor reviews your request",
     description: "A real GP looks over everything and makes the call.",
-    time: "Under 1 hour",
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
   },
   {
-    number: "03",
+    number: 3,
     title: "Certificate in your inbox",
     description: "Done. Forward it to your employer or uni.",
-    time: "Instant",
-    color: "from-emerald-500 to-green-600",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/20",
   },
 ]
 
@@ -229,7 +211,6 @@ export default function MedicalCertificatePage() {
 
       <main className="relative pb-20 lg:pb-0">
         {/* Hero Section */}
-        <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
             {/* Subtle background accent */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -254,12 +235,12 @@ export default function MedicalCertificatePage() {
                     transition={{ duration: 0.5, delay: 0.1 }}
                   >
                     Medical certificates.{' '}
-                    <span className="text-premium-gradient">
-                      <RotatingText 
-                        texts={HEADLINE_VARIATIONS} 
+                    <span className="text-primary">
+                      <RotatingText
+                        texts={HEADLINE_VARIATIONS}
                         interval={3500}
                         gradient={false}
-                        className="text-premium-gradient"
+                        className="text-primary"
                       />
                     </span>
                   </motion.h1>
@@ -300,11 +281,11 @@ export default function MedicalCertificatePage() {
                     </Button>
 
                     {/* 100% online badge */}
-                    <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
+                    <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-success/10 dark:bg-success/10 text-success dark:text-success border border-success/20 dark:border-success/20">
+                      <span className="absolute inset-0 rounded-full bg-success/20 dark:bg-success/10 blur-md animate-pulse" />
                       <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
                       </span>
                       <span className="relative">100% online process</span>
                     </div>
@@ -347,7 +328,7 @@ export default function MedicalCertificatePage() {
                       transition={{ duration: 0.5, delay: 0.9 }}
                     >
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-emerald-600" />
+                        <Shield className="w-4 h-4 text-success" />
                         <span className="text-xs font-semibold text-foreground">AHPRA Verified Doctors</span>
                       </div>
                     </motion.div>
@@ -365,8 +346,8 @@ export default function MedicalCertificatePage() {
                     {/* Phone mockup */}
                     <div className="relative w-48 h-32 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                          <Smartphone className="w-5 h-5 text-emerald-600" />
+                        <div className="w-10 h-10 rounded-full bg-success/10 dark:bg-success/10 flex items-center justify-center">
+                          <Smartphone className="w-5 h-5 text-success" />
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-foreground">100% online</p>
@@ -374,9 +355,9 @@ export default function MedicalCertificatePage() {
                         </div>
                       </div>
                       <div className="mt-3 flex gap-1.5">
-                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
-                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
-                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500/30" />
+                        <div className="h-1.5 flex-1 rounded-full bg-success" />
+                        <div className="h-1.5 flex-1 rounded-full bg-success" />
+                        <div className="h-1.5 flex-1 rounded-full bg-success/30" />
                       </div>
                     </div>
                   </div>
@@ -410,22 +391,11 @@ export default function MedicalCertificatePage() {
               </motion.div>
             </div>
           </section>
-        </ParallaxSection>
 
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
-
-        {/* Trust Badges with GridStagger */}
-        <ParallaxSection speed={0.15}>
+        {/* Trust Badges */}
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <GridStagger
-                columns={4}
-                staggerDelay={0.08}
-                className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-              >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
                 {trustBadges.map((badge) => (
                   <div 
                     key={badge.name}
@@ -440,7 +410,7 @@ export default function MedicalCertificatePage() {
                     </div>
                   </div>
                 ))}
-              </GridStagger>
+              </div>
               
               {/* Partner Logos */}
               <div className="mt-8">
@@ -448,10 +418,8 @@ export default function MedicalCertificatePage() {
               </div>
             </div>
           </section>
-        </ParallaxSection>
 
         {/* Pricing Cards */}
-        <ParallaxSection speed={0.25}>
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
               {/* Section Header */}
@@ -517,12 +485,12 @@ export default function MedicalCertificatePage() {
                           "shadow-lg shadow-black/5 dark:shadow-black/20",
                           "hover:shadow-xl transition-all duration-300",
                           "group-hover:-translate-y-1",
-                          cert.popular && "ring-2 ring-emerald-500/30 dark:ring-emerald-400/30"
+                          cert.popular && "ring-2 ring-success/30 dark:ring-success/30"
                         )}>
                           {/* Popular badge */}
                           {cert.popular && (
                             <div className="absolute top-0 right-4 z-20">
-                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-emerald-500 to-teal-500 text-background text-xs font-bold tracking-wide uppercase shadow-lg shadow-emerald-500/40">
+                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-success to-accent-teal text-background text-xs font-bold tracking-wide uppercase shadow-lg shadow-success/40">
                                 Popular
                               </div>
                             </div>
@@ -536,7 +504,7 @@ export default function MedicalCertificatePage() {
                             <div
                               className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${cert.bgColor}`}
                             >
-                              <cert.icon className="w-6 h-6 text-blue-600" />
+                              <cert.icon className="w-6 h-6 text-primary" />
                             </div>
 
                             {/* Title */}
@@ -554,7 +522,7 @@ export default function MedicalCertificatePage() {
                             <ul className="space-y-3 mb-8 flex-1">
                               {cert.benefits.map((benefit, idx) => (
                                 <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                                  <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                                  <Check className="h-4 w-4 text-success mt-0.5 shrink-0" />
                                   <span>{benefit}</span>
                                 </li>
                               ))}
@@ -590,17 +558,15 @@ export default function MedicalCertificatePage() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <Shield className="w-4 h-4 text-emerald-600" />
-                  <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">Full refund if we can&apos;t help</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
+                  <Shield className="w-4 h-4 text-success" />
+                  <span className="text-sm text-success dark:text-success font-medium">Full refund if we can&apos;t help</span>
                 </div>
               </motion.div>
             </div>
           </section>
-        </ParallaxSection>
 
         {/* Who Accepts This */}
-        <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
@@ -639,10 +605,10 @@ export default function MedicalCertificatePage() {
                   {/* Trust indicators */}
                   <div className="flex flex-wrap justify-center lg:justify-start gap-3">
                     {[
-                      { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-blue-500" },
-                      { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-sky-500" },
-                      { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-amber-500" },
-                      { label: "Government", sub: "Public sector", icon: Landmark, color: "text-emerald-500" },
+                      { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-primary" },
+                      { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-primary" },
+                      { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-warning" },
+                      { label: "Government", sub: "Public sector", icon: Landmark, color: "text-success" },
                     ].map((item) => (
                       <div
                         key={item.label}
@@ -660,85 +626,17 @@ export default function MedicalCertificatePage() {
               </div>
             </div>
           </section>
-        </ParallaxSection>
 
         {/* How It Works */}
-        <ParallaxSection speed={0.2}>
-          <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              {/* Section Header */}
-              <motion.div
-                className="text-center mb-10"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
-                  How it works
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  No appointments. No phone calls. Just results.
-                </p>
-              </motion.div>
-
-              {/* Steps — clean vertical list */}
-              <div className="space-y-0">
-                {steps.map((step, index) => (
-                  <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="relative flex items-start gap-4 py-5"
-                  >
-                    <div className="flex flex-col items-center shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-semibold">
-                        {step.number}
-                      </div>
-                      {index < steps.length - 1 && (
-                        <div className="w-px h-full bg-border absolute top-12 left-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 pb-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">{step.time}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-0.5">{step.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <motion.div
-                className="flex flex-col items-center mt-8"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                >
-                  <Link href="/request?service=med-cert">
-                    Get started <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2.5">
-                  Most people are sorted in under an hour
-                </p>
-              </motion.div>
-            </div>
-          </section>
-        </ParallaxSection>
+        <ProcessSteps
+          id="how-it-works"
+          title="How it works"
+          subtitle="No appointments. No phone calls. Just results."
+          steps={steps}
+          className="scroll-mt-20"
+        />
 
         {/* Safety Notice - Positioned before testimonials for visibility */}
-        <ParallaxSection speed={0.1}>
           <section className="py-8">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <motion.div
@@ -751,15 +649,8 @@ export default function MedicalCertificatePage() {
               </motion.div>
             </div>
           </section>
-        </ParallaxSection>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
 
         {/* Testimonials */}
-        <ParallaxSection speed={0.25}>
           <section className="py-8 overflow-hidden">
             <TestimonialsColumnsWrapper
               testimonials={testimonials}
@@ -769,132 +660,25 @@ export default function MedicalCertificatePage() {
               className="py-0 my-0"
             />
           </section>
-        </ParallaxSection>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <GlowLine />
-        </div>
 
         {/* FAQ Section */}
-        <ParallaxSection speed={0.15}>
-          <section className="py-16 lg:py-20">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              {/* Section Header */}
-              <motion.div 
-                className="text-center mb-10"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground/80">FAQ</span>
-                </div>
-                
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
-                  Common questions
-                </h2>
-                <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-                  Everything you need to know about getting your certificate.
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                <Accordion
-                  type="single"
-                  collapsible
-                  defaultValue="0"
-                  className="space-y-3"
-                >
-                  {FAQS.map((item, index) => (
-                    <AccordionItem
-                      key={index.toString()}
-                      value={index.toString()}
-                      className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all px-5 !border-b-border/60"
-                    >
-                      <AccordionTrigger className="text-foreground hover:no-underline py-5">
-                        <span className="font-medium text-foreground text-left">{item.question}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
-                        {item.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </motion.div>
-            </div>
-          </section>
-        </ParallaxSection>
+        <AccordionSection
+          pill="FAQ"
+          title="Common questions"
+          subtitle="Everything you need to know about getting your certificate."
+          groups={[{ items: FAQS }]}
+        />
 
         {/* Stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        
-        {/* Final CTA */}
-        <ParallaxSection speed={0.2}>
-          <section className="py-16 lg:py-20 relative overflow-hidden">
-            <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                    <div className="bg-linear-to-br from-primary/5 via-transparent to-primary/3 rounded-2xl border border-primary/10 p-8 sm:p-12 text-center">
-                      {/* Badge */}
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                        <Zap className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium text-primary">Doctors online now</span>
-                      </div>
-                      
-                      <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
-                        Ready when you are
-                      </h2>
-                      <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                        Two minutes to complete the form. Real doctor review. Certificate to your inbox.
-                      </p>
-                      
-                      {/* Features */}
-                      <div className="flex flex-wrap justify-center gap-4 mb-8">
-                        {[
-                          { icon: Shield, text: "AHPRA registered doctors" },
-                          { icon: CheckCircle2, text: "Refund if declined" },
-                          { icon: Smartphone, text: "100% online" },
-                        ].map((feature) => (
-                          <div
-                            key={feature.text}
-                            className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-border/50"
-                          >
-                            <feature.icon className="h-4 w-4 text-primary" />
-                            <span>{feature.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <Link href="/request?service=med-cert">
-                        <ShimmerButton className="px-8 h-12 font-semibold">
-                          Get started
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </ShimmerButton>
-                      </Link>
-                      
-                      <p className="mt-6 text-xs text-muted-foreground">
-                        <span className="font-semibold text-foreground">From $19.95</span>
-                        <span className="mx-2">•</span>
-                        <span>Pay only after doctor review</span>
-                      </p>
-                    </div>
 
-              </motion.div>
-            </div>
-          </section>
-        </ParallaxSection>
+        {/* Final CTA */}
+        <CTABanner
+          title="Ready when you are"
+          subtitle="Two minutes to complete the form. Real doctor review. Certificate to your inbox."
+          ctaText="Get started"
+          ctaHref="/request?service=med-cert"
+        />
       </main>
 
       {/* Sticky Mobile CTA */}

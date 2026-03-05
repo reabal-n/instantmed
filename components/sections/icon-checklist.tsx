@@ -53,7 +53,7 @@ export function IconChecklist({
         {items.map((item, i) => (
           <motion.div
             key={item.text}
-            className="flex gap-3 rounded-xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-4"
+            className="flex gap-3 rounded-xl border border-border/50 bg-white/60 dark:bg-white/8 backdrop-blur-sm p-4"
             initial={prefersReducedMotion ? {} : { opacity: 0, x: -12 }}
             animate={
               prefersReducedMotion

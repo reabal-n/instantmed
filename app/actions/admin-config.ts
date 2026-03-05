@@ -45,6 +45,7 @@ import {
 } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import { stripe } from "@/lib/stripe/client"
 
 const log = createLogger("admin-config-actions")
 
@@ -222,12 +223,24 @@ export async function markRefundEligibleAction(paymentId: string, reason: string
 
 export async function processRefundAction(
   paymentId: string,
-  stripeRefundId: string,
   refundAmount: number,
   intakeId?: string
 ) {
   const admin = await requireAdmin()
-  
+
+  // Look up the payment to get the Stripe payment intent ID
+  const supabase = (await import("@/lib/supabase/service-role")).createServiceRoleClient()
+  const { data: payment, error: paymentError } = await supabase
+    .from("payments")
+    .select("stripe_payment_intent_id, amount")
+    .eq("id", paymentId)
+    .single()
+
+  if (paymentError || !payment?.stripe_payment_intent_id) {
+    log.error("Payment not found or missing Stripe payment intent ID", { paymentId, error: paymentError })
+    return { success: false, error: "Payment record not found or missing Stripe payment intent ID" }
+  }
+
   // Log refund attempt for audit trail
   await logAuditEvent({
     action: "refund_attempted",
@@ -239,35 +252,36 @@ export async function processRefundAction(
     metadata: {
       paymentId,
       amount: refundAmount,
-      stripeRefundId,
+      stripePaymentIntentId: payment.stripe_payment_intent_id,
     },
   })
-  
+
   // First mark as processing
   await updateRefundStatus(paymentId, "processing")
-  
-  // Then mark as refunded (in real implementation, this would call Stripe)
-  const result = await updateRefundStatus(paymentId, "refunded", stripeRefundId, refundAmount)
-  
-  if (result.success) {
-    // Log successful refund for audit trail
-    await logAuditEvent({
-      action: "refund_succeeded",
-      actorId: admin.id,
-      actorType: "admin",
-      intakeId,
-      fromState: "processing",
-      toState: "refunded",
+
+  // Call Stripe to create the refund
+  let stripeRefund
+  try {
+    stripeRefund = await stripe.refunds.create({
+      payment_intent: payment.stripe_payment_intent_id,
+      amount: refundAmount,
+      reason: "requested_by_customer",
       metadata: {
-        paymentId,
-        amount: refundAmount,
-        stripeRefundId,
+        payment_id: paymentId,
+        intake_id: intakeId || "",
+        admin_id: admin.id,
+        refund_type: "admin_manual",
       },
+    }, {
+      idempotencyKey: `admin_refund_${paymentId}`,
     })
-    revalidatePath("/admin/refunds")
-    log.info("Refund processed", { adminId: admin.id, paymentId, stripeRefundId, refundAmount })
-  } else {
-    // Log failed refund for audit trail
+  } catch (stripeError) {
+    const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+    log.error("Stripe refund failed", { paymentId, error: errorMessage })
+
+    // Mark as failed
+    await updateRefundStatus(paymentId, "failed")
+
     await logAuditEvent({
       action: "refund_failed",
       actorId: admin.id,
@@ -278,7 +292,45 @@ export async function processRefundAction(
       metadata: {
         paymentId,
         amount: refundAmount,
-        stripeRefundId,
+        stripePaymentIntentId: payment.stripe_payment_intent_id,
+        error: errorMessage,
+      },
+    })
+
+    return { success: false, error: `Stripe refund failed: ${errorMessage}` }
+  }
+
+  // Mark as refunded with the real Stripe refund ID
+  const result = await updateRefundStatus(paymentId, "refunded", stripeRefund.id, stripeRefund.amount)
+
+  if (result.success) {
+    await logAuditEvent({
+      action: "refund_succeeded",
+      actorId: admin.id,
+      actorType: "admin",
+      intakeId,
+      fromState: "processing",
+      toState: "refunded",
+      metadata: {
+        paymentId,
+        amount: stripeRefund.amount,
+        stripeRefundId: stripeRefund.id,
+      },
+    })
+    revalidatePath("/admin/refunds")
+    log.info("Refund processed", { adminId: admin.id, paymentId, stripeRefundId: stripeRefund.id, refundAmount: stripeRefund.amount })
+  } else {
+    await logAuditEvent({
+      action: "refund_failed",
+      actorId: admin.id,
+      actorType: "admin",
+      intakeId,
+      fromState: "processing",
+      toState: "failed",
+      metadata: {
+        paymentId,
+        amount: refundAmount,
+        stripeRefundId: stripeRefund.id,
         error: result.error,
       },
     })

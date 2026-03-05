@@ -49,12 +49,25 @@ export default function Error({
   const maxRetries = 3
 
   useEffect(() => {
+    // Auto-recover from ChunkLoadError (stale chunks after deployment)
+    if (error.name === "ChunkLoadError" || error.message?.includes("Loading chunk")) {
+      const key = "chunk-reload-" + window.location.pathname
+      const lastReload = sessionStorage.getItem(key)
+      const now = Date.now()
+      // Only auto-reload once per path within 60 seconds to prevent loops
+      if (!lastReload || now - Number(lastReload) > 60_000) {
+        sessionStorage.setItem(key, String(now))
+        window.location.reload()
+        return
+      }
+    }
+
     // Log error with PHI sanitization for compliance
     const sanitizedError = sanitizeError(error)
     const pathname = typeof window !== "undefined" ? window.location.pathname : ""
     const searchParams = typeof window !== "undefined" ? window.location.search : ""
-    const sanitizedUrl = typeof window !== "undefined" 
-      ? sanitizeUrl(window.location.href) 
+    const sanitizedUrl = typeof window !== "undefined"
+      ? sanitizeUrl(window.location.href)
       : undefined
 
     log.error("[GlobalErrorBoundary]", {

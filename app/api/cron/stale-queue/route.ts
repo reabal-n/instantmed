@@ -119,12 +119,60 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // ── Check for stuck awaiting_script intakes (48h threshold) ──
+    const AWAITING_SCRIPT_THRESHOLD_HOURS = 48
+    const awaitingScriptThreshold = new Date(now.getTime() - AWAITING_SCRIPT_THRESHOLD_HOURS * 60 * 60 * 1000)
+
+    const { data: stuckScriptIntakes, error: scriptError } = await supabase
+      .from("intakes")
+      .select("id, updated_at, category", { count: "exact" })
+      .eq("status", "awaiting_script")
+      .lt("updated_at", awaitingScriptThreshold.toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(20)
+
+    if (scriptError) {
+      logger.error("Failed to query stuck awaiting_script intakes", { error: scriptError.message })
+    }
+
+    const stuckScriptCount = stuckScriptIntakes?.length || 0
+
+    if (stuckScriptCount > 0) {
+      const stuckScriptDetails = stuckScriptIntakes?.map(i => {
+        const updatedAt = new Date(i.updated_at)
+        const hoursStuck = Math.round(((now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60)) * 10) / 10
+        return { id: i.id, serviceType: i.category || "unknown", hoursStuck }
+      }) || []
+
+      Sentry.captureMessage(`Warning: ${stuckScriptCount} intakes stuck in awaiting_script for 48+ hours`, {
+        level: "warning",
+        tags: {
+          source: "stale-queue-monitor",
+          alert_type: "stuck_awaiting_script",
+        },
+        extra: {
+          stuck_count: stuckScriptCount,
+          intakes: stuckScriptDetails.slice(0, 5),
+        },
+      })
+      logger.warn("Intakes stuck in awaiting_script for 48+ hours", {
+        stuck_count: stuckScriptCount,
+        oldest_hours: stuckScriptDetails[0]?.hoursStuck,
+      })
+      trackBusinessMetric({
+        metric: 'stuck_awaiting_script',
+        severity: 'warning',
+        metadata: { stuck_count: stuckScriptCount, oldest_hours: stuckScriptDetails[0]?.hoursStuck },
+      })
+    }
+
     return NextResponse.json({
       success: true,
       stale_count: staleCount,
       critical_count: criticalIntakes.length,
       warning_count: warningIntakes.length,
       oldest_wait_hours: waitTimes[0]?.hoursWaiting,
+      stuck_awaiting_script_count: stuckScriptCount,
       alert_sent: true,
       checked_at: now.toISOString(),
     })

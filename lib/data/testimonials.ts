@@ -552,7 +552,7 @@ export function getFeaturedTestimonialsByService(service: Testimonial["service"]
  */
 export const PLATFORM_STATS = {
   averageRating: 4.9,
-  averageResponseMinutes: 42,
+  averageResponseMinutes: 34,
   doctorCount: 4,
   availableHoursStart: 8,
   availableHoursEnd: 22,

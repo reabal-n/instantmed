@@ -177,28 +177,29 @@ function generateErrorId(): string {
 }
 
 /**
- * Send to error tracking service
- * Replace this with actual service integration (Sentry, etc.)
+ * Send to Sentry error tracking service
+ * Uses dynamic import for @sentry/nextjs which works on both client and server
  */
 async function sendToErrorService(report: Record<string, unknown>): Promise<void> {
-  // Example: Send to your error tracking endpoint
-  // In production, integrate with Sentry, LogRocket, etc.
-  
   try {
-    // Placeholder for actual implementation
-    // await fetch('/api/error-tracking', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(report),
-    // })
-    
-    // For now, just log that we would send
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[ErrorTracking] Would send to service:', report)
+    const Sentry = await import("@sentry/nextjs")
+    const errorData = report.error as { name?: string; message?: string; stack?: string } | undefined
+    if (errorData?.message) {
+      const err = new Error(errorData.message)
+      err.name = errorData.name || "Error"
+      if (errorData.stack) err.stack = errorData.stack
+      Sentry.captureException(err, {
+        extra: { errorId: report.errorId, breadcrumbs: report.breadcrumbs },
+        tags: (report.context as Record<string, unknown>)?.tags as Record<string, string> | undefined,
+      })
+    } else if (report.message) {
+      Sentry.captureMessage(report.message as string, {
+        level: (report.level as "info" | "warning" | "error") || "info",
+        extra: { messageId: report.messageId },
+      })
     }
   } catch (e) {
-    // Don't let error tracking errors crash the app
-    console.error('[ErrorTracking] Failed to send report:', e)
+    console.error('[ErrorTracking] Failed to send to Sentry:', e)
   }
 }
 
@@ -254,6 +255,9 @@ export function setupGlobalErrorHandlers(): void {
     
     // Global errors
     window.addEventListener('error', (event) => {
+      // Skip generic cross-origin "Script error." — no useful info available
+      if (event.message === 'Script error.' && !event.filename) return
+
       captureException(event.error || new Error(event.message), {
         extra: {
           filename: event.filename,

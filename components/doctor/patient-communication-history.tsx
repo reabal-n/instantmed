@@ -44,6 +44,20 @@ const emailTypeLabels: Record<string, string> = {
   intake_declined: "Request Declined",
   needs_more_info: "Information Request",
   reminder: "Reminder",
+  ed_approved: "ED Consult Approved",
+  hair_loss_approved: "Hair Loss Consult Approved",
+  womens_health_approved: "Women's Health Approved",
+  weight_loss_approved: "Weight Loss Consult Approved",
+  script_sent: "Script Sent",
+  repeat_script_approved: "Repeat Script Approved",
+}
+
+function getEmailTypeLabel(type: string): string {
+  if (emailTypeLabels[type]) return emailTypeLabels[type]
+  // Fallback: replace underscores with spaces and title-case each word
+  return type
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export function PatientCommunicationHistory({ 
@@ -143,7 +157,7 @@ export function PatientCommunicationHistory({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">
-                      {emailTypeLabels[email.email_type] || email.email_type}
+                      {getEmailTypeLabel(email.email_type)}
                     </span>
                     {getStatusBadge(email)}
                   </div>

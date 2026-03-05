@@ -672,7 +672,7 @@ export async function getCertificateWithPdfUrl(
   const supabase = createServiceRoleClient()
   const { data: signedUrlData } = await supabase.storage
     .from("documents")
-    .createSignedUrl(certificate.storage_path, 3600) // 1 hour expiry
+    .createSignedUrl(certificate.storage_path, 86400) // 24 hour expiry
   
   if (!signedUrlData?.signedUrl) {
     log.error("Failed to generate signed URL for certificate", { 

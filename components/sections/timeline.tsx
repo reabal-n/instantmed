@@ -44,7 +44,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
       {/* Line + dot */}
       <div className="relative flex flex-col items-center">
         <motion.div
-          className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-white dark:bg-[#141D30] text-primary font-semibold text-sm"
+          className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-white dark:bg-background text-primary font-semibold text-sm"
           initial={prefersReducedMotion ? {} : { scale: 0 }}
           animate={
             prefersReducedMotion

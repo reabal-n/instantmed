@@ -22,6 +22,11 @@ import {
   Settings,
   ShieldCheck,
   ChevronRight,
+  Bug,
+  Webhook,
+  Gauge,
+  PenTool,
+  Mailbox,
 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -56,8 +61,10 @@ const configNavItems: NavItem[] = [
 // ── Analytics ────────────────────────────────────────────────
 const analyticsNavItems: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: TrendingUp },
+  { href: "/admin/business-kpi", label: "Business KPIs", icon: BarChart3 },
   { href: "/admin/finance", label: "Finance", icon: DollarSign },
   { href: "/admin/ops", label: "Operations", icon: Activity },
+  { href: "/admin/performance", label: "Performance", icon: Gauge },
   { href: "/admin/compliance", label: "Compliance", icon: ShieldCheck },
 ]
 
@@ -65,7 +72,11 @@ const analyticsNavItems: NavItem[] = [
 const systemNavItems: NavItem[] = [
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { href: "/admin/refunds", label: "Refunds", icon: CreditCard },
-  { href: "/admin/settings/encryption", label: "Settings", icon: Settings },
+  { href: "/admin/errors", label: "Errors", icon: Bug },
+  { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/admin/content", label: "Content", icon: PenTool },
+  { href: "/admin/email-hub", label: "Email Hub", icon: Mailbox },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 
 export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }: AdminSidebarProps) {

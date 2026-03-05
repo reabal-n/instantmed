@@ -134,7 +134,7 @@ export const sanitizedSchemas = {
     .string()
     .min(2, "Name too short")
     .max(100, "Name too long")
-    .regex(/^[a-zA-Z\s'-]+$/, "Name contains invalid characters")
+    .regex(/^[\p{L}\s'-]+$/u, "Name contains invalid characters")
     .transform(sanitizeString),
 
   // Date of birth

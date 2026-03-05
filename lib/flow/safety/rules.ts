@@ -487,7 +487,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient is under 18 for hair loss consultation',
     conditions: [
       { fieldId: 'consult_pathway', operator: 'equals', value: 'hair_loss' },
-      { 
+      {
         fieldId: 'patient_age',
         operator: 'lt',
         value: 18,
@@ -503,6 +503,190 @@ const consultRules: SafetyRule[] = [
     patientMessage: 'Hair loss treatment is only available for adults 18 years and over. Please speak with your GP.',
     doctorNote: 'Patient under 18 - not eligible for hair loss treatment',
     priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ============================================
+  // GENERAL CONSULT SAFETY RULES
+  // ============================================
+  // ----------------------------------------
+  // CHEST PAIN - Emergency redirect for general consult
+  // ----------------------------------------
+  {
+    id: 'general_chest_pain',
+    name: 'Chest Pain - General Consult',
+    description: 'Patient reporting chest pain in general consult - requires emergency care',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['chest_pain'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'critical',
+    patientMessage: 'Chest pain requires immediate medical attention. Please call 000 or go to your nearest emergency department right away.',
+    doctorNote: 'Patient reported chest pain in general consult - directed to emergency services',
+    priority: 1000,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // SUICIDAL IDEATION - Emergency redirect with crisis resources
+  // ----------------------------------------
+  {
+    id: 'general_suicidal_ideation',
+    name: 'Suicidal Ideation - General Consult',
+    description: 'Patient reporting suicidal thoughts in general consult',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['suicidal_thoughts', 'self_harm'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'critical',
+    patientMessage: 'We care about your wellbeing. Please call Lifeline on 13 11 14 for immediate 24/7 support, or call 000 if you\'re in danger. You\'re not alone.',
+    doctorNote: 'Patient reported suicidal ideation in general consult - provided crisis resources',
+    priority: 1000,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // PREGNANCY-RELATED CONCERNS - Requires call
+  // ----------------------------------------
+  {
+    id: 'general_pregnancy_concern',
+    name: 'Pregnancy Concern - General Consult',
+    description: 'Patient has pregnancy-related health concern requiring phone assessment',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'isPregnantOrBreastfeeding', operator: 'equals', value: true },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'Pregnancy-related concerns need careful assessment. A doctor will call you to ensure we can help you safely.',
+    doctorNote: 'Pregnant/breastfeeding patient in general consult - phone assessment required for medication safety',
+    priority: 700,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // RECENT SURGERY COMPLICATIONS - Requires call
+  // ----------------------------------------
+  {
+    id: 'general_recent_surgery',
+    name: 'Recent Surgery Complications - General Consult',
+    description: 'Patient has had recent surgery and is experiencing complications',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['post_surgical_complications'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'Post-surgical concerns require a phone assessment to ensure you receive appropriate care. A doctor will call you.',
+    doctorNote: 'Post-surgical complications reported - phone assessment required to evaluate severity',
+    priority: 700,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // SEVERE SYMPTOMS - General consult escalation
+  // ----------------------------------------
+  {
+    id: 'general_severe_symptoms',
+    name: 'Severe Symptoms - General Consult',
+    description: 'Patient reports severe symptoms in general consult',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'general_severity', operator: 'equals', value: 'severe' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'You\'ve reported severe symptoms. A doctor will call you for a more thorough assessment to ensure you get the right care.',
+    doctorNote: 'Severe symptoms reported in general consult - phone assessment recommended',
+    priority: 500,
+    services: ['gp-consult', 'consult'],
+  },
+  // ============================================
+  // BROADER WOMEN'S HEALTH SAFETY RULES
+  // ============================================
+  // ----------------------------------------
+  // PREGNANCY with hormonal medications - Decline
+  // Combined OCP, HRT, and other hormonal treatments are contraindicated in pregnancy
+  // ----------------------------------------
+  {
+    id: 'womens_pregnancy_hormonal',
+    name: 'Pregnancy - Hormonal Medication Contraindication',
+    description: 'Patient is pregnant and requesting hormonal medication - contraindicated',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_pregnancy_status', operator: 'equals', value: 'pregnant' },
+      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['contraception', 'period_problems', 'hrt'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Hormonal medications are not safe during pregnancy. Please speak with your GP or obstetrician for appropriate care during pregnancy.',
+    doctorNote: 'Pregnant patient requesting hormonal medication - contraindicated. Referred to GP/obstetrician.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // DVT/PE HISTORY with hormonal treatments - Decline
+  // Blood clot history is an absolute contraindication for any oestrogen-containing treatment
+  // This broadens the existing OCP-only rule to cover all hormonal pathways
+  // ----------------------------------------
+  {
+    id: 'womens_dvt_pe_hormonal',
+    name: 'DVT/PE History - Hormonal Treatment Contraindication',
+    description: 'Patient has DVT/PE history and requesting hormonal treatment beyond just OCP',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true },
+      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['period_problems', 'hrt', 'pms'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Due to your history of blood clots, oestrogen-containing hormonal treatments are not safe for you. Please speak with your GP about non-hormonal alternatives or progestogen-only options.',
+    doctorNote: 'Blood clot history with hormonal treatment request (non-OCP pathway) - oestrogen contraindicated per WHOMEC Category 4.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // UNDIAGNOSED VAGINAL BLEEDING - Requires call
+  // Unexplained bleeding needs clinical assessment before prescribing
+  // ----------------------------------------
+  {
+    id: 'womens_undiagnosed_bleeding',
+    name: 'Undiagnosed Vaginal Bleeding',
+    description: 'Patient has irregular or unexplained vaginal bleeding that requires clinical assessment',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_last_period', operator: 'equals', value: 'irregular' },
+    ],
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'Irregular or unexplained bleeding needs careful assessment before we can prescribe any treatment. A doctor will call you to discuss your symptoms.',
+    doctorNote: 'Irregular/undiagnosed vaginal bleeding - phone assessment required before prescribing. May need investigation.',
+    priority: 700,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // BREASTFEEDING with hormonal medications - Requires call
+  // Some hormonal medications are safe during breastfeeding, others are not
+  // ----------------------------------------
+  {
+    id: 'womens_breastfeeding_hormonal',
+    name: 'Breastfeeding - Hormonal Medication Review',
+    description: 'Patient is breastfeeding and requesting hormonal medication - needs careful review',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_pregnancy_status', operator: 'equals', value: 'breastfeeding' },
+      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['contraception', 'period_problems', 'hrt'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'Some hormonal medications are not suitable while breastfeeding. A doctor will call you to discuss safe options.',
+    doctorNote: 'Breastfeeding patient requesting hormonal medication - phone assessment required for safe prescribing.',
+    priority: 700,
     services: ['gp-consult', 'consult'],
   },
 ]
@@ -596,6 +780,20 @@ const weightRules: SafetyRule[] = [
     riskTier: 'high',
     patientMessage: 'Due to your personal or family history of medullary thyroid cancer or MEN2 syndrome, GLP-1 weight loss medications are not suitable for you. Please discuss alternative options with your GP.',
     doctorNote: 'MEN2/medullary thyroid cancer history - absolute contraindication for GLP-1 agonists per TGA guidelines',
+    priority: 950,
+    services: ['weight-management'],
+  },
+  {
+    id: 'weight_pancreatitis',
+    name: 'Pancreatitis History',
+    description: 'Patient has history of pancreatitis - absolute contraindication for GLP-1 agonists',
+    conditions: [
+      { fieldId: 'weight_pancreatitis', operator: 'equals', value: true },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'GLP-1 medications are contraindicated in patients with a history of pancreatitis. Please consult your regular doctor about alternative weight management options.',
+    doctorNote: 'Pancreatitis history - absolute contraindication for GLP-1 agonists per TGA guidelines. Declined for safety.',
     priority: 950,
     services: ['weight-management'],
   },

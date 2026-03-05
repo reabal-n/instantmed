@@ -108,12 +108,8 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
 
     setIsProcessing(true)
     try {
-      // Generate a mock Stripe refund ID (in production, this would call Stripe API)
-      const mockRefundId = `re_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
       const result = await processRefundAction(
         selectedPayment.id,
-        mockRefundId,
         selectedPayment.amount,
         selectedPayment.intake?.id
       )

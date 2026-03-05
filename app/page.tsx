@@ -4,23 +4,19 @@ import {
   Hero,
   ServicePicker,
   HowItWorks,
-  CTASection,
   MarketingFooter,
   LiveWaitTime,
   StatsStrip,
 } from '@/components/marketing'
-import { FAQSection } from '@/components/marketing/faq-section'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
-import { ParallaxSection } from '@/components/ui/parallax-section'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { SkyBackground } from '@/components/ui/sky-background'
-import { NightSkyBackground } from '@/components/ui/night-sky-background'
-import { ScrollProgress } from '@/components/ui/scroll-progress'
+import { CTABanner } from '@/components/sections'
+import { AccordionSection } from '@/components/sections'
 
 export const revalidate = 3600
 
@@ -70,6 +66,16 @@ function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
   return <div className={`${height} animate-pulse bg-muted/20 rounded-xl`} />
 }
 
+// Transform FAQ items into AccordionSection groups format
+const faqGroups = [
+  {
+    items: faqItems.map(item => ({
+      question: item.question,
+      answer: item.answer,
+    })),
+  },
+]
+
 export default function HomePage() {
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
@@ -79,69 +85,61 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Backgrounds & progress — scoped to marketing homepage for performance */}
-      <SkyBackground fullPage />
-      <NightSkyBackground starCount={80} showShootingStars />
-      <ScrollProgress color="gradient" />
-
       {/* SEO Structured Data - FAQ Schema for rich snippets */}
       <FAQSchema faqs={faqSchemaData} />
-      
+
       {/* Client component for hash navigation */}
       <HashScrollHandler />
-      
+
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
-      
+
       <Navbar variant="marketing" />
-      
+
       <main className="relative">
-        {/* Hero with main value prop - above the fold, no parallax for LCP */}
+        {/* Hero with main value prop */}
         <Hero />
-        
+
         {/* Live wait times - shows current doctor response times */}
         <LiveWaitTime variant="strip" />
-        
+
         {/* Trust badges - compact strip */}
         <TrustBadgeSlider />
-        
+
         {/* Core services - what we offer */}
-        <ParallaxSection speed={0.25}>
-          <ServicePicker />
-        </ParallaxSection>
-        
+        <ServicePicker />
+
         {/* How it works - 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
-          <ParallaxSection speed={0.2}>
-            <HowItWorks />
-          </ParallaxSection>
+          <HowItWorks />
         </Suspense>
-        
+
         {/* Patient reviews - authentic social proof */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>
-          <ParallaxSection speed={0.25}>
-            <PatientReviews />
-          </ParallaxSection>
+          <PatientReviews />
         </Suspense>
-        
+
         {/* Key stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        
+
         {/* FAQs */}
-        <Suspense fallback={<SectionSkeleton />}>
-          <ParallaxSection speed={0.15}>
-            <FAQSection />
-          </ParallaxSection>
-        </Suspense>
-        
+        <AccordionSection
+          id="faq"
+          pill="FAQ"
+          title="Common questions"
+          subtitle="Everything you need to know about our service."
+          groups={faqGroups}
+        />
+
         {/* Final CTA */}
-        <Suspense fallback={<SectionSkeleton height="h-64" />}>
-          <ParallaxSection speed={0.2}>
-            <CTASection />
-          </ParallaxSection>
-        </Suspense>
+        <CTABanner
+          title="Feeling too sick to visit a GP?"
+          subtitle="Tell us what's going on, a doctor reviews it, and your certificate lands in your inbox. No appointments, no waiting rooms."
+          ctaText="Get your certificate"
+          ctaHref="/request?service=med-cert"
+        />
       </main>
-      
+
       <MarketingFooter />
     </div>
   )

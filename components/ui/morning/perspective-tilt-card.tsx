@@ -14,11 +14,11 @@ interface PerspectiveTiltCardProps {
 
 const variantStyles = {
   glass:
-    "bg-white/75 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10",
+    "bg-white/75 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10",
   solid:
-    "bg-white dark:bg-[#141D30] border border-border shadow-sm",
+    "bg-white dark:bg-background border border-border shadow-sm",
   gradient:
-    "bg-gradient-to-br from-sky-50 to-[#FAF5EB] dark:from-[#141D30] dark:to-[#1A2340] border border-border",
+    "bg-gradient-to-br from-sky-50 to-dawn-50 dark:from-background dark:to-muted/30 border border-border",
   outline:
     "bg-transparent border border-border hover:bg-white/50 dark:hover:bg-white/5",
 };
@@ -86,8 +86,8 @@ export function PerspectiveTiltCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       whileHover={{
-        boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
-        borderColor: "rgba(59, 130, 246, 0.3)",
+        boxShadow: "0 20px 40px hsl(var(--primary) / 0.08)",
+        borderColor: "hsl(var(--primary) / 0.3)",
       }}
       transition={{ duration: 0.25 }}
     >

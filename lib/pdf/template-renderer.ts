@@ -17,6 +17,7 @@
 
 import { PDFDocument, rgb, StandardFonts, type PDFFont } from "pdf-lib"
 import * as fs from "fs/promises"
+import { existsSync } from "fs"
 import * as path from "path"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -196,6 +197,9 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     let templateBytes: Buffer
     try {
       const templatePath = path.join(process.cwd(), "public", "templates", templateFile)
+      if (!existsSync(templatePath)) {
+        throw new Error(`Template file not found on filesystem: ${templateFile}`)
+      }
       templateBytes = await fs.readFile(templatePath)
     } catch {
       // Filesystem not available (Vercel serverless) — fetch from public URL
@@ -214,7 +218,16 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       }
     }
 
-    const pdfDoc = await PDFDocument.load(templateBytes)
+    let pdfDoc
+    try {
+      pdfDoc = await PDFDocument.load(templateBytes)
+    } catch (loadError) {
+      log.error("Failed to parse template PDF — file may be corrupt", {
+        templateFile,
+        error: loadError instanceof Error ? loadError.message : String(loadError),
+      })
+      return { success: false, error: `Template PDF is corrupt or invalid: ${templateFile}` }
+    }
     const page = pdfDoc.getPage(0)
 
     // Embed fonts — Helvetica for a clean, modern sans-serif look

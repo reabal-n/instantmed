@@ -103,6 +103,13 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
+      id: 'safety',
+      label: 'Safety check',
+      shortLabel: 'Safety',
+      componentPath: 'safety-step',
+      required: true,
+    },
+    {
       id: 'review',
       label: 'Review',
       shortLabel: 'Review',

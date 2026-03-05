@@ -1,15 +1,11 @@
 'use client'
 
-import { useState, useEffect, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { motion } from 'framer-motion'
 import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
-
-// Base patient count (realistic for an early-stage Australian telehealth clinic)
-const BASE_PATIENT_COUNT = 25
-const DAILY_GROWTH_MIN = 0
-const DAILY_GROWTH_MAX = 2
+import { usePatientCount, SOCIAL_PROOF } from '@/lib/social-proof'
 
 function useHasMounted() {
   return useSyncExternalStore(
@@ -17,26 +13,6 @@ function useHasMounted() {
     () => true,
     () => false
   )
-}
-
-// Calculate total based on days since launch + realistic growth
-function calculateTotalPatients(): number {
-  const launchDate = new Date('2024-01-15') // Fictional launch date
-  const now = new Date()
-  const daysSinceLaunch = Math.floor((now.getTime() - launchDate.getTime()) / (1000 * 60 * 60 * 24))
-  
-  // Simulate growth with some variance
-  let total = BASE_PATIENT_COUNT
-  for (let i = 0; i < daysSinceLaunch; i++) {
-    // Growth slows slightly over time (more realistic)
-    const growthRate = Math.max(0.7, 1 - (i / 1000))
-    const dailyGrowth = Math.floor(
-      (DAILY_GROWTH_MIN + Math.random() * (DAILY_GROWTH_MAX - DAILY_GROWTH_MIN)) * growthRate
-    )
-    total += dailyGrowth
-  }
-  
-  return total
 }
 
 interface TotalPatientsCounterProps {
@@ -60,34 +36,10 @@ export function TotalPatientsCounter({
   animate = true,
 }: TotalPatientsCounterProps) {
   const mounted = useHasMounted()
-  const [count, setCount] = useState(() => calculateTotalPatients())
-  const [recentGrowth, setRecentGrowth] = useState(0)
-
-  // Periodically increment to show real-time growth
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.92) {
-        const increment = 1
-        setCount(prev => prev + increment)
-        setRecentGrowth(prev => prev + increment)
-      }
-    }, 60000) // Every 60 seconds, 8% chance
-
-    return () => clearInterval(interval)
-  }, [])
-
-  // Reset recent growth counter periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRecentGrowth(0)
-    }, 300000) // Reset every 5 minutes
-
-    return () => clearInterval(interval)
-  }, [])
+  const count = usePatientCount()
 
   if (!mounted) return null
 
-  // Format number with commas
   const formattedCount = count.toLocaleString()
 
   // Badge variant (compact)
@@ -135,12 +87,6 @@ export function TotalPatientsCounter({
           )}
           {' '}{label}
         </span>
-        {showGrowth && recentGrowth > 0 && (
-          <span className="flex items-center gap-1 text-xs text-emerald-600">
-            <TrendingUp className="w-3 h-3" />
-            +{recentGrowth}
-          </span>
-        )}
       </div>
     )
   }
@@ -148,10 +94,7 @@ export function TotalPatientsCounter({
   // Hero variant (large, prominent)
   if (variant === 'hero') {
     return (
-      <div className={cn(
-        'text-center',
-        className
-      )}>
+      <div className={cn('text-center', className)}>
         <div className="flex items-center justify-center gap-3 mb-2">
           <Users className="w-8 h-8 text-primary" />
           {animate ? (
@@ -191,7 +134,7 @@ export function TotalPatientsCounter({
       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
         <Users className="w-6 h-6 text-primary" />
       </div>
-      
+
       <div className="mb-2">
         {animate ? (
           <NumberFlow
@@ -205,17 +148,8 @@ export function TotalPatientsCounter({
           </span>
         )}
       </div>
-      
+
       <p className="text-muted-foreground">{label}</p>
-      
-      {showGrowth && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-sm text-emerald-600 flex items-center justify-center gap-1">
-            <TrendingUp className="w-4 h-4" />
-            +{Math.floor(Math.random() * 50) + 30} this week
-          </p>
-        </div>
-      )}
     </motion.div>
   )
 }
@@ -237,7 +171,7 @@ export function StatsStrip({
   showRating = true,
 }: StatsStripProps) {
   const mounted = useHasMounted()
-  const [patientCount] = useState(() => calculateTotalPatients())
+  const patientCount = usePatientCount()
 
   if (!mounted) return null
 
@@ -259,7 +193,7 @@ export function StatsStrip({
           </span>
         </div>
       )}
-      
+
       {showReviews && (
         <div className="flex items-center gap-2 text-sm">
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -269,12 +203,12 @@ export function StatsStrip({
           </span>
         </div>
       )}
-      
+
       {showRating && (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-amber-500">★</span>
           <span>
-            <span className="font-semibold text-foreground">4.9</span>
+            <span className="font-semibold text-foreground">{SOCIAL_PROOF.averageRating}</span>
             <span className="text-muted-foreground ml-1">avg rating</span>
           </span>
         </div>

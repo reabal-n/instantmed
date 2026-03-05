@@ -33,12 +33,15 @@ export function verifyCronRequest(request: NextRequest): NextResponse | null {
     if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
       return null
     }
-    // If CRON_SECRET not configured but we have Vercel signature, allow with warning
+    // If CRON_SECRET not configured, reject — fail-closed for security
     if (!cronSecret) {
-      logger.warn("CRON_SECRET not configured - relying on Vercel signature only", {
+      logger.error("CRON_SECRET not configured — rejecting cron request even with Vercel signature", {
         hasVercelSignature: true,
       })
-      return null
+      return NextResponse.json(
+        { error: "Cron not configured" },
+        { status: 500 }
+      )
     }
     // Vercel signature present but CRON_SECRET mismatch - suspicious
     logger.warn("Vercel cron signature present but CRON_SECRET mismatch", {

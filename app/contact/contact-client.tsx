@@ -3,18 +3,18 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
+import { motion, useReducedMotion, useInView } from "framer-motion"
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { TiltCard } from "@/components/shared/tilt-card"
-import {
-  GlowLine,
-} from "@/components/ui/premium-effects"
-import { ParallaxSection } from "@/components/ui/parallax-section"
+import { CenteredHero } from "@/components/heroes"
+import { CTABanner } from "@/components/sections"
+import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
+import { scrollRevealConfig } from "@/components/ui/motion"
 import {
   Mail,
   MapPin,
@@ -26,16 +26,15 @@ import {
   HelpCircle,
   FileText,
   AlertCircle,
-  Sparkles,
 } from "lucide-react"
 import posthog from "posthog-js"
 import { submitContactForm } from "@/app/actions/contact-form"
 
 const contactReasons = [
-  { id: "general", label: "General Inquiry", icon: MessageSquare, emoji: "💬" },
-  { id: "support", label: "Technical Support", icon: HelpCircle, emoji: "🔧" },
-  { id: "request", label: "About My Request", icon: FileText, emoji: "📋" },
-  { id: "complaint", label: "Feedback", icon: AlertCircle, emoji: "💡" },
+  { id: "general", label: "General Inquiry", icon: MessageSquare },
+  { id: "support", label: "Technical Support", icon: HelpCircle },
+  { id: "request", label: "About My Request", icon: FileText },
+  { id: "complaint", label: "Feedback", icon: AlertCircle },
 ]
 
 export function ContactClient() {
@@ -43,6 +42,7 @@ export function ContactClient() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const prefersReducedMotion = useReducedMotion()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -83,33 +83,36 @@ export function ContactClient() {
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
-        <main className="flex-1 flex items-center justify-center bg-gradient-hero px-4 py-20">
+        <main className="flex-1 flex items-center justify-center px-4 py-20">
           <div className="mx-auto max-w-lg text-center">
-            <TiltCard className="p-10 animate-scale-in">
-              <div
-                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-primary to-emerald-400 flex items-center justify-center mb-6 animate-success-bounce"
-                role="img"
-                aria-label="Success"
+            <PerspectiveTiltCard className="p-10" variant="gradient">
+              <motion.div
+                initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
-              </div>
-              <div className="text-4xl mb-4" aria-hidden="true">
-                🎉
-              </div>
-              <h1 className="text-2xl font-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-                Message Sent!
-              </h1>
-              <p className="text-muted-foreground mb-8">
-                Thanks for reaching out. We typically respond within a few hours during business days. Keep an eye on
-                your inbox!
-              </p>
-              <Button asChild className="rounded-full btn-premium magnetic-button text-primary-foreground">
-                <Link href="/">
-                  Back to Home
-                  <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" aria-hidden="true" />
-                </Link>
-              </Button>
-            </TiltCard>
+                <div
+                  className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent-teal flex items-center justify-center mb-6"
+                  role="img"
+                  aria-label="Success"
+                >
+                  <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
+                </div>
+                <h1 className="text-2xl font-bold mb-3">
+                  Message Sent!
+                </h1>
+                <p className="text-muted-foreground mb-8">
+                  Thanks for reaching out. We typically respond within a few hours during business days. Keep an eye on
+                  your inbox!
+                </p>
+                <Button asChild className="rounded-full text-primary-foreground">
+                  <Link href="/">
+                    Back to Home
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </motion.div>
+            </PerspectiveTiltCard>
           </div>
         </main>
         <MarketingFooter />
@@ -123,34 +126,13 @@ export function ContactClient() {
 
       <main className="flex-1">
         {/* Hero */}
-        <ParallaxSection speed={0.2}>
-          <section className="relative pt-32 pb-16 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
-
-            <div className="container mx-auto px-4 relative">
-              <div className="max-w-3xl mx-auto text-center">
-                <Badge variant="secondary" className="mb-4 gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Contact Us
-                </Badge>
-                <h1
-                  className="text-3xl md:text-4xl font-bold text-foreground tracking-tight"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Got a question? <span className="text-premium-gradient">We&apos;re here to help.</span>
-                </h1>
-                <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Real humans who read and reply to every message. Usually within a few hours, always within 24.
-                </p>
-              </div>
-            </div>
-          </section>
-        </ParallaxSection>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
+        <CenteredHero
+          pill="Contact Us"
+          title="Got a question? We're here to help."
+          highlightWords={["here to help."]}
+          subtitle="Real humans who read and reply to every message. Usually within a few hours, always within 24."
+          className="pt-32 pb-16"
+        />
 
         {/* Contact Section */}
         <section className="py-12 pb-24" aria-labelledby="contact-section-title">
@@ -159,191 +141,35 @@ export function ContactClient() {
           </h2>
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto grid gap-12 lg:grid-cols-5">
-              {/* Contact Info */}
+              {/* Contact Info Sidebar */}
               <div className="lg:col-span-2 space-y-6">
-                <TiltCard
-                  className="p-6 animate-fade-in-up opacity-0"
-                  style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
-                >
-                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <span className="text-xl" aria-hidden="true">
-                      📞
-                    </span>
-                    Contact Information
-                  </h3>
-                  <address className="space-y-5 not-italic">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <a
-                          href="mailto:hello@instantmed.com.au"
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          hello@instantmed.com.au
-                        </a>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Location</p>
-                        <p className="text-sm text-muted-foreground">Sydney, Australia</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Business Hours</p>
-                        <p className="text-sm text-muted-foreground">Mon - Sun: 8am - 10pm AEST</p>
-                      </div>
-                    </div>
-                  </address>
-                </TiltCard>
-
-                {/* FAQ Link */}
-                <TiltCard
-                  className="p-6 animate-fade-in-up opacity-0"
-                  style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
-                >
-                  <div className="text-3xl mb-3" aria-hidden="true">
-                    💡
-                  </div>
-                  <h3 className="font-semibold mb-2">Looking for quick answers?</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Check our FAQ — most questions are already answered there.
-                  </p>
-                  <Button variant="outline" asChild className="rounded-full w-full bg-transparent magnetic-button scale-spring">
-                    <Link href="/faq">
-                      View FAQ
-                      <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                </TiltCard>
+                <ContactInfoCard prefersReducedMotion={prefersReducedMotion} />
+                <FAQLinkCard prefersReducedMotion={prefersReducedMotion} />
               </div>
 
               {/* Contact Form */}
-              <TiltCard
-                className="lg:col-span-3 p-8 animate-fade-in-up opacity-0"
-                style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-              >
-                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                  <span className="text-xl" aria-hidden="true">
-                    ✉️
-                  </span>
-                  Send us a message
-                </h3>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Reason Selection */}
-                  <fieldset className="space-y-3">
-                    <legend className="text-sm font-medium">What can we help you with?</legend>
-                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Contact reason">
-                      {contactReasons.map((reason) => (
-                        <button
-                          key={reason.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={selectedReason === reason.id}
-                          onClick={() => setSelectedReason(reason.id)}
-                          className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                            selectedReason === reason.id
-                              ? "bg-primary text-primary-foreground shadow-lg"
-                              : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
-                          }`}
-                        >
-                          <span aria-hidden="true">{reason.emoji}</span>
-                          {reason.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        placeholder="John Smith"
-                        required
-                        autoComplete="name"
-                        className="h-12"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        required
-                        autoComplete="email"
-                        className="h-12"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      placeholder="How can we help?"
-                      required
-                      className="h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      placeholder="Tell us more about your inquiry..."
-                      minRows={5}
-                      required
-                      className="resize-none"
-                    />
-                  </div>
-
-                  {submitError && (
-                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm" role="alert">
-                      {submitError}
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-12 rounded-full btn-premium magnetic-button glow-pulse text-primary-foreground font-semibold"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="h-4 w-4 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin"
-                          aria-hidden="true"
-                        />
-                        Sending...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <Send className="h-4 w-4" aria-hidden="true" />
-                        Send Message
-                      </span>
-                    )}
-                  </Button>
-                </form>
-              </TiltCard>
+              <ContactFormCard
+                selectedReason={selectedReason}
+                setSelectedReason={setSelectedReason}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+                handleSubmit={handleSubmit}
+                prefersReducedMotion={prefersReducedMotion}
+              />
             </div>
           </div>
         </section>
+
+        {/* CTA Banner */}
+        <CTABanner
+          title="Need medical help right now?"
+          subtitle="Get started with a doctor-reviewed request in minutes. No waiting rooms, no phone calls."
+          ctaText="Get started"
+          ctaHref="/request"
+          secondaryText="Learn how it works"
+          secondaryHref="/faq"
+        />
+
         {/* Social Proof */}
         <LiveWaitTime variant="strip" />
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
@@ -352,5 +178,248 @@ export function ContactClient() {
 
       <MarketingFooter />
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Contact Info Card                                                   */
+/* ------------------------------------------------------------------ */
+
+function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boolean | null }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, {
+    once: scrollRevealConfig.once,
+    amount: scrollRevealConfig.threshold,
+  })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <PerspectiveTiltCard className="p-6" variant="glass">
+        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+          Contact Information
+        </h3>
+        <address className="space-y-5 not-italic">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Email</p>
+              <a
+                href="mailto:support@instantmed.com.au"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                support@instantmed.com.au
+              </a>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Location</p>
+              <p className="text-sm text-muted-foreground">Sydney, Australia</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Business Hours</p>
+              <p className="text-sm text-muted-foreground">Mon - Sun: 8am - 10pm AEST</p>
+            </div>
+          </div>
+        </address>
+      </PerspectiveTiltCard>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* FAQ Link Card                                                       */
+/* ------------------------------------------------------------------ */
+
+function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean | null }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, {
+    once: scrollRevealConfig.once,
+    amount: scrollRevealConfig.threshold,
+  })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <PerspectiveTiltCard className="p-6" variant="glass">
+        <HelpCircle className="h-8 w-8 text-primary mb-3" aria-hidden="true" />
+        <h3 className="font-semibold mb-2">Looking for quick answers?</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Check our FAQ — most questions are already answered there.
+        </p>
+        <Button variant="outline" asChild className="rounded-full w-full bg-transparent transition-colors">
+          <Link href="/faq">
+            View FAQ
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+          </Link>
+        </Button>
+      </PerspectiveTiltCard>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Contact Form Card                                                   */
+/* ------------------------------------------------------------------ */
+
+function ContactFormCard({
+  selectedReason,
+  setSelectedReason,
+  isSubmitting,
+  submitError,
+  handleSubmit,
+  prefersReducedMotion,
+}: {
+  selectedReason: string
+  setSelectedReason: (reason: string) => void
+  isSubmitting: boolean
+  submitError: string | null
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  prefersReducedMotion: boolean | null
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, {
+    once: scrollRevealConfig.once,
+    amount: scrollRevealConfig.threshold,
+  })
+
+  return (
+    <motion.div
+      ref={ref}
+      className="lg:col-span-3"
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <PerspectiveTiltCard className="p-8" variant="solid" maxRotation={3}>
+        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+          <Send className="h-5 w-5 text-primary" aria-hidden="true" />
+          Send us a message
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Reason Selection */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium">What can we help you with?</legend>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Contact reason">
+              {contactReasons.map((reason) => {
+                const Icon = reason.icon
+                return (
+                  <button
+                    key={reason.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedReason === reason.id}
+                    onClick={() => setSelectedReason(reason.id)}
+                    className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                      selectedReason === reason.id
+                        ? "bg-primary text-primary-foreground shadow-lg"
+                        : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {reason.label}
+                  </button>
+                )
+              })}
+            </div>
+          </fieldset>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="John Smith"
+                required
+                autoComplete="name"
+                className="h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="john@example.com"
+                required
+                autoComplete="email"
+                className="h-12"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">Subject</Label>
+            <Input
+              id="subject"
+              name="subject"
+              placeholder="How can we help?"
+              required
+              className="h-12"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              name="message"
+              placeholder="Tell us more about your inquiry..."
+              minRows={5}
+              required
+              className="resize-none"
+            />
+          </div>
+
+          {submitError && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm" role="alert">
+              {submitError}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 rounded-full text-primary-foreground font-semibold transition-shadow hover:shadow-lg"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <span
+                  className="h-4 w-4 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+                Sending...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Send className="h-4 w-4" aria-hidden="true" />
+                Send Message
+              </span>
+            )}
+          </Button>
+        </form>
+      </PerspectiveTiltCard>
+    </motion.div>
   )
 }

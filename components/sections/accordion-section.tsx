@@ -94,7 +94,7 @@ export function AccordionSection({
                 >
                   <AccordionItem
                     value={`${gi}-${ii}`}
-                    className="rounded-xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm px-5"
+                    className="rounded-xl border border-border/50 bg-white/60 dark:bg-white/8 backdrop-blur-sm px-5"
                   >
                     <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
                       {item.question}

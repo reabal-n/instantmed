@@ -49,6 +49,7 @@ import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
+import { regenerateDrafts } from "@/app/actions/draft-approval"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
@@ -58,6 +59,41 @@ import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { toast } from "sonner"
+
+/**
+ * Format clinical note draft JSON into readable text.
+ * Mirrors server-side formatClinicalNoteAsText in draft-approval.ts.
+ * Fixed section order for determinism.
+ */
+function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
+  const sections: string[] = []
+  const c = content as Record<string, string>
+
+  if (c.presentingComplaint?.trim()) {
+    sections.push(`Presenting Complaint:\n${c.presentingComplaint.trim()}`)
+  }
+  if (c.historyOfPresentIllness?.trim()) {
+    sections.push(`History of Present Illness:\n${c.historyOfPresentIllness.trim()}`)
+  }
+  if (c.relevantInformation?.trim()) {
+    sections.push(`Relevant Information:\n${c.relevantInformation.trim()}`)
+  }
+  if (c.certificateDetails?.trim()) {
+    sections.push(`Certificate Details:\n${c.certificateDetails.trim()}`)
+  }
+
+  return sections.length > 0 ? sections.join("\n\n") : null
+}
+
+/**
+ * Find a usable clinical_note draft from the AI drafts list.
+ * Returns the draft if it's ready and not rejected.
+ */
+function findClinicalNoteDraft(drafts: AIDraft[]): AIDraft | null {
+  return drafts.find(
+    (d) => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at
+  ) ?? null
+}
 
 // Decline reason templates (same as intake detail page)
 const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
@@ -98,6 +134,8 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   // Form state
   const [doctorNotes, setDoctorNotes] = useState("")
   const [noteSaved, setNoteSaved] = useState(false)
+  const [isAiPrefilled, setIsAiPrefilled] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
   const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
   const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
@@ -132,7 +170,26 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         const reviewData: ReviewData = await res.json()
         if (!cancelled) {
           setData(reviewData)
-          setDoctorNotes(reviewData.intake.doctor_notes || "")
+
+          // Pre-fill clinical notes from AI draft if doctor hasn't written notes yet
+          const existingNotes = reviewData.intake.doctor_notes || ""
+          if (!existingNotes && reviewData.aiDrafts) {
+            const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts)
+            if (clinicalDraft) {
+              const formatted = formatClinicalNoteContent(clinicalDraft.content)
+              if (formatted) {
+                setDoctorNotes(formatted)
+                setIsAiPrefilled(true)
+              } else {
+                setDoctorNotes("")
+              }
+            } else {
+              setDoctorNotes("")
+            }
+          } else {
+            setDoctorNotes(existingNotes)
+          }
+
           setIsLoading(false)
         }
       } catch (err) {
@@ -331,11 +388,43 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       const result = await saveDoctorNotesAction(intake.id, doctorNotes)
       if (result.success) {
         setNoteSaved(true)
+        setIsAiPrefilled(false) // After saving, it's the doctor's note now
         setTimeout(() => setNoteSaved(false), 3000)
       } else {
         toast.error(result.error || "Failed to save notes")
       }
     })
+  }
+
+  const handleRegenerateNote = async () => {
+    if (!intake) return
+    setIsRegenerating(true)
+    try {
+      const result = await regenerateDrafts(intake.id)
+      if (result.success) {
+        // Refetch data to get the new draft
+        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
+        if (res.ok) {
+          const reviewData: ReviewData = await res.json()
+          setData(reviewData)
+          const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts || [])
+          if (clinicalDraft) {
+            const formatted = formatClinicalNoteContent(clinicalDraft.content)
+            if (formatted) {
+              setDoctorNotes(formatted)
+              setIsAiPrefilled(true)
+              toast.success("AI note regenerated")
+            }
+          }
+        }
+      } else {
+        toast.error(result.error || "Failed to regenerate note")
+      }
+    } catch {
+      toast.error("Failed to regenerate note")
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   // Keyboard shortcuts
@@ -551,17 +640,20 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
             </CardContent>
           </Card>
 
-          {/* AI Drafts */}
-          {data?.aiDrafts && data.aiDrafts.length > 0 && (
-            <DraftReviewPanel
-              drafts={data.aiDrafts}
-              intakeId={intake.id}
-              onDraftApproved={() => {
-                /* stays in panel — no router.refresh needed */
-              }}
-              onDraftRejected={() => {}}
-            />
-          )}
+          {/* AI Drafts (excludes clinical_note — shown in notes textarea above) */}
+          {(() => {
+            const nonNoteDrafts = (data?.aiDrafts || []).filter((d) => d.type !== "clinical_note")
+            return nonNoteDrafts.length > 0 ? (
+              <DraftReviewPanel
+                drafts={nonNoteDrafts}
+                intakeId={intake.id}
+                onDraftApproved={() => {
+                  /* stays in panel — no router.refresh needed */
+                }}
+                onDraftRejected={() => {}}
+              />
+            ) : null
+          })()}
 
           {/* Chat Transcript */}
           <ChatTranscriptPanel intakeId={intake.id} />
@@ -608,6 +700,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                 {["approved", "completed", "awaiting_script"].includes(intake.status)
                   ? "Approved Clinical Note"
                   : "Clinical Notes (Private)"}
+                {isAiPrefilled && !["approved", "completed", "awaiting_script"].includes(intake.status) && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                    AI Draft
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-3">
@@ -623,17 +720,38 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                 </div>
               ) : (
                 <>
+                  {isAiPrefilled && (
+                    <p className="text-xs text-muted-foreground">
+                      Pre-filled from AI analysis of intake answers. Review, edit as needed, then save.
+                    </p>
+                  )}
                   <Textarea
                     ref={notesRef}
                     placeholder="Add your clinical notes here... (⌘+N to focus)"
                     value={doctorNotes}
-                    onChange={(e) => setDoctorNotes(e.target.value)}
-                    className="min-h-[100px] text-sm"
+                    onChange={(e) => {
+                      setDoctorNotes(e.target.value)
+                      setNoteSaved(false)
+                    }}
+                    className="min-h-[140px] text-sm"
                   />
                   <div className="flex items-center gap-2">
                     <Button onClick={handleSaveNotes} disabled={isPending} variant="outline" size="sm">
                       <Save className="h-3.5 w-3.5 mr-1.5" />
                       Save Notes
+                    </Button>
+                    <Button
+                      onClick={handleRegenerateNote}
+                      disabled={isPending || isRegenerating}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      {isRegenerating ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <FileText className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      {isRegenerating ? "Regenerating..." : "Regenerate AI Note"}
                     </Button>
                     {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
                   </div>

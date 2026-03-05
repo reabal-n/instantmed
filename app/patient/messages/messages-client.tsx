@@ -18,8 +18,6 @@ import {
   Inbox,
   AlertCircle,
 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -110,10 +108,8 @@ export function MessagesClient({
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-linear-to-b from-sky-50/50 to-white pt-20 pb-16">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+    <main className="min-h-screen bg-linear-to-b from-sky-50/50 to-white pt-20 pb-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>
@@ -285,9 +281,7 @@ export function MessagesClient({
               </div>
             </div>
           )}
-        </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </main>
   )
 }

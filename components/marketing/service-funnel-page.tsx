@@ -35,12 +35,8 @@ import { RotatingText } from './rotating-text'
 import { LiveWaitTime } from './live-wait-time'
 import { StatsStrip } from './total-patients-counter'
 import { MediaMentions } from './media-mentions'
-import { SkyBackground } from '@/components/ui/sky-background'
-import { NightSkyBackground } from '@/components/ui/night-sky-background'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { ScrollProgress } from '@/components/ui/scroll-progress'
 import { TrustBadgeSlider } from './trust-badge-slider'
-import { ParallaxSection } from '@/components/ui/parallax-section'
 import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
@@ -240,10 +236,6 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Backgrounds — same treatment as homepage */}
-      <SkyBackground fullPage />
-      <NightSkyBackground starCount={60} showShootingStars />
-      <ScrollProgress color="gradient" />
 
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
@@ -260,36 +252,24 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       <TrustBadgeSlider />
 
       {/* Section 2: Who It's For */}
-      <ParallaxSection speed={0.2}>
-        <WhoItsForSection config={config} colors={colors} />
-      </ParallaxSection>
+      <WhoItsForSection config={config} colors={colors} />
 
       {/* Specialized Services (optional — e.g. consult sub-types) */}
       {config.specializedServices && (
-        <ParallaxSection speed={0.25}>
-          <SpecializedServicesSection config={config} colors={colors} />
-        </ParallaxSection>
+        <SpecializedServicesSection config={config} colors={colors} />
       )}
 
       {/* Section 3: How It Works */}
-      <ParallaxSection speed={0.25}>
-        <HowItWorksSection config={config} colors={colors} />
-      </ParallaxSection>
+      <HowItWorksSection config={config} colors={colors} />
 
       {/* Section 4: What Happens After */}
-      <ParallaxSection speed={0.2}>
-        <AfterSubmitSection config={config} colors={colors} />
-      </ParallaxSection>
+      <AfterSubmitSection config={config} colors={colors} />
 
       {/* Section 5: Pricing */}
-      <ParallaxSection speed={0.25}>
-        <PricingSection config={config} colors={colors} />
-      </ParallaxSection>
+      <PricingSection config={config} colors={colors} />
 
       {/* Section 6: Trust & Compliance */}
-      <ParallaxSection speed={0.2}>
-        <TrustSection config={config} colors={colors} />
-      </ParallaxSection>
+      <TrustSection config={config} colors={colors} />
 
       {/* Emergency Disclaimer */}
       <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -299,17 +279,15 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       </section>
 
       {/* Section 7: Social Proof — scrolling columns like homepage */}
-      <ParallaxSection speed={0.25}>
-        <section className="py-4 overflow-hidden relative">
-          <TestimonialsColumnsWrapper
-            testimonials={testimonialsForColumns}
-            title={config.testimonials.title}
-            subtitle={config.testimonials.subtitle}
-            badgeText="Patient Feedback"
-            className="py-0 my-0"
-          />
-        </section>
-      </ParallaxSection>
+      <section className="py-4 overflow-hidden relative">
+        <TestimonialsColumnsWrapper
+          testimonials={testimonialsForColumns}
+          title={config.testimonials.title}
+          subtitle={config.testimonials.subtitle}
+          badgeText="Patient Feedback"
+          className="py-0 my-0"
+        />
+      </section>
 
       {/* Stats + Media Mentions */}
       <StatsStrip className="bg-white/30 dark:bg-white/[0.02] backdrop-blur-xs border-y border-border/30" />
@@ -317,9 +295,7 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 
       {/* Section 8: FAQ */}
       {config.faq && (
-        <ParallaxSection speed={0.15}>
-          <FaqSection config={config} />
-        </ParallaxSection>
+        <FaqSection config={config} />
       )}
 
       {/* Final CTA */}

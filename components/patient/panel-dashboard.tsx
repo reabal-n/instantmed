@@ -107,6 +107,9 @@ const STATUS_CONFIG = {
   pending: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
   in_review: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
   requires_info: { color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: AlertTriangle, label: "Action Needed" },
+  awaiting_script: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Pill, label: "Preparing Script" },
+  cancelled: { color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400", icon: AlertCircle, label: "Cancelled" },
+  pending_payment: { color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: CreditCard, label: "Payment Pending" },
 }
 
 export function PanelDashboard({
@@ -445,6 +448,9 @@ function IntakeCard({
     approved: "approved",
     declined: "rejected",
     completed: "approved",
+    awaiting_script: "awaiting_script",
+    cancelled: "cancelled",
+    pending_payment: "pending_payment",
   }
   const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
   const Icon = config.icon
@@ -553,6 +559,9 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
     approved: "approved",
     declined: "rejected",
     completed: "approved",
+    awaiting_script: "awaiting_script",
+    cancelled: "cancelled",
+    pending_payment: "pending_payment",
   }
   const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
   const Icon = config.icon

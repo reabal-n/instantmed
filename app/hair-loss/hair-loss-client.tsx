@@ -15,14 +15,7 @@ import {
   ChevronDown,
   PhoneOff,
 } from "lucide-react"
-import { useReducedMotion } from "framer-motion"
-import {
-  AnimatedOrbs,
-  GlowLine,
-  ShimmerButton,
-} from "@/components/ui/premium-effects"
-import { GridStagger } from "@/components/effects/stagger-container"
-import { ParallaxSection } from "@/components/ui/parallax-section"
+import { Button } from "@/components/ui/button"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 
@@ -123,8 +116,6 @@ interface HairLossClientProps {
 }
 
 export function HairLossClient({ faqSchema }: HairLossClientProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
@@ -134,11 +125,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <ParallaxSection speed={0.2}>
             <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden relative">
-              {!prefersReducedMotion && (
-                <AnimatedOrbs orbCount={3} className="opacity-40" />
-              )}
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                   <div className="max-w-4xl mx-auto text-center">
@@ -156,12 +143,12 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                      <Link href="/request?service=consult">
-                        <ShimmerButton className="px-6 h-11 font-semibold bg-teal-600">
+                      <Button asChild size="lg" className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+                        <Link href="/request?service=consult">
                           Start Consultation
                           <ArrowRight className="h-4 w-4 ml-2" />
-                        </ShimmerButton>
-                      </Link>
+                        </Link>
+                      </Button>
                       <Link href="#treatments">
                         <button className="h-11 px-6 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors">
                           View Treatments
@@ -192,15 +179,8 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* Treatment Options */}
-          <ParallaxSection speed={0.15}>
             <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
@@ -260,25 +240,18 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     <p className="text-xs text-muted-foreground mb-4">
                       Not sure which is right for you? Our doctors will recommend the best option.
                     </p>
-                    <Link href="/request?service=consult">
-                      <ShimmerButton className="px-6 h-10 text-sm font-semibold bg-teal-600">
+                    <Button asChild size="lg" className="px-6 h-10 text-sm font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+                      <Link href="/request?service=consult">
                         Start Consultation
                         <ArrowRight className="h-3.5 w-3.5 ml-2" />
-                      </ShimmerButton>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* Platform Features */}
-          <ParallaxSection speed={0.2}>
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
@@ -289,7 +262,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     </p>
                   </div>
 
-                  <GridStagger columns={2} staggerDelay={0.1} className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     {platformFeatures.map((feature, i) => (
                       <div key={i} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                         <div className="shrink-0 w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
@@ -301,8 +274,8 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                         </div>
                       </div>
                     ))}
-                  </GridStagger>
-                  
+                  </div>
+
                   {/* Partner Logos */}
                   <div className="mt-8">
                     <TrustLogos />
@@ -310,15 +283,8 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* How It Works */}
-          <ParallaxSection speed={0.15}>
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
@@ -327,7 +293,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     <p className="text-sm text-muted-foreground">Three simple steps to get your treatment</p>
                   </div>
 
-                  <GridStagger columns={3} staggerDelay={0.1} className="grid md:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-3 gap-6">
                     <div className="text-center">
                       <div className="w-10 h-10 rounded-lg bg-teal-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                         1
@@ -355,19 +321,12 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                         eScript sent to your phone via SMS. Collect from any pharmacy Australia-wide.
                       </p>
                     </div>
-                  </GridStagger>
+                  </div>
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* Results Timeline */}
-          <ParallaxSection speed={0.2}>
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
@@ -392,15 +351,8 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* FAQs */}
-          <ParallaxSection speed={0.15}>
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
@@ -424,15 +376,8 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 </div>
               </div>
             </section>
-          </ParallaxSection>
-
-          {/* GlowLine Divider */}
-          <div className="max-w-2xl mx-auto px-4">
-            <GlowLine />
-          </div>
 
           {/* Final CTA */}
-          <ParallaxSection speed={0.2}>
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div className="max-w-3xl mx-auto text-center">
@@ -443,12 +388,12 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                       Complete a confidential consultation in minutes. Our doctors are ready to help.
                     </p>
-                    <Link href="/request?service=consult">
-                      <ShimmerButton className="px-8 h-12 font-semibold bg-teal-600">
+                    <Button asChild size="lg" className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+                      <Link href="/request?service=consult">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
-                      </ShimmerButton>
-                    </Link>
+                      </Link>
+                    </Button>
                     <p className="text-xs text-muted-foreground mt-4">
                       Takes ~3 minutes • 100% discreet
                     </p>
@@ -456,7 +401,6 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 </div>
               </div>
             </section>
-          </ParallaxSection>
         </main>
 
         <MarketingFooter />

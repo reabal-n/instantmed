@@ -37,22 +37,61 @@ export async function handlePaymentFailure(
   const supabase = createServiceRoleClient()
 
   // Find the associated intake
-  const { data: intake, error: findError } = await supabase
+  // Strategy 1: Look up by stripe_payment_intent_id (set after checkout.session.completed)
+  let intake: { id: string; patient_id: string; status: string } | null = null
+  let findError: unknown = null
+
+  const { data: intakeByPi, error: piError } = await supabase
     .from("intakes")
     .select("id, patient_id, status")
     .eq("stripe_payment_intent_id", paymentIntent.id)
     .maybeSingle()
 
-  if (findError) {
-    logger.error("Failed to find intake for payment failure", { 
-      paymentIntentId: context.paymentIntentId 
-    }, findError)
+  if (piError) {
+    logger.error("Failed to find intake by stripe_payment_intent_id", {
+      paymentIntentId: context.paymentIntentId
+    }, piError)
+    findError = piError
+  }
+
+  intake = intakeByPi
+
+  // Strategy 2: If not found, try via metadata.intake_id (always set during checkout creation)
+  if (!intake && paymentIntent.metadata?.intake_id) {
+    const { data: intakeByMeta, error: metaError } = await supabase
+      .from("intakes")
+      .select("id, patient_id, status")
+      .eq("id", paymentIntent.metadata.intake_id)
+      .maybeSingle()
+
+    if (metaError) {
+      logger.error("Failed to find intake by metadata.intake_id", {
+        paymentIntentId: context.paymentIntentId,
+        metadataIntakeId: paymentIntent.metadata.intake_id,
+      }, metaError)
+    }
+
+    if (intakeByMeta) {
+      intake = intakeByMeta
+      // Backfill stripe_payment_intent_id since it wasn't set yet
+      await supabase
+        .from("intakes")
+        .update({ stripe_payment_intent_id: paymentIntent.id })
+        .eq("id", intakeByMeta.id)
+      logger.info("Backfilled stripe_payment_intent_id from payment failure handler", {
+        intakeId: intakeByMeta.id,
+        paymentIntentId: paymentIntent.id,
+      })
+    }
+  }
+
+  if (findError && !intake) {
     return { handled: false }
   }
 
   if (!intake) {
-    logger.warn("No intake found for failed payment", { 
-      paymentIntentId: context.paymentIntentId 
+    logger.warn("No intake found for failed payment", {
+      paymentIntentId: context.paymentIntentId
     })
     return { handled: false }
   }

@@ -38,6 +38,26 @@ export async function updateStatusAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  // Validate clinical notes exist for approval/script statuses
+  if (status === "approved" || status === "awaiting_script") {
+    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+    const supabase = createServiceRoleClient()
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("doctor_notes")
+      .eq("id", intakeId)
+      .single()
+
+    const notes = intake?.doctor_notes?.trim() || ""
+    if (notes.length < 20) {
+      return {
+        success: false,
+        error: "Clinical notes must be at least 20 characters before approving or sending a script.",
+        code: "INSUFFICIENT_CLINICAL_NOTES",
+      }
+    }
+  }
+
   // CRITICAL GUARD: Block direct approval of med certs - they MUST go through document builder
   // Med certs require PDF generation and email sending via approveAndSendCert
   if (status === "approved") {

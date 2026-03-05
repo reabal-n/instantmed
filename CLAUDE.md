@@ -26,6 +26,7 @@
 | `CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
 | `SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |
 | `OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, production checklist | Ops tasks, debugging, deployments |
+| `docs/plans/` | Implementation plans (Morning Canvas design system, trust page redesign) | Executing planned features, reviewing approach |
 
 ---
 

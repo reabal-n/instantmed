@@ -26,7 +26,7 @@ export default async function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <NotificationsClient notifications={notifications || []} />
+      <NotificationsClient notifications={notifications || []} patientId={profile.id} />
     </div>
   )
 }
