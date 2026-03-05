@@ -165,7 +165,7 @@ export function SuccessClient({
     checkStatus()
 
     return () => clearInterval(intervalId)
-  }, [intakeId, initialStatus])
+  }, [intakeId, initialStatus, posthog, serviceName])
 
   // Show loading state while verifying payment
   if (isVerifying) {

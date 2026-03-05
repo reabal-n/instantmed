@@ -37,7 +37,6 @@ import type {
   ClinicIdentity,
   ClinicIdentityInput,
   TemplateConfig,
-  TemplateType,
   HeaderStyle,
   MarginPreset,
   FontSizePreset,
@@ -82,7 +81,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(
     (activeTemplate?.config as TemplateConfig) || DEFAULT_TEMPLATE_CONFIG
   )
-  const [selectedTemplateType, _setSelectedTemplateType] = useState<TemplateType>("med_cert_work")
+  const [_selectedTemplateType, _setSelectedTemplateType] = useState("med_cert_work")
 
   // Preview Scenarios
   const [scenarios, setScenarios] = useState<Record<string, boolean>>({

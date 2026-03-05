@@ -6,7 +6,6 @@ import {
   Box,
   List,
   DetailRow,
-  colors,
 } from "../base-email"
 
 export interface GuestCompleteAccountEmailProps {

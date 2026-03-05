@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap, BadgeCheck } from "lucide-react"
+import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"

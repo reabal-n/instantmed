@@ -1,13 +1,12 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { 
-  ArrowRight, 
-  Clock, 
-  Shield, 
-  CheckCircle2, 
+import {
+  ArrowRight,
+  Clock,
+  Shield,
+  CheckCircle2,
   FileText,
-  Star,
   Zap,
   AlertCircle,
   Info

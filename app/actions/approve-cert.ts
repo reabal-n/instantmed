@@ -230,7 +230,7 @@ export async function approveAndSendCert(
       return { success: false, error: "Certificate duration cannot exceed 30 days" }
     }
 
-    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const _durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
     // Get intake answers for carer details extraction
     const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
@@ -243,13 +243,13 @@ export async function approveAndSendCert(
     // NOTE: Certificate identity (provider_number, ahpra_number) already verified at start of function
 
     // Extract carer details if certificate type is "carer"
-    let carerPersonName: string | undefined
-    let carerRelationship: string | undefined
+    let _carerPersonName: string | undefined
+    let _carerRelationship: string | undefined
     if (certificateType === "carer" && answersData) {
       // Check both possible field names from intake flow
-      carerPersonName = (answersData.carer_patient_name as string | undefined) || 
+      _carerPersonName = (answersData.carer_patient_name as string | undefined) ||
                        (answersData.carerPatientName as string | undefined)
-      carerRelationship = (answersData.carer_relationship as string | undefined) || 
+      _carerRelationship = (answersData.carer_relationship as string | undefined) ||
                          (answersData.carerRelationship as string | undefined)
     }
 

@@ -12,15 +12,12 @@ import {
   XCircle,
   User,
   Pill,
-  Phone,
   Mail,
-  MapPin,
   Loader2,
   Copy,
   Check,
   FileText,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 // ============================================================================
 // TYPES

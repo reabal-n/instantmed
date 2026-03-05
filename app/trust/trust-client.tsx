@@ -4,17 +4,14 @@ import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import {
-  Shield,
   UserCheck,
   Lock,
   CheckCircle2,
-  Clock,
   Star,
   ArrowRight,
   FileCheck,
   Send,
   Phone,
-  Users,
   Scale,
   ShieldCheck,
   Fingerprint,
@@ -345,7 +342,7 @@ export default function TrustPage() {
 
 // ─── Testimonial Section ──────────────────────────────────────────
 
-function TestimonialSection({ patientCount, mounted }: { patientCount: number; mounted: boolean }) {
+function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount: number; mounted: boolean }) {
   const shouldReduce = useReducedMotion()
 
   return (

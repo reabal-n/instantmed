@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Clock, Star } from "lucide-react"
+import { ArrowRight, Shield, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"

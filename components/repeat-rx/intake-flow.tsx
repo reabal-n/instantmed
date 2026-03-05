@@ -452,7 +452,7 @@ export function RepeatRxIntakeFlow({
   )
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, _setError] = useState<string | null>(null)
   
   // Form state
   const [medication, setMedication] = useState<SelectedPBSProduct | null>(null)
@@ -469,10 +469,10 @@ export function RepeatRxIntakeFlow({
   
   // Safety answers (clinical safety questions - shown in medical_history step)
   const [sideEffects, _setSideEffects] = useState<string | null>(null)
-  const [sideEffectsDetails, _setSideEffectsDetails] = useState("")
+  const [_sideEffectsDetails, _setSideEffectsDetails] = useState("")
   const [pregnantOrBreastfeeding, _setPregnantOrBreastfeeding] = useState<boolean | null>(null)
-  const [allergies, _setAllergies] = useState<string[]>([])
-  const [allergyDetails, _setAllergyDetails] = useState("")
+  const [_allergies, _setAllergies] = useState<string[]>([])
+  const [_allergyDetails, _setAllergyDetails] = useState("")
   
   // Medical history
   const [pmhxFlags, setPmhxFlags] = useState({
@@ -501,8 +501,8 @@ export function RepeatRxIntakeFlow({
   const [pharmacyLocation, setPharmacyLocation] = useState("")
   
   // Eligibility
-  const [_eligibilityResult, setEligibilityResult] = useState<EligibilityResult | null>(null)
-  const [isCheckingEligibility, setIsCheckingEligibility] = useState(false)
+  const [_eligibilityResult, _setEligibilityResult] = useState<EligibilityResult | null>(null)
+  const [isCheckingEligibility, _setIsCheckingEligibility] = useState(false)
   
   // ============================================================================
   // HANDLERS

@@ -14,7 +14,6 @@ import type {
   ClinicIdentity,
   ClinicIdentityInput,
   CertificateTemplate,
-  TemplateType,
 } from "@/types/certificate-template"
 import { createLogger } from "@/lib/observability/logger"
 

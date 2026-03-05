@@ -1,14 +1,13 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { 
-  ArrowRight, 
-  Clock, 
-  Shield, 
-  CheckCircle2, 
+import {
+  ArrowRight,
+  Clock,
+  Shield,
+  CheckCircle2,
   AlertTriangle,
   Stethoscope,
-  Star,
   ThermometerSun,
   Activity
 } from "lucide-react"

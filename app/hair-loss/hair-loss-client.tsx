@@ -1,30 +1,43 @@
-'use client'
+"use client";
 
-import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
 import {
   ArrowRight,
   Clock,
   Shield,
-  Zap,
   EyeOff,
   Pill,
-  Lock,
-  ChevronDown,
   PhoneOff,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { TrustLogos } from "@/components/marketing/trust-badges"
-import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/shared/navbar";
+import { MarketingFooter } from "@/components/marketing";
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator";
+import { CenteredHero } from "@/components/heroes";
+import {
+  FeatureGrid,
+  ProcessSteps,
+  Timeline,
+  AccordionSection,
+  CTABanner,
+  SectionHeader,
+} from "@/components/sections";
+import { scrollRevealConfig } from "@/components/ui/motion";
+
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
 
 const treatments = [
   {
     id: "oral",
     name: "Oral Treatment Option",
     brand: "Daily oral option",
-    description: "Doctor-prescribed oral treatment taken once daily. Works by addressing hormonal factors that contribute to hair follicle changes.",
+    description:
+      "Doctor-prescribed oral treatment taken once daily. Works by addressing hormonal factors that contribute to hair follicle changes.",
     type: "Oral treatment",
     frequency: "Once daily",
     results: "Results typically visible in 3-6 months",
@@ -35,7 +48,8 @@ const treatments = [
     id: "topical",
     name: "Topical Treatment Option",
     brand: "Applied treatment option",
-    description: "Doctor-prescribed topical solution or foam applied to the scalp. Stimulates hair follicles and increases blood flow to support hair growth.",
+    description:
+      "Doctor-prescribed topical solution or foam applied to the scalp. Stimulates hair follicles and increases blood flow to support hair growth.",
     type: "Topical solution/foam",
     frequency: "Twice daily",
     results: "Results typically visible in 2-4 months",
@@ -46,365 +60,314 @@ const treatments = [
     id: "combination",
     name: "Combination Approach",
     brand: "Dual treatment approach",
-    description: "Using both treatment approaches together for maximum effectiveness. Addresses hair loss through multiple mechanisms.",
+    description:
+      "Using both treatment approaches together for maximum effectiveness. Addresses hair loss through multiple mechanisms.",
     type: "Oral + Topical",
     frequency: "As directed",
     results: "Often more effective than either alone",
     bestFor: "Moderate to advanced hair loss",
     popular: false,
   },
-]
+];
 
 const platformFeatures = [
   {
-    icon: PhoneOff,
+    icon: <PhoneOff className="h-6 w-6" />,
     title: "Complete Online",
-    description: "Answer questions from your phone. Most consultations don't require a call.",
+    description:
+      "Answer questions from your phone. Most consultations don't require a call.",
   },
   {
-    icon: Clock,
+    icon: <Clock className="h-6 w-6" />,
     title: "Reviewed Within Hours",
-    description: "Our doctors review requests quickly. Most are reviewed within a few hours during business hours.",
+    description:
+      "Our doctors review requests quickly. Most are reviewed within a few hours during business hours.",
   },
   {
-    icon: EyeOff,
+    icon: <EyeOff className="h-6 w-6" />,
     title: "100% Discreet",
-    description: "Your consultation is private. Medications come in standard pharmacy packaging.",
+    description:
+      "Your consultation is private. Medications come in standard pharmacy packaging.",
   },
   {
-    icon: Shield,
+    icon: <Shield className="h-6 w-6" />,
     title: "AHPRA-Registered Doctors",
-    description: "All consultations reviewed by fully qualified Australian doctors.",
+    description:
+      "All consultations reviewed by fully qualified Australian doctors.",
   },
-]
+];
 
-const faqs = [
+const howItWorksSteps = [
   {
-    question: "What treatment options are available?",
-    answer:
-      "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss — it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
+    number: 1,
+    title: "Complete Questionnaire",
+    description:
+      "Answer questions about your hair loss online. Takes about 3 minutes.",
   },
   {
-    question: "How long until I see results?",
-    answer:
-      "Hair growth takes time. With topical treatments, some improvement may be visible in 2-4 months. With oral treatments, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key — stopping treatment typically leads to reversal of gains.",
+    number: 2,
+    title: "Doctor Reviews",
+    description:
+      "An AHPRA-registered doctor reviews your request and prescribes if appropriate.",
   },
   {
-    question: "Are there side effects?",
-    answer:
-      "Topical treatments may cause scalp irritation or unwanted facial hair growth (rare). Oral treatments may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping treatment. Our doctors will discuss potential side effects with you.",
+    number: 3,
+    title: "Receive Treatment Plan",
+    description:
+      "eScript sent to your phone via SMS. Collect from any pharmacy Australia-wide.",
+  },
+];
+
+const resultsTimeline = [
+  {
+    title: "Month 1-2",
+    description:
+      "Treatment begins. Some initial shedding is normal as weaker hairs make way for stronger growth.",
   },
   {
-    question: "Do I need a doctor consultation for these treatments?",
-    answer:
-      "Oral treatments always require a doctor consultation in Australia. Topical treatments at higher strengths are also prescription-only, though lower strengths are available over the counter. Our doctors can recommend both approaches after assessment.",
+    title: "Month 3-4",
+    description:
+      "Early signs of improvement. Shedding slows, and you may notice fine new hairs appearing.",
   },
   {
-    question: "Is the service really discreet?",
-    answer:
-      "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
+    title: "Month 6",
+    description:
+      "Visible improvement for most men. Hair appears thicker and fuller.",
   },
   {
-    question: "Can women use these treatments?",
-    answer:
-      "Topical treatments can be used by women for hair loss (at lower concentrations). Oral treatments are NOT suitable for women, especially those who are or may become pregnant. If you're a woman experiencing hair loss, please indicate this in your consultation.",
+    title: "Month 12+",
+    description:
+      "Full results visible. Continued use maintains and often improves results.",
   },
-]
+];
+
+const faqGroups = [
+  {
+    items: [
+      {
+        question: "What treatment options are available?",
+        answer:
+          "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss — it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
+      },
+      {
+        question: "How long until I see results?",
+        answer:
+          "Hair growth takes time. With topical treatments, some improvement may be visible in 2-4 months. With oral treatments, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key — stopping treatment typically leads to reversal of gains.",
+      },
+      {
+        question: "Are there side effects?",
+        answer:
+          "Topical treatments may cause scalp irritation or unwanted facial hair growth (rare). Oral treatments may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping treatment. Our doctors will discuss potential side effects with you.",
+      },
+      {
+        question: "Do I need a doctor consultation for these treatments?",
+        answer:
+          "Oral treatments always require a doctor consultation in Australia. Topical treatments at higher strengths are also prescription-only, though lower strengths are available over the counter. Our doctors can recommend both approaches after assessment.",
+      },
+      {
+        question: "Is the service really discreet?",
+        answer:
+          "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
+      },
+      {
+        question: "Can women use these treatments?",
+        answer:
+          "Topical treatments can be used by women for hair loss (at lower concentrations). Oral treatments are NOT suitable for women, especially those who are or may become pregnant. If you're a woman experiencing hair loss, please indicate this in your consultation.",
+      },
+    ],
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Custom treatment cards (too detailed for FeatureGrid)              */
+/* ------------------------------------------------------------------ */
+
+function TreatmentOptions() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, {
+    once: scrollRevealConfig.once,
+    amount: 0.1,
+  });
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <section id="treatments" className="py-20 px-4">
+      <SectionHeader
+        pill="Treatment Options"
+        title="Clinically-Proven Approaches"
+        subtitle="Our doctors can recommend TGA-approved hair loss treatment options based on your assessment"
+        highlightWords={["Clinically-Proven"]}
+      />
+
+      <div ref={ref} className="mx-auto max-w-3xl space-y-4">
+        {treatments.map((treatment, i) => (
+          <motion.div
+            key={treatment.id}
+            className="rounded-2xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors"
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+            animate={
+              prefersReducedMotion
+                ? {}
+                : isInView
+                  ? { opacity: 1, y: 0 }
+                  : {}
+            }
+            transition={{
+              duration: 0.4,
+              delay: i * 0.1,
+              ease: [0.25, 0.1, 0.25, 1],
+            }}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h3 className="text-lg font-semibold">{treatment.name}</h3>
+                  {treatment.popular && (
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
+                      Popular
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {treatment.brand}
+                </p>
+              </div>
+              <Pill className="h-5 w-5 text-primary shrink-0" />
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              {treatment.description}
+            </p>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {[
+                { label: "Type", value: treatment.type },
+                { label: "Frequency", value: treatment.frequency },
+                { label: "Results", value: treatment.results },
+                { label: "Best for", value: treatment.bestFor },
+              ].map((field) => (
+                <div
+                  key={field.label}
+                  className="rounded-lg border border-border/50 bg-muted/30 p-3"
+                >
+                  <p className="text-muted-foreground text-xs">{field.label}</p>
+                  <p className="font-medium">{field.value}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ))}
+
+        <div className="pt-4 text-center">
+          <p className="text-sm text-muted-foreground mb-4">
+            Not sure which is right for you? Our doctors will recommend the best
+            option.
+          </p>
+          <Button
+            asChild
+            size="lg"
+            className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+          >
+            <Link href="/request?service=consult">
+              Start Consultation
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 interface HairLossClientProps {
-  faqSchema: object
+  faqSchema: object;
 }
 
 export function HairLossClient({ faqSchema }: HairLossClientProps) {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
-          {/* Hero */}
-            <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden relative">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="max-w-4xl mx-auto text-center">
-                    <AvailabilityIndicator variant="badge" className="mb-4" />
+          <CenteredHero
+            pill="Hair Loss Treatment"
+            title="Hair Loss Treatment Online"
+            highlightWords={["Treatment"]}
+            subtitle="Get a doctor-led consultation for clinically-proven hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet."
+          >
+            <AvailabilityIndicator variant="badge" className="mb-4" />
 
-                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
-                      Hair Loss Treatment Online
-                    </h1>
-                    <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                      Get a doctor-led consultation for clinically-proven hair loss treatment from an Australian doctor.
-                      No waiting rooms. Completely discreet.
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-6">
-                      TGA-approved treatments • AHPRA-registered doctors • Discreet service
-                    </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+              >
+                <Link href="/request?service=consult">
+                  Start Consultation
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-11">
+                <Link href="#treatments">View Treatments</Link>
+              </Button>
+            </div>
+          </CenteredHero>
 
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                      <Button asChild size="lg" className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
-                        <Link href="/request?service=consult">
-                          Start Consultation
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Link>
-                      </Button>
-                      <Link href="#treatments">
-                        <button className="h-11 px-6 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors">
-                          View Treatments
-                        </button>
-                      </Link>
-                    </div>
+          <TreatmentOptions />
 
-                    {/* Trust badges */}
-                    <div className="flex flex-wrap justify-center gap-3 text-xs">
-                      <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                        <Zap className="h-3.5 w-3.5 text-teal-600" />
-                        <span className="font-medium text-muted-foreground">Reviewed within hours</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                        <PhoneOff className="h-3.5 w-3.5 text-teal-600" />
-                        <span className="font-medium text-muted-foreground">From your phone</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                        <Shield className="h-3.5 w-3.5 text-teal-600" />
-                        <span className="font-medium text-muted-foreground">AHPRA doctors</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                        <Lock className="h-3.5 w-3.5 text-teal-600" />
-                        <span className="font-medium text-muted-foreground">Encrypted & secure</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+          <FeatureGrid
+            pill="Why InstantMed"
+            title="Discreet, Professional Healthcare"
+            subtitle="Fast, discreet, and professional healthcare from home"
+            highlightWords={["Professional"]}
+            features={platformFeatures}
+            columns={2}
+          />
 
-          {/* Treatment Options */}
-            <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
-                    <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                      Our doctors can recommend TGA-approved hair loss treatment options based on your assessment
-                    </p>
-                  </div>
+          <ProcessSteps
+            pill="How It Works"
+            title="Three Simple Steps"
+            subtitle="Get your treatment plan without leaving home"
+            highlightWords={["Simple"]}
+            steps={howItWorksSteps}
+          />
 
-                  <div className="space-y-4">
-                    {treatments.map((treatment) => (
-                      <div
-                        key={treatment.id}
-                        className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-teal-500/30 transition-all"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <h3 className="text-lg font-bold">{treatment.name}</h3>
-                              {treatment.popular && (
-                                <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 text-xs">
-                                  Popular
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{treatment.brand}</p>
-                          </div>
-                          <Pill className="h-5 w-5 text-teal-600 shrink-0" />
-                        </div>
+          <Timeline
+            pill="Results Timeline"
+            title="What to Expect"
+            subtitle="Hair regrowth takes time — here's a typical timeline"
+            highlightWords={["Expect"]}
+            steps={resultsTimeline}
+          />
 
-                        <p className="text-sm text-muted-foreground mb-3">{treatment.description}</p>
+          <AccordionSection
+            pill="FAQs"
+            title="Frequently Asked Questions"
+            highlightWords={["Questions"]}
+            groups={faqGroups}
+          />
 
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                          <div className="bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/30 rounded-lg p-3">
-                            <p className="text-muted-foreground text-xs">Type</p>
-                            <p className="font-medium">{treatment.type}</p>
-                          </div>
-                          <div className="bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/30 rounded-lg p-3">
-                            <p className="text-muted-foreground text-xs">Frequency</p>
-                            <p className="font-medium">{treatment.frequency}</p>
-                          </div>
-                          <div className="bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/30 rounded-lg p-3">
-                            <p className="text-muted-foreground text-xs">Results</p>
-                            <p className="font-medium">{treatment.results}</p>
-                          </div>
-                          <div className="bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/30 rounded-lg p-3">
-                            <p className="text-muted-foreground text-xs">Best for</p>
-                            <p className="font-medium">{treatment.bestFor}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 text-center">
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Not sure which is right for you? Our doctors will recommend the best option.
-                    </p>
-                    <Button asChild size="lg" className="px-6 h-10 text-sm font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
-                      <Link href="/request?service=consult">
-                        Start Consultation
-                        <ArrowRight className="h-3.5 w-3.5 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-          {/* Platform Features */}
-            <section className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">Why Choose InstantMed?</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Fast, discreet, and professional healthcare from home
-                    </p>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {platformFeatures.map((feature, i) => (
-                      <div key={i} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                        <div className="shrink-0 w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                          <feature.icon className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold mb-1">{feature.title}</h3>
-                          <p className="text-xs text-muted-foreground">{feature.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Partner Logos */}
-                  <div className="mt-8">
-                    <TrustLogos />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-          {/* How It Works */}
-            <section className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">How It Works</h2>
-                    <p className="text-sm text-muted-foreground">Three simple steps to get your treatment</p>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="w-10 h-10 rounded-lg bg-teal-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                        1
-                      </div>
-                      <h3 className="text-sm font-semibold mb-1">Complete Questionnaire</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Answer questions about your hair loss online. Takes about 3 minutes.
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-10 h-10 rounded-lg bg-teal-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                        2
-                      </div>
-                      <h3 className="text-sm font-semibold mb-1">Doctor Reviews</h3>
-                      <p className="text-xs text-muted-foreground">
-                        An AHPRA-registered doctor reviews your request and prescribes if appropriate.
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-10 h-10 rounded-lg bg-teal-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                        3
-                      </div>
-                      <h3 className="text-sm font-semibold mb-1">Receive Treatment Plan</h3>
-                      <p className="text-xs text-muted-foreground">
-                        eScript sent to your phone via SMS. Collect from any pharmacy Australia-wide.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-          {/* Results Timeline */}
-            <section className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">What to Expect</h2>
-                    <p className="text-sm text-muted-foreground">Hair regrowth takes time — here&apos;s a typical timeline</p>
-                  </div>
-
-                  <div className="space-y-3 max-w-3xl mx-auto">
-                    {[
-                      { month: "Month 1-2", desc: "Treatment begins. Some initial shedding is normal as weaker hairs make way for stronger growth." },
-                      { month: "Month 3-4", desc: "Early signs of improvement. Shedding slows, and you may notice fine new hairs appearing." },
-                      { month: "Month 6", desc: "Visible improvement for most men. Hair appears thicker and fuller." },
-                      { month: "Month 12+", desc: "Full results visible. Continued use maintains and often improves results." },
-                    ].map((item, i) => (
-                      <div key={i} className="flex gap-3 p-4 bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900/30 rounded-xl">
-                        <div className="shrink-0 w-16 text-teal-600 dark:text-teal-400 font-semibold text-xs">{item.month}</div>
-                        <p className="text-xs text-muted-foreground">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-          {/* FAQs */}
-            <section className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">Frequently Asked Questions</h2>
-                  </div>
-
-                  <div className="space-y-3 max-w-3xl mx-auto">
-                    {faqs.map((faq, i) => (
-                      <details key={i} className="group bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-border/50">
-                        <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
-                          <span className="text-sm font-medium pr-4">{faq.question}</span>
-                          <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform shrink-0" />
-                        </summary>
-                        <div className="px-4 pb-4">
-                          <p className="text-xs text-muted-foreground">{faq.answer}</p>
-                        </div>
-                      </details>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-          {/* Final CTA */}
-            <section className="py-12 lg:py-16 px-4 sm:px-6">
-              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <div className="max-w-3xl mx-auto text-center">
-                  <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-teal-500/20 bg-teal-50/30 dark:bg-teal-950/10">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-                      Ready to Get Started?
-                    </h2>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
-                      Complete a confidential consultation in minutes. Our doctors are ready to help.
-                    </p>
-                    <Button asChild size="lg" className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
-                      <Link href="/request?service=consult">
-                        Start Consultation
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Link>
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Takes ~3 minutes • 100% discreet
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
+          <CTABanner
+            title="Ready to Get Started?"
+            subtitle="Complete a confidential consultation in minutes. Our doctors are ready to help."
+            ctaText="Start Consultation"
+            ctaHref="/request?service=consult"
+          />
         </main>
 
         <MarketingFooter />
       </div>
     </>
-  )
+  );
 }

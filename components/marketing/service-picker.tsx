@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Clock, PhoneOff, Check, Users, Star } from 'lucide-react'
 import useSWR from 'swr'
 import { serviceCategories } from '@/lib/marketing/homepage'

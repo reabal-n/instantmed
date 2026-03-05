@@ -1,7 +1,6 @@
 import {
   BaseEmail,
   StatusBanner,
-  Heading,
   Text,
   Button,
   Box,

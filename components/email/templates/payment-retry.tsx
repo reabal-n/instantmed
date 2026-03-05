@@ -4,7 +4,6 @@ import {
   Text,
   Button,
   Box,
-  colors,
 } from "../base-email"
 
 export interface PaymentRetryEmailProps {

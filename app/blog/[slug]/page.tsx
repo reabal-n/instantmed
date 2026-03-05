@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, User, Clock, Calendar } from "lucide-react"
 import Link from "next/link"
@@ -289,7 +289,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }}
         />
 
-        <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
+        <div className="flex min-h-screen flex-col bg-background">
           <Navbar variant="marketing" />
 
           <main className="flex-1 pt-24 pb-16">
@@ -307,7 +307,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           </main>
 
-          <Footer />
+          <MarketingFooter />
         </div>
       </>
     )
@@ -340,7 +340,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }} />
 
-      <div className="flex min-h-screen flex-col bg-hero">
+      <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-24">
@@ -436,7 +436,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </article>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

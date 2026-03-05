@@ -20,7 +20,6 @@ import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard,
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
-import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
 import { Confetti } from "@/components/ui/confetti"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
@@ -303,7 +302,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           }`}
           onClick={() => handleConsentChange(!consentGiven)}
         >
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
             <Switch
               checked={consentGiven}

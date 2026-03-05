@@ -6,7 +6,6 @@ import {
   Button,
   Box,
   List,
-  colors,
 } from "../base-email"
 
 export interface PaymentFailedEmailProps {
