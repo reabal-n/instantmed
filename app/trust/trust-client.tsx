@@ -97,7 +97,7 @@ export default function TrustPage() {
   const patientCount = usePatientCount()
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar variant="marketing" />
 
       <main id="main-content" aria-label="Trust and safety information">
