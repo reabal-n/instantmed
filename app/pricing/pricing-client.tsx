@@ -1,20 +1,18 @@
-'use client'
+"use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { MarketingFooter } from "@/components/marketing"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
 import { GlowCard } from "@/components/ui/spotlight-card"
-import { ParallaxSection } from "@/components/ui/parallax-section"
-import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
+import { StatsHero } from "@/components/heroes"
+import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
+import { Check, Star, ArrowRight, Shield, Clock, Zap } from "lucide-react"
 import { PRICING } from "@/lib/constants"
-import {
-  GlowLine,
-  ShimmerButton,
-} from "@/components/ui/premium-effects"
-import { GridStagger } from "@/components/effects/stagger-container"
+
+/* ────────────────────────────── Data ────────────────────────────── */
 
 const services = [
   {
@@ -23,7 +21,12 @@ const services = [
     priceLabel: `From $${PRICING.MED_CERT}`,
     priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
-    features: ["Same-day delivery", "Accepted by all employers", "AHPRA-registered doctor", "PDF via email"],
+    features: [
+      "Same-day delivery",
+      "Accepted by all employers",
+      "AHPRA-registered doctor",
+      "PDF via email",
+    ],
     popular: true,
     href: "/medical-certificate",
     iconType: "medCert" as const,
@@ -34,7 +37,12 @@ const services = [
     price: PRICING.REPEAT_SCRIPT,
     priceLabel: `$${PRICING.REPEAT_SCRIPT}`,
     description: "Repeat scripts for ongoing meds",
-    features: ["E-script to your phone", "Any pharmacy Australia-wide", "Fast turnaround", "SMS token delivery"],
+    features: [
+      "E-script to your phone",
+      "Any pharmacy Australia-wide",
+      "Fast turnaround",
+      "SMS token delivery",
+    ],
     popular: false,
     href: "/prescriptions",
     iconType: "pill" as const,
@@ -42,74 +50,85 @@ const services = [
   },
 ]
 
-const faqs = [
+const comparisonItems = [
+  { label: "No appointment needed", us: true, them: false },
+  { label: "Available 7 days a week", us: true, them: false },
+  { label: "AHPRA-registered doctors", us: true, them: true },
+  { label: "Same-day turnaround", us: true, them: false },
+  { label: "Full refund if declined", us: true, them: false },
+  { label: "No subscriptions or memberships", us: true, them: false },
+  { label: "Accepted by all employers", us: true, them: true },
+  { label: "E-scripts to any pharmacy", us: true, them: false },
+]
+
+const pricingFaqs = [
   {
-    q: "Are there any hidden fees?",
-    a: "Nope. The price you see is the price you pay. No subscriptions, no memberships, no surprises.",
-  },
-  {
-    q: "What if my request is declined?",
-    a: "Full refund, no questions asked. We only charge if we can actually help you.",
-  },
-  {
-    q: "How do I pay?",
-    a: "All major credit/debit cards, Apple Pay, and Google Pay. Payment is secure and encrypted.",
-  },
-  {
-    q: "Is this covered by Medicare?",
-    a: "Our service fee isn&apos;t Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
+    category: "Pricing & Payments",
+    items: [
+      {
+        question: "Are there any hidden fees?",
+        answer:
+          "Nope. The price you see is the price you pay. No subscriptions, no memberships, no surprises.",
+      },
+      {
+        question: "What if my request is declined?",
+        answer:
+          "Full refund, no questions asked. We only charge if we can actually help you.",
+      },
+      {
+        question: "How do I pay?",
+        answer:
+          "All major credit/debit cards, Apple Pay, and Google Pay. Payment is secure and encrypted.",
+      },
+      {
+        question: "Is this covered by Medicare?",
+        answer:
+          "Our service fee isn\u2019t Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
+      },
+    ],
   },
 ]
+
+/* ────────────────────────────── Component ────────────────────────────── */
 
 export function PricingClient() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
-      <main className="flex-1 pt-24">
+      <main className="flex-1">
         {/* Hero */}
-        <ParallaxSection speed={0.2}>
-          <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
-                <BadgeCheck className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-foreground/80">Simple pricing</span>
-              </div>
-              <h1
-                className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Pay per consult. <span className="text-premium-gradient">No subscriptions.</span>
-              </h1>
-              <p className="mx-auto max-w-xl text-pretty text-sm text-muted-foreground">
-                Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help.
-              </p>
-            </div>
-          </div>
-          </section>
-        </ParallaxSection>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
+        <StatsHero
+          pill="Simple pricing"
+          title="Pay per consult. No subscriptions."
+          highlightWords={["subscriptions"]}
+          subtitle="Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help."
+          stats={[
+            { value: 100, suffix: "%", label: "Refund if declined" },
+            { value: 0, prefix: "$", label: "Hidden fees" },
+            { value: 7, label: "Days a week" },
+          ]}
+        />
 
         {/* Pricing Cards */}
-        <ParallaxSection speed={0.25}>
-          <section className="px-4 py-12 sm:px-6">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="dashboard-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <section className="px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-3xl">
+            <div className="grid md:grid-cols-2 gap-6">
               {services.map((service, idx) => (
                 <GlowCard
                   key={service.name}
-                  glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}
+                  glowColor={
+                    service.color === "#2563EB" ? "blue" : "purple"
+                  }
                   customSize={true}
-                  className={`card-premium rounded-2xl p-5 lg:p-6 animate-fade-in-up opacity-0 relative ${
-                    service.popular ? "ring-2 ring-primary shadow-premium-xl" : "shadow-premium-lg"
+                  className={`rounded-2xl p-5 lg:p-6 relative ${
+                    service.popular
+                      ? "ring-2 ring-primary shadow-lg"
+                      : "shadow-md"
                   }`}
-                  style={{ animationDelay: `${0.1 + idx * 0.1}s`, animationFillMode: "forwards" }}
+                  style={{
+                    animationDelay: `${0.1 + idx * 0.1}s`,
+                  }}
                 >
                   {service.popular && (
                     <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-lg font-medium text-xs">
@@ -128,131 +147,108 @@ export function PricingClient() {
                   </div>
 
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+                    <h3 className="text-lg font-semibold">
                       {service.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1">{service.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {service.description}
+                    </p>
                   </div>
 
                   <div className="text-center mb-4">
-                    <span className="text-3xl font-bold">{service.priceLabel || `$${service.price}`}</span>
-                    <span className="text-muted-foreground ml-1 text-sm">AUD</span>
+                    <span className="text-3xl font-bold">
+                      {service.priceLabel || `$${service.price}`}
+                    </span>
+                    <span className="text-muted-foreground ml-1 text-sm">
+                      AUD
+                    </span>
                     {service.priceSubtext && (
-                      <p className="text-xs text-muted-foreground mt-1">{service.priceSubtext}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {service.priceSubtext}
+                      </p>
                     )}
                   </div>
 
                   <ul className="space-y-2 mb-6">
                     {service.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-xs">
-                        <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: service.color }} />
-                        <span className="text-muted-foreground">{feature}</span>
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2 text-xs"
+                      >
+                        <Check
+                          className="w-3.5 h-3.5 mt-0.5 shrink-0"
+                          style={{ color: service.color }}
+                        />
+                        <span className="text-muted-foreground">
+                          {feature}
+                        </span>
                       </li>
                     ))}
                   </ul>
 
                   <Button
                     asChild
-                    className={`w-full rounded-xl h-12 font-medium magnetic-button ${
+                    className={`w-full rounded-xl h-12 font-medium ${
                       service.popular
-                        ? "btn-premium text-primary-foreground shadow-lg shadow-primary/20 glow-pulse"
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                         : "bg-foreground hover:bg-foreground/90 text-background"
                     }`}
                   >
                     <Link href={service.href}>
                       Start a request
-                      <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" />
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </GlowCard>
               ))}
-              </div>
+            </div>
 
-              {/* Trust badges */}
-              <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50 hover:border-primary/30 transition-colors">
-                  <Shield className="w-3.5 h-3.5 text-primary" />
-                  <span>AHPRA registered doctors</span>
-                </div>
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50 hover:border-primary/30 transition-colors">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  <span>Same-day response</span>
-                </div>
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50 hover:border-success/30 transition-colors">
-                  <Zap className="w-3.5 h-3.5 text-success" />
-                  <span className="text-success font-medium">100% refund guarantee</span>
-                </div>
+            {/* Trust badges */}
+            <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+                <Shield className="w-3.5 h-3.5 text-primary" />
+                <span>AHPRA registered doctors</span>
+              </div>
+              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+                <span>Same-day response</span>
+              </div>
+              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+                <Zap className="w-3.5 h-3.5 text-success" />
+                <span className="text-success font-medium">
+                  100% refund guarantee
+                </span>
               </div>
             </div>
           </div>
-          </section>
-        </ParallaxSection>
+        </section>
 
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
+        {/* Comparison Table */}
+        <ComparisonTable
+          pill="Why InstantMed?"
+          title="How we compare to a GP visit"
+          highlightWords={["compare"]}
+          subtitle="Same quality care, without the waiting room."
+          usLabel="InstantMed"
+          themLabel="GP clinic"
+          items={comparisonItems}
+        />
 
-        {/* FAQ with GridStagger */}
-        <ParallaxSection speed={0.2}>
-          <section className="px-4 py-12 sm:px-6 lg:py-16">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="dashboard-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-              <h2 className="text-2xl font-semibold text-center mb-6" style={{ fontFamily: "var(--font-display)" }}>
-                Common questions
-              </h2>
-              <GridStagger
-                columns={1}
-                staggerDelay={0.08}
-                className="space-y-3 max-w-2xl mx-auto"
-              >
-                {faqs.map((faq, index) => (
-                  <div
-                    key={index}
-                    className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl p-4"
-                  >
-                    <h3 className="text-sm font-medium mb-1">{faq.q}</h3>
-                    <p className="text-xs text-muted-foreground">{faq.a}</p>
-                  </div>
-                ))}
-              </GridStagger>
-            </div>
-          </div>
-          </section>
-        </ParallaxSection>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
-
-        {/* Live Wait Time + Stats + Media */}
-        <LiveWaitTime variant="strip" />
-        <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        <MediaMentions variant="strip" className="bg-muted/30" />
+        {/* FAQ */}
+        <AccordionSection
+          title="Common questions"
+          subtitle="Everything you need to know about our pricing."
+          highlightWords={["questions"]}
+          groups={pricingFaqs}
+        />
 
         {/* CTA */}
-        <ParallaxSection speed={0.15}>
-          <section className="px-4 py-12 sm:px-6 lg:py-16">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="dashboard-card rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-                <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-                  Ready to get started?
-                </h2>
-                <p className="text-sm text-muted-foreground mb-6">Get started in under 2 minutes. Only pay if we can help.</p>
-                <Link href="/medical-certificate">
-                  <ShimmerButton className="px-8 h-12 font-semibold">
-                    Start a consult
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </ShimmerButton>
-                </Link>
-              </div>
-            </div>
-          </div>
-          </section>
-        </ParallaxSection>
+        <CTABanner
+          title="Ready to get started?"
+          subtitle="Get started in under 2 minutes. Only pay if we can help."
+          ctaText="Start a consult"
+          ctaHref="/medical-certificate"
+        />
       </main>
 
       <MarketingFooter />
