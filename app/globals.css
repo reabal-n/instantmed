@@ -192,7 +192,15 @@ body {
   --success-foreground: #ffffff;
   --warning: #F59E0B;
   --warning-foreground: var(--slate-800);
-  
+
+  /* Morning Canvas accent tokens */
+  --accent-teal: #5DB8C9;
+  --accent-teal-foreground: #0B1120;
+  --accent-gold: #D4A853;
+  --accent-gold-foreground: #0B1120;
+  --accent-peach: #F0B4A0;
+  --accent-peach-foreground: #1E293B;
+
   /* Legacy/compat tokens - maintained for existing component refs */
   --navy: var(--slate-800);
   --indigo: var(--primary);
@@ -235,7 +243,7 @@ body {
   
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
-  --primary-foreground: #0B1120;
+  --primary-foreground: #ffffff;
   
   /* Secondary - cool starlight */
   --secondary: rgba(168, 204, 232, 0.12);
@@ -252,7 +260,19 @@ body {
   /* Status */
   --destructive: #E07A7A;
   --destructive-foreground: #ffffff;
-  
+  --success: #4ADE80;
+  --success-foreground: #0B1120;
+  --warning: #FBBF24;
+  --warning-foreground: #0B1120;
+
+  /* Morning Canvas accent tokens — dark */
+  --accent-teal: #7DD3E1;
+  --accent-teal-foreground: #0B1120;
+  --accent-gold: #E5C478;
+  --accent-gold-foreground: #0B1120;
+  --accent-peach: #E8A08C;
+  --accent-peach-foreground: #0B1120;
+
   /* Borders - subtle constellation lines */
   --border: rgba(148, 163, 184, 0.12);
   --input: rgba(17, 24, 39, 0.60);
@@ -332,6 +352,12 @@ body {
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-teal-foreground: var(--accent-teal-foreground);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-foreground: var(--accent-gold-foreground);
+  --color-accent-peach: var(--accent-peach);
+  --color-accent-peach-foreground: var(--accent-peach-foreground);
   --color-navy: var(--navy);
   --color-indigo: var(--indigo);
   --color-violet: var(--violet);
@@ -509,6 +535,14 @@ body {
   /* Avatars */
   .avatar {
     border-radius: var(--radius-full);
+  }
+
+  /* Dark mode link colors — in @layer base so utilities (e.g. text-primary-foreground) override */
+  .dark a {
+    color: var(--primary);
+  }
+  .dark a:hover {
+    color: var(--accent);
   }
 }
 
@@ -733,14 +767,7 @@ body {
     color: var(--foreground);
   }
   
-  /* Dark mode links */
-  a {
-    color: var(--primary);
-  }
-  
-  a:hover {
-    color: var(--accent);
-  }
+  /* Dark mode links — moved to @layer base so Tailwind utilities can override (see @layer base block) */
   
   /* Dark mode badges and chips */
   .badge,
