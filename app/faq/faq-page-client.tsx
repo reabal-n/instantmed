@@ -1,24 +1,17 @@
-'use client'
+"use client"
 
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { TiltCard } from "@/components/shared/tilt-card"
-import { FAQAccordion } from "./faq-accordion"
+import { MarketingFooter } from "@/components/marketing"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
-import { MessageCircle, HelpCircle, BadgeCheck } from "lucide-react"
-import {
-  GlowLine,
-  ShimmerButton,
-} from "@/components/ui/premium-effects"
-import { ParallaxSection } from "@/components/ui/parallax-section"
+import { CenteredHero } from "@/components/heroes"
+import { AccordionSection, CTABanner } from "@/components/sections"
 
+/* ────────────────────────────── FAQ Data ────────────────────────────── */
 
 const faqCategories = [
   {
     title: "General",
-    emoji: "💡",
     faqs: [
       {
         q: "What is InstantMed?",
@@ -30,29 +23,28 @@ const faqCategories = [
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can&apos;t help you, you get a full refund.",
+        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can\u2019t help you, you get a full refund.",
       },
       {
         q: "How do I know if I need an in-person visit instead?",
-        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that&apos;s the case.",
+        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that\u2019s the case.",
       },
       {
         q: "How does the doctor decide on my request?",
-        a: "A real doctor reviews your symptoms, medical history, and request — just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
+        a: "A real doctor reviews your symptoms, medical history, and request \u2014 just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
       },
       {
         q: "Why was my request declined?",
-        a: "Doctors decline requests when approving them wouldn't be safe or appropriate — like when a physical exam is needed, or when symptoms suggest something more serious. It's not personal. It's a doctor doing their job properly. You get a full refund if we can't help you.",
+        a: "Doctors decline requests when approving them wouldn't be safe or appropriate \u2014 like when a physical exam is needed, or when symptoms suggest something more serious. It's not personal. It's a doctor doing their job properly. You get a full refund if we can't help you.",
       },
       {
         q: "Will a doctor call me?",
-        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care — it&apos;s a feature, not a bug.",
+        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care \u2014 it\u2019s a feature, not a bug.",
       },
     ],
   },
   {
     title: "Medical Certificates",
-    emoji: "📋",
     faqs: [
       {
         q: "Will my employer actually accept this?",
@@ -64,7 +56,7 @@ const faqCategories = [
       },
       {
         q: "What if my request is declined?",
-        a: "If the doctor determines a certificate isn&apos;t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a doctor in person for a more thorough assessment.",
+        a: "If the doctor determines a certificate isn\u2019t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a doctor in person for a more thorough assessment.",
       },
       {
         q: "What if I need more than 2 days off?",
@@ -74,7 +66,6 @@ const faqCategories = [
   },
   {
     title: "Prescriptions",
-    emoji: "📝",
     faqs: [
       {
         q: "What medications can you prescribe?",
@@ -82,7 +73,7 @@ const faqCategories = [
       },
       {
         q: "What if my prescription request is declined?",
-        a: "If the doctor determines a prescription isn&apos;t clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it&apos;s a new medication, or there are potential interactions with your other medications.",
+        a: "If the doctor determines a prescription isn\u2019t clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it\u2019s a new medication, or there are potential interactions with your other medications.",
       },
       {
         q: "How do I receive my prescription?",
@@ -96,7 +87,6 @@ const faqCategories = [
   },
   {
     title: "Privacy & Security",
-    emoji: "🔒",
     faqs: [
       {
         q: "Is my information secure?",
@@ -104,117 +94,86 @@ const faqCategories = [
       },
       {
         q: "Do you share my data with anyone?",
-        a: "Never. We don&apos;t sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
+        a: "Never. We don\u2019t sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
       },
       {
         q: "Can I delete my account?",
-        a: "Yes, you can request full deletion of your account and data at any time. Note that we&apos;re legally required to retain medical records for 7 years as per Australian healthcare regulations.",
+        a: "Yes, you can request full deletion of your account and data at any time. Note that we\u2019re legally required to retain medical records for 7 years as per Australian healthcare regulations.",
       },
     ],
   },
   {
     title: "Payments & Refunds",
-    emoji: "💳",
     faqs: [
       {
         q: "What payment methods do you accept?",
-        a: "Visa, Mastercard, American Express, and digital wallets including Apple Pay and Google Pay. All payments are processed securely via Stripe. We don&apos;t store your card details.",
+        a: "Visa, Mastercard, American Express, and digital wallets including Apple Pay and Google Pay. All payments are processed securely via Stripe. We don\u2019t store your card details.",
       },
       {
         q: "What's your refund policy?",
-        a: "If we&apos;re unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
+        a: "If we\u2019re unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
       },
       {
         q: "Is there a Medicare rebate for the consultation?",
-        a: "Our consultation fees aren't covered by Medicare as they&apos;re a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
+        a: "Our consultation fees aren't covered by Medicare as they\u2019re a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
       },
     ],
   },
 ]
 
+/* ────────────────────────────── Component ────────────────────────────── */
+
 export default function FAQPage() {
-  const allFaqs = faqCategories.flatMap(cat => cat.faqs.map(f => ({ question: f.q, answer: f.a })))
+  // Flat list for schema.org structured data
+  const allFaqs = faqCategories.flatMap((cat) =>
+    cat.faqs.map((f) => ({ question: f.q, answer: f.a })),
+  )
+
+  // Map to AccordionSection groups format
+  const accordionGroups = faqCategories.map((cat) => ({
+    category: cat.title,
+    items: cat.faqs.map((f) => ({ question: f.q, answer: f.a })),
+  }))
 
   return (
     <div className="flex min-h-screen flex-col">
       <FAQSchema faqs={allFaqs} />
       <Navbar variant="marketing" />
 
-      <main className="flex-1 bg-background">
+      <main className="flex-1">
         {/* Hero */}
-        <ParallaxSection speed={0.2}>
-          <section className="relative pt-32 pb-16 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-hero" />
+        <CenteredHero
+          pill="Help Centre"
+          title="Got questions? We've got answers."
+          highlightWords={["answers"]}
+          subtitle="Everything you need to know about InstantMed."
+        >
+          <p className="text-sm text-muted-foreground">
+            Can&apos;t find your answer?{" "}
+            <Link
+              href="/contact"
+              className="text-primary hover:underline font-medium"
+            >
+              Get in touch
+            </Link>
+          </p>
+        </CenteredHero>
 
-            <div className="container mx-auto px-4 relative">
-              <div className="max-w-3xl mx-auto text-center">
-                <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
-                  <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-                  Help Centre
-                </Badge>
-                <h1
-                  className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Got questions? <span className="text-gradient-mint">We&apos;ve got answers.</span>
-                </h1>
-                <p className="mt-6 text-lg text-muted-foreground">
-                  Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
-                  <Link href="/contact" className="text-primary hover:underline">
-                    Get in touch
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </section>
-        </ParallaxSection>
+        {/* FAQ Sections — 5 categories with accordion */}
+        <AccordionSection
+          title="Frequently Asked Questions"
+          subtitle="Browse by category to find the answer you're looking for."
+          highlightWords={["Questions"]}
+          groups={accordionGroups}
+        />
 
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
-
-        {/* FAQ Sections */}
-        <section className="py-12 pb-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
-              <FAQAccordion categories={faqCategories} />
-            </div>
-          </div>
-        </section>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
-        </div>
-
-        {/* Contact CTA */}
-        <ParallaxSection speed={0.15}>
-          <section className="py-16">
-            <div className="container mx-auto px-4">
-              <div className="max-w-xl mx-auto text-center">
-                <TiltCard className="glass-card rounded-3xl p-8">
-                  <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Still have questions?</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Our support team typically responds within 2 hours.
-                  </p>
-                  <Link href="/contact">
-                    <ShimmerButton className="px-6 h-11 font-semibold">
-                      <MessageCircle className="mr-2 w-4 h-4" />
-                      Contact Support
-                    </ShimmerButton>
-                  </Link>
-                </TiltCard>
-              </div>
-            </div>
-          </section>
-        </ParallaxSection>
-
-        {/* Social Proof */}
-        <LiveWaitTime variant="strip" />
-        <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        <MediaMentions variant="strip" className="bg-muted/30" />
+        {/* CTA */}
+        <CTABanner
+          title="Still have questions?"
+          subtitle="Our support team typically responds within 2 hours."
+          ctaText="Contact Support"
+          ctaHref="/contact"
+        />
       </main>
 
       <MarketingFooter />
