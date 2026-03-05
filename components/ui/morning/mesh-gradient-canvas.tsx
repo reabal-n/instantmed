@@ -1,0 +1,92 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
+
+const LIGHT_BLOBS = [
+  { color: "rgba(186, 218, 246, 0.03)", x: "20%", y: "30%", size: "60%" },
+  { color: "rgba(240, 180, 160, 0.03)", x: "70%", y: "20%", size: "50%" },
+  { color: "rgba(250, 245, 235, 0.03)", x: "40%", y: "70%", size: "55%" },
+];
+
+const DARK_BLOBS = [
+  { color: "rgba(30, 50, 80, 0.04)", x: "20%", y: "30%", size: "60%" },
+  { color: "rgba(50, 40, 70, 0.03)", x: "70%", y: "20%", size: "50%" },
+  { color: "rgba(20, 40, 60, 0.04)", x: "40%", y: "70%", size: "55%" },
+];
+
+export function MeshGradientCanvas() {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      aria-hidden="true"
+    >
+      {/* Light mode blobs */}
+      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-700">
+        {LIGHT_BLOBS.map((blob, i) => (
+          <motion.div
+            key={`light-${i}`}
+            className="absolute rounded-full mix-blend-soft-light"
+            style={{
+              background: `radial-gradient(circle, ${blob.color} 0%, transparent 70%)`,
+              width: blob.size,
+              height: blob.size,
+              left: blob.x,
+              top: blob.y,
+              transform: "translate(-50%, -50%)",
+            }}
+            animate={
+              prefersReducedMotion
+                ? {}
+                : {
+                    x: [0, 30, -20, 0],
+                    y: [0, -25, 15, 0],
+                    scale: [1, 1.1, 0.95, 1],
+                  }
+            }
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 3,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Dark mode blobs */}
+      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-700">
+        {DARK_BLOBS.map((blob, i) => (
+          <motion.div
+            key={`dark-${i}`}
+            className="absolute rounded-full mix-blend-soft-light"
+            style={{
+              background: `radial-gradient(circle, ${blob.color} 0%, transparent 70%)`,
+              width: blob.size,
+              height: blob.size,
+              left: blob.x,
+              top: blob.y,
+              transform: "translate(-50%, -50%)",
+            }}
+            animate={
+              prefersReducedMotion
+                ? {}
+                : {
+                    x: [0, 30, -20, 0],
+                    y: [0, -25, 15, 0],
+                    scale: [1, 1.1, 0.95, 1],
+                  }
+            }
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 3,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
