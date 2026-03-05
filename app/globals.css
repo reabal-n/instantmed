@@ -37,6 +37,15 @@ body {
    Only parallax elements above retain will-change. */
 
 /* ================================
+   VIEW TRANSITIONS (Progressive Enhancement)
+   ================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-timing-function: ease-out;
+}
+
+/* ================================
    INSTANTMED DESIGN SYSTEM
    Clarity Emerging — Morning Light
    ================================ */

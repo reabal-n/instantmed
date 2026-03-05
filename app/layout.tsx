@@ -9,6 +9,7 @@ import { SkipToContent } from "@/components/shared/skip-to-content"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas"
+import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
 import { OrganizationSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
@@ -184,6 +185,7 @@ export default function RootLayout({
           <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <MeshGradientCanvas />
+                <NavigationProgress />
                 <NetworkStatus />
                 <SkipToContent />
                 <div id="main-content" className="relative z-10">
