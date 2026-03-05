@@ -25,7 +25,7 @@ export const springPresets = {
     damping: 30,
     mass: 1,
   } as Transition,
-  
+
   /** Calm - for modals, page transitions */
   calm: {
     type: "spring",
@@ -33,11 +33,27 @@ export const springPresets = {
     damping: 25,
     mass: 1,
   } as Transition,
-  
+
   /** Smooth - for subtle movements */
   smooth: {
     type: "spring",
     stiffness: 120,
+    damping: 20,
+    mass: 1,
+  } as Transition,
+
+  /** Dramatic - for hero reveals, large transitions */
+  dramatic: {
+    type: "spring",
+    stiffness: 80,
+    damping: 15,
+    mass: 1,
+  } as Transition,
+
+  /** Bouncy - for playful micro-interactions */
+  bouncy: {
+    type: "spring",
+    stiffness: 300,
     damping: 20,
     mass: 1,
   } as Transition,
@@ -52,11 +68,21 @@ export const motionEasing = {
 
 // InstantMed durations
 export const motionDurations = {
+  micro: 0.15,    // 150ms — micro-interactions
   fast: 0.2,      // 200ms
   normal: 0.3,    // 300ms
   slow: 0.4,      // 400ms
   slower: 0.5,    // 500ms
+  dramatic: 0.7,  // 700ms — hero reveals
+  ambient: 20,    // 20s — background animations
 }
+
+// Scroll reveal defaults for IntersectionObserver-based animations
+export const scrollRevealConfig = {
+  threshold: 0.15,
+  once: true,
+  margin: "-50px",
+} as const;
 
 // ===========================================
 // VARIANT PRESETS
