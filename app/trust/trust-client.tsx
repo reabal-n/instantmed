@@ -1,1011 +1,506 @@
 'use client'
 
 import Link from "next/link"
-import Image from "next/image"
-import Script from "next/script"
-import { useState, useEffect, useRef } from "react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { MediaMentions } from "@/components/marketing/media-mentions"
-import { Mail } from "lucide-react"
-import { motion, useInView, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
-import { RotatingText } from "@/components/marketing/rotating-text"
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import {
-  AHPRALogo,
-  SSLLogo,
-  MedicareLogo,
-  AusGovLogo,
-  TGALogo,
-  LegitScriptLogo,
-} from "@/components/icons/certification-logos"
-import {
-  GridStagger,
-} from "@/components/effects"
-import {
-  GlowLine,
-  ShimmerButton,
-} from "@/components/ui/premium-effects"
 import {
   Shield,
   UserCheck,
   Lock,
-  Phone,
   CheckCircle2,
-  ExternalLink,
-  Building2,
-  Scale,
-  BookOpen,
-  BadgeCheck,
-  Users,
-  ArrowRight,
   Clock,
-  MessageSquare,
+  Star,
+  ArrowRight,
   FileCheck,
   Send,
-  Star,
-  Quote,
-  Check,
-  X,
-  Sparkles,
-  ChevronDown,
-  Verified,
+  Phone,
+  Users,
+  Scale,
+  ShieldCheck,
+  Fingerprint,
+  ServerCog,
+  Eye,
 } from "lucide-react"
+import { usePatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { getFeaturedTestimonials } from "@/lib/data/testimonials"
+import NumberFlow from "@number-flow/react"
+import { useSyncExternalStore } from "react"
+import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-// Section IDs for scroll navigation
-const SECTION_IDS = {
-  pillars: "trust-pillars",
-  process: "process-timeline", 
-  compare: "comparison",
-  testimonials: "testimonials",
-  faq: "faq",
-  verify: "verify-doctors",
+// Morning Canvas components
+import { SplitHero } from "@/components/heroes"
+import {
+  StatStrip,
+  ImageTextSplit,
+  FeatureGrid,
+  Timeline,
+  AccordionSection,
+  CTABanner,
+} from "@/components/sections"
+
+// ─── Hydration helper ──────────────────────────────────────────────
+
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 }
 
-// Animated counter hook
-function useAnimatedCounter(target: number, duration: number = 2000) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const motionValue = useMotionValue(0)
-  const springValue = useSpring(motionValue, { duration })
-  const [displayValue, setDisplayValue] = useState(0)
+// ─── Data ──────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (isInView) {
-      motionValue.set(target)
-    }
-  }, [isInView, target, motionValue])
-
-  useEffect(() => {
-    const unsubscribe = springValue.on("change", (latest) => {
-      setDisplayValue(Math.round(latest))
-    })
-    return unsubscribe
-  }, [springValue])
-
-  return { ref, displayValue, isInView }
-}
-
-// Rotating headline variations
-const HEADLINE_VARIATIONS = [
-  "Built on trust.",
-  "Clinician-led care.",
-  "Your data, protected.",
-  "Real doctors. Always.",
-]
-
-// Trust-focused testimonials with verified badges
-const trustTestimonials = [
-  {
-    text: "My employer accepted the certificate no questions asked. It looked exactly like what you'd get from a clinic.",
-    name: "James T.",
-    location: "Melbourne",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=JamesT",
-    verified: true,
-    source: "Verified Patient",
-  },
-  {
-    text: "The doctor asked thorough follow-up questions. Felt legitimate and properly reviewed.",
-    name: "Sarah M.",
-    location: "Sydney",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=SarahM",
-    verified: true,
-    source: "Verified Patient",
-  },
-  {
-    text: "I checked the doctor's AHPRA registration myself. They're legit. Made me feel much more comfortable.",
-    name: "David L.",
-    location: "Perth",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=DavidL",
-    verified: true,
-    source: "Verified Patient",
-  },
-  {
-    text: "Was skeptical at first, but the whole process was professional. Real Australian doctors.",
-    name: "Emma R.",
-    location: "Brisbane",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=EmmaR",
-    verified: true,
-    source: "Verified Patient",
-  },
-  {
-    text: "Used it for a uni extension. Special consideration was approved same day.",
-    name: "Amy W.",
-    location: "UNSW Student",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AmyW",
-    verified: true,
-    source: "Verified Patient",
-  },
-  {
-    text: "Much better than waiting 3 days for a doctor appointment just to get a medical certificate.",
-    name: "Chris B.",
-    location: "Gold Coast",
-    image: "https://api.dicebear.com/7.x/notionists/svg?seed=ChrisB",
-    verified: true,
-    source: "Verified Patient",
-  },
-]
-
-// FAQ items focused on trust
 const trustFAQs = [
   {
     question: "How do I know the doctors are real?",
-    answer: "Every doctor on InstantMed holds current AHPRA registration — the same regulatory body that governs all Australian medical practitioners. You can verify any doctor's credentials yourself on the AHPRA public register. We also require professional indemnity insurance and conduct regular clinical audits.",
+    answer: "Every doctor on InstantMed holds current AHPRA registration — the same regulatory body that governs all Australian medical practitioners. You can verify any doctor's credentials yourself on the AHPRA public register.",
   },
   {
     question: "Will my employer accept certificates from InstantMed?",
-    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details. Employers and universities across Australia accept our certificates.",
+    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details.",
   },
   {
     question: "What happens to my personal health information?",
-    answer: "Your data is protected with 256-bit SSL encryption (the same as banks) and stored exclusively on Australian servers. We comply with the Privacy Act 1988 and Australian Privacy Principles. We never share your information with third parties without your consent.",
+    answer: "Your data is protected with AES-256 encryption and stored exclusively on Australian servers. We comply with the Privacy Act 1988 and all thirteen Australian Privacy Principles.",
   },
   {
     question: "Is this actually reviewed by a doctor, or is it automated?",
-    answer: "Every single request is reviewed by a qualified Australian doctor who makes an independent clinical decision. There are no automated approvals. Doctors can request additional information, schedule a call, or decline requests that don't meet clinical guidelines.",
+    answer: "Every single request is reviewed by a qualified, AHPRA-registered Australian doctor who makes an independent clinical decision. There are no automated approvals — ever.",
   },
   {
     question: "What if I'm not happy with the service?",
-    answer: "We respond to complaints within 48 hours and offer a full refund if we can't help you. You can also escalate concerns to the Health Complaints Commissioner in your state. We take feedback seriously and use it to improve our service.",
+    answer: "We respond to complaints within 48 hours and offer a full refund if we can't help you. You can also escalate concerns to the Health Complaints Commissioner in your state.",
   },
   {
     question: "Are electronic prescriptions legitimate?",
-    answer: "Yes. Our eScripts are sent via official PBS channels and work at any Australian pharmacy. Just show the QR code on your phone. eScripts are the standard across Australia and are fully compliant with the Therapeutic Goods Act.",
+    answer: "Yes. Our eScripts are generated through official PBS channels and work at any Australian pharmacy. Electronic prescriptions are the national standard and fully compliant with the Therapeutic Goods Act.",
   },
 ]
 
-// Process steps
-const processSteps = [
-  {
-    step: 1,
-    title: "You submit your request",
-    description: "Answer a few questions about your situation. Takes about 2 minutes.",
-    icon: MessageSquare,
-    time: "2 min",
-  },
-  {
-    step: 2,
-    title: "Request enters review queue",
-    description: "Your details are securely transmitted and queued for doctor review.",
-    icon: FileCheck,
-    time: "Instant",
-  },
-  {
-    step: 3,
-    title: "Doctor reviews your case",
-    description: "An AHPRA-registered doctor reviews your full submission and medical history.",
-    icon: UserCheck,
-    time: "Under 1 hour",
-  },
-  {
-    step: 4,
-    title: "Decision & follow-up if needed",
-    description: "The doctor may approve, request more info, or contact you directly.",
-    icon: Phone,
-    time: "If required",
-  },
-  {
-    step: 5,
-    title: "Certificate or prescription sent",
-    description: "Documents are sent directly to your email. eScripts via SMS.",
-    icon: Send,
-    time: "Instant",
-  },
-]
+// Rotate which 6 of 8 featured testimonials are shown, based on day-of-week.
+const allFeatured = getFeaturedTestimonials()
+const dayOffset = new Date().getDay() % Math.max(allFeatured.length - 5, 1)
+const testimonials = [
+  ...allFeatured.slice(dayOffset),
+  ...allFeatured.slice(0, dayOffset),
+].slice(0, 6)
 
-// Comparison data
-const comparisonData = [
-  { feature: "AHPRA-registered doctors", instantmed: true, traditional: true },
-  { feature: "Medicare-compliant documents", instantmed: true, traditional: true },
-  { feature: "Available 7 days a week", instantmed: true, traditional: false },
-  { feature: "No appointment wait time", instantmed: true, traditional: false },
-  { feature: "Average time to certificate", instantmed: "<1 hour", traditional: "2-5 days" },
-  { feature: "Complete from your phone", instantmed: true, traditional: false },
-  { feature: "Upfront, transparent pricing", instantmed: true, traditional: "Varies" },
-  { feature: "AHPRA verification available", instantmed: true, traditional: true },
-]
+// ─── Animation variants ────────────────────────────────────────────
 
-// Trust pillars with enhanced data
-const trustPillars = [
-  {
-    icon: UserCheck,
-    title: "AHPRA-Registered Doctors",
-    description:
-      "Every doctor on InstantMed holds current AHPRA registration. We verify credentials before they join and monitor registration status continuously.",
-    details: [
-      "All doctors hold current AHPRA registration",
-      "We verify credentials directly with AHPRA",
-      "Professional indemnity insurance required",
-      "Regular clinical decision audits",
-    ],
-    image: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&h=400&fit=crop",
-    color: "from-sky-500/15 to-blue-500/15",
-    iconBg: "bg-sky-500/10",
-    iconColor: "text-sky-600 dark:text-sky-400",
-  },
-  {
-    icon: Shield,
-    title: "Human-Reviewed Requests",
-    description:
-      "Your request is reviewed by a qualified doctor who makes an independent clinical decision. No automated approvals — every request gets proper attention.",
-    details: [
-      "Doctors review your full medical history",
-      "Clinical guidelines inform every decision",
-      "Doctors can contact you for more info",
-      "Every request is human-reviewed",
-    ],
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
-    color: "from-blue-500/15 to-sky-500/15",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600 dark:text-blue-400",
-  },
-  {
-    icon: Lock,
-    title: "Bank-Level Security",
-    description:
-      "Your health information is protected with enterprise-grade security. We comply with Australian Privacy Principles and store all data on Australian servers.",
-    details: [
-      "256-bit SSL encryption for all data",
-      "Data stored on Australian servers only",
-      "Compliant with Privacy Act 1988",
-      "Regular security audits and pen testing",
-    ],
-    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop",
-    color: "from-orange-500/10 to-amber-500/10",
-    iconBg: "bg-orange-500/10",
-    iconColor: "text-orange-600 dark:text-orange-400",
-  },
-  {
-    icon: Building2,
-    title: "Medicare Compliance",
-    description:
-      "Our prescriptions and referrals are Medicare-compliant. Electronic prescriptions work at any Australian pharmacy.",
-    details: [
-      "eScripts sent to your phone via SMS",
-      "Referrals valid for 12 months",
-      "Full Medicare rebate eligibility",
-      "Compliant with Therapeutic Goods Act",
-    ],
-    image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=400&fit=crop",
-    color: "from-emerald-500/10 to-teal-500/10",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-  },
-  {
-    icon: Scale,
-    title: "Clear Complaints Process",
-    description:
-      "We take complaints seriously. If you&apos;re unhappy with our service, you can lodge a complaint directly with us or escalate to the health ombudsman.",
-    details: [
-      "Respond to complaints within 48 hours",
-      "Independent review by senior doctors",
-      "Escalation to Health Complaints Commissioner",
-      "Full refund if we can&apos;t help you",
-    ],
-    image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=400&fit=crop",
-    color: "from-amber-500/10 to-orange-500/10",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-600 dark:text-amber-400",
-  },
-  {
-    icon: BookOpen,
-    title: "Clinical Governance",
-    description:
-      "Our processes are designed by practising GPs and align with RACGP Standards for General Practices.",
-    details: [
-      "Medical Director oversight on all protocols",
-      "Regular peer review of clinical decisions",
-      "Incident reporting and learning framework",
-      "Quarterly protocol reviews and updates",
-    ],
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop",
-    color: "from-sky-500/15 to-blue-500/15",
-    iconBg: "bg-sky-500/10",
-    iconColor: "text-sky-600 dark:text-sky-400",
-  },
-]
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+}
 
-// Certification badges
-const certificationBadges = [
-  { name: "AHPRA Registered", description: "All doctors verified", Logo: AHPRALogo },
-  { name: "TGA Compliant", description: "Meets all regulations", Logo: TGALogo },
-  { name: "256-bit SSL", description: "Bank-level encryption", Logo: SSLLogo },
-  { name: "Medicare Approved", description: "Full compliance", Logo: MedicareLogo },
-  { name: "Australian Servers", description: "Data stays in AU", Logo: AusGovLogo },
-  { name: "Verified Platform", description: "Legitimate service", Logo: LegitScriptLogo },
-]
+// ─── Page ──────────────────────────────────────────────────────────
 
-// Animated stat component
-function AnimatedStat({ value, suffix = "", label, icon: Icon }: { value: number; suffix?: string; label: string; icon: React.ElementType }) {
-  const { ref, displayValue, isInView } = useAnimatedCounter(value)
-  
+export default function TrustPage() {
+  const mounted = useHasMounted()
+  const patientCount = usePatientCount()
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar variant="marketing" />
+
+      <main id="main-content" aria-label="Trust and safety information">
+        {/* ── Hero ──────────────────────────────────────────── */}
+        <SplitHero
+          pill="Trust & Safety"
+          title="Your health. Our responsibility."
+          highlightWords={["responsibility"]}
+          subtitle="Real doctors. Transparent process. Every request reviewed by a qualified, AHPRA-registered clinician."
+          imageSrc="/images/trust-hero.jpeg"
+          imageAlt="Patient requesting a medical certificate from home"
+        >
+          <p className="inline-flex items-center gap-2 text-xs text-muted-foreground/80 tracking-wide uppercase">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            100% Australian-based · AHPRA registered · Privacy Act compliant
+          </p>
+        </SplitHero>
+
+        {/* ── Stats Counter Strip ───────────────────────────── */}
+        <StatStrip
+          stats={[
+            { value: mounted ? patientCount : 2400, suffix: "+", label: "Patients served" },
+            { value: mounted ? SOCIAL_PROOF.averageRating * 10 : 49, suffix: "", label: "Average rating", prefix: "" },
+            { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 34, suffix: " min", label: "Avg response" },
+            { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
+          ]}
+        />
+
+        {/* ── Doctor Verification ──────────────────────────── */}
+        <ImageTextSplit
+          title="AHPRA-registered doctors. No exceptions."
+          highlightWords={["AHPRA-registered"]}
+          description="Every doctor on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency. We verify credentials before they join and monitor registration status continuously."
+          imageSrc="/images/trust-doctor.jpeg"
+          imageAlt="Doctor reviewing a patient request at their desk"
+          imagePosition="right"
+        >
+          <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
+            {[
+              "All doctors hold current AHPRA registration",
+              "Professional indemnity insurance required",
+              "Regular clinical decision audits",
+              "Doctors make independent clinical decisions",
+            ].map((point) => (
+              <li
+                key={point}
+                className="flex items-start gap-3 text-sm text-foreground/80 dark:text-foreground/70"
+              >
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                {point}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6">
+            <Link
+              href="/clinical-governance"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+            >
+              Our clinical governance
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </ImageTextSplit>
+
+        {/* ── Data Protection ──────────────────────────────── */}
+        <ImageTextSplit
+          title="Your data stays in Australia. Always encrypted."
+          highlightWords={["encrypted"]}
+          description="Your health information is protected with AES-256 encryption — the same standard used by banks. All data stored on Australian servers, fully compliant with the Privacy Act 1988."
+          imageSrc="/images/trust-security.jpeg"
+          imageAlt="Secure data center with blue lighting"
+          imagePosition="left"
+        >
+          <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
+            {[
+              "AES-256 encryption for all health data",
+              "Stored exclusively on Australian servers",
+              "Compliant with all 13 Australian Privacy Principles",
+              "Regular security audits and penetration testing",
+            ].map((point) => (
+              <li
+                key={point}
+                className="flex items-start gap-3 text-sm text-foreground/80 dark:text-foreground/70"
+              >
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                {point}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6">
+            <Link
+              href="/privacy"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+            >
+              Privacy policy
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </ImageTextSplit>
+
+        {/* ── Security Features Grid ───────────────────────── */}
+        <FeatureGrid
+          pill="Security"
+          title="Built for trust at every layer"
+          subtitle="Enterprise-grade security protecting your health information."
+          highlightWords={["trust"]}
+          features={[
+            {
+              icon: <Lock className="w-6 h-6" />,
+              title: "AES-256 Encryption",
+              description: "Bank-grade encryption for all personal health information at rest and in transit.",
+            },
+            {
+              icon: <ShieldCheck className="w-6 h-6" />,
+              title: "Privacy Act Compliant",
+              description: "Full compliance with the Privacy Act 1988 and all 13 Australian Privacy Principles.",
+            },
+            {
+              icon: <Fingerprint className="w-6 h-6" />,
+              title: "AHPRA Verified",
+              description: "Every doctor's registration is verified and continuously monitored.",
+            },
+            {
+              icon: <ServerCog className="w-6 h-6" />,
+              title: "Australian Servers",
+              description: "All health data stored exclusively on Australian-based servers.",
+            },
+            {
+              icon: <Eye className="w-6 h-6" />,
+              title: "Clinical Audits",
+              description: "Regular audits of clinical decisions to maintain the highest standards.",
+            },
+            {
+              icon: <Scale className="w-6 h-6" />,
+              title: "Complaints Process",
+              description: "48-hour response guarantee. Escalation to Health Complaints Commissioner available.",
+            },
+          ]}
+          columns={3}
+          className="bg-muted/30 dark:bg-muted/10"
+        />
+
+        {/* ── Accountability ───────────────────────────────── */}
+        <ImageTextSplit
+          title="Clear process. No automated approvals."
+          highlightWords={["No automated"]}
+          description="Every request is reviewed by a human doctor who reads your full medical history and makes an independent clinical decision. If something doesn't look right, they'll contact you directly."
+          imageSrc=""
+          imageAlt=""
+          imagePosition="right"
+        >
+          <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
+            {[
+              "Every request is human-reviewed",
+              "Complaints responded to within 48 hours",
+              "Full refund if we can't help",
+              "Escalation to Health Complaints Commissioner",
+            ].map((point) => (
+              <li
+                key={point}
+                className="flex items-start gap-3 text-sm text-foreground/80 dark:text-foreground/70"
+              >
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                {point}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+            >
+              Contact us
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </ImageTextSplit>
+
+        {/* ── Process Timeline ──────────────────────────────── */}
+        <Timeline
+          pill="Behind the scenes"
+          title="What happens with your request"
+          subtitle="Complete transparency on how your request is handled."
+          highlightWords={["transparency"]}
+          steps={[
+            {
+              title: "You submit your request",
+              description: "Answer a few questions about your situation. Takes about 2 minutes.",
+              icon: <FileCheck className="w-5 h-5" />,
+            },
+            {
+              title: "Request enters review queue",
+              description: "Securely transmitted and queued for doctor review.",
+              icon: <Send className="w-5 h-5" />,
+            },
+            {
+              title: "Doctor reviews your case",
+              description: "An AHPRA-registered doctor reviews your full submission. Average ~34 min.",
+              icon: <UserCheck className="w-5 h-5" />,
+            },
+            {
+              title: "Personal follow-up",
+              description: "The doctor may approve, request more info, or contact you directly.",
+              icon: <Phone className="w-5 h-5" />,
+            },
+            {
+              title: "Document delivered",
+              description: "Certificates emailed to your dashboard. eScripts sent via SMS.",
+              icon: <Send className="w-5 h-5" />,
+            },
+          ]}
+          className="bg-muted/30 dark:bg-muted/10"
+        />
+
+        {/* ── Testimonials ──────────────────────────────────── */}
+        <TestimonialSection patientCount={patientCount} mounted={mounted} />
+
+        {/* ── Trust FAQ ─────────────────────────────────────── */}
+        <AccordionSection
+          pill="Questions"
+          title="Common questions about trust"
+          subtitle="We understand you want to be sure."
+          highlightWords={["trust"]}
+          groups={[{ items: trustFAQs }]}
+          className="bg-muted/30 dark:bg-muted/10"
+        />
+
+        {/* ── CTA ───────────────────────────────────────────── */}
+        <CTABanner
+          title="Confident in the process?"
+          subtitle={`Join ${mounted ? patientCount.toLocaleString() : "2,400"}+ Australians who've already made the switch.`}
+          ctaText="Start a request"
+          ctaHref="/request"
+          secondaryText="No account required · Pay only after doctor review"
+        />
+      </main>
+
+      <MarketingFooter />
+    </div>
+  )
+}
+
+// ─── Testimonial Section ──────────────────────────────────────────
+
+function TestimonialSection({ patientCount, mounted }: { patientCount: number; mounted: boolean }) {
+  const shouldReduce = useReducedMotion()
+
+  return (
+    <section aria-label="Patient reviews" className="py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-6">
+        <motion.div
+          initial={shouldReduce ? undefined : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          className="text-center mb-14"
+        >
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex items-center justify-center gap-1 mb-4"
+          >
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className="w-5 h-5 fill-amber-400 text-amber-400"
+              />
+            ))}
+          </motion.div>
+          <motion.h2
+            variants={fadeUp}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
+          >
+            What patients say
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mt-4 text-muted-foreground text-lg"
+          >
+            Real feedback from{" "}
+            <NumberFlow
+              value={patientCount}
+              format={{ notation: "compact", maximumFractionDigits: 1 }}
+              className="font-medium text-foreground"
+            />
+            + patients across Australia.
+          </motion.p>
+        </motion.div>
+
+        <TestimonialGrid />
+
+        <motion.div
+          initial={shouldReduce ? undefined : { opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-10 text-center"
+        >
+          <Link
+            href="/reviews"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+          >
+            View all reviews
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Testimonial Grid (staggered) ──────────────────────────────────
+
+function TestimonialGrid() {
+  const shouldReduce = useReducedMotion()
+
+  const leftCol = testimonials.filter((_, i) => i % 2 === 0)
+  const rightCol = testimonials.filter((_, i) => i % 2 !== 0)
+
   return (
     <motion.div
-      className="text-center p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-sky-200/40 dark:border-white/10 backdrop-blur-xl shadow-sm shadow-sky-100/50 dark:shadow-none"
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4 }}
+      initial={shouldReduce ? undefined : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, margin: "-60px" }}
+      variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+      className="grid md:grid-cols-2 gap-5"
     >
-      <Icon className="w-5 h-5 text-primary mx-auto mb-2" />
-      <div className="text-xl font-bold text-foreground">
-        <span ref={ref}>{displayValue.toLocaleString()}</span>{suffix}
+      <div className="space-y-5">
+        {leftCol.map((t) => (
+          <TestimonialCard key={t.id} testimonial={t} />
+        ))}
       </div>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="space-y-5 md:pt-10">
+        {rightCol.map((t) => (
+          <TestimonialCard key={t.id} testimonial={t} />
+        ))}
+      </div>
     </motion.div>
   )
 }
 
-// JSON-LD structured data for FAQ
-const faqStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": trustFAQs.map((faq) => ({
-    "@type": "Question",
-    "name": faq.question,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": faq.answer,
-    },
-  })),
-}
-
-export default function TrustPage() {
-  const prefersReducedMotion = useReducedMotion()
-  const [showStickyCTA, setShowStickyCTA] = useState(false)
-
-  // Show sticky CTA after scrolling past hero
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowStickyCTA(window.scrollY > 600)
-    }
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Smooth scroll to section
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" })
-    }
-  }
-
+function TestimonialCard({
+  testimonial: t,
+}: {
+  testimonial: ReturnType<typeof getFeaturedTestimonials>[number]
+}) {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky-50/60 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
-      <Navbar variant="marketing" />
-
-      <main className="relative">
-        {/* Hero Section - Enhanced with Effects */}
-        <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden">
-          {/* Warm morning gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-100/40 via-orange-50/20 to-transparent dark:from-sky-900/10 dark:via-transparent dark:to-transparent" />
-          
-          <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-  {/* Badge */}
-  <div className="flex justify-center mb-6">
-  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-  <Shield className="w-4 h-4 text-primary" />
-  <span className="text-sm font-medium text-foreground/80">Trust & Safety</span>
-  </div>
-  </div>
-
-  {/* Main headline */}
-  <div className="text-center mb-6">
-  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
-  Your health. Our responsibility.
-                <span className="block mt-2 text-premium-gradient">
-                  <RotatingText 
-                    texts={HEADLINE_VARIATIONS} 
-                    interval={3000}
-                    gradient={false}
-                    className="text-premium-gradient"
-                  />
-                </span>
-              </h1>
-            </div>
-
-            {/* Subheadline */}
-            <motion.p 
-              className="text-center text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              We built InstantMed on a foundation of clinical excellence, transparency, and genuine care. Here&apos;s how we earn your trust.
-            </motion.p>
-
-  {/* Trust pills */}
-  <div className="flex flex-wrap justify-center gap-3 mb-12">
-  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-  <BadgeCheck className="w-4 h-4 text-emerald-500" />
-  <span className="text-sm font-medium text-foreground">AHPRA Verified</span>
-  </div>
-  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-  <Lock className="w-4 h-4 text-primary" />
-  <span className="text-sm font-medium text-foreground">256-bit Encryption</span>
-  </div>
-  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-  <Users className="w-4 h-4 text-emerald-500" />
-  <span className="text-sm font-medium text-foreground">Operating Since 2025</span>
-  </div>
-  </div>
-
-            {/* Animated Stats bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-10">
-              <AnimatedStat value={5} suffix="/5" label="Patient satisfaction" icon={Users} />
-              <AnimatedStat value={100} suffix="%" label="AHPRA verified" icon={BadgeCheck} />
-              <AnimatedStat value={256} suffix="-bit" label="SSL encryption" icon={Lock} />
-              <AnimatedStat value={7} suffix=" days" label="Week availability" icon={Clock} />
-            </div>
-
-            {/* Scroll-to-section quick links */}
-            <motion.div 
-              className="flex flex-wrap justify-center gap-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              <button
-                onClick={() => scrollToSection(SECTION_IDS.pillars)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-primary/30 transition-colors"
-              >
-                How we keep you safe
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              <button
-                onClick={() => scrollToSection(SECTION_IDS.verify)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-primary/30 transition-colors"
-              >
-                Verify our doctors
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              <button
-                onClick={() => scrollToSection(SECTION_IDS.testimonials)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-primary/30 transition-colors"
-              >
-                Patient reviews
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Certification Badges */}
-        <section className="py-12 border-y border-sky-200/40 dark:border-white/5 bg-gradient-to-r from-sky-50/50 via-white to-orange-50/30 dark:from-white/[0.02] dark:via-transparent dark:to-white/[0.02]">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="flex flex-wrap justify-center items-center gap-6 md:gap-10"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              {certificationBadges.map((badge, index) => (
-                <motion.div
-                  key={badge.name}
-                  className="flex items-center gap-3 px-4 py-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <badge.Logo className="w-8 h-8" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{badge.name}</p>
-                    <p className="text-xs text-muted-foreground">{badge.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Trust Pillars - Premium cards with 3D tilt */}
-        <section id={SECTION_IDS.pillars} className="py-16 lg:py-20 scroll-mt-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <motion.div 
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                How we keep you safe
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Six pillars of trust that guide everything we do.
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-              {trustPillars.map((pillar, index) => (
-                <motion.div
-                  key={pillar.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-  <div className={cn(
-                        "relative h-full rounded-3xl overflow-hidden",
-                        "bg-card/80 backdrop-blur-xl",
-                        "border border-border/50",
-                        "shadow-lg shadow-black/5 dark:shadow-black/20",
-                        "transition-shadow duration-300 hover:shadow-xl"
-                      )}>
-                        {/* Subtle gradient overlay */}
-                        <div className={cn(
-                          "absolute inset-0 bg-linear-to-br opacity-30",
-                          pillar.color
-                        )} />
-                        
-                        {/* Image header */}
-                        <div className="relative h-40 overflow-hidden">
-                          <Image
-                            src={pillar.image}
-                            alt={pillar.title}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-linear-to-t from-card via-card/50 to-transparent" />
-                          
-                          {/* Floating icon */}
-                          <div className={cn(
-                            "absolute bottom-4 left-6 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
-                            pillar.iconBg,
-                            "border border-white/20 dark:border-white/10"
-                          )}>
-                            <pillar.icon className={cn("w-6 h-6", pillar.iconColor)} />
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="relative p-6">
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
-                            {pillar.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                            {pillar.description}
-                          </p>
-
-                          {/* Details */}
-                          <ul className="grid grid-cols-1 gap-2">
-                            {pillar.details.map((detail, i) => (
-                              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                <span>{detail}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Process Transparency Timeline */}
-        <section className="py-16 lg:py-20 bg-gradient-to-b from-sky-50/40 to-orange-50/20 dark:from-white/[0.02] dark:to-transparent">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                What happens behind the scenes
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Complete transparency on how your request is handled.
-              </p>
-            </motion.div>
-
-            <div className="relative">
-              {/* Vertical line */}
-              <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-px" />
-              
-              {processSteps.map((step, index) => (
-                <motion.div
-                  key={step.step}
-                  className={cn(
-                    "relative flex items-start gap-4 md:gap-8 mb-8 last:mb-0",
-                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                  )}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  {/* Step number circle */}
-                  <div className="absolute left-6 md:left-1/2 w-12 h-12 -translate-x-1/2 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold z-10">
-                    {step.step}
-                  </div>
-                  
-                  {/* Content card */}
-                  <div className={cn(
-                    "ml-16 md:ml-0 md:w-[calc(50%-2rem)] p-5 rounded-2xl bg-card border border-border/50 shadow-sm",
-                    index % 2 === 0 ? "md:mr-auto md:text-right" : "md:ml-auto md:text-left"
-                  )}>
-                    <div className={cn(
-                      "flex items-center gap-2 mb-2",
-                      index % 2 === 0 ? "md:justify-end" : "md:justify-start"
-                    )}>
-                      <step.icon className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-primary">{step.time}</span>
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Comparison Table */}
-        <section className="py-16 lg:py-20">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="text-center mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                Same quality. More convenience.
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                How InstantMed compares to booking a traditional doctor appointment.
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="rounded-2xl border border-sky-200/40 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-white/5 backdrop-blur-xl shadow-sm shadow-sky-100/30 dark:shadow-none"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {/* Header */}
-              <div className="grid grid-cols-3 bg-muted/30 dark:bg-white/5 border-b border-border/30 dark:border-white/10">
-                <div className="p-4 font-medium text-sm text-foreground">Feature</div>
-                <div className="p-4 font-medium text-sm text-foreground text-center border-x border-border/30">InstantMed</div>
-                <div className="p-4 font-medium text-sm text-foreground text-center">Traditional Doctor</div>
-              </div>
-              
-              {/* Rows */}
-              {comparisonData.map((row, index) => (
-                <div 
-                  key={row.feature} 
-                  className={cn(
-                    "grid grid-cols-3",
-                    index !== comparisonData.length - 1 && "border-b border-border/30"
-                  )}
-                >
-                  <div className="p-4 text-sm text-foreground">{row.feature}</div>
-                  <div className="p-4 text-center border-x border-border/30">
-                    {typeof row.instantmed === "boolean" ? (
-                      row.instantmed ? (
-                        <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                      ) : (
-                        <X className="w-5 h-5 text-rose-500 mx-auto" />
-                      )
-                    ) : (
-                      <span className="text-sm font-medium text-emerald-600">{row.instantmed}</span>
-                    )}
-                  </div>
-                  <div className="p-4 text-center">
-                    {typeof row.traditional === "boolean" ? (
-                      row.traditional ? (
-                        <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                      ) : (
-                        <X className="w-5 h-5 text-rose-500 mx-auto" />
-                      )
-                    ) : (
-                      <span className="text-sm text-muted-foreground">{row.traditional}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section id={SECTION_IDS.testimonials} className="py-16 lg:py-20 bg-gradient-to-b from-sky-50/40 to-orange-50/20 dark:from-white/[0.02] dark:to-transparent scroll-mt-20">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="text-center mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="inline-flex items-center gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                What patients say about trust
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Real feedback from verified patients.
-              </p>
-            </motion.div>
-
-            <GridStagger className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.08}>
-              {trustTestimonials.map((testimonial) => (
-                <div
-                  key={testimonial.name}
-                  className="relative p-6 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-300"
-                >
-                  {/* Source badge */}
-                  <div className="absolute top-4 right-4 flex items-center gap-1">
-                    {testimonial.verified && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Verified className="w-3 h-3" />
-                        {testimonial.source}
-                      </span>
-                    )}
-                  </div>
-                  <Quote className="absolute bottom-4 right-4 w-6 h-6 text-primary/10" />
-                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed relative z-10 pr-16">
-                    &ldquo;{testimonial.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden">
-                      <Image
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        fill
-                        loading="lazy"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{testimonial.name}</p>
-                      <p className="text-xs text-muted-foreground">{testimonial.location}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </GridStagger>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="py-16 lg:py-20">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="text-center mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                Common questions about trust
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                We understand you want to be sure. Here are the answers.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <Accordion
-                type="single"
-                collapsible
-                defaultValue="0"
-                className="gap-3"
-              >
-                {trustFAQs.map((faq, index) => (
-                  <AccordionItem
-                    key={index.toString()}
-                    value={index.toString()}
-                    className="bg-card border border-border/50 shadow-sm hover:border-primary/20 transition-colors"
-                  >
-                    <AccordionTrigger className="text-foreground">
-                      <span className="font-medium text-foreground">{faq.question}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed pb-4 text-sm">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
+    <motion.div
+      variants={fadeUp}
+      whileHover={{ y: -2, transition: { duration: 0.25, ease: "easeOut" } }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className={cn(
+        "rounded-2xl p-6 sm:p-7",
+        "bg-card border border-border/50",
+        "hover:border-border hover:shadow-md hover:shadow-primary/5",
+        "transition-[border-color,box-shadow] duration-200",
+      )}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-0.5">
+          {[...Array(t.rating)].map((_, i) => (
+            <Star
+              key={i}
+              className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+            />
+          ))}
         </div>
+        <span className="text-[0.6875rem] font-medium text-muted-foreground/70 bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
+          {t.service === "medical-certificate"
+            ? "Med Cert"
+            : t.service === "prescription"
+              ? "Prescription"
+              : "Consultation"}
+        </span>
+      </div>
 
-        {/* AHPRA Verification CTA */}
-        <section id={SECTION_IDS.verify} className="py-16 lg:py-20 bg-gradient-to-r from-sky-50/50 via-white to-orange-50/30 dark:from-white/[0.02] dark:via-transparent dark:to-white/[0.02] scroll-mt-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="p-8 md:p-12 bg-card rounded-2xl border border-border shadow-md">
-                <div className="relative flex flex-col md:flex-row items-center gap-8">
-                  {/* Content */}
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-4">
-                      <BadgeCheck className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Verify Independently</span>
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground mb-3">
-                      Check our doctors yourself
-                    </h2>
-                    <p className="text-muted-foreground mb-6 max-w-md">
-                      Every doctor&apos;s registration can be independently verified on the AHPRA public register. We encourage you to check.
-                    </p>
-                    <Link 
-                      href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      <ShimmerButton className="inline-flex items-center gap-2">
-                        <ExternalLink className="w-4 h-4" />
-                        AHPRA Public Register
-                      </ShimmerButton>
-                    </Link>
-                  </div>
-                  
-                  {/* Visual */}
-                  <div className="relative w-48 h-48 md:w-56 md:h-56 shrink-0">
-                    <div className="absolute inset-0 rounded-2xl overflow-hidden border-4 border-white/80 dark:border-slate-800/80 shadow-xl">
-                      <img
-                        src="https://api.dicebear.com/7.x/notionists/svg?seed=VerifiedDoc"
-                        alt="Doctor illustration"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    {/* Verification badge */}
-                    <motion.div
-                      className="absolute -bottom-3 -right-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-xl p-2.5 shadow-lg border border-border/50"
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: 0.5 }}
-                    >
-                      <BadgeCheck className="w-8 h-8 text-emerald-500" />
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+      <p className="text-foreground/90 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
 
-        {/* Contact CTA */}
-        <section className="py-16 lg:py-20">
-          <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-4">
-                Still have concerns?
-              </h2>
-              <p className="text-muted-foreground mb-8">
-                We&apos;re happy to answer any questions about our processes, doctors, or security measures.
-              </p>
-              <Link 
-                href="mailto:support@instantmed.com.au"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border/50 text-foreground hover:border-primary/30 hover:bg-card/80 transition-colors"
-              >
-                <Mail className="w-4 h-4 text-primary" />
-                <span className="font-medium">support@instantmed.com.au</span>
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Media mentions */}
-        <MediaMentions variant="section" />
-
-        {/* GlowLine Divider */}
-        <div className="max-w-2xl mx-auto px-4">
-          <GlowLine />
+      <div className="mt-5 flex items-center gap-3">
+        {t.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={t.image}
+            alt={t.name}
+            width={36}
+            height={36}
+            loading="lazy"
+            className="w-9 h-9 rounded-full bg-muted"
+          />
+        )}
+        <div>
+          <p className="text-sm font-medium text-foreground">{t.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {t.location}
+            {t.role && ` · ${t.role}`}
+          </p>
         </div>
-
-        {/* Final CTA with ShimmerButton */}
-        <section className="py-16 lg:py-20 bg-gradient-to-t from-sky-50/50 to-transparent dark:from-white/[0.02] dark:to-transparent">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-6">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground/80">Australian-owned telehealth · ABN 64 694 559 334</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-                Ready to get started?
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Join the Australians who trust InstantMed for their healthcare needs.
-              </p>
-              <Link href="/request">
-                <ShimmerButton className="inline-flex items-center gap-2 px-8 py-4 text-lg">
-                  Start a request
-                  <ArrowRight className="w-5 h-5" />
-                </ShimmerButton>
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-      </main>
-
-      {/* JSON-LD Structured Data */}
-      <Script
-        id="faq-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData).replace(/</g, '\\u003c') }}
-      />
-
-      {/* Sticky Mobile CTA - shows after scrolling past hero */}
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/95 backdrop-blur-lg border-t border-border/50 md:hidden"
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: showStickyCTA ? 0 : 100, 
-          opacity: showStickyCTA ? 1 : 0 
-        }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-      >
-        <Link href="/request" className="block">
-          <ShimmerButton className="w-full flex items-center justify-center gap-2 py-3">
-            Start a request
-            <ArrowRight className="w-4 h-4" />
-          </ShimmerButton>
-        </Link>
-      </motion.div>
-
-      <MarketingFooter />
-    </div>
+      </div>
+    </motion.div>
   )
 }
