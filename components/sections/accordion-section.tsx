@@ -68,7 +68,7 @@ export function AccordionSection({
                     ? {}
                     : isInView
                       ? { opacity: 1, y: 0 }
-                      : {}
+                      : undefined
                 }
                 transition={{ duration: 0.3, delay: gi * 0.1 }}
               >
@@ -85,7 +85,7 @@ export function AccordionSection({
                       ? {}
                       : isInView
                         ? { opacity: 1, y: 0 }
-                        : {}
+                        : undefined
                   }
                   transition={{
                     duration: 0.3,

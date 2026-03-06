@@ -69,7 +69,7 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
                 ? {}
                 : isInView
                   ? { opacity: 1, y: 0 }
-                  : {}
+                  : undefined
             }
             transition={{
               duration: 0.3,

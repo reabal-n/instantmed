@@ -13,7 +13,6 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: [
         'lib/clinical/**/*.ts',
-        'lib/repeat-rx/**/*.ts',
         'lib/state-machine/**/*.ts',
         'lib/security/**/*.ts',
       ],
@@ -21,12 +20,22 @@ export default defineConfig({
         'lib/__tests__/**',
         '**/*.d.ts',
         '**/types/**',
+        // Server-only modules requiring DB/Redis/request context — tested via E2E
+        'lib/security/audit-log.ts',
+        'lib/security/rate-limit.ts',
+        'lib/security/phi-field-wrappers.ts',
+        'lib/security/sanitize-audit.ts',
+        'lib/security/csrf-client.ts',
+        // Barrel re-export files (no logic to test)
+        'lib/clinical/index.ts',
+        // Server-only: requires PBS client + Supabase
+        'lib/clinical/decision-support.ts',
       ],
       thresholds: {
-        statements: 40,
-        branches: 30,
-        functions: 40,
-        lines: 40,
+        statements: 80,
+        branches: 70,
+        functions: 80,
+        lines: 80,
       },
     },
     testTimeout: 10000,

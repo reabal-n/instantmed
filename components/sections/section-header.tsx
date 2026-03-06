@@ -50,7 +50,7 @@ export function SectionHeader({
               ? {}
               : isInView
                 ? { opacity: 1, y: 0 }
-                : {}
+                : undefined
           }
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
@@ -77,7 +77,7 @@ export function SectionHeader({
               ? {}
               : isInView
                 ? { opacity: 1, y: 0 }
-                : {}
+                : undefined
           }
           transition={{ duration: 0.3, delay: 0.3, ease: "easeOut" }}
         >

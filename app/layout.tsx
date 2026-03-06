@@ -146,6 +146,23 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
+          {/* Dev-only: suppress webpack chunk loading race condition (Next.js #70703).
+              In dev mode, async script loading can cause RSC client to resolve modules
+              before all chunks are loaded, resulting in undefined factory functions.
+              Webpack splitChunks is disabled in dev (next.config.mjs) to minimize this.
+              This handler suppresses the error so SSR HTML remains visible. */}
+          {process.env.NODE_ENV === 'development' && (
+            <script dangerouslySetInnerHTML={{ __html: `
+              window.addEventListener('error', function(e) {
+                if (e.message && e.message.indexOf("Cannot read properties of undefined (reading 'call')") !== -1) {
+                  e.preventDefault();
+                  e.stopImmediatePropagation();
+                  console.warn('[Dev] Webpack factory race condition suppressed (Next.js #70703). Refresh if page appears broken.');
+                }
+              }, true);
+            `}} />
+          )}
+
           {/* Google Consent Mode v2 - must load BEFORE gtag */}
           <Script id="google-consent-mode" strategy="beforeInteractive">
             {`

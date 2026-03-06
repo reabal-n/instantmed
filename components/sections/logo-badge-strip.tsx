@@ -43,7 +43,7 @@ export function LogoBadgeStrip({
                 ? {}
                 : isInView
                   ? { opacity: 1, scale: 1 }
-                  : {}
+                  : undefined
             }
             transition={{
               duration: 0.3,

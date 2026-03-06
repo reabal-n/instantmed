@@ -137,7 +137,7 @@ types/                # Shared TypeScript types
 - **Data tables with sort/search/pagination**: `DataTable` from `@/components/uix`
 - **Simple display tables**: shadcn `Table` from `@/components/ui/table`
 - **Loading states**: `TableSkeleton`, `CardSkeleton`, `FormSkeleton` from `@/components/ui/skeletons`
-- **Toasts**: `showSuccess()`, `showError()`, `showPromise()` from `@/lib/ui/toast-config`
+- **Toasts**: `toast` from `sonner` (success, error, promise variants)
 - **Error handling**: `ErrorBoundary`, `ErrorRecovery` from `@/components/ui/`
 - **Glass morphism**: `GlassCard`, `GlassButton`, `GlassInput` from `@/components/ui/`
 

@@ -55,7 +55,7 @@ const cities = [
 
 export default function LocationsPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col">
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Locations", url: "https://instantmed.com.au/locations" },

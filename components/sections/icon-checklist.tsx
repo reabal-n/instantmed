@@ -60,7 +60,7 @@ export function IconChecklist({
                 ? {}
                 : isInView
                   ? { opacity: 1, x: 0 }
-                  : {}
+                  : undefined
             }
             transition={{
               duration: 0.3,
@@ -76,7 +76,7 @@ export function IconChecklist({
                   ? {}
                   : isInView
                     ? { scale: 1 }
-                    : {}
+                    : undefined
               }
               transition={{
                 type: "spring",

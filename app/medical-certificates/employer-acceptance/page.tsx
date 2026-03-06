@@ -63,7 +63,7 @@ export default function EmployerAcceptancePage() {
       />
       <FAQSchema faqs={faqs} />
 
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">

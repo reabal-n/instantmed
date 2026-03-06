@@ -52,7 +52,7 @@ export function ProcessSteps({
                 ? {}
                 : isInView
                   ? { scaleX: 1 }
-                  : {}
+                  : undefined
             }
             style={{ transformOrigin: "left" }}
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
@@ -68,7 +68,7 @@ export function ProcessSteps({
                   ? {}
                   : isInView
                     ? { opacity: 1, y: 0 }
-                    : {}
+                    : undefined
               }
               transition={{
                 duration: 0.4,
@@ -101,7 +101,7 @@ export function ProcessSteps({
                   ? {}
                   : isInView
                     ? { opacity: 1, x: 0 }
-                    : {}
+                    : undefined
               }
               transition={{
                 duration: 0.3,

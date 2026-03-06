@@ -62,7 +62,7 @@ export function ImageTextSplit({
                 ? {}
                 : isInView
                   ? { opacity: 1, y: 0 }
-                  : {}
+                  : undefined
             }
             transition={{ duration: 0.3, delay: 0.3, ease: "easeOut" }}
           >
@@ -77,7 +77,7 @@ export function ImageTextSplit({
                   ? {}
                   : isInView
                     ? { opacity: 1, y: 0 }
-                    : {}
+                    : undefined
               }
               transition={{ duration: 0.3, delay: 0.4, ease: "easeOut" }}
             >

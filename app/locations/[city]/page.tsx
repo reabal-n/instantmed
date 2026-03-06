@@ -451,7 +451,7 @@ export default async function CityPage({ params }: PageProps) {
         { name: cityData.name, url: `https://instantmed.com.au/locations/${city}` },
       ]} />
 
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">

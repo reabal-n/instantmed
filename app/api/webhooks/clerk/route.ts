@@ -104,6 +104,7 @@ export async function POST(req: Request) {
 
       if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '') && guestProfile.role === 'patient') {
         // Link existing guest/patient profile to Clerk user (never link doctor/admin profiles)
+        // Guard: only link if clerk_user_id is still null (prevents race condition)
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -118,12 +119,14 @@ export async function POST(req: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq('id', guestProfile.id)
+          .is('clerk_user_id', null)
 
         if (error) {
           log.error('Failed to link guest profile', { errorCode: error.code, errorMessage: error.message })
           return new Response('Database error', { status: 500 })
         }
-        log.info('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id, previousRole: guestProfile.role })
+        // If .is('clerk_user_id', null) matched 0 rows, another process already linked it — that's fine
+        log.info('Guest profile link attempted', { clerkUserId: id, profileId: guestProfile.id })
       } else {
         // No existing profile - create new one
         const { error } = await supabase

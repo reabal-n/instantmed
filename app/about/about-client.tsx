@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import {
   ArrowRight,
   Heart,
@@ -124,10 +125,12 @@ export function AboutClient() {
               </p>
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-success/20 bg-muted">
-                  <img
+                  <Image
                     src="https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector"
                     alt="Our Medical Director"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 </div>
                 <div>

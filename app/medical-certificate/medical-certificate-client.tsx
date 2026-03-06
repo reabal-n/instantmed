@@ -450,7 +450,7 @@ export default function MedicalCertificatePage() {
                   <div className="flex -space-x-2">
                     {doctorAvatars.map((src, i) => (
                       <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                        <img src={src} alt="Doctor illustration" className="w-full h-full object-cover" />
+                        <Image src={src} alt="Doctor illustration" fill className="object-cover" unoptimized />
                       </div>
                     ))}
                   </div>

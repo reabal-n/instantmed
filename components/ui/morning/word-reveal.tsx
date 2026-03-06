@@ -67,7 +67,7 @@ export function WordReveal({
             key={i}
             className={cn("inline-block mr-[0.25em]", isHighlighted && highlightClassName)}
             initial={{ opacity: 0, y: 12 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+            animate={isInView ? { opacity: 1, y: 0 } : undefined}
             transition={{
               duration: wordDuration,
               delay: i * staggerDelay,

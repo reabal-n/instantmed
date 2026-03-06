@@ -139,7 +139,7 @@ export default function HowWeDecidePage() {
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
-      <main className="flex-1 bg-background">
+      <main className="flex-1">
         <CenteredHero
           pill="Our Process"
           title="Every request gets a real review"

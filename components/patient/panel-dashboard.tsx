@@ -493,6 +493,20 @@ function IntakeCard({
       actionHref: `/patient/intakes/${intake.id}`,
       color: "bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-300",
     },
+    awaiting_script: {
+      message: "Your prescription is being prepared. We'll notify you when it's ready.",
+      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+    },
+    completed: {
+      message: "This request is complete. Your documents are available below.",
+      actionLabel: "View documents",
+      actionHref: `/patient/intakes/${intake.id}`,
+      color: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+    },
+    cancelled: {
+      message: "This request was cancelled.",
+      color: "bg-gray-50 dark:bg-gray-950/20 border-gray-100 dark:border-gray-900/30 text-gray-700 dark:text-gray-300",
+    },
   }
   const whatsNext = whatsNextConfig[intake.status]
 

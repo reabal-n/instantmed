@@ -375,7 +375,7 @@ Also re-exports common shadcn/Radix primitives: `Spinner`, `Progress`, `Skeleton
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs glass components).
 
-**File organization:** `components/ui/` (155 primitives), `components/shared/` (73 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `flow/`, `marketing/`).
+**File organization:** `components/ui/` (155 primitives), `components/shared/` (73 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Design Tokens
 

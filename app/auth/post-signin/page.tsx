@@ -106,6 +106,7 @@ export default async function PostSignInPage({
         // Link the guest profile to this Clerk user
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
 
+        // Guard: only link if clerk_user_id is still null (prevents race condition)
         const { data: linkedProfile, error: linkError } = await supabase
           .from("profiles")
           .update({
@@ -119,6 +120,7 @@ export default async function PostSignInPage({
             email_verified_at: new Date().toISOString(),
           })
           .eq("id", guestProfile.id)
+          .is("clerk_user_id", null)
           .select("id, role, onboarding_completed")
           .maybeSingle()
 
@@ -126,10 +128,13 @@ export default async function PostSignInPage({
           profile = linkedProfile
           log.info("Linked guest profile to Clerk user", { profileId: profile.id, attempt })
           break
-        } else if (linkError) {
-          log.warn("Failed to link guest profile", { error: linkError.message, attempt })
+        } else {
+          // Update returned no rows — either an error or the webhook already linked it
+          if (linkError) {
+            log.warn("Failed to link guest profile", { error: linkError.message, attempt })
+          }
 
-          // Check if another process linked it
+          // Check if another process (e.g. Clerk webhook) already linked it
           const { data: nowLinkedProfile } = await supabase
             .from("profiles")
             .select("id, role, onboarding_completed")

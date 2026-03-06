@@ -1,4 +1,4 @@
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 /**
  * Stripe Price ID Mapping
@@ -156,8 +156,17 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
  * Falls back to default consult price if not configured
  */
 export function getConsultSubtypePrice(subtype?: string): number {
-  if (!subtype) return 49.95
-  
+  if (!subtype) return PRICING.CONSULT
+
+  // Canonical prices from constants — env vars override for runtime flexibility
+  const subtypeDefaults: Record<string, number> = {
+    'ed': PRICING.MENS_HEALTH,
+    'hair_loss': PRICING.HAIR_LOSS,
+    'womens_health': PRICING.WOMENS_HEALTH,
+    'weight_loss': PRICING.WEIGHT_LOSS,
+    'general': PRICING.CONSULT,
+  }
+
   const subtypePrices: Record<string, string | undefined> = {
     'ed': process.env.NEXT_PUBLIC_PRICE_CONSULT_ED,
     'hair_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_HAIR_LOSS,
@@ -165,9 +174,9 @@ export function getConsultSubtypePrice(subtype?: string): number {
     'weight_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_WEIGHT_LOSS,
     'general': process.env.NEXT_PUBLIC_PRICE_CONSULT,
   }
-  
+
   const priceStr = subtypePrices[subtype] || process.env.NEXT_PUBLIC_PRICE_CONSULT
-  return priceStr ? parseFloat(priceStr) : 49.95
+  return priceStr ? parseFloat(priceStr) : (subtypeDefaults[subtype] ?? PRICING.CONSULT)
 }
 
 /**
@@ -200,14 +209,16 @@ export function getDisplayPriceForCategory(
  */
 export function getBasePriceCents(category: ServiceCategory, absenceDays?: number): number {
   if (category === "medical_certificate") {
-    if (absenceDays === 3) return 3995
-    return absenceDays === 2 ? 2995 : 1995
+    if (absenceDays === 3) return Math.round(PRICING.MED_CERT_3DAY * 100)
+    return absenceDays === 2
+      ? Math.round(PRICING.MED_CERT_2DAY * 100)
+      : Math.round(PRICING.MED_CERT * 100)
   }
-  
+
   const basePrices: Record<ServiceCategory, number> = {
-    medical_certificate: 1995,
-    prescription: 2995,
-    consult: 4995,
+    medical_certificate: Math.round(PRICING.MED_CERT * 100),
+    prescription: Math.round(PRICING.REPEAT_SCRIPT * 100),
+    consult: Math.round(PRICING.CONSULT * 100),
   }
-  return basePrices[category] || 1995
+  return basePrices[category] || Math.round(PRICING.MED_CERT * 100)
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
@@ -263,7 +264,7 @@ export default function RepeatPrescriptionPage() {
                   <div className="flex -space-x-2">
                     {doctorAvatars.map((src, i) => (
                       <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                        <img src={src} alt="Doctor illustration" className="w-full h-full object-cover" />
+                        <Image src={src} alt="Doctor illustration" fill className="object-cover" unoptimized />
                       </div>
                     ))}
                   </div>

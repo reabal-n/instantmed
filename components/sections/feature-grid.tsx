@@ -62,7 +62,7 @@ export function FeatureGrid({
                 ? {}
                 : isInView
                   ? { opacity: 1, y: 0, scale: 1 }
-                  : {}
+                  : undefined
             }
             transition={{
               duration: 0.4,

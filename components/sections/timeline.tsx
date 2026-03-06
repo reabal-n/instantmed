@@ -33,7 +33,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
           ? {}
           : isInView
             ? { opacity: 1, x: 0 }
-            : {}
+            : undefined
       }
       transition={{
         duration: 0.4,
@@ -51,7 +51,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
               ? {}
               : isInView
                 ? { scale: 1 }
-                : {}
+                : undefined
           }
           transition={{
             type: "spring",
@@ -71,7 +71,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
               ? {}
               : isInView
                 ? { scaleY: 1 }
-                : {}
+                : undefined
           }
           style={{ transformOrigin: "top" }}
           transition={{

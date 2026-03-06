@@ -11,8 +11,8 @@
  * Props and behavior remain identical to preserve existing business logic.
  */
 
-// Core Components
-export { Button, UIXButton, type ButtonProps } from "./button"
+// Core Components — Button re-exported from shadcn/ui
+export { Button, type ButtonProps } from "@/components/ui/button"
 export {
   Card,
   CardHeader,

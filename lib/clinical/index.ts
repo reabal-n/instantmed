@@ -31,13 +31,3 @@ export {
   EMERGENCY_SYMPTOM_PATTERNS,
   type IntakeValidationResult,
 } from "./intake-validation"
-
-// Re-export prescribing boundary (for convenience)
-export {
-  PERMITTED_ACTIONS,
-  PROHIBITED_ACTIONS,
-  PrescribingBoundaryViolation,
-  assertNotPrescribingAction,
-  isPermittedAction,
-  BOUNDARY_COMPLIANT_COPY,
-} from "../prescribing-boundary"

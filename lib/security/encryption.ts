@@ -18,7 +18,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
  */
 
 const ALGORITHM = "aes-256-gcm"
-const IV_LENGTH = 16 // 128 bits
+const IV_LENGTH = 12 // 96 bits — NIST recommended for AES-GCM
 const AUTH_TAG_LENGTH = 16 // 128 bits
 const KEY_LENGTH = 32 // 256 bits
 // _SALT_LENGTH removed — not used; no key derivation is applied

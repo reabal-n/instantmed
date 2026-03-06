@@ -466,11 +466,10 @@ export function RequestFlow({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Dev sanity check: log service routing on mount
+  // Dev sanity check: trace service routing on mount
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('[RequestFlow] Mount:', {
+      posthog?.capture('$debug_request_flow_mount', {
         initialService,
         rawServiceParam,
         storeServiceType: serviceType,

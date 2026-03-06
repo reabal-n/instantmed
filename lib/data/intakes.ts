@@ -18,6 +18,7 @@ import {
   IntakeLifecycleError,
 } from "./intake-lifecycle"
 import { logStatusChange } from "./intake-events"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 
 // ============================================
 // EMAIL NOTIFICATION HELPER
@@ -1112,14 +1113,19 @@ export async function updateScriptSent(
 
 /**
  * Save doctor notes for an intake
+ * Encrypts notes via PHI envelope encryption when enabled.
+ * During migration, writes both plaintext (for rollback) and encrypted.
  */
 export async function saveDoctorNotes(intakeId: string, notes: string): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
+  const { doctor_notes, doctor_notes_enc } = await prepareDoctorNotesWrite(notes)
+
   const { error } = await supabase
     .from("intakes")
     .update({
-      doctor_notes: notes,
+      doctor_notes,
+      doctor_notes_enc,
       updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)

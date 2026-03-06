@@ -1,6 +1,5 @@
 // Checkout components barrel export
-export { RefundGuaranteeBadge, CheckoutTrustStrip as LegacyCheckoutTrustStrip } from './refund-guarantee-badge'
-export { PriorityUpsell } from './priority-upsell'
+export { RefundGuaranteeBadge } from './refund-guarantee-badge'
 export {
   StripeBadge,
   PaymentMethodIcons,

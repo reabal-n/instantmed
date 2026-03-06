@@ -43,7 +43,7 @@ const services = [
 
 export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthenticated: boolean }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar variant="marketing" />
       
       {/* Hero Header */}

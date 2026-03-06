@@ -159,10 +159,19 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
     return { success: false, error: `Template not found: ${templateSlug}` }
   }
 
-  // Validate merge tags (warn but don't fail)
+  // Validate merge tags — warn and capture in Sentry for visibility
   const missingTags = validateMergeTags(template, data)
   if (missingTags.length > 0) {
     log.warn("Missing merge tags for email", { templateSlug, missingTags })
+    try {
+      const Sentry = await import("@sentry/nextjs")
+      Sentry.captureMessage(`Missing merge tags in email template: ${templateSlug}`, {
+        level: "warning",
+        extra: { templateSlug, missingTags },
+      })
+    } catch {
+      // Sentry not available — warning already logged
+    }
   }
 
   // Replace merge tags
@@ -323,6 +332,31 @@ export async function sendDisputeAlertEmail(params: {
       stripe_dashboard_url: `https://dashboard.stripe.com/disputes/${params.disputeId}`,
     },
     isCritical: true,
+  })
+}
+
+/**
+ * Send checkout session expired notification to patient
+ * Sent when a Stripe checkout session expires before payment completes
+ */
+export async function sendSessionExpiredEmail(params: {
+  to: string
+  patientName: string
+  serviceName: string
+  resumeUrl: string
+  intakeId?: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "session_expired",
+    data: {
+      patient_name: params.patientName,
+      service_name: params.serviceName,
+      resume_url: params.resumeUrl,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
   })
 }
 

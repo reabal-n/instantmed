@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
-import { sendRefundEmail, sendPaymentFailedEmail, sendDisputeAlertEmail, sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
+import { sendRefundEmail, sendPaymentFailedEmail, sendDisputeAlertEmail, sendGuestCompleteAccountEmail, sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -797,6 +797,30 @@ export async function POST(request: Request) {
           sessionId: session.id,
         })
 
+        // Send session expired email to patient
+        try {
+          const { data: intake } = await supabase
+            .from("intakes")
+            .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category")
+            .eq("id", intakeId)
+            .single()
+
+          const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
+          if (patient?.email) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+            await sendSessionExpiredEmail({
+              to: patient.email,
+              patientName: patient.full_name || "there",
+              serviceName: intake?.category || "your request",
+              resumeUrl: `${appUrl}/request?resume=${intakeId}`,
+              intakeId,
+            })
+            log.info("Session expired email sent", { intakeId, to: patient.email })
+          }
+        } catch (emailError) {
+          log.error("Failed to send session expired email", { intakeId }, emailError)
+        }
+
       } catch (error) {
         log.error("Error handling expired session", { intakeId }, error)
       }
@@ -978,6 +1002,31 @@ export async function POST(request: Request) {
         })
         .eq("id", intakeId)
         .eq("status", "pending_payment")
+
+      // Send payment failed email to patient
+      try {
+        const { data: intake } = await supabase
+          .from("intakes")
+          .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category")
+          .eq("id", intakeId)
+          .single()
+
+        const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
+        if (patient?.email) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+          await sendPaymentFailedEmail({
+            to: patient.email,
+            patientName: patient.full_name || "there",
+            serviceName: intake?.category || "your request",
+            failureReason: "Your payment could not be processed. This can happen with bank transfers or direct debit payments.",
+            retryUrl: `${appUrl}/request?resume=${intakeId}`,
+            intakeId,
+          })
+          log.info("Payment failed email sent", { intakeId, to: patient.email })
+        }
+      } catch (emailError) {
+        log.error("Failed to send payment failed email", { intakeId }, emailError)
+      }
     }
   }
 
@@ -1160,7 +1209,7 @@ export async function POST(request: Request) {
             .eq("id", failedIntakeId)
             .single()
 
-          const patient = intake?.patient as { email?: string; full_name?: string } | null
+          const patient = (intake?.patient as unknown) as { email?: string; full_name?: string } | null
           const service = { name: intake?.category || "Service" }
 
           if (patient?.email) {
