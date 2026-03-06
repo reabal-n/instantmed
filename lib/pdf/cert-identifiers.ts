@@ -54,12 +54,16 @@ export function generateCertificateNumber(): string {
 
 /**
  * Generate a certificate reference ID for template-based PDFs.
- * Format: IM-[TYPE]-[YYYYMMDD]-[5DIGITRANDOM]
- * Example: IM-WORK-20260218-04827
+ * Format: IM-[TYPE]-[YYYYMMDD]-[NNNNNNNN]
+ * Example: IM-WORK-20260218-04827391
+ *
+ * Uses 8-digit random (100M possibilities per type/day) to avoid
+ * birthday-paradox collisions. DB UNIQUE constraint on certificate_ref
+ * provides a hard safety net (see migration 20260218000001).
  */
 export function generateCertificateRef(type: "work" | "study" | "carer"): string {
   const typeCode = type.toUpperCase()
   const date = new Date().toISOString().split("T")[0]!.replace(/-/g, "")
-  const random = String(crypto.randomInt(100000)).padStart(5, "0")
+  const random = String(crypto.randomInt(100_000_000)).padStart(8, "0")
   return `IM-${typeCode}-${date}-${random}`
 }

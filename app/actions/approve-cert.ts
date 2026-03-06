@@ -22,6 +22,7 @@ import {
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
+import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
@@ -230,12 +231,30 @@ export async function approveAndSendCert(
       return { success: false, error: "Certificate duration cannot exceed 30 days" }
     }
 
-    const _durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
     // Get intake answers for carer details extraction
     const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
     const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
     const answersData = answersObj?.answers || null
+
+    // Duration-tier mismatch check: warn if approved duration differs from paid tier
+    const paidDurationDays = getAbsenceDays(answersData ?? undefined)
+    if (durationDays !== paidDurationDays) {
+      logger.warn("Certificate duration differs from paid tier", {
+        intakeId,
+        paidDurationDays,
+        approvedDurationDays: durationDays,
+        startDate: reviewData.startDate,
+        endDate: reviewData.endDate,
+      })
+      Sentry.addBreadcrumb({
+        category: "cert.audit",
+        message: `Duration mismatch: paid ${paidDurationDays}d, approved ${durationDays}d`,
+        level: "warning",
+        data: { intakeId, paidDurationDays, approvedDurationDays: durationDays },
+      })
+    }
 
     // Get patient DOB (required for PDF)
     const patientDob = patient.date_of_birth || null
@@ -263,6 +282,14 @@ export async function approveAndSendCert(
     // Get doctor identity for template rendering
     const doctorIdentityForPdf = await getDoctorIdentity(doctorProfile.id)
     if (!doctorIdentityForPdf) {
+      // Release the claim before returning — prevents stuck intakes
+      const { error: releaseErr } = await supabase.rpc("release_intake_claim", {
+        p_intake_id: intakeId,
+        p_doctor_id: doctorProfile.id,
+      })
+      if (releaseErr) {
+        logger.warn("Failed to release claim after doctor identity failure", { intakeId, error: releaseErr.message })
+      }
       return { success: false, error: "Doctor identity not found" }
     }
 
