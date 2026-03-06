@@ -18,7 +18,7 @@ function isEncryptionEnabled(): boolean {
  * P0 FIX: Fails loudly on decryption errors instead of silent fallback
  * This prevents returning corrupted/wrong data to users
  */
-function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
+export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
   if (!profile) return profile
 
   const decrypted: Record<string, unknown> = { ...profile }

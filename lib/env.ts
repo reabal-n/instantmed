@@ -71,6 +71,10 @@ const serverEnvSchema = z.object({
   SENTRY_ORG: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
 
+  // Analytics
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
+
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
   OPS_CRON_SECRET: z.string().optional(),
@@ -97,6 +101,8 @@ const productionRequirements = z.object({
   STRIPE_PRICE_CONSULT_HAIR_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_HAIR_LOSS"),
   STRIPE_PRICE_CONSULT_WOMENS_HEALTH: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WOMENS_HEALTH"),
   STRIPE_PRICE_CONSULT_WEIGHT_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WEIGHT_LOSS"),
+  UPSTASH_REDIS_REST_URL: z.string().url("Production requires UPSTASH_REDIS_REST_URL for rate limiting"),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Production requires UPSTASH_REDIS_REST_TOKEN for rate limiting"),
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),

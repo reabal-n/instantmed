@@ -3,6 +3,8 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { updateScriptTaskStatus, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("doctor-scripts-update")
 
@@ -11,6 +13,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit before any processing
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
+    // CSRF protection
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
+
     const { id } = await params
     const { userId } = await auth()
 

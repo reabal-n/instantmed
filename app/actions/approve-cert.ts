@@ -21,7 +21,7 @@ import {
 } from "@/lib/data/issued-certificates"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
-import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
+import { checkCertificateRateLimit } from "@/lib/rate-limit/doctor"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"

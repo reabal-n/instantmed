@@ -12,15 +12,54 @@ import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
-import {
-  checkRateLimit as checkMemoryRateLimit,
-  getClientIp,
-  createRateLimitHeaders,
-  RATE_LIMITS,
-  type RateLimitResult,
-} from "@/lib/rate-limit"
+import { getClientIdentifier } from "@/lib/rate-limit/redis"
 import { logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
+
+// ---- Inline rate limit types & helpers (self-contained for this public endpoint) ----
+
+interface RateLimitConfig {
+  maxRequests: number
+  windowMs: number
+}
+
+interface RateLimitResult {
+  allowed: boolean
+  success: boolean
+  remaining: number
+  resetAt: number
+  retryAfterMs?: number
+}
+
+const RATE_LIMITS = {
+  verification: { maxRequests: 10, windowMs: 60 * 1000 },
+  verificationStrict: { maxRequests: 3, windowMs: 60 * 1000 },
+} as const
+
+const memoryStore = new Map<string, { count: number; resetAt: number }>()
+
+function checkMemoryRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
+  const now = Date.now()
+  const entry = memoryStore.get(key)
+  if (!entry || entry.resetAt < now) {
+    const resetAt = now + config.windowMs
+    memoryStore.set(key, { count: 1, resetAt })
+    return { allowed: true, success: true, remaining: config.maxRequests - 1, resetAt }
+  }
+  entry.count++
+  if (entry.count > config.maxRequests) {
+    return { allowed: false, success: false, remaining: 0, resetAt: entry.resetAt, retryAfterMs: entry.resetAt - now }
+  }
+  return { allowed: true, success: true, remaining: config.maxRequests - entry.count, resetAt: entry.resetAt }
+}
+
+function createRateLimitHeaders(result: RateLimitResult): HeadersInit {
+  return {
+    "X-RateLimit-Remaining": String(result.remaining),
+    "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
+    ...(result.retryAfterMs && { "Retry-After": String(Math.ceil(result.retryAfterMs / 1000)) }),
+  }
+}
 
 const logger = createLogger("verify-api")
 
@@ -99,7 +138,7 @@ async function checkRateLimit(
 }
 
 export async function GET(request: Request) {
-  const clientIp = getClientIp(request)
+  const clientIp = getClientIdentifier(request)
 
   // Apply rate limiting (Redis with in-memory fallback)
   const rateLimit = await checkRateLimit(`verify:${clientIp}`, RATE_LIMITS.verification)

@@ -18,7 +18,8 @@ import {
   IntakeLifecycleError,
 } from "./intake-lifecycle"
 import { logStatusChange } from "./intake-events"
-import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
+import { prepareDoctorNotesWrite, readDoctorNotes, readAnswers } from "@/lib/security/phi-field-wrappers"
+import { decryptProfilePhi } from "@/lib/data/profiles"
 
 // ============================================
 // EMAIL NOTIFICATION HELPER
@@ -114,7 +115,7 @@ export async function getPatientIntakes(
   // Build data query with service join for UI display
   let query = supabase
     .from("intakes")
-    .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
+    .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, doctor_notes_enc, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -130,10 +131,20 @@ export async function getPatientIntakes(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  const unwrapped = (data || []).map(row => ({
-    ...row,
-    service: Array.isArray(row.service) ? row.service[0] : row.service,
-  }))
+  // Decrypt PHI fields (doctor_notes) before returning
+  const unwrapped = await Promise.all(
+    (data || []).map(async (row) => {
+      const doctorNotes = await readDoctorNotes({
+        doctor_notes: row.doctor_notes,
+        doctor_notes_enc: (row as Record<string, unknown>).doctor_notes_enc as never,
+      })
+      return {
+        ...row,
+        doctor_notes: doctorNotes,
+        service: Array.isArray(row.service) ? row.service[0] : row.service,
+      }
+    })
+  )
 
   return {
     data: unwrapped as unknown as IntakeWithPatient[],
@@ -391,9 +402,12 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         auth_user_id,
         full_name,
         date_of_birth,
+        date_of_birth_encrypted,
         email,
         phone,
+        phone_encrypted,
         medicare_number,
+        medicare_number_encrypted,
         medicare_irn,
         medicare_expiry,
         address_line1,
@@ -434,11 +448,30 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
     return null
   }
 
+  // Decrypt PHI fields
+  const rawPatient = Array.isArray(data.patient) ? data.patient[0] : data.patient
+  const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
+  const doctorNotes = await readDoctorNotes({
+    doctor_notes: data.doctor_notes,
+    doctor_notes_enc: (data as Record<string, unknown>).doctor_notes_enc as never,
+  })
+  const rawAnswers = data.answers?.[0] || null
+  const decryptedAnswers = rawAnswers
+    ? {
+        ...rawAnswers,
+        answers: await readAnswers({
+          answers: rawAnswers.answers as Record<string, unknown> | null,
+          answers_enc: rawAnswers.answers_encrypted as never,
+        }),
+      }
+    : null
+
   return {
     ...data,
-    patient: Array.isArray(data.patient) ? data.patient[0] : data.patient,
+    doctor_notes: doctorNotes,
+    patient: decryptedPatient,
     service: Array.isArray(data.service) ? data.service[0] : data.service,
-    answers: data.answers?.[0] || null,
+    answers: decryptedAnswers,
   } as unknown as IntakeWithDetails
 }
 
@@ -506,7 +539,7 @@ export async function getAllIntakesForAdmin(
       declined_at,
       reviewed_by,
       reviewed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state),
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, date_of_birth_encrypted, phone, phone_encrypted, suburb, state),
       service:services!service_id (id, name, short_name, type, slug)
     `)
 
@@ -528,11 +561,16 @@ export async function getAllIntakesForAdmin(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  const unwrapped = (data || []).map(row => ({
-    ...row,
-    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-    service: Array.isArray(row.service) ? row.service[0] : row.service,
-  }))
+  // Decrypt patient PHI fields before returning
+  const unwrapped = (data || []).map(row => {
+    const rawPatient = Array.isArray(row.patient) ? row.patient[0] : row.patient
+    const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
+    return {
+      ...row,
+      patient: decryptedPatient,
+      service: Array.isArray(row.service) ? row.service[0] : row.service,
+    }
+  })
   const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],
