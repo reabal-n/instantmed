@@ -73,6 +73,9 @@ export default clerkMiddleware(async (auth, req) => {
   if (pathname.startsWith("/email-preview") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return NextResponse.redirect(new URL("/", req.url), 302)
   }
+  if (pathname.startsWith("/sentry-test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
 
   // Handle admin consolidation redirects
   const redirectTo = adminRedirects[pathname]

@@ -5,6 +5,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 import { toError } from "@/lib/errors"
+import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 
 const logger = createLogger("cron-repeat-rx-reminders")
 
@@ -110,6 +111,16 @@ export async function GET(request: NextRequest) {
         const patientRaw = intake.patient as unknown as { id: string; email: string | null; full_name: string | null }[] | { id: string; email: string | null; full_name: string | null } | null
         const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
         if (!patient?.email) continue
+
+        // Marketing opt-out check (Spam Act compliance)
+        if (patient.id) {
+          const canSend = await canSendMarketingEmail(patient.id)
+          if (!canSend) {
+            skipped++
+            continue
+          }
+        }
+
         const email = patient.email
 
         // Extract medication name from intake_answers join
@@ -118,6 +129,9 @@ export async function GET(request: NextRequest) {
         const medicationName = String(answers.medicationName || answers.medication_name || "medication")
 
         // Enqueue to outbox — the email-dispatcher cron will render and send
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+        const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
+
         const { error: insertError } = await supabase.from("email_outbox").insert({
           email_type: "repeat_rx_reminder",
           to_email: email,
@@ -130,6 +144,10 @@ export async function GET(request: NextRequest) {
           metadata: {
             patientName: patient.full_name || "there",
             medicationName,
+            headers: {
+              "List-Unsubscribe": `<${unsubscribeUrl}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
           },
         })
 

@@ -16,6 +16,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { cookies } from "next/headers"
 import { toError } from "@/lib/errors"
+import { scrubPHI } from "@/lib/observability/scrub-phi"
 
 /**
  * Context for API error capture
@@ -405,7 +406,8 @@ async function capture5xxResponse(
     const cloned = response.clone()
     const text = await cloned.text()
     // Truncate to 4KB
-    responseBody = text.length > 4096 ? text.slice(0, 4096) + "...[truncated]" : text
+    const raw = text.length > 4096 ? text.slice(0, 4096) + "...[truncated]" : text
+    responseBody = scrubPHI(raw)
   } catch {
     responseBody = "[unable to read body]"
   }

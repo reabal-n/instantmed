@@ -39,6 +39,10 @@ const serverEnvSchema = z.object({
   STRIPE_PRICE_MEDCERT_3DAY: z.string().optional(),
   STRIPE_PRICE_PRESCRIPTION: z.string().optional(),
   STRIPE_PRICE_CONSULT: z.string().optional(),
+  STRIPE_PRICE_CONSULT_ED: z.string().optional(),
+  STRIPE_PRICE_CONSULT_HAIR_LOSS: z.string().optional(),
+  STRIPE_PRICE_CONSULT_WOMENS_HEALTH: z.string().optional(),
+  STRIPE_PRICE_CONSULT_WEIGHT_LOSS: z.string().optional(),
   
   // Optional with defaults
   RESEND_API_KEY: z.string().optional(),
@@ -63,6 +67,9 @@ const serverEnvSchema = z.object({
 
   // Monitoring
   SENTRY_DSN: z.string().optional(),
+  SENTRY_AUTH_TOKEN: z.string().optional(), // Required in CI for source map upload
+  SENTRY_ORG: z.string().optional(),
+  SENTRY_PROJECT: z.string().optional(),
 
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
@@ -83,9 +90,14 @@ const productionRequirements = z.object({
   // Stripe price IDs - required in production for payment functionality
   STRIPE_PRICE_MEDCERT: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT"),
   STRIPE_PRICE_MEDCERT_2DAY: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT_2DAY"),
+  STRIPE_PRICE_MEDCERT_3DAY: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT_3DAY"),
   STRIPE_PRICE_PRESCRIPTION: z.string().min(1, "Production requires STRIPE_PRICE_PRESCRIPTION"),
-  CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   STRIPE_PRICE_CONSULT: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT"),
+  STRIPE_PRICE_CONSULT_ED: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_ED"),
+  STRIPE_PRICE_CONSULT_HAIR_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_HAIR_LOSS"),
+  STRIPE_PRICE_CONSULT_WOMENS_HEALTH: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WOMENS_HEALTH"),
+  STRIPE_PRICE_CONSULT_WEIGHT_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WEIGHT_LOSS"),
+  CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
   PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),

@@ -41,6 +41,14 @@ export type EmailType =
   | "payment_failed"
   | "guest_complete_account"
   | "payment_confirmed"
+  // Cron-enqueued email types
+  | "repeat_rx_reminder"
+  | "abandoned_checkout"
+  // Status transition emails (migrated from send-status.ts)
+  | "request_approved"
+  // Lifecycle emails
+  | "intake_submitted"
+  | "referral_credit"
 
 interface SendEmailParams {
   to: string

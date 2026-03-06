@@ -80,3 +80,11 @@ export type { PrescriptionApprovedEmailProps } from "./prescription-approved"
 // --- Repeat Rx Reminder ---
 export { RepeatRxReminderEmail, repeatRxReminderSubject } from "./repeat-rx-reminder"
 export type { RepeatRxReminderEmailProps } from "./repeat-rx-reminder"
+
+// --- Referral Credit ---
+export { ReferralCreditEmail, referralCreditSubject } from "./referral-credit"
+export type { ReferralCreditEmailProps } from "./referral-credit"
+
+// --- Intake Submitted ---
+export { IntakeSubmittedEmail, intakeSubmittedSubject } from "./intake-submitted"
+export type { IntakeSubmittedEmailProps } from "./intake-submitted"

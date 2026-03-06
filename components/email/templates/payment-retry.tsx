@@ -110,6 +110,10 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
                 <a href="${baseUrl}/privacy" style="color: #A8A29E; text-decoration: none;">Privacy</a>
                 <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
                 <a href="${baseUrl}/terms" style="color: #A8A29E; text-decoration: none;">Terms</a>
+                <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
+                <a href="${baseUrl}/contact" style="color: #A8A29E; text-decoration: none;">Contact</a>
+                <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
+                <a href="${baseUrl}/patient/settings" style="color: #A8A29E; text-decoration: none;">Preferences</a>
               </p>
               <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0;">
                 InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Australia

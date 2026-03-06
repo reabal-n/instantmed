@@ -667,7 +667,35 @@ export async function POST(request: Request) {
             log.error("Payment confirmed email error (non-fatal)", { intakeId }, emailErr)
           }
           
-          // STEP 5b: Send guest account completion email if this was a guest checkout
+          // STEP 5b: Send "request is being reviewed" confirmation email
+          try {
+            const ReactForSubmitted = await import("react")
+            const { sendEmail: sendSubmittedEmail } = await import("@/lib/email/send-email")
+            const { IntakeSubmittedEmail, intakeSubmittedSubject } = await import("@/components/email/templates/intake-submitted")
+
+            const serviceNameForSubmitted = session.metadata?.service_slug
+              ?.replace(/-/g, " ")
+              ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+              || "medical request"
+
+            await sendSubmittedEmail({
+              to: patientProfile.email,
+              toName: patientProfile.full_name || "Patient",
+              subject: intakeSubmittedSubject(serviceNameForSubmitted),
+              template: ReactForSubmitted.createElement(IntakeSubmittedEmail, {
+                patientName: patientProfile.full_name || "there",
+                requestType: serviceNameForSubmitted,
+                requestId: intakeId,
+              }),
+              emailType: "intake_submitted",
+              intakeId,
+              patientId,
+            })
+          } catch (submittedErr) {
+            log.error("Intake submitted email error (non-fatal)", { intakeId }, submittedErr)
+          }
+
+          // STEP 5c: Send guest account completion email if this was a guest checkout
           const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
           if (isGuestCheckout) {
             const serviceName = session.metadata?.service_slug || "medical certificate"

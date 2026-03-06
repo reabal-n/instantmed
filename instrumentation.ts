@@ -15,6 +15,7 @@ import {
   isSentryEnabled,
   getSentryRuntime,
 } from "@/lib/observability/sentry-config";
+import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
 
 export async function register() {
   // P0 FIX: Verify encryption is properly configured at startup
@@ -89,25 +90,41 @@ export async function register() {
       "AbortError",
     ],
     beforeSend(event) {
-      // Scrub potentially sensitive data from server-side events
+      // Scrub sensitive headers
       if (event.request?.headers) {
         delete event.request.headers['authorization']
         delete event.request.headers['cookie']
         delete event.request.headers['x-forwarded-for']
       }
-      // Scrub any PHI patterns from breadcrumbs
+      // Scrub PHI from request body / query string
+      if (event.request?.data) {
+        event.request.data = scrubPHIFromObject(event.request.data) as string
+      }
+      if (event.request?.query_string) {
+        if (typeof event.request.query_string === "string") {
+          event.request.query_string = scrubPHI(event.request.query_string)
+        } else {
+          event.request.query_string = scrubPHIFromObject(event.request.query_string) as typeof event.request.query_string
+        }
+      }
+      // Scrub PHI from extra context
+      if (event.extra) {
+        event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>
+      }
+      // Scrub breadcrumbs
       if (event.breadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs.map(breadcrumb => {
-          if (breadcrumb.message) {
-            // Mask Medicare numbers (10 digits)
-            breadcrumb.message = breadcrumb.message.replace(/\b\d{10,11}\b/g, '[REDACTED]')
-            // Mask email addresses
-            breadcrumb.message = breadcrumb.message.replace(/[\w.-]+@[\w.-]+\.\w+/g, '[EMAIL_REDACTED]')
-          }
-          return breadcrumb
-        })
+        for (const breadcrumb of event.breadcrumbs) {
+          if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message)
+          if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>
+        }
       }
       return event
+    },
+    beforeBreadcrumb(breadcrumb) {
+      // Scrub PHI from breadcrumbs at capture time
+      if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message)
+      if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>
+      return breadcrumb
     },
     // Always sample critical clinical and payment transactions
     tracesSampler: ({ name, parentSampled }) => {

@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
 
 /**
  * Client-side Sentry environment detection
@@ -79,26 +80,36 @@ Sentry.init({
   sendDefaultPii: false,
 
   beforeSend(event) {
-    // Don't send events if Sentry is not enabled
-    if (!sentryEnabled) {
-      return null;
-    }
+    if (!sentryEnabled) return null;
 
-    // Scrub sensitive data
+    // Scrub sensitive headers
     if (event.request?.headers) {
       delete event.request.headers["Authorization"];
       delete event.request.headers["Cookie"];
     }
-
-    // Add E2E context tags when in PLAYWRIGHT mode
-    if (isPlaywrightMode) {
-      event.tags = {
-        ...event.tags,
-        playwright: "1",
+    // Scrub PHI from extra context
+    if (event.extra) {
+      event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>;
+    }
+    // Scrub breadcrumbs
+    if (event.breadcrumbs) {
+      for (const breadcrumb of event.breadcrumbs) {
+        if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
+        if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
       }
     }
 
+    // Add E2E context tags when in PLAYWRIGHT mode
+    if (isPlaywrightMode) {
+      event.tags = { ...event.tags, playwright: "1" };
+    }
+
     return event;
+  },
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
+    if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
+    return breadcrumb;
   },
 });
 
