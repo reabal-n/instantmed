@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
-import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs"
+import { UserButton, useUser, useClerk } from "@clerk/nextjs"
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import {
   LogOut,
@@ -212,7 +212,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const { signOut } = useClerk()
-  const { user, isLoaded: _isLoaded } = useUser()
+  const { user, isLoaded: isClerkLoaded } = useUser()
   const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -322,7 +322,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         Start a request
                       </Link>
                     </Button>
-                    <SignedOut>
+                    {isClerkLoaded && user ? (
+                      <>
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <LayoutDashboard className="h-3.5 w-3.5" />
+                          Dashboard
+                        </Link>
+                        <UserButton afterSignOutUrl="/" />
+                      </>
+                    ) : (
                       <AppSignInButton>
                         <Button
                           variant="outline"
@@ -332,17 +343,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           Sign in
                         </Button>
                       </AppSignInButton>
-                    </SignedOut>
-                    <SignedIn>
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <LayoutDashboard className="h-3.5 w-3.5" />
-                        Dashboard
-                      </Link>
-                      <UserButton afterSignOutUrl="/" />
-                    </SignedIn>
+                    )}
                   </div>
                 </>
               )}
@@ -501,18 +502,17 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             </div>
             {variant === "marketing" && (
               <>
-                <SignedOut>
+                {isClerkLoaded && user ? (
+                  <div className="flex justify-center">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                ) : (
                   <AppSignInButton>
                     <Button variant="outline" className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                       Sign in
                     </Button>
                   </AppSignInButton>
-                </SignedOut>
-                <SignedIn>
-                  <div className="flex justify-center">
-                    <UserButton afterSignOutUrl="/" />
-                  </div>
-                </SignedIn>
+                )}
                 <Button
                   asChild
                   className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"

@@ -27,6 +27,19 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
 
+  // Master timeout: if nothing resolves within 12 seconds (including Clerk
+  // failing to load entirely), show the error/retry UI. Without this, the
+  // spinner is infinite when Clerk's JS fails to initialise.
+  useEffect(() => {
+    const masterTimer = setTimeout(() => {
+      if (!hasNavigated.current) {
+        setTimedOut(true)
+      }
+    }, 12000)
+
+    return () => clearTimeout(masterTimer)
+  }, [])
+
   useEffect(() => {
     if (!isLoaded || hasNavigated.current) return
 
@@ -70,7 +83,7 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
       return
     }
 
-    // Give Clerk up to 8s to establish the session
+    // Give Clerk up to 8s to establish the session (after it has loaded)
     const timer = setTimeout(() => {
       if (!hasNavigated.current) {
         setTimedOut(true)
