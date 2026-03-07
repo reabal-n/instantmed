@@ -26,7 +26,7 @@ import { ReferralCard } from "@/components/patient/referral-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
 import { motion } from "framer-motion"
-import posthog from "posthog-js"
+import { capture } from "@/lib/analytics/capture"
 
 /**
  * Panel-Based Patient Dashboard
@@ -162,7 +162,7 @@ export function PanelDashboard({
 
   // Track dashboard view on mount
   useEffect(() => {
-    posthog.capture("patient_dashboard_viewed", {
+    capture("patient_dashboard_viewed", {
       total_requests: intakes.length,
       pending_requests: pendingIntakes.length,
       stale_payment_requests: stalePaymentIntakes.length,
@@ -172,7 +172,7 @@ export function PanelDashboard({
 
   const handleViewIntake = (intake: Intake) => {
     // Track intake view
-    posthog.capture("intake_detail_opened", {
+    capture("intake_detail_opened", {
       intake_id: intake.id,
       status: intake.status,
       source: "dashboard",

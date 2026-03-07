@@ -27,7 +27,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react"
-import posthog from "posthog-js"
+import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
 
 const contactReasons = [
@@ -53,7 +53,7 @@ export function ContactClient() {
     formData.set("reason", selectedReason)
 
     // Track contact form submission in PostHog
-    posthog.capture('contact_form_submitted', {
+    capture('contact_form_submitted', {
       contact_reason: selectedReason,
       has_name: !!formData.get('name'),
       has_email: !!formData.get('email'),
@@ -70,12 +70,12 @@ export function ContactClient() {
         setIsSubmitted(true)
       } else {
         setSubmitError(result.error || "Failed to send message. Please try again.")
-        posthog.capture('contact_form_error', { error: result.error })
+        capture('contact_form_error', { error: result.error })
       }
     } catch (err) {
       setIsSubmitting(false)
       setSubmitError("Failed to send message. Please try again.")
-      posthog.capture('contact_form_error', { error: String(err) })
+      capture('contact_form_error', { error: String(err) })
     }
   }
 

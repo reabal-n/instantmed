@@ -7,7 +7,7 @@ import { FieldRenderer } from '../field-renderer'
 import { useFlowStore, useFlowAnswers } from '@/lib/flow'
 import type { FlowConfig, QuestionGroup, FieldConfig } from '@/lib/flow'
 import { cn } from '@/lib/utils'
-import posthog from 'posthog-js'
+import { capture, captureException } from '@/lib/analytics/capture'
 
 // Shake animation for validation errors
 const shakeAnimation = {
@@ -235,7 +235,7 @@ export function UnifiedQuestionsStep({
 
     try {
       // Track questionnaire completion in PostHog
-      posthog.capture('questionnaire_completed', {
+      capture('questionnaire_completed', {
         service_category: config.category,
         total_sections: totalGroups,
         completed_sections: completedGroups,
@@ -245,7 +245,7 @@ export function UnifiedQuestionsStep({
       onComplete?.()
       nextStep()
     } catch (error) {
-      posthog.captureException(error)
+      captureException(error)
     } finally {
       setIsSubmitting(false)
     }

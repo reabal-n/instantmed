@@ -35,6 +35,25 @@ export default function GlobalError({
         // sessionStorage may be unavailable — fall through to error UI
       }
     }
+
+    // Dev-only: auto-recover from webpack chunk factory race condition (Next.js #70703).
+    // In dev, splitChunks is disabled so all modules land in one chunk. Async script
+    // loading can resolve modules before factories are registered, causing
+    // "Cannot read properties of undefined (reading 'call')". A single reload fixes it.
+    if (process.env.NODE_ENV === "development" && error.message?.includes("reading 'call'")) {
+      try {
+        const key = "webpack-race-reload-" + window.location.pathname
+        const lastReload = sessionStorage.getItem(key)
+        const now = Date.now()
+        if (!lastReload || now - Number(lastReload) > 30_000) {
+          sessionStorage.setItem(key, String(now))
+          window.location.reload()
+          return
+        }
+      } catch {
+        // fall through to error UI
+      }
+    }
   }, [error])
 
   return (

@@ -5,7 +5,7 @@ import { Check, Mail, Clock, ArrowRight } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import posthog from "posthog-js"
+import { capture } from "@/lib/analytics/capture"
 
 interface ConfirmedClientProps {
   intakeId?: string
@@ -15,7 +15,7 @@ interface ConfirmedClientProps {
 export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
   useEffect(() => {
     // Track guest confirmation view
-    posthog.capture("guest_confirmation_viewed", {
+    capture("guest_confirmation_viewed", {
       intake_id: intakeId,
       has_email: !!email,
     })

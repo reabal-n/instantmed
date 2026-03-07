@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import posthog from "posthog-js"
+import { capture } from "@/lib/analytics/capture"
 
 interface CancelledPageTrackerProps {
   intakeId?: string
@@ -9,7 +9,7 @@ interface CancelledPageTrackerProps {
 
 export function CancelledPageTracker({ intakeId }: CancelledPageTrackerProps) {
   useEffect(() => {
-    posthog.capture("payment_cancelled", {
+    capture("payment_cancelled", {
       intake_id: intakeId,
     })
   }, [intakeId])

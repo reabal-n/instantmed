@@ -12,7 +12,7 @@ import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
 import { OrganizationSchema } from "@/components/seo/healthcare-schema"
-import { PostHogProvider } from "@/components/providers/posthog-provider"
+import { PostHogLoader } from "@/components/providers/posthog-loader"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
@@ -138,23 +138,6 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
-          {/* Dev-only: suppress webpack chunk loading race condition (Next.js #70703).
-              In dev mode, async script loading can cause RSC client to resolve modules
-              before all chunks are loaded, resulting in undefined factory functions.
-              Webpack splitChunks is disabled in dev (next.config.mjs) to minimize this.
-              This handler suppresses the error so SSR HTML remains visible. */}
-          {process.env.NODE_ENV === 'development' && (
-            <script dangerouslySetInnerHTML={{ __html: `
-              window.addEventListener('error', function(e) {
-                if (e.message && e.message.indexOf("Cannot read properties of undefined (reading 'call')") !== -1) {
-                  e.preventDefault();
-                  e.stopImmediatePropagation();
-                  console.warn('[Dev] Webpack factory race condition suppressed (Next.js #70703). Refresh if page appears broken.');
-                }
-              }, true);
-            `}} />
-          )}
-
           {/* Google Consent Mode v2 - must load BEFORE gtag */}
           <Script id="google-consent-mode" strategy="beforeInteractive">
             {`
@@ -191,7 +174,7 @@ export default function RootLayout({
           <OrganizationSchema />
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
-          <PostHogProvider>
+          <PostHogLoader>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <MeshGradientCanvas />
                 <NavigationProgress />
@@ -209,7 +192,7 @@ export default function RootLayout({
                 <ServiceWorkerRegistration />
                 <CookieBanner />
           </ThemeProvider>
-          </PostHogProvider>
+          </PostHogLoader>
         </body>
       </html>
     </ClerkProvider>
