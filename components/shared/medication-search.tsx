@@ -242,7 +242,7 @@ export function MedicationSearch({
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       <label className="block text-sm font-medium text-foreground/80 mb-1.5">
-        Medication name (optional)
+        Search by medication name
       </label>
 
       <div className="relative">

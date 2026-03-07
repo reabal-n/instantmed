@@ -195,6 +195,26 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       })
     }
 
+    // Prescription history & side effects
+    const prescriptionHistory = answers.prescriptionHistory as string | undefined
+    const lastPrescribedBy = answers.lastPrescribedBy as string | undefined
+    const hasSideEffects = answers.hasSideEffects as boolean | undefined
+    const sideEffects = answers.sideEffects as string | undefined
+
+    if (prescriptionHistory) {
+      const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
+        less_than_3_months: 'Less than 3 months ago',
+        '3_to_6_months': '3-6 months ago',
+        '6_to_12_months': '6-12 months ago',
+        over_12_months: 'Over 12 months ago',
+      }
+      const historyItems = [
+        { label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory },
+        ...(lastPrescribedBy ? [{ label: 'Last prescriber', value: lastPrescribedBy }] : []),
+        { label: 'Side effects', value: hasSideEffects ? (sideEffects || 'Yes') : 'None reported' },
+      ]
+      sections.push({ title: 'Prescription History', items: historyItems, stepId: 'medication-history' })
+    }
   }
 
   // Consult-specific sections
@@ -325,12 +345,17 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const conditions = answers.conditions as string
   const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
   const hasAdverseMedicationReactions = answers.hasAdverseMedicationReactions as boolean | undefined
+  const hasOtherMedications = answers.hasOtherMedications as boolean | undefined
+  const otherMedications = answers.otherMedications as string | undefined
 
   if (hasAllergies !== undefined || hasConditions !== undefined) {
     const medHistoryItems = [
       { label: 'Allergies', value: hasAllergies ? (allergies || 'Yes') : 'None' },
       { label: 'Conditions', value: hasConditions ? (conditions || 'Yes') : 'None' },
     ]
+    if (hasOtherMedications !== undefined) {
+      medHistoryItems.push({ label: 'Other medications', value: hasOtherMedications ? (otherMedications || 'Yes') : 'None' })
+    }
     if (isPregnantOrBreastfeeding !== undefined) {
       medHistoryItems.push({ label: 'Pregnant/breastfeeding', value: isPregnantOrBreastfeeding ? 'Yes' : 'No' })
     }

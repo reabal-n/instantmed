@@ -238,6 +238,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ firstName: e.target.value })}
             onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
+            data-error={touched.firstName && errors.firstName ? "true" : undefined}
             className={`h-11 ${touched.firstName && errors.firstName ? 'border-destructive' : ''}`}
           />
         </FormField>
@@ -252,6 +253,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ lastName: e.target.value })}
             onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
+            data-error={touched.lastName && errors.lastName ? "true" : undefined}
             className={`h-11 ${touched.lastName && errors.lastName ? 'border-destructive' : ''}`}
           />
         </FormField>
@@ -271,6 +273,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ email: e.target.value })}
           onBlur={() => handleBlur('email', email)}
           placeholder="jane@example.com"
+          data-error={touched.email && errors.email ? "true" : undefined}
           className={`h-11 ${touched.email && errors.email ? 'border-destructive' : ''}`}
         />
       </FormField>
@@ -288,6 +291,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           value={dob}
           onChange={(e) => setIdentity({ dob: e.target.value })}
           onBlur={() => handleBlur('dob', dob)}
+          data-error={touched.dob && errors.dob ? "true" : undefined}
           className={`h-11 ${touched.dob && errors.dob ? 'border-destructive' : ''}`}
           max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
         />
@@ -307,6 +311,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ phone: e.target.value })}
           onBlur={() => handleBlur('phone', phone)}
           placeholder="0412 345 678"
+          data-error={touched.phone && errors.phone ? "true" : undefined}
           className={`h-11 ${touched.phone && errors.phone ? 'border-destructive' : ''}`}
         />
         {needsPhone && (
