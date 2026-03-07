@@ -44,9 +44,13 @@ export async function POST(request: NextRequest) {
     token = formData.get("token") as string
     type = (formData.get("type") as string) || "all"
   } else {
-    const body = await request.json()
-    token = body.token
-    type = body.type || "all"
+    try {
+      const body = await request.json()
+      token = body.token
+      type = body.type || "all"
+    } catch {
+      return htmlResponse(renderPage("Invalid request", false), 400)
+    }
   }
 
   if (!token) {

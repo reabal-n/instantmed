@@ -33,9 +33,15 @@ export function PostSignInAuthWaiter() {
       // Track retry attempts within a 30-second window to prevent infinite loops.
       // Counter resets automatically if it's stale (from a previous sign-in session).
       const attemptKey = "post-signin-attempts"
-      const stored = JSON.parse(
-        sessionStorage.getItem(attemptKey) || '{"count":0,"ts":0}'
-      ) as { count: number; ts: number }
+      let stored: { count: number; ts: number } = { count: 0, ts: 0 }
+      try {
+        stored = JSON.parse(
+          sessionStorage.getItem(attemptKey) || '{"count":0,"ts":0}'
+        ) as { count: number; ts: number }
+      } catch {
+        // Corrupted sessionStorage value — reset and start fresh
+        sessionStorage.removeItem(attemptKey)
+      }
 
       const now = Date.now()
       const count = now - stored.ts > 30000 ? 0 : stored.count

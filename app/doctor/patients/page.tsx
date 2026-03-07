@@ -1,6 +1,9 @@
 import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
 import { PatientsListClient } from "./patients-list-client"
+
+const log = createLogger("doctor-patients")
 
 const PAGE_SIZE = 50
 
@@ -26,6 +29,7 @@ async function getPatients(page: number) {
     .range(from, to)
 
   if (error) {
+    log.error("Failed to fetch patients list", { error: error.message, page: from })
     return { patients: [], total: 0 }
   }
 
