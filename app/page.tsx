@@ -41,20 +41,13 @@ export const metadata: Metadata = {
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
     siteName: 'InstantMed',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'InstantMed - Online Doctor Australia',
-      },
-    ],
+    // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
     description: 'Medical certificates and prescriptions in under an hour.',
-    images: ['/og-image.png'],
+    // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
     canonical: 'https://instantmed.com.au',

@@ -116,17 +116,21 @@ Sentry.init({
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 // PostHog Analytics initialization (single source of truth — do not duplicate in provider)
-import posthog from "posthog-js";
-
+// Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: "/ingest",
-    ui_host: "https://us.posthog.com",
-    person_profiles: "identified_only",
-    capture_pageview: false,   // Manual pageview tracking in PostHogProvider for SPA
-    capture_pageleave: true,
-    capture_exceptions: true,
-    autocapture: true,
-    debug: process.env.NODE_ENV === "development",
+  const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  import("posthog-js").then(({ default: posthog }) => {
+    posthog.init(posthogKey, {
+      api_host: "/ingest",
+      ui_host: "https://us.posthog.com",
+      person_profiles: "identified_only",
+      capture_pageview: false,   // Manual pageview tracking in PostHogProvider for SPA
+      capture_pageleave: true,
+      capture_exceptions: true,
+      autocapture: true,
+      debug: process.env.NODE_ENV === "development",
+    });
+  }).catch(() => {
+    // PostHog not available — skip silently
   });
 }

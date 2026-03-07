@@ -12,7 +12,6 @@ import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
 import { OrganizationSchema } from "@/components/seo/healthcare-schema"
-import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { PostHogProvider } from "@/components/providers/posthog-provider"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
@@ -76,20 +75,13 @@ export const metadata: Metadata = {
     title: "InstantMed | Online Doctor Australia",
     description:
       "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "InstantMed - Real doctors. Zero nonsense.",
-      },
-    ],
+    // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: "summary_large_image",
     title: "InstantMed | Online Doctor Australia",
     description: "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
-    images: ["/og-image.png"],
+    // Twitter image handled by app/opengraph-image.tsx convention file
   },
   robots: {
     index: true,
@@ -214,7 +206,6 @@ export default function RootLayout({
                 <LazyOverlays />
                 <Analytics />
                 <WebVitalsReporter />
-                <PostHogIdentify />
                 <ServiceWorkerRegistration />
                 <CookieBanner />
           </ThemeProvider>
