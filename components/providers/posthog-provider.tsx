@@ -91,8 +91,8 @@ function PostHogIdentify() {
  * only sets up the React context and page view tracking.
  */
 export function PostHogProvider({ children }: { children: ReactNode }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [providerState, setProviderState] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Provider: React.ComponentType<any>
     client: unknown
   } | null>(null)
