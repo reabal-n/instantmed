@@ -7,31 +7,31 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 const trustBadges = [
-  { 
-    name: "AHPRA Registered", 
-    description: "Verify on the public register", 
-    icon: BadgeCheck, 
-    color: "text-emerald-600",
+  {
+    name: "AHPRA Registered",
+    description: "Verify on the public register",
+    icon: BadgeCheck,
+    color: "text-emerald-600 dark:text-emerald-400",
     href: "https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
   },
-  { 
-    name: "RACGP Standards", 
-    description: "5th Edition aligned protocols", 
-    icon: BookOpen, 
-    color: "text-blue-600",
+  {
+    name: "RACGP Standards",
+    description: "5th Edition aligned protocols",
+    icon: BookOpen,
+    color: "text-blue-600 dark:text-blue-400",
     href: "https://www.racgp.org.au/running-a-practice/practice-standards"
   },
-  { 
-    name: "Medical Director Oversight", 
-    description: "Clinical governance & quality", 
-    icon: UserCheck, 
-    color: "text-blue-600" 
+  {
+    name: "Medical Director Oversight",
+    description: "Clinical governance & quality",
+    icon: UserCheck,
+    color: "text-blue-600 dark:text-blue-400"
   },
-  { 
-    name: "TGA ePrescribing", 
-    description: "Compliant electronic scripts", 
-    icon: FileCheck, 
-    color: "text-amber-600" 
+  {
+    name: "TGA ePrescribing",
+    description: "Compliant electronic scripts",
+    icon: FileCheck,
+    color: "text-amber-600 dark:text-amber-400"
   },
 ]
 
@@ -53,7 +53,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {trustBadges.map((badge, index) => {
             const content = (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/20 dark:hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 h-full">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 dark:bg-card border border-border/50 dark:border-border hover:border-primary/20 dark:hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 h-full">
                 <div className={`relative w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300 ${badge.color}`}>
                   <badge.icon className="w-5 h-5" />
                 </div>
@@ -90,7 +90,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
 
         {/* CTA Section */}
         <motion.div
-          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-primary/3 border border-primary/10 p-8 lg:p-10 text-center overflow-hidden"
+          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-primary/3 dark:from-primary/10 dark:via-card/50 dark:to-primary/8 border border-primary/10 dark:border-primary/20 p-8 lg:p-10 text-center overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -135,7 +135,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
               <Shield className="w-3.5 h-3.5 inline mr-1" />
               Full refund if we can&apos;t help
             </p>
-            <p className="text-[11px] text-muted-foreground/60 mt-3">
+            <p className="text-[11px] text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
               Operating since 2025 · ABN 64 694 559 334
             </p>
           </div>

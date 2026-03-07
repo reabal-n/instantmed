@@ -45,13 +45,13 @@ export function TestimonialsColumnsWrapper({
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
           <div className="flex justify-center">
-            <div className="border py-1 px-3 rounded-lg text-xs">{badgeText}</div>
+            <div className="border dark:border-border bg-card/30 dark:bg-card/80 py-1 px-3 rounded-lg text-xs text-foreground">{badgeText}</div>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
             {title}
           </h2>
-          <p className="text-center mt-3 opacity-75 text-muted-foreground text-sm">
+          <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">
             {subtitle}
           </p>
         </motion.div>

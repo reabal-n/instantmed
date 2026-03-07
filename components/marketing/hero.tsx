@@ -114,7 +114,7 @@ export function Hero() {
                 <span>{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
               </p>
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />
                 <span>No account required &middot; Pay only after doctor review</span>
               </p>
             </motion.div>

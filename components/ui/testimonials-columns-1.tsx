@@ -45,8 +45,8 @@ export const TestimonialsColumn = (props: {
           ...new Array(2).fill(0).map((_, index) => (
             <React.Fragment key={index}>
               {props.testimonials.map(({ text, image, name, role }, i) => (
-                <div className="p-5 rounded-2xl border shadow-md shadow-primary/5 max-w-xs w-full bg-card/50 backdrop-blur-sm" key={i}>
-                  <div className="text-muted-foreground leading-relaxed text-sm">{text}</div>
+                <div className="p-5 rounded-2xl border shadow-md shadow-primary/5 max-w-xs w-full bg-card/50 dark:bg-card backdrop-blur-sm" key={i}>
+                  <div className="text-muted-foreground dark:text-foreground/70 leading-relaxed text-sm">{text}</div>
                   <div className="flex items-center gap-2 mt-4">
                     {image?.startsWith("/") ? (
                       <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
@@ -69,9 +69,9 @@ export const TestimonialsColumn = (props: {
                     )}
                     <div className="flex flex-col min-w-0 flex-1">
                       <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
-                      <div className="leading-4 opacity-60 tracking-tight text-xs truncate">{role}</div>
+                      <div className="leading-4 opacity-60 dark:opacity-75 tracking-tight text-xs truncate">{role}</div>
                     </div>
-                    <div className="flex items-center gap-1 text-emerald-600 shrink-0">
+                    <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0">
                       <BadgeCheck className="w-3.5 h-3.5" />
                       <span className="text-xs font-medium">Verified</span>
                     </div>

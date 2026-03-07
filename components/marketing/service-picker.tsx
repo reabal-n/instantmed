@@ -120,7 +120,7 @@ export function ServicePicker() {
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-foreground/80">Pick what you need</span>
+            <span className="text-xs font-medium text-foreground/80 dark:text-foreground">Pick what you need</span>
           </motion.div>
           
           <div className="mb-4">
@@ -211,8 +211,8 @@ export function ServicePicker() {
                     {/* Clean card - Glass style */}
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
-                      "bg-white/80 dark:bg-white/5",
-                      "border border-white/50 dark:border-white/10",
+                      "bg-white/80 dark:bg-white/[0.08]",
+                      "border border-white/50 dark:border-white/15",
                       "backdrop-blur-xl",
                       "shadow-sm dark:shadow-none",
                       "hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30",
@@ -315,7 +315,7 @@ export function ServicePicker() {
                             <span className="text-muted-foreground italic">
                               &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
                             </span>
-                            <span className="text-muted-foreground/70">
+                            <span className="text-muted-foreground/70 dark:text-muted-foreground">
                               — {(service.testimonial as { quote: string; author: string }).author}
                             </span>
                           </div>
@@ -324,7 +324,7 @@ export function ServicePicker() {
                       
                       {/* Disclaimer for General Consult */}
                       {service.id === 'consult' && (
-                        <p className="text-xs text-muted-foreground/70 text-center px-3 pb-3">
+                        <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground text-center px-3 pb-3">
                           Not suitable for emergencies or urgent care.
                         </p>
                       )}
