@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 const CLERK_SIGN_UP_URL = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'
 
 export default async function RegisterRedirect({
   searchParams,
@@ -12,8 +13,7 @@ export default async function RegisterRedirect({
   if (email) {
     url.searchParams.set('email_address', email)
   }
-  if (redirectTo) {
-    url.searchParams.set('redirect_url', redirectTo)
-  }
+  // Always route through /auth/post-signin for profile linking
+  url.searchParams.set('redirect_url', redirectTo || `${APP_URL}/auth/post-signin`)
   redirect(url.toString())
 }
