@@ -4,6 +4,7 @@ import { Navbar } from "@/components/shared/navbar";
 import { MarketingFooter } from "@/components/marketing";
 import { CenteredHero } from "@/components/heroes";
 import { CTABanner, SectionHeader } from "@/components/sections";
+import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema";
 import type { Metadata } from "next";
 
@@ -103,36 +104,34 @@ export default function SymptomsIndexPage() {
 
             <div className="mx-auto max-w-4xl grid sm:grid-cols-2 gap-5">
               {symptoms.map((symptom) => (
-                <Link
-                  key={symptom.slug}
-                  href={`/symptoms/${symptom.slug}`}
-                  className="group rounded-2xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-6 hover:border-primary/50 hover:shadow-lg transition-all"
-                >
-                  <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {symptom.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {symptom.description}
-                  </p>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      Common causes:
+                <Link key={symptom.slug} href={`/symptoms/${symptom.slug}`} className="group">
+                  <PerspectiveTiltCard variant="glass" maxRotation={4} className="h-full">
+                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {symptom.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {symptom.description}
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {symptom.commonCauses.map((cause) => (
-                        <span
-                          key={cause}
-                          className="text-xs px-2 py-1 rounded-full border border-border/50 bg-muted/30 text-muted-foreground"
-                        >
-                          {cause}
-                        </span>
-                      ))}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                        Common causes:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {symptom.commonCauses.map((cause) => (
+                          <span
+                            key={cause}
+                            className="text-xs px-2 py-1 rounded-full border border-border/50 bg-muted/30 text-muted-foreground"
+                          >
+                            {cause}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center text-sm text-primary font-medium">
-                    Learn more
-                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                    <div className="mt-4 flex items-center text-sm text-primary font-medium">
+                      Learn more
+                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </PerspectiveTiltCard>
                 </Link>
               ))}
             </div>

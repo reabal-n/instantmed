@@ -351,33 +351,33 @@ export default async function BlogPostPage({ params }: PageProps) {
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Blog
+                Back to Health Guides
               </Link>
 
-              <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-4">
+              <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary mb-4">
                 {post.category}
               </span>
 
-              <h1 className="text-2xl font-bold sm:text-3xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
+              <h1 className="text-2xl font-bold sm:text-3xl mb-4">
                 {post.title}
               </h1>
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-8">
-                <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
+                <div className="flex items-center gap-1.5">
                   <User className="h-4 w-4" />
                   <span>{post.author}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
                   <span>{new Date(post.date).toLocaleDateString("en-AU", { dateStyle: "medium" })}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4" />
                   <span>{post.readTime} read</span>
                 </div>
               </div>
 
-              <div className="relative h-64 rounded-xl overflow-hidden mb-8">
+              <div className="relative h-64 rounded-2xl overflow-hidden mb-8">
                 <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
               </div>
 
@@ -385,7 +385,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 {post.content.map((paragraph, index) => {
                   if (paragraph.startsWith("## ")) {
                     return (
-                      <h2 key={index} className="text-lg font-semibold mt-6 mb-3">
+                      <h2 key={index} className="text-lg font-semibold mt-8 mb-3">
                         {paragraph.replace("## ", "")}
                       </h2>
                     )
@@ -408,10 +408,10 @@ export default async function BlogPostPage({ params }: PageProps) {
                 })}
               </div>
 
-              <div className="mt-8 pt-8 border-t">
+              <div className="mt-10 pt-8 border-t border-border/50">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                    <User className="h-6 w-6 text-muted-foreground" />
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary/60" />
                   </div>
                   <div>
                     <p className="font-semibold">{post.author}</p>
@@ -420,7 +420,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="mt-8 pt-8 border-t">
+              <div className="mt-8 pt-8 border-t border-border/50">
                 <h3 className="font-semibold mb-4">Related</h3>
                 <div className="flex flex-wrap gap-3">
                   {post.relatedLinks.map((link) => (
