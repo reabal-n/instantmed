@@ -5,7 +5,6 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
-import { Card } from "@/components/ui/card"
 import { Check, Loader2 } from "lucide-react"
 import { Confetti } from "@/components/ui/confetti"
 
@@ -59,16 +58,14 @@ export function CompleteAccountForm({
       <>
         <Confetti trigger={showConfetti} />
         <div className="p-8 glass-card">
-          <Card>
-            <div className="text-center">
+          <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
               <Check className="w-8 h-8 text-emerald-500" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
             <p className="text-muted-foreground">Redirecting to your request...</p>
             <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
-            </div>
-          </Card>
+          </div>
         </div>
       </>
     )
@@ -76,7 +73,6 @@ export function CompleteAccountForm({
 
   return (
     <div className="p-8 glass-card">
-      <Card>
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
           <Check className="w-8 h-8 text-emerald-500" />
@@ -119,7 +115,6 @@ export function CompleteAccountForm({
           Sign in
         </a>
       </p>
-      </Card>
     </div>
   )
 }

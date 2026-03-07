@@ -9,6 +9,7 @@
 import * as React from "react"
 import {
   BaseEmail,
+  HeroBlock,
   Text,
   Button,
   Box,
@@ -48,51 +49,12 @@ export function MedCertPatientEmail({
       previewText={`Your medical certificate for ${certTypeLabel} is ready to download`}
       appUrl={appUrl}
     >
-      {/* Success header with check icon */}
-      <div
-        style={{
-          textAlign: "center" as const,
-          padding: "8px 0 20px",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-block",
-            width: "44px",
-            height: "44px",
-            borderRadius: "50%",
-            backgroundColor: colors.successBg,
-            lineHeight: "44px",
-            textAlign: "center" as const,
-            fontSize: "20px",
-            marginBottom: "12px",
-            border: `1px solid ${colors.successBorder}`,
-          }}
-        >
-          ✓
-        </div>
-        <h1
-          style={{
-            margin: "0 0 4px 0",
-            fontSize: "22px",
-            fontWeight: "700",
-            color: colors.text,
-            letterSpacing: "-0.3px",
-            lineHeight: "1.3",
-          }}
-        >
-          Your certificate is ready
-        </h1>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "14px",
-            color: colors.textMuted,
-          }}
-        >
-          Medical Certificate — {certTypeLabel}
-        </p>
-      </div>
+      <HeroBlock
+        icon="✓"
+        headline="Your certificate is ready"
+        subtitle={`Medical Certificate — ${certTypeLabel}`}
+        variant="success"
+      />
 
       <Text>Hi {patientName},</Text>
 

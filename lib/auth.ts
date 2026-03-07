@@ -320,7 +320,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
  */
 export async function requireRole(
   allowedRoles: Array<"patient" | "doctor" | "admin">,
-  options?: { 
+  options?: {
     allowIncompleteOnboarding?: boolean
     redirectTo?: string
   },
@@ -328,6 +328,13 @@ export async function requireRole(
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
+    // Distinguish between "not authenticated" and "authenticated but no profile"
+    // to avoid redirect loops between /sign-in and Clerk
+    const { userId } = await clerkAuth()
+    if (userId) {
+      // Authenticated at Clerk but no profile — create it via post-signin
+      redirect("/auth/post-signin")
+    }
     redirect("/sign-in")
   }
 

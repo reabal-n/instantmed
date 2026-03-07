@@ -3,6 +3,7 @@ import Link from "next/link"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { PostSignInAuthWaiter } from "./auth-waiter"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -38,16 +39,19 @@ export default async function PostSignInPage({
   const params = await searchParams
   const { userId } = await auth()
 
-  // Not authenticated - redirect to sign in
+  // Not authenticated — render a client-side auth waiter instead of redirecting
+  // to /sign-in (which causes a redirect loop when returning from Clerk's
+  // hosted sign-up/sign-in). The client component uses Clerk's client SDK
+  // to detect when the session is established, then reloads the page.
   if (!userId) {
-    log.info("No user ID, redirecting to sign-in")
-    redirect("/sign-in")
+    log.info("No user ID, rendering auth waiter (avoids redirect loop)")
+    return <PostSignInAuthWaiter />
   }
 
   const user = await currentUser()
   if (!user) {
-    log.info("No Clerk user, redirecting to sign-in")
-    redirect("/sign-in")
+    log.info("No Clerk user, rendering auth waiter")
+    return <PostSignInAuthWaiter />
   }
 
   const primaryEmail = user.emailAddresses.find(

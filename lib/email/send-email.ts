@@ -48,6 +48,8 @@ export type EmailType =
   | "request_approved"
   // Lifecycle emails
   | "intake_submitted"
+  // Merged email (replaces payment_confirmed + intake_submitted for new sends)
+  | "request_received"
   | "referral_credit"
 
 interface SendEmailParams {
@@ -1295,6 +1297,45 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestType: serviceName,
       amount: amountFormatted,
       requestId: ctx.intake.id,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // request_received — merged React template (payment + review status)
+  // ----------------------------------------------------------------
+  if (row.email_type === "request_received") {
+    if (!row.intake_id) {
+      return { success: false, error: "request_received requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const metadata = row.metadata as { amount_cents?: number; service_slug?: string } | null
+    const amountCents = metadata?.amount_cents || ctx.intake.amount_cents || 0
+    const amountFormatted = amountCents > 0 ? `$${(amountCents / 100).toFixed(2)}` : "N/A"
+    const serviceName = metadata?.service_slug
+      ?.replace(/-/g, " ")
+      ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+      || ctx.service.short_name || ctx.service.name || "medical request"
+
+    const isGuest = !ctx.patient.email ? false : !(await supabase
+      .from("profiles")
+      .select("clerk_user_id")
+      .eq("id", ctx.patient.id)
+      .single()
+      .then(r => r.data?.clerk_user_id))
+
+    const { RequestReceivedEmail } = await import("@/components/email/templates/request-received")
+    const template = RequestReceivedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: serviceName,
+      amount: amountFormatted,
+      requestId: ctx.intake.id,
+      isGuest,
     })
 
     const html = await renderEmailToHtml(template)

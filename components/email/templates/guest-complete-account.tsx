@@ -1,11 +1,11 @@
 import {
   BaseEmail,
-  Heading,
+  HeroBlock,
   Text,
   Button,
   Box,
   List,
-  DetailRow,
+  colors,
 } from "../base-email"
 
 export interface GuestCompleteAccountEmailProps {
@@ -23,26 +23,24 @@ export function guestCompleteAccountSubject(requestType: string) {
 export function GuestCompleteAccountEmail({
   patientName,
   requestType,
-  intakeId,
+  intakeId: _intakeId,
   completeAccountUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: GuestCompleteAccountEmailProps) {
   return (
     <BaseEmail previewText={`Create your InstantMed account to track your ${requestType}`} appUrl={appUrl}>
-      <Heading>Your request is being reviewed</Heading>
+      <HeroBlock
+        icon="👤"
+        headline="Create your InstantMed account"
+        variant="neutral"
+      />
 
       <Text>Hi {patientName},</Text>
       <Text>
-        Your {requestType} request has been received and is now in the review queue.
-        A doctor will review it shortly.
+        Set up your account to track your {requestType} request, download your
+        certificate when it&apos;s ready, and reorder in seconds next time.
       </Text>
 
-      <Box>
-        <DetailRow label="Reference" value={intakeId.slice(0, 8).toUpperCase()} />
-      </Box>
-
-      <Heading as="h2">Create your account</Heading>
-      <Text>Set up your InstantMed account to:</Text>
       <List
         items={[
           "Track your request status in real-time",
@@ -56,10 +54,12 @@ export function GuestCompleteAccountEmail({
         <Button href={completeAccountUrl}>Create Your Account</Button>
       </div>
 
-      <Text muted small>
-        Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready,
-        even if you don&apos;t create an account.
-      </Text>
+      <Box variant="info">
+        <p style={{ margin: 0, fontSize: "13px", color: colors.infoText }}>
+          Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready,
+          even if you don&apos;t create an account.
+        </p>
+      </Box>
     </BaseEmail>
   )
 }

@@ -88,3 +88,7 @@ export type { ReferralCreditEmailProps } from "./referral-credit"
 // --- Intake Submitted ---
 export { IntakeSubmittedEmail, intakeSubmittedSubject } from "./intake-submitted"
 export type { IntakeSubmittedEmailProps } from "./intake-submitted"
+
+// --- Request Received (merged payment + review status) ---
+export { RequestReceivedEmail, requestReceivedSubject } from "./request-received"
+export type { RequestReceivedEmailProps } from "./request-received"

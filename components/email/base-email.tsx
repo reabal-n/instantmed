@@ -535,5 +535,61 @@ export function DetailRow({ label, value, mono, bold }: DetailRowProps) {
   )
 }
 
+// Hero block — centered icon + headline + subtitle for email headers
+interface HeroBlockProps {
+  icon: string
+  headline: string
+  subtitle?: string
+  variant?: "success" | "info" | "warning" | "neutral"
+}
+
+export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBlockProps) {
+  const variantStyles = {
+    success: { bg: colors.successBg, border: colors.successBorder, iconColor: colors.successText },
+    info: { bg: colors.infoBg, border: colors.infoBorder, iconColor: colors.infoText },
+    warning: { bg: colors.warningBg, border: colors.warningBorder, iconColor: colors.warningText },
+    neutral: { bg: colors.surfaceSubtle, border: colors.border, iconColor: colors.textSecondary },
+  }
+  const s = variantStyles[variant]
+  return (
+    <div style={{ textAlign: "center" as const, padding: "8px 0 24px" }}>
+      <div
+        style={{
+          display: "inline-block",
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          backgroundColor: s.bg,
+          border: `1px solid ${s.border}`,
+          lineHeight: "48px",
+          textAlign: "center" as const,
+          fontSize: "20px",
+          color: s.iconColor,
+          marginBottom: "14px",
+        }}
+      >
+        {icon}
+      </div>
+      <h1
+        style={{
+          margin: subtitle ? "0 0 4px 0" : "0",
+          fontSize: "22px",
+          fontWeight: "700",
+          color: colors.text,
+          letterSpacing: "-0.3px",
+          lineHeight: "1.3",
+        }}
+      >
+        {headline}
+      </h1>
+      {subtitle && (
+        <p style={{ margin: 0, fontSize: "14px", color: colors.textMuted }}>
+          {subtitle}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // Export colors for use in templates
 export { colors, fontFamily }

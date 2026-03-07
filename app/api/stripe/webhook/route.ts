@@ -625,11 +625,11 @@ export async function POST(request: Request) {
             log.error("Notification error (non-fatal)", { intakeId }, err)
           })
 
-          // 5b: Send payment_confirmed email via centralized pipeline
+          // 5b: Send merged "request received" email (payment receipt + review status)
           try {
             const React = await import("react")
             const { sendEmail } = await import("@/lib/email/send-email")
-            const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
+            const { RequestReceivedEmail, requestReceivedSubject } = await import("@/components/email/templates/request-received")
 
             const serviceName = session.metadata?.service_slug
               ?.replace(/-/g, " ")
@@ -637,18 +637,20 @@ export async function POST(request: Request) {
               || "medical request"
 
             const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
+            const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
 
             const emailResult = await sendEmail({
               to: patientProfile.email,
               toName: patientProfile.full_name || "Patient",
-              subject: `Payment confirmed for your ${serviceName}`,
-              template: React.createElement(PaymentConfirmedEmail, {
+              subject: requestReceivedSubject(serviceName),
+              template: React.createElement(RequestReceivedEmail, {
                 patientName: patientProfile.full_name || "there",
                 requestType: serviceName,
                 amount: amountFormatted,
                 requestId: intakeId,
+                isGuest,
               }),
-              emailType: "payment_confirmed",
+              emailType: "request_received",
               intakeId,
               patientId,
               metadata: {
@@ -658,41 +660,12 @@ export async function POST(request: Request) {
             })
 
             if (emailResult?.success === false) {
-              log.error("Payment confirmed email failed", { intakeId, email: patientProfile.email, error: emailResult.error })
+              log.error("Request received email failed", { intakeId, email: patientProfile.email, error: emailResult.error })
             } else {
-              log.info("Payment confirmed email sent", { intakeId, email: patientProfile.email })
+              log.info("Request received email sent", { intakeId, email: patientProfile.email })
             }
           } catch (emailErr) {
-            // Non-critical -- logged to outbox for retry by dispatcher
-            log.error("Payment confirmed email error (non-fatal)", { intakeId }, emailErr)
-          }
-          
-          // STEP 5b: Send "request is being reviewed" confirmation email
-          try {
-            const ReactForSubmitted = await import("react")
-            const { sendEmail: sendSubmittedEmail } = await import("@/lib/email/send-email")
-            const { IntakeSubmittedEmail, intakeSubmittedSubject } = await import("@/components/email/templates/intake-submitted")
-
-            const serviceNameForSubmitted = session.metadata?.service_slug
-              ?.replace(/-/g, " ")
-              ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
-              || "medical request"
-
-            await sendSubmittedEmail({
-              to: patientProfile.email,
-              toName: patientProfile.full_name || "Patient",
-              subject: intakeSubmittedSubject(serviceNameForSubmitted),
-              template: ReactForSubmitted.createElement(IntakeSubmittedEmail, {
-                patientName: patientProfile.full_name || "there",
-                requestType: serviceNameForSubmitted,
-                requestId: intakeId,
-              }),
-              emailType: "intake_submitted",
-              intakeId,
-              patientId,
-            })
-          } catch (submittedErr) {
-            log.error("Intake submitted email error (non-fatal)", { intakeId }, submittedErr)
+            log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
           }
 
           // STEP 5c: Send guest account completion email if this was a guest checkout

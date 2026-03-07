@@ -37,8 +37,12 @@ export async function GET(request: NextRequest) {
   const { userId } = await auth()
 
   if (!userId) {
-    log.info("No Clerk user, redirecting to sign-in")
-    return NextResponse.redirect(`${origin}/sign-in`)
+    // Redirect to /auth/post-signin (NOT /sign-in) to avoid a redirect loop.
+    // The loop: /auth/callback → /sign-in → Clerk (already signed in) → /auth/callback
+    // post-signin has a client-side auth waiter that properly handles the
+    // Clerk handshake race condition.
+    log.info("No Clerk user in callback, delegating to post-signin auth waiter")
+    return NextResponse.redirect(`${origin}/auth/post-signin`)
   }
 
   // Delegate to /auth/post-signin which handles profile linking with retries
