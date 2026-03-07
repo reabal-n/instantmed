@@ -22,6 +22,17 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+/** Convert camelCase or snake_case keys into readable labels */
+function formatFieldLabel(key: string): string {
+  return key
+    // Insert space before uppercase letters in camelCase
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    // Replace underscores with spaces
+    .replace(/_/g, " ")
+    // Capitalize first letter of each word
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
 interface ClinicalSummaryProps {
   answers: Record<string, unknown>
   serviceType?: string
@@ -63,6 +74,20 @@ const FIELD_LABELS: Record<string, string> = {
 
 // Fields to highlight as critical (red - requires immediate attention)
 const RED_FLAG_FIELDS = ["emergency_symptoms", "red_flags_detected", "symptom_severity"]
+
+// Values that indicate NO actual red flag (benign/negative values)
+const BENIGN_VALUES = new Set(["none", "no", "n/a", "nil", "not applicable", "false"])
+const BENIGN_SEVERITY = new Set(["mild", "moderate", "low", "minimal", "minor"])
+
+/** Check if a red flag field actually contains a concerning value */
+function isActualRedFlag(key: string, value: unknown): boolean {
+  const strValue = String(value).toLowerCase().trim()
+  // "None", "No", etc. are not red flags
+  if (BENIGN_VALUES.has(strValue)) return false
+  // For severity, only "severe" and "critical" are red flags
+  if (key === "symptom_severity" && BENIGN_SEVERITY.has(strValue)) return false
+  return true
+}
 
 // Fields to highlight as warnings (yellow/amber - requires caution)
 const YELLOW_FLAG_FIELDS = ["yellow_flags_detected", "yellow_flags", "caution_notes", "requires_followup"]
@@ -219,23 +244,47 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
     "confirmedAccuracy",
     "confirmed_accuracy",
     "accuracyConfirmed",
+    "accuracy_confirmed",
     "consent_given",
     "consentGiven",
     "telehealth_consent",
     "telehealthConsent",
+    "telehealth_consent_given",
+    "telehealthConsentGiven",
     "privacy_acknowledged",
     "privacyAcknowledged",
+    "safety_consent",
+    "safetyConsent",
+    "safety_consent_given",
+    "safetyConsentGiven",
+    "informed_consent",
+    "informedConsent",
+    "data_consent",
+    "dataConsent",
     // Attribution/meta
     "attribution",
     "consent_timestamp",
     "submittedAt",
     "submitted_at",
+    "completedAt",
+    "completed_at",
+    "step",
+    "currentStep",
+    "current_step",
     // Duplicate display fields (already shown in primary section)
     "certType",
     "cert_type",
-    "startDate", // shown in formatted primary fields
-    "addressLine1", // patient info shown separately
+    "startDate",
+    "start_date",
+    "endDate",
+    "end_date",
+    "addressLine1",
     "address_line1",
+    "addressLine2",
+    "address_line2",
+    // Symptom details already captured in primary fields
+    "symptomDetails",
+    "symptom_details",
   ])
   
   for (const [key, value] of sortedEntries) {
@@ -245,8 +294,12 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
     if (key.startsWith("patient_")) continue
     // Skip redundant/implied fields
     if (SKIP_FIELDS.has(key)) continue
-    
-    if (RED_FLAG_FIELDS.includes(key) && value) {
+    // Skip empty/null values
+    if (value === null || value === undefined || value === "") continue
+    // Skip any remaining consent-like boolean fields
+    if ((key.toLowerCase().includes("consent") || key.toLowerCase().includes("agreed") || key.toLowerCase().includes("confirmed")) && (value === true || value === "true")) continue
+
+    if (RED_FLAG_FIELDS.includes(key) && value && isActualRedFlag(key, value)) {
       redFlagFields.push([key, value])
     } else if (YELLOW_FLAG_FIELDS.includes(key) && value) {
       yellowFlagFields.push([key, value])
@@ -283,7 +336,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
             {redFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
                 <Badge variant="destructive" className="text-xs">
-                  {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                  {FIELD_LABELS[key] || formatFieldLabel(key)}
                 </Badge>
                 <span className="text-destructive-foreground">{formatValue(key, value)}</span>
               </div>
@@ -301,7 +354,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
             {yellowFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
                 <Badge className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                  {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                  {FIELD_LABELS[key] || formatFieldLabel(key)}
                 </Badge>
                 <span className="text-amber-900 dark:text-amber-200">{formatValue(key, value)}</span>
               </div>
@@ -364,7 +417,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground font-medium">
-                        {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                        {FIELD_LABELS[key] || formatFieldLabel(key)}
                       </p>
                       <p className={cn(
                         "font-medium mt-0.5",
@@ -396,7 +449,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                    {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                    {FIELD_LABELS[key] || formatFieldLabel(key)}
                   </p>
                   <p className="font-medium text-sm mt-0.5 wrap-break-word">
                     {formatValue(key, value)}
@@ -415,7 +468,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
               {secondaryFields.slice(0, 8).map(([key, value]) => (
                 <div key={key} className="flex justify-between gap-2">
                   <span className="text-muted-foreground truncate">
-                    {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                    {FIELD_LABELS[key] || formatFieldLabel(key)}
                   </span>
                   <span className="font-medium text-right truncate">
                     {formatValue(key, value)}

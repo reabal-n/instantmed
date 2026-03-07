@@ -50,6 +50,7 @@ interface DraftReviewPanelProps {
   intakeId: string
   onDraftApproved?: (draftId: string) => void
   onDraftRejected?: (draftId: string) => void
+  onRegenerated?: () => void
 }
 
 function formatDraftType(type: string): string {
@@ -618,6 +619,7 @@ export function DraftReviewPanel({
   intakeId,
   onDraftApproved,
   onDraftRejected,
+  onRegenerated,
 }: DraftReviewPanelProps) {
   const [isPending, startTransition] = useTransition()
   const [regenerateMessage, setRegenerateMessage] = useState<string | null>(null)
@@ -630,6 +632,7 @@ export function DraftReviewPanel({
       const result = await regenerateDrafts(intakeId)
       if (result.success) {
         setRegenerateMessage("Drafts regenerated successfully")
+        onRegenerated?.()
       } else {
         setRegenerateMessage(result.error || "Failed to regenerate")
       }

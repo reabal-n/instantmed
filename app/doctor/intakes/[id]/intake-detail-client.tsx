@@ -188,15 +188,24 @@ export function IntakeDetailClient({
   
   // P0 SAFETY: Detect red flags that require acknowledgment before approval
   const intakeAnswers = intake.answers?.answers as Record<string, unknown> | undefined
+
+  // Helper: check if a value is actually concerning (not "None", "No", "mild", etc.)
+  const isConcerningValue = (val: unknown): boolean => {
+    if (!val) return false
+    const str = String(val).toLowerCase().trim()
+    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "mild", "moderate", "low", "minimal", "minor"])
+    return !benign.has(str)
+  }
+
   const hasRedFlags = Boolean(
-    intakeAnswers?.red_flags_detected || 
-    intakeAnswers?.emergency_symptoms ||
+    isConcerningValue(intakeAnswers?.red_flags_detected) ||
+    isConcerningValue(intakeAnswers?.emergency_symptoms) ||
     intake.risk_tier === "high" ||
     intake.requires_live_consult
   )
   const redFlagDetails = [
-    intakeAnswers?.red_flags_detected && `Red flags: ${intakeAnswers.red_flags_detected}`,
-    intakeAnswers?.emergency_symptoms && `Emergency symptoms: ${intakeAnswers.emergency_symptoms}`,
+    isConcerningValue(intakeAnswers?.red_flags_detected) && `Red flags: ${intakeAnswers?.red_flags_detected}`,
+    isConcerningValue(intakeAnswers?.emergency_symptoms) && `Emergency symptoms: ${intakeAnswers?.emergency_symptoms}`,
     intake.risk_tier === "high" && "High risk tier",
     intake.requires_live_consult && "Requires live consult",
   ].filter(Boolean) as string[]
@@ -634,6 +643,7 @@ export function IntakeDetailClient({
           intakeId={intake.id}
           onDraftApproved={() => router.refresh()}
           onDraftRejected={() => router.refresh()}
+          onRegenerated={() => router.refresh()}
         />
       )}
 
