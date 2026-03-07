@@ -37,7 +37,8 @@ import { StatsStrip } from './total-patients-counter'
 import { MediaMentions } from './media-mentions'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { TrustBadgeSlider } from './trust-badge-slider'
-import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
+import { PricingSection as StandalonePricingSection } from '@/components/marketing/sections/pricing-section'
+import { TestimonialsSection } from '@/components/marketing/sections/testimonials-section'
 import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -266,7 +267,19 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       <AfterSubmitSection config={config} colors={colors} />
 
       {/* Section 5: Pricing */}
-      <PricingSection config={config} colors={colors} />
+      <StandalonePricingSection
+        title={config.pricing.title}
+        subtitle={config.pricing.subtitle}
+        price={config.pricing.price}
+        originalPrice={config.pricing.originalPrice}
+        features={config.pricing.features}
+        refundNote={config.pricing.refundNote}
+        medicareNote={config.pricing.medicareNote}
+        ctaText={config.hero.ctaText}
+        ctaHref={config.hero.ctaHref}
+        colors={colors}
+        showComparisonTable={config.serviceId === 'med-cert'}
+      />
 
       {/* Section 6: Trust & Compliance */}
       <TrustSection config={config} colors={colors} />
@@ -279,15 +292,12 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       </section>
 
       {/* Section 7: Social Proof — scrolling columns like homepage */}
-      <section className="py-4 overflow-hidden relative">
-        <TestimonialsColumnsWrapper
-          testimonials={testimonialsForColumns}
-          title={config.testimonials.title}
-          subtitle={config.testimonials.subtitle}
-          badgeText="Patient Feedback"
-          className="py-0 my-0"
-        />
-      </section>
+      <TestimonialsSection
+        testimonials={testimonialsForColumns}
+        title={config.testimonials.title}
+        subtitle={config.testimonials.subtitle}
+        badgeText="Patient Feedback"
+      />
 
       {/* Stats + Media Mentions */}
       <StatsStrip className="bg-white/30 dark:bg-white/[0.02] backdrop-blur-xs border-y border-border/30" />
@@ -728,145 +738,6 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
             )
           })}
         </div>
-      </div>
-    </section>
-  )
-}
-
-function PricingSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
-  return (
-    <section id="pricing" className="py-16 lg:py-24">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-10"
-        >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            {config.pricing.title}
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            {config.pricing.subtitle}
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className={cn('rounded-2xl p-8 lg:p-10 border-2 text-center', colors.light, colors.border)}
-        >
-          {/* Price */}
-          <div className="mb-6">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <span className={cn('text-5xl font-bold', colors.text)}>
-                ${config.pricing.price.toFixed(2)}
-              </span>
-              {config.pricing.originalPrice && (
-                <span className="text-2xl text-muted-foreground line-through">
-                  ${config.pricing.originalPrice.toFixed(2)}
-                </span>
-              )}
-            </div>
-            <p className="text-muted-foreground">One-time fee</p>
-          </div>
-
-          {/* Features */}
-          <ul className="text-left max-w-md mx-auto space-y-3 mb-8">
-            {config.pricing.features.map((feature, i) => (
-              <li key={i} className="flex items-center gap-3">
-                <Check className={cn('h-5 w-5 shrink-0', colors.text)} />
-                <span className="text-foreground">{feature}</span>
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA */}
-          <Button
-            asChild
-            size="lg"
-            className={cn('w-full sm:w-auto px-10 h-12 text-base font-semibold text-white', colors.button)}
-          >
-            <Link href={config.hero.ctaHref}>
-              {config.hero.ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <p className="mt-3 text-xs text-muted-foreground">
-            No account required &middot; Pay only after doctor review
-          </p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((m) => (
-              <span key={m} className="text-xs text-muted-foreground/50 px-1.5 py-0.5 rounded bg-background/50 border border-border/30">
-                {m}
-              </span>
-            ))}
-          </div>
-
-          {/* Notes */}
-          <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-            <p className="flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              {config.pricing.refundNote}
-            </p>
-            <p className="flex items-center justify-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              {config.pricing.medicareNote}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Comparison Table — shows for med-cert */}
-        {config.serviceId === 'med-cert' && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-12"
-          >
-            <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
-            <div className="overflow-x-auto rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-left py-4 px-5 text-muted-foreground font-medium"></th>
-                    <th className="text-center py-4 px-5 font-semibold text-primary bg-primary/5 dark:bg-primary/10">InstantMed</th>
-                    <th className="text-center py-4 px-5 text-muted-foreground font-medium">GP Clinic</th>
-                    <th className="text-center py-4 px-5 text-muted-foreground font-medium">Walk-in</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/30">
-                  {[
-                    { label: 'Cost', instant: '$19.95', gp: '$60–90', walkin: '$80–120', instantHighlight: true },
-                    { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours', instantHighlight: true },
-                    { label: 'Leave your couch?', instant: false, gp: true, walkin: true, instantHighlight: true },
-                    { label: 'Employer accepted', instant: true, gp: true, walkin: true },
-                    { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },
-                    { label: 'Open 7 days', instant: true, gp: 'Sometimes', walkin: 'Varies', instantHighlight: true },
-                    { label: 'No appointment needed', instant: true, gp: false, walkin: true, instantHighlight: true },
-                  ].map((row, i) => {
-                    const renderCell = (value: string | boolean) => {
-                      if (value === true) return <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                      if (value === false) return <span className="text-muted-foreground/40">—</span>
-                      return value
-                    }
-                    return (
-                      <tr key={i} className="hover:bg-muted/20 transition-colors">
-                        <td className="py-3.5 px-5 text-muted-foreground font-medium">{row.label}</td>
-                        <td className={cn('py-3.5 px-5 text-center font-semibold bg-primary/5 dark:bg-primary/10', row.instantHighlight ? 'text-foreground' : 'text-foreground')}>
-                          {renderCell(row.instant)}
-                        </td>
-                        <td className="py-3.5 px-5 text-center text-muted-foreground">{renderCell(row.gp)}</td>
-                        <td className="py-3.5 px-5 text-center text-muted-foreground">{renderCell(row.walkin)}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
       </div>
     </section>
   )

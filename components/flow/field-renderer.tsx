@@ -43,7 +43,7 @@ export function FieldRenderer({
       {type !== "toggle" && (
         <Label
           htmlFor={id}
-          className="block text-sm font-medium text-slate-700 mb-1.5"
+          className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
         >
           {label}
           {field.validation?.required && (
@@ -54,7 +54,7 @@ export function FieldRenderer({
 
       {/* Description */}
       {description && type !== "toggle" && (
-        <p className="text-xs text-slate-500 mb-2">{description}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{description}</p>
       )}
 
       {/* Field */}
@@ -70,7 +70,7 @@ export function FieldRenderer({
 
       {/* Error */}
       {error && (
-        <p className="mt-1.5 text-xs text-red-500" role="alert">
+        <p className="mt-1.5 text-xs text-red-500 dark:text-red-400" role="alert">
           {error}
         </p>
       )}
@@ -134,12 +134,12 @@ function renderField(type: string, props: FieldInternals) {
           <div className="flex-1">
             <Label
               htmlFor={props.id}
-              className="text-sm font-medium text-slate-700"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               {props.label}
             </Label>
             {props.description && (
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {props.description}
               </p>
             )}
@@ -224,17 +224,17 @@ function OptionCards({
             onClick={() => handleClick(opt.value)}
             className={cn(
               "w-full text-left rounded-xl border-2 px-4 py-3 transition-all duration-200",
-              "hover:border-emerald-300 hover:bg-emerald-50/30",
+              "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
               isActive
-                ? "border-emerald-500 bg-emerald-50 shadow-sm"
-                : "border-slate-200 bg-white"
+                ? "border-emerald-500 bg-emerald-50 shadow-sm dark:border-emerald-400 dark:bg-emerald-950/30"
+                : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
-            <span className="text-sm font-medium text-slate-800">
+            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
               {opt.label}
             </span>
             {opt.description && (
-              <span className="block text-xs text-slate-500 mt-0.5">
+              <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {opt.description}
               </span>
             )}
@@ -261,10 +261,10 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
             key={String(opt.value)}
             className={cn(
               "flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all duration-200",
-              "hover:border-emerald-300 hover:bg-emerald-50/30",
+              "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
               isActive
-                ? "border-emerald-500 bg-emerald-50"
-                : "border-slate-200 bg-white"
+                ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/30"
+                : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
             <input
@@ -278,19 +278,19 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
             <span
               className={cn(
                 "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                isActive ? "border-emerald-500" : "border-slate-300"
+                isActive ? "border-emerald-500 dark:border-emerald-400" : "border-slate-300 dark:border-slate-600"
               )}
             >
               {isActive && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
               )}
             </span>
             <div>
-              <span className="text-sm font-medium text-slate-800">
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                 {opt.label}
               </span>
               {opt.description && (
-                <span className="block text-xs text-slate-500 mt-0.5">
+                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {opt.description}
                 </span>
               )}

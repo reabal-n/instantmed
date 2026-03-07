@@ -27,11 +27,11 @@ export function FlowContent({
   return (
     <div className={cn("w-full max-w-2xl mx-auto", className)}>
       <div className="mb-6">
-        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
           {title}
         </h2>
         {description && (
-          <p className="mt-1.5 text-sm sm:text-base text-slate-500 leading-relaxed">
+          <p className="mt-1.5 text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
             {description}
           </p>
         )}
@@ -59,7 +59,7 @@ export function FlowSection({ title, children, className }: FlowSectionProps) {
   return (
     <div className={cn("mt-6", className)}>
       {title && (
-        <h3 className="text-sm font-medium text-slate-700 mb-3">{title}</h3>
+        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">{title}</h3>
       )}
       {children}
     </div>
