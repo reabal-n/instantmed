@@ -1,0 +1,21 @@
+{
+  "name": "InstantMed",
+  "short_name": "InstantMed",
+  "description": "Online Doctor Australia — Medical certificates, prescriptions & consults from $19.95",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFBFC",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "/branding/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
