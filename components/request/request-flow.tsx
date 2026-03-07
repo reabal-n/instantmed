@@ -72,14 +72,19 @@ const SAFETY_PRE_CHECK_STEPS = new Set([
 
 // Estimated time per step type (in seconds)
 const STEP_TIME_ESTIMATES: Record<string, number> = {
-  'safety': 15,
   'certificate': 30,
   'symptoms': 45,
   'medication': 60,
   'medication-history': 45,
   'medical-history': 60,
   'consult-reason': 45,
-  'referral-reason': 45,
+  'ed-assessment': 60,
+  'ed-safety': 30,
+  'hair-loss-assessment': 60,
+  'womens-health-type': 20,
+  'womens-health-assessment': 60,
+  'weight-loss-assessment': 90,
+  'weight-loss-call-scheduling': 30,
   'details': 90,
   'review': 30,
   'checkout': 60,
@@ -487,7 +492,7 @@ export function RequestFlow({
       const hoursSinceSave = (now - savedTime) / (1000 * 60 * 60)
       
       // Show banner if draft is less than 24 hours old
-      if (hoursSinceSave < 24 && currentStepId !== 'safety') {
+      if (hoursSinceSave < 24 && currentStepId !== 'review') {
         setShowDraftBanner(true)
       }
     }

@@ -159,7 +159,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         if (stepExists) {
           set({ serviceType: type })
         } else {
-          set({ serviceType: type, currentStepId: (steps[0]?.id || 'safety') as UnifiedStepId })
+          set({ serviceType: type, currentStepId: (steps[0]?.id || 'certificate') as UnifiedStepId })
         }
       },
 
@@ -206,7 +206,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           activeSteps = _getStepsForService(serviceType || 'med-cert', context).map(s => s.id)
         } catch {
           // Fallback if step registry throws
-          activeSteps = ['safety', 'certificate', 'symptoms', 'medication', 'medication-history', 'medical-history', 'consult-reason', 'details', 'review', 'checkout']
+          activeSteps = ['certificate', 'symptoms', 'medication', 'medication-history', 'medical-history', 'consult-reason', 'details', 'review', 'checkout']
         }
 
         const currentIndex = activeSteps.indexOf(currentStepId)
@@ -318,7 +318,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             const canonical = canonicalizeServiceType(state.serviceType)
             if (canonical) {
               saveDraft(canonical, {
-                currentStepId: state.currentStepId || 'safety',
+                currentStepId: state.currentStepId || 'certificate',
                 answers: state.answers || {},
                 firstName: state.firstName,
                 lastName: state.lastName,

@@ -17,7 +17,6 @@ import { SkeletonForm } from "@/components/ui/skeleton"
 
 // Lazy load step components
 const stepComponents = {
-  'safety-step': lazy(() => import('./steps/safety-step')),
   'certificate-step': lazy(() => import('./steps/certificate-step')),
   'symptoms-step': lazy(() => import('./steps/symptoms-step')),
   'medication-step': lazy(() => import('./steps/medication-step')),
@@ -27,7 +26,6 @@ const stepComponents = {
   'patient-details-step': lazy(() => import('./steps/patient-details-step')),
   'review-step': lazy(() => import('./steps/review-step')),
   'checkout-step': lazy(() => import('./steps/checkout-step')),
-  'referral-reason-step': lazy(() => import('./steps/referral-reason-step')),
   // Consult subtype-specific steps
   'ed-assessment-step': lazy(() => import('./steps/ed-assessment-step')),
   'ed-safety-step': lazy(() => import('./steps/ed-safety-step')),

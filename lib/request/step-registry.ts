@@ -17,7 +17,7 @@ export type UnifiedServiceType =
 // Step IDs used across all flows
 export type UnifiedStepId =
   | 'service'           // Service selection (optional - skip if pre-selected)
-  | 'safety'            // Emergency gate - ALWAYS FIRST for clinical flows
+  | 'safety'            // Safety consent (merged into review step)
   | 'certificate'       // Med cert type + duration
   | 'symptoms'          // Symptom selection + details
   | 'medication'        // PBS medication search
@@ -103,13 +103,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
-      required: true,
-    },
-    {
       id: 'review',
       label: 'Review',
       shortLabel: 'Review',
@@ -136,6 +129,14 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
+      id: 'medication-history',
+      label: 'Prescription history',
+      shortLabel: 'History',
+      componentPath: 'medication-history-step',
+      validateFn: 'validateMedicationHistoryStep',
+      required: true,
+    },
+    {
       id: 'medical-history',
       label: 'Notes & history',
       shortLabel: 'Notes',
@@ -169,49 +170,8 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
     },
   ],
 
-  // Alias for prescription (same simplified flow)
-  'repeat-script': [
-    {
-      id: 'medication',
-      label: 'Your medication',
-      shortLabel: 'Medication',
-      componentPath: 'medication-step',
-      validateFn: 'validateMedicationStep',
-      required: true,
-    },
-    {
-      id: 'medical-history',
-      label: 'Notes & history',
-      shortLabel: 'Notes',
-      componentPath: 'medical-history-step',
-      validateFn: 'validateMedicalHistoryStep',
-      required: true,
-    },
-    {
-      id: 'details',
-      label: 'Your details',
-      shortLabel: 'Details',
-      componentPath: 'patient-details-step',
-      validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
-      required: true,
-    },
-    {
-      id: 'review',
-      label: 'Review',
-      shortLabel: 'Review',
-      componentPath: 'review-step',
-      required: true,
-    },
-    {
-      id: 'checkout',
-      label: 'Payment',
-      shortLabel: 'Pay',
-      componentPath: 'checkout-step',
-      validateFn: 'validateCheckoutStep',
-      required: true,
-    },
-  ],
+  // Alias — same flow as prescription
+  'repeat-script': [] as StepDefinition[], // populated below
 
   'consult': [
     {
@@ -257,6 +217,9 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
   ],
 
 }
+
+// repeat-script uses the same flow as prescription
+STEP_REGISTRY['repeat-script'] = STEP_REGISTRY['prescription']
 
 // Shared tail steps for all consult subtypes
 const CONSULT_COMMON_TAIL: StepDefinition[] = [
@@ -410,7 +373,6 @@ export function getStepsForService(
   }
   
   return steps.filter(step => {
-    if (!step.required) return true
     if (step.canSkip && step.canSkip(context)) return false
     return true
   })
