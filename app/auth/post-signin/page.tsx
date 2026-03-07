@@ -1,9 +1,22 @@
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { PostSignInAuthWaiter } from "./auth-waiter"
+import { Loader2 } from "lucide-react"
+
+function AuthWaiterFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  )
+}
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -37,21 +50,31 @@ export default async function PostSignInPage({
   searchParams: Promise<{ redirect?: string; intake_id?: string }>
 }) {
   const params = await searchParams
+  const paramsString = new URLSearchParams(params as Record<string, string>).toString()
   const { userId } = await auth()
 
   // Not authenticated — render a client-side auth waiter instead of redirecting
   // to /sign-in (which causes a redirect loop when returning from Clerk's
   // hosted sign-up/sign-in). The client component uses Clerk's client SDK
   // to detect when the session is established, then reloads the page.
+  // Wrapped in Suspense — required by Next.js 15 for proper hydration.
   if (!userId) {
     log.info("No user ID, rendering auth waiter (avoids redirect loop)")
-    return <PostSignInAuthWaiter />
+    return (
+      <Suspense fallback={<AuthWaiterFallback />}>
+        <PostSignInAuthWaiter paramsString={paramsString} />
+      </Suspense>
+    )
   }
 
   const user = await currentUser()
   if (!user) {
     log.info("No Clerk user, rendering auth waiter")
-    return <PostSignInAuthWaiter />
+    return (
+      <Suspense fallback={<AuthWaiterFallback />}>
+        <PostSignInAuthWaiter paramsString={paramsString} />
+      </Suspense>
+    )
   }
 
   const primaryEmail = user.emailAddresses.find(

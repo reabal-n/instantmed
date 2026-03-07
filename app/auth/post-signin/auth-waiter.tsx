@@ -2,7 +2,6 @@
 
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
 
@@ -19,10 +18,12 @@ import { Loader2 } from "lucide-react"
  *
  * Uses sessionStorage with a 30-second timestamp window to track
  * attempts. Stale counters from previous sign-ins reset automatically.
+ *
+ * Accepts search params as a prop to avoid useSearchParams() which
+ * requires a Suspense boundary in Next.js 15 and can cause hydration issues.
  */
-export function PostSignInAuthWaiter() {
+export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: string }) {
   const { isSignedIn, isLoaded } = useAuth()
-  const searchParams = useSearchParams()
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
 
@@ -58,9 +59,10 @@ export function PostSignInAuthWaiter() {
       // Redirect through Clerk to force the handshake and set server cookies.
       // A simple page reload won't work because the handshake tokens
       // (which the middleware needs to establish the session) aren't in the URL.
-      const params = new URLSearchParams(searchParams.toString())
       const currentOrigin = window.location.origin
-      const postSignInUrl = `${currentOrigin}/auth/post-signin?${params.toString()}`
+      const postSignInUrl = paramsString
+        ? `${currentOrigin}/auth/post-signin?${paramsString}`
+        : `${currentOrigin}/auth/post-signin`
       const clerkSignInUrl =
         process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ||
         "https://accounts.instantmed.com.au/sign-in"
@@ -76,7 +78,7 @@ export function PostSignInAuthWaiter() {
     }, 8000)
 
     return () => clearTimeout(timer)
-  }, [isLoaded, isSignedIn, searchParams])
+  }, [isLoaded, isSignedIn, paramsString])
 
   if (timedOut) {
     return (

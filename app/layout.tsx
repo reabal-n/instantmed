@@ -133,7 +133,8 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link rel="preconnect" href="https://api.dicebear.com" />
-          <link rel="preconnect" href="https://central-ostrich-48.clerk.accounts.dev" />
+          {/* Clerk preconnect: use production domain, not hardcoded dev instance */}
+          <link rel="preconnect" href="https://accounts.instantmed.com.au" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
