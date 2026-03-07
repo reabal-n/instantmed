@@ -200,15 +200,24 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
             </AlertDescription>
           </Alert>
 
-          <div className="flex items-center justify-between p-4 rounded-xl border">
-            <Label htmlFor="managedCondition" className="text-sm font-medium leading-relaxed flex-1 pr-4">
-              Is this condition currently being managed by a doctor?
-            </Label>
-            <Switch
-              id="managedCondition"
-              checked={false}
-              onCheckedChange={(checked) => handleFollowUp(checked)}
-            />
+          <p className="text-sm font-medium leading-relaxed">
+            Is this condition currently being managed by a doctor?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleFollowUp(true)}
+            >
+              Yes, managed by a doctor
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleFollowUp(false)}
+            >
+              No
+            </Button>
           </div>
 
           <p className="text-xs text-muted-foreground px-1">

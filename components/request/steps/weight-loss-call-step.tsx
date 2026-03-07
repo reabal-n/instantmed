@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
+import { validatePhone } from "@/lib/request/validation"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -47,8 +48,9 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
     if (!preferredDays) {
       newErrors.preferredDays = "Please select preferred days"
     }
-    if (!callbackPhone || callbackPhone.length < 10) {
-      newErrors.callbackPhone = "Please enter a valid phone number"
+    const phoneError = validatePhone(callbackPhone, true)
+    if (phoneError) {
+      newErrors.callbackPhone = phoneError
     }
     
     setErrors(newErrors)
@@ -61,7 +63,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
     }
   }
 
-  const isComplete = preferredTimeSlot && preferredDays && callbackPhone.length >= 10
+  const isComplete = preferredTimeSlot && preferredDays && !validatePhone(callbackPhone, true)
 
   return (
     <div className="space-y-6 animate-in fade-in">

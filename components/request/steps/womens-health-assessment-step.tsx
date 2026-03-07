@@ -396,13 +396,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
               <Switch
                 id={`uti-${symptom.value}`}
                 checked={utiSymptoms?.includes(symptom.value) ?? false}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    toggleSymptom(symptom.value)
-                  } else {
-                    toggleSymptom(symptom.value)
-                  }
-                }}
+                onCheckedChange={() => toggleSymptom(symptom.value)}
               />
             </div>
           ))}

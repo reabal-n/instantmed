@@ -33,6 +33,7 @@ import { ConnectionBanner } from "./connection-banner"
 import {
   getStepsForService,
   type UnifiedServiceType,
+  type UnifiedStepId,
   type StepContext,
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
@@ -528,6 +529,17 @@ export function RequestFlow({
     // If step not found in this flow, default to first step
     return index >= 0 ? index : 0
   }, [activeSteps, currentStepId])
+
+  // Sync store's currentStepId when it doesn't exist in the active steps list.
+  // This happens when consultSubtype changes (e.g., from general to ED) and the
+  // persisted currentStepId (e.g., "consult-reason") isn't in the new subtype's
+  // step sequence. Without this sync, nextStep() silently fails because
+  // getNextStepId can't find the step in the list.
+  useEffect(() => {
+    if (activeSteps.length > 0 && !activeSteps.some(s => s.id === currentStepId)) {
+      goToStep(activeSteps[0].id as UnifiedStepId)
+    }
+  }, [activeSteps, currentStepId, goToStep])
 
   // Get current step definition (safe now since we default to 0)
   const currentStep = activeSteps.length > 0 ? activeSteps[currentStepIndex] : null

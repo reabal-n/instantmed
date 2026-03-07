@@ -132,6 +132,10 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
       newErrors.consultDetails = "Please provide more detail (at least 20 characters)"
     }
 
+    if (!consultUrgency) {
+      newErrors.consultUrgency = "Please indicate how urgent this is"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -142,7 +146,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     }
   }
 
-  const isComplete = consultCategory && consultDetails?.length >= 20
+  const isComplete = consultCategory && consultDetails?.length >= 20 && consultUrgency
 
   // Friendly label for pre-selected subtype
   const subtypeLabel = consultSubtype
@@ -274,6 +278,9 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             Urgent
           </EnhancedSelectionButton>
         </div>
+        {errors.consultUrgency && (
+          <p className="text-xs text-destructive">{errors.consultUrgency}</p>
+        )}
       </div>
 
       {/* Continue button */}

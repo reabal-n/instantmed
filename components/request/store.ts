@@ -292,16 +292,41 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       storage: {
         getItem: (name: string): StorageValue<Partial<RequestState>> | null => {
           if (typeof localStorage === 'undefined') return null
-          
+
           // First, attempt migration from legacy key
           migrateLegacyDraft()
-          
+
           // Read from legacy key (will switch to new keys in Phase 2.3)
           const stored = localStorage.getItem(name)
           if (!stored) return null
-          
+
           try {
-            return JSON.parse(stored) as StorageValue<Partial<RequestState>>
+            const parsed = JSON.parse(stored) as StorageValue<Partial<RequestState>>
+
+            // Validate currentStepId against the actual step list BEFORE hydration.
+            // Subtypes (e.g. ED, hair loss) change the step sequence, so a persisted
+            // currentStepId (e.g. "consult-reason") may not exist in the subtype's
+            // step list — causing silent navigation failures when nextStep() is called.
+            const st = parsed.state
+            if (st?.serviceType && st.currentStepId) {
+              try {
+                const context = {
+                  isAuthenticated: false,
+                  hasProfile: false,
+                  hasMedicare: false,
+                  serviceType: st.serviceType,
+                  answers: st.answers ?? {},
+                }
+                const steps = _getStepsForService(st.serviceType, context)
+                if (steps.length > 0 && !steps.some(s => s.id === st.currentStepId)) {
+                  st.currentStepId = steps[0].id as UnifiedStepId
+                }
+              } catch {
+                // Step registry threw — leave currentStepId as-is
+              }
+            }
+
+            return parsed
           } catch {
             return null
           }

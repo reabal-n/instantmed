@@ -247,8 +247,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     if (consultSubtype === 'ed') {
       const ED_ONSET_LABELS: Record<string, string> = {
         recent: 'Recently (< 3 months)',
-        moderate: '3-12 months',
-        longterm: '> 12 months',
+        gradual: 'Gradually over time',
+        sudden: 'Suddenly',
         always: 'Always had difficulty',
       }
       const ED_FREQ_LABELS: Record<string, string> = {
@@ -257,13 +257,31 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         sometimes: 'Sometimes',
         rarely: 'Rarely',
       }
+      const ED_MORNING_LABELS: Record<string, string> = {
+        yes: 'Yes',
+        sometimes: 'Sometimes',
+        rarely: 'Rarely / No',
+      }
+      const ED_PREF_LABELS: Record<string, string> = {
+        daily: 'Daily (Tadalafil 5mg)',
+        prn: 'As-needed (Sildenafil/Tadalafil)',
+      }
+
+      const edItems = [
+        { label: 'Onset', value: ED_ONSET_LABELS[answers.edOnset as string] || String(answers.edOnset || '—') },
+        { label: 'Frequency', value: ED_FREQ_LABELS[answers.edFrequency as string] || String(answers.edFrequency || '—') },
+        { label: 'Morning erections', value: ED_MORNING_LABELS[answers.edMorningErections as string] || String(answers.edMorningErections || '—') },
+        { label: 'Preference', value: ED_PREF_LABELS[answers.edPreference as string] || String(answers.edPreference || '—') },
+      ]
+      if (answers.edSafety_managedCondition) {
+        edItems.push({ label: 'Managed condition', value: 'Yes — under doctor supervision' })
+      }
+      if (answers.edAdditionalInfo) {
+        edItems.push({ label: 'Additional info', value: String(answers.edAdditionalInfo) })
+      }
       sections.push({
         title: 'ED Assessment',
-        items: [
-          { label: 'Onset', value: ED_ONSET_LABELS[answers.edOnset as string] || String(answers.edOnset || '—') },
-          { label: 'Frequency', value: ED_FREQ_LABELS[answers.edFrequency as string] || String(answers.edFrequency || '—') },
-          { label: 'Morning erections', value: answers.edMorningErections === 'yes' ? 'Yes' : answers.edMorningErections === 'no' ? 'No' : '—' },
-        ],
+        items: edItems,
         stepId: 'ed-assessment',
       })
     }
@@ -292,13 +310,45 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         no: 'No family history',
         unknown: 'Not sure',
       }
+      const HAIR_MED_LABELS: Record<string, string> = {
+        finasteride: 'Finasteride (oral)',
+        minoxidil: 'Minoxidil (topical)',
+      }
+      const triedTreatments = [
+        { key: 'triedMinoxidil', label: 'Minoxidil' },
+        { key: 'triedFinasteride', label: 'Finasteride' },
+        { key: 'triedBiotin', label: 'Biotin' },
+        { key: 'triedShampoos', label: 'Medicated shampoos' },
+        { key: 'triedPRP', label: 'PRP therapy' },
+        { key: 'triedOther', label: 'Other' },
+      ].filter(t => answers[t.key]).map(t => t.label)
+      const scalpConditions = [
+        { key: 'scalpDandruff', label: 'Dandruff' },
+        { key: 'scalpPsoriasis', label: 'Psoriasis' },
+        { key: 'scalpItching', label: 'Itching' },
+        { key: 'scalpFolliculitis', label: 'Folliculitis' },
+      ].filter(c => answers[c.key]).map(c => c.label)
+
+      const hairItems = [
+        { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '—') },
+        { label: 'Duration', value: HAIR_DURATION_LABELS[answers.hairDuration as string] || String(answers.hairDuration || '—') },
+        { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '—') },
+        { label: 'Preference', value: HAIR_MED_LABELS[answers.hairMedicationPreference as string] || String(answers.hairMedicationPreference || '—') },
+      ]
+      if (triedTreatments.length > 0) {
+        hairItems.push({ label: 'Tried previously', value: triedTreatments.join(', ') })
+      }
+      if (scalpConditions.length > 0) {
+        hairItems.push({ label: 'Scalp conditions', value: scalpConditions.join(', ') })
+      } else if (answers.scalpNone) {
+        hairItems.push({ label: 'Scalp conditions', value: 'None' })
+      }
+      if (answers.hairAdditionalInfo) {
+        hairItems.push({ label: 'Additional info', value: String(answers.hairAdditionalInfo) })
+      }
       sections.push({
         title: 'Hair Loss Assessment',
-        items: [
-          { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '—') },
-          { label: 'Duration', value: HAIR_DURATION_LABELS[answers.hairDuration as string] || String(answers.hairDuration || '—') },
-          { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '—') },
-        ],
+        items: hairItems,
         stepId: 'hair-loss-assessment',
       })
     }
@@ -307,16 +357,48 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     if (consultSubtype === 'womens_health') {
       const WH_TYPE_LABELS: Record<string, string> = {
         contraception: 'Contraception',
+        ocp_new: 'Contraception (new)',
+        ocp_repeat: 'Contraception (repeat)',
         morning_after: 'Morning-after pill',
         uti: 'UTI treatment',
         period_pain: 'Period pain',
         other: 'Other concern',
       }
+      const whOption = answers.womensHealthOption as string | undefined
+      const whItems = [
+        { label: 'Concern', value: WH_TYPE_LABELS[whOption as string] || String(whOption || '—') },
+      ]
+
+      // Contraception details
+      if (whOption === 'ocp_new' || whOption === 'ocp_repeat' || whOption === 'contraception') {
+        const CONTRACEPTION_TYPE_LABELS: Record<string, string> = { start: 'Start new', continue: 'Continue/repeat', switch: 'Switch type' }
+        const CURRENT_LABELS: Record<string, string> = { pill: 'The pill', iud: 'IUD/implant', other: 'Other method', none: 'None' }
+        const PREGNANCY_LABELS: Record<string, string> = { no: 'No', not_sure: 'Not sure', yes: 'Yes' }
+        if (answers.contraceptionType) whItems.push({ label: 'Type', value: CONTRACEPTION_TYPE_LABELS[answers.contraceptionType as string] || String(answers.contraceptionType) })
+        if (answers.contraceptionCurrent) whItems.push({ label: 'Current contraception', value: CURRENT_LABELS[answers.contraceptionCurrent as string] || String(answers.contraceptionCurrent) })
+        if (answers.pregnancyStatus) whItems.push({ label: 'Pregnant', value: PREGNANCY_LABELS[answers.pregnancyStatus as string] || String(answers.pregnancyStatus) })
+      }
+
+      // Morning-after details
+      if (whOption === 'morning_after') {
+        const HOURS_LABELS: Record<string, string> = { under_24: '< 24 hours', '24_to_72': '24-72 hours', '72_to_120': '72-120 hours' }
+        if (answers.hoursSinceIntercourse) whItems.push({ label: 'Time since', value: HOURS_LABELS[answers.hoursSinceIntercourse as string] || String(answers.hoursSinceIntercourse) })
+      }
+
+      // UTI details
+      if (whOption === 'uti') {
+        const utiSymptoms = answers.utiSymptoms as string[] | undefined
+        if (utiSymptoms?.length) whItems.push({ label: 'Symptoms', value: utiSymptoms.join(', ') })
+      }
+
+      // General details
+      if ((whOption === 'period_pain' || whOption === 'other') && answers.womensDetails) {
+        whItems.push({ label: 'Details', value: String(answers.womensDetails) })
+      }
+
       sections.push({
         title: "Women's Health",
-        items: [
-          { label: 'Concern', value: WH_TYPE_LABELS[answers.womensHealthOption as string] || String(answers.womensHealthOption || '—') },
-        ],
+        items: whItems,
         stepId: 'womens-health-type',
       })
     }
@@ -326,15 +408,64 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       const bmi = answers.currentWeight && answers.currentHeight
         ? (parseFloat(String(answers.currentWeight)) / Math.pow(parseFloat(String(answers.currentHeight)) / 100, 2)).toFixed(1)
         : null
+      const WL_MED_LABELS: Record<string, string> = {
+        glp1: 'GLP-1 (e.g., Ozempic)',
+        duromine: 'Duromine (Phentermine)',
+      }
+      const PREV_ATTEMPTS_LABELS: Record<string, string> = {
+        none: 'No previous attempts',
+        diet_exercise: 'Diet and exercise only',
+        programs: 'Weight loss programs',
+        medication: 'Weight loss medication',
+        multiple: 'Multiple methods',
+      }
+      const medicalHistory = [
+        { key: 'wlHistoryDiabetes', label: 'Type 2 diabetes' },
+        { key: 'wlHistoryHeartCondition', label: 'Heart condition' },
+        { key: 'wlHistoryHighBP', label: 'High blood pressure' },
+        { key: 'wlHistoryThyroid', label: 'Thyroid disorder' },
+        { key: 'wlHistorySleepApnea', label: 'Sleep apnea' },
+        { key: 'wlHistoryPCOS', label: 'PCOS' },
+      ].filter(h => answers[h.key]).map(h => h.label)
+
+      const wlItems = [
+        { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '—' },
+        { label: 'Height', value: answers.currentHeight ? `${answers.currentHeight} cm` : '—' },
+        { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '—' },
+        ...(bmi ? [{ label: 'BMI', value: bmi }] : []),
+        { label: 'Previous attempts', value: PREV_ATTEMPTS_LABELS[answers.previousAttempts as string] || String(answers.previousAttempts || '—') },
+        { label: 'Medication preference', value: WL_MED_LABELS[answers.weightLossMedPreference as string] || String(answers.weightLossMedPreference || '—') },
+        { label: 'Eating disorder history', value: answers.eatingDisorderHistory === 'yes' ? 'Yes' : 'No' },
+      ]
+      if (answers.wlAdverseReactions === 'yes') {
+        wlItems.push({ label: 'Adverse reactions', value: String(answers.wlAdverseReactionsDetails || 'Yes') })
+      }
+      if (medicalHistory.length > 0) {
+        wlItems.push({ label: 'Medical history', value: medicalHistory.join(', ') })
+      }
+      if (answers.weightLossGoals) {
+        wlItems.push({ label: 'Goals', value: String(answers.weightLossGoals) })
+      }
       sections.push({
         title: 'Weight Loss Assessment',
-        items: [
-          { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '—' },
-          { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '—' },
-          ...(bmi ? [{ label: 'BMI', value: bmi }] : []),
-        ],
+        items: wlItems,
         stepId: 'weight-loss-assessment',
       })
+
+      // Call scheduling (if present)
+      if (answers.preferredTimeSlot || answers.preferredDays || answers.callbackPhone) {
+        const TIME_LABELS: Record<string, string> = { morning: 'Morning (9am-12pm)', afternoon: 'Afternoon (12pm-5pm)', evening: 'Evening (5pm-8pm)' }
+        const DAY_LABELS: Record<string, string> = { weekday: 'Weekdays', weekend: 'Weekends', any: 'Any day' }
+        sections.push({
+          title: 'Call Scheduling',
+          items: [
+            { label: 'Preferred time', value: TIME_LABELS[answers.preferredTimeSlot as string] || String(answers.preferredTimeSlot || '—') },
+            { label: 'Preferred days', value: DAY_LABELS[answers.preferredDays as string] || String(answers.preferredDays || '—') },
+            { label: 'Phone', value: String(answers.callbackPhone || '—') },
+          ],
+          stepId: 'weight-loss-call',
+        })
+      }
     }
   }
 

@@ -151,13 +151,16 @@ export const consultReasonStepSchema = z.object({
     .refine((v) => (v?.trim().length ?? 0) >= 20, {
       message: "Please provide more detail (at least 20 characters)",
     }),
+  consultUrgency: nonEmptyString("Please indicate how urgent this is"),
 })
 
 export const edAssessmentStepSchema = z.object({
   edOnset: nonEmptyString("Please indicate when symptoms started"),
   edFrequency: nonEmptyString("Please indicate how often this occurs"),
   edMorningErections: nonEmptyString("Please answer this question"),
-  edAgeConfirmed: nonEmptyString("Please confirm your age"),
+  edAgeConfirmed: z.literal(true, {
+    error: "Please confirm your age",
+  }),
   edPreference: nonEmptyString("Please select a treatment preference"),
 })
 
@@ -212,8 +215,11 @@ export const weightLossCallStepSchema = z.object({
   preferredDays: nonEmptyString("Please select preferred days"),
   callbackPhone: z
     .string()
-    .refine((v) => (v?.trim().length ?? 0) >= 10, {
-      message: "Please enter a valid callback number",
+    .refine((v) => {
+      const cleaned = v?.replace(/[\s-]/g, "") ?? ""
+      return AU_PHONE_REGEX.test(cleaned)
+    }, {
+      message: "Please enter a valid Australian phone number",
     }),
 })
 
