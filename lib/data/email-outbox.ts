@@ -11,6 +11,11 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -103,7 +108,7 @@ export async function getEmailOutboxList(options: {
       query = query.eq("email_type", filters.email_type)
     }
     if (filters.to_email) {
-      query = query.ilike("to_email", `%${filters.to_email}%`)
+      query = query.ilike("to_email", `%${escapeIlike(filters.to_email)}%`)
     }
     if (filters.intake_id) {
       query = query.eq("intake_id", filters.intake_id)

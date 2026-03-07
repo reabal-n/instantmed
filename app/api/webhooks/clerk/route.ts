@@ -5,6 +5,11 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
 import { toError } from "@/lib/errors"
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 const log = createLogger('clerk-webhook')
 
 export async function POST(req: Request) {
@@ -98,7 +103,7 @@ export async function POST(req: Request) {
       const { data: guestProfile } = await supabase
         .from('profiles')
         .select('id, clerk_user_id, role')
-        .ilike('email', primaryEmail)
+        .ilike('email', escapeIlike(primaryEmail))
         .or('clerk_user_id.is.null,clerk_user_id.eq.')
         .maybeSingle()
 

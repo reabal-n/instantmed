@@ -82,6 +82,16 @@ const serverEnvSchema = z.object({
   // Clerk webhook verification
   CLERK_WEBHOOK_SECRET: z.string().optional(),
 
+  // Clerk auth (public key needed for client SDK)
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
+  CLERK_SECRET_KEY: z.string().optional(),
+
+  // Stripe publishable key (public, for client checkout)
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+
+  // Google site verification
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 })
 

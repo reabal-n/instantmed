@@ -115,6 +115,25 @@ export async function approveDraft(
     return { success: false, error: "Draft not found" }
   }
 
+  // Verify doctor is assigned to this intake (or is admin)
+  if (auth.profile.role === "doctor") {
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("assigned_doctor_id")
+      .eq("id", draft.intake_id)
+      .single()
+
+    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
+      log.warn("Doctor not assigned to intake", {
+        draftId,
+        intakeId: draft.intake_id,
+        doctorId: auth.profile.id,
+        assignedDoctorId: intake.assigned_doctor_id,
+      })
+      return { success: false, error: "You are not assigned to this intake" }
+    }
+  }
+
   // Check if already approved or rejected
   if (draft.approved_at) {
     return { success: false, error: "Draft has already been approved" }
@@ -232,6 +251,25 @@ export async function rejectDraft(
     return { success: false, error: "Draft not found" }
   }
 
+  // Verify doctor is assigned to this intake (or is admin)
+  if (auth.profile.role === "doctor") {
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("assigned_doctor_id")
+      .eq("id", draft.intake_id)
+      .single()
+
+    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
+      log.warn("Doctor not assigned to intake", {
+        draftId,
+        intakeId: draft.intake_id,
+        doctorId: auth.profile.id,
+        assignedDoctorId: intake.assigned_doctor_id,
+      })
+      return { success: false, error: "You are not assigned to this intake" }
+    }
+  }
+
   if (draft.approved_at) {
     return { success: false, error: "Cannot reject an already approved draft" }
   }
@@ -293,6 +331,24 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
   }
 
   const supabase = createServiceRoleClient()
+
+  // Verify doctor is assigned to this intake (or is admin)
+  if (auth.profile.role === "doctor") {
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("assigned_doctor_id")
+      .eq("id", intakeId)
+      .single()
+
+    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
+      log.warn("Doctor not assigned to intake for regeneration", {
+        intakeId,
+        doctorId: auth.profile.id,
+        assignedDoctorId: intake.assigned_doctor_id,
+      })
+      return { success: false, error: "You are not assigned to this intake" }
+    }
+  }
 
   // Get current draft version
   const { data: existingDrafts } = await supabase

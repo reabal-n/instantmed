@@ -38,6 +38,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
+    // Resolve profile ID from Clerk user for ownership tracking
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
     // Check if draft already exists for this session + service
     const { data: existingDraft } = await supabase
       .from("intake_drafts")
@@ -62,6 +69,7 @@ export async function POST(request: NextRequest) {
         {
           session_id: sessionId,
           service_slug: serviceSlug,
+          user_id: callerProfile?.id || null,
           data: initialData || {},
           current_step: "safety",
           current_group_index: 0,
@@ -122,12 +130,26 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    const { data: drafts, error } = await supabase
+    // Resolve profile ID to enforce ownership
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
+    let query = supabase
       .from("intake_drafts")
       .select("id, service_slug, current_step, current_group_index, status, created_at, updated_at")
       .eq("session_id", sessionId)
       .eq("status", "in_progress")
       .order("updated_at", { ascending: false })
+
+    // If we have a profile, also filter by user_id for ownership
+    if (callerProfile) {
+      query = query.eq("user_id", callerProfile.id)
+    }
+
+    const { data: drafts, error } = await query
 
     if (error) {
       logger.error("Failed to list drafts", { error: error.message, sessionId })

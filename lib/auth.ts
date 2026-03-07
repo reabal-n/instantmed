@@ -11,6 +11,11 @@ import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 // ============================================================================
 // PROFILE SELECT COLUMNS
 // Explicit column list for all profile queries (avoids select("*"))
@@ -199,7 +204,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     const { data: guestProfile } = await supabase
       .from("profiles")
       .select(PROFILE_COLUMNS)
-      .ilike("email", primaryEmail)
+      .ilike("email", escapeIlike(primaryEmail))
       .or('clerk_user_id.is.null,clerk_user_id.eq.""')
       .maybeSingle()
 

@@ -41,7 +41,14 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (!callerProfile || (callerProfile.role !== "doctor" && callerProfile.role !== "admin")) {
-      effectiveVariant = "patient" // Downgrade to patient search
+      log.warn("Unauthorized search variant request", {
+        requestedVariant: variant,
+        callerRole: callerProfile?.role || "unknown",
+      })
+      return NextResponse.json(
+        { error: "Insufficient permissions for this search variant" },
+        { status: 403 }
+      )
     }
   }
 

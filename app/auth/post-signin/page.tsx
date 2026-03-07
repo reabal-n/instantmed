@@ -4,6 +4,11 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 const log = createLogger("post-signin")
 
 export const dynamic = "force-dynamic"
@@ -81,7 +86,7 @@ export default async function PostSignInPage({
       const { data: emailProfile } = await supabase
         .from("profiles")
         .select("id, role, onboarding_completed, clerk_user_id")
-        .ilike("email", primaryEmail)
+        .ilike("email", escapeIlike(primaryEmail))
         .eq("clerk_user_id", userId)
         .maybeSingle()
 
@@ -98,7 +103,7 @@ export default async function PostSignInPage({
       const { data: guestProfile } = await supabase
         .from("profiles")
         .select("id, role, onboarding_completed, clerk_user_id")
-        .ilike("email", primaryEmail)
+        .ilike("email", escapeIlike(primaryEmail))
         .or("clerk_user_id.is.null,clerk_user_id.eq.")
         .maybeSingle()
 
@@ -207,7 +212,7 @@ export default async function PostSignInPage({
           const { data: emailProfile } = await supabase
             .from("profiles")
             .select("id, role, onboarding_completed, clerk_user_id")
-            .ilike("email", primaryEmail)
+            .ilike("email", escapeIlike(primaryEmail))
             .maybeSingle()
 
           if (emailProfile) {
@@ -281,7 +286,7 @@ export default async function PostSignInPage({
     const { data: existingEmailProfile } = await supabase
       .from("profiles")
       .select("id, clerk_user_id, email")
-      .ilike("email", primaryEmail)
+      .ilike("email", escapeIlike(primaryEmail))
       .maybeSingle()
 
     if (existingEmailProfile) {

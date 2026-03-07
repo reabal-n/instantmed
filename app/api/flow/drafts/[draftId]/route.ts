@@ -1,9 +1,49 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("flow-drafts-api")
+
+/**
+ * Verify draft ownership: sessionId must match, and if user is authenticated
+ * the draft's user_id (if set) must match the caller's profile.
+ * Returns null if ownership is valid, or an error response.
+ */
+async function verifyDraftOwnership(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  draftId: string,
+  sessionId: string,
+  clerkUserId: string | null
+): Promise<{ draft: Record<string, unknown> | null; error: NextResponse | null }> {
+  const { data: draft, error } = await supabase
+    .from("intake_drafts")
+    .select("id, session_id, user_id")
+    .eq("id", draftId)
+    .eq("session_id", sessionId)
+    .single()
+
+  if (error || !draft) {
+    return { draft: null, error: NextResponse.json({ error: "Draft not found" }, { status: 404 }) }
+  }
+
+  // If draft has a user_id and caller is authenticated, verify they match
+  if (draft.user_id && clerkUserId) {
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single()
+
+    if (!callerProfile || callerProfile.id !== draft.user_id) {
+      logger.warn("Draft ownership mismatch", { draftId, sessionId, draftUserId: draft.user_id })
+      return { draft: null, error: NextResponse.json({ error: "Draft not found" }, { status: 404 }) }
+    }
+  }
+
+  return { draft, error: null }
+}
 
 interface RouteContext {
   params: Promise<{ draftId: string }>
@@ -19,6 +59,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { draftId } = await context.params
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get("sessionId")
+    const { userId: clerkUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -36,6 +77,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const supabase = createServiceRoleClient()
+
+    // Verify ownership (sessionId + user_id if authenticated)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    if (ownership.error) return ownership.error
 
     const { data: draft, error } = await supabase
       .from("intake_drafts")
@@ -94,6 +139,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { draftId } = await context.params
     const body = await request.json()
     const { sessionId, currentStep, currentGroupIndex, data } = body
+    const { userId: clerkUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -112,15 +158,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     const supabase = createServiceRoleClient()
 
-    // Verify ownership via sessionId
-    const { data: existingDraft, error: checkError } = await supabase
-      .from("intake_drafts")
-      .select("id, session_id")
-      .eq("id", draftId)
-      .eq("session_id", sessionId)
-      .single()
-
-    if (checkError || !existingDraft) {
+    // Verify ownership (sessionId + user_id if authenticated)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    if (ownership.error) {
       logger.warn("Draft not found or access denied", { draftId, sessionId })
       return NextResponse.json(
         { error: "Draft not found or access denied" },
@@ -187,6 +227,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { draftId } = await context.params
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get("sessionId")
+    const { userId: clerkUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -204,6 +245,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const supabase = createServiceRoleClient()
+
+    // Verify ownership (sessionId + user_id if authenticated)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    if (ownership.error) return ownership.error
 
     const { error } = await supabase
       .from("intake_drafts")

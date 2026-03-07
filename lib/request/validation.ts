@@ -43,7 +43,9 @@ const AU_PHONE_REGEX = /^(\+?61|0)[2-9]\d{8}$|^04\d{8}$/
 
 export function validateEmail(email: string | undefined): string | null {
   if (!email?.trim()) return "Email is required"
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email"
+  // Use Zod .email() for consistency with lib/validation/schemas.ts
+  const result = z.string().email().safeParse(email.trim())
+  if (!result.success) return "Please enter a valid email"
   return null
 }
 

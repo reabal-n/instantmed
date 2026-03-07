@@ -2,6 +2,11 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 /**
  * POST /api/profile/ensure
  * 
@@ -43,7 +48,7 @@ export async function POST() {
       const { data: guestProfile } = await serviceClient
         .from("profiles")
         .select("id, clerk_user_id")
-        .ilike("email", primaryEmail)
+        .ilike("email", escapeIlike(primaryEmail))
         .or("clerk_user_id.is.null,clerk_user_id.eq.")
         .maybeSingle()
 

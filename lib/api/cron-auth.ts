@@ -2,6 +2,7 @@ import "server-only"
 
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
+import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("cron-auth")
 
@@ -140,6 +141,18 @@ export async function acquireCronLock(
           : undefined
 
         logger.info("Cron lock already held, skipping", { jobName, lockAgeSeconds: lockAge })
+
+        // Alert if lock has been held for longer than 2x the expected max duration
+        const stuckThreshold = maxDurationSeconds * 2
+        if (lockAge && lockAge > stuckThreshold) {
+          logger.error("Cron lock appears stuck", { jobName, lockAgeSeconds: lockAge, stuckThreshold })
+          Sentry.captureMessage(`Cron lock stuck: ${jobName} held for ${lockAge}s (threshold: ${stuckThreshold}s)`, {
+            level: "warning",
+            tags: { cronJob: jobName },
+            extra: { lockAgeSeconds: lockAge, maxDurationSeconds, stuckThreshold },
+          })
+        }
+
         return { acquired: false, existingLockAge: lockAge }
       }
       throw error

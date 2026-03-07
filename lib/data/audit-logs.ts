@@ -15,6 +15,11 @@ import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
 
 const log = createLogger("audit-logs")
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 // ============================================================================
 // READ OPERATIONS
 // ============================================================================
@@ -57,7 +62,7 @@ export async function getAuditLogs(
     query = query.lte("created_at", filters.endDate)
   }
   if (filters.search) {
-    query = query.ilike("description", `%${filters.search}%`)
+    query = query.ilike("description", `%${escapeIlike(filters.search)}%`)
   }
 
   // Pagination
