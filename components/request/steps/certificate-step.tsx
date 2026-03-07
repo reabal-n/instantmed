@@ -65,10 +65,11 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
     const newErrors: Record<string, string> = {}
     if (!certType) newErrors.certType = "Please select certificate type"
     if (!duration) newErrors.duration = "Please select duration"
+    if (!startDate) newErrors.startDate = "Please select a start date"
     setErrors(newErrors)
-    setTouched({ certType: true, duration: true })
+    setTouched({ certType: true, duration: true, startDate: true })
     return Object.keys(newErrors).length === 0
-  }, [certType, duration])
+  }, [certType, duration, startDate])
 
   const handleNext = useCallback(() => {
     if (validate()) {

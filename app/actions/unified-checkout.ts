@@ -10,6 +10,13 @@
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import {
+  validateCertificateStep,
+  validateSymptomsStep,
+  validateMedicationStep,
+  validateConsultReasonStep,
+  validateDetailsStep,
+} from "@/lib/request/validation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import type { ServiceCategory } from "@/lib/stripe/client"
 import crypto from "crypto"
@@ -115,6 +122,51 @@ function transformAnswers(
 }
 
 /**
+ * Server-side re-validation of answers before checkout.
+ * Returns an error message if invalid, null if valid.
+ */
+function validateAnswersServerSide(
+  serviceType: UnifiedServiceType,
+  answers: Record<string, unknown>,
+  identity: UnifiedCheckoutInput['identity']
+): string | null {
+  // Validate identity fields
+  const detailsResult = validateDetailsStep({
+    firstName: identity.fullName?.split(' ')[0],
+    lastName: identity.fullName?.split(' ').slice(1).join(' ') || undefined,
+    email: identity.email,
+    dob: identity.dateOfBirth,
+    phone: identity.phone,
+  }, {
+    requirePhone: serviceType === 'prescription' || serviceType === 'repeat-script',
+  })
+  if (!detailsResult.isValid) {
+    return Object.values(detailsResult.errors)[0]
+  }
+
+  // Validate service-specific fields
+  if (serviceType === 'med-cert') {
+    const certResult = validateCertificateStep(answers)
+    if (!certResult.isValid) return Object.values(certResult.errors)[0]
+
+    const symptomsResult = validateSymptomsStep(answers)
+    if (!symptomsResult.isValid) return Object.values(symptomsResult.errors)[0]
+  }
+
+  if (serviceType === 'prescription' || serviceType === 'repeat-script') {
+    const medResult = validateMedicationStep(answers)
+    if (!medResult.isValid) return Object.values(medResult.errors)[0]
+  }
+
+  if (serviceType === 'consult') {
+    const consultResult = validateConsultReasonStep(answers)
+    if (!consultResult.isValid) return Object.values(consultResult.errors)[0]
+  }
+
+  return null
+}
+
+/**
  * Create checkout session from unified flow data
  */
 export async function createCheckoutFromUnifiedFlow(
@@ -137,8 +189,14 @@ export async function createCheckoutFromUnifiedFlow(
     }
   }
   
+  // Server-side validation before proceeding to checkout
+  const validationError = validateAnswersServerSide(serviceType, answers, identity)
+  if (validationError) {
+    return { success: false, error: validationError }
+  }
+
   const transformedAnswers = transformAnswers(serviceType, answers)
-  
+
   // Check if user is authenticated
   const authResult = await getAuthenticatedUserWithProfile()
   

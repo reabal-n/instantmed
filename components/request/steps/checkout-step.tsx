@@ -20,7 +20,6 @@ import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard,
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
-import { Confetti } from "@/components/ui/confetti"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
@@ -72,7 +71,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimatedWait, setEstimatedWait] = useState("~1 hour")
-  const [triggerConfetti, setTriggerConfetti] = useState(false)
+  const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
 
   useEffect(() => {
@@ -160,7 +159,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           intake_id: result.intakeId,
           price_dollars: price,
         })
-        setTriggerConfetti(true)
+        setShowCheckmark(true)
         setTimeout(() => {
           window.location.href = result.checkoutUrl!
         }, 600)
@@ -242,7 +241,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
               <span className="text-xs text-muted-foreground ml-2">one-time fee</span>
             </div>
             <div className="text-right">
-              <span className="text-3xl font-bold text-primary">${price.toFixed(2)}</span>
+              <span className="text-2xl font-semibold text-primary">${price.toFixed(2)}</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -367,12 +366,24 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </div>
       </div>
 
-      {/* Confetti on successful checkout creation */}
-      <Confetti
-        trigger={triggerConfetti}
-        options={{ particleCount: 100, spread: 70 }}
-        onComplete={() => setTriggerConfetti(false)}
-      />
+      {/* Subtle checkmark on successful checkout creation */}
+      {showCheckmark && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center"
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <Check className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
