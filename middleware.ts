@@ -91,6 +91,22 @@ export default clerkMiddleware(async (auth, req) => {
   // Protect authenticated routes
   if (isProtectedRoute(req) && !isPublicRoute(req)) {
     await auth.protect()
+
+    // Safety net: if the user is authenticated at Clerk but has never been
+    // through /auth/post-signin (no profile_linked cookie), redirect them
+    // there to ensure profile linking before accessing protected pages.
+    // This catches any auth entry point that forgets forceRedirectUrl.
+    // API routes are excluded — they return 401 via requireRoleOrNull.
+    const cookies = req.headers.get("cookie") || ""
+    const isApiRoute = pathname.startsWith("/api/")
+    const isPostSignIn = pathname.startsWith("/auth/post-signin")
+
+    if (!isApiRoute && !isPostSignIn && !cookies.includes("profile_linked=1")) {
+      const url = new URL("/auth/post-signin", req.url)
+      // Preserve the original destination so post-signin redirects back
+      url.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(url, 302)
+    }
   }
 })
 

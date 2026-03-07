@@ -6,7 +6,8 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs"
+import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs"
+import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import {
   LogOut,
   User,
@@ -322,7 +323,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </Link>
                     </Button>
                     <SignedOut>
-                      <SignInButton mode="modal" forceRedirectUrl="/auth/post-signin">
+                      <AppSignInButton>
                         <Button
                           variant="outline"
                           size="sm"
@@ -330,7 +331,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         >
                           Sign in
                         </Button>
-                      </SignInButton>
+                      </AppSignInButton>
                     </SignedOut>
                     <SignedIn>
                       <Link
@@ -501,11 +502,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {variant === "marketing" && (
               <>
                 <SignedOut>
-                  <SignInButton mode="modal" forceRedirectUrl="/auth/post-signin">
+                  <AppSignInButton>
                     <Button variant="outline" className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                       Sign in
                     </Button>
-                  </SignInButton>
+                  </AppSignInButton>
                 </SignedOut>
                 <SignedIn>
                   <div className="flex justify-center">

@@ -425,5 +425,8 @@ export default async function PostSignInPage({
     role: profile.role
   })
 
-  redirect(destination)
+  // Redirect through the trampoline route to set the `profile_linked` cookie.
+  // Server Components can't set cookies directly in Next.js 15, so an API
+  // route handler sets it and redirects to the final destination.
+  redirect(`/api/auth/complete-signin?destination=${encodeURIComponent(destination)}`)
 }

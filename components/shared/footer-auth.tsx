@@ -1,6 +1,7 @@
 "use client"
 
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs"
+import { SignedIn, SignedOut } from "@clerk/nextjs"
+import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import Link from "next/link"
 
 /**
@@ -11,9 +12,9 @@ export function FooterAuth() {
   return (
     <>
       <SignedOut>
-        <SignInButton mode="modal" forceRedirectUrl="/auth/post-signin">
+        <AppSignInButton>
           <button className="hover:text-foreground transition-colors">Sign in</button>
-        </SignInButton>
+        </AppSignInButton>
       </SignedOut>
       <SignedIn>
         <Link href="/patient" className="hover:text-foreground transition-colors">
