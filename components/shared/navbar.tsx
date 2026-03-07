@@ -322,7 +322,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </Link>
                     </Button>
                     <SignedOut>
-                      <SignInButton mode="modal">
+                      <SignInButton mode="modal" forceRedirectUrl="/auth/post-signin">
                         <Button
                           variant="outline"
                           size="sm"
@@ -501,7 +501,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {variant === "marketing" && (
               <>
                 <SignedOut>
-                  <SignInButton mode="modal">
+                  <SignInButton mode="modal" forceRedirectUrl="/auth/post-signin">
                     <Button variant="outline" className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                       Sign in
                     </Button>

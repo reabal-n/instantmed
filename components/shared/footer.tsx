@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
+import { FooterAuth } from "@/components/shared/footer-auth"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -92,6 +93,7 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund Policy</Link>
+            <FooterAuth />
           </div>
         </div>
 
