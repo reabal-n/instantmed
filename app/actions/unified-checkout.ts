@@ -117,7 +117,14 @@ function transformAnswers(
   transformed.telehealth_consent_given = answers.telehealthConsentGiven
   transformed.accuracy_confirmed = answers.confirmedAccuracy
   transformed.terms_agreed = answers.agreedToTerms
-  
+
+  // Safety rule fields: provide defaults for fields referenced by safety rules
+  // but not directly collected by intake forms (emergency_symptoms, symptom_severity).
+  // If the patient didn't report any emergency symptoms, default to empty array (none).
+  // If symptom_severity wasn't explicitly asked, default to 'mild' (non-blocking).
+  transformed.emergency_symptoms = answers.emergency_symptoms ?? []
+  transformed.symptom_severity = answers.symptom_severity ?? 'mild'
+
   return transformed
 }
 
