@@ -8,7 +8,6 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import {
-  getActiveClinicIdentity,
   getClinicIdentityHistory,
   saveClinicIdentity,
   uploadClinicLogo,
@@ -49,11 +48,6 @@ async function requireAdmin() {
 // ============================================================================
 // CLINIC IDENTITY ACTIONS
 // ============================================================================
-
-export async function getClinicIdentityAction() {
-  await requireAdmin()
-  return getActiveClinicIdentity()
-}
 
 export async function getClinicIdentityHistoryAction() {
   await requireAdmin()

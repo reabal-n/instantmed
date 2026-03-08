@@ -284,7 +284,7 @@ export async function updateServiceOrder(
 
 /**
  * Delete a service (soft delete only - never hard delete to preserve audit trail)
- * Sets is_active=false and deleted_at timestamp
+ * Sets is_active=false
  */
 export async function deleteService(
   id: string
@@ -294,10 +294,9 @@ export async function deleteService(
   // Always soft delete - never hard delete services to preserve audit trail
   const { error } = await supabase
     .from("services")
-    .update({ 
-      is_active: false, 
-      deleted_at: new Date().toISOString(),
-      updated_at: new Date().toISOString() 
+    .update({
+      is_active: false,
+      updated_at: new Date().toISOString()
     })
     .eq("id", id)
 

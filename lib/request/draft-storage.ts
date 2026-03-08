@@ -223,7 +223,7 @@ export function migrateLegacyDraft(): DraftData | null {
     // Build draft data
     const draft: DraftData = {
       serviceType: canonical,
-      currentStepId: legacyState.currentStepId || 'safety',
+      currentStepId: legacyState.currentStepId || 'review',
       answers: legacyState.answers || {},
       lastSavedAt: legacyState.lastSavedAt,
       firstName: legacyState.firstName,

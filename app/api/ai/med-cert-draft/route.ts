@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server"
 import { MED_CERT_DRAFT_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { calculateConfidence } from "@/lib/ai/confidence"
+import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 
 const log = createLogger("ai-med-cert-draft")
 
@@ -83,8 +84,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Format context for the prompt
-    const context = formatMedCertContext(answers, patient)
+    // Format context for the prompt and sanitize against prompt injection
+    const rawContext = formatMedCertContext(answers, patient)
+    const { output: context } = checkAndSanitize(rawContext, { endpoint: "med-cert-draft" })
 
     // Check for AI configuration - return fallback if not configured
     if (!isAIConfigured()) {
@@ -103,13 +105,20 @@ export async function POST(request: NextRequest) {
     // Get model with clinical configuration (low temperature for accuracy)
     const { model, temperature } = getModelWithConfig('clinical')
 
-    // Generate med cert draft with streaming
+    // Generate med cert draft with streaming and timeout protection
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => abortController.abort(), 60_000) // 60s timeout
+
     const result = await streamText({
       model,
       system: MED_CERT_DRAFT_PROMPT,
       prompt: `Generate a medical certificate statement for:\n\n${context}`,
       temperature,
+      abortSignal: abortController.signal,
     })
+
+    // Clear timeout after stream completes
+    clearTimeout(timeout)
 
     const text = await result.text
     const responseTime = Date.now() - startTime

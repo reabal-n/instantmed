@@ -61,6 +61,11 @@ function getEncryptionKey(): Buffer {
  *
  * @param plaintext - The string to encrypt
  * @returns Base64-encoded ciphertext with IV and auth tag
+ *
+ * NOTE: Empty/falsy strings intentionally bypass encryption and return "".
+ * This is correct behavior — an empty string means "no value to protect",
+ * not "protect the absence of a value". Callers should validate required
+ * fields before calling encrypt().
  */
 export function encrypt(plaintext: string): string {
   if (!plaintext) {

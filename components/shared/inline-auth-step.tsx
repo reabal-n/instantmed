@@ -86,8 +86,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     // Open Clerk sign-in modal or redirect
     const returnUrl = window.location.pathname + window.location.search
     openSignIn({
-      afterSignInUrl: returnUrl,
-      afterSignUpUrl: returnUrl,
+      forceRedirectUrl: returnUrl,
     })
   }
 
@@ -136,13 +135,13 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         </p>
       </div>
 
-      {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
+      {error && <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
       <div className="space-y-3">
         <Button
           onClick={handleSignIn}
           disabled={isLoading}
-          className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
+          className="w-full h-12 rounded-xl bg-background hover:bg-muted text-foreground border border-border shadow-sm"
         >
           <GoogleIcon className="mr-2 h-5 w-5" />
           Continue with Google
@@ -150,10 +149,10 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-200" />
+            <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">or</span>
+            <span className="bg-background px-2 text-muted-foreground">or</span>
           </div>
         </div>
 

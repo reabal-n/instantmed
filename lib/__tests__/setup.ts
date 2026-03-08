@@ -201,8 +201,8 @@ vi.mock('ai', () => ({
   streamText: vi.fn(),
 }))
 
-vi.mock('@ai-sdk/openai', () => ({
-  openai: vi.fn(),
+vi.mock('@ai-sdk/anthropic', () => ({
+  createAnthropic: vi.fn(() => vi.fn()),
 }))
 
 // ============================================================================

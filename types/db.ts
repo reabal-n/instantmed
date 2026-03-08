@@ -9,6 +9,7 @@ export type UserRole = "patient" | "doctor" | "admin"
 export type IntakeStatus =
   | "draft"
   | "pending_payment"
+  | "checkout_failed"
   | "paid"
   | "in_review"
   | "pending_info"

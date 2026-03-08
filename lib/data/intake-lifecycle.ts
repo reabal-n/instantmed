@@ -31,6 +31,7 @@ const logger = createLogger("intake-lifecycle")
 export type IntakeStatus =
   | "draft"
   | "pending_payment"
+  | "checkout_failed"
   | "paid"
   | "in_review"
   | "pending_info"
@@ -47,10 +48,11 @@ export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded" | "failed
 // Valid status transitions
 const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   draft: ["pending_payment", "cancelled"],
-  pending_payment: ["paid", "cancelled", "expired"],
-  paid: ["in_review", "approved", "declined", "pending_info", "awaiting_script"],
-  in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script"],
-  pending_info: ["in_review", "paid", "approved", "declined", "cancelled"],
+  pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
+  checkout_failed: ["pending_payment", "cancelled"], // Retry or abandon
+  paid: ["in_review", "approved", "cancelled"],
+  in_review: ["approved", "declined", "pending_info", "escalated"],
+  pending_info: ["in_review", "paid", "cancelled", "expired"],
   approved: ["completed", "awaiting_script"],
   awaiting_script: ["completed"],
   declined: [], // Terminal
@@ -184,6 +186,7 @@ export function isValidIntakeStatus(status: string): status is IntakeStatus {
   return [
     "draft",
     "pending_payment",
+    "checkout_failed",
     "paid",
     "in_review",
     "pending_info",
@@ -204,6 +207,7 @@ export function getStatusLabel(status: IntakeStatus): string {
   const labels: Record<IntakeStatus, string> = {
     draft: "Draft",
     pending_payment: "Awaiting Payment",
+    checkout_failed: "Checkout Failed",
     paid: "In Queue",
     in_review: "Under Review",
     pending_info: "Needs Info",

@@ -67,7 +67,7 @@ Next.js 15 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · S
 | Rate Limiting | Upstash Redis | Per-IP, per-endpoint limits |
 | Analytics | PostHog | Event tracking, feature flags |
 | Errors | Sentry | Error tracking, source maps |
-| AI | Vercel AI SDK + OpenAI | Clinical intake assistance (gpt-4o-mini default; gpt-4o for advanced analysis) |
+| AI | Vercel AI SDK + Anthropic Claude | Clinical intake assistance (claude-sonnet-4 for all profiles) |
 | Hosting | Vercel | Deployment, cron jobs, edge |
 
 ## Directory Structure
@@ -96,7 +96,6 @@ lib/
   security/           # Encryption (AES-256-GCM), rate limiting
   stripe/             # Price mapping, checkout sessions
   request/            # Step registry, validation
-  state-machine/      # Workflow state management
   ai/                 # Vercel AI SDK integrations
 hooks/                # Custom React hooks
 e2e/                  # Playwright E2E tests
@@ -151,7 +150,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- **AI**: `OPENAI_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
+- **AI**: `ANTHROPIC_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
 
 ## Pricing
 
@@ -199,14 +198,14 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 ### AI Configuration
 
-Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (fallback: direct OpenAI).
+Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (fallback: direct Anthropic).
 
 | Profile | Model | Temp | Use |
 |---------|-------|------|-----|
-| clinical | gpt-4o-mini | 0.1 | Medical documentation — high accuracy |
-| conversational | gpt-4o-mini | 0.5 | Chat intake — balanced |
-| creative | gpt-4o-mini | 0.7 | Suggestions — more variety |
-| advanced | gpt-4o | 0.2 | Complex medical analysis |
+| clinical | claude-sonnet-4-20250514 | 0.1 | Medical documentation — high accuracy |
+| conversational | claude-sonnet-4-20250514 | 0.5 | Chat intake — balanced |
+| creative | claude-sonnet-4-20250514 | 0.7 | Suggestions — more variety |
+| advanced | claude-sonnet-4-20250514 | 0.2 | Complex medical analysis |
 
 ---
 

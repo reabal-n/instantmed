@@ -88,9 +88,9 @@ const config = {
         // Sky glow shadows (cool)
         "glow-sky": "0 4px 20px rgba(197, 221, 240, 0.20)",
         "glow-sky-hover": "0 8px 30px rgba(197, 221, 240, 0.25)",
-        // State shadows
-        "glow-success": "0 4px 20px rgba(107, 191, 138, 0.20)",
-        "glow-error": "0 4px 20px rgba(224, 122, 122, 0.20)",
+        // State shadows (warm tone variants)
+        "glow-success-warm": "0 4px 20px rgba(107, 191, 138, 0.20)",
+        "glow-error-warm": "0 4px 20px rgba(224, 122, 122, 0.20)",
         // Glass card shadows
         "glass": "0 4px 20px rgba(197, 221, 240, 0.15)",
         "glass-hover": "0 8px 30px rgba(197, 221, 240, 0.20)",

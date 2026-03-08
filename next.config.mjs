@@ -238,11 +238,11 @@ const sentryConfig = {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
+  automaticVercelMonitors: true,
   webpack: {
     treeshake: {
       removeDebugLogging: true
     },
-    automaticVercelMonitors: true
   }
 };
 

@@ -7,7 +7,6 @@ import { sendFromOutboxRow, claimOutboxRow, type OutboxRow } from "@/lib/email/s
 import { MedCertPatientEmail } from "@/components/email/templates"
 import { env } from "@/lib/env"
 import {
-  getFailedEmailDeliveries,
   getCertificateById,
   updateEmailStatus,
   incrementEmailRetry,
@@ -26,39 +25,6 @@ interface RetryResult {
 async function requireAdminRole() {
   const { profile } = await requireRole(["admin"])
   return profile
-}
-
-/**
- * Get failed email deliveries for admin review
- */
-export async function getFailedEmails() {
-  try {
-    await requireAdminRole()
-
-    const failures = await getFailedEmailDeliveries(50)
-
-    return {
-      success: true,
-      failures: failures.map((cert) => ({
-        id: cert.id,
-        certificateNumber: cert.certificate_number,
-        patientName: cert.patient_name,
-        patientId: cert.patient_id,
-        intakeId: cert.intake_id,
-        failureReason: cert.email_failure_reason,
-        failedAt: cert.email_failed_at,
-        retryCount: cert.email_retry_count,
-        createdAt: cert.created_at,
-      })),
-    }
-  } catch (error) {
-    log.error("Failed to get failed emails", {}, error instanceof Error ? error : undefined)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to load failures",
-      failures: [],
-    }
-  }
 }
 
 /**

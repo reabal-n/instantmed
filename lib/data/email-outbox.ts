@@ -203,43 +203,36 @@ export async function getEmailOutboxStats(): Promise<{
   try {
     const supabase = createServiceRoleClient()
 
-    const { data, error } = await supabase.rpc("get_email_outbox_stats")
+    const [totalRes, sentRes, failedRes, skippedRes, pendingRes] =
+      await Promise.all([
+        supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true }),
+        supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "sent"),
+        supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "failed"),
+        supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "skipped_e2e"),
+        supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
+      ])
 
-    if (error) {
-      // If RPC doesn't exist, fall back to manual counts
-      const [totalRes, sentRes, failedRes, skippedRes, pendingRes] =
-        await Promise.all([
-          supabase
-            .from("email_outbox")
-            .select("id", { count: "exact", head: true }),
-          supabase
-            .from("email_outbox")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "sent"),
-          supabase
-            .from("email_outbox")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "failed"),
-          supabase
-            .from("email_outbox")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "skipped_e2e"),
-          supabase
-            .from("email_outbox")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "pending"),
-        ])
-
-      return {
-        total: totalRes.count || 0,
-        sent: sentRes.count || 0,
-        failed: failedRes.count || 0,
-        skipped_e2e: skippedRes.count || 0,
-        pending: pendingRes.count || 0,
-      }
+    return {
+      total: totalRes.count || 0,
+      sent: sentRes.count || 0,
+      failed: failedRes.count || 0,
+      skipped_e2e: skippedRes.count || 0,
+      pending: pendingRes.count || 0,
     }
-
-    return data || { total: 0, sent: 0, failed: 0, skipped_e2e: 0, pending: 0 }
   } catch {
     return { total: 0, sent: 0, failed: 0, skipped_e2e: 0, pending: 0 }
   }

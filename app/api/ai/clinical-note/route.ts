@@ -116,12 +116,19 @@ export async function POST(request: NextRequest) {
     const { model, temperature } = getModelWithConfig('clinical')
 
     // Generate clinical note with streaming for better UX
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => abortController.abort(), 60_000) // 60s timeout
+
     const result = await streamText({
       model,
       system: CLINICAL_NOTE_PROMPT,
       prompt: `Generate a clinical note based on this patient intake:\n\n${intakeContext}`,
       temperature,
+      abortSignal: abortController.signal,
     })
+
+    // Clear timeout after stream completes
+    clearTimeout(timeout)
 
     // Collect full text from stream
     const text = await result.text

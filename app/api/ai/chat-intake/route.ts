@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
-import { createOpenAI } from "@ai-sdk/openai"
 import { createLogger } from "@/lib/observability/logger"
+import { getConversationalModel } from "@/lib/ai/provider"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
@@ -13,33 +13,11 @@ import { trackAIInteraction } from "@/lib/chat/intake-analytics"
 
 const log = createLogger("ai-chat-intake")
 
-// Emergency keywords that trigger hard-block (server-side, not prompt-only)
-const EMERGENCY_KEYWORDS = [
-  "chest pain",
-  "chest pains",
-  "heart attack",
-  "can't breathe",
-  "cant breathe",
-  "cannot breathe",
-  "difficulty breathing",
-  "hard to breathe",
-  "struggling to breathe",
-  "shortness of breath",
-  "stroke",
-  "paralysis",
-  "paralyzed",
-  "numbness",
-  "slurred speech",
-  "face drooping",
-  "severe bleeding",
-  "heavy bleeding",
-  "unconscious",
-  "passed out",
-  "seizure",
-  "fitting",
-  "convulsion",
-]
+// Import canonical emergency keywords from triage rules engine (single source of truth)
+import { EMERGENCY_KEYWORDS } from "@/lib/clinical/triage-rules-engine"
 
+// Self-harm keywords subset for crisis-specific response routing
+// (these are also in EMERGENCY_KEYWORDS but need separate detection for crisis response)
 const SELF_HARM_KEYWORDS = [
   "suicide",
   "suicidal",
@@ -51,8 +29,11 @@ const SELF_HARM_KEYWORDS = [
   "self harm",
   "self-harm",
   "hurt myself",
+  "hurting myself",
   "cutting myself",
   "overdose",
+  "took too many pills",
+  "overdosed",
 ]
 
 // Emergency response payloads (not AI-generated)
@@ -273,22 +254,12 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Rate limit anonymous users by IP to prevent abuse
-      const rateLimitResponse = await applyRateLimit(request, 'auth')
+      const rateLimitResponse = await applyRateLimit(request, 'standard')
       if (rateLimitResponse) {
         return rateLimitResponse
       }
     }
 
-    // Check for AI Gateway API key
-    const apiKey = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.AI_GATEWAY_API_KEY
-    if (!apiKey && !process.env.VERCEL) {
-      log.error("VERCEL_AI_GATEWAY_API_KEY not configured")
-      return new Response(
-        JSON.stringify({ error: "AI service not configured" }),
-        { status: 503, headers: { "Content-Type": "application/json" } }
-      )
-    }
-    
     // Generate session ID for tracking
     const sessionId = request.headers.get('x-session-id') || `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
     const startTime = Date.now()
@@ -367,12 +338,8 @@ export async function POST(request: NextRequest) {
       sessionId,
     })
 
-    // Configure AI provider with Vercel AI Gateway
-    const modelName = process.env.CHAT_INTAKE_MODEL || "gpt-4o-mini"
-    const openai = createOpenAI({
-      apiKey: apiKey,
-      baseURL: process.env.VERCEL_AI_GATEWAY_URL || 'https://api.openai.com/v1',
-    })
+    // Configure AI provider
+    const modelName = "claude-sonnet-4-20250514"
 
     // RELIABILITY: Upsert transcript BEFORE streaming starts
     // This ensures we capture user messages even if the stream aborts
@@ -387,12 +354,17 @@ export async function POST(request: NextRequest) {
       wasBlocked: false,
     })
 
-    // Stream the response
+    // Stream the response with timeout protection
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => abortController.abort(), 60_000) // 60s timeout
+
     const result = streamText({
-      model: openai(modelName),
+      model: getConversationalModel(),
       system: SYSTEM_PROMPT,
       messages: sanitizedMessages,
+      abortSignal: abortController.signal,
       onFinish: async ({ text, usage }) => {
+        clearTimeout(timeout)
         const responseTime = Date.now() - startTime
         const detectedService = detectServiceType(text)
         const flags = extractFlags(text)
@@ -461,19 +433,47 @@ export async function POST(request: NextRequest) {
 
 // Helper to detect service type from AI response
 function detectServiceType(text: string): string | null {
-  const match = text.match(/"service_type"\s*:\s*"([^"]+)"/)
-  return match ? match[1] : null
+  try {
+    // Try to find and parse a JSON block in the response
+    const jsonMatch = text.match(/\{[\s\S]*"service_type"[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      if (typeof parsed.service_type === "string") {
+        return parsed.service_type
+      }
+    }
+  } catch {
+    // Fallback: regex extraction if JSON parsing fails
+    const match = text.match(/"service_type"\s*:\s*"([^"]+)"/)
+    return match ? match[1] : null
+  }
+  return null
 }
 
 // Helper to extract flags from AI response
 function extractFlags(text: string): string[] {
-  const flags: string[] = []
-  const flagMatch = text.match(/"flags"\s*:\s*\[([^\]]*)/)
-  if (flagMatch) {
-    const categoryMatches = flagMatch[1].matchAll(/"category"\s*:\s*"([^"]+)"/g)
-    for (const match of categoryMatches) {
-      flags.push(match[1])
+  try {
+    // Try to find and parse a JSON block containing flags
+    const jsonMatch = text.match(/\{[\s\S]*"flags"[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      if (Array.isArray(parsed.flags)) {
+        return parsed.flags
+          .filter((f: unknown) => typeof f === "object" && f !== null && "category" in f)
+          .map((f: { category: string }) => f.category)
+      }
     }
+  } catch {
+    // Fallback: regex extraction if JSON parsing fails
+    const flags: string[] = []
+    const flagMatch = text.match(/"flags"\s*:\s*\[([^\]]*)/)
+    if (flagMatch) {
+      const categoryMatches = flagMatch[1].matchAll(/"category"\s*:\s*"([^"]+)"/g)
+      for (const match of categoryMatches) {
+        flags.push(match[1])
+      }
+    }
+    return flags
   }
-  return flags
+  return []
 }

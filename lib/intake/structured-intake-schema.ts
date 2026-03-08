@@ -336,7 +336,7 @@ export function createEmptyIntake(
     aiMetadata: {
       turnCount: 0,
       collectionDurationMs: 0,
-      modelVersion: 'gpt-4o-mini',
+      modelVersion: 'claude-sonnet-4-20250514',
       promptVersion: '2.0',
     },
   }

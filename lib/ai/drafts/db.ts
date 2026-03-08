@@ -67,7 +67,7 @@ export async function upsertDraft(params: UpsertDraftParams): Promise<DocumentDr
         intake_id: params.intakeId,
         type: params.type,
         content: params.content,
-        model: params.model || "openai/gpt-4o-mini",
+        model: params.model || "claude-sonnet-4-20250514",
         is_ai_generated: true,
         status: params.status,
         error: params.error || null,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
@@ -17,10 +18,12 @@ const ALERT_THROTTLE_MS = 5 * 60 * 1000
 function isAuthorizedMonitor(request: NextRequest): boolean {
   const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
-    return true
-  }
-  return false
+  if (!cronSecret || !authHeader) return false
+  // Use timing-safe comparison to prevent timing attacks
+  const expected = Buffer.from(`Bearer ${cronSecret}`)
+  const actual = Buffer.from(authHeader)
+  if (expected.length !== actual.length) return false
+  return timingSafeEqual(expected, actual)
 }
 
 /**

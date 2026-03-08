@@ -11,6 +11,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { generateText } from "ai"
 import { env } from "@/lib/env"
+import { getModelWithConfig } from "@/lib/ai/provider"
 import { createLogger } from "@/lib/observability/logger"
 import { upsertDraft, draftsExist, deleteDrafts } from "@/lib/ai/drafts"
 import { getPostHogClient } from "@/lib/posthog-server"
@@ -358,7 +359,7 @@ async function generateClinicalNoteDraft(
   
   try {
     const result = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: getModelWithConfig('clinical').model,
       system: CLINICAL_NOTE_JSON_PROMPT,
       prompt: intakeContext,
     })
@@ -514,7 +515,7 @@ async function generateMedCertDraft(
     const prompt = `${intakeContext}\n\nPatient Name: ${patientName}`
     
     const result = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: getModelWithConfig('clinical').model,
       system: MED_CERT_JSON_PROMPT,
       prompt,
     })
@@ -662,7 +663,7 @@ async function generateRepeatRxDraft(
   
   try {
     const result = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: getModelWithConfig('clinical').model,
       system: REPEAT_RX_JSON_PROMPT,
       prompt: intakeContext,
     })
@@ -786,7 +787,7 @@ async function generateConsultDraft(
   
   try {
     const result = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: getModelWithConfig('clinical').model,
       system: CONSULT_JSON_PROMPT,
       prompt: intakeContext,
     })

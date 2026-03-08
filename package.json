@@ -30,7 +30,7 @@
     "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.12",
+    "@ai-sdk/anthropic": "^3.0.58",
     "@clerk/nextjs": "^6.12.0",
     "@hookform/resolvers": "^5.2.2",
     "@number-flow/react": "^0.5.10",
@@ -102,7 +102,7 @@
     "@vitest/coverage-v8": "^4.0.16",
     "dotenv": "^17.2.3",
     "eslint": "^9",
-    "eslint-config-next": "16.0.8",
+    "eslint-config-next": "15.5.12",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",

@@ -1,10 +1,19 @@
 import "server-only"
 
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("cron-auth")
+
+/** Constant-time string comparison to prevent timing attacks */
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
 
 /**
  * Verify that a request is a legitimate cron job request.
@@ -31,7 +40,7 @@ export function verifyCronRequest(request: NextRequest): NextResponse | null {
   const vercelCronSignature = request.headers.get("x-vercel-cron-signature")
   if (process.env.VERCEL && vercelCronSignature) {
     // Vercel cron requests should still include our CRON_SECRET for extra security
-    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    if (cronSecret && authHeader && safeCompare(authHeader, `Bearer ${cronSecret}`)) {
       return null
     }
     // If CRON_SECRET not configured, reject — fail-closed for security
@@ -60,7 +69,7 @@ export function verifyCronRequest(request: NextRequest): NextResponse | null {
     )
   }
   
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!authHeader || !safeCompare(authHeader, `Bearer ${cronSecret}`)) {
     logger.warn("Unauthorized cron request", {
       hasAuth: !!authHeader,
       ip: request.headers.get("x-forwarded-for") || "unknown",
@@ -160,12 +169,16 @@ export async function acquireCronLock(
 
     return { acquired: true }
   } catch (err) {
-    // If lock table doesn't exist or DB error, allow execution (fail-open for crons)
-    logger.warn("Cron lock acquisition failed, allowing execution", {
+    // If lock table doesn't exist or DB error, block execution (fail-closed for safety)
+    logger.error("Cron lock acquisition failed, blocking execution", {
       jobName,
       error: err instanceof Error ? err.message : String(err)
     })
-    return { acquired: true }
+    Sentry.captureException(err, {
+      tags: { cronJob: jobName },
+      extra: { context: "cron-lock-acquisition-failure" },
+    })
+    return { acquired: false }
   }
 }
 

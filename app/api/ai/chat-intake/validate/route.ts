@@ -1,22 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 import { auth } from "@clerk/nextjs/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { validateIntakePayload, type IntakePayload } from "@/lib/chat/chat-validation"
 
 const log = createLogger("ai-chat-intake-validate")
 
 /**
  * POST /api/ai/chat-intake/validate
- * 
+ *
  * Server-side validation for AI-collected intake data.
  * Call this BEFORE allowing submission to ensure data integrity.
- * 
+ *
  * CRITICAL: Never trust AI output. Always revalidate.
  */
 export async function POST(request: NextRequest) {
   try {
     const { userId: clerkUserId } = await auth()
-    
+
+    // Rate limit validation requests
+    const rateLimitResponse = await applyRateLimit(
+      request,
+      'standard',
+      clerkUserId || undefined
+    )
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     const body = await request.json()
     const payload = body as IntakePayload
     

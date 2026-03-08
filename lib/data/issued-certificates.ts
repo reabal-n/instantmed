@@ -467,28 +467,21 @@ export async function incrementEmailRetry(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
-  const { error } = await supabase.rpc("increment_email_retry", {
-    cert_id: certificateId,
-  })
+  const { data: cert } = await supabase
+    .from("issued_certificates")
+    .select("email_retry_count")
+    .eq("id", certificateId)
+    .single()
 
-  if (error) {
-    // Fallback to manual increment
-    const { data: cert } = await supabase
+  if (cert) {
+    await supabase
       .from("issued_certificates")
-      .select("email_retry_count")
+      .update({
+        email_retry_count: (cert.email_retry_count || 0) + 1,
+        email_failed_at: null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", certificateId)
-      .single()
-
-    if (cert) {
-      await supabase
-        .from("issued_certificates")
-        .update({
-          email_retry_count: (cert.email_retry_count || 0) + 1,
-          email_failed_at: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", certificateId)
-    }
   }
 
   return { success: true }

@@ -111,50 +111,28 @@ export async function getPatientHealthSummary(patientId: string): Promise<Health
       subtype: intake.subtype,
       created_at: intake.created_at,
       approved_at: intake.approved_at,
-      service: null,
+      service: intake.category ? { name: intake.category.replace(/_/g, ' '), slug: intake.category } : null,
     }))
     
-    // Fetch medical certificates - prioritize issued_certificates (new), fallback to med_cert_certificates (legacy)
+    // Fetch medical certificates from issued_certificates
     const approvedMedCertIntakeIds = allIntakes
-      .filter(i => i.category === "medical_certificate" && i.status === "approved")
+      .filter(i => i.category === "medical_certificate" && ["approved", "completed"].includes(i.status))
       .map(i => i.id)
-    
+
     let medicalCertificates: MedicalDocument[] = []
     if (approvedMedCertIntakeIds.length > 0) {
-      // Try issued_certificates first (new canonical table)
       const { data: issuedCerts, error: issuedError } = await supabase
         .from("issued_certificates")
         .select("id, intake_id, verification_code, start_date, end_date, created_at")
         .in("intake_id", approvedMedCertIntakeIds)
         .eq("status", "valid")
         .order("created_at", { ascending: false })
-      
+
       if (issuedError) {
         logger.error("Failed to fetch issued certificates", { error: issuedError.message })
       }
-      
-      const issuedIntakeIds = new Set((issuedCerts || []).map(c => c.intake_id))
-      
-      // Fallback to legacy table for intakes not in issued_certificates
-      const legacyIntakeIds = approvedMedCertIntakeIds.filter(id => !issuedIntakeIds.has(id))
-      let legacyCerts: typeof issuedCerts = []
-      
-      if (legacyIntakeIds.length > 0) {
-        const { data: certs, error: certsError } = await supabase
-          .from("med_cert_certificates")
-          .select("id, intake_id, verification_code, start_date, end_date, created_at")
-          .in("intake_id", legacyIntakeIds)
-          .order("created_at", { ascending: false })
-        
-        if (certsError) {
-          logger.error("Failed to fetch legacy medical certificates", { error: certsError.message })
-        }
-        legacyCerts = certs || []
-      }
-      
-      // Combine both sources
-      const allCerts = [...(issuedCerts || []), ...legacyCerts]
-      medicalCertificates = allCerts.map(cert => ({
+
+      medicalCertificates = (issuedCerts || []).map(cert => ({
         id: cert.id,
         intake_id: cert.intake_id,
         document_type: "medical_certificate",

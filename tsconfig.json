@@ -38,12 +38,6 @@
   ],
   "exclude": [
     "node_modules",
-    "node_modules 2",
-    ".next/types/**/* 2.ts",
-    ".next/dev/types/**/* 2.ts",
-    "next-app-template",
-    "instantmed-main",
-    "tina",
     "__tests__",
     "_deprecated"
   ]

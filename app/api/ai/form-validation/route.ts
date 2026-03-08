@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { getDefaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 import { z } from "zod"
 
 export const runtime = "edge"
@@ -237,9 +238,11 @@ export async function POST(req: NextRequest) {
 
     // Use AI for deeper inconsistency analysis
     let aiIssues: ValidationIssue[] = []
-    
+
     try {
-      const formSummary = JSON.stringify(formData, null, 2)
+      const rawFormSummary = JSON.stringify(formData, null, 2)
+      // Sanitize form data before passing to AI prompt
+      const { output: formSummary } = checkAndSanitize(rawFormSummary, { endpoint: "form-validation" })
       
       const prompt = `You are a medical intake form validator. Analyze this ${formType} form submission for potential inconsistencies or issues that might cause the request to be rejected by a doctor.
 

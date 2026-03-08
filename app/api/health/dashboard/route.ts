@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 interface HealthCheck {
@@ -12,7 +13,13 @@ export async function GET(request: NextRequest) {
   // Require CRON_SECRET or internal auth for security
   const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || !authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  // Use timing-safe comparison to prevent timing attacks
+  const expected = Buffer.from(`Bearer ${cronSecret}`)
+  const actual = Buffer.from(authHeader)
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -88,7 +95,7 @@ async function checkCriticalTables(): Promise<HealthCheck> {
     for (const table of criticalTables) {
       const { error } = await supabase.from(table).select("id", { count: "exact", head: true })
       if (error) {
-        errors.push(`${table}: ${error.message}`)
+        errors.push(`${table}: check failed`)
       }
     }
 

@@ -49,6 +49,7 @@ const serverEnvSchema = z.object({
   RESEND_FROM_EMAIL: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
   VERCEL_AI_GATEWAY_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
   
   // Rate limiting (optional but recommended)
@@ -88,6 +89,9 @@ const serverEnvSchema = z.object({
 
   // Stripe publishable key (public, for client checkout)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+
+  // Site URL fallback (used in SEO metadata)
+  NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 
   // Google site verification
   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),

@@ -270,7 +270,20 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
       setError: (error) => set({ error }),
 
-      reset: () => set(initialState),
+      reset: () => {
+        // Clear service-scoped draft storage keys
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.removeItem('instantmed-draft-med-cert')
+            window.localStorage.removeItem('instantmed-draft-prescription')
+            window.localStorage.removeItem('instantmed-draft-consult')
+            window.localStorage.removeItem('instantmed-request-draft')
+          } catch {
+            // Ignore localStorage errors (SSR, privacy mode)
+          }
+        }
+        set(initialState)
+      },
     }),
     {
       name: 'instantmed-request-draft',
