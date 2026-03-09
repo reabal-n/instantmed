@@ -335,7 +335,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   
   pricing: {
     title: 'One flat fee. Save $30–60 vs a GP.',
-    subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Full refund if we can\'t help. Medication cost is separate at your pharmacy.`,
+    subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Full refund if we can't help. Medication cost is separate at your pharmacy.`,
     price: 29.95,
     originalPrice: 80,
     features: [
