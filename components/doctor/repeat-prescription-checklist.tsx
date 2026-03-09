@@ -140,12 +140,12 @@ export function RepeatPrescriptionChecklist({
             </p>
           </div>
           {emrChecked ? (
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Done
             </Badge>
           ) : hasEMRDraft && emrDraftStatus === "pending" ? (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
               <Clock className="h-3 w-3 mr-1" />
               Pending
             </Badge>
@@ -194,7 +194,7 @@ export function RepeatPrescriptionChecklist({
             )}
           </div>
           {scriptChecked ? (
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Sent
             </Badge>

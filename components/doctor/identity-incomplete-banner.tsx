@@ -12,14 +12,14 @@ export function IdentityIncompleteBanner({
   missingFields = ["Provider Number", "AHPRA Registration Number"],
 }: IdentityIncompleteBannerProps) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 dark:bg-amber-500/10 dark:border-amber-500/20">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+        <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div className="flex-1">
-          <h3 className="font-medium text-amber-900">
+          <h3 className="font-medium text-amber-900 dark:text-amber-100">
             Complete your certificate identity
           </h3>
-          <p className="text-sm text-amber-700 mt-1">
+          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
             You must provide your{" "}
             {missingFields.length > 0
               ? missingFields.join(" and ")
@@ -29,7 +29,7 @@ export function IdentityIncompleteBanner({
           <Button
             variant="outline"
             size="sm"
-            className="mt-3 border-amber-300 text-amber-800 hover:bg-amber-100"
+            className="mt-3 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:text-amber-200 dark:hover:bg-amber-500/10"
             asChild
           >
             <Link href="/doctor/settings/identity">

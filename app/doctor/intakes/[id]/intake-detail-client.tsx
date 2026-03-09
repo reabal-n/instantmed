@@ -762,7 +762,7 @@ export function IntakeDetailClient({
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{prevService?.short_name || "Request"}</span>
                       {hasNotes && (
-                        <Badge variant="outline" className="text-xs h-4 px-1 bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge variant="outline" className="text-xs h-4 px-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30">
                           <FileText className="h-2.5 w-2.5 mr-0.5" />
                           Note
                         </Badge>

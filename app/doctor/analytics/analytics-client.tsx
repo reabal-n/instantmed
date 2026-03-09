@@ -77,7 +77,7 @@ function TrendBadge({ value, suffix = "%" }: { value: number; suffix?: string })
   return (
     <div className={cn(
       "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-      isPositive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+      isPositive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"
     )}>
       {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
       {isPositive ? "+" : ""}{value}{suffix}

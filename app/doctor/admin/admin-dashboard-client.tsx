@@ -8,14 +8,15 @@ import { Badge } from "@/components/ui/badge"
 import { UserCard } from "@/components/uix"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Eye, 
-  Clock, 
-  CheckCircle, 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Eye,
+  Clock,
+  CheckCircle,
   XCircle,
-  FileText, 
-  Search, 
-  Send, 
+  FileText,
+  Search,
+  Send,
   Users,
   TrendingUp,
 } from "lucide-react"
@@ -83,13 +84,13 @@ export function AdminDashboardClient({
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
-      paid: "bg-blue-100 text-blue-800",
-      in_review: "bg-amber-100 text-amber-800",
-      approved: "bg-emerald-100 text-emerald-800",
-      declined: "bg-red-100 text-red-800",
+      paid: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300",
+      in_review: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300",
+      approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300",
+      declined: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300",
       completed: "bg-muted text-foreground",
-      awaiting_script: "bg-dawn-100 text-dawn-800",
-      pending_info: "bg-orange-100 text-orange-800",
+      awaiting_script: "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300",
+      pending_info: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
     }
     return variants[status] || "bg-muted text-foreground"
   }
@@ -193,29 +194,31 @@ export function AdminDashboardClient({
                 startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="all">All Statuses</option>
-              <option value="paid">In Queue</option>
-              <option value="in_review">In Review</option>
-              <option value="approved">Approved</option>
-              <option value="declined">Declined</option>
-              <option value="awaiting_script">Awaiting Script</option>
-              <option value="completed">Completed</option>
-            </select>
-            <select
-              value={serviceFilter}
-              onChange={(e) => setServiceFilter(e.target.value)}
-              className="h-10 px-3 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="all">All Services</option>
-              <option value="med_certs">Medical Certificates</option>
-              <option value="repeat_rx">Repeat Scripts</option>
-              <option value="consults">Consultations</option>
-            </select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="paid">In Queue</SelectItem>
+                <SelectItem value="in_review">In Review</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="declined">Declined</SelectItem>
+                <SelectItem value="awaiting_script">Awaiting Script</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={serviceFilter} onValueChange={setServiceFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Services" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Services</SelectItem>
+                <SelectItem value="med_certs">Medical Certificates</SelectItem>
+                <SelectItem value="repeat_rx">Repeat Scripts</SelectItem>
+                <SelectItem value="consults">Consultations</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Table */}

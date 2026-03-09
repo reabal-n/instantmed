@@ -10,9 +10,12 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     intake_id?: string
     patient_id?: string
+    date_from?: string
+    date_to?: string
+    event_type?: string
     page?: string
   }>
 }
@@ -20,11 +23,26 @@ interface PageProps {
 async function getAuditLogs(filters: {
   intakeId?: string
   patientId?: string
+  dateFrom?: string
+  dateTo?: string
+  eventType?: string
   page: number
   pageSize: number
 }) {
   const supabase = createServiceRoleClient()
-  const { intakeId, patientId, page, pageSize } = filters
+  const { intakeId, patientId, dateFrom, dateTo, eventType, page, pageSize } = filters
+
+  // If filtering by patient, resolve their intake IDs first
+  // (PostgREST cannot filter on nested join columns like "intake.patient_id")
+  let intakeIds: string[] | null = null
+  if (patientId) {
+    const { data: patientIntakes } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("patient_id", patientId)
+    intakeIds = patientIntakes?.map((i) => i.id) || []
+    if (intakeIds.length === 0) return { events: [], total: 0 }
+  }
 
   // Build query for intake events
   let query = supabase
@@ -52,8 +70,20 @@ async function getAuditLogs(filters: {
     query = query.eq("intake_id", intakeId)
   }
 
-  if (patientId) {
-    query = query.eq("intake.patient_id", patientId)
+  if (intakeIds) {
+    query = query.in("intake_id", intakeIds)
+  }
+
+  if (dateFrom) {
+    query = query.gte("created_at", `${dateFrom}T00:00:00`)
+  }
+
+  if (dateTo) {
+    query = query.lte("created_at", `${dateTo}T23:59:59`)
+  }
+
+  if (eventType && eventType !== "all") {
+    query = query.eq("event_type", eventType)
   }
 
   // Pagination
@@ -109,6 +139,9 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
     getAuditLogs({
       intakeId: params.intake_id,
       patientId: params.patient_id,
+      dateFrom: params.date_from,
+      dateTo: params.date_to,
+      eventType: params.event_type,
       page,
       pageSize,
     }),
@@ -125,6 +158,9 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
       filters={{
         intakeId: params.intake_id,
         patientId: params.patient_id,
+        dateFrom: params.date_from,
+        dateTo: params.date_to,
+        eventType: params.event_type,
       }}
     />
   )

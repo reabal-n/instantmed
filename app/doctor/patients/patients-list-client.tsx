@@ -225,12 +225,12 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                       </TableCell>
                       <TableCell>
                         {patient.onboarding_completed ? (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
                             <CheckCircle className="mr-1 h-3 w-3" />
                             Complete
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
                             <XCircle className="mr-1 h-3 w-3" />
                             Incomplete
                           </Badge>
@@ -256,7 +256,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center">
+                  <TableCell colSpan={7} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Users className="h-8 w-8 opacity-50" />
                       <p>No patients found matching your filters</p>

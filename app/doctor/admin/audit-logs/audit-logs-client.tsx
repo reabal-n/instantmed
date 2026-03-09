@@ -136,17 +136,17 @@ export function AuditLogsClient({
   const getEventColor = (eventType: string) => {
     switch (eventType) {
       case "status_change":
-        return "bg-blue-100 text-blue-700"
+        return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
       case "payment_received":
-        return "bg-emerald-100 text-emerald-700"
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
       case "document_generated":
-        return "bg-dawn-100 text-dawn-700"
+        return "bg-dawn-100 text-dawn-700 dark:bg-dawn-500/20 dark:text-dawn-300"
       case "email_sent":
-        return "bg-sky-100 text-sky-700"
+        return "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
       case "email_failed":
-        return "bg-red-100 text-red-700"
+        return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"
       case "refund_processed":
-        return "bg-amber-100 text-amber-700"
+        return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
       default:
         return "bg-muted text-muted-foreground"
     }
@@ -155,11 +155,11 @@ export function AuditLogsClient({
   const getStatusBadge = (status: string | null) => {
     if (!status) return null
     const colors: Record<string, string> = {
-      approved: "bg-emerald-100 text-emerald-700",
-      declined: "bg-red-100 text-red-700",
-      paid: "bg-blue-100 text-blue-700",
-      pending_info: "bg-amber-100 text-amber-700",
-      completed: "bg-emerald-100 text-emerald-700",
+      approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+      declined: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+      paid: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+      pending_info: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+      completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
     }
     return (
       <Badge className={colors[status] || "bg-muted text-muted-foreground"}>

@@ -39,6 +39,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { EmailOutboxRow } from "@/lib/data/email-outbox"
 
 // ============================================================================
@@ -101,10 +102,10 @@ function truncateId(id: string | null): string {
 
 function StatusBadge({ status }: { status: EmailOutboxRow["status"] }) {
   const config = {
-    sent: { icon: CheckCircle, className: "bg-emerald-100 text-emerald-800" },
-    failed: { icon: AlertCircle, className: "bg-red-100 text-red-800" },
-    pending: { icon: Clock, className: "bg-amber-100 text-amber-800" },
-    skipped_e2e: { icon: TestTube, className: "bg-dawn-100 text-dawn-800" },
+    sent: { icon: CheckCircle, className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" },
+    failed: { icon: AlertCircle, className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
+    pending: { icon: Clock, className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+    skipped_e2e: { icon: TestTube, className: "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300" },
   }
 
   const { icon: Icon, className } = config[status] || config.pending
@@ -414,12 +415,12 @@ function DetailModal({
 
           {/* Error Message */}
           {row.error_message && (
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10">
               <CardHeader className="py-3">
-                <CardTitle className="text-sm text-red-800">Error</CardTitle>
+                <CardTitle className="text-sm text-red-800 dark:text-red-300">Error</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="text-xs text-red-800 whitespace-pre-wrap overflow-x-auto">
+                <pre className="text-xs text-red-800 dark:text-red-300 whitespace-pre-wrap overflow-x-auto">
                   {row.error_message}
                 </pre>
               </CardContent>
@@ -571,9 +572,9 @@ export function EmailOutboxClient({
 
       {/* Error State */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10">
           <CardContent className="py-4">
-            <div className="flex items-center gap-2 text-red-800">
+            <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
               <AlertCircle className="h-5 w-5" />
               <span>Query failed: {error}</span>
             </div>
@@ -584,62 +585,62 @@ export function EmailOutboxClient({
       {/* Table */}
       <Card>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="email-outbox-table">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">Created</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Type</th>
-                <th className="px-4 py-3 text-left font-medium">To</th>
-                <th className="px-4 py-3 text-left font-medium">Subject</th>
-                <th className="px-4 py-3 text-left font-medium">Intake</th>
-                <th className="px-4 py-3 text-left font-medium">Provider</th>
-                <th className="px-4 py-3 text-left font-medium">Error</th>
-              </tr>
-            </thead>
-            <tbody className={isPending ? "opacity-50" : ""}>
+          <Table data-testid="email-outbox-table">
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead>Created</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>To</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Intake</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead>Error</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className={isPending ? "opacity-50" : ""}>
               {initialData.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                     No emails found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 initialData.map((row) => (
-                  <tr
+                  <TableRow
                     key={row.id}
                     onClick={() => setSelectedRow(row)}
-                    className="border-b hover:bg-muted/50 cursor-pointer transition-colors"
+                    className="cursor-pointer"
                   >
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap">
                       {formatDate(row.created_at)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell>
                       <StatusBadge status={row.status} />
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className="font-mono text-xs">
                         {row.email_type}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
                       {truncateEmail(row.to_email)}
-                    </td>
-                    <td className="px-4 py-3 max-w-[200px] truncate">
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
                       {row.subject}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
                       {truncateId(row.intake_id)}
-                    </td>
-                    <td className="px-4 py-3 text-xs">{row.provider}</td>
-                    <td className="px-4 py-3 max-w-[150px] truncate text-red-600">
+                    </TableCell>
+                    <TableCell className="text-xs">{row.provider}</TableCell>
+                    <TableCell className="max-w-[150px] truncate text-red-600 dark:text-red-400">
                       {row.error_message || "-"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination */}

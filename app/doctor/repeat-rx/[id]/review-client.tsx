@@ -18,6 +18,7 @@ import {
   Check,
   FileText,
 } from "lucide-react"
+import { toast } from "sonner"
 
 // ============================================================================
 // TYPES
@@ -119,9 +120,11 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+      className="h-5 w-5 text-muted-foreground hover:text-primary"
       title={`Copy ${label || "text"}`}
     >
       {copied ? (
@@ -129,7 +132,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
       ) : (
         <Copy className="w-3 h-3" />
       )}
-    </button>
+    </Button>
   )
 }
 
@@ -191,9 +194,15 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
       })
 
       if (response.ok) {
+        toast.success("Script marked as sent")
         router.push("/doctor/repeat-rx")
         router.refresh()
+      } else {
+        const data = await response.json().catch(() => ({}))
+        toast.error(data.error || "Failed to mark script as sent")
       }
+    } catch {
+      toast.error("Network error — please try again")
     } finally {
       setIsSubmitting(false)
     }
@@ -214,9 +223,15 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
       })
 
       if (response.ok) {
+        toast.success("Request declined")
         router.push("/doctor/repeat-rx")
         router.refresh()
+      } else {
+        const data = await response.json().catch(() => ({}))
+        toast.error(data.error || "Failed to decline request")
       }
+    } catch {
+      toast.error("Network error — please try again")
     } finally {
       setIsSubmitting(false)
     }
@@ -231,12 +246,14 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => router.back()}
-                className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+                className="-ml-2"
               >
                 <ArrowLeft className="w-5 h-5" />
-              </button>
+              </Button>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-semibold">Prescription Request</h1>
@@ -295,7 +312,9 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
 
               {/* Quick copy all button */}
               {patient && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={async () => {
                     const lines = [
                       patient.full_name,
@@ -308,13 +327,14 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                     ].filter(Boolean).join("\n")
                     try {
                       await navigator.clipboard.writeText(lines)
+                      toast.success("Patient details copied")
                     } catch { /* ignore */ }
                   }}
-                  className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
+                  className="mt-2 h-auto px-0 text-xs text-primary hover:underline gap-1"
                 >
                   <Copy className="w-3 h-3" />
                   Copy all patient details
-                </button>
+                </Button>
               )}
             </div>
 

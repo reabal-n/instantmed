@@ -113,16 +113,16 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30"
       case "declined":
         return "bg-destructive/10 text-destructive border-destructive/20"
       case "pending_info":
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30"
       case "awaiting_script":
-        return "bg-dawn-100 text-dawn-800 border-dawn-200"
+        return "bg-dawn-100 text-dawn-800 border-dawn-200 dark:bg-dawn-500/20 dark:text-dawn-300 dark:border-dawn-500/30"
       case "paid":
       case "in_review":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
       default:
         return "bg-muted text-muted-foreground"
     }
@@ -312,7 +312,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                         {intake.paid_at && (
                           <>
                             <span>•</span>
-                            <span className="text-emerald-600">Paid</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">Paid</span>
                           </>
                         )}
                       </div>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CheckCircle2, Circle, AlertTriangle, ArrowRight } from "lucide-react"
+import { CheckCircle2, Circle, AlertTriangle, ArrowRight, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface OnboardingStep {
   id: string
@@ -97,13 +98,15 @@ export function DoctorOnboardingBanner() {
           )}
         </div>
 
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setDismissed(true)}
-          className="text-amber-400 hover:text-amber-600 text-xs shrink-0"
+          className="h-6 w-6 text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 shrink-0"
           aria-label="Dismiss onboarding banner"
         >
-          ✕
-        </button>
+          <X className="h-3.5 w-3.5" />
+        </Button>
       </div>
     </div>
   )
