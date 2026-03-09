@@ -130,7 +130,7 @@ export function ServicePicker() {
             />
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-            Flat pricing. No hidden fees. Pay only after a real GP reviews your request.
+            Flat pricing. No hidden fees. Full refund if we can&apos;t help.
           </p>
           
           {/* Trust Signals */}

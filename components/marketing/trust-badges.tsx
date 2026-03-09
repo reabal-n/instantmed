@@ -112,7 +112,7 @@ export function TrustBadges({
           className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
         >
           {/* Subtle glow behind icon on hover */}
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/8 blur-xl transition-all duration-500" />
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/10 blur-xl transition-all duration-500" />
           <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3 group-hover:bg-primary/15 group-hover:scale-105 transition-all duration-300">
             {badge.icon}
           </div>

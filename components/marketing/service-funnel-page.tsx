@@ -904,7 +904,7 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
             From ${config.pricing.price.toFixed(2)} · No account required
           </p>
           <p className="mt-1 text-white/60 text-xs">
-            Takes about 2 minutes · Pay only after doctor review
+            Takes about 2 minutes · Full refund if we can&apos;t help
           </p>
         </motion.div>
       </div>

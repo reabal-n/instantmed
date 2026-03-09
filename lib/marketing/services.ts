@@ -1,8 +1,6 @@
 // Service Landing Page Configuration
 // All content centralized for easy updates - NO SPECIFIC DRUG NAMES ON MARKETING PAGES
 
-import type { LucideIcon as _LucideIcon } from 'lucide-react'
-
 export interface ServiceFAQ {
   question: string
   answer: string

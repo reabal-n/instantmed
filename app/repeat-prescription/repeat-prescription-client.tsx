@@ -201,7 +201,7 @@ export default function RepeatPrescriptionPage() {
               <span>PBS subsidies apply</span>
             </div>
             <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5">
-              No account required &middot; Pay only after doctor review
+              No account required &middot; Full refund if we can&apos;t help
             </p>
           </div>
         </SplitHero>

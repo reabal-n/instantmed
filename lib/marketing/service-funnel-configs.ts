@@ -10,13 +10,13 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'medical-certificates',
   
   hero: {
-    badge: 'Doctors reviewing now',
+    badge: 'Reviewed by Australian GPs',
     headline: 'Medical certificates.',
     headlineRotatingWords: ['Reviewed by Australian GPs.', 'Accepted everywhere.', 'From your couch.'],
     subheadline: `Valid for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. Usually sorted in under an hour.`,
     reassurances: [
       'AHPRA-registered doctors · Accepted by all employers · Full refund if we can\'t help',
-      'No account required · Pay only after doctor review',
+      'No account required · Full refund if we can\'t help',
     ],
     ctaText: `Get your certificate — ${PRICING_DISPLAY.MED_CERT}`,
     ctaHref: '/request?service=med-cert',
@@ -117,7 +117,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   
   pricing: {
     title: 'One flat fee. Save $40–70 vs a GP.',
-    subtitle: 'Pay after the doctor reviews your request — not before. No hidden fees.',
+    subtitle: 'One flat fee — no hidden costs. Full refund if we can\'t help.',
     price: 19.95,
     originalPrice: 70,
     features: [
@@ -228,13 +228,13 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'repeat-prescriptions',
 
   hero: {
-    badge: 'Doctors prescribing now',
+    badge: 'Prescribed by Australian GPs',
     headline: 'Repeat prescriptions.',
     headlineRotatingWords: ['Reviewed by Australian GPs.', 'eScript to your phone.', 'Any pharmacy, same day.'],
     subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone. No appointment needed.`,
     reassurances: [
       'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
-      'No account required · Pay only after doctor review',
+      'No account required · Full refund if we can\'t help',
     ],
     ctaText: `Renew your script — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
@@ -335,7 +335,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   
   pricing: {
     title: 'One flat fee. Save $30–60 vs a GP.',
-    subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Pay after the doctor reviews. Medication cost is separate at your pharmacy.`,
+    subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Full refund if we can\'t help. Medication cost is separate at your pharmacy.`,
     price: 29.95,
     originalPrice: 80,
     features: [
@@ -446,13 +446,13 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'consult',
 
   hero: {
-    badge: 'Doctors consulting now',
+    badge: 'Australian GP consultations',
     headline: 'See a doctor today.',
     headlineRotatingWords: ['No waiting rooms.', 'Prescriptions if needed.', 'From your phone.'],
     subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Prescriptions and referrals included if appropriate.`,
     reassurances: [
       'AHPRA-registered doctors · Prescriptions & referrals if needed · Full refund if we can\'t help',
-      'No account required · Pay only after doctor review',
+      'No account required · Full refund if we can\'t help',
     ],
     ctaText: `Start your consult — ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',

@@ -123,7 +123,7 @@ export function PricingSection({
             </Link>
           </Button>
           <p className="mt-3 text-xs text-muted-foreground">
-            No account required &middot; Pay only after doctor review
+            No account required &middot; Full refund if we can&apos;t help
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
             {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((m) => (

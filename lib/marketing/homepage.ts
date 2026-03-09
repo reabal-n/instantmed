@@ -139,7 +139,7 @@ export const proofMetrics = [
   },
   {
     label: "Flat pricing",
-    value: "Pay after review",
+    value: "Full refund if declined",
     icon: "CreditCard",
     emoji: "\uD83D\uDCB3",
   },

@@ -76,7 +76,7 @@ export default function ConditionsIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-background dark:bg-black">
+      <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">

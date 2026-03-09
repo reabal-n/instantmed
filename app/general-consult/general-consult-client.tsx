@@ -244,7 +244,7 @@ export default function GeneralConsultPage() {
 
           {/* No account required */}
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            No account required &middot; Pay only after doctor review
+            No account required &middot; Full refund if we can&apos;t help
           </p>
         </CenteredHero>
 
@@ -486,7 +486,7 @@ export default function GeneralConsultPage() {
         {/* Final CTA — CTABanner */}
         <CTABanner
           title="Ready to speak with a doctor?"
-          subtitle="Takes 3-5 minutes to get started. A doctor typically responds within 2 hours. $49.95 flat fee. No account required. Pay after review."
+          subtitle="Takes 3-5 minutes to get started. A doctor typically responds within 2 hours. $49.95 flat fee. No account required. Full refund if we can't help."
           ctaText="Start your consult"
           ctaHref="/request?service=consult"
         />

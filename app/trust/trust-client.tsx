@@ -332,7 +332,7 @@ export default function TrustPage() {
           subtitle={`Join ${mounted ? patientCount.toLocaleString() : "2,400"}+ Australians who've already made the switch.`}
           ctaText="Start a request"
           ctaHref="/request"
-          secondaryText="No account required · Pay only after doctor review"
+          secondaryText="No account required · Full refund if request declined"
         />
       </main>
 
