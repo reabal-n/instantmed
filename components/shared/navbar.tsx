@@ -322,7 +322,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </AnimatedNavLink>
 
                   <div className="ml-2 flex items-center gap-2">
-                    <SkyToggle size={14} />
+                    <SkyToggle size={8} />
                     <Button
                       asChild
                       size="sm"
