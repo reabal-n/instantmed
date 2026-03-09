@@ -115,7 +115,7 @@ export function Hero() {
               </p>
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />
-                <span className="text-center lg:text-left">No account required &middot; Full refund if we can&apos;t help</span>
+                <span className="text-center lg:text-left">No account required &middot; Pay only if approved</span>
               </p>
             </motion.div>
           </div>

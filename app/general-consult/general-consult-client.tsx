@@ -486,7 +486,7 @@ export default function GeneralConsultPage() {
         {/* Final CTA — CTABanner */}
         <CTABanner
           title="Ready to speak with a doctor?"
-          subtitle="Takes 3-5 minutes to get started. A doctor typically responds within 2 hours. $49.95 flat fee. No account required. Full refund if we can't help."
+          subtitle="Takes 3-5 minutes to get started. $49.95 flat fee. No account required. Full refund if we can't help."
           ctaText="Start your consult"
           ctaHref="/request?service=consult"
         />

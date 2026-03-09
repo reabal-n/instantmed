@@ -5,11 +5,11 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Skip the waiting room. See a doctor online.",
+  tagline: "Online doctor consultations, reviewed by real GPs.",
   operatingHours: {
-    weekdays: "7am – 10pm AEST",
-    weekends: "8am – 8pm AEST",
-    publicHolidays: "9am – 5pm AEST",
+    weekdays: "8am – 10pm AEST",
+    weekends: "8am – 10pm AEST",
+    publicHolidays: "8am – 10pm AEST",
   },
   contact: {
     email: "support@instantmed.com.au",
@@ -94,7 +94,7 @@ export const serviceCategories = [
     benefits: [
       "Works with any chemist",
       "Repeat scripts included",
-      "eToken sent via SMS"
+      "eScript sent via SMS"
     ],
   },
   {
@@ -109,7 +109,7 @@ export const serviceCategories = [
     priceFrom: 49.95,
     href: "/request?service=consult",
     popular: false,
-    cta: "Book a consult",
+    cta: "Start a consult",
     benefits: [
       "Chat about something bothering you",
       "Get advice on next steps",
@@ -213,7 +213,7 @@ export const footerLinks = {
   services: [
     { label: "Medical Certificates", href: "/request?service=med-cert" },
     { label: "Prescriptions", href: "/request?service=prescription" },
-    { label: "Consultations", href: "/request?service=consult" },
+    { label: "General Consult", href: "/request?service=consult" },
   ],
   company: [
     { label: "About Us", href: "/about" },
@@ -241,5 +241,5 @@ export const slaPolicy = {
     "High-demand periods (public holidays, flu season)",
   ],
   escalationNote: "If your request needs clarification, a doctor may message you or offer a brief call at no extra charge.",
-  refundNote: "If we can't help you, you won't be charged the consultation fee. A small admin fee may apply to cover processing costs.",
+  refundNote: "If we can't help you, you'll receive a full refund — no questions asked.",
 }

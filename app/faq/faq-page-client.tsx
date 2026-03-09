@@ -170,7 +170,7 @@ export default function FAQPage() {
         {/* CTA */}
         <CTABanner
           title="Still have questions?"
-          subtitle="Our support team typically responds within 2 hours."
+          subtitle="Our support team is here to help — reach out anytime."
           ctaText="Contact Support"
           ctaHref="/contact"
         />

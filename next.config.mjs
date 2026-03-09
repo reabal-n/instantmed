@@ -22,21 +22,21 @@ const nextConfig = {
       bodySizeLimit: '1mb',
     },
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      // Fix: React module race condition in dev mode (Next.js #70703).
-      // All chunk scripts use async="" so execution order is non-deterministic.
-      // page.js/layout.js need react-jsx-dev-runtime which depends on react,
-      // but react is only in main-app.js. If page.js executes first, the factory
-      // is undefined → TypeError. Disabling splitChunks in dev forces all modules
-      // into fewer chunks, eliminating the race condition.
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: false,
-      };
-    }
-    return config;
-  },
+  // Note: webpack config only applies when running `next dev` without --turbopack.
+  // Turbopack ignores this block entirely. The config is guarded to suppress the
+  // "Webpack is configured while Turbopack is not" warning.
+  ...(process.env.TURBOPACK ? {} : {
+    webpack: (config, { dev }) => {
+      if (dev) {
+        // Fix: React module race condition in dev mode (Next.js #70703).
+        config.optimization = {
+          ...config.optimization,
+          splitChunks: false,
+        };
+      }
+      return config;
+    },
+  }),
   images: {
     // Enable Next.js Image Optimization
     unoptimized: false,

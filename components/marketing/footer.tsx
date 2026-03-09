@@ -98,9 +98,6 @@ export function MarketingFooter() {
                     {link.label}
                   </Link>
                 ))}
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=consult">
-                  General Consult
-                </Link>
               </div>
             </nav>
 
@@ -121,7 +118,7 @@ export function MarketingFooter() {
             </nav>
 
             {/* Legal column */}
-            <nav className="hidden md:flex flex-col gap-1 md:gap-4">
+            <nav className="flex flex-col gap-1 md:gap-4">
               <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Legal</h4>
               <div className="flex flex-col gap-2 text-sm items-start">
                 {footerLinks.legal.map((link) => (
