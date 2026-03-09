@@ -1821,6 +1821,12 @@ body {
     linear-gradient(180deg, #faf9f7 0%, #f5f3f0 100%);
 }
 
+.dark .bg-hero {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(93, 184, 201, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(93, 184, 201, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, #0B1120 0%, #0D1526 100%);
+}
+
 /* Mesh gradient */
 .bg-mesh {
   background: radial-gradient(at 40% 20%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),

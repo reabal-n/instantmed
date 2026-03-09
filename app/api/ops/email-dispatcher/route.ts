@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
     logger.error("[Email Dispatcher OPS] Failed", { error })
-    return NextResponse.json({ error }, { status: 500 })
+    return NextResponse.json({ error: "Email dispatch failed" }, { status: 500 })
   }
 }
 

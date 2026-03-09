@@ -4,6 +4,7 @@ import { getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { SYMPTOM_SUGGESTIONS_PROMPT, CONTEXT_PROMPTS, FALLBACK_RESPONSES } from "@/lib/ai/prompts"
 import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
+import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 
 export const runtime = "edge"
 
@@ -29,8 +30,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ suggestions: [] })
     }
 
+    // Prompt safety: sanitize user input before including in AI prompt
+    const safety = checkAndSanitize(input, { endpoint: "symptom-suggestions" })
+    if (safety.blocked) {
+      return NextResponse.json({ suggestions: FALLBACK_RESPONSES.symptomSuggestions, fallback: true })
+    }
+    const sanitizedInput = safety.output
+
     // Normalize input for caching (lowercase, trim)
-    const normalizedInput = input.toLowerCase().trim()
+    const normalizedInput = sanitizedInput.toLowerCase().trim()
     const cacheContext = `${context}:${isCarer ? 'carer' : 'self'}`
 
     // Check cache first
@@ -62,7 +70,7 @@ export async function POST(req: NextRequest) {
 
 Context: ${contextPrompt}
 
-The patient has started typing: "${input}"`
+The patient has started typing: "${sanitizedInput}"`
 
     // Get model with creative configuration (higher temperature for variety)
     const { model, temperature } = getModelWithConfig('creative')
