@@ -35,7 +35,7 @@ export function Hero() {
 
             {/* Headline */}
             <motion.h1
-              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
+              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6 leading-[1.15]"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}

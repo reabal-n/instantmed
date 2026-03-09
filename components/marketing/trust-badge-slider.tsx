@@ -9,28 +9,24 @@ import { Button } from "@/components/ui/button"
 
 const trustBadges = [
   {
-    name: "AHPRA Registered",
-    description: "Verify on the public register",
+    name: "AHPRA-registered doctors",
     icon: BadgeCheck,
     color: "text-emerald-600 dark:text-emerald-400",
     href: "https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
   },
   {
-    name: "RACGP Standards",
-    description: "5th Edition aligned protocols",
+    name: "RACGP-aligned protocols",
     icon: BookOpen,
     color: "text-blue-600 dark:text-blue-400",
     href: "https://www.racgp.org.au/running-a-practice/practice-standards"
   },
   {
-    name: "Medical Director Oversight",
-    description: "Clinical governance & quality",
+    name: "Medical Director oversight",
     icon: UserCheck,
     color: "text-blue-600 dark:text-blue-400"
   },
   {
-    name: "TGA ePrescribing",
-    description: "Compliant electronic scripts",
+    name: "TGA-compliant ePrescribing",
     icon: FileCheck,
     color: "text-amber-600 dark:text-amber-400"
   },
@@ -66,7 +62,6 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
                     <span>{badge.name}</span>
                     {'href' in badge && badge.href && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
                 </div>
               </div>
             )
