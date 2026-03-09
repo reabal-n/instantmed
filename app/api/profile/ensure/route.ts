@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -13,8 +14,12 @@ function escapeIlike(input: string): string {
  * Ensures a profile exists for the current Clerk user.
  * Creates one if it doesn't exist (fallback for webhook failures).
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    // Rate limit to prevent abuse (profile creation/linking is sensitive)
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const { userId } = await auth()
 
     if (!userId) {

@@ -16,11 +16,19 @@ export default async function PatientSettingsPage() {
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   // Decrypt sensitive fields before passing to client
+  let decryptedMedicare: string | null = null
+  try {
+    decryptedMedicare = authUser.profile.medicare_number
+      ? decryptIfNeeded(authUser.profile.medicare_number)
+      : null
+  } catch {
+    // Decryption failure — pass null so UI doesn't crash.
+    // Patient can re-enter their Medicare number in settings.
+    decryptedMedicare = null
+  }
   const profileWithDecryptedFields = {
     ...authUser.profile,
-    medicare_number: authUser.profile.medicare_number
-      ? decryptIfNeeded(authUser.profile.medicare_number)
-      : null,
+    medicare_number: decryptedMedicare,
   }
 
   // Fetch email preferences

@@ -34,6 +34,7 @@ interface Notification {
 interface NotificationsClientProps {
   notifications: Notification[]
   patientId: string
+  fetchError?: string
 }
 
 function getNotificationIcon(type: Notification["type"]) {
@@ -66,7 +67,7 @@ function getNotificationColor(type: Notification["type"]) {
   }
 }
 
-export function NotificationsClient({ notifications: initialNotifications, patientId }: NotificationsClientProps) {
+export function NotificationsClient({ notifications: initialNotifications, patientId, fetchError }: NotificationsClientProps) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const [filter, setFilter] = useState<"all" | "unread">("all")
   // Memoize Supabase client to prevent recreation on every render
@@ -189,6 +190,16 @@ export function NotificationsClient({ notifications: initialNotifications, patie
           </Button>
         </div>
       </div>
+
+      {/* Fetch Error */}
+      {fetchError && (
+        <div className="rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-800 dark:text-red-300">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{fetchError}</span>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-2">

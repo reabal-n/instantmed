@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
   const profile = authUser.profile
 
   // Get all notifications
-  const { data: notifications } = await supabase
+  const { data: notifications, error } = await supabase
     .from("notifications")
     .select("id, type, title, message, action_url, read, metadata, created_at")
     .eq("user_id", profile.id)
@@ -27,7 +27,11 @@ export default async function NotificationsPage() {
 
   return (
     <div>
-      <NotificationsClient notifications={notifications || []} patientId={profile.id} />
+      <NotificationsClient
+        notifications={notifications || []}
+        patientId={profile.id}
+        fetchError={error ? "Unable to load notifications. Please try again later." : undefined}
+      />
     </div>
   )
 }

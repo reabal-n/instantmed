@@ -91,11 +91,11 @@ interface RepeatRxReviewClientProps {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
-    pending: { label: "Pending", className: "bg-blue-100 text-blue-800" },
-    approved: { label: "Script Sent", className: "bg-green-100 text-green-800" },
-    script_sent: { label: "Script Sent", className: "bg-green-100 text-green-800" },
-    declined: { label: "Declined", className: "bg-red-100 text-red-800" },
-    requires_consult: { label: "Requires Consult", className: "bg-amber-100 text-amber-800" },
+    pending: { label: "Pending", className: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300" },
+    approved: { label: "Script Sent", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300" },
+    script_sent: { label: "Script Sent", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300" },
+    declined: { label: "Declined", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
+    requires_consult: { label: "Requires Consult", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
   }
 
   const config = statusConfig[status] || { label: status, className: "bg-muted" }

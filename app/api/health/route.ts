@@ -65,15 +65,14 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.from("services").select("id").limit(1)
 
     if (error) {
-      checks.database = { status: "error", error: error.message }
+      checks.database = { status: "error", error: "Database unreachable" }
+      logger.warn("Health check: database error", { error: error.message })
     } else {
       checks.database = { status: "ok", latencyMs: Date.now() - dbStart }
     }
   } catch (err) {
-    checks.database = {
-      status: "error",
-      error: err instanceof Error ? err.message : "Unknown error"
-    }
+    checks.database = { status: "error", error: "Database unreachable" }
+    logger.warn("Health check: database exception", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check Redis connectivity (rate limiting)
@@ -88,10 +87,8 @@ export async function GET(request: NextRequest) {
       checks.redis = { status: "ok", latencyMs: 0 } // Not configured = using in-memory fallback
     }
   } catch (err) {
-    checks.redis = {
-      status: "error",
-      error: err instanceof Error ? err.message : "Redis connection failed"
-    }
+    checks.redis = { status: "error", error: "Redis unreachable" }
+    logger.warn("Health check: redis error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check Stripe connectivity
@@ -100,10 +97,8 @@ export async function GET(request: NextRequest) {
     await stripe.balance.retrieve()
     checks.stripe = { status: "ok", latencyMs: Date.now() - stripeStart }
   } catch (err) {
-    checks.stripe = {
-      status: "error",
-      error: err instanceof Error ? err.message : "Stripe API unreachable"
-    }
+    checks.stripe = { status: "error", error: "Stripe unreachable" }
+    logger.warn("Health check: stripe error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check Resend (email delivery)
@@ -116,15 +111,13 @@ export async function GET(request: NextRequest) {
       })
       checks.resend = res.ok
         ? { status: "ok", latencyMs: Date.now() - resendStart }
-        : { status: "error", error: `HTTP ${res.status}` }
+        : { status: "error", error: "Resend API error" }
     } else {
-      checks.resend = { status: "error", error: "RESEND_API_KEY not configured" }
+      checks.resend = { status: "error", error: "Resend not configured" }
     }
   } catch (err) {
-    checks.resend = {
-      status: "error",
-      error: err instanceof Error ? err.message : "Resend API unreachable",
-    }
+    checks.resend = { status: "error", error: "Resend unreachable" }
+    logger.warn("Health check: resend error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check Clerk (auth provider)
@@ -138,15 +131,13 @@ export async function GET(request: NextRequest) {
       // 401 means key is wrong, 200/4xx means Clerk is reachable
       checks.clerk = res.status !== 401
         ? { status: "ok", latencyMs: Date.now() - clerkStart }
-        : { status: "error", error: "Invalid CLERK_SECRET_KEY" }
+        : { status: "error", error: "Clerk auth failed" }
     } else {
-      checks.clerk = { status: "error", error: "CLERK_SECRET_KEY not configured" }
+      checks.clerk = { status: "error", error: "Clerk not configured" }
     }
   } catch (err) {
-    checks.clerk = {
-      status: "error",
-      error: err instanceof Error ? err.message : "Clerk API unreachable",
-    }
+    checks.clerk = { status: "error", error: "Clerk unreachable" }
+    logger.warn("Health check: clerk error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check environment variables

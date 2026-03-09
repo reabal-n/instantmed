@@ -199,7 +199,7 @@ export function DocumentBuilderClient({
       {actionMessage && (
         <div
           className={`p-4 rounded-lg ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800" : actionMessage.type === "warning" ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-800"
+            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : actionMessage.type === "warning" ? "bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"
           }`}
           data-testid={actionMessage.type === "success" ? "success-message" : actionMessage.type === "warning" ? "warning-message" : "error-message"}
         >
@@ -209,13 +209,14 @@ export function DocumentBuilderClient({
 
       {/* Missing Credentials Warning */}
       {!hasCredentials && (
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-red-800 font-medium">
-                <span>⚠️ Certificate credentials not configured</span>
+              <div className="flex items-center gap-2 text-red-800 dark:text-red-300 font-medium">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Certificate credentials not configured</span>
               </div>
-              <p className="text-sm text-red-700">
+              <p className="text-sm text-red-700 dark:text-red-400">
                 You need to set up your Provider Number and AHPRA Registration before issuing certificates.
               </p>
               <Button asChild variant="outline" size="sm" className="mt-2">
@@ -228,14 +229,14 @@ export function DocumentBuilderClient({
 
       {/* AI Review Flags — requires doctor attention */}
       {aiDrafts?.flags?.requiresReview && (
-        <Card className="bg-amber-50 border-amber-300">
+        <Card className="bg-amber-50 border-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium text-amber-800">AI Flag: Requires Extra Review</p>
+                <p className="font-medium text-amber-800 dark:text-amber-200">AI Flag: Requires Extra Review</p>
                 {aiDrafts.flags.flagReason && (
-                  <p className="text-sm text-amber-700 mt-1">{aiDrafts.flags.flagReason}</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">{aiDrafts.flags.flagReason}</p>
                 )}
               </div>
             </div>
@@ -245,12 +246,12 @@ export function DocumentBuilderClient({
 
       {/* AI Clinical Note — pre-consultation summary for doctor */}
       {aiDrafts?.clinicalNote && (
-        <Card className="border-blue-200">
+        <Card className="border-blue-200 dark:border-blue-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-300">
               <Brain className="h-4 w-4" />
               AI Clinical Summary
-              <span className="text-xs font-normal text-blue-500 ml-auto">Auto-generated — review before issuing</span>
+              <span className="text-xs font-normal text-blue-500 dark:text-blue-400 ml-auto">Auto-generated — review before issuing</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2 text-muted-foreground">
@@ -284,9 +285,9 @@ export function DocumentBuilderClient({
 
       {/* Existing Document Notice */}
       {existingDocument && (
-        <Card className="bg-emerald-50 border-emerald-200">
+        <Card className="bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-emerald-800">
+            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
               <CheckCircle className="h-5 w-5" />
               <span>Certificate already generated</span>
             </div>
