@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { PAYMENT_STATUS, type PaymentStatus as PaymentStatusType } from "@/lib/status"
+import { PAYMENT_STATUS } from "@/lib/status"
 import { formatDate, formatDateLong, formatCurrency } from "@/lib/format"
 
 interface Invoice {
