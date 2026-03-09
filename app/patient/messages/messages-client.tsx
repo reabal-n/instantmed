@@ -185,7 +185,7 @@ export function MessagesClient({
               {/* Message Thread */}
               <div className="md:col-span-2">
                 {selectedIntake ? (
-                  <Card className="h-[500px] flex flex-col">
+                  <Card className="h-[calc(100vh-16rem)] min-h-[300px] max-h-[600px] flex flex-col">
                     <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
                       {selectedMessages
                         .slice()
@@ -264,6 +264,7 @@ export function MessagesClient({
                           onClick={handleSendMessage}
                           disabled={!newMessage.trim() || sending}
                           className="shrink-0"
+                          aria-label="Send message"
                         >
                           <Send className="w-4 h-4" />
                         </Button>
@@ -271,7 +272,7 @@ export function MessagesClient({
                     </div>
                   </Card>
                 ) : (
-                  <Card className="h-[500px] flex items-center justify-center">
+                  <Card className="h-[calc(100vh-16rem)] min-h-[300px] max-h-[600px] flex items-center justify-center">
                     <CardContent className="text-center">
                       <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">Select a conversation to view messages</p>

@@ -48,7 +48,7 @@ export default async function PaymentSuccessPage({
       }
     } else if (data?.patient_id && !authUser) {
       // Intake exists but user is not authenticated - redirect to sign in
-      redirect(`/sign-in?redirect_url=/patient/intakes/success?intake_id=${intakeId}`)
+      redirect(`/sign-in?redirect_url=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`)
     }
 
     initialStatus = data?.status

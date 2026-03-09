@@ -539,9 +539,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       {/* Reassurance badges — frosted glass */}
       <div className="grid grid-cols-3 gap-2 py-2">
         {[
-          { icon: Shield, color: 'text-emerald-600', label: 'Real Australian doctor' },
+          { icon: Shield, color: 'text-primary', label: 'Real Australian doctor' },
           { icon: Clock, color: 'text-primary', label: 'Issued within ~1 hour' },
-          { icon: RefreshCw, color: 'text-green-600', label: 'Full refund guarantee' },
+          { icon: RefreshCw, color: 'text-primary', label: 'Full refund guarantee' },
         ].map((badge) => (
           <div
             key={badge.label}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Sparkles, AlertCircle, XCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -58,9 +58,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 }) {
   // Auto-set contraception type from OCP selection if not already set
   const resolvedType = ocpType === 'repeat' ? 'continue' : ocpType === 'new' ? 'start' : undefined
-  if (resolvedType && !answers.contraceptionType) {
-    setAnswer("contraceptionType", resolvedType)
-  }
+  useEffect(() => {
+    if (resolvedType && !answers.contraceptionType) {
+      setAnswer("contraceptionType", resolvedType)
+    }
+  }, [resolvedType, answers.contraceptionType, setAnswer])
   const contraceptionType = (answers.contraceptionType as string | undefined) || resolvedType
   const contraceptionCurrent = answers.contraceptionCurrent as string | undefined
   const pregnancyStatus = answers.pregnancyStatus as string | undefined

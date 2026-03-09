@@ -111,7 +111,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           content: "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member."
         }}
       >
-        <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1 mt-2">
+        <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1 mt-2" role="radiogroup" aria-label="Certificate type">
           {CERT_TYPES.map((type) => {
             const isSelected = certType === type.id
             const Icon = type.icon
@@ -119,6 +119,8 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
               <button
                 key={type.id}
                 type="button"
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() => setAnswer("certType", type.id)}
                 className={cn(
                   "relative flex-1 flex flex-col items-center gap-1 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation",
@@ -150,13 +152,15 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       >
         <div className="space-y-3 mt-2">
           {/* Segmented control */}
-          <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1">
+          <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1" role="radiogroup" aria-label="Certificate duration">
             {MED_CERT_DURATIONS.options.map((days) => {
               const isSelected = duration === String(days)
               return (
                 <button
                   key={days}
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => setAnswer("duration", String(days))}
                   className={cn(
                     "relative flex-1 flex flex-col items-center gap-0.5 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation",

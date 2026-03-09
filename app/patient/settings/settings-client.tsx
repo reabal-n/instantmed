@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
   Download,
+  Mail,
 } from "lucide-react"
 import type { Profile } from "@/types/db"
 import { toast } from "sonner"
@@ -40,7 +41,6 @@ import { changePassword, deleteAccount } from "@/app/actions/account"
 import { exportPatientData } from "@/app/actions/export-data"
 import { AvatarPicker } from "@/components/ui/avatar-picker"
 import { updateEmailPreferences, type EmailPreferences } from "@/app/actions/email-preferences"
-import { Mail } from "lucide-react"
 
 interface PatientSettingsClientProps {
   profile: Profile
@@ -119,8 +119,8 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
       return
     }
 
-    if (passwordData.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters")
+    if (passwordData.newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters")
       return
     }
 
@@ -610,17 +610,17 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
             </div>
 
             <div>
-              <h3 className="font-medium text-red-700 mb-4">Danger Zone</h3>
-              <div className="p-4 rounded-xl bg-red-50/50 border border-red-200/50 max-w-md">
-                <p className="font-medium text-red-700">Delete Account</p>
-                <p className="text-sm text-red-600/70 mb-4">
+              <h3 className="font-medium text-red-700 dark:text-red-400 mb-4">Danger Zone</h3>
+              <div className="p-4 rounded-xl bg-red-50/50 dark:bg-red-500/10 border border-red-200/50 dark:border-red-500/20 max-w-md">
+                <p className="font-medium text-red-700 dark:text-red-400">Delete Account</p>
+                <p className="text-sm text-red-600/70 dark:text-red-400/70 mb-4">
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="rounded-xl text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+                      className="rounded-xl text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 bg-transparent"
                     >
                       Delete My Account
                     </Button>

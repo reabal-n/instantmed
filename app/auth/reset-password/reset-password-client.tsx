@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { Lock, Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
+import { Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 
@@ -22,7 +22,6 @@ export function ResetPasswordClient() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [_isSuccess, _setIsSuccess] = useState(false)
   const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,26 +68,6 @@ export function ResetPasswordClient() {
     }
   }
 
-  if (_isSuccess) {
-    return (
-      <>
-        <Navbar variant="marketing" />
-        <main className="min-h-screen bg-hero pt-32 pb-20">
-          <div className="container max-w-md mx-auto px-4">
-            <div className="glass-card rounded-3xl p-8 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-6">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h1 className="text-2xl font-bold mb-2">Password Reset</h1>
-              <p className="text-muted-foreground mb-6">Your password has been updated. Redirecting to login...</p>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
-  }
-
   return (
     <>
       <Navbar variant="marketing" />
@@ -104,7 +83,7 @@ export function ResetPasswordClient() {
             </div>
 
             {error && (
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm mb-6">{error}</div>
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300 text-sm mb-6">{error}</div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,7 +123,7 @@ export function ResetPasswordClient() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12 bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md">
+              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12 shadow-soft hover:shadow-soft-md">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -158,14 +137,14 @@ export function ResetPasswordClient() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
+              <Link href="/sign-in" className="text-primary hover:text-primary/80 hover:underline">
                 Sign in
               </Link>
             </p>
             
             <p className="text-center text-sm text-muted-foreground mt-4">
               Note: Clerk manages password resets. If this page doesn&apos;t work, use the{" "}
-              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
+              <Link href="/sign-in" className="text-primary hover:text-primary/80 hover:underline">
                 sign-in page
               </Link>
               {" "}and click &quot;Forgot password?&quot;

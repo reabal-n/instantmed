@@ -190,24 +190,24 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     <div className="space-y-5 animate-in fade-in">
       {/* Autofill banner */}
       {showAutofillBanner && savedData && (
-        <Alert variant="default" className="border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30">
-          <Sparkles className="w-4 h-4 text-emerald-600" />
+        <Alert variant="default" className="border-primary/20 bg-primary/5">
+          <Sparkles className="w-4 h-4" />
           <AlertDescription className="flex items-center justify-between gap-2">
-            <span className="text-xs text-emerald-700 dark:text-emerald-300">
+            <span className="text-xs">
               Use your saved details?
             </span>
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 className="h-7 px-2 text-xs"
                 onClick={() => setShowAutofillBanner(false)}
               >
                 No thanks
               </Button>
-              <Button 
-                size="sm" 
-                className="h-7 px-3 text-xs bg-emerald-600 hover:bg-emerald-700"
+              <Button
+                size="sm"
+                className="h-7 px-3 text-xs"
                 onClick={handleAutofill}
               >
                 Autofill
@@ -347,11 +347,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       {/* Data security reassurance */}
       <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground py-1">
         <span className="flex items-center gap-1">
-          <Lock className="w-3 h-3 text-green-600" />
+          <Lock className="w-3 h-3 text-primary" />
           256-bit encrypted
         </span>
         <span className="flex items-center gap-1">
-          <EyeOff className="w-3 h-3 text-blue-600" />
+          <EyeOff className="w-3 h-3 text-primary" />
           Never shared with third parties
         </span>
       </div>

@@ -81,11 +81,13 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
           <Calendar className="w-4 h-4" />
           When is the best time to call you?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="space-y-2">
+        <div className="space-y-2" role="radiogroup" aria-label="Preferred time slot">
           {TIME_SLOTS.map((slot) => (
             <button
               key={slot.value}
               type="button"
+              role="radio"
+              aria-checked={preferredTimeSlot === slot.value}
               onClick={() => setAnswer("preferredTimeSlot", slot.value)}
               className={cn(
                 "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
@@ -121,11 +123,13 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
         <Label className="text-sm font-medium">
           Which days work best?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="radiogroup" aria-label="Preferred days">
           {DAY_OPTIONS.map((day) => (
             <button
               key={day.value}
               type="button"
+              role="radio"
+              aria-checked={preferredDays === day.value}
               onClick={() => setAnswer("preferredDays", day.value)}
               className={cn(
                 "flex-1 p-3 rounded-xl border text-center transition-all text-sm",

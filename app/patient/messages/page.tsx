@@ -34,14 +34,23 @@ export default async function PatientMessagesPage() {
   // Capture fetch error for display
   const fetchError = messagesError ? "Unable to load messages. Please try again later." : null
 
+  // Format raw category slugs to human-readable service names
+  function formatCategory(category: string | null | undefined): string {
+    if (!category) return "Service"
+    return category
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+
   // Transform messages to match expected type (joins return arrays)
   const messages = (rawMessages || []).map((msg) => {
     const intake = Array.isArray(msg.intake) ? msg.intake[0] : msg.intake
+    const formattedName = formatCategory(intake?.category)
     return {
       ...msg,
       intake: intake ? {
         ...intake,
-        service: { name: intake.category || "Service", short_name: intake.category || "Service" },
+        service: { name: formattedName, short_name: formattedName },
       } : null,
     }
   })

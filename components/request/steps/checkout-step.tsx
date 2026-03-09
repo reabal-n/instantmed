@@ -200,7 +200,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       {/* Summary card with enlarged price */}
       <motion.div variants={stagger.item} className="p-4 rounded-xl border bg-card space-y-3">
         <h3 className="text-sm font-medium flex items-center gap-2">
-          <Check className="w-4 h-4 text-green-600" />
+          <Check className="w-4 h-4 text-primary" />
           Request Summary
         </h3>
 
@@ -254,7 +254,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       {/* Trust badges */}
       <motion.div variants={stagger.item} className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
-          <Shield className="w-3.5 h-3.5 text-emerald-600" />
+          <Shield className="w-3.5 h-3.5 text-primary" />
           AHPRA-registered doctors
         </span>
         <span className="flex items-center gap-1">
@@ -262,7 +262,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           {estimatedWait} review
         </span>
         <span className="flex items-center gap-1">
-          <RefreshCw className="w-3.5 h-3.5 text-green-600" />
+          <RefreshCw className="w-3.5 h-3.5 text-primary" />
           Money-back guarantee
         </span>
       </motion.div>
@@ -297,7 +297,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         <div
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
             consentGiven
-              ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
+              ? "border-primary bg-primary/5"
               : "border-border hover:border-primary/40"
           }`}
           onClick={() => handleConsentChange(!consentGiven)}
@@ -347,7 +347,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           </CheckoutSection>
 
           {/* Refund guarantee right next to pay button */}
-          <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center justify-center gap-2 text-xs text-primary">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span className="font-medium">Full refund if we can&apos;t help — guaranteed</span>
           </div>
@@ -376,12 +376,12 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
         >
           <motion.div
-            className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center"
+            className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
             initial={prefersReducedMotion ? false : { scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
           >
-            <Check className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+            <Check className="w-8 h-8 text-primary" />
           </motion.div>
         </motion.div>
       )}

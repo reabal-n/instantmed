@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { Check, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
 
 export function CompleteAccountForm({
@@ -62,7 +63,7 @@ export function CompleteAccountForm({
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
               <Check className="w-8 h-8 text-emerald-500" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Payment successful! ✅</h1>
+            <h1 className="text-2xl font-bold mb-2">Payment successful</h1>
             <p className="text-muted-foreground">Taking you to your request...</p>
             <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
           </div>
@@ -77,7 +78,7 @@ export function CompleteAccountForm({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
           <Check className="w-8 h-8 text-emerald-500" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Payment successful! ✅</h1>
+        <h1 className="text-2xl font-bold mb-2">Payment successful</h1>
         <p className="text-muted-foreground">
           Create a free account to access your documents and track your request.
         </p>
@@ -91,19 +92,21 @@ export function CompleteAccountForm({
           </div>
         )}
 
-        <button
+        <Button
           onClick={handleCreateAccount}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90"
+          className="w-full rounded-xl"
+          size="lg"
         >
           Create Account & Access Certificate
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="outline"
           onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted/50"
+          className="w-full rounded-xl"
         >
           Skip for now
-        </button>
+        </Button>
         <p className="text-xs text-center text-muted-foreground">
           Your certificate will be emailed either way — an account just makes it easier to find later.
         </p>

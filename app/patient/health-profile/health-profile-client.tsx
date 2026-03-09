@@ -135,8 +135,9 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Blood Type</label>
+            <label htmlFor="blood-type" className="mb-1.5 block text-sm font-medium">Blood Type</label>
             <Input
+              id="blood-type"
               size="sm"
               placeholder="e.g. O+"
               value={bloodType}
@@ -166,8 +167,9 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium">Additional Notes</label>
+          <label htmlFor="additional-notes" className="mb-1.5 block text-sm font-medium">Additional Notes</label>
           <Textarea
+            id="additional-notes"
             placeholder="Any other health information..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

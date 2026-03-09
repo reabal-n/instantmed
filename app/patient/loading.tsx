@@ -16,8 +16,8 @@ export default function PatientLoading() {
         </div>
 
         {/* Stats cards with stagger animation */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
             <div 
               key={i} 
               style={{ animationDelay: `${i * 100}ms` }}

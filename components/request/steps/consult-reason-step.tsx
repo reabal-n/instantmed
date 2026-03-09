@@ -27,14 +27,14 @@ interface ConsultReasonStepProps {
 }
 
 const CONSULT_CATEGORIES = [
-  { value: "skin", label: "Skin condition", icon: "🩹", description: "Rash, acne, eczema, or other skin concern" },
-  { value: "infection", label: "Infection", icon: "💊", description: "May need antibiotics or antiviral treatment" },
-  { value: "new_medication", label: "Starting new medication", icon: "📋", description: "Need a new prescription or recommendation" },
-  { value: "general", label: "Other / General concern", icon: "🩺", description: "Something else not listed above" },
-  { value: "ed", label: "Erectile dysfunction", icon: "🔵", description: "ED assessment and treatment" },
-  { value: "hair_loss", label: "Hair loss", icon: "💇", description: "Hair loss assessment and treatment" },
-  { value: "weight_loss", label: "Weight loss", icon: "⚖️", description: "Weight management consultation" },
-  { value: "womens_health", label: "Women's health", icon: "🌸", description: "Women's health concern" },
+  { value: "skin", label: "Skin condition", description: "Rash, acne, eczema, or other skin concern" },
+  { value: "infection", label: "Infection", description: "May need antibiotics or antiviral treatment" },
+  { value: "new_medication", label: "Starting new medication", description: "Need a new prescription or recommendation" },
+  { value: "general", label: "Other / General concern", description: "Something else not listed above" },
+  { value: "ed", label: "Erectile dysfunction", description: "ED assessment and treatment" },
+  { value: "hair_loss", label: "Hair loss", description: "Hair loss assessment and treatment" },
+  { value: "weight_loss", label: "Weight loss", description: "Weight management consultation" },
+  { value: "womens_health", label: "Women's health", description: "Women's health concern" },
 ] as const
 
 // Map hub subtypes to category values (hub uses underscores: hair_loss, womens_health, weight_loss)
@@ -184,7 +184,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
                 variant="option"
                 selected={consultCategory === category.value}
                 onClick={() => setAnswer("consultCategory", category.value)}
-                label={`${category.icon} ${category.label}`}
+                label={category.label}
                 description={category.description}
               />
             ))}

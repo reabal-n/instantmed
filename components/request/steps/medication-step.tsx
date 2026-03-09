@@ -193,9 +193,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   return (
     <div className="space-y-5 animate-in fade-in">
       {/* Info alert */}
-      <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
-        <Info className="w-4 h-4 text-blue-600" />
-        <AlertDescription className="text-xs text-blue-800 dark:text-blue-200">
+      <Alert variant="default" className="border-primary/20 bg-primary/5">
+        <Info className="w-4 h-4" />
+        <AlertDescription className="text-xs">
           Search using the PBS database. If you can&apos;t find your exact medication, type the name manually.
         </AlertDescription>
       </Alert>

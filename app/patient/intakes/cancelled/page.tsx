@@ -82,7 +82,7 @@ export default async function PaymentCancelledPage({
             {/* Help text */}
             <p className="text-xs text-muted-foreground mt-6">
               Having trouble paying?{" "}
-              <a href="mailto:hello@instantmed.com.au" className="text-primary hover:underline">
+              <a href="mailto:support@instantmed.com.au" className="text-primary hover:underline">
                 Contact support
               </a>
             </p>

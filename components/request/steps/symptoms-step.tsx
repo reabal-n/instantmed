@@ -245,13 +245,13 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
           <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-300 ${
-                symptomDetails.length >= 20 ? 'bg-emerald-500' : 'bg-primary'
+                symptomDetails.length >= 20 ? 'bg-primary' : 'bg-primary/50'
               }`}
               style={{ width: `${Math.min((symptomDetails.length / 20) * 100, 100)}%` }}
             />
           </div>
           <p className={`text-xs shrink-0 ${
-            symptomDetails.length >= 20 ? 'text-emerald-600' : 'text-muted-foreground'
+            symptomDetails.length >= 20 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             {symptomDetails.length >= 20 
               ? `${symptomDetails.length} characters` 
