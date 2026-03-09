@@ -142,7 +142,7 @@ export async function GET(
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="medical-certificate-${intakeId}.pdf"`,
         "Content-Length": pdfBuffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=31536000", // Cache for 1 year (immutable)
+        "Cache-Control": "private, no-store, no-cache",
       },
     })
   } catch (error) {

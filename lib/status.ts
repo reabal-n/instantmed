@@ -7,6 +7,9 @@ import {
   FileSearch,
   Pill,
   Ban,
+  TimerOff,
+  ShieldAlert,
+  RotateCcw,
   type LucideIcon,
 } from "lucide-react"
 
@@ -21,6 +24,10 @@ export type IntakeStatus =
   | "pending_info"
   | "cancelled"
   | "awaiting_script"
+  | "expired"
+  | "disputed"
+  | "checkout_failed"
+  | "refunded"
 
 export type PaymentStatus = "paid" | "pending" | "failed"
 
@@ -85,6 +92,26 @@ export const INTAKE_STATUS: Record<IntakeStatus, StatusConfig> = {
     label: "Preparing Script",
     color: "bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300",
     icon: Pill,
+  },
+  expired: {
+    label: "Expired",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: TimerOff,
+  },
+  disputed: {
+    label: "Disputed",
+    color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    icon: ShieldAlert,
+  },
+  checkout_failed: {
+    label: "Checkout Failed",
+    color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    icon: XCircle,
+  },
+  refunded: {
+    label: "Refunded",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: RotateCcw,
   },
 }
 

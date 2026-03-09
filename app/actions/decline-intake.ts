@@ -41,7 +41,6 @@ export interface DeclineInput {
   intakeId: string
   reason?: string
   reasonCode?: string
-  actorId?: string // Override actor (for API key auth)
   skipRefund?: boolean // For testing
 }
 
@@ -84,7 +83,7 @@ const REFUND_ELIGIBLE_CATEGORIES = ["medical_certificate", "prescription"]
  */
 export async function declineIntake(input: DeclineInput): Promise<DeclineResult> {
   const { intakeId, reason, reasonCode, skipRefund } = input
-  let actorId = input.actorId
+  let actorId: string
 
   // Add Sentry context
   Sentry.setTag("action", "decline_intake")
@@ -94,17 +93,15 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     const supabase = createServiceRoleClient()
     const timestamp = new Date().toISOString()
 
-    // 1. VALIDATE ACTOR
-    if (!actorId) {
-      const profile = await getCurrentProfile()
-      if (!profile) {
-        return { success: false, error: "You must be logged in to decline requests" }
-      }
-      if (profile.role !== "doctor" && profile.role !== "admin") {
-        return { success: false, error: "Only doctors and admins can decline requests" }
-      }
-      actorId = profile.id
+    // 1. VALIDATE ACTOR — always require session auth
+    const profile = await getCurrentProfile()
+    if (!profile) {
+      return { success: false, error: "You must be logged in to decline requests" }
     }
+    if (profile.role !== "doctor" && profile.role !== "admin") {
+      return { success: false, error: "Only doctors and admins can decline requests" }
+    }
+    actorId = profile.id
 
     Sentry.setTag("actor_id", actorId)
 
@@ -472,7 +469,6 @@ function captureRefundError(
 export async function declineIntakesBulk(
   intakeIds: string[],
   reason?: string,
-  actorId?: string
 ): Promise<{
   succeeded: string[]
   failed: Array<{ intakeId: string; error: string }>
@@ -481,7 +477,7 @@ export async function declineIntakesBulk(
   const failed: Array<{ intakeId: string; error: string }> = []
 
   for (const intakeId of intakeIds) {
-    const result = await declineIntake({ intakeId, reason, actorId })
+    const result = await declineIntake({ intakeId, reason })
     
     if (result.success) {
       succeeded.push(intakeId)

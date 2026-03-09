@@ -13,6 +13,11 @@ export function formatIntakeStatus(status: string): string {
     completed: "Completed",
     pending_info: "Needs Info",
     awaiting_script: "Awaiting Script",
+    expired: "Expired",
+    disputed: "Disputed",
+    checkout_failed: "Payment Failed",
+    refunded: "Refunded",
+    cancelled: "Cancelled",
   }
   return labels[status] || status
 }

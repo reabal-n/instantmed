@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 export async function GET(request: NextRequest) {
+  // Require authenticated user to prevent quota abuse
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ status: "UNAUTHORIZED" }, { status: 401 })
+  }
+
   // Rate limit: standard (100 req/min per IP)
   const rateLimitResponse = await applyRateLimit(request, "standard")
   if (rateLimitResponse) return rateLimitResponse

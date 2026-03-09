@@ -22,6 +22,7 @@ import {
   Ban,
 } from "lucide-react"
 import { formatIntakeStatus } from "@/lib/format-intake"
+import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
 import { COPY } from "@/lib/microcopy/universal"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
@@ -298,32 +299,17 @@ export function IntakeDetailClient({
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />
-      case "declined":
-        return <XCircle className="h-5 w-5 text-red-500" />
-      case "pending_info":
-        return <AlertCircle className="h-5 w-5 text-dawn-500" />
-      default:
-        return <Clock className="h-5 w-5 text-blue-500" />
+    const config = INTAKE_STATUS[status as StatusKey]
+    if (config) {
+      const Icon = config.icon
+      return <Icon className="h-5 w-5" />
     }
+    return <Clock className="h-5 w-5 text-blue-500" />
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
-      case "declined":
-        return "bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300"
-      case "pending_info":
-        return "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300"
-      case "paid":
-      case "in_review":
-        return "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300"
-      default:
-        return "bg-muted text-muted-foreground"
-    }
+    const config = INTAKE_STATUS[status as StatusKey]
+    return config?.color ?? "bg-muted text-muted-foreground"
   }
 
   return (
