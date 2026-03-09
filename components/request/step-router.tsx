@@ -10,7 +10,7 @@
  */
 
 import { Suspense, lazy, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { StepErrorBoundary } from "./step-error-boundary"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 import { SkeletonForm } from "@/components/ui/skeleton"
@@ -86,6 +86,7 @@ export function StepRouter({
   onBack,
   onComplete,
 }: StepRouterProps) {
+  const prefersReducedMotion = useReducedMotion()
   const StepComponent = useMemo(() => {
     const key = componentPath as StepComponentKey
     return stepComponents[key] || null
@@ -101,10 +102,10 @@ export function StepRouter({
         key={currentStepId}
         custom={direction}
         variants={variants}
-        initial="enter"
+        initial={prefersReducedMotion ? false : "enter"}
         animate="center"
         exit="exit"
-        transition={{ duration: 0.2, ease: "easeInOut" }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeInOut" }}
       >
         <StepErrorBoundary stepId={currentStepId}>
           <Suspense fallback={<StepLoadingFallback />}>

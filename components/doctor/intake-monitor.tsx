@@ -60,12 +60,12 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
   }
 
   return (
-    <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-muted/40 border border-border/30">
+    <div className="flex flex-col gap-2 p-5 rounded-xl bg-card border border-border/50 shadow-sm" aria-label={`${label}: ${value}`}>
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        <Icon className="h-3 w-3" />
+        <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <div className={cn("text-xl font-semibold tabular-nums tracking-tight", colorMap[variant])}>
+      <div className={cn("text-2xl font-bold tabular-nums tracking-tight", colorMap[variant])}>
         {value}
       </div>
     </div>
@@ -132,7 +132,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Primary Metrics */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCell
             label="Today"
             value={stats.todaySubmissions}
@@ -161,7 +161,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
         {(stats.slaBreached ?? 0) > 0 && (
           <div className="flex items-center gap-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
             <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-            <span className="text-[13px] font-medium text-destructive">
+            <span className="text-sm font-medium text-destructive">
               {stats.slaBreached} case{stats.slaBreached !== 1 ? "s" : ""} past SLA deadline
             </span>
           </div>
@@ -169,7 +169,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
         {(stats.slaApproaching ?? 0) > 0 && (stats.slaBreached ?? 0) === 0 && (
           <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
             <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span className="text-[13px] font-medium text-amber-700 dark:text-amber-300">
+            <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
               {stats.slaApproaching} case{stats.slaApproaching !== 1 ? "s" : ""} approaching deadline
             </span>
           </div>
@@ -179,7 +179,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
           <div className="flex items-center gap-1.5">
             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[13px] text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               <span className="font-medium text-emerald-600 dark:text-emerald-400">{stats.paidCount}</span> paid
             </span>
             {stats.pendingCount > 0 && (
@@ -194,11 +194,11 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1">
               <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-[13px] font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">{stats.approvedToday}</span>
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">{stats.approvedToday}</span>
             </div>
             <div className="flex items-center gap-1">
               <XCircle className="h-3.5 w-3.5 text-destructive/70" />
-              <span className="text-[13px] font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
+              <span className="text-sm font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
             </div>
             {approvalRate !== null && (
               <span className="text-xs text-muted-foreground">

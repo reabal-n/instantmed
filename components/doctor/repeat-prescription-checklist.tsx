@@ -107,16 +107,16 @@ export function RepeatPrescriptionChecklist({
   }
 
   return (
-    <Card className="border-blue-200 bg-blue-50/30">
+    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-blue-900">
-          <ClipboardList className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <ClipboardList className="h-5 w-5 text-primary" />
           Repeat Prescription Checklist
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Item 1: EMR Note Drafted */}
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-blue-100">
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border/50">
           <Checkbox
             id="emr-drafted"
             checked={emrChecked}
@@ -128,7 +128,7 @@ export function RepeatPrescriptionChecklist({
               htmlFor="emr-drafted"
               className="text-sm font-medium leading-none flex items-center gap-2"
             >
-              <FileText className="h-4 w-4 text-blue-600" />
+              <FileText className="h-4 w-4 text-primary" />
               EMR note drafted
             </label>
             <p className="text-xs text-muted-foreground">
@@ -153,10 +153,10 @@ export function RepeatPrescriptionChecklist({
         </div>
 
         {/* Item 2: Script Sent via Parchment */}
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-white/60 border border-blue-100">
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border/50">
           <div className="relative">
             {isPending ? (
-              <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-blue-600" />
+              <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-primary" />
             ) : (
               <Checkbox
                 id="script-sent"
@@ -172,7 +172,7 @@ export function RepeatPrescriptionChecklist({
               htmlFor="script-sent"
               className="text-sm font-medium leading-none flex items-center gap-2 cursor-pointer"
             >
-              <Send className="h-4 w-4 text-blue-600" />
+              <Send className="h-4 w-4 text-primary" />
               Script sent via {prescriptionSentChannel || "Parchment"}
             </label>
             {prescriptionSentAt ? (
@@ -199,7 +199,7 @@ export function RepeatPrescriptionChecklist({
               Sent
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+            <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border">
               Pending
             </Badge>
           )}
@@ -207,7 +207,7 @@ export function RepeatPrescriptionChecklist({
 
         {/* Completion Status */}
         {intakeStatus === "completed" && (
-          <div className="flex items-center gap-2 p-2 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-sm">
             <CheckCircle2 className="h-4 w-4" />
             <span className="font-medium">Prescription request completed</span>
           </div>

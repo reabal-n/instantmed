@@ -241,40 +241,41 @@ export default function TrustPage() {
         />
 
         {/* ── Accountability ───────────────────────────────── */}
-        <ImageTextSplit
-          title="Clear process. No automated approvals."
-          highlightWords={["No automated"]}
-          description="Every request is reviewed by a human doctor who reads your full medical history and makes an independent clinical decision. If something doesn't look right, they'll contact you directly."
-          imageSrc=""
-          imageAlt=""
-          imagePosition="right"
-        >
-          <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
-            {[
-              "Every request is human-reviewed",
-              "Complaints responded to within 48 hours",
-              "Full refund if we can't help",
-              "Escalation to Health Complaints Commissioner",
-            ].map((point) => (
-              <li
-                key={point}
-                className="flex items-start gap-3 text-sm text-foreground/80 dark:text-foreground/70"
+        <section className="py-20 px-4">
+          <div className="mx-auto max-w-3xl text-center lg:text-left">
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Clear process. <span className="text-primary">No automated</span> approvals.
+            </h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              Every request is reviewed by a human doctor who reads your full medical history and makes an independent clinical decision. If something doesn&apos;t look right, they&apos;ll contact you directly.
+            </p>
+            <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
+              {[
+                "Every request is human-reviewed",
+                "Complaints responded to within 48 hours",
+                "Full refund if we can't help",
+                "Escalation to Health Complaints Commissioner",
+              ].map((point) => (
+                <li
+                  key={point}
+                  className="flex items-start gap-3 text-sm text-foreground/80 dark:text-foreground/70"
+                >
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
               >
-                <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                {point}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6">
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
-            >
-              Contact us
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+                Contact us
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
-        </ImageTextSplit>
+        </section>
 
         {/* ── Process Timeline ──────────────────────────────── */}
         <Timeline
@@ -467,7 +468,7 @@ function TestimonialCard({
             />
           ))}
         </div>
-        <span className="text-[0.6875rem] font-medium text-muted-foreground/70 bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
+        <span className="text-xs font-medium text-muted-foreground/70 bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
           {t.service === "medical-certificate"
             ? "Med Cert"
             : t.service === "prescription"

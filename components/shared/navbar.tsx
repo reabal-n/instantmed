@@ -223,6 +223,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
   const handleSignOut = async () => {
     setIsLoggingOut(true)
+    // Clear httpOnly profile_linked cookie before Clerk sign-out
+    // so the middleware safety net works correctly on next sign-in
+    await fetch("/api/auth/sign-out", { method: "POST" }).catch(() => {})
     await signOut()
     router.push("/")
     router.refresh()
@@ -233,6 +236,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-1/2 focus:-translate-x-1/2 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-primary focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-none"
+      >
+        Skip to content
+      </a>
       <header
         className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-2")}
       >
@@ -267,28 +276,29 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
-                  {/* Services Hover Menu */}
-                  <div className="relative group">
-                    <span
-                      className={cn(
-                        "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-default",
-                        isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
-                          ? "text-foreground"
-                          : "text-muted-foreground group-hover:text-foreground"
-                      )}
-                    >
-                      Services
-                      <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
-                    </span>
-                    <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div className="w-64 rounded-2xl border border-white/50 dark:border-white/10 bg-white/95 dark:bg-white/10 backdrop-blur-xl shadow-xl dark:shadow-none p-2">
-                        {services.map((service) => (
+                  {/* Services Dropdown Menu (keyboard accessible) */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                          isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Services
+                        <ChevronDown className="h-3 w-3 transition-transform" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-border/50 dark:border-white/10 bg-card/95 dark:bg-white/10 backdrop-blur-xl p-2">
+                      {services.map((service) => (
+                        <DropdownMenuItem key={service.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                           <Link
-                            key={service.href}
                             href={service.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group/item"
+                            className="flex items-center gap-3 px-3 py-2.5 w-full"
                           >
-                            <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 group-hover/item:bg-primary/20 dark:group-hover/item:bg-primary/30 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 transition-colors">
                               <service.icon className="h-4 w-4 text-primary" />
                             </div>
                             <div>
@@ -296,10 +306,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                               <p className="text-xs text-muted-foreground">{service.description}</p>
                             </div>
                           </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   <AnimatedNavLink href="/trust" isActive={isActivePath("/trust")}>
                     Why us?
@@ -508,7 +518,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </div>
                 ) : (
                   <AppSignInButton>
-                    <Button variant="outline" className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
+                    <Button variant="outline" className="w-full rounded-xl bg-card/50 dark:bg-white/5 hover:bg-card/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                       Sign in
                     </Button>
                   </AppSignInButton>

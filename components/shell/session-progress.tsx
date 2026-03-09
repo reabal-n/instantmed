@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 /**
@@ -29,6 +29,7 @@ export function SessionProgress({
   showStepNumbers = false,
   className 
 }: SessionProgressProps) {
+  const prefersReducedMotion = useReducedMotion()
   const progress = (currentStep / (totalSteps - 1)) * 100
 
   return (
@@ -46,12 +47,12 @@ export function SessionProgress({
                 "w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300",
                 isComplete && "bg-primary scale-100",
                 isCurrent && "bg-primary/80 scale-110",
-                !isComplete && !isCurrent && "bg-gray-300"
+                !isComplete && !isCurrent && "bg-border"
               )}
               animate={{
                 scale: isCurrent ? 1.1 : 1
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               role="progressbar"
               aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
               aria-valuemin={0}
@@ -62,11 +63,11 @@ export function SessionProgress({
         })}
         
         {/* Animated progress line */}
-        <motion.div 
+        <motion.div
           className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full z-0"
-          initial={{ width: '10%' }}
+          initial={prefersReducedMotion ? false : { width: '10%' }}
           animate={{ width: `${Math.max(10, progress)}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: 'easeOut' }}
         />
       </div>
 
@@ -106,7 +107,7 @@ export function SessionProgressDots({
             "w-2 h-2 rounded-full transition-all duration-300",
             i === currentStep && "bg-primary scale-125",
             i < currentStep && "bg-primary/60",
-            i > currentStep && "bg-gray-300"
+            i > currentStep && "bg-border"
           )}
           aria-hidden="true"
         />

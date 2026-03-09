@@ -1,4 +1,3 @@
-import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { PatientsListClient } from "./patients-list-client"
@@ -47,8 +46,7 @@ export default async function PatientsPage({
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
-  await requireRole(["doctor", "admin"])
-
+  // Layout enforces doctor/admin role
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const { patients, total } = await getPatients(page)

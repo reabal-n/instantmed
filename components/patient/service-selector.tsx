@@ -23,7 +23,7 @@ const SERVICES = [
     icon: FileText,
     label: 'Medical Certificate',
     description: 'For work, uni, or carer\'s leave',
-    color: 'from-blue-50 to-blue-100',
+    color: 'from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/30',
     iconColor: 'text-primary',
   },
   {
@@ -31,16 +31,16 @@ const SERVICES = [
     icon: Pill,
     label: 'Prescription',
     description: 'New or repeat prescription',
-    color: 'from-green-50 to-green-100',
-    iconColor: 'text-green-600',
+    color: 'from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   {
     id: 'consultation' as const,
     icon: MessageSquare,
     label: 'General Consultation',
     description: 'Speak to a doctor about your health',
-    color: 'from-sky-50 to-sky-100',
-    iconColor: 'text-sky-600',
+    color: 'from-sky-50 to-sky-100 dark:from-sky-950/40 dark:to-sky-900/30',
+    iconColor: 'text-sky-600 dark:text-sky-400',
   },
 ]
 
@@ -48,10 +48,10 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
   return (
     <div className="p-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
           What do you need?
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Select a service to get started
         </p>
       </div>
@@ -75,16 +75,16 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
                 <div className="flex items-start gap-4">
                   <div className={cn(
                     'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
-                    'bg-white shadow-sm icon-spin-hover',
+                    'bg-white dark:bg-white/10 shadow-sm icon-spin-hover',
                     service.iconColor
                   )}>
                     <Icon className="w-6 h-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
                       {service.label}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {service.description}
                     </p>
                   </div>

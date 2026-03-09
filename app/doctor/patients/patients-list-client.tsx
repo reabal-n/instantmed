@@ -123,7 +123,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
           <div className="flex gap-3">
             <Select value={stateFilter} onValueChange={setStateFilter}>
-              <SelectTrigger className="w-[120px] rounded-xl bg-white/50 border-white/40">
+              <SelectTrigger className="w-[120px] rounded-xl bg-card/50 border-border/40">
                 <SelectValue placeholder="State" />
               </SelectTrigger>
               <SelectContent>
@@ -137,7 +137,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             </Select>
 
             <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
-              <SelectTrigger className="w-[150px] rounded-xl bg-white/50 border-white/40">
+              <SelectTrigger className="w-[150px] rounded-xl bg-card/50 border-border/40">
                 <SelectValue placeholder="Onboarding" />
               </SelectTrigger>
               <SelectContent>
@@ -162,7 +162,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-white/30 hover:bg-white/30">
+              <TableRow className="bg-card/30 hover:bg-card/30">
                 <TableHead>Patient</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Location</TableHead>
@@ -180,7 +180,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                   return (
                     <TableRow
                       key={patient.id}
-                      className="animate-fade-in opacity-0 hover:bg-white/40 transition-colors cursor-pointer group"
+                      className="animate-fade-in opacity-0 hover:bg-card/40 transition-colors cursor-pointer group"
                       style={{ animationDelay: `${0.05 * index}s`, animationFillMode: "forwards" }}
                     >
                       <TableCell>

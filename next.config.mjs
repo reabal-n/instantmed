@@ -238,8 +238,8 @@ const sentryConfig = {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  automaticVercelMonitors: true,
   webpack: {
+    automaticVercelMonitors: true,
     treeshake: {
       removeDebugLogging: true
     },
@@ -247,5 +247,9 @@ const sentryConfig = {
 };
 
 // Apply bundle analyzer, then optionally Sentry
+// Skip Sentry's webpack plugin in dev — its RSC wrapper causes "Cannot read properties
+// of undefined (reading 'call')" during hydration (race condition with async chunks).
+// Sentry still initialises via instrumentation.ts; this only skips source maps & wrapping.
 const withAnalyzer = bundleAnalyzer(nextConfig);
-export default process.env.NEXT_PUBLIC_SENTRY_DSN ? withSentryConfig(withAnalyzer, sentryConfig) : withAnalyzer;
+const useSentry = process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NODE_ENV === 'production';
+export default useSentry ? withSentryConfig(withAnalyzer, sentryConfig) : withAnalyzer;

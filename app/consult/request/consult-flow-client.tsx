@@ -622,7 +622,7 @@ export function ConsultFlowClient({
                       <button
                         key={n}
                         onClick={() => setIrn(n)}
-                        className={`flex-1 h-12 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
+                        className={`flex-1 h-12 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-lg border-border/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
                           irn === n
                             ? "border-primary bg-primary/5 text-primary"
                             : "border-border/60 hover:border-border"
@@ -777,7 +777,7 @@ export function ConsultFlowClient({
               </p>
               {error && (
                 <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
-                  <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
+                  <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-500/20 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
                     {error}
                   </div>
                 </ShakeAnimation>

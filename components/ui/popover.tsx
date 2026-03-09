@@ -21,9 +21,9 @@ const PopoverContent = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         // Glass surface
-        "bg-white/85 dark:bg-white/10 backdrop-blur-xl",
+        "bg-card/85 dark:bg-white/10 backdrop-blur-xl",
         // Border
-        "border border-white/50 dark:border-white/15",
+        "border border-border/50 dark:border-white/15",
         // Shape
         "rounded-2xl p-4",
         // Glow shadow

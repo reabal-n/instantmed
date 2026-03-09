@@ -17,11 +17,11 @@ export interface CardProps {
 
 const craftCardStyles = {
   subtle:
-    "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10",
+    "bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10",
   normal:
-    "bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none",
+    "bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none",
   elevated:
-    "bg-white/90 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-md dark:shadow-none",
+    "bg-card/90 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-md dark:shadow-none",
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(

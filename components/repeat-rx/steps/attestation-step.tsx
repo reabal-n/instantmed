@@ -58,7 +58,7 @@ export function AttestationStep({
               "w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
               "flex items-start gap-3",
               attestations[item.key]
-                ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
                 : "border-border hover:border-primary/40"
             )}
           >
@@ -66,7 +66,7 @@ export function AttestationStep({
               className={cn(
                 "w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5",
                 attestations[item.key]
-                  ? "border-green-500 bg-green-500"
+                  ? "border-emerald-500 bg-emerald-500"
                   : "border-border"
               )}
             >

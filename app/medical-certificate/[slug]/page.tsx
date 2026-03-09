@@ -351,7 +351,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
           </section>
 
           {/* Other locations */}
-          <section className="px-4 py-8 border-t border-white/10">
+          <section className="px-4 py-8 border-t border-border/10">
             <div className="mx-auto max-w-3xl">
               <p className="text-sm text-background/60 text-center">
                 Also serving:{" "}

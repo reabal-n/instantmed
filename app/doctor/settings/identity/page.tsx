@@ -3,6 +3,8 @@ import { IdentitySettingsClient } from "./identity-settings-client"
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
 import { Loader2 } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Certificate Identity | Settings",
   description: "Configure your certificate identity settings",

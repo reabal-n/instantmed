@@ -294,7 +294,7 @@ export function EmailPreviewReactClient() {
           </div>
 
           <div
-            className={`border rounded-lg overflow-hidden bg-gray-100 mx-auto transition-all ${
+            className={`border rounded-lg overflow-hidden bg-muted mx-auto transition-all ${
               previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"
             }`}
           >
@@ -309,7 +309,7 @@ export function EmailPreviewReactClient() {
                 title="Email Preview"
               />
             ) : (
-              <pre className="p-4 text-xs overflow-auto h-[600px] bg-gray-900 text-gray-100">
+              <pre className="p-4 text-xs overflow-auto h-[600px] bg-zinc-900 text-zinc-100">
                 {previewHtml}
               </pre>
             )}

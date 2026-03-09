@@ -317,40 +317,40 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
             <div className="dashboard-card rounded-xl p-6">
               <h3 className="text-base font-semibold text-foreground mb-4">Status Overview (All Time)</h3>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-900">
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-800">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="h-4 w-4 text-blue-600" />
                     <p className="text-sm text-blue-600 font-medium">In Queue</p>
                   </div>
                   <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{overview.inQueue}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900">
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-800">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle className="h-4 w-4 text-emerald-600" />
                     <p className="text-sm text-emerald-600 font-medium">Approved</p>
                   </div>
                   <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{overview.approved}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-red-50 border border-red-100 dark:bg-red-950/30 dark:border-red-900">
+                <div className="p-4 rounded-xl bg-red-50 border border-red-100 dark:bg-red-950/30 dark:border-red-800">
                   <div className="flex items-center gap-2 mb-1">
                     <XCircle className="h-4 w-4 text-red-600" />
                     <p className="text-sm text-red-600 font-medium">Declined</p>
                   </div>
                   <p className="text-2xl font-bold text-red-700 dark:text-red-400">{overview.declined}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-900">
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-800">
                   <div className="flex items-center gap-2 mb-1">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                     <p className="text-sm text-amber-600 font-medium">Needs Info</p>
                   </div>
                   <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{overview.pendingInfo}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-900">
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-800">
                   <div className="flex items-center gap-2 mb-1">
-                    <Send className="h-4 w-4 text-indigo-600" />
-                    <p className="text-sm text-indigo-600 font-medium">Scripts Pending</p>
+                    <Send className="h-4 w-4 text-blue-600" />
+                    <p className="text-sm text-blue-600 font-medium">Scripts Pending</p>
                   </div>
-                  <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{overview.scriptsPending}</p>
+                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{overview.scriptsPending}</p>
                 </div>
               </div>
             </div>
@@ -538,16 +538,16 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
                 </div>
               </div>
 
-              <div className="dashboard-card rounded-xl p-6 border-l-4 border-l-indigo-500">
+              <div className="dashboard-card rounded-xl p-6 border-l-4 border-l-blue-500">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground font-medium">Last 30 Days</p>
-                    <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-400">
+                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">
                       {formatCurrency(revenue.thisMonth)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">{funnel.paid} paid intakes</p>
                   </div>
-                  <Users className="h-8 w-8 text-indigo-400" />
+                  <Users className="h-8 w-8 text-blue-400" />
                 </div>
               </div>
             </div>

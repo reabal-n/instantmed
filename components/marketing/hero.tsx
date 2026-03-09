@@ -22,7 +22,7 @@ export function Hero() {
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
-          <div className="flex-1 text-center lg:text-left">
+          <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-8"
@@ -54,7 +54,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP handles the rest. Most done within the hour.
+              Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Most people are sorted within the hour.
             </motion.p>
 
             {/* Price anchor above CTAs */}
@@ -109,13 +109,13 @@ export function Hero() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <span>{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
+                <span className="text-center lg:text-left">{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
               </p>
-              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
+              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />
-                <span>No account required &middot; Pay only after doctor review</span>
+                <span className="text-center lg:text-left">No account required &middot; Pay only after doctor review</span>
               </p>
             </motion.div>
           </div>

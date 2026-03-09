@@ -220,7 +220,7 @@ export function MotionCard({
     <motion.div
       className={cn(
         // Glass surface
-        "bg-white/75 dark:bg-white/5",
+        "bg-card/75 dark:bg-white/5",
         "backdrop-blur-xl",
         "border border-sky-300/35 dark:border-white/10",
         "rounded-2xl",
@@ -382,7 +382,7 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
         <motion.div
           className={cn(
             // Glass elevated surface
-            "bg-white/90 dark:bg-white/10",
+            "bg-card/90 dark:bg-white/10",
             "backdrop-blur-2xl",
             "border border-sky-300/45 dark:border-white/15",
             "rounded-3xl",

@@ -31,7 +31,7 @@ export function ConsultApprovedEmail({
 }: ConsultApprovedEmailProps) {
   return (
     <BaseEmail
-      previewText="Your consultation has been reviewed"
+      previewText="Your consultation has been reviewed ✅"
       appUrl={appUrl}
     >
       <SuccessBanner title="Consultation reviewed" />
@@ -39,8 +39,8 @@ export function ConsultApprovedEmail({
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Your doctor has reviewed your consultation request. Please see the details below
-        and follow the recommended next steps.
+        Your doctor has reviewed your consultation and everything looks good. Here are the
+        details and recommended next steps.
       </Text>
 
       {doctorNotes && (
@@ -71,7 +71,7 @@ export function ConsultApprovedEmail({
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { usePanel } from './panel-provider'
 import { sheetVariants, backdropVariants } from '@/lib/motion/panel-variants'
@@ -43,6 +43,7 @@ export function SheetPanel({
   className
 }: SheetPanelProps) {
   const { closePanel } = usePanel()
+  const prefersReducedMotion = useReducedMotion()
 
   const handleClose = () => {
     onClose?.()
@@ -75,10 +76,10 @@ export function SheetPanel({
       {/* Backdrop */}
       <motion.div
         variants={backdropVariants}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={handleClose}
         aria-hidden="true"
       />
@@ -86,9 +87,9 @@ export function SheetPanel({
       {/* Sheet */}
       <motion.div
         variants={sheetVariants(side)}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
-        exit="exit"
+        exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(
           'absolute top-0 h-full bg-background shadow-2xl flex flex-col',
           side === 'right' ? 'right-0' : 'left-0',

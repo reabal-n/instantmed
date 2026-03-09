@@ -1,12 +1,10 @@
-import { requireRole } from "@/lib/auth"
 import { getScriptTasks, getScriptTaskCounts } from "@/lib/data/script-tasks"
 import { ScriptsClient } from "./scripts-client"
 
 export const dynamic = "force-dynamic"
 
 export default async function ScriptsPage() {
-  await requireRole(["doctor", "admin"])
-
+  // Layout enforces doctor/admin role
   const [tasks, counts] = await Promise.all([
     getScriptTasks(),
     getScriptTaskCounts(),

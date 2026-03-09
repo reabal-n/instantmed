@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import {
   Phone,
   MapPin,
@@ -314,6 +314,7 @@ interface MedicareDrawerProps {
 }
 
 export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
+  const prefersReducedMotion = useReducedMotion()
   const { closePanel } = usePanel()
 
   // Parse existing medicare number into segments (if any)
@@ -448,7 +449,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
 
       {expiryWarning && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
         >

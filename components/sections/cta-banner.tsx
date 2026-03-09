@@ -38,7 +38,7 @@ export function CTABanner({
     <section id={id} className={cn("py-20 px-4", className)}>
       <motion.div
         ref={ref}
-        className="mx-auto max-w-4xl rounded-3xl bg-gradient-to-br from-sky-50 via-white to-dawn-50 dark:from-background dark:via-muted/20 dark:to-background border border-border/50 p-12 text-center shadow-lg"
+        className="mx-auto max-w-4xl rounded-3xl bg-gradient-to-br from-sky-50 via-background to-mist-100 dark:from-background dark:via-muted/20 dark:to-background border border-border/50 p-12 text-center shadow-lg"
         initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.98 }}
         animate={
           prefersReducedMotion

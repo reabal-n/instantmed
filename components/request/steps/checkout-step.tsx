@@ -14,7 +14,7 @@
 
 import { useState, useEffect } from "react"
 import { usePostHog } from "posthog-js/react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
@@ -68,6 +68,7 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const { answers, getIdentity, setConsent, chatSessionId } = useRequestStore()
   const posthog = usePostHog()
+  const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimatedWait, setEstimatedWait] = useState("~1 hour")
@@ -296,7 +297,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         <div
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
             consentGiven
-              ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+              ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
               : "border-border hover:border-primary/40"
           }`}
           onClick={() => handleConsentChange(!consentGiven)}
@@ -357,7 +358,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             {PAYMENT_METHODS.map((method) => (
               <span
                 key={method}
-                className="text-[10px] text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30"
+                className="text-xs text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30"
               >
                 {method}
               </span>
@@ -370,15 +371,15 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       {showCheckmark && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
         >
           <motion.div
-            className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center"
-            initial={{ scale: 0.5, opacity: 0 }}
+            className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center"
+            initial={prefersReducedMotion ? false : { scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
           >
             <Check className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           </motion.div>

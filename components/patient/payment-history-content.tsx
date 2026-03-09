@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import {
   CreditCard,
   Download,
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { PAYMENT_STATUS, type PaymentStatus as PaymentStatusType } from "@/lib/status"
+import { formatDate, formatDateLong, formatCurrency } from "@/lib/format"
 
 interface Invoice {
   id: string
@@ -38,13 +40,13 @@ interface PaymentHistoryContentProps {
   patientId: string
 }
 
-const STATUS_COLORS = {
-  paid: "bg-green-100 text-green-800",
-  pending: "bg-yellow-100 text-yellow-800",
-  failed: "bg-red-100 text-red-800",
-}
+// Derive badge colors from shared PAYMENT_STATUS config
+const STATUS_COLORS = Object.fromEntries(
+  Object.entries(PAYMENT_STATUS).map(([key, val]) => [key, val.color])
+) as Record<string, string>
 
 export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRetrying, setIsRetrying] = useState(false)
@@ -140,19 +142,19 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
     <div className="space-y-6">
       {/* Stats Cards */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         <StatCard
           title="Total Paid"
-          value={`$${(totalPaid / 100).toFixed(2)}`}
+          value={formatCurrency(totalPaid)}
           icon={CheckCircle}
           color="green"
         />
         <StatCard
           title="Pending Payment"
-          value={`$${(pendingAmount / 100).toFixed(2)}`}
+          value={formatCurrency(pendingAmount)}
           icon={Clock}
           color="yellow"
         />
@@ -165,7 +167,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
       </motion.div>
 
       {/* Controls */}
-      <div className="bg-card rounded-lg border p-4 space-y-4">
+      <div className="bg-card rounded-xl border p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -183,7 +185,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
             onChange={(e) =>
               setFilterStatus(e.target.value as typeof filterStatus)
             }
-            className="px-4 py-2 border rounded-lg bg-card hover:bg-muted transition-colors"
+            className="px-4 py-2 border rounded-xl bg-card hover:bg-muted transition-colors"
           >
             <option value="all">All Statuses</option>
             <option value="paid">Paid</option>
@@ -195,21 +197,21 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
 
       {/* Invoices Table */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={prefersReducedMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-card rounded-lg border overflow-hidden"
+        className="bg-card rounded-xl border overflow-hidden"
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <CreditCard className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
               <p className="text-muted-foreground">Loading payment history...</p>
             </div>
           </div>
         ) : filteredInvoices.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <CreditCard className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
               <p className="text-muted-foreground">
                 {searchQuery || filterStatus !== "all"
                   ? "No invoices match your filters"
@@ -220,7 +222,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 border-b">
+              <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="text-left px-6 py-3 text-sm font-semibold">
                     Invoice #
@@ -244,26 +246,19 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                   {filteredInvoices.map((invoice) => (
                     <motion.tr
                       key={invoice.id}
-                      initial={{ opacity: 0 }}
+                      initial={prefersReducedMotion ? false : { opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="border-b hover:bg-slate-50 transition-colors"
+                      exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                      className="border-b hover:bg-muted/50 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm font-semibold">
                         {invoice.number}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        {new Date(invoice.created_at).toLocaleDateString(
-                          "en-AU",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          }
-                        )}
+                        {formatDate(invoice.created_at)}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold">
-                        ${(invoice.total / 100).toFixed(2)}
+                        {formatCurrency(invoice.total)}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <Badge
@@ -352,19 +347,19 @@ function StatCard({
   color: "green" | "yellow" | "red"
 }) {
   const colors = {
-    green: "bg-green-100 text-green-600",
-    yellow: "bg-yellow-100 text-yellow-600",
-    red: "bg-red-100 text-red-600",
+    green: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+    yellow: "bg-yellow-100 text-yellow-600 dark:bg-yellow-950/40 dark:text-yellow-400",
+    red: "bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400",
   }
 
   return (
-    <div className="bg-card rounded-lg border p-4">
+    <div className="bg-card rounded-xl border p-4">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+          <p className="text-2xl font-semibold mt-1">{value}</p>
         </div>
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors[color])}>
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors[color])}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
@@ -399,17 +394,13 @@ function InvoiceDetailModal({
             <div>
               <p className="text-sm text-muted-foreground">Invoice Date</p>
               <p className="font-semibold">
-                {new Date(invoice.created_at).toLocaleDateString("en-AU", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {formatDateLong(invoice.created_at)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Amount</p>
               <p className="font-semibold text-lg">
-                ${(invoice.total / 100).toFixed(2)}
+                {formatCurrency(invoice.total)}
               </p>
             </div>
             <div>
@@ -438,8 +429,8 @@ function InvoiceDetailModal({
           )}
 
           {invoice.status === "failed" && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-700">
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+              <p className="text-sm text-red-700 dark:text-red-400">
                 This payment failed. Please try again or update your payment
                 method.
               </p>

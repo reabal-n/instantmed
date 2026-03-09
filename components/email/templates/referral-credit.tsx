@@ -35,7 +35,7 @@ export function ReferralCreditEmail({
 }: ReferralCreditEmailProps) {
   return (
     <BaseEmail
-      previewText={`You've earned a ${creditAmount} referral credit`}
+      previewText={`You've earned a ${creditAmount} referral credit 🙂`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Referral credit earned" />

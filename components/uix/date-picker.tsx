@@ -75,6 +75,8 @@ export function DatePickerField({
   size = "md",
 }: DatePickerFieldProps) {
   const [open, setOpen] = React.useState(false)
+  const triggerId = React.useId()
+  const errorId = React.useId()
 
   // Convert ISO string to Date
   const parseISO = React.useCallback((iso: string | undefined): Date | undefined => {
@@ -133,7 +135,7 @@ export function DatePickerField({
   return (
     <div className={cn("flex flex-col gap-1.5 w-full", className)}>
       {label && (
-        <label className="text-sm font-medium text-foreground">
+        <label htmlFor={triggerId} className="text-sm font-medium text-foreground">
           {label}
           {isRequired && <span className="text-destructive ml-0.5">*</span>}
         </label>
@@ -143,6 +145,9 @@ export function DatePickerField({
         <PopoverPrimitive.Trigger asChild disabled={isDisabled}>
           <button
             type="button"
+            id={triggerId}
+            aria-describedby={isInvalid && errorMessage ? errorId : undefined}
+            aria-invalid={isInvalid || undefined}
             className={cn(
               "inline-flex items-center justify-between gap-2 rounded-xl border text-left transition-colors",
               "bg-default-100 hover:bg-default-200 focus:outline-none focus:ring-2 focus:ring-primary/40",
@@ -188,7 +193,7 @@ export function DatePickerField({
                   "absolute right-1 top-0 inline-flex items-center justify-center rounded-md h-7 w-7 bg-transparent hover:bg-accent hover:text-accent-foreground",
                 month_grid: "w-full border-collapse",
                 weekdays: "flex",
-                weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                weekday: "text-muted-foreground rounded-md w-9 font-normal text-xs",
                 week: "flex w-full mt-1",
                 day: "h-9 w-9 text-center text-sm relative flex items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground focus-within:relative focus-within:z-20",
                 day_button:
@@ -206,7 +211,7 @@ export function DatePickerField({
       </PopoverPrimitive.Root>
 
       {isInvalid && errorMessage && (
-        <p className="text-xs text-destructive">{errorMessage}</p>
+        <p id={errorId} className="text-xs text-destructive">{errorMessage}</p>
       )}
     </div>
   )

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
@@ -99,11 +100,10 @@ export function ContactClient() {
                   <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
                 </div>
                 <h1 className="text-2xl font-bold mb-3">
-                  Message Sent!
+                  Message sent! ✅
                 </h1>
                 <p className="text-muted-foreground mb-8">
-                  Thanks for reaching out. We typically respond within a few hours during business days. Keep an eye on
-                  your inbox!
+                  We&apos;ve got it — a real person will read your message and get back to you, usually within a few hours. Keep an eye on your inbox.
                 </p>
                 <Button asChild className="rounded-full text-primary-foreground">
                   <Link href="/">
@@ -130,7 +130,7 @@ export function ContactClient() {
           pill="Contact Us"
           title="Got a question? We're here to help."
           highlightWords={["here to help."]}
-          subtitle="Real humans who read and reply to every message. Usually within a few hours, always within 24."
+          subtitle="Real people who read and reply to every message. Usually within a few hours, always within 24."
           className="pt-32 pb-16"
         />
 
@@ -162,11 +162,11 @@ export function ContactClient() {
 
         {/* CTA Banner */}
         <CTABanner
-          title="Need medical help right now?"
-          subtitle="Get started with a doctor-reviewed request in minutes. No waiting rooms, no phone calls."
+          title="Looking for a medical certificate or prescription?"
+          subtitle="Fill in a quick form and a real GP reviews your request — most are done within the hour."
           ctaText="Get started"
           ctaHref="/request"
-          secondaryText="Learn how it works"
+          secondaryText="See how it works"
           secondaryHref="/faq"
         />
 
@@ -264,7 +264,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
         <HelpCircle className="h-8 w-8 text-primary mb-3" aria-hidden="true" />
         <h3 className="font-semibold mb-2">Looking for quick answers?</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Check our FAQ — most questions are already answered there.
+          Check our FAQ — chances are someone&apos;s already asked. 🙂
         </p>
         <Button variant="outline" asChild className="rounded-full w-full bg-transparent transition-colors">
           <Link href="/faq">
@@ -329,11 +329,12 @@ function ContactFormCard({
                     role="radio"
                     aria-checked={selectedReason === reason.id}
                     onClick={() => setSelectedReason(reason.id)}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                       selectedReason === reason.id
                         ? "bg-primary text-primary-foreground shadow-lg"
                         : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
-                    }`}
+                    )}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     {reason.label}

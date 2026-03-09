@@ -27,7 +27,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
         <Check className="w-8 h-8 text-emerald-500" />
       </div>
 
-      <h1 className="text-2xl font-bold mb-2">Request Confirmed</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-2">Request Confirmed</h1>
       <p className="text-muted-foreground mb-6">
         Your payment was successful. A doctor will review your request shortly.
       </p>
@@ -62,7 +62,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
         </div>
       </div>
 
-      <div className="text-left bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-4 mb-6">
+      <div className="text-left bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">How does this work?</span>{" "}
           A real doctor reviews your request and decides based on your symptoms and history. 
@@ -76,7 +76,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
 
       <div className="space-y-3">
         <Button asChild className="w-full">
-          <Link href={`/auth/register?email=${encodeURIComponent(email || '')}&redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`}>
+          <Link href={`/auth/register?redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`}>
             Create account to track progress
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>

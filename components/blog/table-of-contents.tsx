@@ -63,8 +63,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   }
 
   return (
-    <nav className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 sticky top-24 border border-white/50 dark:border-white/10">
-      <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
+    <nav className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 sticky top-24 border border-border/50 dark:border-white/10">
+      <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-foreground">
         <List className="w-4 h-4" />
         On this page
       </div>
@@ -78,7 +78,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
                 heading.level === 3 && 'pl-4',
                 activeId === heading.id
                   ? 'text-primary font-medium'
-                  : 'text-slate-600 dark:text-slate-400'
+                  : 'text-muted-foreground'
               )}
             >
               {heading.text}

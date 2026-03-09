@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeForPatient } from "@/lib/data/intakes"
 import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { getIntakeDocument } from "@/lib/data/intake-documents"
@@ -25,7 +25,8 @@ export default async function PatientIntakeDetailPage({
   const { id } = await params
   const { retry } = await searchParams
   
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   // Fetch the intake with ownership check
   const intake = await getIntakeForPatient(id, authUser.profile.id)

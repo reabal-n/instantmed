@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { AnalyticsClient } from "./analytics-client"
 
@@ -24,6 +24,9 @@ interface IntakeRow {
   created_at: string
   reviewed_at: string | null
   category: string | null
+  amount_cents: number | null
+  payment_status: string | null
+  paid_at: string | null
 }
 
 async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
@@ -48,7 +51,10 @@ async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
       is_priority,
       created_at,
       reviewed_at,
-      category
+      category,
+      amount_cents,
+      payment_status,
+      paid_at
     `, { count: 'exact' })
     .gte("created_at", rangeStart.toISOString())
     .order("created_at", { ascending: false })
@@ -132,25 +138,21 @@ async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
     avgResponseMinutes = Math.round(totalMinutes / completedIntakes.length)
   }
 
-  // Revenue: also apply date filter for consistency
-  // OPTIMIZED: Only fetch payments within date range
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("amount_paid, created_at")
-    .eq("status", "paid")
-    .gte("created_at", rangeStart.toISOString())
-
-  const allPayments = payments || []
-  const totalRevenue = allPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0) / 100
-  const thisWeekRevenue = allPayments
-    .filter(p => new Date(p.created_at) >= sevenDaysAgo)
-    .reduce((sum, p) => sum + (p.amount_paid || 0), 0) / 100
-  const lastWeekRevenue = allPayments
-    .filter(p => new Date(p.created_at) >= fourteenDaysAgo && new Date(p.created_at) < sevenDaysAgo)
-    .reduce((sum, p) => sum + (p.amount_paid || 0), 0) / 100
-  const todayRevenue = allPayments
-    .filter(p => new Date(p.created_at) >= todayStart)
-    .reduce((sum, p) => sum + (p.amount_paid || 0), 0) / 100
+  // Revenue: computed from intakes with amount_cents (paid_at used for date bucketing)
+  const paidIntakes = intakes.filter(i => i.payment_status === "paid" || i.status === "paid")
+  const totalRevenue = paidIntakes.reduce((sum, i) => sum + (i.amount_cents || 0), 0) / 100
+  const thisWeekRevenue = paidIntakes
+    .filter(i => new Date(i.paid_at || i.created_at) >= sevenDaysAgo)
+    .reduce((sum, i) => sum + (i.amount_cents || 0), 0) / 100
+  const lastWeekRevenue = paidIntakes
+    .filter(i => {
+      const d = new Date(i.paid_at || i.created_at)
+      return d >= fourteenDaysAgo && d < sevenDaysAgo
+    })
+    .reduce((sum, i) => sum + (i.amount_cents || 0), 0) / 100
+  const todayRevenue = paidIntakes
+    .filter(i => new Date(i.paid_at || i.created_at) >= todayStart)
+    .reduce((sum, i) => sum + (i.amount_cents || 0), 0) / 100
 
   // Trends
   const intakeTrend = lastWeekIntakes.length > 0 
@@ -221,8 +223,8 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  // Layout already enforces doctor/admin role, but page needs profile
-  const { profile } = await requireRole(["doctor", "admin"])
+  // Layout enforces doctor/admin role — use cached profile
+  const { profile } = (await getAuthenticatedUserWithProfile())!
   const params = await searchParams
 
   const analytics = await getAnalytics(params)

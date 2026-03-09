@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronDown, ChevronUp, AlertTriangle, Check, ArrowRight, Loader2, Shield } from 'lucide-react'
 import { FieldRenderer } from '../field-renderer'
 import { useFlowStore, useFlowAnswers } from '@/lib/flow'
@@ -35,6 +35,7 @@ export function UnifiedQuestionsStep({
   onComplete,
   onEligibilityFail,
 }: UnifiedQuestionsStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep } = useFlowStore()
   
@@ -268,11 +269,11 @@ export function UnifiedQuestionsStep({
       <motion.div 
         key={id}
         ref={(el) => { sectionRefs.current[id] = el }}
-        animate={shouldShake && status !== 'complete' ? shakeAnimation.shake : {}}
+        animate={shouldShake && status !== 'complete' && !prefersReducedMotion ? shakeAnimation.shake : {}}
         className={cn(
           'border rounded-xl overflow-hidden transition-all',
           status === 'complete' && 'border-emerald-200 bg-emerald-50/30',
-          status === 'incomplete' && 'border-slate-200',
+          status === 'incomplete' && 'border-border',
           status === 'error' && 'border-red-200 bg-red-50/30'
         )}
       >
@@ -282,8 +283,8 @@ export function UnifiedQuestionsStep({
           onClick={() => toggleSection(id)}
           className={cn(
             'w-full flex items-center justify-between p-4 text-left transition-colors',
-            'hover:bg-slate-50',
-            isExpanded && 'border-b border-slate-100'
+            'hover:bg-muted/50',
+            isExpanded && 'border-b border-border/50'
           )}
         >
           <div className="flex items-center gap-3">
@@ -291,20 +292,20 @@ export function UnifiedQuestionsStep({
             <div className={cn(
               'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
               status === 'complete' && 'bg-emerald-500',
-              status === 'incomplete' && 'bg-slate-200',
+              status === 'incomplete' && 'bg-muted',
               status === 'error' && 'bg-red-500'
             )}>
               {status === 'complete' && <Check className="w-4 h-4 text-white" />}
               {status === 'error' && <AlertTriangle className="w-4 h-4 text-white" />}
               {status === 'incomplete' && (
-                <span className="w-2 h-2 bg-slate-400 rounded-full" />
+                <span className="w-2 h-2 bg-muted-foreground/60 rounded-full" />
               )}
             </div>
             
             <div>
-              <h3 className="font-semibold text-slate-900">{title}</h3>
+              <h3 className="font-semibold text-foreground">{title}</h3>
               {description && !isExpanded && (
-                <p className="text-sm text-slate-500 mt-0.5">{description}</p>
+                <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
               )}
             </div>
           </div>
@@ -314,9 +315,9 @@ export function UnifiedQuestionsStep({
               <span className="text-xs text-emerald-600 font-medium">Complete</span>
             )}
             {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-slate-400" />
+              <ChevronUp className="w-5 h-5 text-muted-foreground/60" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-slate-400" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground/60" />
             )}
           </div>
         </button>
@@ -325,15 +326,15 @@ export function UnifiedQuestionsStep({
         <AnimatePresence>
           {isExpanded && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
+              initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
               className="overflow-hidden"
             >
               <div className="p-4 space-y-5">
                 {description && (
-                  <p className="text-sm text-slate-500 -mt-1 mb-4">{description}</p>
+                  <p className="text-sm text-muted-foreground -mt-1 mb-4">{description}</p>
                 )}
                 
                 {visibleFields.map((field) => (
@@ -381,19 +382,19 @@ export function UnifiedQuestionsStep({
       {/* Compact header with progress */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-bold text-slate-900">Health questions</h2>
-          <span className="text-xs font-medium text-slate-500">
+          <h2 className="text-lg font-bold text-foreground">Health questions</h2>
+          <span className="text-xs font-medium text-muted-foreground">
             {completedGroups}/{totalGroups} sections
           </span>
         </div>
         
         {/* Progress bar */}
-        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-emerald-500 rounded-full"
-            initial={{ width: 0 }}
+            initial={prefersReducedMotion ? false : { width: 0 }}
             animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           />
         </div>
       </div>
@@ -420,19 +421,19 @@ export function UnifiedQuestionsStep({
       </div>
       
       {/* Continue button */}
-      <div className="mt-6 pt-5 border-t border-slate-100">
+      <div className="mt-6 pt-5 border-t border-border/50">
         <motion.button
           onClick={handleContinue}
           disabled={isSubmitting}
-          whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
-          whileTap={{ scale: isSubmitting ? 1 : 0.99 }}
+          whileHover={prefersReducedMotion ? undefined : { scale: isSubmitting ? 1 : 1.01 }}
+          whileTap={prefersReducedMotion ? undefined : { scale: isSubmitting ? 1 : 0.99 }}
           className={cn(
             'w-full h-13 sm:h-14 text-base font-semibold rounded-xl',
             'flex items-center justify-center gap-2',
             'transition-all duration-200',
             isFormComplete
               ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20'
-              : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
           )}
         >
           {isSubmitting ? (
@@ -452,7 +453,7 @@ export function UnifiedQuestionsStep({
         <AnimatePresence>
           {showValidationErrors && !isFormComplete && (
             <motion.p
-              initial={{ height: 0, opacity: 0 }}
+              initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="text-xs text-red-500 text-center mt-3"
@@ -463,7 +464,7 @@ export function UnifiedQuestionsStep({
         </AnimatePresence>
         
         {/* Security note - minimal */}
-        <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-slate-400">
+        <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-muted-foreground/60">
           <Shield className="w-3 h-3" />
           <span>Encrypted · Doctor reviewed</span>
         </div>

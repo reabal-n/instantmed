@@ -70,7 +70,7 @@ export function PerformanceMonitoringClient() {
   const getRatingColor = (rating: string) => {
     switch (rating) {
       case "good":
-        return "text-green-600 dark:text-green-400"
+        return "text-emerald-600 dark:text-emerald-400"
       case "needs-improvement":
         return "text-amber-600 dark:text-amber-400"
       case "poor":
@@ -83,9 +83,9 @@ export function PerformanceMonitoringClient() {
   const getRatingBadge = (rating: string) => {
     switch (rating) {
       case "good":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Good</Badge>
+        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Good</Badge>
       case "needs-improvement":
-        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Needs Work</Badge>
+        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">Needs Work</Badge>
       case "poor":
         return <Badge variant="destructive">Poor</Badge>
       default:
@@ -125,7 +125,7 @@ export function PerformanceMonitoringClient() {
 
   const getTrend = (current: number, target: number) => {
     const ratio = current / target
-    if (ratio < 0.7) return <TrendingDown className="h-4 w-4 text-green-500" />
+    if (ratio < 0.7) return <TrendingDown className="h-4 w-4 text-emerald-500" />
     if (ratio > 1) return <TrendingUp className="h-4 w-4 text-red-500" />
     return <Minus className="h-4 w-4 text-muted-foreground" />
   }
@@ -145,8 +145,8 @@ export function PerformanceMonitoringClient() {
                 <p className="text-sm text-muted-foreground">Realtime Users</p>
                 <p className="text-2xl font-bold">{data.realtimeUsers}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
             </div>
           </CardContent>
@@ -247,7 +247,7 @@ export function PerformanceMonitoringClient() {
                         <div
                           className={`h-full transition-all ${
                             vital.rating === "good"
-                              ? "bg-green-500"
+                              ? "bg-emerald-500"
                               : vital.rating === "needs-improvement"
                               ? "bg-amber-500"
                               : "bg-red-500"
@@ -304,7 +304,7 @@ export function PerformanceMonitoringClient() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Error Rate</span>
-                      <span className={`font-medium ${data.serverMetrics.errorRate > 1 ? "text-red-500" : "text-green-500"}`}>
+                      <span className={`font-medium ${data.serverMetrics.errorRate > 1 ? "text-red-500" : "text-emerald-500"}`}>
                         {data.serverMetrics.errorRate}%
                       </span>
                     </div>

@@ -37,7 +37,7 @@ const services = [
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
     color: "hsl(var(--primary))",
-    gradient: "from-indigo-600/20 to-pink-500/20",
+    gradient: "from-primary/20 to-pink-500/20",
   },
 ]
 
@@ -49,12 +49,12 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
       {/* Hero Header */}
       <section className="relative pt-28 pb-12 px-4 overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-background dark:via-background dark:to-muted" />
         
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-primary/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-indigo-600/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-primary/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-primary/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -65,7 +65,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
-              <span className="bg-linear-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                 need?
               </span>
             </h1>
@@ -91,7 +91,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-indigo-600" />
+                <Clock className="h-4 w-4 text-primary" />
                 <span>45 min average</span>
               </div>
             </div>
@@ -108,7 +108,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                 <Link href={service.href} className="group block h-full">
                   <GlowingBorder>
                     <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-                      <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                      <div className="h-full bg-card/80 dark:bg-card/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
                         {/* Image section */}
                         <div className="relative h-40 overflow-hidden">
                           <Image
@@ -128,7 +128,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           )}
 
                           {/* Price tag */}
-                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                          <div className="absolute top-4 right-4 bg-card/95 dark:bg-card/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
                           </div>
 
@@ -143,7 +143,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           </div>
                           
                           {/* Time badge */}
-                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-card/90 dark:bg-card/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
                             <Clock className="h-3 w-3" style={{ color: service.color }} />
                             <span className="font-medium">{service.estimatedTime}</span>
                           </div>
@@ -165,7 +165,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                             {service.features.map((feature) => (
                               <span 
                                 key={feature} 
-                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-muted-foreground"
+                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground"
                               >
                                 <Check className="h-3 w-3" style={{ color: service.color }} />
                                 {feature}
@@ -184,7 +184,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
           {/* Help Text */}
           <BlurFade delay={0.5}>
             <div className="mt-12 relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-primary/10 via-emerald-500/10 to-indigo-600/10" />
+              <div className="absolute inset-0 bg-linear-to-r from-primary/10 via-emerald-500/10 to-blue-400/10" />
               <div className="relative z-10 p-8 text-center">
                 <p className="text-muted-foreground mb-4">
                   Not sure which service you need?

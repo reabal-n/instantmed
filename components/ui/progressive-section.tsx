@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -33,12 +33,13 @@ export function ProgressiveSection({
   icon: Icon,
 }: ProgressiveSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <div
       className={cn(
         "transition-all duration-300",
-        bordered && "border border-gray-200 rounded-xl overflow-hidden",
+        bordered && "border border-border rounded-xl overflow-hidden",
         className
       )}
     >
@@ -46,9 +47,9 @@ export function ProgressiveSection({
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full p-4 flex items-center justify-between",
-          "hover:bg-gray-50 transition-colors duration-200",
+          "hover:bg-muted/50 transition-colors duration-200",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2",
-          isOpen && "bg-gray-50/50"
+          isOpen && "bg-muted/50"
         )}
         aria-expanded={isOpen}
         aria-controls={`progressive-section-${title}`}
@@ -65,8 +66,8 @@ export function ProgressiveSection({
           </div>
         </div>
         <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          animate={prefersReducedMotion ? {} : { rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
         >
           <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
         </motion.div>
@@ -75,13 +76,13 @@ export function ProgressiveSection({
         {isOpen && (
           <motion.div
             id={`progressive-section-${title}`}
-            initial={{ height: 0, opacity: 0 }}
+            initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className={cn("p-4 pt-0", bordered && "border-t border-gray-200")}>
+            <div className={cn("p-4 pt-0", bordered && "border-t border-border")}>
               {children}
             </div>
           </motion.div>
@@ -112,6 +113,7 @@ export function ProgressiveDisclosure({
   className,
 }: ProgressiveDisclosureProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -131,10 +133,10 @@ export function ProgressiveDisclosure({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             className="overflow-hidden"
           >
             <div className="space-y-4">{children}</div>

@@ -322,7 +322,7 @@ export default function MedicalCertificatePage() {
 
                     {/* Floating AHPRA badge */}
                     <motion.div
-                      className="absolute bottom-4 left-4 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                      className="absolute bottom-4 left-4 bg-card/90 dark:bg-white/10 backdrop-blur-xl rounded-xl px-3 py-2 shadow-lg border border-border/50"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.9 }}
@@ -480,8 +480,8 @@ export default function MedicalCertificatePage() {
                     <Link href={cert.href} className="group block h-full">
                         <div className={cn(
                           "relative h-full rounded-2xl overflow-hidden flex flex-col",
-                          "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
-                          "border border-white/20 dark:border-white/10",
+                          "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
+                          "border border-border/20 dark:border-white/10",
                           "shadow-lg shadow-black/5 dark:shadow-black/20",
                           "hover:shadow-xl transition-all duration-300",
                           "group-hover:-translate-y-1",

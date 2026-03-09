@@ -36,7 +36,7 @@ export function LogoBadgeStrip({
         {badges.map((badge, i) => (
           <motion.div
             key={badge.label}
-            className="flex items-center gap-2 rounded-full border border-border/50 bg-white/60 dark:bg-white/8 backdrop-blur-sm px-4 py-2 text-xs text-muted-foreground"
+            className="flex items-center gap-2 rounded-full border border-border/50 bg-card/60 dark:bg-white/8 backdrop-blur-sm px-4 py-2 text-xs text-muted-foreground"
             initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
             animate={
               prefersReducedMotion

@@ -109,9 +109,9 @@ function formatTimeAgo(dateString: string): string {
 
 function getLevelBadge(level: SentryIssue["level"]) {
   const styles = {
-    error: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-    warning: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-    info: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    error: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400",
+    warning: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400",
+    info: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400",
   }
   return styles[level]
 }
@@ -121,7 +121,7 @@ function getStatusIcon(status: SentryIssue["status"]) {
     case "resolved":
       return <CheckCircle className="h-4 w-4 text-green-500" />
     case "ignored":
-      return <XCircle className="h-4 w-4 text-gray-400" />
+      return <XCircle className="h-4 w-4 text-muted-foreground" />
     default:
       return <AlertCircle className="h-4 w-4 text-red-500" />
   }

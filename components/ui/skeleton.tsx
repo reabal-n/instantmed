@@ -25,7 +25,7 @@ function Skeleton({
     <div
       className={cn(
         "animate-pulse rounded-xl",
-        "bg-white/30 dark:bg-white/5",
+        "bg-card/30 dark:bg-white/5",
         "backdrop-blur-sm",
         className
       )}
@@ -115,7 +115,7 @@ function ButtonSpinner({ className }: { className?: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 p-5 space-y-3 shadow-[0_4px_20px_rgb(59,130,246,0.1)]">
+    <div className="rounded-2xl bg-card/50 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 p-5 space-y-3 shadow-[0_4px_20px_rgb(59,130,246,0.1)]">
       <Skeleton className="h-4 w-3/4" />
       <Skeleton className="h-3 w-1/2" />
       <Skeleton className="h-3 w-2/3" />

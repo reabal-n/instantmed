@@ -112,7 +112,7 @@ export function CertificatePreview({
                 }`}
               >
                 <div
-                  className="flex items-center justify-center bg-gray-100 text-gray-400"
+                  className="flex items-center justify-center bg-muted text-muted-foreground"
                   style={{
                     width: 80,
                     height: 40,
@@ -305,7 +305,7 @@ export function CertificatePreview({
           previewData.hasSignatureImage ? (
             <div className="mb-2">
               <div
-                className="bg-gray-100 text-gray-400 flex items-center justify-center"
+                className="bg-muted text-muted-foreground flex items-center justify-center"
                 style={{ width: 150, height: 50, fontSize: 10 }}
               >
                 [SIGNATURE]
@@ -358,7 +358,7 @@ export function CertificatePreview({
                 </p>
               </div>
               <div
-                className="bg-gray-100 flex items-center justify-center"
+                className="bg-muted flex items-center justify-center"
                 style={{ width: 60, height: 60, fontSize: 8 }}
               >
                 [QR]

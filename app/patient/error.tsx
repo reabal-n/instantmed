@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import {
   AlertTriangle,
@@ -55,17 +54,23 @@ export default function PatientError({
 }) {
   const router = useRouter()
   const [isRetrying, setIsRetrying] = useState(false)
+  const retryCount = useRef(0)
+  const maxRetries = 3
   const errorInfo = getErrorInfo(error)
   const IconComponent = errorInfo.icon
 
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { boundary: "patient", errorType: getErrorInfo(error).type },
-      extra: { digest: error.digest },
+    import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(error, {
+        tags: { boundary: "patient", errorType: getErrorInfo(error).type },
+        extra: { digest: error.digest },
+      })
     })
   }, [error])
 
   const handleRetry = async () => {
+    if (retryCount.current >= maxRetries) return
+    retryCount.current += 1
     setIsRetrying(true)
     try {
       reset()
@@ -81,17 +86,17 @@ export default function PatientError({
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 mb-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 mb-6" aria-hidden="true">
           <IconComponent className="h-8 w-8 text-amber-600 dark:text-amber-500" />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2">{errorInfo.title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight mb-2">{errorInfo.title}</h1>
         <p className="text-muted-foreground mb-6">
           {errorInfo.description}
         </p>
 
         {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-lg inline-block">
+          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
             Ref: {error.digest}
           </p>
         )}
@@ -103,13 +108,13 @@ export default function PatientError({
               Sign in
             </Button>
           ) : (
-            <Button 
-              onClick={handleRetry} 
-              disabled={isRetrying}
+            <Button
+              onClick={handleRetry}
+              disabled={isRetrying || retryCount.current >= maxRetries}
               className="w-full sm:w-auto"
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isRetrying ? "animate-spin" : ""}`} />
-              {isRetrying ? "Retrying..." : "Try again"}
+              {isRetrying ? "Retrying..." : retryCount.current >= maxRetries ? "Please contact support" : "Try again"}
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">

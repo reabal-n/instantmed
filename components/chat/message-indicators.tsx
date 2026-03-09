@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -23,12 +23,14 @@ interface MessageStatusIndicatorProps {
 }
 
 export function MessageStatusIndicator({ status, className, showLabel = false }: MessageStatusIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   const getIcon = () => {
     switch (status) {
       case "sending":
         return (
           <motion.div
-            animate={{ rotate: 360 }}
+            animate={prefersReducedMotion ? undefined : { rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
             className="w-3 h-3 border-2 border-current border-t-transparent rounded-full"
           />
@@ -81,28 +83,30 @@ interface TypingIndicatorProps {
 }
 
 export function TypingIndicator({ isTyping, userName, className }: TypingIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <AnimatePresence>
       {isTyping && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
           className={cn("flex items-center gap-2 text-sm text-muted-foreground", className)}
         >
           <div className="flex items-center gap-1 px-3 py-2 rounded-2xl bg-muted">
             <motion.span
-              animate={{ y: [0, -4, 0] }}
+              animate={prefersReducedMotion ? undefined : { y: [0, -4, 0] }}
               transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
               className="w-2 h-2 rounded-full bg-muted-foreground/60"
             />
             <motion.span
-              animate={{ y: [0, -4, 0] }}
+              animate={prefersReducedMotion ? undefined : { y: [0, -4, 0] }}
               transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }}
               className="w-2 h-2 rounded-full bg-muted-foreground/60"
             />
             <motion.span
-              animate={{ y: [0, -4, 0] }}
+              animate={prefersReducedMotion ? undefined : { y: [0, -4, 0] }}
               transition={{ repeat: Infinity, duration: 0.6, delay: 0.3 }}
               className="w-2 h-2 rounded-full bg-muted-foreground/60"
             />

@@ -4,30 +4,34 @@ import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import Link from 'next/link'
 
 const steps = [
   {
     number: "1",
-    title: "Tell us what's going on",
-    description: "Quick form — takes about 2 minutes.",
+    title: "Tell us what\u2019s going on",
+    description: "Quick form, takes about 2 minutes. No account needed to start.",
     time: "2 min",
   },
   {
     number: "2",
-    title: "A GP reviews your request",
-    description: "A real Australian doctor looks it over and makes the call.",
+    title: "A real GP reviews it",
+    description: "An AHPRA-registered doctor looks it over and makes the call. Same standards as an in-person visit. \ud83e\ude7a",
     time: "~1 hour",
   },
   {
     number: "3",
     title: "Sorted",
-    description: "Certificate to your inbox, eScript to your phone. Done.",
+    description: "Certificate to your inbox, eScript to your phone. Done and dusted.",
     time: "Same day",
   },
 ]
 
 export function HowItWorks() {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
   return (
     <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -37,8 +41,8 @@ export function HowItWorks() {
             {/* Section Header */}
             <motion.div
               className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={animate ? { opacity: 0, y: 20 } : false}
+              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
@@ -46,7 +50,7 @@ export function HowItWorks() {
                 How it works
               </h2>
               <p className="text-sm text-muted-foreground">
-                No appointments. No phone calls. Just results.
+                No appointments. No phone calls. Just good medicine, from your couch.
               </p>
             </motion.div>
 
@@ -54,8 +58,8 @@ export function HowItWorks() {
               {steps.map((step, index) => (
                 <motion.div
                   key={step.number}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={animate ? { opacity: 0, x: -10 } : false}
+                  whileInView={animate ? { opacity: 1, x: 0 } : undefined}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   className="relative flex items-start gap-4 py-5"
@@ -91,8 +95,8 @@ export function HowItWorks() {
             {/* CTA */}
             <motion.div
               className="mt-6"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={animate ? { opacity: 0, y: 10 } : false}
+              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
@@ -107,7 +111,7 @@ export function HowItWorks() {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-2.5">
-                Most people are sorted in under an hour
+                Most people are sorted in under an hour ⏱️
               </p>
             </motion.div>
           </div>
@@ -115,8 +119,8 @@ export function HowItWorks() {
           {/* Image — laptop + certificate + coffee */}
           <motion.div
             className="hidden lg:block shrink-0 w-72 xl:w-80 aspect-square rounded-2xl overflow-hidden shadow-lg"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={animate ? { opacity: 0, x: 20 } : false}
+            whileInView={animate ? { opacity: 1, x: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >

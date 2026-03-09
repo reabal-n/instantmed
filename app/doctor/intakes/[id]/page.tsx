@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeWithDetails, getPatientIntakes, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./intake-detail-client"
@@ -18,8 +18,8 @@ export default async function DoctorIntakeDetailPage({
   const { id } = await params
   const { action } = await searchParams
 
-  // Layout enforces doctor/admin role
-  const { profile } = await requireRole(["doctor", "admin"])
+  // Layout enforces doctor/admin role — use cached profile
+  const { profile } = (await getAuthenticatedUserWithProfile())!
 
   const intake = await getIntakeWithDetails(id)
 

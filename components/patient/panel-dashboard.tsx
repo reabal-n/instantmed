@@ -25,7 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { capture } from "@/lib/analytics/capture"
 
 /**
@@ -102,14 +102,31 @@ interface PatientDashboardProps {
 }
 
 const STATUS_CONFIG = {
-  approved: { color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle, label: "Approved" },
-  rejected: { color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle, label: "Declined" },
-  pending: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
-  in_review: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock, label: "Under Review" },
-  requires_info: { color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: AlertTriangle, label: "Action Needed" },
-  awaiting_script: { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: Pill, label: "Preparing Script" },
-  cancelled: { color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400", icon: AlertCircle, label: "Cancelled" },
-  pending_payment: { color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: CreditCard, label: "Payment Pending" },
+  approved: { color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", icon: CheckCircle, label: "Approved" },
+  rejected: { color: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400", icon: AlertCircle, label: "Declined" },
+  pending: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Clock, label: "Under Review" },
+  in_review: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Clock, label: "Under Review" },
+  requires_info: { color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400", icon: AlertTriangle, label: "Action Needed" },
+  awaiting_script: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Pill, label: "Preparing Script" },
+  cancelled: { color: "bg-muted text-muted-foreground", icon: AlertCircle, label: "Cancelled" },
+  pending_payment: { color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400", icon: CreditCard, label: "Payment Pending" },
+}
+
+/** Maps raw intake status to STATUS_CONFIG key */
+const INTAKE_STATUS_MAP: Record<string, keyof typeof STATUS_CONFIG> = {
+  paid: "pending",
+  in_review: "in_review",
+  pending_info: "requires_info",
+  approved: "approved",
+  declined: "rejected",
+  completed: "approved",
+  awaiting_script: "awaiting_script",
+  cancelled: "cancelled",
+  pending_payment: "pending_payment",
+}
+
+function resolveStatusConfig(status: string) {
+  return STATUS_CONFIG[INTAKE_STATUS_MAP[status] || "pending"] || STATUS_CONFIG.pending
 }
 
 export function PanelDashboard({
@@ -120,6 +137,7 @@ export function PanelDashboard({
   error,
   profileData,
 }: PatientDashboardProps) {
+  const prefersReducedMotion = useReducedMotion()
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
 
@@ -196,9 +214,9 @@ export function PanelDashboard({
           Welcome back, {firstName}
         </h1>
         <p className="text-muted-foreground">
-          {pendingIntakes.length > 0 
+          {pendingIntakes.length > 0
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
-            : "All caught up"}
+            : "All caught up — nothing needs your attention. 👍"}
         </p>
       </div>
 
@@ -212,20 +230,20 @@ export function PanelDashboard({
 
       {/* Error State */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+          <p className="text-sm text-red-700 dark:text-red-300">Something went wrong loading your data. Try refreshing — if it keeps happening, <a href="/contact" className="underline font-medium">let us know</a>.</p>
         </div>
       )}
 
       {/* Payment Recovery Prompt */}
       {stalePaymentIntakes.length > 0 && (
-        <section className="p-4 rounded-xl bg-blue-50 border border-blue-200 space-y-3">
-          <div className="flex items-center gap-2 text-blue-700">
+        <section className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 space-y-3">
+          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
             <CreditCard className="w-5 h-5" />
             <h3 className="font-semibold">Complete your request</h3>
           </div>
-          <p className="text-sm text-blue-600">
+          <p className="text-sm text-blue-600 dark:text-blue-400">
             {stalePaymentIntakes.length === 1 
               ? "You have a request waiting to be completed."
               : `You have ${stalePaymentIntakes.length} requests waiting to be completed.`}
@@ -238,7 +256,7 @@ export function PanelDashboard({
                 <Link 
                   key={intake.id}
                   href={`/patient/intakes/${intake.id}`}
-                  className="flex items-center justify-between bg-card rounded-lg p-3 border border-blue-100 hover:border-blue-300 transition-colors"
+                  className="flex items-center justify-between bg-card rounded-xl p-3 border border-blue-100 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                 >
                   <div>
                     <p className="font-medium text-foreground">{serviceName}</p>
@@ -293,7 +311,7 @@ export function PanelDashboard({
           <EmptyState
             icon={FileText}
             title={FEEDBACK_MESSAGES.noRequests}
-            description="Get started by choosing what you need — most requests are reviewed within 2 hours."
+            description="Pick what you need and a GP will review it — most people are sorted within the hour."
             action={{
               label: "New Request",
               href: "/request",
@@ -324,16 +342,16 @@ export function PanelDashboard({
       {/* Prescription Renewal Reminders */}
       {prescriptionsNeedingRenewal.length > 0 && (
         <section>
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
-            <div className="flex items-center gap-2 text-amber-700">
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-3">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
               <AlertTriangle className="w-5 h-5" />
               <h3 className="font-semibold">Renewal reminders</h3>
             </div>
             {prescriptionsNeedingRenewal.map((rx) => (
-              <div key={rx.id} className="flex items-center justify-between bg-card rounded-lg p-3 border border-amber-100">
+              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-amber-100 dark:border-amber-800/50">
                 <div>
                   <p className="font-medium text-foreground">{rx.medication_name}</p>
-                  <p className="text-sm text-amber-600">
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
                     Renews in {getDaysUntilRenewal(rx.renewal_date)} days
                   </p>
                 </div>
@@ -372,11 +390,11 @@ export function PanelDashboard({
                       <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-4 h-4" />
-                          Issued {new Date(rx.issued_date).toLocaleDateString()}
+                          Issued {new Date(rx.issued_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
-                          Renews {new Date(rx.renewal_date).toLocaleDateString()}
+                          Renews {new Date(rx.renewal_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>
                     </div>
@@ -394,7 +412,7 @@ export function PanelDashboard({
       )}
 
       {/* Health Tips Section */}
-      <section className="mt-8">
+      <section>
         <div className="p-5 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -409,16 +427,16 @@ export function PanelDashboard({
       </section>
 
       {/* Referral Section */}
-      <section className="mt-8">
+      <section>
         <ReferralCard patientId={patientId} />
       </section>
 
       {/* Floating Action Button - New Request */}
       <motion.div
         className="fixed bottom-20 md:bottom-6 right-6 z-50"
-        initial={{ scale: 0, opacity: 0 }}
+        initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.5, type: "spring", stiffness: 200 }}
       >
         <Link href="/request">
           <Button
@@ -441,18 +459,7 @@ function IntakeCard({
   intake: Intake
   onClick: () => void
 }) {
-  const statusMap: Record<string, keyof typeof STATUS_CONFIG> = {
-    paid: "pending",
-    in_review: "in_review",
-    pending_info: "requires_info",
-    approved: "approved",
-    declined: "rejected",
-    completed: "approved",
-    awaiting_script: "awaiting_script",
-    cancelled: "cancelled",
-    pending_payment: "pending_payment",
-  }
-  const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
+  const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
 
   const getServiceName = () => {
@@ -466,46 +473,46 @@ function IntakeCard({
   // Contextual "What's Next" guidance based on intake status
   const whatsNextConfig: Record<string, { message: string; actionLabel?: string; actionHref?: string; color: string }> = {
     paid: {
-      message: "A doctor will review your request shortly. We'll email you when it's done.",
-      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+      message: "A doctor will review your request shortly — we'll email you when it's done. ⏱️",
+      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
     },
     in_review: {
-      message: "A doctor is reviewing your request right now. Hang tight.",
-      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+      message: "A doctor is looking at your request right now. Hang tight — shouldn't be long. 🩺",
+      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
     },
     pending_info: {
-      message: "The doctor has a question. Please respond so we can continue.",
+      message: "The doctor has a quick question for you. Please respond so we can keep things moving.",
       actionLabel: "Respond now",
       actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30 text-amber-700 dark:text-amber-300",
+      color: "bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300",
     },
     approved: {
-      message: intake.service?.type === "med_certs" 
-        ? "Your certificate is ready. Download it or send it to your employer." 
-        : "Your request has been approved. Download your document below.",
+      message: intake.service?.type === "med_certs"
+        ? "Your certificate is ready — download it or forward it to your employer. ✅"
+        : "All approved — your document is ready to download. ✅",
       actionLabel: "View & download",
       actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+      color: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300",
     },
     declined: {
-      message: "This request wasn't approved. You can view the reason or start a new one.",
+      message: "This one wasn't approved — you can view the reason or start a new request.",
       actionLabel: "View details",
       actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-300",
+      color: "bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-800 text-red-700 dark:text-red-300",
     },
     awaiting_script: {
-      message: "Your prescription is being prepared. We'll notify you when it's ready.",
-      color: "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-300",
+      message: "Your prescription is being prepared — we'll let you know as soon as it's ready.",
+      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
     },
     completed: {
       message: "This request is complete. Your documents are available below.",
       actionLabel: "View documents",
       actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+      color: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300",
     },
     cancelled: {
-      message: "This request was cancelled.",
-      color: "bg-gray-50 dark:bg-gray-950/20 border-gray-100 dark:border-gray-900/30 text-gray-700 dark:text-gray-300",
+      message: "This request was cancelled. No charge was made.",
+      color: "bg-muted/50 border-border text-muted-foreground",
     },
   }
   const whatsNext = whatsNextConfig[intake.status]
@@ -517,11 +524,14 @@ function IntakeCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+            intake.service?.type === "common_scripts" ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/10"
+          )}>
             {intake.service?.type === "common_scripts" ? (
-              <Pill className="w-6 h-6 text-muted-foreground" />
+              <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             ) : (
-              <FileText className="w-6 h-6 text-muted-foreground" />
+              <FileText className="w-6 h-6 text-primary" />
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -548,7 +558,7 @@ function IntakeCard({
 
       {/* What's Next contextual guidance */}
       {whatsNext && (
-        <div className={cn("mt-3 px-3 py-2.5 rounded-lg border text-xs flex items-center justify-between gap-3", whatsNext.color)}>
+        <div className={cn("mt-3 px-3 py-2.5 rounded-xl border text-xs flex items-center justify-between gap-3", whatsNext.color)}>
           <p>{whatsNext.message}</p>
           {whatsNext.actionLabel && whatsNext.actionHref && (
             <Link
@@ -566,18 +576,7 @@ function IntakeCard({
 }
 
 function IntakeDetailDrawer({ intake }: { intake: Intake }) {
-  const statusMap: Record<string, keyof typeof STATUS_CONFIG> = {
-    paid: "pending",
-    in_review: "in_review",
-    pending_info: "requires_info",
-    approved: "approved",
-    declined: "rejected",
-    completed: "approved",
-    awaiting_script: "awaiting_script",
-    cancelled: "cancelled",
-    pending_payment: "pending_payment",
-  }
-  const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
+  const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
 
   return (
@@ -585,7 +584,7 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {/* Status */}
       <div>
         <p className="text-sm text-muted-foreground mb-2">Status</p>
-        <div className={cn("inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium", config.color)}>
+        <div className={cn("inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium", config.color)}>
           <Icon className="w-4 h-4" />
           {config.label}
         </div>
@@ -619,7 +618,7 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {intake.doctor_notes && (
         <div>
           <p className="text-sm text-muted-foreground mb-2">Doctor notes</p>
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm text-foreground">
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-sm text-foreground">
             {intake.doctor_notes}
           </div>
         </div>

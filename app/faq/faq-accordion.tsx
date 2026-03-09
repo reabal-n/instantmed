@@ -30,7 +30,7 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
             <span className="text-2xl">{category.emoji}</span>
             {category.title}
           </h2>
-          <div className="relative rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl overflow-hidden">
+          <div className="relative rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-xl overflow-hidden">
             <Accordion
               type="multiple"
               className="px-0"
@@ -39,7 +39,7 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
                 <AccordionItem
                   key={`${catIndex}-${faqIndex}`}
                   value={`${catIndex}-${faqIndex}`}
-                  className="px-6 border-b border-white/10 last:border-0"
+                  className="px-6 border-b border-border/10 last:border-0"
                 >
                   <AccordionTrigger className="py-4 hover:bg-white/5 transition-colors">
                     <span className="font-medium text-foreground pr-4 text-left">

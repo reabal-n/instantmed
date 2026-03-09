@@ -17,26 +17,26 @@ const processSteps = [
   {
     title: "Tell us what you need",
     description:
-      "Pick your service and answer a few quick questions. We collect the information a doctor needs to properly assess your request. Takes about 2 minutes.",
+      "Pick your service and answer a few quick questions — takes about 2 minutes. No account needed to get started.",
   },
   {
     title: "A real doctor reviews it",
     description:
-      "An Australian doctor reviews your request and medical history. If they need more information, they\u2019ll reach out to you directly. Usually within 2\u20134 hours.",
+      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Most reviews done within the hour. \ud83e\ude7a",
   },
   {
     title: "Get your document",
     description:
-      "If approved: med cert emailed as PDF, script sent as e-prescription to any pharmacy. If not approved, you get a full refund.",
+      "If approved: med cert emailed as PDF, script sent as e-prescription to any pharmacy. If not approved, you get a full refund — no questions asked.",
   },
 ]
 
 const features = [
   {
     icon: <Clock className="h-6 w-6" />,
-    title: "24hr guarantee",
+    title: "Fast turnaround",
     description:
-      "Response within 24 hours or your money back. No exceptions.",
+      "Most requests reviewed within hours. If we can't help, you get a full refund.",
   },
   {
     icon: <Shield className="h-6 w-6" />,
@@ -48,13 +48,13 @@ const features = [
     icon: <CreditCard className="h-6 w-6" />,
     title: "No subscriptions",
     description:
-      "Pay per consult. No monthly fees, no hidden charges.",
+      "Pay per consult. No monthly fees, no hidden charges, no surprises.",
   },
   {
     icon: <Send className="h-6 w-6" />,
     title: "Digital delivery",
     description:
-      "Everything sent via email or SMS. No app needed.",
+      "Everything sent via email or SMS. No app to download, nothing to print.",
   },
 ]
 
@@ -95,12 +95,12 @@ export function HowItWorksContent() {
 
         {/* CTA */}
         <CTABanner
-          title="Skip the waiting room"
-          subtitle="Choose what you need and we'll handle the rest. Most requests are done within an hour."
+          title="Ready when you are"
+          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Most people are sorted within the hour."
           ctaText="Get Med Cert"
-          ctaHref="/medical-certificate"
+          ctaHref="/request?service=med-cert"
           secondaryText="Get Script"
-          secondaryHref="/prescriptions"
+          secondaryHref="/request?service=prescription"
         />
       </main>
 

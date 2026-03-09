@@ -21,7 +21,7 @@ import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff, AlertTriangle } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
-import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
+import { motion, AnimatePresence, useMotionValue, useReducedMotion, type PanInfo } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SkeletonForm } from "@/components/ui/skeleton"
@@ -117,15 +117,17 @@ interface RequestFlowProps {
   healthProfile?: HealthProfilePrefill | null
 }
 
-function ProgressBar({ 
-  steps, 
+function ProgressBar({
+  steps,
   currentIndex,
   onStepClick,
-}: { 
+}: {
   steps: { id: string; shortLabel: string }[]
   currentIndex: number
   onStepClick: (stepId: string, index: number) => void
 }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="w-full flex gap-1.5" role="navigation" aria-label="Request progress">
       {steps.map((step, i) => {
@@ -155,13 +157,13 @@ function ProgressBar({
                 <>
                   {/* Mobile: small dot */}
                   <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary sm:hidden"
                   />
                   {/* Desktop: checkmark */}
                   <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary items-center justify-center hidden sm:flex"
                   >
@@ -186,13 +188,14 @@ function ProgressBar({
 }
 
 // Auto-save indicator component
-function AutoSaveIndicator({ 
-  lastSavedAt, 
-  hasUnsavedChanges 
-}: { 
+function AutoSaveIndicator({
+  lastSavedAt,
+  hasUnsavedChanges
+}: {
   lastSavedAt: string | null
-  hasUnsavedChanges: boolean 
+  hasUnsavedChanges: boolean
 }) {
+  const prefersReducedMotion = useReducedMotion()
   const [showSaved, setShowSaved] = useState(false)
   
   useEffect(() => {
@@ -210,7 +213,7 @@ function AutoSaveIndicator({
       {hasUnsavedChanges ? (
         <motion.div
           key="unsaved"
-          initial={{ opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="flex items-center gap-1.5 text-xs text-muted-foreground"
@@ -221,7 +224,7 @@ function AutoSaveIndicator({
       ) : showSaved ? (
         <motion.div
           key="saved"
-          initial={{ opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="flex items-center gap-1.5 text-xs text-emerald-600"
@@ -357,6 +360,7 @@ export function RequestFlow({
 }: RequestFlowProps) {
   const router = useRouter()
   const posthog = usePostHog()
+  const prefersReducedMotion = useReducedMotion()
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
@@ -825,18 +829,18 @@ export function RequestFlow({
 
   // Slide animation variants
   const slideVariants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
-      opacity: 0,
-    }),
+    enter: (dir: number) => (prefersReducedMotion
+      ? { opacity: 0 }
+      : { x: dir > 0 ? 300 : -300, opacity: 0 }
+    ),
     center: {
       x: 0,
       opacity: 1,
     },
-    exit: (dir: number) => ({
-      x: dir > 0 ? -300 : 300,
-      opacity: 0,
-    }),
+    exit: (dir: number) => (prefersReducedMotion
+      ? { opacity: 0 }
+      : { x: dir > 0 ? -300 : 300, opacity: 0 }
+    ),
   }
 
   return (
@@ -848,14 +852,14 @@ export function RequestFlow({
       <AnimatePresence>
         {showExitConfirm && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
             onClick={() => setShowExitConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
@@ -890,13 +894,13 @@ export function RequestFlow({
       <AnimatePresence>
         {safetyBlock && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl"
@@ -1051,7 +1055,7 @@ export function RequestFlow({
           {isTransitioning ? (
             <motion.div
               key="skeleton"
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
@@ -1067,7 +1071,7 @@ export function RequestFlow({
               exit="exit"
               transition={{
                 x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 },
+                opacity: { duration: prefersReducedMotion ? 0 : 0.2 },
               }}
             >
               <StepRouter

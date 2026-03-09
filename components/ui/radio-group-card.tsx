@@ -29,11 +29,11 @@ const RadioCard = React.forwardRef<
     className={cn(
       "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-300",
       // Calm glass surface
-      "bg-white/90 dark:bg-white/5 backdrop-blur-sm",
-      "border-white/50 dark:border-white/10",
+      "bg-card/90 dark:bg-white/5 backdrop-blur-sm",
+      "border-border/50 dark:border-white/10",
       "shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
       // Subtle hover - light settling effect
-      "hover:bg-white hover:border-slate-300/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+      "hover:bg-white dark:hover:bg-white/10 hover:border-border/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
       // Focus state
       "focus-visible:outline-2 focus-visible:outline-ring/70",
       // Selected state - clear visual feedback

@@ -55,8 +55,8 @@ function Switch({
           "relative inline-flex h-[32px] w-[52px] shrink-0",
           "cursor-pointer rounded-full",
           // Neutral off state
-          "bg-slate-200/80 dark:bg-white/10",
-          "border border-slate-300/30 dark:border-white/20",
+          "bg-muted/80 dark:bg-white/10",
+          "border border-border/30 dark:border-white/20",
           // Selected state - soft sage green
           "data-[state=checked]:bg-[#6BBF8A]",
           "data-[state=checked]:border-[#6BBF8A]/40",

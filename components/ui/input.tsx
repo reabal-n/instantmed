@@ -55,11 +55,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cn(
             "flex items-center w-full rounded-md",
-            "bg-white dark:bg-slate-900",
-            "border border-slate-200 dark:border-slate-700",
+            "bg-white dark:bg-background",
+            "border border-border",
             "shadow-none outline-none",
             "transition-all duration-200",
-            "hover:border-slate-300 dark:hover:border-slate-600",
+            "hover:border-border",
             "focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
             "min-h-[48px] md:min-h-0",
             isInvalid && "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20",

@@ -67,7 +67,7 @@ export function DoctorOnboardingBanner() {
             {data.steps.map((step) => (
               <div key={step.id} className="flex items-center gap-2 text-sm">
                 {step.completed ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 ) : (
                   <Circle className="h-4 w-4 text-amber-400 dark:text-amber-500 shrink-0" />
                 )}

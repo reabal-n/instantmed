@@ -62,8 +62,8 @@ export function CompleteAccountForm({
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
               <Check className="w-8 h-8 text-emerald-500" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
-            <p className="text-muted-foreground">Redirecting to your request...</p>
+            <h1 className="text-2xl font-bold mb-2">Payment successful! ✅</h1>
+            <p className="text-muted-foreground">Taking you to your request...</p>
             <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
           </div>
         </div>
@@ -77,9 +77,9 @@ export function CompleteAccountForm({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
           <Check className="w-8 h-8 text-emerald-500" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
+        <h1 className="text-2xl font-bold mb-2">Payment successful! ✅</h1>
         <p className="text-muted-foreground">
-          Create your account to access your medical certificate and track your request.
+          Create a free account to access your documents and track your request.
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export function CompleteAccountForm({
           Skip for now
         </button>
         <p className="text-xs text-center text-muted-foreground">
-          Your certificate will be emailed to you. Create an account later to track requests.
+          Your certificate will be emailed either way — an account just makes it easier to find later.
         </p>
       </div>
 

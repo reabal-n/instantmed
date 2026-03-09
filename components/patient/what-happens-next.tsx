@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import {
   Mail,
   FileText,
@@ -11,8 +11,6 @@ import {
   User,
   Users,
   Share2,
-  Copy,
-  Check,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
@@ -90,14 +88,13 @@ export function WhatHappensNext({
   serviceName,
   patientEmail,
   isPriority = false,
-  showConfetti = true,
+  showConfetti = false,
 }: WhatHappensNextProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [confettiTrigger, setConfettiTrigger] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
   const [queuePosition, setQueuePosition] = useState<number | null>(null)
-  const [referralCopied, setReferralCopied] = useState(false)
-
   // Trigger confetti on mount
   useEffect(() => {
     if (showConfetti) {
@@ -119,14 +116,6 @@ export function WhatHappensNext({
     fetchQueue()
   }, [])
 
-  const handleCopyReferral = () => {
-    const referralUrl = `${window.location.origin}?ref=${intakeId.slice(0, 8)}`
-    navigator.clipboard.writeText(referralUrl).then(() => {
-      setReferralCopied(true)
-      setTimeout(() => setReferralCopied(false), 2000)
-    }).catch(() => {})
-  }
-
   return (
     <>
       {showConfetti && <Confetti trigger={confettiTrigger} options={{ particleCount: 40 }} />}
@@ -134,20 +123,20 @@ export function WhatHappensNext({
       <div className="max-w-lg mx-auto space-y-6">
         {/* Success header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
           <motion.div
-            initial={{ scale: 0 }}
+            initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
+            transition={{ type: "spring", delay: prefersReducedMotion ? 0 : 0.2 }}
             className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500 flex items-center justify-center"
           >
             <CheckCircle2 className="w-8 h-8 text-white" />
           </motion.div>
           
-          <h1 className="text-2xl font-bold mb-2">Request submitted</h1>
+          <h1 className="text-2xl font-semibold tracking-tight mb-2">Request submitted</h1>
           <p className="text-muted-foreground">
             {serviceName ? `Your ${serviceName.toLowerCase()} request is ` : "Your request is "}
             being reviewed by our doctors.
@@ -155,9 +144,9 @@ export function WhatHappensNext({
           
           {/* Reassurance badge */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
           >
             <span className="relative flex h-2 w-2">
@@ -172,9 +161,9 @@ export function WhatHappensNext({
 
         {/* Live status tracker */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
         >
           <IntakeStatusTracker
             intakeId={intakeId}
@@ -186,9 +175,9 @@ export function WhatHappensNext({
 
         {/* Key info cards */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
           className="grid gap-3"
         >
           <InfoCard
@@ -220,12 +209,12 @@ export function WhatHappensNext({
         {/* Queue position */}
         {queuePosition !== null && queuePosition > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.45 }}
           >
             <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/10">
-              <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="shrink-0 h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -242,37 +231,30 @@ export function WhatHappensNext({
 
         {/* Referral prompt — highest-intent moment */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
         >
           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-border/50">
             <div className="flex items-start gap-3">
-              <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="shrink-0 h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Share2 className="h-4 w-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-sm">Know someone who needs this?</p>
                 <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-                  Share InstantMed with a friend or colleague
+                  Share your referral link from your dashboard and you both get $5 credit
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleCopyReferral}
+                  asChild
                   className="gap-2"
                 >
-                  {referralCopied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-green-600" />
-                      Link copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      Copy referral link
-                    </>
-                  )}
+                  <Link href="/patient">
+                    <Share2 className="w-3.5 h-3.5" />
+                    Get your referral link
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -281,9 +263,9 @@ export function WhatHappensNext({
 
         {/* FAQ accordion */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.55 }}
         >
           <Card className="overflow-hidden">
             <button
@@ -320,9 +302,9 @@ export function WhatHappensNext({
                     </button>
                     {expandedFaq === index && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
+                        initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
+                        exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
                         className="px-4 pb-4"
                       >
                         <p className="text-sm text-muted-foreground">{item.answer}</p>
@@ -337,9 +319,9 @@ export function WhatHappensNext({
 
         {/* Action buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.65 }}
           className="space-y-3"
         >
           <Button asChild size="lg" className="w-full">
@@ -357,9 +339,9 @@ export function WhatHappensNext({
 
         {/* Support footer */}
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.75 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.75 }}
           className="text-center text-xs text-muted-foreground"
         >
           Questions?{" "}
@@ -392,7 +374,7 @@ function InfoCard({ icon, title, description, highlight }: InfoCardProps) {
     >
       <div
         className={cn(
-          "shrink-0 h-8 w-8 rounded-lg flex items-center justify-center",
+          "shrink-0 h-8 w-8 rounded-xl flex items-center justify-center",
           highlight
             ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400"
             : "bg-primary/10 text-primary"

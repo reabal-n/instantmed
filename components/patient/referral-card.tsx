@@ -76,14 +76,14 @@ export function ReferralCard({ patientId }: { patientId: string }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg bg-background/50 p-3">
+        <div className="rounded-xl bg-background/50 p-3">
           <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
             <DollarSign className="w-3.5 h-3.5" />
             <span className="text-xs">Credit balance</span>
           </div>
           <p className="text-lg font-semibold text-foreground">${(stats.creditBalance / 100).toFixed(2)}</p>
         </div>
-        <div className="rounded-lg bg-background/50 p-3">
+        <div className="rounded-xl bg-background/50 p-3">
           <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
             <Users className="w-3.5 h-3.5" />
             <span className="text-xs">Friends referred</span>

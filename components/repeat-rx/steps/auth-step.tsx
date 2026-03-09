@@ -64,14 +64,14 @@ export function AuthStep({ onSignIn, onGuest, isLoading }: AuthStepProps) {
             variant="outline"
             onClick={onGuest}
             disabled={isLoading}
-            className="w-full h-12 rounded-full bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {REPEAT_RX_COPY.auth.guestButton}
           </Button>
         </div>
 
         {/* Benefits of signing in */}
-        <div className="p-4 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
+        <div className="p-4 rounded-2xl bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
           <p className="text-xs font-medium text-muted-foreground">
             Sign in for the best experience:
           </p>

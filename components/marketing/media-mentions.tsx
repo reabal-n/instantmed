@@ -1,6 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 // Authentic Australian tech/health/business publications
 // These are realistic for an Australian telehealth startup
@@ -68,9 +69,11 @@ interface MediaMentionsProps {
 }
 
 export function MediaMentions({ variant = 'strip', className = '' }: MediaMentionsProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   if (variant === 'strip') {
     return (
-      <div className={`py-8 ${className}`}>
+      <div className={cn('py-8', className)}>
         <div className="container mx-auto px-4">
           <p className="text-xs text-muted-foreground text-center mb-6 uppercase tracking-wider">
             As featured in
@@ -79,7 +82,7 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
             {mediaLogos.map((media) => (
               <motion.div
                 key={media.name}
-                initial={{ opacity: 0 }}
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -96,7 +99,7 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
 
   // Section variant - more prominent
   return (
-    <section className={`py-12 ${className}`}>
+    <section className={cn('py-12', className)}>
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -109,10 +112,10 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
             {mediaLogos.map((media, index) => (
               <motion.div
                 key={media.name}
-                initial={{ opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : undefined }}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 title={media.name}
               >

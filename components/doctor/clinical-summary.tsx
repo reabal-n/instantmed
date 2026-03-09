@@ -73,10 +73,12 @@ const FIELD_LABELS: Record<string, string> = {
 }
 
 // Fields to highlight as critical (red - requires immediate attention)
-const RED_FLAG_FIELDS = ["emergency_symptoms", "red_flags_detected", "symptom_severity"]
+// NOTE: emergency_symptoms is a safety-gate toggle ("I am NOT experiencing an emergency" → true),
+// not an actual symptom field — it's excluded here since blocking happens at intake time.
+const RED_FLAG_FIELDS = ["red_flags_detected", "symptom_severity"]
 
 // Values that indicate NO actual red flag (benign/negative values)
-const BENIGN_VALUES = new Set(["none", "no", "n/a", "nil", "not applicable", "false"])
+const BENIGN_VALUES = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "true"])
 const BENIGN_SEVERITY = new Set(["mild", "moderate", "low", "minimal", "minor"])
 
 /** Check if a red flag field actually contains a concerning value */
@@ -257,6 +259,8 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
     "safetyConsent",
     "safety_consent_given",
     "safetyConsentGiven",
+    "emergency_symptoms", // Safety gate toggle, not a clinical field
+    "workers_comp", // Safety gate toggle
     "informed_consent",
     "informedConsent",
     "data_consent",
@@ -328,7 +332,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
       <CardContent className="space-y-4">
         {/* Red Flags - Critical, requires immediate attention */}
         {redFlagFields.length > 0 && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2">
             <div className="flex items-center gap-2 text-destructive font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
               Red Flags — Requires Immediate Attention
@@ -346,14 +350,14 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
         
         {/* Yellow Flags - Caution, review carefully */}
         {yellowFlagFields.length > 0 && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium text-sm">
+          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-4 space-y-2">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-sm">
               <AlertCircle className="h-4 w-4" />
               Caution Flags — Review Carefully
             </div>
             {yellowFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
-                <Badge className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                <Badge className="text-xs bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
                   {FIELD_LABELS[key] || formatFieldLabel(key)}
                 </Badge>
                 <span className="text-amber-900 dark:text-amber-200">{formatValue(key, value)}</span>
@@ -399,8 +403,8 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
 
         {/* Consult Subtype-Specific Assessment Section */}
         {subtypeConfig && subtypeFields.length > 0 && (
-          <div className="border rounded-lg p-3 space-y-3">
-            <div className="flex items-center gap-2 font-medium text-sm">
+          <div className="border border-border/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 font-semibold text-sm">
               <FileText className="h-4 w-4 text-primary" />
               {subtypeConfig.label}
             </div>
@@ -411,8 +415,8 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
                   <div 
                     key={key} 
                     className={cn(
-                      "flex items-start gap-2 p-2 rounded-lg text-sm",
-                      isHighlighted ? "bg-amber-500/10 border border-amber-500/20" : "bg-muted/50"
+                      "flex items-start gap-2 p-3 rounded-lg text-sm",
+                      isHighlighted ? "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" : "bg-card border border-border/30"
                     )}
                   >
                     <div className="flex-1 min-w-0">
@@ -442,7 +446,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
             {primaryFields.map(([key, value]) => (
               <div 
                 key={key} 
-                className="flex items-start gap-2 p-2 bg-muted/50 rounded-lg"
+                className="flex items-start gap-2 p-3 bg-card border border-border/30 rounded-lg"
               >
                 <div className="text-muted-foreground mt-0.5">
                   {getFieldIcon(key)}

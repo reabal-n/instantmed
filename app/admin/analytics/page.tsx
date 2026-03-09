@@ -1,5 +1,4 @@
 import { requireRole } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { AnalyticsDashboardClient } from "./analytics-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
@@ -7,11 +6,7 @@ import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/in
 export const dynamic = "force-dynamic"
 
 export default async function AnalyticsDashboardPage() {
-  const authUser = await requireRole(["admin"], { redirectTo: "/" })
-
-  if (!authUser) {
-    redirect("/")
-  }
+  await requireRole(["admin"], { redirectTo: "/" })
 
   const supabase = createServiceRoleClient()
 

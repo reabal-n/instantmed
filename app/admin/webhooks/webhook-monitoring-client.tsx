@@ -132,7 +132,7 @@ export function WebhookMonitoringClient({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "delivered":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Delivered</Badge>
+        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Delivered</Badge>
       case "failed":
         return <Badge variant="destructive">Failed</Badge>
       case "pending":

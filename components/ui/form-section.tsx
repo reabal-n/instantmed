@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
 
@@ -33,6 +33,8 @@ export function FormSection({
   index = 0,
   className,
 }: FormSectionProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   const content = (
     <div
       className={cn(
@@ -81,12 +83,9 @@ export function FormSection({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        ...spring.smooth,
-        delay: index * 0.1 
-      }}
+      transition={prefersReducedMotion ? { duration: 0 } : { ...spring.smooth, delay: index * 0.1 }}
     >
       {content}
     </motion.div>
@@ -124,6 +123,8 @@ export function FormGroup({
   htmlFor,
   className,
 }: FormGroupProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
@@ -135,9 +136,9 @@ export function FormGroup({
           {required && <span className="text-destructive ml-0.5">*</span>}
         </label>
       )}
-      
+
       {children}
-      
+
       {/* Messages */}
       {(hint || error || warning) && (
         <div className="space-y-1">
@@ -146,8 +147,9 @@ export function FormGroup({
           )}
           {warning && !error && (
             <motion.p
-              initial={{ opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-dawn-600 dark:text-dawn-400 flex items-center gap-1"
             >
               <span className="w-1 h-1 rounded-full bg-dawn-500" />
@@ -156,8 +158,9 @@ export function FormGroup({
           )}
           {error && (
             <motion.p
-              initial={{ opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-destructive flex items-center gap-1"
             >
               <span className="w-1 h-1 rounded-full bg-destructive" />

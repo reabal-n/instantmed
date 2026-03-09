@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   ChevronDown,
   Check,
@@ -65,11 +65,13 @@ function AccordionSection({
   children,
   badge,
 }: AccordionSectionProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div
       className={cn(
         'border-2 rounded-xl overflow-hidden transition-all',
-        isOpen ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 bg-white'
+        isOpen ? 'border-emerald-500 bg-emerald-50/30 dark:bg-emerald-500/10' : 'border-border bg-white dark:bg-white/5 dark:border-white/10'
       )}
     >
       <button
@@ -85,7 +87,7 @@ function AccordionSection({
                 ? 'bg-emerald-500 text-white'
                 : isOpen
                 ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-100 text-slate-500'
+                : 'bg-muted text-muted-foreground'
             )}
           >
             {isComplete ? <Check className="w-4 h-4" /> : id}
@@ -93,7 +95,7 @@ function AccordionSection({
           <span
             className={cn(
               'font-medium',
-              isOpen ? 'text-slate-900' : 'text-slate-700'
+              isOpen ? 'text-foreground' : 'text-foreground'
             )}
           >
             {title}
@@ -106,7 +108,7 @@ function AccordionSection({
         </div>
         <ChevronDown
           className={cn(
-            'w-5 h-5 text-slate-400 transition-transform',
+            'w-5 h-5 text-muted-foreground/60 transition-transform',
             isOpen && 'rotate-180'
           )}
         />
@@ -115,10 +117,10 @@ function AccordionSection({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
+            initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
           >
             <div className="px-4 pb-4 pt-2">{children}</div>
           </motion.div>
@@ -137,6 +139,7 @@ interface PrescriptionDetailsStepProps {
 }
 
 export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep } = useFlowStore()
 
@@ -248,7 +251,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                 'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
                 data.prescriptionType === 'repeat'
                   ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-slate-200 hover:border-slate-300'
+                  : 'border-border hover:border-border'
               )}
             >
               <RefreshCw
@@ -256,11 +259,11 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                   'w-6 h-6',
                   data.prescriptionType === 'repeat'
                     ? 'text-emerald-600'
-                    : 'text-slate-400'
+                    : 'text-muted-foreground/60'
                 )}
               />
-              <span className="font-medium text-slate-900">Repeat</span>
-              <span className="text-xs text-slate-500 text-center">
+              <span className="font-medium text-foreground">Repeat</span>
+              <span className="text-xs text-muted-foreground text-center">
                 I take this regularly
               </span>
             </button>
@@ -272,7 +275,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                 'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
                 data.prescriptionType === 'new'
                   ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-slate-200 hover:border-slate-300'
+                  : 'border-border hover:border-border'
               )}
             >
               <Plus
@@ -280,11 +283,11 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                   'w-6 h-6',
                   data.prescriptionType === 'new'
                     ? 'text-emerald-600'
-                    : 'text-slate-400'
+                    : 'text-muted-foreground/60'
                 )}
               />
-              <span className="font-medium text-slate-900">New</span>
-              <span className="text-xs text-slate-500 text-center">
+              <span className="font-medium text-foreground">New</span>
+              <span className="text-xs text-muted-foreground text-center">
                 First time or been a while
               </span>
             </button>
@@ -293,12 +296,12 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
           {/* Repeat prescription extra fields */}
           {data.prescriptionType === 'repeat' && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-4 grid gap-3 sm:grid-cols-2"
             >
               <div>
-                <Label className="text-sm text-slate-600">Last prescribed</Label>
+                <Label className="text-sm text-muted-foreground">Last prescribed</Label>
                 <Input
                   value={data.lastPrescribed}
                   onChange={(e) => updateData('lastPrescribed', e.target.value)}
@@ -307,7 +310,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                 />
               </div>
               <div>
-                <Label className="text-sm text-slate-600">Prescribing doctor</Label>
+                <Label className="text-sm text-muted-foreground">Prescribing doctor</Label>
                 <Input
                   value={data.prescribingDoctor}
                   onChange={(e) => updateData('prescribingDoctor', e.target.value)}
@@ -339,7 +342,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
             {/* Quick common medications */}
             {!data.medication && (
               <div>
-                <p className="text-xs text-slate-500 mb-2">Common medications:</p>
+                <p className="text-xs text-muted-foreground mb-2">Common medications:</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     'Blood pressure',
@@ -351,7 +354,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                     <Badge
                       key={label}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-slate-200"
+                      className="cursor-pointer hover:bg-muted"
                       onClick={() => {
                         // This would ideally search for this category
                         updateData('medication', {
@@ -382,7 +385,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
           <div className="space-y-5">
             {/* Condition */}
             <div>
-              <Label className="text-sm font-medium text-slate-700">
+              <Label className="text-sm font-medium text-foreground">
                 What condition is this for? *
               </Label>
               <Input
@@ -398,7 +401,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
             <div className="grid gap-4 sm:grid-cols-2">
               {/* How long taking */}
               <div>
-                <Label className="text-sm font-medium text-slate-700">
+                <Label className="text-sm font-medium text-foreground">
                   How long have you been taking this?
                 </Label>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -412,7 +415,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                           'px-3 py-1.5 text-sm rounded-lg border transition-colors',
                           data.duration === opt
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                            : 'border-border hover:border-border text-muted-foreground'
                         )}
                       >
                         {opt}
@@ -424,7 +427,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
 
               {/* Control level */}
               <div>
-                <Label className="text-sm font-medium text-slate-700">
+                <Label className="text-sm font-medium text-foreground">
                   How well controlled? *
                 </Label>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -450,7 +453,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                             : opt.color === 'amber'
                             ? 'border-dawn-500 bg-dawn-50 text-dawn-700'
                             : 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                          : 'border-border hover:border-border text-muted-foreground'
                       )}
                     >
                       {opt.label}
@@ -461,7 +464,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
 
               {/* Side effects */}
               <div className="sm:col-span-2">
-                <Label className="text-sm font-medium text-slate-700">
+                <Label className="text-sm font-medium text-foreground">
                   Any side effects?
                 </Label>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -488,7 +491,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                             : opt.value === 'moderate'
                             ? 'border-dawn-500 bg-dawn-50 text-dawn-700'
                             : 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                          : 'border-border hover:border-border text-muted-foreground'
                       )}
                     >
                       {opt.label}
@@ -503,31 +506,31 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
               data.sideEffects === 'moderate' ||
               data.sideEffects === 'severe') && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
               >
-                <Label className="text-sm font-medium text-slate-700">
+                <Label className="text-sm font-medium text-foreground">
                   Please describe your symptoms or concerns
                 </Label>
                 <textarea
                   value={data.symptoms}
                   onChange={(e) => updateData('symptoms', e.target.value)}
                   placeholder="Tell us more so the doctor can help..."
-                  className="mt-1.5 w-full min-h-20 p-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-0 resize-none text-sm"
+                  className="mt-1.5 w-full min-h-20 p-3 rounded-xl border border-border focus:border-emerald-500 focus:ring-0 resize-none text-sm"
                 />
               </motion.div>
             )}
 
             {/* Additional info */}
             <div>
-              <Label className="text-sm font-medium text-slate-700">
+              <Label className="text-sm font-medium text-foreground">
                 Anything else? (allergies, other meds)
               </Label>
               <textarea
                 value={data.additionalInfo}
                 onChange={(e) => updateData('additionalInfo', e.target.value)}
                 placeholder="e.g., Also taking blood thinners, allergic to penicillin..."
-                className="mt-1.5 w-full min-h-[60px] p-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-0 resize-none text-sm"
+                className="mt-1.5 w-full min-h-[60px] p-3 rounded-xl border border-border focus:border-emerald-500 focus:ring-0 resize-none text-sm"
               />
             </div>
           </div>
@@ -551,7 +554,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                   'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
                   data.pharmacyPreference === 'e_script'
                     ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-slate-200 hover:border-slate-300'
+                    : 'border-border hover:border-border'
                 )}
               >
                 <Pill
@@ -559,11 +562,11 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                     'w-6 h-6',
                     data.pharmacyPreference === 'e_script'
                       ? 'text-emerald-600'
-                      : 'text-slate-400'
+                      : 'text-muted-foreground/60'
                   )}
                 />
-                <span className="font-medium text-slate-900 text-sm">E-script</span>
-                <span className="text-xs text-slate-500 text-center">
+                <span className="font-medium text-foreground text-sm">E-script</span>
+                <span className="text-xs text-muted-foreground text-center">
                   Sent to your phone
                 </span>
               </button>
@@ -575,7 +578,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                   'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
                   data.pharmacyPreference === 'pharmacy'
                     ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-slate-200 hover:border-slate-300'
+                    : 'border-border hover:border-border'
                 )}
               >
                 <Clock
@@ -583,11 +586,11 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                     'w-6 h-6',
                     data.pharmacyPreference === 'pharmacy'
                       ? 'text-emerald-600'
-                      : 'text-slate-400'
+                      : 'text-muted-foreground/60'
                   )}
                 />
-                <span className="font-medium text-slate-900 text-sm">Pharmacy</span>
-                <span className="text-xs text-slate-500 text-center">
+                <span className="font-medium text-foreground text-sm">Pharmacy</span>
+                <span className="text-xs text-muted-foreground text-center">
                   Sent directly there
                 </span>
               </button>
@@ -595,10 +598,10 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
 
             {data.pharmacyPreference === 'pharmacy' && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
               >
-                <Label className="text-sm text-slate-600">Pharmacy name & suburb</Label>
+                <Label className="text-sm text-muted-foreground">Pharmacy name & suburb</Label>
                 <Input
                   value={data.pharmacyName}
                   onChange={(e) => updateData('pharmacyName', e.target.value)}

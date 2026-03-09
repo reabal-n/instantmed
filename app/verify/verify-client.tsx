@@ -3,19 +3,18 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   Shield,
   CheckCircle,
   XCircle,
-  Search,
   Loader2,
   FileText,
   Calendar,
   User,
   Building,
   AlertTriangle,
+  Search,
 } from "lucide-react"
 
 interface VerificationResult {
@@ -51,7 +50,7 @@ export function VerifyClient() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const cleanCode = code.trim().toUpperCase()
     if (!cleanCode) return
 
@@ -61,7 +60,7 @@ export function VerifyClient() {
     try {
       const response = await fetch(`/api/verify?code=${encodeURIComponent(cleanCode)}`)
       const data = await response.json()
-      
+
       if (response.ok) {
         setResult(data)
       } else {
@@ -96,116 +95,103 @@ export function VerifyClient() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-          <Shield className="h-8 w-8 text-primary" />
-        </div>
-        <h1 className="text-3xl font-bold text-foreground">Document Verification</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          Verify the authenticity of medical certificates and documents issued by InstantMed.
-        </p>
-      </div>
-
       {/* Search Form */}
-      <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Enter Verification Code
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleVerify} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="text"
-                placeholder="e.g., IM-ABC12345 or MC-12345678"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="text-center text-lg font-mono tracking-wider h-12"
-                maxLength={20}
-              />
-              <p className="text-xs text-muted-foreground text-center">
-                The verification code can be found on the document or in the email you received.
-              </p>
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base"
-              disabled={isLoading || !code.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-5 w-5 mr-2" />
-                  Verify Document
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="glass-card rounded-2xl p-6 md:p-8">
+        <div className="flex items-center gap-2.5 mb-5">
+          <Search className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-lg font-semibold text-foreground">Enter Verification Code</h2>
+        </div>
+        <form onSubmit={handleVerify} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="text"
+              placeholder="e.g., IM-WORK-20260101-00001"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              className="text-center text-lg font-mono tracking-wider h-12"
+              maxLength={25}
+            />
+            <p className="text-xs text-muted-foreground text-center">
+              The verification code can be found on the document or in the email you received.
+            </p>
+          </div>
+          <Button
+            type="submit"
+            className="w-full h-12 text-base"
+            disabled={isLoading || !code.trim()}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              <>
+                <Shield className="h-5 w-5 mr-2" />
+                Verify Document
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
 
       {/* Results */}
       {hasSearched && result && (
-        <Card className={`border-2 ${result.valid ? "border-emerald-200 bg-emerald-50/50" : "border-red-200 bg-red-50/50"}`}>
-          <CardContent className="pt-6">
-            {result.valid && (result.certificate || result.document) ? (
+        <>
+          {result.valid && (result.certificate || result.document) ? (
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-emerald-200 dark:border-emerald-500/20">
               <div className="space-y-6">
                 {/* Success Header */}
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-emerald-100 p-3">
-                    <CheckCircle className="h-8 w-8 text-emerald-600" />
+                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3 shrink-0">
+                    <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-emerald-900">Certificate Verified</h3>
-                    <p className="text-emerald-700">This is a valid certificate issued by {result.certificate?.issuingClinic || "InstantMed"}.</p>
+                    <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200">Certificate Verified</h3>
+                    <p className="text-emerald-700 dark:text-emerald-400 text-sm">
+                      This is a valid certificate issued by {result.certificate?.issuingClinic || "InstantMed"}.
+                    </p>
                   </div>
                 </div>
 
                 {/* Certificate Details - New format */}
                 {result.certificate && (
-                  <div className="bg-white rounded-lg border border-emerald-200 p-4 space-y-4">
+                  <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-5 space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                      <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20">
                         {result.certificate.type}
                       </Badge>
-                      <span className="font-mono text-sm text-muted-foreground">
+                      <span className="font-mono text-xs text-muted-foreground">
                         {result.certificate.certificateNumber}
                       </span>
                     </div>
 
                     <div className="grid gap-3 text-sm">
                       <div className="flex items-center gap-3">
-                        <User className="h-4 w-4 text-muted-foreground" />
+                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Patient:</span>
-                        <span className="font-medium">{result.certificate.patientName}</span>
+                        <span className="font-medium text-foreground">{result.certificate.patientName}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <Building className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Issued by:</span>
-                        <span className="font-medium">{result.certificate.issuingDoctor}</span>
+                        <span className="font-medium text-foreground">{result.certificate.issuingDoctor}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <Building className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Clinic:</span>
-                        <span className="font-medium">{result.certificate.issuingClinic}</span>
+                        <span className="font-medium text-foreground">{result.certificate.issuingClinic}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Issued:</span>
-                        <span className="font-medium">{formatDate(result.certificate.issueDate)}</span>
+                        <span className="font-medium text-foreground">{formatDate(result.certificate.issueDate)}</span>
                       </div>
                       {result.certificate.validFrom && result.certificate.validTo && (
                         <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">Valid period:</span>
-                          <span className="font-medium">
+                          <span className="font-medium text-foreground">
                             {formatDate(result.certificate.validFrom)} — {formatDate(result.certificate.validTo)}
                           </span>
                         </div>
@@ -216,37 +202,37 @@ export function VerifyClient() {
 
                 {/* Legacy format support */}
                 {!result.certificate && result.document && (
-                  <div className="bg-white rounded-lg border border-emerald-200 p-4 space-y-4">
+                  <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-5 space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                      <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20">
                         {formatDocumentType(result.document.type, result.document.subtype)}
                       </Badge>
-                      <span className="font-mono text-sm text-muted-foreground">
+                      <span className="font-mono text-xs text-muted-foreground">
                         {result.document.certificate_id}
                       </span>
                     </div>
 
                     <div className="grid gap-3 text-sm">
                       <div className="flex items-center gap-3">
-                        <User className="h-4 w-4 text-muted-foreground" />
+                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Patient:</span>
-                        <span className="font-medium">{result.document.patient_name}</span>
+                        <span className="font-medium text-foreground">{result.document.patient_name}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <Building className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Issued by:</span>
-                        <span className="font-medium">{result.document.doctor_name}</span>
+                        <span className="font-medium text-foreground">{result.document.doctor_name}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Issued:</span>
-                        <span className="font-medium">{formatDate(result.document.issued_at)}</span>
+                        <span className="font-medium text-foreground">{formatDate(result.document.issued_at)}</span>
                       </div>
                       {result.document.expires_at && (
                         <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">Valid until:</span>
-                          <span className="font-medium">{formatDate(result.document.expires_at)}</span>
+                          <span className="font-medium text-foreground">{formatDate(result.document.expires_at)}</span>
                         </div>
                       )}
                     </div>
@@ -254,31 +240,33 @@ export function VerifyClient() {
                 )}
 
                 {/* Trust Note */}
-                <p className="text-xs text-emerald-600 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   This verification confirms the certificate was issued through InstantMed&apos;s secure platform.
                 </p>
               </div>
-            ) : (
-              <div className="space-y-4">
+            </div>
+          ) : (
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-border">
+              <div className="space-y-5">
                 {/* Error Header */}
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-red-100 p-3">
-                    <XCircle className="h-8 w-8 text-red-600" />
+                  <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
+                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-red-900">Verification Failed</h3>
-                    <p className="text-red-700">
+                    <h3 className="text-xl font-semibold text-foreground">Verification Failed</h3>
+                    <p className="text-muted-foreground text-sm">
                       {result.error || "This code does not match any document in our system."}
                     </p>
                   </div>
                 </div>
 
                 {/* Help */}
-                <div className="bg-white rounded-lg border border-red-200 p-4">
+                <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-4">
                   <div className="flex gap-3">
-                    <AlertTriangle className="h-5 w-5 text-dawn-500 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="space-y-2 text-sm">
-                      <p className="font-medium">Possible reasons:</p>
+                      <p className="font-medium text-foreground">Possible reasons:</p>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
                         <li>The code may have been entered incorrectly</li>
                         <li>The document may have been issued before our verification system</li>
@@ -288,19 +276,19 @@ export function VerifyClient() {
                   </div>
                 </div>
 
-                <p className="text-xs text-red-600 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   If you believe this is an error, please contact support@instantmed.com.au
                 </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </>
       )}
 
       {/* Info Section */}
       <div className="text-center text-sm text-muted-foreground space-y-2">
         <p>
-          <strong>For employers and institutions:</strong> Use this portal to verify the authenticity 
+          <strong className="text-foreground">For employers and institutions:</strong> Use this portal to verify the authenticity
           of medical certificates presented to you.
         </p>
         <p>

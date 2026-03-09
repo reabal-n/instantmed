@@ -119,7 +119,7 @@ export function AboutClient() {
         {/* Doctor blockquote */}
         <section className="px-4 pb-12">
           <div className="mx-auto max-w-2xl">
-            <blockquote className="rounded-2xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-6">
+            <blockquote className="rounded-2xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-6">
               <p className="text-muted-foreground italic mb-4">
                 &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
               </p>

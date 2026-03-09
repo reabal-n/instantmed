@@ -260,7 +260,7 @@ export function AddressAutocomplete({
       {isOpen && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto"
+          className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto"
         >
           {suggestions.map((suggestion, index) => (
             <li
@@ -300,7 +300,7 @@ export function AddressAutocomplete({
         suggestions.length === 0 &&
         value.length >= 3 &&
         !isVerified && (
-          <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+          <div className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
             <p className="text-sm text-muted-foreground text-center">
               No addresses found. Try a different search.
             </p>
@@ -309,7 +309,7 @@ export function AddressAutocomplete({
 
       {/* Loading state during search */}
       {isSearching && value.length >= 3 && (
-        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+        <div className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Searching addresses...</span>

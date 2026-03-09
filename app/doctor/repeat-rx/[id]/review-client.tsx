@@ -239,7 +239,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
               </button>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold">Prescription Request</h1>
+                  <h1 className="text-2xl font-semibold">Prescription Request</h1>
                   <StatusBadge status={request.status} />
                 </div>
                 <p className="text-sm text-muted-foreground">

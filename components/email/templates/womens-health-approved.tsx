@@ -37,7 +37,7 @@ export function WomensHealthApprovedEmail({
 
   return (
     <BaseEmail
-      previewText={`Your prescription for ${medicationName} has been approved`}
+      previewText={`Your ${medicationName} prescription has been approved ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Treatment approved" />
@@ -121,7 +121,7 @@ export function WomensHealthApprovedEmail({
       <Text muted small>
         Questions about your treatment? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

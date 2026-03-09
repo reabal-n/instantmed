@@ -100,12 +100,12 @@ export function DoctorAvailability({
         className={cn(
           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
           isOnline
-            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-            : "bg-white/60 text-slate-600 dark:bg-white/10 dark:text-slate-400",
+            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+            : "bg-card/60 text-muted-foreground dark:bg-white/10",
           className,
         )}
       >
-        <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-400")} />
+        <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/60")} />
         {isOnline ? "Doctors online now" : `Back at 8am AEST`}
       </div>
     )
@@ -117,8 +117,8 @@ export function DoctorAvailability({
       className={cn(
         "w-full px-4 py-2.5 flex items-center justify-center gap-3",
         isOnline
-          ? "bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-900/50"
-          : "bg-white/50 dark:bg-white/5 border-b border-white/50 dark:border-white/10",
+          ? "bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-800"
+          : "bg-card/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10",
         className,
       )}
     >
@@ -135,8 +135,8 @@ export function DoctorAvailability({
         </>
       ) : (
         <>
-          <Moon className="w-4 h-4 text-slate-500" />
-          <span className="text-sm text-slate-600 dark:text-slate-400">
+          <Moon className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
             Doctors back in{" "}
             <span className="font-semibold tabular-nums">
               {countdown.hours}h {countdown.minutes}m

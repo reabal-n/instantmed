@@ -40,9 +40,9 @@ const AlertDialogContent = React.forwardRef<
       className={cn(
         "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 p-6",
         // Elevated glass surface
-        "bg-white/85 dark:bg-white/10 backdrop-blur-2xl",
+        "bg-card/85 dark:bg-white/10 backdrop-blur-2xl",
         // Border
-        "border border-white/60 dark:border-white/20",
+        "border border-border/60 dark:border-white/20",
         // Shape
         "rounded-3xl",
         // Glow shadow

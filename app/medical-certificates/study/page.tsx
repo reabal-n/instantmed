@@ -80,9 +80,9 @@ export default function StudyMedCertPage() {
           {/* Hero */}
           <section className="px-4 py-16 sm:px-6 lg:py-20">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-6">
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-400">University &amp; TAFE</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                <GraduationCap className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-400">University &amp; TAFE</span>
               </div>
 
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
@@ -96,7 +96,7 @@ export default function StudyMedCertPage() {
               <Button
                 asChild
                 size="lg"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full px-8"
               >
                 <Link href="/request?service=med-cert">
                   Get started
@@ -106,15 +106,15 @@ export default function StudyMedCertPage() {
 
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-indigo-600" />
+                  <Clock className="h-4 w-4 text-primary" />
                   <span>Under 1 hour</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-indigo-600" />
+                  <BadgeCheck className="h-4 w-4 text-primary" />
                   <span>AHPRA doctors</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+                  <GraduationCap className="h-4 w-4 text-primary" />
                   <span>All unis accept</span>
                 </div>
               </div>
@@ -122,29 +122,29 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Use Cases */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-10">What you can use it for</h2>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 text-center">
-                  <FileCheck className="h-8 w-8 text-indigo-600 mx-auto mb-3" />
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 text-center">
+                  <FileCheck className="h-8 w-8 text-primary mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Special Consideration</h3>
                   <p className="text-sm text-muted-foreground">
                     For exams, assignments, or class attendance affected by illness.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 text-center">
-                  <Calendar className="h-8 w-8 text-indigo-600 mx-auto mb-3" />
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 text-center">
+                  <Calendar className="h-8 w-8 text-primary mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Deferred Exams</h3>
                   <p className="text-sm text-muted-foreground">
                     Medical evidence for exam deferrals and supplementary assessments.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 text-center">
-                  <BookOpen className="h-8 w-8 text-indigo-600 mx-auto mb-3" />
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 text-center">
+                  <BookOpen className="h-8 w-8 text-primary mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Assignment Extensions</h3>
                   <p className="text-sm text-muted-foreground">
                     Documentation for late submission without penalty.
@@ -175,7 +175,7 @@ export default function StudyMedCertPage() {
                   'QUT',
                   'All TAFEs',
                 ].map((uni) => (
-                  <span key={uni} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-full text-indigo-700 dark:text-indigo-300">
+                  <span key={uni} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300">
                     {uni}
                   </span>
                 ))}
@@ -184,7 +184,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* What Happens */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">What happens</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -193,8 +193,8 @@ export default function StudyMedCertPage() {
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-indigo-700 dark:text-indigo-400">1</span>
+                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">1</span>
                   </div>
                   <h3 className="font-semibold mb-2">Answer a few questions</h3>
                   <p className="text-sm text-muted-foreground">
@@ -203,8 +203,8 @@ export default function StudyMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-indigo-700 dark:text-indigo-400">2</span>
+                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">2</span>
                   </div>
                   <h3 className="font-semibold mb-2">Doctor reviews</h3>
                   <p className="text-sm text-muted-foreground">
@@ -213,8 +213,8 @@ export default function StudyMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-indigo-700 dark:text-indigo-400">3</span>
+                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">3</span>
                   </div>
                   <h3 className="font-semibold mb-2">Certificate delivered</h3>
                   <p className="text-sm text-muted-foreground">
@@ -234,8 +234,8 @@ export default function StudyMedCertPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
-                  <Stethoscope className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                  <Stethoscope className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Your symptoms</h3>
                     <p className="text-sm text-muted-foreground">
@@ -244,8 +244,8 @@ export default function StudyMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
-                  <Clock className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                  <Clock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration requested</h3>
                     <p className="text-sm text-muted-foreground">
@@ -254,8 +254,8 @@ export default function StudyMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
-                  <MessageCircle className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                  <MessageCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Telehealth appropriateness</h3>
                     <p className="text-sm text-muted-foreground">
@@ -268,12 +268,12 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Approval vs Decline */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-4 flex items-center gap-2">
                     <Check className="h-5 w-5" />
                     We can usually help if...
@@ -298,7 +298,7 @@ export default function StudyMedCertPage() {
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
                   <h3 className="font-semibold text-red-800 dark:text-red-300 mb-4 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     We&apos;ll refer you elsewhere if...
@@ -339,32 +339,32 @@ export default function StudyMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5">
-                  <BadgeCheck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5">
+                  <BadgeCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Doctor&apos;s Details</h3>
                     <p className="text-xs text-muted-foreground">Name, signature, and AHPRA registration</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5">
-                  <FileCheck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5">
+                  <FileCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Provider Number</h3>
                     <p className="text-xs text-muted-foreground">Medicare provider number on every certificate</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5">
-                  <Calendar className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5">
+                  <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Dates of Illness</h3>
                     <p className="text-xs text-muted-foreground">Clear statement of when you were unfit to attend</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5">
-                  <Shield className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5">
+                  <Shield className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Privacy Protected</h3>
                     <p className="text-xs text-muted-foreground">No specific diagnosis unless you request it</p>
@@ -375,13 +375,13 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                  <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <SafeHtml html={faq.answer} className="text-sm text-muted-foreground" as="p" />
                   </div>
@@ -391,7 +391,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-indigo-50 dark:bg-indigo-900/20">
+          <section className="px-4 py-16 bg-blue-50 dark:bg-blue-950/20">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold mb-4">Get your certificate in under an hour</h2>
               <p className="text-muted-foreground mb-8">
@@ -400,7 +400,7 @@ export default function StudyMedCertPage() {
               <Button
                 asChild
                 size="lg"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full px-8"
               >
                 <Link href="/request?service=med-cert">
                   Get started
@@ -415,15 +415,15 @@ export default function StudyMedCertPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificates/work" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificates/work" className="text-primary hover:underline">
                   Certificates for work
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates/carers" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificates/carers" className="text-primary hover:underline">
                   Carer&apos;s leave
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificates" className="text-primary hover:underline">
                   All certificate types
                 </Link>
               </p>

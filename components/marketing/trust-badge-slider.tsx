@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -40,29 +41,32 @@ interface TrustBadgeSliderProps {
 }
 
 export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
   return (
     <section className={cn("py-12 lg:py-16", className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Trust badges grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={animate ? { opacity: 0, y: 20 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
           {trustBadges.map((badge, index) => {
             const content = (
               <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 dark:bg-card border border-border/50 dark:border-border hover:border-primary/20 dark:hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 h-full">
-                <div className={`relative w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300 ${badge.color}`}>
+                <div className={cn('relative w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300', badge.color)}>
                   <badge.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1">
-                    {badge.name}
-                    {'href' in badge && badge.href && <ExternalLink className="w-3 h-3 text-muted-foreground" />}
+                  <p className="text-sm font-semibold text-foreground leading-tight flex items-center gap-1">
+                    <span>{badge.name}</span>
+                    {'href' in badge && badge.href && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
                 </div>
               </div>
             )
@@ -70,8 +74,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
             return (
               <motion.div
                 key={badge.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={animate ? { opacity: 0, y: 20 } : false}
+                whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="group"
@@ -91,8 +95,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         {/* CTA Section */}
         <motion.div
           className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-primary/3 dark:from-primary/10 dark:via-card/50 dark:to-primary/8 border border-primary/10 dark:border-primary/20 p-8 lg:p-10 text-center overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={animate ? { opacity: 0, y: 20 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
@@ -135,7 +139,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
               <Shield className="w-3.5 h-3.5 inline mr-1" />
               Full refund if we can&apos;t help
             </p>
-            <p className="text-[11px] text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
+            <p className="text-xs text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
               Operating since 2025 · ABN 64 694 559 334
             </p>
           </div>

@@ -109,7 +109,7 @@ export function TrustBadges({
       {badges.map((badge, i) => (
         <div
           key={i}
-          className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
+          className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
         >
           {/* Subtle glow behind icon on hover */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/8 blur-xl transition-all duration-500" />
@@ -179,15 +179,15 @@ export function SecurityFooter({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-4 py-4 border-t border-border/50", className)}>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Lock className="w-3.5 h-3.5 text-green-600" />
+        <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         <span>256-bit SSL Encryption</span>
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Shield className="w-3.5 h-3.5 text-green-600" />
+        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         <span>PCI-DSS Compliant</span>
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         <span>Stripe Secure Payments</span>
       </div>
     </div>
@@ -200,7 +200,7 @@ export function SecurityFooter({ className }: { className?: string }) {
 export function AHPRABadge({ className }: { className?: string }) {
   return (
     <div className={cn(
-      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300",
+      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300",
       className
     )}>
       <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -217,7 +217,7 @@ export function AHPRABadge({ className }: { className?: string }) {
 export function TrustLogos({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
-      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-white/5 border border-border/50">
+      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/80 dark:bg-white/5 border border-border/50">
         <Image
           src="/branding/eRx-logo.png"
           alt="eRx Script Exchange"

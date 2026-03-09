@@ -29,7 +29,7 @@ export const FEEDBACK_MESSAGES = {
   
   // Empty states
   noDocuments: "No documents here yet 📄",
-  noRequests: "Nothing here yet.",
+  noRequests: "No requests yet — let\u2019s change that.",
   noNotifications: "All caught up.",
   noMessages: "No messages yet.",
   noPrescriptions: "No prescriptions yet.",

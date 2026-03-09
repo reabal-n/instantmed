@@ -56,7 +56,7 @@ export function AccordionSection({
         highlightWords={highlightWords}
       />
 
-      <div ref={ref} className="mx-auto max-w-3xl space-y-10">
+      <div ref={ref} className="mx-auto max-w-5xl space-y-10">
         {groups.map((group, gi) => (
           <div key={group.category ?? gi}>
             {group.category && (
@@ -94,9 +94,9 @@ export function AccordionSection({
                 >
                   <AccordionItem
                     value={`${gi}-${ii}`}
-                    className="rounded-xl border border-border/50 bg-white/60 dark:bg-white/8 backdrop-blur-sm px-5"
+                    className="rounded-xl border border-border/50 bg-card/60 dark:bg-white/8 backdrop-blur-sm px-5"
                   >
-                    <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
+                    <AccordionTrigger className="text-sm font-medium text-foreground">
                       {item.question}
                     </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground leading-relaxed">

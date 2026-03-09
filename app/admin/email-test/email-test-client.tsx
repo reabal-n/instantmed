@@ -267,16 +267,16 @@ export function EmailTestClient() {
             <Mail className="h-5 w-5 text-primary" />
             Email Template Tester
           </h1>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             Preview and send real production email templates
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-8 text-[12px]" onClick={renderTemplate} disabled={isRendering}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={renderTemplate} disabled={isRendering}>
             <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRendering ? "animate-spin" : ""}`} />
             {isRendering ? "Rendering..." : "Re-render"}
           </Button>
-          <Button size="sm" className="h-8 text-[12px]" onClick={sendTestEmail} disabled={isSending || !renderedHtml}>
+          <Button size="sm" className="h-8 text-xs" onClick={sendTestEmail} disabled={isSending || !renderedHtml}>
             <Send className="h-3.5 w-3.5 mr-1.5" />
             {isSending ? "Sending..." : "Send Test"}
           </Button>
@@ -289,11 +289,11 @@ export function EmailTestClient() {
           {/* Template Selection */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-[14px] flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Layers className="h-4 w-4" />
                 Template
               </CardTitle>
-              <CardDescription className="text-[12px]">Select which production email to test</CardDescription>
+              <CardDescription className="text-xs">Select which production email to test</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <Select
@@ -306,18 +306,18 @@ export function EmailTestClient() {
                   }
                 }}
               >
-                <SelectTrigger className="h-8 text-[13px]">
+                <SelectTrigger className="h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {emailTemplates.map((template) => (
-                    <SelectItem key={template.id} value={template.id} className="text-[13px]">
+                    <SelectItem key={template.id} value={template.id} className="text-sm">
                       {template.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[12px] text-muted-foreground">{selectedTemplate.description}</p>
+              <p className="text-xs text-muted-foreground">{selectedTemplate.description}</p>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                 <span>Uses real production template</span>
@@ -328,18 +328,18 @@ export function EmailTestClient() {
           {/* Template Data */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-[14px] flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Sample Data
               </CardTitle>
-              <CardDescription className="text-[12px]">Customize template variables</CardDescription>
+              <CardDescription className="text-xs">Customize template variables</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {selectedTemplate.fields.map((field) => (
                 <div key={field.key} className="space-y-1">
-                  <Label className="text-[12px] text-muted-foreground">{field.label}</Label>
+                  <Label className="text-xs text-muted-foreground">{field.label}</Label>
                   <Input
-                    className="h-8 text-[13px]"
+                    className="h-8 text-sm"
                     placeholder={field.default}
                     value={customData[field.key] || ""}
                     onChange={(e) => {
@@ -351,7 +351,7 @@ export function EmailTestClient() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full h-7 text-[12px] mt-2"
+                className="w-full h-7 text-xs mt-2"
                 onClick={renderTemplate}
                 disabled={isRendering}
               >
@@ -364,18 +364,18 @@ export function EmailTestClient() {
           {/* Send Test */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-[14px] flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Send className="h-4 w-4" />
                 Send Test Email
               </CardTitle>
-              <CardDescription className="text-[12px]">Send current template to your inbox</CardDescription>
+              <CardDescription className="text-xs">Send current template to your inbox</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-1">
-                <Label className="text-[12px] text-muted-foreground">Email Address</Label>
+                <Label className="text-xs text-muted-foreground">Email Address</Label>
                 <Input
                   type="email"
-                  className="h-8 text-[13px]"
+                  className="h-8 text-sm"
                   placeholder="your@email.com"
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
@@ -384,7 +384,7 @@ export function EmailTestClient() {
               <Button
                 onClick={sendTestEmail}
                 disabled={isSending || !renderedHtml}
-                className="w-full h-8 text-[12px]"
+                className="w-full h-8 text-xs"
               >
                 {isSending ? (
                   <>
@@ -408,11 +408,11 @@ export function EmailTestClient() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-[14px] flex items-center gap-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
                     <Eye className="h-4 w-4" />
                     Preview
                   </CardTitle>
-                  <CardDescription className="text-[12px]">{selectedTemplate.name}</CardDescription>
+                  <CardDescription className="text-xs">{selectedTemplate.name}</CardDescription>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="flex items-center border border-border/60 rounded-md">
@@ -464,12 +464,12 @@ export function EmailTestClient() {
               {renderError ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <AlertCircle className="h-8 w-8 text-destructive mb-3" />
-                  <p className="text-[13px] font-medium text-destructive">Render Error</p>
-                  <p className="text-[12px] text-muted-foreground mt-1 max-w-md">{renderError}</p>
+                  <p className="text-sm font-medium text-destructive">Render Error</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-md">{renderError}</p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 h-7 text-[12px]"
+                    className="mt-4 h-7 text-xs"
                     onClick={renderTemplate}
                   >
                     Retry

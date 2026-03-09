@@ -206,8 +206,8 @@ export function FlowOrchestrator({
           />
         ) : (
           <div className="text-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" />
-            <p className="text-sm text-slate-500 mt-2">Loading questions…</p>
+            <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground/60" />
+            <p className="text-sm text-muted-foreground mt-2">Loading questions…</p>
           </div>
         )
 
@@ -252,8 +252,8 @@ export function FlowOrchestrator({
             <button
               onClick={handleBack}
               className={cn(
-                "flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400",
-                "hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                "flex items-center gap-1 text-sm text-muted-foreground",
+                "hover:text-foreground transition-colors"
               )}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -263,13 +263,13 @@ export function FlowOrchestrator({
           {isFirstStep && <div />}
 
           {/* Step label */}
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-muted-foreground">
             Step {currentStep + 1} of {steps.length}
           </span>
         </div>
 
         {/* Progress track */}
-        <div className="h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+        <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full"
             initial={false}
@@ -294,7 +294,7 @@ export function FlowOrchestrator({
             {isCompleting ? (
               <div className="text-center py-16">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-500" />
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                <p className="text-sm text-muted-foreground mt-4">
                   Preparing your request…
                 </p>
               </div>

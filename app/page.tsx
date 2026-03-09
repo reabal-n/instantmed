@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
+import { cn } from '@/lib/utils'
 import {
   Hero,
   ServicePicker,
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
 
 // Loading skeleton for below-the-fold sections
 function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
-  return <div className={`${height} animate-pulse bg-muted/20 rounded-xl`} />
+  return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl")} />
 }
 
 // Transform FAQ items into AccordionSection groups format

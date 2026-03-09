@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 
 /**
  * Error Recovery Components
@@ -101,6 +101,7 @@ export function ErrorBanner({
 }: ErrorBannerProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
 
   if (!error) return null
 
@@ -116,14 +117,14 @@ export function ErrorBanner({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
       className={cn(
         "rounded-xl border p-4",
         errorType === "validation"
-          ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
-          : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800",
+          ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20"
+          : "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20",
         className
       )}
     >
@@ -175,9 +176,9 @@ export function ErrorBanner({
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
+                    exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
                     <div className="mt-2 p-2 rounded bg-black/5 dark:bg-white/5 text-xs font-mono text-muted-foreground flex items-start justify-between gap-2">
@@ -260,6 +261,7 @@ export function FieldError({ error, suggestions, className }: FieldErrorProps) {
 export function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true)
   const [showBanner, setShowBanner] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const handleOnline = () => {
@@ -295,9 +297,9 @@ export function NetworkStatus() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -50 }}
+        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -50 }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 py-2 px-4 text-center text-sm font-medium",
           isOnline

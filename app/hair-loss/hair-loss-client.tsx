@@ -203,7 +203,7 @@ function TreatmentOptions() {
         {treatments.map((treatment, i) => (
           <motion.div
             key={treatment.id}
-            className="rounded-2xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors"
+            className="rounded-2xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
             animate={
               prefersReducedMotion

@@ -1,14 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowRight, Clock, PhoneOff, Check, Users, Star } from 'lucide-react'
+import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star } from 'lucide-react'
 import useSWR from 'swr'
 import { serviceCategories } from '@/lib/marketing/homepage'
 
 const pricingFetcher = (url: string) => fetch(url).then(r => r.json())
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
@@ -49,52 +48,49 @@ const colorConfig: Record<string, {
 
 // Service metadata for additional info
 const serviceMetadata: Record<string, { time: string; callNote: string; gpCompare: string }> = {
-  'med-cert': { time: 'GP reviewed', callNote: 'Usually online review', gpCompare: '60–90' },
-  'scripts': { time: 'GP reviewed', callNote: 'Usually online review', gpCompare: '60–90' },
+  'med-cert': { time: 'GP reviewed', callNote: 'No call needed', gpCompare: '60–90' },
+  'scripts': { time: 'GP reviewed', callNote: 'No call needed', gpCompare: '60–90' },
   'consult': { time: 'GP reviewed', callNote: 'May include a call', gpCompare: '80–120' },
 }
 
-// Dynamic daily stats — seeded by date so they stay consistent per day
-function getDailyStats() {
-  const today = new Date()
-  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
-  return {
-    reviewedToday: 2 + Math.floor(hash(seed) * 7), // 2–8
-    avgReviewTime: 45 + Math.floor(hash(seed + 1) * 76), // 45–120 min
-    rating: (4.8 + hash(seed + 2) * 0.1) as number, // 4.8–4.9
-  }
-}
-const liveStats = getDailyStats()
-
-// Doctor avatar illustrations (DiceBear)
-const doctorAvatars = [
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor10',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor11',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor12',
+// Static trust signals (replaces fake live stats)
+const trustSignals = [
+  { icon: Stethoscope, text: 'Australian GP-reviewed' },
+  { icon: Clock, text: 'Same-day turnaround' },
+  { icon: ShieldCheck, text: 'Full refund guarantee' },
 ]
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12 },
-  },
-}
+function useServicePickerVariants() {
+  const prefersReducedMotion = useReducedMotion()
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { 
-      duration: 0.5, 
-      ease: [0.25, 0.46, 0.45, 0.94],
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: prefersReducedMotion ? 0 : 0.12 },
     },
-  },
+  }
+
+  const itemVariants = prefersReducedMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: {
+            duration: 0.5,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          },
+        },
+      }
+
+  return { containerVariants, itemVariants, prefersReducedMotion }
 }
 
 export function ServicePicker() {
+  const { containerVariants, itemVariants, prefersReducedMotion } = useServicePickerVariants()
+
   // Fetch live pricing from services table, fall back to static prices
   const { data: pricingData } = useSWR<{ prices: Record<string, number> }>(
     '/api/services/pricing',
@@ -107,16 +103,16 @@ export function ServicePicker() {
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-8"
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
-          <motion.div 
+          <motion.div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default"
-            whileHover={{ y: -2 }}
+            whileHover={prefersReducedMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
@@ -137,43 +133,20 @@ export function ServicePicker() {
             Flat pricing. No hidden fees. Pay only after a real GP reviews your request.
           </p>
           
-          {/* Live Stats Social Proof */}
-          <motion.div 
-            className="flex flex-wrap items-center justify-center gap-3 sm:gap-6"
-            initial={{ opacity: 0, y: 10 }}
+          {/* Trust Signals */}
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.2 }}
           >
-            {/* Doctor avatars */}
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {doctorAvatars.map((src, i) => (
-                  <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                    <Image src={src} alt="Doctor illustration" fill className="object-cover" unoptimized />
-                  </div>
-                ))}
+            {trustSignals.map((signal) => (
+              <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <signal.icon className="w-3.5 h-3.5 text-primary" />
+                <span>{signal.text}</span>
               </div>
-              <span className="text-xs text-muted-foreground">AHPRA doctors</span>
-            </div>
-            
-            <div className="h-4 w-px bg-border hidden sm:block" />
-            
-            {/* Live stats */}
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Users className="w-3.5 h-3.5 text-primary" />
-              <span><strong className="text-foreground">{liveStats.reviewedToday}</strong> reviewed today</span>
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong> review</span>
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span><strong className="text-foreground">{liveStats.rating.toFixed(1)}</strong> avg rating</span>
-            </div>
+            ))}
           </motion.div>
         </motion.div>
 
@@ -211,8 +184,8 @@ export function ServicePicker() {
                     {/* Clean card - Glass style */}
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
-                      "bg-white/80 dark:bg-white/[0.08]",
-                      "border border-white/50 dark:border-white/15",
+                      "bg-card/80",
+                      "border border-border/50 dark:border-white/15",
                       "backdrop-blur-xl",
                       "shadow-sm dark:shadow-none",
                       "hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30",
@@ -296,7 +269,7 @@ export function ServicePicker() {
                           <span className="text-base font-semibold text-foreground">
                             From ${displayPrice.toFixed(2)}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             Typically ${meta.gpCompare || '60–90'} at a GP
                           </span>
                         </div>
@@ -325,7 +298,7 @@ export function ServicePicker() {
                       {/* Disclaimer for General Consult */}
                       {service.id === 'consult' && (
                         <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground text-center px-3 pb-3">
-                          Not suitable for emergencies or urgent care.
+                          For non-urgent concerns only — if it&apos;s an emergency, call 000.
                         </p>
                       )}
                     </div>
@@ -337,14 +310,14 @@ export function ServicePicker() {
         </motion.div>
         
         {/* Simple note */}
-        <motion.p 
+        <motion.p
           className="text-center text-xs text-muted-foreground mt-8"
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.3 }}
         >
-          Medicare rebates don&apos;t apply, but PBS subsidies may apply at pharmacy
+          Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy 👍
         </motion.p>
       </div>
     </section>

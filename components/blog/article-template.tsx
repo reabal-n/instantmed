@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { 
   ArrowLeft, 
@@ -86,10 +87,10 @@ function CalloutBox({ variant, content }: { variant: ArticleSection['variant'], 
   const { icon: Icon, bg, border, iconColor, textColor } = config[variant || 'info']
 
   return (
-    <div className={`${bg} ${border} border rounded-xl p-4 my-6`}>
+    <div className={cn(bg, border, "border rounded-xl p-4 my-6")}>
       <div className="flex gap-3">
-        <Icon className={`w-5 h-5 ${iconColor} shrink-0 mt-0.5`} />
-        <p className={`${textColor} text-sm leading-relaxed`}>{content}</p>
+        <Icon className={cn("w-5 h-5 shrink-0 mt-0.5", iconColor)} />
+        <p className={cn("text-sm leading-relaxed", textColor)}>{content}</p>
       </div>
     </div>
   )
@@ -182,7 +183,7 @@ function generateFaqId(question: string, index: number): string {
 
 function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   return (
-    <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
+    <div className="mt-12 pt-8 border-t border-border">
       <h2 className="text-xl font-bold text-foreground mb-6" id="faq">
         Frequently Asked Questions
       </h2>
@@ -193,12 +194,12 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
             <details 
               key={i}
               id={faqId}
-              className="group border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden scroll-mt-24"
+              className="group border border-border rounded-xl overflow-hidden scroll-mt-24"
               itemScope
               itemProp="mainEntity"
               itemType="https://schema.org/Question"
             >
-              <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-slate-50 dark:hover:bg-white/10 list-none">
+              <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-muted/50 list-none">
                 <span itemProp="name">{faq.question}</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
@@ -313,7 +314,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </div>
 
       {/* Hero image */}
-      <div className="relative aspect-video rounded-2xl overflow-hidden mb-10 bg-white/40 dark:bg-white/10">
+      <div className="relative aspect-video rounded-2xl overflow-hidden mb-10 bg-card/40 dark:bg-white/10">
         <Image
           src={article.heroImage}
           alt={article.heroImageAlt}
@@ -352,7 +353,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       )}
 
       {/* Related services CTA */}
-      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
+      <div className="mt-12 pt-8 border-t border-border">
         <h2 className="text-xl font-bold text-foreground mb-2">
           How InstantMed Can Help
         </h2>
@@ -365,7 +366,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <Link 
               key={i}
               href={service.href}
-              className="group flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
+              className="group flex items-start gap-4 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
             >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <ServiceIcon icon={service.icon} />
@@ -405,14 +406,14 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Tags */}
       {article.tags && article.tags.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
+        <div className="mt-8 pt-6 border-t border-border">
           <ArticleTags tags={article.tags} />
         </div>
       )}
 
       {/* Author card - at end of article */}
-      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/50 dark:border-white/10">
+      <div className="mt-8 pt-6 border-t border-border">
+        <div className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-border/50 dark:border-white/10">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-foreground">{article.author.name}</p>
             <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
@@ -424,7 +425,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </div>
 
       {/* Social sharing */}
-      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
+      <div className="mt-8 pt-6 border-t border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Last medically reviewed:</span>{' '}
@@ -490,7 +491,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             
             {/* Popular Articles */}
             {allArticles.length > 0 && (
-              <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/50 dark:border-white/10">
+              <div className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-border/50 dark:border-white/10">
                 <PopularArticlesCompact articles={allArticles} limit={3} />
               </div>
             )}

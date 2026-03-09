@@ -1,4 +1,3 @@
-import { requireRole } from "@/lib/auth"
 import { getEmailOutboxList, getDistinctEmailTypes, getEmailOutboxStats } from "@/lib/data/email-outbox"
 import { EmailOutboxClient } from "./email-outbox-client"
 
@@ -15,9 +14,7 @@ interface PageProps {
 }
 
 export default async function EmailOutboxPage({ searchParams }: PageProps) {
-  // Require doctor or admin role
-  await requireRole(["doctor", "admin"])
-
+  // Layout enforces doctor/admin role
   const params = await searchParams
   const page = parseInt(params.page || "1", 10)
   const pageSize = 50
@@ -29,12 +26,20 @@ export default async function EmailOutboxPage({ searchParams }: PageProps) {
     intake_id: params.intake_id,
   }
 
-  // Fetch data in parallel
-  const [listResult, emailTypes, stats] = await Promise.all([
+  // Fetch data in parallel — degrade gracefully if a query fails
+  const [listSettled, emailTypesSettled, statsSettled] = await Promise.allSettled([
     getEmailOutboxList({ page, pageSize, filters }),
     getDistinctEmailTypes(),
     getEmailOutboxStats(),
   ])
+
+  const listResult = listSettled.status === "fulfilled"
+    ? listSettled.value
+    : { data: [], total: 0, error: "Failed to load email outbox" }
+  const emailTypes = emailTypesSettled.status === "fulfilled" ? emailTypesSettled.value : []
+  const stats = statsSettled.status === "fulfilled"
+    ? statsSettled.value
+    : { total: 0, sent: 0, failed: 0, skipped_e2e: 0, pending: 0 }
 
   return (
     <EmailOutboxClient

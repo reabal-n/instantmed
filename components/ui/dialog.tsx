@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
       className={cn(
         "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 p-6",
         // Clean surface
-        "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
+        "bg-card/95 dark:bg-white/10 backdrop-blur-xl",
         "border border-border",
         // Restrained radius
         "rounded-xl",

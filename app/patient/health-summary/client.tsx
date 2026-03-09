@@ -33,13 +33,13 @@ interface HealthSummaryClientProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  approved: { label: "Approved", color: "bg-green-100 text-green-700", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-green-100 text-green-700", icon: CheckCircle },
-  paid: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  in_review: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  pending: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
-  declined: { label: "Declined", color: "bg-red-100 text-red-700", icon: AlertCircle },
-  pending_payment: { label: "Awaiting Payment", color: "bg-gray-100 text-gray-700", icon: Clock },
+  approved: { label: "Approved", color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", icon: CheckCircle },
+  completed: { label: "Completed", color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", icon: CheckCircle },
+  paid: { label: "Under Review", color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300", icon: Clock },
+  in_review: { label: "Under Review", color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300", icon: Clock },
+  pending: { label: "Pending", color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300", icon: Clock },
+  declined: { label: "Declined", color: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300", icon: AlertCircle },
+  pending_payment: { label: "Awaiting Payment", color: "bg-muted text-muted-foreground", icon: Clock },
 }
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -89,10 +89,10 @@ function RequestRow({ request }: { request: RecentRequest }) {
   return (
     <Link 
       href={`/patient/intakes/${request.id}`}
-      className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-lg transition-colors group"
+      className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-xl transition-colors group"
     >
       <div className="flex items-center gap-4">
-        <div className="p-2 bg-muted rounded-lg">
+        <div className="p-2 bg-muted rounded-xl">
           <CategoryIcon className="w-4 h-4 text-muted-foreground" />
         </div>
         <div>
@@ -132,8 +132,8 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <FileText className="w-4 h-4 text-green-700" />
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+              <FileText className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div>
               <p className="font-medium text-sm">Medical Certificate</p>
@@ -168,8 +168,8 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Pill className="w-4 h-4 text-blue-700" />
+            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+              <Pill className="w-4 h-4 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
               <p className="font-medium text-sm">
@@ -210,7 +210,7 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
             <Activity className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Health Summary</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Health Summary</h1>
             <p className="text-muted-foreground text-sm">
               Your complete medical history with InstantMed
             </p>
@@ -256,22 +256,22 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
       
       {/* Active Requests Alert */}
       {summary.stats.activeRequests > 0 && (
-        <Card className="mb-8 border-amber-200 bg-amber-50">
+        <Card className="mb-8 border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-amber-600" />
+                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 <div>
-                  <p className="font-medium text-amber-900">
+                  <p className="font-medium text-amber-900 dark:text-amber-200">
                     {summary.stats.activeRequests} active request{summary.stats.activeRequests > 1 ? "s" : ""}
                   </p>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
                     Currently being reviewed by our doctors
                   </p>
                 </div>
               </div>
               <Link href="/patient/intakes">
-                <Button variant="outline" size="sm" className="border-amber-300 hover:bg-amber-100">
+                <Button variant="outline" size="sm" className="border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/10">
                   View All
                 </Button>
               </Link>
@@ -354,7 +354,7 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
                 <div className="text-center py-12">
                   <Pill className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                   <p className="text-muted-foreground">No prescriptions yet</p>
-                  <Link href="/prescriptions">
+                  <Link href="/request?service=prescription">
                     <Button className="mt-4">Request a prescription</Button>
                   </Link>
                 </div>
@@ -374,11 +374,11 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
       <div className="mt-8 pt-8 border-t">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link href="/medical-certificate">
+          <Link href="/request?service=med-cert">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <FileText className="w-5 h-5 text-green-700" />
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+                  <FileText className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                 </div>
                 <div>
                   <p className="font-medium">Medical Certificate</p>
@@ -387,12 +387,12 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
               </CardContent>
             </Card>
           </Link>
-          
-          <Link href="/prescriptions">
+
+          <Link href="/request?service=prescription">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Pill className="w-5 h-5 text-blue-700" />
+                <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+                  <Pill className="w-5 h-5 text-blue-700 dark:text-blue-400" />
                 </div>
                 <div>
                   <p className="font-medium">Repeat Prescription</p>
@@ -405,8 +405,8 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
           <Link href="/patient/settings">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Shield className="w-5 h-5 text-blue-700" />
+                <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+                  <Shield className="w-5 h-5 text-blue-700 dark:text-blue-400" />
                 </div>
                 <div>
                   <p className="font-medium">Account Settings</p>

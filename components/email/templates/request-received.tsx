@@ -41,7 +41,7 @@ export function RequestReceivedEmail({
 }: RequestReceivedEmailProps) {
   return (
     <BaseEmail
-      previewText={`Your ${requestType} request is being reviewed`}
+      previewText={`Your ${requestType} request is being reviewed 👍`}
       appUrl={appUrl}
     >
       <HeroBlock
@@ -55,7 +55,7 @@ export function RequestReceivedEmail({
 
       <Text>
         Your payment has been confirmed and your <strong>{requestType}</strong> request
-        is now in the doctor review queue. Most requests are reviewed within a few hours.
+        is with a doctor for review. Most requests are reviewed within a couple of hours.
       </Text>
 
       <Box>

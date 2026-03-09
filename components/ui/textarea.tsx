@@ -59,13 +59,13 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           style={minRowStyle}
           className={cn(
             "w-full rounded-md px-3 py-2",
-            "bg-white dark:bg-slate-900",
+            "bg-white dark:bg-background",
             "border border-border",
             "text-foreground placeholder:text-muted-foreground/50",
             "font-sans",
             "shadow-none outline-none",
             "transition-all duration-200",
-            "hover:border-slate-300 dark:hover:border-slate-600",
+            "hover:border-border",
             "focus:border-primary focus:ring-2 focus:ring-primary/20",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "resize-y",

@@ -209,7 +209,7 @@ export function SuccessClient({
             </p>
           </div>
         </div>
-        <div className="p-4 rounded-lg bg-muted/50 text-sm space-y-2">
+        <div className="p-4 rounded-xl bg-muted/50 text-sm space-y-2">
           <p><strong>What to do next:</strong></p>
           <ul className="list-disc list-inside space-y-1 text-muted-foreground">
             <li>Check your <a href="/patient" className="underline hover:no-underline">dashboard</a> for your request status</li>
@@ -231,9 +231,10 @@ export function SuccessClient({
           serviceName={serviceName}
           patientEmail={patientEmail}
           isPriority={isPriority}
+          showConfetti={false}
         />
         {/* P0 FIX: Resend confirmation email button */}
-        <div className="p-4 rounded-lg bg-muted/50 text-sm space-y-3">
+        <div className="p-4 rounded-xl bg-muted/50 text-sm space-y-3">
           <p><strong>Still confirming your payment</strong> — This can take a minute or two. Your request has been received.</p>
           <p className="text-muted-foreground">Haven&apos;t received a confirmation email?</p>
           <Button

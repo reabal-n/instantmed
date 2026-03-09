@@ -17,9 +17,9 @@ interface ScriptsClientProps {
 }
 
 const STATUS_CONFIG: Record<ScriptTaskStatus, { label: string; color: string; icon: typeof Clock }> = {
-  pending_send: { label: "Pending Send", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300", icon: Clock },
-  sent: { label: "Sent", color: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300", icon: Send },
-  confirmed: { label: "Confirmed", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300", icon: CheckCircle2 },
+  pending_send: { label: "Pending Send", color: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300", icon: Clock },
+  sent: { label: "Sent", color: "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300", icon: Send },
+  confirmed: { label: "Confirmed", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300", icon: CheckCircle2 },
 }
 
 export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProps) {
@@ -73,12 +73,12 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 text-white">
-            <ClipboardList className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <ClipboardList className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Script To-Do</h1>
@@ -224,7 +224,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                     </Button>
                   )}
                   {task.status === "confirmed" && (
-                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                       <CheckCircle2 className="h-3 w-3" />
                       Done
                     </span>

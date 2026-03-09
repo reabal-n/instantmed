@@ -717,7 +717,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                 </div>
 
                 {/* Certificate Preview */}
-                <div className="border bg-gray-100 p-4 overflow-auto max-h-[800px]">
+                <div className="border bg-muted p-4 overflow-auto max-h-[800px]">
                   <CertificatePreview
                     clinicIdentity={previewClinicIdentity}
                     config={templateConfig}

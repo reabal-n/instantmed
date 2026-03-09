@@ -64,7 +64,7 @@ export function StickyCTABar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden animate-slide-in-up">
-      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl border-t border-white/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
+      <div className="bg-card/95 dark:bg-white/10 backdrop-blur-xl border-t border-border/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground flex items-center gap-1.5 truncate">

@@ -28,8 +28,8 @@ export function ConfirmationStep({ referenceNumber, email }: ConfirmationStepPro
 
       {/* Success indicator */}
       <div className="flex justify-center">
-        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-950/50 flex items-center justify-center">
-          <CheckCircle className="w-10 h-10 text-green-600" />
+        <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+          <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
         </div>
       </div>
 

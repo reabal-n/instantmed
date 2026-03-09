@@ -67,13 +67,13 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className={!isExpanded ? "border-slate-200 bg-slate-50/30" : ""}>
+      <Card className={!isExpanded ? "border-border bg-muted/30" : ""}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="p-0 h-auto hover:bg-transparent">
                 <CardTitle className="flex items-center gap-2 text-base cursor-pointer">
-                  <MessageSquare className="h-5 w-5 text-slate-500" />
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
                   AI Chat Transcript
                   {transcript && (
                     <Badge variant="outline" className="ml-2 text-xs">
@@ -85,7 +85,7 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
               </Button>
             </CollapsibleTrigger>
             {transcript?.hadSafetyFlags && (
-              <Badge className="bg-amber-100 text-amber-800">
+              <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Safety flags
               </Badge>
@@ -108,7 +108,7 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
             )}
 
             {error && (
-              <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                 {error}
               </div>
             )}
@@ -134,12 +134,12 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
 
                 {/* Safety flags warning */}
                 {transcript.hadSafetyFlags && transcript.safetyFlags.length > 0 && (
-                  <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                    <div className="flex items-center gap-2 text-amber-800 font-medium text-sm mb-1">
+                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-semibold text-sm mb-1">
                       <AlertTriangle className="h-4 w-4" />
                       Safety Flags Detected
                     </div>
-                    <ul className="text-xs text-amber-700 list-disc list-inside">
+                    <ul className="text-xs text-amber-700 dark:text-amber-300 list-disc list-inside">
                       {transcript.safetyFlags.map((flag, i) => (
                         <li key={i}>{flag}</li>
                       ))}
@@ -159,7 +159,7 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
                       <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         message.role === "user" 
                           ? "bg-primary/10 text-primary" 
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-muted text-muted-foreground"
                       }`}>
                         {message.role === "user" ? (
                           <User className="h-4 w-4" />

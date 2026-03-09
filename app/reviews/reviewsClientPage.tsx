@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
@@ -33,7 +34,7 @@ function getInitials(name: string) {
 function getAvatarColor(name: string) {
   const colors = [
     'bg-blue-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500',
-    'bg-rose-500', 'bg-cyan-500', 'bg-indigo-500', 'bg-teal-500'
+    'bg-rose-500', 'bg-cyan-500', 'bg-blue-600', 'bg-teal-500'
   ]
   const index = name.charCodeAt(0) % colors.length
   return colors[index]
@@ -86,7 +87,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 {Array.from({ length: 5 }).map((_, j) => (
                   <Star
                     key={j}
-                    className={`h-4 w-4 ${j < review.rating ? "text-warning fill-warning" : "text-border"}`}
+                    className={cn("h-4 w-4", j < review.rating ? "text-warning fill-warning" : "text-border")}
                   />
                 ))}
               </div>

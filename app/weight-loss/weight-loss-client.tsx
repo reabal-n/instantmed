@@ -192,7 +192,7 @@ export function WeightLossClient() {
           {/* Treatment Options */}
           <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="rounded-3xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
+              <div className="rounded-3xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
@@ -204,7 +204,7 @@ export function WeightLossClient() {
                   {treatments.map((treatment) => (
                     <div
                       key={treatment.id}
-                      className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all"
+                      className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -272,7 +272,7 @@ export function WeightLossClient() {
           {/* Eligibility */}
           <section className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="rounded-3xl border border-border/50 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
+              <div className="rounded-3xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Who Can Use This Service?</h2>
                   <p className="text-sm text-muted-foreground">
@@ -281,7 +281,7 @@ export function WeightLossClient() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                  <div className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
                         <CheckCircle2 className="h-4 w-4 text-success" />
@@ -298,17 +298,17 @@ export function WeightLossClient() {
                     </ul>
                   </div>
 
-                  <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                  <div className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                        <Shield className="h-4 w-4 text-slate-600" />
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <h3 className="text-sm font-semibold">May not be suitable if:</h3>
                     </div>
                     <ul className="space-y-2">
                       {eligibility.notEligible.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                          <span className="text-slate-400">&bull;</span>
+                          <span className="text-muted-foreground/60">&bull;</span>
                           <span>{item}</span>
                         </li>
                       ))}

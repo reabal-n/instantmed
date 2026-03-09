@@ -76,8 +76,9 @@ function SubmittedAnswers({
   answers: Record<string, unknown>
   serviceType: string
 }) {
-  // Fields to hide from patient view (internal/sensitive)
-  const hiddenFields = [
+  // Fields to hide from patient view (internal/sensitive/duplicate)
+  const hiddenFields = new Set([
+    // Patient identity (already shown in header)
     "patient_id",
     "patient_email",
     "patient_name",
@@ -85,20 +86,49 @@ function SubmittedAnswers({
     "patient_dob",
     "medicare_number",
     "medicare_irn",
+    "medicare_ref",
+    // Consent & legal (already agreed during intake)
     "telehealth_consent_given",
     "telehealth_limitations_acknowledged",
     "accuracy_confirmed",
     "terms_agreed",
     "consent_timestamp",
+    "safety_consent",
+    "safety_acknowledged",
+    "privacy_consent",
+    // Internal tracking / metadata
     "attribution",
     "_form_start_time",
+    "idempotency_key",
+    "form_completed",
+    "form_version",
+    "intake_type",
+    "flow_type",
+    "referral_code",
+    "referral_source",
+    // Service routing (internal)
+    "service_id",
+    "service_slug",
+    // Medication codes (internal, not useful to patient)
     "medication_search_used",
     "medication_selected",
     "selected_pbs_code",
-    "idempotency_key",
     "amt_code",
     "pbs_code",
-  ]
+    // Duplicate/internal fields that overlap with curated display
+    "cert_type",
+    "date_from",
+    "date_to",
+    "reason",
+    "reason_summary",
+    "duration_days",
+    "emergency_symptoms",
+    // Internal assessment fields
+    "has_been_seen_before",
+    "seen_gp_recently",
+    "is_existing_patient",
+    "gp_visit_question",
+  ])
 
   // Field display order and grouping
   const medCertFields = [
@@ -144,8 +174,10 @@ function SubmittedAnswers({
 
   // Add any remaining fields not in the ordered list
   for (const [key, value] of Object.entries(answers)) {
-    if (hiddenFields.includes(key)) continue
+    if (hiddenFields.has(key)) continue
     if (displayFields.some((f) => f.key === key)) continue
+    // Skip internal-looking fields by pattern
+    if (key.startsWith("_") || key.endsWith("_id") || key.includes("stripe") || key.includes("checkout")) continue
     const formatted = formatFieldValue(value)
     if (formatted) {
       orderedEntries.push({ key, label: formatFieldLabel(key), value: formatted })
@@ -159,13 +191,41 @@ function SubmittedAnswers({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="rounded-lg border bg-muted/30 divide-y divide-border">
       {orderedEntries.map(({ key, label, value }) => (
-        <div key={key} className="flex flex-col sm:flex-row sm:justify-between text-sm">
-          <span className="text-muted-foreground">{label}:</span>
+        <div key={key} className="flex flex-col sm:flex-row sm:justify-between px-4 py-2.5 text-sm gap-0.5">
+          <span className="text-muted-foreground">{label}</span>
           <span className="font-medium sm:text-right sm:max-w-[60%]">{value}</span>
         </div>
       ))}
+    </div>
+  )
+}
+
+const DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+}
+
+function TimelineEntry({
+  icon: Icon,
+  label,
+  date,
+  color = "text-muted-foreground",
+}: {
+  icon: React.ElementType
+  label: string
+  date: string
+  color?: string
+}) {
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <Icon className={`h-4 w-4 ${color}`} />
+      <span className="text-muted-foreground">{label}:</span>
+      <span>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</span>
     </div>
   )
 }
@@ -253,21 +313,21 @@ export function IntakeDetailClient({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":
-        return "bg-emerald-100 text-emerald-800"
+        return "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
       case "declined":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300"
       case "pending_info":
-        return "bg-amber-100 text-amber-800"
+        return "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300"
       case "paid":
       case "in_review":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-muted text-muted-foreground"
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="container max-w-6xl mx-auto px-4 py-8">
       {/* Real-time status listener */}
       <IntakeStatusListener 
         intakeId={intake.id} 
@@ -300,16 +360,16 @@ export function IntakeDetailClient({
         <CardContent className="space-y-6">
           {/* Pending Payment - Retry CTA */}
           {intake.status === "pending_payment" && (
-            <Card className="border-amber-200 bg-linear-to-br from-amber-50 to-orange-50">
+            <Card className="border-amber-200 dark:border-amber-800 bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="rounded-full bg-amber-100 p-3 shrink-0">
-                    <AlertCircle className="h-6 w-6 text-amber-600" />
+                  <div className="rounded-full bg-amber-100 dark:bg-amber-500/20 p-3 shrink-0">
+                    <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="font-semibold text-amber-900">Payment Required</h3>
-                      <p className="text-sm text-amber-700">
+                      <h3 className="font-semibold text-amber-900 dark:text-amber-200">Payment Required</h3>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
                     </div>
@@ -336,7 +396,7 @@ export function IntakeDetailClient({
           )}
 
           {/* Status Message */}
-          <div className="p-4 rounded-lg bg-muted/50">
+          <div className="p-4 rounded-xl bg-muted/50">
             {intake.status === "paid" && (
               <div className="text-sm space-y-1">
                 <p>
@@ -358,12 +418,12 @@ export function IntakeDetailClient({
               </div>
             )}
             {intake.status === "approved" && (
-              <div className="text-sm text-emerald-700 space-y-1">
+              <div className="text-sm text-emerald-700 dark:text-emerald-300 space-y-1">
                 <p>Your request has been approved!</p>
                 {document?.pdf_url ? (
                   <p>Download your document below.</p>
                 ) : (
-                  <p className="flex items-center gap-2 text-blue-700">
+                  <p className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                     <Clock className="h-4 w-4 animate-pulse" />
                     Your document is being generated. This usually takes a few minutes.
                   </p>
@@ -372,11 +432,11 @@ export function IntakeDetailClient({
             )}
             {intake.status === "declined" && (
               <div className="space-y-2">
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-red-700 dark:text-red-300">
                   Unfortunately, your request was declined.
                 </p>
-                <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                  <p className="text-sm text-red-800">
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-800 dark:text-red-300">
                     <strong>Reason:</strong> {intake.decline_reason_note || "This request could not be fulfilled via our telehealth service. For your safety, we recommend consulting with your regular doctor who has access to your full medical history."}
                   </p>
                 </div>
@@ -386,18 +446,18 @@ export function IntakeDetailClient({
               </div>
             )}
             {intake.status === "pending_info" && (
-              <p className="text-sm text-amber-700">
+              <p className="text-sm text-amber-700 dark:text-amber-300">
                 The doctor needs more information. Please check your messages.
               </p>
             )}
             {intake.status === "awaiting_script" && (
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 Your prescription has been approved! The doctor is preparing your script. 
                 You&apos;ll receive it via email or SMS shortly.
               </p>
             )}
             {intake.status === "completed" && (
-              <div className="text-sm text-emerald-700 space-y-1">
+              <div className="text-sm text-emerald-700 dark:text-emerald-300 space-y-1">
                 <p>Your request has been completed.</p>
                 {/* Special message for repeat prescriptions */}
                 {intake.service?.type === "common_scripts" && (
@@ -415,14 +475,14 @@ export function IntakeDetailClient({
 
           {/* Action Error Display */}
           {actionError && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
               {actionError}
             </div>
           )}
 
           {/* Resend Success Message */}
           {resendSuccess && (
-            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Certificate has been resent to your email.
             </div>
@@ -430,8 +490,8 @@ export function IntakeDetailClient({
 
           {/* Refund Status Badge */}
           {intake.payment_status === "refunded" && (
-            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <div className="flex items-center gap-2 text-sm text-amber-800">
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
                 <RefreshCw className="h-4 w-4" />
                 <span><strong>Refund processed</strong> — Your payment has been refunded.</span>
               </div>
@@ -455,16 +515,16 @@ export function IntakeDetailClient({
               isVerified={isEmailVerified}
               onResendVerification={resendVerificationEmail}
             >
-              <Card className="border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50">
+              <Card className="border-emerald-200 dark:border-emerald-800 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-emerald-100 p-3">
-                      <FileText className="h-6 w-6 text-emerald-600" />
+                    <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3">
+                      <FileText className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="font-semibold text-emerald-900">Your Document is Ready</h3>
-                        <p className="text-sm text-emerald-700">
+                        <h3 className="font-semibold text-emerald-900 dark:text-emerald-200">Your Document is Ready</h3>
+                        <p className="text-sm text-emerald-700 dark:text-emerald-300">
                           Download your {service?.short_name || service?.name || "document"} below.
                         </p>
                       </div>
@@ -480,14 +540,14 @@ export function IntakeDetailClient({
                         </a>
                       </Button>
                       {document.verification_code && (
-                        <div className="flex items-center gap-2 text-sm text-emerald-700 pt-2">
+                        <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300 pt-2">
                           <Shield className="h-4 w-4" />
                           <span>
-                            Verification Code: <code className="font-mono font-semibold bg-emerald-100 px-2 py-0.5 rounded">{document.verification_code}</code>
+                            Verification Code: <code className="font-mono font-semibold bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded">{document.verification_code}</code>
                           </span>
                         </div>
                       )}
-                      <p className="text-xs text-emerald-600">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">
                         A copy has also been sent to your email.
                       </p>
                       {/* Action Buttons */}
@@ -541,7 +601,7 @@ export function IntakeDetailClient({
                   size="sm" 
                   onClick={handleCancel}
                   disabled={isPending}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/30"
                 >
                   <Ban className="h-4 w-4 mr-2" />
                   {isPending ? "Cancelling..." : "Cancel request"}
@@ -581,69 +641,11 @@ export function IntakeDetailClient({
           <div>
             <h3 className="font-medium mb-3">Timeline</h3>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Submitted:</span>
-                <span>{new Date(intake.created_at).toLocaleDateString("en-AU", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}</span>
-              </div>
-              {intake.paid_at && (
-                <div className="flex items-center gap-3 text-sm">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  <span className="text-muted-foreground">Payment received:</span>
-                  <span>{new Date(intake.paid_at).toLocaleDateString("en-AU", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}</span>
-                </div>
-              )}
-              {intake.approved_at && (
-                <div className="flex items-center gap-3 text-sm">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  <span className="text-muted-foreground">Approved:</span>
-                  <span>{new Date(intake.approved_at).toLocaleDateString("en-AU", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}</span>
-                </div>
-              )}
-              {intake.declined_at && (
-                <div className="flex items-center gap-3 text-sm">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-muted-foreground">Declined:</span>
-                  <span>{new Date(intake.declined_at).toLocaleDateString("en-AU", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}</span>
-                </div>
-              )}
-              {intake.cancelled_at && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Ban className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Cancelled:</span>
-                  <span>{new Date(intake.cancelled_at).toLocaleDateString("en-AU", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}</span>
-                </div>
-              )}
+              <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
+              {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-emerald-500" />}
+              {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-emerald-500" />}
+              {intake.declined_at && <TimelineEntry icon={XCircle} label="Declined" date={intake.declined_at} color="text-red-500" />}
+              {intake.cancelled_at && <TimelineEntry icon={Ban} label="Cancelled" date={intake.cancelled_at} />}
             </div>
           </div>
 

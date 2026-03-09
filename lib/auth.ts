@@ -5,6 +5,7 @@
  * and Supabase for data storage.
  */
 
+import { cache } from "react"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server"
@@ -95,8 +96,11 @@ export interface AuthenticatedUser {
 /**
  * Get the authenticated user and their profile.
  * Returns null if not authenticated or profile doesn't exist.
+ *
+ * Wrapped with React cache() to deduplicate calls within the same
+ * server render pass (e.g. layout + page both calling requireRole).
  */
-export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
+export const getAuthenticatedUserWithProfile = cache(async (): Promise<AuthenticatedUser | null> => {
   // Check for E2E test auth first (non-production only)
   const e2eAuth = await getE2EAuthUser()
   if (e2eAuth) {
@@ -163,7 +167,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
     },
     profile: profile as unknown as Profile,
   }
-}
+})
 
 /**
  * Get authenticated user, creating a profile if one doesn't exist.

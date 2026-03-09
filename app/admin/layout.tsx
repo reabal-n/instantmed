@@ -32,7 +32,7 @@ export default async function AdminLayout({
   }
   
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="flex min-h-screen bg-linear-to-br from-background via-blue-50/30 to-blue-50/20 dark:from-background dark:via-background dark:to-background">
       <AdminSidebar 
         userName={authUser.profile.full_name}
         userRole="Admin"

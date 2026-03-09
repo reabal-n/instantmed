@@ -99,13 +99,13 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
                 "tap-bounce",
                 isActive
                   ? "text-primary bg-primary/10"
-                  : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-muted/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
               <div className="relative">
                 <Icon className={cn("w-5 h-5", isActive && "animate-bounce-once")} />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}

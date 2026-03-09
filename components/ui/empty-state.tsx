@@ -1,7 +1,9 @@
+"use client"
+
 import { LucideIcon, Plus, Lightbulb, Sparkles } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { fadeIn, slideUp } from "./animations"
 import Link from "next/link"
 
@@ -44,18 +46,20 @@ export function EmptyState({
   examples,
   className,
 }: EmptyStateProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial="initial"
+      initial={prefersReducedMotion ? false : "initial"}
       animate="animate"
       variants={fadeIn}
       className={cn("text-center py-12 px-4 max-w-2xl mx-auto", className)}
     >
       {/* Illustration or Icon */}
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "spring", stiffness: 200 }}
         className="mb-6"
       >
         {illustration ? (
@@ -69,10 +73,10 @@ export function EmptyState({
 
       {/* Title */}
       <motion.h3
-        initial="initial"
+        initial={prefersReducedMotion ? false : "initial"}
         animate="animate"
         variants={slideUp}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
         className="text-2xl font-semibold mb-2 text-foreground"
       >
         {title}
@@ -80,10 +84,10 @@ export function EmptyState({
 
       {/* Description */}
       <motion.p
-        initial="initial"
+        initial={prefersReducedMotion ? false : "initial"}
         animate="animate"
         variants={slideUp}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
         className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed"
       >
         {description}
@@ -92,10 +96,10 @@ export function EmptyState({
       {/* Actions */}
       {(action || secondaryAction) && (
         <motion.div
-          initial="initial"
+          initial={prefersReducedMotion ? false : "initial"}
           animate="animate"
           variants={slideUp}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
           className="flex flex-col sm:flex-row gap-3 justify-center mb-8"
         >
           {action && (
@@ -138,10 +142,10 @@ export function EmptyState({
       {/* Tips */}
       {tips && tips.length > 0 && (
         <motion.div
-          initial="initial"
+          initial={prefersReducedMotion ? false : "initial"}
           animate="animate"
           variants={slideUp}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
           className="mt-8 p-4 bg-muted/50 rounded-xl border border-border/50"
         >
           <div className="flex items-center gap-2 mb-3 justify-center">
@@ -162,10 +166,10 @@ export function EmptyState({
       {/* Examples/Templates */}
       {examples && examples.length > 0 && (
         <motion.div
-          initial="initial"
+          initial={prefersReducedMotion ? false : "initial"}
           animate="animate"
           variants={slideUp}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.6 }}
           className="mt-8"
         >
           <p className="text-sm font-medium text-foreground mb-4">Examples:</p>

@@ -45,7 +45,7 @@ export function WeightLossApprovedEmail({
 
   return (
     <BaseEmail
-      previewText={`Your ${medicationName} prescription has been approved`}
+      previewText={`Your ${medicationName} prescription has been approved ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Treatment approved" />
@@ -144,7 +144,7 @@ export function WeightLossApprovedEmail({
       <Text muted small>
         Questions about your treatment? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

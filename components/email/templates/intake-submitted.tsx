@@ -37,7 +37,7 @@ export function IntakeSubmittedEmail({
 }: IntakeSubmittedEmailProps) {
   return (
     <BaseEmail
-      previewText={`Your ${requestType} request is being reviewed`}
+      previewText={`Your ${requestType} request is being reviewed 👍`}
       appUrl={appUrl}
     >
       <StatusBanner title="Request submitted" variant="info" />
@@ -45,8 +45,8 @@ export function IntakeSubmittedEmail({
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Your <strong>{requestType}</strong> request has been submitted and is now in
-        the doctor review queue. Most requests are reviewed within a few hours.
+        Your <strong>{requestType}</strong> request has been submitted and a doctor
+        will review it soon — most requests are reviewed within a couple of hours.
       </Text>
 
       <Box>

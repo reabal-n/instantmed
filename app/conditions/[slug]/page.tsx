@@ -647,7 +647,7 @@ export default async function ConditionPage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
@@ -722,7 +722,7 @@ export default async function ConditionPage({ params }: PageProps) {
           </section>
 
           {/* Symptoms Section */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
@@ -732,7 +732,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 {condition.symptoms.map((symptom, i) => (
                   <div 
                     key={i}
-                    className="flex items-center gap-3 p-4 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10"
+                    className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -788,7 +788,7 @@ export default async function ConditionPage({ params }: PageProps) {
           </section>
 
           {/* When to Seek Help */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* When to see a doctor */}
@@ -846,7 +846,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 {condition.commonQuestions.map((faq, i) => (
                   <div 
                     key={i}
-                    className="bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl p-6"
+                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.a}</p>

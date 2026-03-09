@@ -1,4 +1,3 @@
-import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notFound } from "next/navigation"
 import { PatientDetailClient } from "./patient-detail-client"
@@ -117,8 +116,7 @@ async function getPatientWithHistory(patientId: string) {
 export const dynamic = "force-dynamic"
 
 export default async function PatientDetailPage({ params }: PageProps) {
-  await requireRole(["doctor", "admin"])
-  
+  // Layout enforces doctor/admin role
   const { id } = await params
   const data = await getPatientWithHistory(id)
 

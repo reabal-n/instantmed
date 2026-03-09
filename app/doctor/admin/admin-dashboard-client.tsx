@@ -87,11 +87,11 @@ export function AdminDashboardClient({
       in_review: "bg-amber-100 text-amber-800",
       approved: "bg-emerald-100 text-emerald-800",
       declined: "bg-red-100 text-red-800",
-      completed: "bg-gray-100 text-gray-800",
+      completed: "bg-muted text-foreground",
       awaiting_script: "bg-dawn-100 text-dawn-800",
       pending_info: "bg-orange-100 text-orange-800",
     }
-    return variants[status] || "bg-gray-100 text-gray-800"
+    return variants[status] || "bg-muted text-foreground"
   }
 
 

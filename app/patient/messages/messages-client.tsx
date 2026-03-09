@@ -108,8 +108,8 @@ export function MessagesClient({
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-sky-50/50 to-white pt-20 pb-16">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+    <div className="py-8">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>
@@ -130,10 +130,10 @@ export function MessagesClient({
 
           {/* Error State */}
           {error && (
-            <Card className="border-red-200 bg-red-50 mb-6">
+            <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 mb-6">
               <CardContent className="flex items-center gap-3 py-4">
-                <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -158,10 +158,10 @@ export function MessagesClient({
                     key={conv.intakeId}
                     onClick={() => setSelectedIntake(conv.intakeId)}
                     className={cn(
-                      "w-full text-left p-3 rounded-lg transition-colors",
+                      "w-full text-left p-3 rounded-xl transition-colors",
                       selectedIntake === conv.intakeId
                         ? "bg-primary/10 border border-primary/20"
-                        : "bg-white hover:bg-muted/50 border border-transparent"
+                        : "bg-card hover:bg-muted/50 border border-transparent"
                     )}
                   >
                     <div className="flex items-start justify-between">
@@ -204,21 +204,21 @@ export function MessagesClient({
                                 msg.sender_type === "patient"
                                   ? "bg-primary/10"
                                   : msg.sender_type === "doctor"
-                                  ? "bg-emerald-100"
+                                  ? "bg-emerald-100 dark:bg-emerald-950/40"
                                   : "bg-muted"
                               )}
                             >
                               {msg.sender_type === "patient" ? (
                                 <User className="w-4 h-4 text-primary" />
                               ) : msg.sender_type === "doctor" ? (
-                                <Stethoscope className="w-4 h-4 text-emerald-600" />
+                                <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                               ) : (
                                 <MessageSquare className="w-4 h-4 text-muted-foreground" />
                               )}
                             </div>
                             <div
                               className={cn(
-                                "max-w-[80%] rounded-lg p-3",
+                                "max-w-[80%] rounded-xl p-3",
                                 msg.sender_type === "patient"
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-muted"
@@ -282,6 +282,6 @@ export function MessagesClient({
             </div>
           )}
       </div>
-    </main>
+    </div>
   )
 }

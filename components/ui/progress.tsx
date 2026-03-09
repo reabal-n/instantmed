@@ -18,8 +18,8 @@ function Progress({
       className={cn(
         "relative h-2 w-full overflow-hidden rounded-full",
         // Glass track
-        "bg-white/50 dark:bg-white/10 backdrop-blur-sm",
-        "border border-white/30 dark:border-white/10",
+        "bg-card/50 dark:bg-white/10 backdrop-blur-sm",
+        "border border-border/30 dark:border-white/10",
         className
       )}
       {...props}

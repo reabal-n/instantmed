@@ -45,7 +45,7 @@ export function ComparisonTable({
         highlightWords={highlightWords}
       />
 
-      <div ref={ref} className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-white/80 dark:bg-white/5 backdrop-blur-sm">
+      <div ref={ref} className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-card/80 dark:bg-white/5 backdrop-blur-sm">
         {/* Header row */}
         <div className="grid grid-cols-[1fr_120px_120px] gap-0 border-b border-border bg-muted/50 px-6 py-4 text-sm font-medium text-muted-foreground">
           <span />

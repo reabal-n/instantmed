@@ -485,13 +485,13 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
                 {selectedTemplate && getPreviewHtml(selectedTemplate.subject, selectedTemplate.available_tags)}
               </p>
             </div>
-            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-slate-50 to-white flex justify-center">
+            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-muted/50 to-white flex justify-center">
               <div className={previewMode === "mobile" ? "w-[375px] border-x" : "max-w-[600px] w-full"}>
                 <div className="p-6">
                   {selectedTemplate && (
                     <SafeHtml
                       html={getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags)}
-                      className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
+                      className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mb-4 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
                     />
                   )}
                 </div>

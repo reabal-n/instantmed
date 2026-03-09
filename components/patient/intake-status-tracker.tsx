@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState, useMemo } from "react"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import {
   Clock,
   CheckCircle2,
@@ -115,15 +115,17 @@ export function IntakeStatusTracker({
   onStatusChange,
   className,
 }: IntakeStatusTrackerProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [status, setStatus] = useState<IntakeStatus>(initialStatus)
   const [timestamps, setTimestamps] = useState<Map<string, string>>(new Map())
   const [isConnecting, setIsConnecting] = useState(true)
   const [isDisconnected, setIsDisconnected] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+  // Memoize Supabase client to prevent recreation on every render
+  const supabase = useMemo(() => createClient(), [])
 
   // Fetch status history timestamps on mount
   useEffect(() => {
-    const supabase = createClient()
     supabase
       .from("intake_status_history")
       .select("new_status, created_at")
@@ -140,11 +142,10 @@ export function IntakeStatusTracker({
           setTimestamps(map)
         }
       })
-  }, [intakeId])
+  }, [intakeId, supabase])
 
   // Subscribe to realtime status updates with reconnection logic
   useEffect(() => {
-    const supabase = createClient()
     let reconnectTimeout: NodeJS.Timeout | null = null
 
     const setupChannel = () => {
@@ -202,7 +203,7 @@ export function IntakeStatusTracker({
       if (reconnectTimeout) clearTimeout(reconnectTimeout)
       supabase.removeChannel(channel)
     }
-  }, [intakeId, onStatusChange, retryCount])
+  }, [intakeId, onStatusChange, retryCount, supabase])
 
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES
@@ -241,9 +242,9 @@ export function IntakeStatusTracker({
       <AnimatePresence>
         {isSpecialStatus && specialStatus && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
             className={cn(
               "mb-5 p-4 rounded-xl border flex items-start gap-3",
               specialStatus.color
@@ -261,9 +262,9 @@ export function IntakeStatusTracker({
       {/* Estimated wait time */}
       {showWaitTime && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-5 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+          className="mb-5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
         >
           <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
             <Clock className="h-4 w-4" />
@@ -280,11 +281,11 @@ export function IntakeStatusTracker({
         <div className="absolute left-[15px] top-[24px] bottom-[24px] w-0.5 bg-muted" />
         <motion.div
           className="absolute left-[15px] top-[24px] w-0.5 bg-primary"
-          initial={{ height: 0 }}
+          initial={prefersReducedMotion ? false : { height: 0 }}
           animate={{
             height: `${Math.max(0, Math.min(100, (currentIndex / (STATUS_STEPS.length - 1)) * 100))}%`,
           }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut" }}
         />
 
         {/* Steps */}
@@ -298,9 +299,9 @@ export function IntakeStatusTracker({
               <motion.div
                 key={step.id}
                 className="flex items-start gap-4"
-                initial={{ opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}
               >
                 {/* Icon */}
                 <div

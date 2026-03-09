@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { floatingBarVariants } from '@/lib/motion/panel-variants'
 import { cn } from '@/lib/utils'
 
@@ -26,22 +26,24 @@ interface FloatingActionBarProps {
   className?: string
 }
 
-export function FloatingActionBar({ 
-  isVisible, 
-  children, 
-  className 
+export function FloatingActionBar({
+  isVisible,
+  children,
+  className
 }: FloatingActionBarProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
           variants={floatingBarVariants}
-          initial="hidden"
+          initial={prefersReducedMotion ? false : "hidden"}
           animate="visible"
-          exit="exit"
+          exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
           className={cn(
             "fixed bottom-0 left-0 right-0 z-40",
-            "bg-white border-t border-gray-200 shadow-2xl",
+            "bg-background border-t border-border shadow-2xl",
             "px-4 py-4",
             className
           )}

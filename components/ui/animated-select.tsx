@@ -232,7 +232,7 @@ export function AnimatedSelect({
                 className={cn(
                   "w-full rounded-xl p-1.5 shadow-lg overflow-hidden",
                   // Light mode
-                  "bg-white/95 backdrop-blur-xl border border-border/60",
+                  "bg-card/95 backdrop-blur-xl border border-border/60",
                   "shadow-[0_8px_32px_rgba(0,0,0,0.08)]",
                   // Dark mode
                   "dark:bg-zinc-900/95 dark:border-white/10",

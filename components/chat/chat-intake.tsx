@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ChatProgress } from "./chat-progress"
 import { DoctorNotesPreview } from "./doctor-notes-preview"
 import { DraftResume } from "./draft-resume"
@@ -86,22 +86,23 @@ function parseQuickReplies(content: string): { cleanContent: string; quickReplie
   return { cleanContent, quickReplies }
 }
 
-function MessageBubble({ message, isLatest, isLoading, onRetry }: { 
+function MessageBubble({ message, isLatest, isLoading, onRetry }: {
   message: Message
   isLatest: boolean
   isLoading: boolean
   onRetry?: () => void
 }) {
+  const prefersReducedMotion = useReducedMotion()
   const isUser = message.role === "user"
   const { cleanContent, quickReplies } = parseQuickReplies(message.content)
   const isError = message.error
-  
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ 
-        duration: 0.25, 
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.25,
         ease: [0.25, 0.1, 0.25, 1],
       }}
       className={cn(
@@ -140,10 +141,10 @@ function MessageBubble({ message, isLatest, isLoading, onRetry }: {
         
         {/* Quick reply buttons - only show on latest assistant message when not loading */}
         {!isUser && !isError && isLatest && !isLoading && quickReplies.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 4 }}
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.2 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.1, duration: prefersReducedMotion ? 0 : 0.2 }}
             className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/30"
             role="group"
             aria-label="Quick reply options"
@@ -159,8 +160,9 @@ function MessageBubble({ message, isLatest, isLoading, onRetry }: {
 }
 
 function QuickReplyButton({ reply, index }: { reply: QuickReply; index: number }) {
+  const prefersReducedMotion = useReducedMotion()
   const { sendMessage, refocusInput } = useChatContext()
-  
+
   const handleClick = () => {
     sendMessage(reply.value)
     // Refocus input after selection
@@ -182,9 +184,9 @@ function QuickReplyButton({ reply, index }: { reply: QuickReply; index: number }
   
   return (
     <motion.button
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.03, duration: 0.15 }}
+      transition={{ delay: prefersReducedMotion ? 0 : index * 0.03, duration: prefersReducedMotion ? 0 : 0.15 }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -218,9 +220,11 @@ function useChatContext() {
 
 // Typing indicator component (in message area)
 function TypingIndicator({ showStillThinking = false }: { showStillThinking?: boolean }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 4 }}
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       className="flex justify-start"
@@ -230,23 +234,23 @@ function TypingIndicator({ showStillThinking = false }: { showStillThinking?: bo
           <div className="flex items-center gap-1.5">
             <motion.span
               className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full"
-              animate={{ opacity: [0.4, 1, 0.4] }}
+              animate={prefersReducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 1, repeat: Infinity, delay: 0 }}
             />
             <motion.span
               className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full"
-              animate={{ opacity: [0.4, 1, 0.4] }}
+              animate={prefersReducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
             />
             <motion.span
               className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full"
-              animate={{ opacity: [0.4, 1, 0.4] }}
+              animate={prefersReducedMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
             />
           </div>
           {showStillThinking && (
-            <motion.span 
-              initial={{ opacity: 0 }}
+            <motion.span
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-xs text-muted-foreground ml-1"
             >
@@ -261,21 +265,23 @@ function TypingIndicator({ showStillThinking = false }: { showStillThinking?: bo
 
 // Inline typing indicator for input field
 function InputTypingIndicator() {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="flex items-center gap-1 text-muted-foreground">
       <motion.span
         className="w-1 h-1 bg-current rounded-full"
-        animate={{ opacity: [0.3, 1, 0.3] }}
+        animate={prefersReducedMotion ? undefined : { opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
       />
       <motion.span
         className="w-1 h-1 bg-current rounded-full"
-        animate={{ opacity: [0.3, 1, 0.3] }}
+        animate={prefersReducedMotion ? undefined : { opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 0.8, repeat: Infinity, delay: 0.15 }}
       />
       <motion.span
         className="w-1 h-1 bg-current rounded-full"
-        animate={{ opacity: [0.3, 1, 0.3] }}
+        animate={prefersReducedMotion ? undefined : { opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 0.8, repeat: Infinity, delay: 0.3 }}
       />
     </div>
@@ -314,15 +320,16 @@ function clearChat() {
   localStorage.removeItem(CHAT_STORAGE_KEY)
 }
 
-export function ChatIntake({ 
-  isOpen, 
+export function ChatIntake({
+  isOpen,
   onClose,
   onComplete,
-}: { 
+}: {
   isOpen: boolean
   onClose: () => void
   onComplete?: (data: Record<string, unknown>) => void
 }) {
+  const prefersReducedMotion = useReducedMotion()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -729,10 +736,10 @@ export function ChatIntake({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             className={cn(
               "fixed bottom-20 right-4 z-50",
               "w-[380px] max-w-[calc(100vw-2rem)]",
@@ -784,7 +791,7 @@ export function ChatIntake({
             {/* Redirect overlay */}
             {isRedirecting && (
               <motion.div
-                initial={{ opacity: 0 }}
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm"
               >
@@ -951,6 +958,7 @@ function saveBubbleDismissed(dismissed: boolean) {
 }
 
 export function ChatIntakeButton() {
+  const prefersReducedMotion = useReducedMotion()
   const [isOpen, setIsOpen] = useState(false)
   const [showBubble, setShowBubble] = useState(false)
   const [bubbleIndex, setBubbleIndex] = useState(0)
@@ -1006,10 +1014,10 @@ export function ChatIntakeButton() {
       <AnimatePresence>
         {showBubble && !isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             className={cn(
               "fixed bottom-20 right-4 z-50",
               "bg-background border border-border rounded-2xl shadow-lg",
@@ -1024,9 +1032,9 @@ export function ChatIntakeButton() {
           >
             <div className="flex items-start gap-2">
               <div className="flex-1">
-                <motion.p 
+                <motion.p
                   key={bubbleIndex}
-                  initial={{ opacity: 0 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-sm font-medium"
                 >
@@ -1067,8 +1075,8 @@ export function ChatIntakeButton() {
           "transition-shadow duration-200",
           isOpen && "hidden"
         )}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
+        whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
         aria-label="Open chat assistant"
       >
         <MessageCircle className="w-6 h-6" />
@@ -1076,8 +1084,8 @@ export function ChatIntakeButton() {
         {showBubble && (
           <motion.span
             className="absolute inset-0 rounded-full bg-primary"
-            initial={{ opacity: 0.5, scale: 1 }}
-            animate={{ opacity: 0, scale: 1.3 }}
+            initial={prefersReducedMotion ? false : { opacity: 0.5, scale: 1 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 0, scale: 1.3 }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
         )}

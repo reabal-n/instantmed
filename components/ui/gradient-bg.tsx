@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import { motion, type HTMLMotionProps, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 const gradientBgVariants = cva('absolute inset-0 pointer-events-none overflow-hidden', {
@@ -113,10 +113,12 @@ export interface GradientBgMotionProps
 }
 
 const GradientBgMotion = React.forwardRef<HTMLDivElement, GradientBgMotionProps>(
-  (
+  function GradientBgMotionInner(
     { className, variant, intensity, blur, color, style, animate = true, ...props },
     ref
-  ) => {
+  ) {
+    const prefersReducedMotion = useReducedMotion()
+
     return (
       <motion.div
         ref={ref}
@@ -127,31 +129,35 @@ const GradientBgMotion = React.forwardRef<HTMLDivElement, GradientBgMotionProps>
             : style
         }
         aria-hidden="true"
-        initial={{ opacity: 0 }}
+        initial={prefersReducedMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, ease: 'easeOut' }}
+        transition={{ duration: prefersReducedMotion ? 0 : 1, ease: 'easeOut' }}
         {...props}
       >
-        <motion.div
-          animate={
-            animate
-              ? {
-                  scale: [1, 1.02, 1],
-                  x: [0, 5, 0],
-                  y: [0, -5, 0],
-                }
-              : undefined
-          }
-          transition={
-            animate
-              ? {
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }
-              : undefined
-          }
-        />
+        {!prefersReducedMotion ? (
+          <motion.div
+            animate={
+              animate
+                ? {
+                    scale: [1, 1.02, 1],
+                    x: [0, 5, 0],
+                    y: [0, -5, 0],
+                  }
+                : undefined
+            }
+            transition={
+              animate
+                ? {
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <div />
+        )}
       </motion.div>
     )
   }

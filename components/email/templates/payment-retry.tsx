@@ -74,15 +74,18 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
+<body style="font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
   <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FAFAF9;">
     <tr>
       <td style="padding: 48px 16px;">
         <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #E7E5E4; overflow: hidden;">
           <tr>
             <td style="padding: 32px 40px 0 40px;">
-              <a href="${baseUrl}" style="text-decoration: none; font-size: 17px; font-weight: 700; color: #0C1220; letter-spacing: -0.4px;">Instant<span style="color: #0D9488;">Med</span></a>
+              <a href="${baseUrl}" style="text-decoration: none;">
+                <img src="${baseUrl}/branding/logo.png" alt="InstantMed" width="130" style="display: block; border: 0; outline: none; max-width: 130px; height: auto;" />
+              </a>
             </td>
           </tr>
           <tr><td style="padding: 20px 40px 0 40px;"><div style="border-top: 1px solid #F5F5F4;"></div></td></tr>
@@ -97,7 +100,7 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
                 <p style="margin: 0; font-size: 14px; color: #44403C;"><strong style="color: #1C1917;">Amount due:</strong> ${amount}</p>
               </div>
               <div style="text-align: center; margin: 24px 0;">
-                <a href="${paymentUrl}" style="display: inline-block; background: #0C1220; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Complete Payment</a>
+                <a href="${paymentUrl}" style="display: inline-block; background: #0D9488; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Complete Payment</a>
               </div>
               <p style="font-size: 13px; color: #A8A29E; margin: 20px 0 0 0;">
                 If you're having trouble, ensure your card details are correct and you have sufficient funds. Need help? Just reply to this email.
@@ -106,6 +109,9 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
           </tr>
           <tr>
             <td style="padding: 24px 40px; border-top: 1px solid #F5F5F4; background: #FAFAF9;">
+              <p style="color: #A8A29E; font-size: 12px; text-align: center; margin: 0 0 6px 0;">
+                Made with care in Australia 🌤️
+              </p>
               <p style="color: #A8A29E; font-size: 12px; text-align: center; margin: 0 0 8px 0;">
                 <a href="${baseUrl}/privacy" style="color: #A8A29E; text-decoration: none;">Privacy</a>
                 <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>

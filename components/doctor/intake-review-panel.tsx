@@ -58,6 +58,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { toast } from "sonner"
 
 /**
@@ -95,18 +96,8 @@ function findClinicalNoteDraft(drafts: AIDraft[]): AIDraft | null {
   ) ?? null
 }
 
-// Decline reason templates (same as intake detail page)
-const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
-  { code: "requires_examination", label: "Requires in-person examination", template: "This condition requires a physical examination that cannot be conducted via telehealth. Please see your regular doctor or visit a clinic for an in-person assessment." },
-  { code: "not_telehealth_suitable", label: "Not suitable for telehealth", template: "Based on the information provided, this request is not suitable for an asynchronous telehealth consultation. Please book a video/phone consultation or see your regular doctor." },
-  { code: "prescribing_guidelines", label: "Against prescribing guidelines", template: "This request cannot be fulfilled as it does not align with current prescribing guidelines. Please discuss with your regular doctor who has access to your full medical history." },
-  { code: "controlled_substance", label: "Controlled substance request", template: "This medication is a controlled substance and cannot be prescribed via this telehealth service. Please see your regular doctor who can assess you in person." },
-  { code: "urgent_care_needed", label: "Requires urgent care", template: "Based on your symptoms, you may need more urgent assessment. Please visit your nearest emergency department or call 000 if experiencing a medical emergency." },
-  { code: "insufficient_info", label: "Insufficient information", template: "We need more information to safely assess your request. Please provide additional details about your condition and medical history, or see your regular doctor." },
-  { code: "patient_not_eligible", label: "Patient not eligible", template: "Based on the eligibility criteria, we are unable to process this request. Please see your regular doctor for assistance." },
-  { code: "outside_scope", label: "Outside scope of practice", template: "This request falls outside the scope of what can be safely managed via telehealth. Please consult with your regular doctor or an appropriate specialist." },
-  { code: "other", label: "Other reason", template: "" },
-]
+// Decline reasons imported from shared constants
+// See lib/doctor/constants.ts for the full list
 
 interface ReviewData {
   intake: IntakeWithDetails
@@ -260,20 +251,20 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   const isConcerningValue = (val: unknown): boolean => {
     if (!val) return false
     const str = String(val).toLowerCase().trim()
-    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "mild", "moderate", "low", "minimal", "minor"])
+    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "true", "mild", "moderate", "low", "minimal", "minor"])
     return !benign.has(str)
   }
 
+  // NOTE: emergency_symptoms is a safety-gate toggle ("I am NOT experiencing an emergency" → true),
+  // not an actual symptom field. Blocking happens at intake time, so it's excluded here.
   const hasRedFlags = Boolean(
     isConcerningValue(intakeAnswers?.red_flags_detected) ||
-    isConcerningValue(intakeAnswers?.emergency_symptoms) ||
     intake?.risk_tier === "high" ||
     intake?.requires_live_consult
   )
   const redFlagDetails = intake
     ? [
         isConcerningValue(intakeAnswers?.red_flags_detected) && `Red flags: ${intakeAnswers?.red_flags_detected}`,
-        isConcerningValue(intakeAnswers?.emergency_symptoms) && `Emergency symptoms: ${intakeAnswers?.emergency_symptoms}`,
         intake.risk_tier === "high" && "High risk tier",
         intake.requires_live_consult && "Requires live consult",
       ].filter(Boolean) as string[]
@@ -476,13 +467,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+        return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20"
       case "declined":
         return "bg-destructive/10 text-destructive"
       case "pending_info":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+        return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
       case "awaiting_script":
-        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-900/30 dark:text-dawn-300"
+        return "bg-dawn-50 dark:bg-dawn-500/10 text-dawn-700 dark:text-dawn-400 border-dawn-200 dark:border-dawn-500/20"
       default:
         return "bg-primary/10 text-primary"
     }
@@ -709,7 +700,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                   ? "Approved Clinical Note"
                   : "Clinical Notes (Private)"}
                 {isAiPrefilled && !["approved", "completed", "awaiting_script"].includes(intake.status) && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
                     AI Draft
                   </Badge>
                 )}
@@ -719,7 +710,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
               {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
                 <div className="space-y-2">
                   {intake.doctor_notes ? (
-                    <div className="p-3 bg-muted/50 rounded-lg border text-sm whitespace-pre-wrap">
+                    <div className="p-3 bg-card rounded-lg border border-border/50 text-sm whitespace-pre-wrap">
                       {intake.doctor_notes}
                     </div>
                   ) : (

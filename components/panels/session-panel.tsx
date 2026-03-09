@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { usePanel } from './panel-provider'
 import { sessionPanelVariants, backdropVariants } from '@/lib/motion/panel-variants'
@@ -41,6 +41,7 @@ export function SessionPanel({
   className
 }: SessionPanelProps) {
   const { closePanel } = usePanel()
+  const prefersReducedMotion = useReducedMotion()
 
   const handleClose = () => {
     onClose?.()
@@ -84,10 +85,10 @@ export function SessionPanel({
       {/* Backdrop - dimmed but not black */}
       <motion.div
         variants={backdropVariants}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
@@ -95,9 +96,9 @@ export function SessionPanel({
       {/* Panel - softly floating */}
       <motion.div
         variants={sessionPanelVariants}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
-        exit="exit"
+        exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(
           'relative w-full bg-background rounded-2xl shadow-2xl overflow-hidden',
           maxWidthClasses[maxWidth],

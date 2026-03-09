@@ -25,9 +25,9 @@ const TooltipContent = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         // Glass surface
-        "bg-white/90 dark:bg-white/10 backdrop-blur-xl",
+        "bg-card/90 dark:bg-white/10 backdrop-blur-xl",
         // Border
-        "border border-white/50 dark:border-white/15",
+        "border border-border/50 dark:border-white/15",
         // Shape
         "rounded-xl px-3 py-2 text-xs",
         // Glow shadow

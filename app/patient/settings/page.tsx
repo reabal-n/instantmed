@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { PatientSettingsClient } from "./settings-client"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 import { getEmailPreferences } from "@/app/actions/email-preferences"
@@ -12,7 +12,8 @@ export const metadata = {
 }
 
 export default async function PatientSettingsPage() {
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   // Decrypt sensitive fields before passing to client
   const profileWithDecryptedFields = {

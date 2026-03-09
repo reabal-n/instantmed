@@ -15,31 +15,31 @@ const faqCategories = [
     faqs: [
       {
         q: "What is InstantMed?",
-        a: "We're an Australian telehealth service that connects you with registered GPs for medical certificates and prescription renewals. You submit your request online, and a doctor reviews it. They may approve it, request more information, or recommend an in-person consultation if needed.",
+        a: "We\u2019re an Australian telehealth service that connects you with AHPRA-registered GPs for medical certificates, prescription renewals, and consultations. You fill in a quick form online, a real doctor reviews it, and you get your result \u2014 usually within a couple of hours.",
       },
       {
-        q: "Is this service legal and legitimate?",
-        a: "100% legitimate. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified doctors who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
+        q: "Is this actually legitimate?",
+        a: "Completely. Every doctor on InstantMed is AHPRA-registered and follows the same clinical standards as in-person consultations. You can verify any doctor\u2019s registration on the public AHPRA register. Same rules, same standards \u2014 just more convenient.",
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can\u2019t help you, you get a full refund.",
+        a: "Most requests are reviewed within 1\u20132 hours during our operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked. \u23F1\uFE0F",
       },
       {
         q: "How do I know if I need an in-person visit instead?",
-        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that\u2019s the case.",
+        a: "We\u2019re best for straightforward things \u2014 sick certificates for common illness, repeat prescriptions for stable conditions, and routine consultations. If something needs hands-on care, our doctors will let you know and recommend seeing a GP in person. That\u2019s the responsible thing to do. \uD83D\uDC4D",
       },
       {
         q: "How does the doctor decide on my request?",
-        a: "A real doctor reviews your symptoms, medical history, and request \u2014 just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
+        a: "The same way they would in a clinic. A real doctor reviews your symptoms, history, and request. If it\u2019s safe and clinically appropriate, they approve it. If not, they\u2019ll ask for more info, suggest alternatives, or point you toward in-person care.",
       },
       {
         q: "Why was my request declined?",
-        a: "Doctors decline requests when approving them wouldn't be safe or appropriate \u2014 like when a physical exam is needed, or when symptoms suggest something more serious. It's not personal. It's a doctor doing their job properly. You get a full refund if we can't help you.",
+        a: "It usually means the doctor felt an in-person assessment would be safer \u2014 for example, if symptoms suggest something that needs a physical exam. It\u2019s not personal, it\u2019s good medicine. You\u2019ll always get a full refund if we can\u2019t help.",
       },
       {
         q: "Will a doctor call me?",
-        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care \u2014 it\u2019s a feature, not a bug.",
+        a: "Most requests are handled online without a call. But if the doctor needs to clarify something or has a clinical concern, they may reach out by phone or message. Think of it as your doctor being thorough \u2014 it\u2019s a good sign. \uD83E\uDE7A",
       },
     ],
   },
@@ -48,19 +48,19 @@ const faqCategories = [
     faqs: [
       {
         q: "Will my employer actually accept this?",
-        a: "Yes. Our medical certificates are issued by registered Australian doctors and are legally valid for all workplaces, universities, and Centrelink. They're identical in validity to certificates issued in-person.",
+        a: "Yes \u2014 our certificates are issued by registered Australian doctors and are legally valid for all workplaces, universities, and Centrelink. They carry the same weight as a certificate from an in-person visit.",
       },
       {
         q: "Can I get a backdated certificate?",
-        a: "We can issue certificates for recent illness (within the last few days) if clinically appropriate based on your symptoms and history. The doctor makes the final decision on what dates are appropriate. We cannot backdate certificates for extended periods.",
+        a: "We can cover recent illness (within the last few days) if it makes clinical sense based on your symptoms and history. The doctor has the final say on dates \u2014 they\u2019ll work with you to get it right.",
       },
       {
         q: "What if my request is declined?",
-        a: "If the doctor determines a certificate isn\u2019t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a doctor in person for a more thorough assessment.",
+        a: "You\u2019ll get a full refund within 3\u20135 business days. The doctor may also explain why and suggest an alternative, like an in-person visit for a more thorough assessment.",
       },
       {
         q: "What if I need more than 2 days off?",
-        a: "For extended sick leave, the doctor may need additional information or recommend an in-person consultation depending on your condition. They'll let you know the best path forward.",
+        a: "For longer absences, the doctor may need a bit more detail about your condition or recommend an in-person visit. They\u2019ll guide you on the best next step.",
       },
     ],
   },
@@ -69,19 +69,19 @@ const faqCategories = [
     faqs: [
       {
         q: "What medications can you prescribe?",
-        a: "We can prescribe repeat medications for stable, ongoing conditions where you have an established treatment history. This includes common medications like blood pressure tablets, cholesterol medication, contraceptives, and more. We cannot prescribe: Schedule 8 controlled substances (opioids, ADHD meds, benzodiazepines), certain antibiotics, or medications requiring physical examination.",
+        a: "We focus on repeat medications for stable, ongoing conditions \u2014 things like blood pressure tablets, cholesterol medication, contraceptives, and similar. Some medications need in-person care first (like controlled substances or brand-new prescriptions), and we think that\u2019s the right call.",
       },
       {
         q: "What if my prescription request is declined?",
-        a: "If the doctor determines a prescription isn\u2019t clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it\u2019s a new medication, or there are potential interactions with your other medications.",
+        a: "You\u2019ll get a full refund. The doctor may suggest alternatives or recommend an in-person visit \u2014 common reasons include needing physical monitoring or potential interactions with other medications.",
       },
       {
         q: "How do I receive my prescription?",
-        a: "We use electronic prescribing (eRx). If approved, you'll receive an SMS with a token that you can present at any pharmacy in Australia. No paper script needed.",
+        a: "Via eScript \u2014 you\u2019ll get an SMS with a token you can show at any pharmacy in Australia. No paper script needed, just your phone. \uD83D\uDC4D",
       },
       {
         q: "Can you send it to my usual pharmacy?",
-        a: "Absolutely. Just nominate your preferred pharmacy and we'll send it directly to them if your prescription is approved.",
+        a: "Absolutely. Nominate your preferred pharmacy and we\u2019ll send it directly to them.",
       },
     ],
   },
@@ -90,15 +90,15 @@ const faqCategories = [
     faqs: [
       {
         q: "Is my information secure?",
-        a: "Bank-level secure. We use 256-bit SSL encryption for all data transmission and storage. Your medical information is stored in Australia and complies with the Privacy Act 1988 and Australian Privacy Principles.",
+        a: "Your medical info is encrypted, stored in Australia, and fully compliant with the Privacy Act and Australian Privacy Principles. We take data security seriously \u2014 it\u2019s not an afterthought.",
       },
       {
         q: "Do you share my data with anyone?",
-        a: "Never. We don\u2019t sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
+        a: "Your data is yours. We don\u2019t sell or share it with third parties. The only exceptions are things you\u2019d expect \u2014 sending prescriptions to your nominated pharmacy, and complying with legal requirements like mandatory disease reporting.",
       },
       {
         q: "Can I delete my account?",
-        a: "Yes, you can request full deletion of your account and data at any time. Note that we\u2019re legally required to retain medical records for 7 years as per Australian healthcare regulations.",
+        a: "Yes, just get in touch and we\u2019ll handle it. The only caveat: we\u2019re legally required to retain medical records for 7 years under Australian healthcare regulations.",
       },
     ],
   },
@@ -107,15 +107,15 @@ const faqCategories = [
     faqs: [
       {
         q: "What payment methods do you accept?",
-        a: "Visa, Mastercard, American Express, and digital wallets including Apple Pay and Google Pay. All payments are processed securely via Stripe. We don\u2019t store your card details.",
+        a: "Visa, Mastercard, Amex, Apple Pay, and Google Pay. Payments are processed securely via Stripe \u2014 we never see or store your card details.",
       },
       {
-        q: "What's your refund policy?",
-        a: "If we\u2019re unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
+        q: "What\u2019s your refund policy?",
+        a: "If we can\u2019t help you \u2014 for example, if your request is declined for clinical reasons \u2014 you get a full refund within 3\u20135 business days. No hoops, no hassle.",
       },
       {
-        q: "Is there a Medicare rebate for the consultation?",
-        a: "Our consultation fees aren't covered by Medicare as they\u2019re a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
+        q: "Is there a Medicare rebate?",
+        a: "Our consultation fees aren\u2019t covered by Medicare as we\u2019re a private telehealth service. That said, any prescriptions you receive can still attract PBS subsidies at the pharmacy.",
       },
     ],
   },

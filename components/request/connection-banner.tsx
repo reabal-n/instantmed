@@ -7,7 +7,7 @@
  * Appears at top of request flow when offline.
  */
 
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { WifiOff, CloudOff, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useConnectionStatus } from "@/hooks/use-connection-status"
@@ -18,12 +18,13 @@ interface ConnectionBannerProps {
 
 export function ConnectionBanner({ className }: ConnectionBannerProps) {
   const { isOnline, pendingCount, isSyncing, syncPending } = useConnectionStatus()
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <AnimatePresence>
       {!isOnline && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className={className}
@@ -49,7 +50,7 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
       
       {isOnline && pendingCount > 0 && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className={className}
@@ -100,17 +101,17 @@ export function ConnectionIndicator() {
   return (
     <div className="flex items-center gap-1.5">
       {!isOnline ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30">
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-500/20">
           <WifiOff className="w-3 h-3 text-amber-600" />
           <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Offline</span>
         </div>
       ) : isSyncing ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30">
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
           <RefreshCw className="w-3 h-3 text-blue-600 animate-spin" />
           <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Syncing</span>
         </div>
       ) : pendingCount > 0 ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30">
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
           <CloudOff className="w-3 h-3 text-blue-600" />
           <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{pendingCount}</span>
         </div>

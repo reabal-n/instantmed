@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
@@ -34,8 +34,9 @@ export function FormStepper({
   sticky = true,
   className,
 }: FormStepperProps) {
-  const progress = steps.length > 1 
-    ? (currentStep / (steps.length - 1)) * 100 
+  const prefersReducedMotion = useReducedMotion()
+  const progress = steps.length > 1
+    ? (currentStep / (steps.length - 1)) * 100
     : 100
 
   return (
@@ -60,9 +61,9 @@ export function FormStepper({
             {/* Animated progress line */}
             <motion.div
               className="absolute top-4 left-4 h-0.5 bg-primary rounded-full"
-              initial={{ width: 0 }}
+              initial={prefersReducedMotion ? false : { width: 0 }}
               animate={{ width: `calc(${progress}% - 16px)` }}
-              transition={spring.smooth}
+              transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
             />
 
             {steps.map((step, index) => {
@@ -83,27 +84,27 @@ export function FormStepper({
                       isCurrent && 'bg-primary text-primary-foreground ring-4 ring-primary/20',
                       isPending && 'bg-surface-elevated border border-border text-muted-foreground'
                     )}
-                    animate={{ scale: isCurrent ? 1.1 : 1 }}
-                    transition={spring.snappy}
+                    animate={prefersReducedMotion ? {} : { scale: isCurrent ? 1.1 : 1 }}
+                    transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
                   >
                     <AnimatePresence mode="wait">
                       {isCompleted ? (
                         <motion.div
                           key="check"
-                          initial={{ scale: 0, rotate: -90 }}
+                          initial={prefersReducedMotion ? false : { scale: 0, rotate: -90 }}
                           animate={{ scale: 1, rotate: 0 }}
-                          exit={{ scale: 0 }}
-                          transition={spring.snappy}
+                          exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
                         >
                           <Check className="w-4 h-4" />
                         </motion.div>
                       ) : (
                         <motion.span
                           key="number"
-                          initial={{ scale: 0 }}
+                          initial={prefersReducedMotion ? false : { scale: 0 }}
                           animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                          transition={spring.snappy}
+                          exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
                         >
                           {index + 1}
                         </motion.span>
@@ -114,7 +115,7 @@ export function FormStepper({
                   {/* Step label */}
                   <motion.div
                     className="mt-2 text-center"
-                    animate={{ opacity: isCurrent ? 1 : 0.7 }}
+                    animate={prefersReducedMotion ? {} : { opacity: isCurrent ? 1 : 0.7 }}
                   >
                     <span
                       className={cn(
@@ -138,9 +139,9 @@ export function FormStepper({
               <motion.div
                 className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
                 key={currentStep}
-                initial={{ scale: 0.8 }}
+                initial={prefersReducedMotion ? false : { scale: 0.8 }}
                 animate={{ scale: 1 }}
-                transition={spring.snappy}
+                transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
               >
                 {currentStep + 1}
               </motion.div>
@@ -148,10 +149,10 @@ export function FormStepper({
                 <motion.span
                   key={currentStep}
                   className="text-sm font-medium text-foreground"
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                 >
                   {steps[currentStep]?.title}
                 </motion.span>
@@ -166,9 +167,9 @@ export function FormStepper({
           <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full relative"
-              initial={{ width: 0 }}
+              initial={prefersReducedMotion ? false : { width: 0 }}
               animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-              transition={spring.smooth}
+              transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
             >
               {/* Shimmer effect */}
               <div className="absolute inset-0 overflow-hidden">
@@ -186,8 +187,8 @@ export function FormStepper({
                   'w-1.5 h-1.5 rounded-full transition-colors',
                   index <= currentStep ? 'bg-primary' : 'bg-border'
                 )}
-                animate={{ scale: index === currentStep ? 1.5 : 1 }}
-                transition={spring.snappy}
+                animate={prefersReducedMotion ? {} : { scale: index === currentStep ? 1.5 : 1 }}
+                transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
               />
             ))}
           </div>
@@ -208,6 +209,8 @@ interface MiniStepperProps {
 }
 
 export function MiniStepper({ total, current, className }: MiniStepperProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn('flex items-center gap-1.5', className)}>
       {Array.from({ length: total }).map((_, index) => (
@@ -215,17 +218,17 @@ export function MiniStepper({ total, current, className }: MiniStepperProps) {
           key={index}
           className={cn(
             'h-1 rounded-full transition-all duration-300',
-            index === current 
-              ? 'w-6 bg-primary' 
-              : index < current 
-                ? 'w-1.5 bg-primary/60' 
+            index === current
+              ? 'w-6 bg-primary'
+              : index < current
+                ? 'w-1.5 bg-primary/60'
                 : 'w-1.5 bg-border'
           )}
-          animate={{ 
+          animate={prefersReducedMotion ? {} : {
             width: index === current ? 24 : 6,
             opacity: index <= current ? 1 : 0.5,
           }}
-          transition={spring.snappy}
+          transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
         />
       ))}
     </div>
@@ -252,13 +255,15 @@ interface CompactStepperProps {
  * Compact progress indicator with animated dots.
  * Use this in headers or tight spaces where FormStepper is too large.
  */
-export function CompactStepper({ 
-  current, 
-  total, 
+export function CompactStepper({
+  current,
+  total,
   labels,
   showCounter = true,
-  className 
+  className
 }: CompactStepperProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   // Calculate progress bar width based on current step
   const calculateProgressWidth = () => {
     if (total <= 1) return '24px'
@@ -277,7 +282,7 @@ export function CompactStepper({
               key={index}
               className={cn(
                 'w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300',
-                index <= current ? 'bg-primary' : 'bg-gray-300 dark:bg-white/20'
+                index <= current ? 'bg-primary' : 'bg-border'
               )}
               aria-label={labels?.[index]}
             />
@@ -285,13 +290,13 @@ export function CompactStepper({
           
           {/* Animated progress overlay */}
           <motion.div
-            initial={{ width: '12px' }}
+            initial={prefersReducedMotion ? false : { width: '12px' }}
             animate={{ width: calculateProgressWidth() }}
             className="absolute -left-[6px] top-1/2 -translate-y-1/2 h-2 bg-primary rounded-full"
-            transition={spring.snappy}
+            transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
           />
         </div>
-        
+
         {/* Step counter */}
         {showCounter && (
           <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">

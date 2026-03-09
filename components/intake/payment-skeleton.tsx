@@ -38,18 +38,18 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
       </div>
 
       {/* Skeleton order summary */}
-      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 overflow-hidden shadow-sm">
+      <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 overflow-hidden shadow-sm">
         <div className="p-5 space-y-4">
           {/* Skeleton lines */}
           <div className="flex items-center justify-between">
-            <div className="h-4 w-32 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
-            <div className="h-4 w-16 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-16 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
           </div>
-          <div className="h-3 w-48 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
-          <div className="border-t border-white/40 dark:border-white/10 pt-4">
+          <div className="h-3 w-48 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
+          <div className="border-t border-border/40 dark:border-white/10 pt-4">
             <div className="flex items-center justify-between">
-              <div className="h-5 w-12 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
-              <div className="h-8 w-20 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
+              <div className="h-5 w-12 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
+              <div className="h-8 w-20 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Lock className="w-3.5 h-3.5" />
           <span>256-bit encryption</span>
-          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <span className="text-muted-foreground/60">•</span>
           <Shield className="w-3.5 h-3.5" />
           <span>Secure checkout</span>
         </div>
@@ -99,7 +99,7 @@ export function PaymentRedirectOverlay() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-white/10 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-card/95 dark:bg-white/10 backdrop-blur-sm"
     >
       <div className="text-center px-4">
         <motion.div
@@ -123,7 +123,7 @@ export function PaymentRedirectOverlay() {
         </p>
         
         {/* Animated progress bar */}
-        <div className="w-64 h-1.5 mx-auto bg-white/40 dark:bg-white/10 rounded-full overflow-hidden">
+        <div className="w-64 h-1.5 mx-auto bg-card/40 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}

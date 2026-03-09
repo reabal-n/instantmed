@@ -83,7 +83,7 @@ export function SummaryPayment({
       </div>
 
       {/* Summary card */}
-      <div className="rounded-2xl border border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl divide-y divide-border/50">
+      <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5 backdrop-blur-xl divide-y divide-border/50">
         {/* Request type */}
         <div className="p-4">
           <SummaryRow label="Request type" value={config.name} />
@@ -154,7 +154,7 @@ export function SummaryPayment({
       </div>
 
       {/* AI disclosure */}
-      <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 border border-blue-100 dark:border-blue-900/50">
+      <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 border border-blue-100 dark:border-blue-800">
         <span className="font-medium text-blue-700 dark:text-blue-400">How we process your request:</span>{" "}
         Your information will be summarized by AI to help the doctor review your request efficiently. 
         The doctor makes all clinical decisions.

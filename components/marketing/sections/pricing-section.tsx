@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Check, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -61,11 +61,13 @@ export function PricingSection({
   showComparisonTable = false,
   className,
 }: PricingSectionProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <section id="pricing" className={cn('py-16 lg:py-24', className)}>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-10"
@@ -79,7 +81,7 @@ export function PricingSection({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className={cn('rounded-2xl p-8 lg:p-10 border-2 text-center', colors.light, colors.border)}
@@ -156,15 +158,17 @@ export function PricingSection({
 // ---------------------------------------------------------------------------
 
 function ComparisonTable() {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className="mt-12"
     >
       <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
-      <div className="overflow-x-auto rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg">
+      <div className="overflow-x-auto rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-lg">
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-border/50">

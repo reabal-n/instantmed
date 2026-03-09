@@ -43,7 +43,7 @@ export function FieldRenderer({
       {type !== "toggle" && (
         <Label
           htmlFor={id}
-          className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+          className="block text-sm font-medium text-foreground mb-1.5"
         >
           {label}
           {field.validation?.required && (
@@ -54,7 +54,7 @@ export function FieldRenderer({
 
       {/* Description */}
       {description && type !== "toggle" && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{description}</p>
+        <p className="text-xs text-muted-foreground mb-2">{description}</p>
       )}
 
       {/* Field */}
@@ -134,12 +134,12 @@ function renderField(type: string, props: FieldInternals) {
           <div className="flex-1">
             <Label
               htmlFor={props.id}
-              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="text-sm font-medium text-foreground"
             >
               {props.label}
             </Label>
             {props.description && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {props.description}
               </p>
             )}
@@ -227,14 +227,14 @@ function OptionCards({
               "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
               isActive
                 ? "border-emerald-500 bg-emerald-50 shadow-sm dark:border-emerald-400 dark:bg-emerald-950/30"
-                : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
+                : "border-border bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
-            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+            <span className="text-sm font-medium text-foreground">
               {opt.label}
             </span>
             {opt.description && (
-              <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <span className="block text-xs text-muted-foreground mt-0.5">
                 {opt.description}
               </span>
             )}
@@ -264,7 +264,7 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
               "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
               isActive
                 ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/30"
-                : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
+                : "border-border bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
             <input
@@ -278,7 +278,7 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
             <span
               className={cn(
                 "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                isActive ? "border-emerald-500 dark:border-emerald-400" : "border-slate-300 dark:border-slate-600"
+                isActive ? "border-emerald-500 dark:border-emerald-400" : "border-border"
               )}
             >
               {isActive && (
@@ -286,11 +286,11 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
               )}
             </span>
             <div>
-              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+              <span className="text-sm font-medium text-foreground">
                 {opt.label}
               </span>
               {opt.description && (
-                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <span className="block text-xs text-muted-foreground mt-0.5">
                   {opt.description}
                 </span>
               )}

@@ -53,7 +53,7 @@ import {
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
 import { toast } from "sonner"
-import type { IntakeStatus } from "@/types/db"
+import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { cn } from "@/lib/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
@@ -83,13 +83,14 @@ export function QueueClient({
   const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
-  const [newIntakeCount, setNewIntakeCount] = useState(0)
+  const [declineTemplatesLoaded, setDeclineTemplatesLoaded] = useState(false)
+  const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
   const lastSyncTimeRef = useRef<Date>(new Date())
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
   const listId = useId()
 
-  // Real-time subscription
+  // Real-time subscription — client-side state updates (no router.refresh on INSERT)
   useEffect(() => {
     const supabase = createClient()
     const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
@@ -99,6 +100,11 @@ export function QueueClient({
         setIsStale(true)
       }
     }, 30000)
+
+    // Background soft-refresh every 60s to catch missed updates
+    const softRefreshInterval: NodeJS.Timeout = setInterval(() => {
+      router.refresh()
+    }, 60000)
 
     const channel = supabase
       .channel("queue-updates")
@@ -115,17 +121,22 @@ export function QueueClient({
           setIsStale(false)
 
           if (payload.eventType === "INSERT") {
-            const newPatientName = (payload.new as { patient_name?: string }).patient_name
-            const serviceData = (payload.new as { service?: { short_name?: string } }).service
+            const newRow = payload.new as IntakeWithPatient
+            const serviceData = newRow.service as { short_name?: string } | undefined
             const serviceName = serviceData?.short_name || "New request"
+            const patientName = newRow.patient?.full_name
             toast.info(
-              newPatientName
-                ? `${serviceName} from ${newPatientName}`
+              patientName
+                ? `${serviceName} from ${patientName}`
                 : `${serviceName} added to queue`,
               { duration: 5000 }
             )
-            setNewIntakeCount(c => c + 1)
-            router.refresh()
+            // Add directly to local state — no full page refresh needed
+            setIntakes((prev) => {
+              // Avoid duplicates if real-time fires twice
+              if (prev.some((r) => r.id === newRow.id)) return prev
+              return [newRow, ...prev]
+            })
           } else if (payload.eventType === "UPDATE") {
             setIntakes((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
           } else if (payload.eventType === "DELETE") {
@@ -147,6 +158,7 @@ export function QueueClient({
     return () => {
       supabase.removeChannel(channel)
       clearInterval(staleCheckInterval)
+      clearInterval(softRefreshInterval)
     }
   }, [router])
 
@@ -227,15 +239,29 @@ export function QueueClient({
     })
   }
 
-  // Fetch templates on mount
+  // Lazy-load decline templates only when dialog opens
   useEffect(() => {
-    getDeclineReasonTemplatesAction().then((result) => {
-      if (result.success && result.templates) setDeclineTemplates(result.templates)
-    })
-    getInfoRequestTemplatesAction().then((result) => {
-      if (result.success && result.templates) setInfoTemplates(result.templates)
-    })
-  }, [])
+    if (declineDialog && !declineTemplatesLoaded) {
+      getDeclineReasonTemplatesAction().then((result) => {
+        if (result.success && result.templates) {
+          setDeclineTemplates(result.templates)
+          setDeclineTemplatesLoaded(true)
+        }
+      })
+    }
+  }, [declineDialog, declineTemplatesLoaded])
+
+  // Lazy-load info templates only when dialog opens
+  useEffect(() => {
+    if (infoDialog && !infoTemplatesLoaded) {
+      getInfoRequestTemplatesAction().then((result) => {
+        if (result.success && result.templates) {
+          setInfoTemplates(result.templates)
+          setInfoTemplatesLoaded(true)
+        }
+      })
+    }
+  }, [infoDialog, infoTemplatesLoaded])
 
   const selectedTemplate = declineTemplates.find(t => t.code === declineReasonCode)
   const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
@@ -354,7 +380,7 @@ export function QueueClient({
         >
           <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-amber-800 dark:text-amber-200">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
               {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
             </p>
           </div>
@@ -362,34 +388,7 @@ export function QueueClient({
             variant="outline"
             size="sm"
             onClick={() => router.refresh()}
-            className="shrink-0 h-7 text-[12px]"
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Refresh
-          </Button>
-        </div>
-      )}
-
-      {/* New Intakes Banner */}
-      {newIntakeCount > 0 && (
-        <div
-          role="status"
-          className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20"
-        >
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-            </span>
-            <p className="text-sm font-medium text-foreground">
-              {newIntakeCount} new {newIntakeCount === 1 ? "request" : "requests"} arrived
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { setNewIntakeCount(0); router.refresh() }}
-            className="h-7 text-xs"
+            className="shrink-0 h-7 text-xs"
           >
             <RefreshCw className="h-3 w-3 mr-1" />
             Refresh
@@ -407,7 +406,7 @@ export function QueueClient({
             placeholder="Search patients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-56 h-8 text-[13px]"
+            className="w-full sm:w-56 h-8 text-sm"
             startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
           />
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.refresh()}>
@@ -461,7 +460,7 @@ export function QueueClient({
                           {service?.short_name || formatServiceType(service?.type || "")}
                         </Badge>
                         {intake.is_priority && (
-                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700">
+                          <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
                             <Zap className="w-3 h-3 mr-1" />
                             Priority
                           </Badge>
@@ -473,7 +472,7 @@ export function QueueClient({
                           </Badge>
                         )}
                         {intake.ai_draft_status === "completed" && (
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                          <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
                             <Sparkles className="w-3 h-3 mr-1" />
                             AI ready
                           </Badge>

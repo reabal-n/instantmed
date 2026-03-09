@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
@@ -37,6 +37,7 @@ export function TotalPatientsCounter({
 }: TotalPatientsCounterProps) {
   const mounted = useHasMounted()
   const count = usePatientCount()
+  const prefersReducedMotion = useReducedMotion()
 
   if (!mounted) return null
 
@@ -111,7 +112,7 @@ export function TotalPatientsCounter({
         </div>
         <p className="text-lg text-muted-foreground">{label}</p>
         {showGrowth && (
-          <p className="text-sm text-emerald-600 mt-1 flex items-center justify-center gap-1">
+          <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1 flex items-center justify-center gap-1">
             <TrendingUp className="w-4 h-4" />
             Growing every day
           </p>
@@ -123,9 +124,10 @@ export function TotalPatientsCounter({
   // Card variant (boxed display)
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
       className={cn(
         'rounded-2xl border border-border bg-card p-6 text-center',
         className

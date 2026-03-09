@@ -56,8 +56,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const totalDocs = certificates.length + receipts.length
 
   return (
-    <div className="space-y-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="container max-w-6xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>
@@ -75,10 +74,10 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
 
           {/* Error State */}
           {error && (
-            <Card className="border-red-200 bg-red-50 mb-6">
+            <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 mb-6">
               <CardContent className="flex items-center gap-3 py-4">
-                <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -98,12 +97,12 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
             </Card>
           ) : (
             <Tabs defaultValue="certificates" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="certificates" className="gap-2">
+              <TabsList className="w-full">
+                <TabsTrigger value="certificates" className="flex-1 gap-2">
                   <FileText className="h-4 w-4" />
                   Certificates ({certificates.length})
                 </TabsTrigger>
-                <TabsTrigger value="receipts" className="gap-2">
+                <TabsTrigger value="receipts" className="flex-1 gap-2">
                   <Receipt className="h-4 w-4" />
                   Receipts ({receipts.length})
                 </TabsTrigger>
@@ -121,8 +120,8 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                     <Card key={cert.id}>
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-lg bg-blue-50">
-                            <FileText className="h-5 w-5 text-blue-600" />
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+                            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <p className="font-medium">{cert.serviceName}</p>
@@ -164,8 +163,8 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                     <Card key={receipt.id}>
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-lg bg-emerald-50">
-                            <Receipt className="h-5 w-5 text-emerald-600" />
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
+                            <Receipt className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
                             <p className="font-medium">{receipt.serviceName}</p>
@@ -202,6 +201,5 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
             </Tabs>
           )}
         </div>
-    </div>
   )
 }

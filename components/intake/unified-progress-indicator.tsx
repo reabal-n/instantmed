@@ -42,7 +42,7 @@ export function UnifiedProgressIndicator({
             key={step}
             className={cn(
               "w-2 h-2 rounded-full relative z-10 transition-colors duration-300",
-              step <= currentStep ? "bg-white" : "bg-gray-300"
+              step <= currentStep ? "bg-white" : "bg-border"
             )}
           />
         ))}

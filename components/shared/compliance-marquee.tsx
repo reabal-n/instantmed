@@ -37,12 +37,12 @@ export function ComplianceMarquee({
 
   return (
     <div className={cn(
-      "relative overflow-hidden bg-white/60 dark:bg-white/5 border-y border-white/50 dark:border-white/10 py-3",
+      "relative overflow-hidden bg-card/60 dark:bg-white/5 border-y border-border/50 dark:border-white/10 py-3",
       className
     )}>
       {/* Gradient fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-100 dark:from-slate-900 to-transparent z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-100 dark:from-slate-900 to-transparent z-10" />
+      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-muted dark:from-background to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-muted dark:from-background to-transparent z-10" />
 
       {/* Marquee content - duplicated for seamless loop */}
       <div className="flex whitespace-nowrap">
@@ -59,7 +59,7 @@ export function ComplianceMarquee({
             >
               <item.icon className={cn(
                 "w-4 h-4 shrink-0",
-                item.highlight ? "text-emerald-600" : "text-primary"
+                item.highlight ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
               )} />
               <span>{item.text}</span>
             </div>
@@ -78,7 +78,7 @@ export function ComplianceBar({ className }: { className?: string }) {
 
   return (
     <div className={cn(
-      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-white/50 dark:bg-white/5 border-y border-white/50 dark:border-white/10",
+      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-card/50 dark:bg-white/5 border-y border-border/50 dark:border-white/10",
       className
     )}>
       {keyItems.map((item, i) => (
@@ -93,7 +93,7 @@ export function ComplianceBar({ className }: { className?: string }) {
         >
           <item.icon className={cn(
             "w-4 h-4 shrink-0",
-            item.highlight ? "text-emerald-600" : "text-primary"
+            item.highlight ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
           )} />
           <span>{item.text}</span>
         </div>
@@ -112,7 +112,7 @@ export function TrustStrip({ className }: { className?: string }) {
       className
     )}>
       <div className="flex items-center gap-1.5">
-        <Shield className="w-3.5 h-3.5 text-emerald-600" />
+        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         <span>AHPRA Verified</span>
       </div>
       <span className="text-muted-foreground/30">|</span>

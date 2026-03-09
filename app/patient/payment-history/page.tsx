@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -13,7 +13,8 @@ export const metadata = {
 }
 
 export default async function PaymentHistoryPage() {
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -24,7 +25,7 @@ export default async function PaymentHistoryPage() {
             Back
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">Payment History</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Payment History</h1>
       </div>
 
       <PaymentHistoryContent patientId={authUser.profile.id} />

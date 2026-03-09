@@ -32,7 +32,7 @@ export function PrescriptionApprovedEmail({
 }: PrescriptionApprovedEmailProps) {
   return (
     <BaseEmail
-      previewText={`Your ${medicationName} prescription has been approved`}
+      previewText={`Your ${medicationName} prescription has been approved ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Prescription approved" />
@@ -40,7 +40,7 @@ export function PrescriptionApprovedEmail({
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Great news -- your doctor has reviewed and approved your prescription for{" "}
+        Great news — your doctor has reviewed and approved your prescription for{" "}
         <strong>{medicationName}</strong>.
       </Text>
 
@@ -84,7 +84,7 @@ export function PrescriptionApprovedEmail({
       <Text muted small>
         Questions about your prescription? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

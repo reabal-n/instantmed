@@ -31,7 +31,7 @@ export function ScriptSentEmail({
 }: ScriptSentEmailProps) {
   return (
     <BaseEmail
-      previewText="Your eScript has been sent to your phone"
+      previewText="Your eScript has been sent to your phone ✅"
       appUrl={appUrl}
     >
       <SuccessBanner title="Your eScript has been sent" />
@@ -84,7 +84,7 @@ export function ScriptSentEmail({
       <Text muted small>
         Questions? Just reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

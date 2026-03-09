@@ -35,8 +35,8 @@ export function AvailabilityIndicator({
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
         isActive 
-          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-          : "bg-white/60 text-slate-600 dark:bg-white/5 dark:text-slate-400",
+          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+          : "bg-card/60 text-muted-foreground dark:bg-white/5",
         className
       )}>
         {isActive && (
@@ -55,15 +55,15 @@ export function AvailabilityIndicator({
       <div className={cn(
         "flex items-center gap-3 p-3 rounded-lg border",
         isActive 
-          ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800"
-          : "bg-white/60 border-white/50 dark:bg-white/5 dark:border-white/10",
+          ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20"
+          : "bg-card/60 border-border/50 dark:bg-white/5 dark:border-white/10",
         className
       )}>
         <div className={cn(
           "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
           isActive 
-            ? "bg-emerald-100 dark:bg-emerald-900/50"
-            : "bg-white/60 dark:bg-white/10"
+            ? "bg-emerald-100 dark:bg-emerald-500/20"
+            : "bg-card/60 dark:bg-white/10"
         )}>
           {isActive ? (
             <span className="relative flex h-3 w-3">
@@ -71,7 +71,7 @@ export function AvailabilityIndicator({
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
             </span>
           ) : (
-            <span className="w-3 h-3 rounded-full bg-slate-400" />
+            <span className="w-3 h-3 rounded-full bg-muted-foreground/60" />
           )}
         </div>
         <div>

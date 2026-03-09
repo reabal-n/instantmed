@@ -11,7 +11,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { usePostHog } from "posthog-js/react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { 
   FileText, 
   Pill, 
@@ -101,6 +101,7 @@ const CONSULT_SUBTYPES = [
 export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   const router = useRouter()
   const posthog = usePostHog()
+  const prefersReducedMotion = useReducedMotion()
   const [drafts, setDrafts] = useState<DraftData[]>([])
   const [showConsultSubtypes, setShowConsultSubtypes] = useState(false)
   const [lastServiceType, setLastServiceType] = useState<string | null>(null)
@@ -186,7 +187,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           {drafts.map((draft) => (
             <motion.div
               key={draft.serviceType}
-              initial={{ opacity: 0, y: -20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
@@ -225,7 +226,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         <AnimatePresence>
           {lastServiceType && drafts.length === 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
             >
@@ -303,10 +304,10 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             <AnimatePresence>
               {showConsultSubtypes && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
+                  initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   className="overflow-hidden"
                 >
                   <div className="pt-4 mt-4 border-t border-border/50 space-y-2">
@@ -381,25 +382,27 @@ interface ServiceCardProps {
   index: number
 }
 
-function ServiceCard({ 
-  icon: Icon, 
-  title, 
-  description, 
+function ServiceCard({
+  icon: Icon,
+  title,
+  description,
   badge,
   price,
   pricePrefix = "From",
   popularBadge,
-  onClick, 
+  onClick,
   expanded,
   children,
   index,
   testId,
 }: ServiceCardProps & { testId?: string }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.3, delay: prefersReducedMotion ? 0 : index * 0.1 }}
     >
       <button 
         type="button"

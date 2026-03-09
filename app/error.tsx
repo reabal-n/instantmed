@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { fadeIn, slideUp } from "@/components/ui/animations"
-import * as Sentry from "@sentry/nextjs"
+// Sentry import removed — dynamic import in useEffect to avoid module factory race condition.
+// Sentry auto-captures unhandled errors via instrumentation-client.ts anyway.
 
 const log = createLogger("error")
 
@@ -47,18 +48,41 @@ export default function Error({
 }) {
   const [retryCount, setRetryCount] = useState(0)
   const maxRetries = 3
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     // Auto-recover from ChunkLoadError (stale chunks after deployment)
     if (error.name === "ChunkLoadError" || error.message?.includes("Loading chunk")) {
-      const key = "chunk-reload-" + window.location.pathname
-      const lastReload = sessionStorage.getItem(key)
-      const now = Date.now()
-      // Only auto-reload once per path within 60 seconds to prevent loops
-      if (!lastReload || now - Number(lastReload) > 60_000) {
-        sessionStorage.setItem(key, String(now))
-        window.location.reload()
-        return
+      try {
+        const key = "chunk-reload-" + window.location.pathname
+        const lastReload = sessionStorage.getItem(key)
+        const now = Date.now()
+        // Only auto-reload once per path within 60 seconds to prevent loops
+        if (!lastReload || now - Number(lastReload) > 60_000) {
+          sessionStorage.setItem(key, String(now))
+          window.location.reload()
+          return
+        }
+      } catch {
+        // sessionStorage may be unavailable
+      }
+    }
+
+    // Dev-only: auto-recover from webpack chunk factory race condition (Next.js #70703).
+    // Async script loading can resolve modules before factories are registered, causing
+    // "Cannot read properties of undefined (reading 'call')". A single reload fixes it.
+    if (process.env.NODE_ENV === "development" && error.message?.includes("reading 'call'")) {
+      try {
+        const key = "webpack-race-reload-" + window.location.pathname
+        const lastReload = sessionStorage.getItem(key)
+        const now = Date.now()
+        if (!lastReload || now - Number(lastReload) > 30_000) {
+          sessionStorage.setItem(key, String(now))
+          window.location.reload()
+          return
+        }
+      } catch {
+        // fall through to error UI
       }
     }
 
@@ -76,45 +100,49 @@ export default function Error({
       retryCount,
     })
 
-    // Capture to Sentry with structured context
+    // Capture to Sentry with structured context (dynamic import to avoid module factory race)
     const appArea = getAppAreaFromPathname(pathname)
     const e2eCookies = getSafeE2ECookies()
     const isPlaywright = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1"
 
-    const eventId = Sentry.captureException(error, {
-      tags: {
-        boundary: "error",
-        app_area: appArea,
-        ...(isPlaywright && { playwright: "1" }),
-        ...(e2eCookies.__e2e_run_id && { e2e_run_id: e2eCookies.__e2e_run_id }),
-        ...(e2eCookies.__e2e_auth_role && { user_role: e2eCookies.__e2e_auth_role }),
-      },
-      extra: {
-        digest: error.digest,
-        pathname,
-        searchParams,
-        retryCount,
-        ...(isPlaywright && { e2e_cookies: e2eCookies }),
-      },
+    import("@sentry/nextjs").then((Sentry) => {
+      const eventId = Sentry.captureException(error, {
+        tags: {
+          boundary: "error",
+          app_area: appArea,
+          ...(isPlaywright && { playwright: "1" }),
+          ...(e2eCookies.__e2e_run_id && { e2e_run_id: e2eCookies.__e2e_run_id }),
+          ...(e2eCookies.__e2e_auth_role && { user_role: e2eCookies.__e2e_auth_role }),
+        },
+        extra: {
+          digest: error.digest,
+          pathname,
+          searchParams,
+          retryCount,
+          ...(isPlaywright && { e2e_cookies: e2eCookies }),
+        },
+      })
+
+      // Enhanced E2E diagnostics - log full error details to console for Playwright capture
+      if (isPlaywright || process.env.NODE_ENV === "test") {
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Error Boundary Triggered")
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Sentry Event ID:", eventId)
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Error name:", error.name)
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Error message:", error.message)
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Error digest:", error.digest)
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Error stack:", error.stack)
+        // eslint-disable-next-line no-console
+        console.error("[E2E DIAGNOSTIC] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+      }
+    }).catch(() => {
+      // Sentry unavailable — error still handled by UI
     })
-    
-    // Enhanced E2E diagnostics - log full error details to console for Playwright capture
-    if (isPlaywright || process.env.NODE_ENV === "test") {
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Error Boundary Triggered")
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Sentry Event ID:", eventId)
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Error name:", error.name)
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Error message:", error.message)
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Error digest:", error.digest)
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Error stack:", error.stack)
-      // eslint-disable-next-line no-console
-      console.error("[E2E DIAGNOSTIC] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
-    }
   }, [error, retryCount])
 
   const handleRetry = () => {
@@ -129,28 +157,36 @@ export default function Error({
       {/* Background */}
       <div className="absolute inset-0 bg-linear-to-br from-background via-background to-dawn-50/20 dark:to-dawn-950/10" />
       
-      {/* Animated gradient orbs */}
-      <motion.div 
-        className="absolute top-1/3 left-1/3 w-80 h-80 bg-dawn-500/10 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Gradient orb — static when reduced motion preferred */}
+      {prefersReducedMotion ? (
+        <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-dawn-500/10 rounded-full blur-3xl opacity-40" />
+      ) : (
+        <motion.div
+          className="absolute top-1/3 left-1/3 w-80 h-80 bg-dawn-500/10 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
       
       <div className="relative z-10 text-center max-w-lg">
         {/* Error Icon */}
         <motion.div 
           className="relative mb-8 inline-block"
-          initial={{ scale: 0 }}
+          initial={prefersReducedMotion ? {} : { scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <div className="relative">
             {/* Glow effect */}
-            <motion.div
-              className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl"
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            {prefersReducedMotion ? (
+              <div className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl opacity-40" />
+            ) : (
+              <motion.div
+                className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl"
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            )}
             <div className="relative bg-card/80 backdrop-blur-md rounded-3xl p-8 border border-amber-200/50 dark:border-dawn-500/20 shadow-2xl">
               <AlertTriangle className="h-14 w-14 text-dawn-500" />
             </div>

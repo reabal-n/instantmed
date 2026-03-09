@@ -268,12 +268,12 @@ export default async function ComparisonPage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
+      <div className="flex min-h-screen flex-col bg-background dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Breadcrumbs */}
-          <div className="px-4 pt-6 bg-white/80 dark:bg-white/5">
+          <div className="px-4 pt-6 bg-card/80 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <PageBreadcrumbs
                 links={[
@@ -286,7 +286,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           </div>
 
           {/* Hero */}
-          <section className="px-4 py-8 sm:py-12 bg-white/80 dark:bg-white/5 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-8 sm:py-12 bg-card/80 dark:bg-white/5 border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
                 {comparison.title}
@@ -304,9 +304,9 @@ export default async function ComparisonPage({ params }: PageProps) {
                 Head-to-Head Comparison
               </h2>
 
-              <div className="bg-white/80 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="bg-card/80 dark:bg-white/5 rounded-2xl border border-border dark:border-border overflow-hidden">
                 {/* Header */}
-                <div className="grid grid-cols-3 bg-white/60 dark:bg-white/5 p-4 border-b border-slate-200 dark:border-slate-700">
+                <div className="grid grid-cols-3 bg-card/60 dark:bg-white/5 p-4 border-b border-border dark:border-border">
                   <div className="font-medium text-muted-foreground">Feature</div>
                   <div className="font-semibold text-primary text-center">InstantMed</div>
                   <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
@@ -316,7 +316,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 {comparison.comparisonTable.map((row, i) => (
                   <div 
                     key={i}
-                    className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-slate-100 dark:border-slate-800' : ''}`}
+                    className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}`}
                   >
                     <div className="text-foreground font-medium">{row.feature}</div>
                     <div className="text-center">
@@ -324,7 +324,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                         row.instantmed ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
                         ) : (
-                          <X className="w-5 h-5 text-slate-400 mx-auto" />
+                          <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
                         )
                       ) : (
                         <span className={`text-sm ${row.winner === 'instantmed' ? 'text-emerald-600 font-medium' : 'text-foreground'}`}>
@@ -337,7 +337,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                         row.competitor ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
                         ) : (
-                          <X className="w-5 h-5 text-slate-400 mx-auto" />
+                          <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
                         )
                       ) : (
                         <span className={`text-sm ${row.winner === 'competitor' ? 'text-emerald-600 font-medium' : 'text-foreground'}`}>
@@ -352,7 +352,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* When to Choose Each */}
-          <section className="px-4 py-12 bg-white/80 dark:bg-white/5">
+          <section className="px-4 py-12 bg-card/80 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Choose InstantMed */}
@@ -378,15 +378,15 @@ export default async function ComparisonPage({ params }: PageProps) {
                 </div>
 
                 {/* Choose Competitor */}
-                <div className="bg-white/60 dark:bg-white/10 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+                <div className="bg-card/60 dark:bg-white/10 border border-border dark:border-border rounded-2xl p-6">
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-slate-600" />
+                    <Building2 className="w-5 h-5 text-muted-foreground" />
                     Choose {comparison.competitor.name} When
                   </h3>
                   <ul className="space-y-3">
                     {comparison.whenCompetitorBetter.map((item, i) => (
                       <li key={i} className="flex items-start gap-2 text-foreground">
-                        <CheckCircle2 className="w-4 h-4 text-slate-600 mt-1 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
@@ -411,14 +411,14 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* FAQ */}
-          <section className="px-4 py-12 bg-white/80 dark:bg-white/5">
+          <section className="px-4 py-12 bg-card/80 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
                 {comparison.faqs.map((faq, i) => (
-                  <div key={i} className="bg-white/60 dark:bg-white/5 rounded-xl p-6">
+                  <div key={i} className="bg-card/60 dark:bg-white/5 rounded-xl p-6">
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>

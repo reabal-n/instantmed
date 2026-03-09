@@ -85,7 +85,7 @@ function formatTimeAgo(dateString: string): string {
 function getStatusBadge(status: string) {
   if (status === "failed") {
     return (
-      <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 gap-1">
+      <Badge className="bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400 gap-1">
         <XCircle className="h-3 w-3" />
         Failed
       </Badge>
@@ -93,7 +93,7 @@ function getStatusBadge(status: string) {
   }
   if (status === "sent") {
     return (
-      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 gap-1">
+      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 gap-1">
         <CheckCircle className="h-3 w-3" />
         Sent
       </Badge>
@@ -101,14 +101,14 @@ function getStatusBadge(status: string) {
   }
   if (status === "pending" || status === "claimed") {
     return (
-      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1">
+      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 gap-1">
         <Clock className="h-3 w-3" />
         {status === "claimed" ? "Processing" : "Pending"}
       </Badge>
     )
   }
   return (
-    <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 gap-1">
+    <Badge className="bg-muted text-foreground gap-1">
       <Send className="h-3 w-3" />
       {status}
     </Badge>
@@ -191,7 +191,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   View in Resend dashboard
                 </p>
               </div>
-              <MousePointer className="h-8 w-8 text-green-500/50" />
+              <MousePointer className="h-8 w-8 text-emerald-500/50" />
             </div>
           </CardContent>
         </Card>
@@ -202,7 +202,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                 <p className="text-sm text-muted-foreground">Delivery Rate</p>
                 <p className={cn(
                   "text-2xl font-bold",
-                  summary.deliveryRate < 95 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                  summary.deliveryRate < 95 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
                 )}>
                   {summary.deliveryRate.toFixed(1)}%
                 </p>
@@ -213,7 +213,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
               {summary.deliveryRate < 95 ? (
                 <AlertTriangle className="h-8 w-8 text-red-500/50" />
               ) : (
-                <CheckCircle className="h-8 w-8 text-green-500/50" />
+                <CheckCircle className="h-8 w-8 text-emerald-500/50" />
               )}
             </div>
           </CardContent>
@@ -293,10 +293,10 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                             <Badge
                               className={cn(
                                 deliveryRate >= 98
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400"
                                   : deliveryRate >= 95
-                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400"
+                                  : "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400"
                               )}
                             >
                               {deliveryRate.toFixed(1)}%

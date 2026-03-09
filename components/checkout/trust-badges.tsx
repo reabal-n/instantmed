@@ -59,7 +59,7 @@ export function StripeBadge({
     return (
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
+        "bg-card/60 dark:bg-white/5 border border-border/50 dark:border-white/10",
         className
       )}>
         <Lock className="w-4 h-4 text-[#635BFF]" />
@@ -120,13 +120,13 @@ export function SSLBadge({
     return (
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/40",
+        "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40",
         className
       )}>
-        <Lock className="w-4 h-4 text-green-600" />
+        <Lock className="w-4 h-4 text-emerald-600" />
         <div className="flex flex-col">
-          <span className="text-xs font-medium text-green-800 dark:text-green-200">256-bit SSL</span>
-          <span className="text-xs text-green-600 dark:text-green-400">Encrypted Connection</span>
+          <span className="text-xs font-medium text-emerald-800 dark:text-emerald-200">256-bit SSL</span>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400">Encrypted Connection</span>
         </div>
       </div>
     )
@@ -134,7 +134,7 @@ export function SSLBadge({
 
   return (
     <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <Lock className="w-3.5 h-3.5 text-green-600" />
+      <Lock className="w-3.5 h-3.5 text-emerald-600" />
       <span>256-bit SSL Encrypted</span>
     </div>
   )
@@ -146,7 +146,7 @@ export function SSLBadge({
 export function PCIBadge({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
       <span>PCI-DSS Compliant</span>
     </div>
   )
@@ -166,16 +166,16 @@ export function SecureCheckoutBadge({
     return (
       <div className={cn(
         "flex items-center gap-3 p-3 rounded-xl",
-        "bg-green-50/80 dark:bg-green-950/20 border border-green-200/60 dark:border-green-800/30",
-        "hover:shadow-md hover:shadow-green-500/10 hover:border-green-300/80 dark:hover:border-green-700/50 transition-all duration-300",
+        "bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800",
+        "hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300/80 dark:hover:border-emerald-700/50 transition-all duration-300",
         className
       )}>
-        <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
-          <Shield className="w-5 h-5 text-green-600" />
+        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
+          <Shield className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
-          <p className="text-sm font-medium text-green-900 dark:text-green-100">Secure Checkout</p>
-          <p className="text-xs text-green-700 dark:text-green-400">256-bit encryption • PCI compliant</p>
+          <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Secure Checkout</p>
+          <p className="text-xs text-emerald-700 dark:text-emerald-400">256-bit encryption • PCI compliant</p>
         </div>
       </div>
     )
@@ -184,11 +184,11 @@ export function SecureCheckoutBadge({
   return (
     <div className={cn(
       "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
-      "bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-800/40",
+      "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40",
       className
     )}>
-      <Shield className="w-3.5 h-3.5 text-green-600" />
-      <span className="text-xs text-green-800 dark:text-green-200 font-medium">Secure Checkout</span>
+      <Shield className="w-3.5 h-3.5 text-emerald-600" />
+      <span className="text-xs text-emerald-800 dark:text-emerald-200 font-medium">Secure Checkout</span>
     </div>
   )
 }
@@ -211,11 +211,11 @@ export function ConfidentialBadge({
     return (
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
+        "bg-card/60 dark:bg-white/5 border border-border/50 dark:border-white/10",
         className
       )}>
-        <EyeOff className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">100% Confidential</span>
+        <EyeOff className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs font-medium text-foreground">100% Confidential</span>
       </div>
     )
   }
@@ -280,10 +280,10 @@ export function AHPRAStatement({
     return (
       <div className={cn(
         "flex items-start gap-3 p-4 rounded-xl",
-        "bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30",
+        "bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800",
         className
       )}>
-        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
           <Award className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
@@ -357,17 +357,17 @@ export function PrivacyActBadge({
     return (
       <div className={cn(
         "flex items-start gap-3 p-4 rounded-xl",
-        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
+        "bg-card/60 dark:bg-white/5 border border-border/50 dark:border-white/10",
         className
       )}>
-        <div className="w-10 h-10 rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
-          <Eye className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+        <div className="w-10 h-10 rounded-xl bg-card/60 dark:bg-white/10 flex items-center justify-center shrink-0">
+          <Eye className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          <p className="text-sm font-medium text-foreground">
             Privacy Act Compliant
           </p>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             We comply with the Australian Privacy Principles (APP) under the Privacy Act 1988.
           </p>
           <a 
@@ -450,11 +450,11 @@ export function CheckoutTrustStrip({
       className
     )}>
       <div className="flex items-center gap-1.5">
-        <Lock className="w-3.5 h-3.5 text-green-600" />
+        <Lock className="w-3.5 h-3.5 text-emerald-600" />
         <span>SSL Encrypted</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
         <span>PCI Compliant</span>
       </div>
       <div className="flex items-center gap-1.5">
@@ -513,11 +513,11 @@ export function PaymentTrustRow({ className }: { className?: string }) {
       <PaymentMethodIcons />
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-green-600" />
+          <Lock className="w-3.5 h-3.5 text-emerald-600" />
           <span>Secure</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
           <span>Stripe</span>
         </div>
       </div>
@@ -547,7 +547,7 @@ export function DataSecurityStrip({
         className
       )}>
         <div className="flex items-center gap-1">
-          <Lock className="w-3 h-3 text-green-600" />
+          <Lock className="w-3 h-3 text-emerald-600" />
           <span>Encrypted</span>
         </div>
         <div className="flex items-center gap-1">
@@ -561,12 +561,12 @@ export function DataSecurityStrip({
   if (variant === "medicare") {
     return (
       <div className={cn(
-        "flex flex-col items-center gap-2 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30",
+        "flex flex-col items-center gap-2 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800",
         className
       )}>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Lock className="w-3.5 h-3.5 text-green-600" />
+            <Lock className="w-3.5 h-3.5 text-emerald-600" />
             <span>256-bit encrypted</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -587,7 +587,7 @@ export function DataSecurityStrip({
       className
     )}>
       <div className="flex items-center gap-1.5">
-        <Lock className="w-3.5 h-3.5 text-green-600" />
+        <Lock className="w-3.5 h-3.5 text-emerald-600" />
         <span>256-bit SSL</span>
       </div>
       <div className="flex items-center gap-1.5">
@@ -613,7 +613,7 @@ export function OnboardingTrustFooter({ className }: { className?: string }) {
     )}>
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-green-600" />
+          <Lock className="w-3.5 h-3.5 text-emerald-600" />
           <span>Secure & encrypted</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -650,14 +650,14 @@ export function HeroTrustBadges({
         "flex items-center gap-1.5 text-xs",
         isDark ? "text-white/80" : "text-muted-foreground"
       )}>
-        <ShieldCheck className={cn("w-4 h-4", isDark ? "text-green-400" : "text-green-600")} />
+        <ShieldCheck className={cn("w-4 h-4", isDark ? "text-emerald-400" : "text-emerald-600")} />
         <span>AHPRA-registered doctors</span>
       </div>
       <div className={cn(
         "flex items-center gap-1.5 text-xs",
         isDark ? "text-white/80" : "text-muted-foreground"
       )}>
-        <Lock className={cn("w-4 h-4", isDark ? "text-green-400" : "text-green-600")} />
+        <Lock className={cn("w-4 h-4", isDark ? "text-emerald-400" : "text-emerald-600")} />
         <span>256-bit SSL</span>
       </div>
       <div className={cn(

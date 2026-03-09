@@ -49,12 +49,12 @@ export default function CompareIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
+      <div className="flex min-h-screen flex-col bg-background dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 bg-white/80 dark:bg-white/5 border-b border-white/50 dark:border-white/10">
+          <section className="px-4 py-16 bg-card/80 dark:bg-white/5 border-b border-border/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                 <Scale className="w-4 h-4 text-primary" />
@@ -78,7 +78,7 @@ export default function CompareIndexPage() {
                   <Link
                     key={comparison.slug}
                     href={`/compare/${comparison.slug}`}
-                    className="group bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -95,7 +95,7 @@ export default function CompareIndexPage() {
                           {comparison.highlights.map((highlight) => (
                             <span 
                               key={highlight}
-                              className="text-xs px-2 py-1 bg-white/60 dark:bg-white/10 rounded-full text-muted-foreground"
+                              className="text-xs px-2 py-1 bg-card/60 dark:bg-white/10 rounded-full text-muted-foreground"
                             >
                               {highlight}
                             </span>

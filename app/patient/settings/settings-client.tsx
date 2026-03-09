@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AUSTRALIAN_STATES } from "@/lib/constants"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -199,25 +201,25 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         className="animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
       >
-        <TabsList className="glass-card rounded-xl p-1 h-auto flex-wrap">
-          <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
-            <User className="w-4 h-4 mr-2" />
+        <TabsList className="w-full flex-wrap">
+          <TabsTrigger value="profile" className="flex-1 gap-2">
+            <User className="w-4 h-4" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="address" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
-            <MapPin className="w-4 h-4 mr-2" />
+          <TabsTrigger value="address" className="flex-1 gap-2">
+            <MapPin className="w-4 h-4" />
             Address
           </TabsTrigger>
-          <TabsTrigger value="medicare" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
-            <CreditCard className="w-4 h-4 mr-2" />
+          <TabsTrigger value="medicare" className="flex-1 gap-2">
+            <CreditCard className="w-4 h-4" />
             Medicare
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
-            <Bell className="w-4 h-4 mr-2" />
+          <TabsTrigger value="notifications" className="flex-1 gap-2">
+            <Bell className="w-4 h-4" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
-            <Shield className="w-4 h-4 mr-2" />
+          <TabsTrigger value="security" className="flex-1 gap-2">
+            <Shield className="w-4 h-4" />
             Security
           </TabsTrigger>
         </TabsList>
@@ -297,7 +299,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         <TabsContent value="address" className="mt-6">
           <div className="glass-card rounded-2xl p-6 space-y-6">
             <div>
-              <h3 className="font-medium text-foreground mb-4">Delivery Address</h3>
+              <h3 className="font-medium text-foreground mb-4">Home Address</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 This address is used for sending physical documents if required.
               </p>
@@ -323,12 +325,21 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
+                    <Select
                       value={formData.state}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
-                    />
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, state: value }))}
+                    >
+                      <SelectTrigger id="state" className="rounded-xl bg-card/50 dark:bg-card/30">
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AUSTRALIAN_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="postcode">Postcode</Label>
@@ -407,7 +418,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               <p className="text-xs text-muted-foreground mt-4">
                 To update your Medicare details, please{" "}
                 <a 
-                  href="mailto:hello@instantmed.com.au?subject=Medicare%20Details%20Update" 
+                  href="mailto:support@instantmed.com.au?subject=Medicare%20Details%20Update" 
                   className="text-primary hover:underline font-medium"
                 >
                   contact our support team
@@ -421,7 +432,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         <TabsContent value="notifications" className="mt-6">
           <div className="glass-card rounded-2xl p-6 space-y-6">
             {/* Email Subscription Preferences */}
-            <div className="pt-6 border-t border-white/20">
+            <div>
               <div className="flex items-center gap-2 mb-4">
                 <Mail className="w-5 h-5 text-muted-foreground" />
                 <h3 className="font-medium text-foreground">Email Subscriptions</h3>
@@ -455,7 +466,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/30 border border-white/20">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Transactional emails</p>
                     <p className="text-sm text-muted-foreground">Updates about your requests, certificates, and account</p>
@@ -568,7 +579,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </div>
             </div>
 
-            <hr className="border-white/20" />
+            <hr className="border-border" />
 
             <div>
               <h3 className="font-medium mb-4">Data & Privacy</h3>

@@ -500,13 +500,13 @@ export function IntakeDetailClient({
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
       case "declined":
         return "bg-destructive/10 text-destructive"
       case "pending_info":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+        return "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
       case "awaiting_script":
-        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-900/30 dark:text-dawn-300"
+        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300"
       default:
         return "bg-primary/10 text-primary"
     }
@@ -534,7 +534,7 @@ export function IntakeDetailClient({
       {actionMessage && (
         <div
           className={`p-4 rounded-lg ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-destructive/10 text-destructive"
+            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-destructive/10 text-destructive"
           }`}
         >
           {actionMessage.text}
@@ -892,7 +892,7 @@ export function IntakeDetailClient({
                   variant="outline" 
                   onClick={handleRegenerateCertificate} 
                   disabled={isPending}
-                  className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/20"
+                  className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950/20"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   Regenerate Certificate

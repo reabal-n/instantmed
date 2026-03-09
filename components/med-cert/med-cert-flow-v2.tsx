@@ -204,7 +204,7 @@ function TypeCard({
         "hover:scale-[1.01] active:scale-[0.99]",
         selected
           ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border/60 bg-white/50 hover:border-primary/40"
+          : "border-border/60 bg-card/50 hover:border-primary/40"
       )}
     >
       <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { AlertTriangle, Phone, Heart, Shield, ArrowRight } from 'lucide-react'
 import { FlowContent } from '../flow-content'
 import { IOSToggle } from '@/components/ui/ios-toggle'
@@ -24,6 +24,7 @@ interface SafetyScreeningStepProps {
  * Falls back to static SAFETY_SCREENING_SYMPTOMS if feature flags unavailable.
  */
 export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeningStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [symptoms, setSymptoms] = useState<string[]>(initialSymptoms || SAFETY_SCREENING_SYMPTOMS)
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep } = useFlowStore()
@@ -62,19 +63,19 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
       <div className="space-y-6">
         {/* Emergency symptoms list */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border-2 border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5"
+          className="rounded-xl border-2 border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5 backdrop-blur-xl p-5"
         >
           <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">
+              <h3 className="font-semibold text-foreground">
                 Please confirm you are NOT currently experiencing:
               </h3>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 These symptoms require emergency care
               </p>
             </div>
@@ -84,10 +85,10 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
             {symptoms.map((symptom: string, index: number) => (
               <motion.li
                 key={symptom}
-                initial={{ opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="flex items-center gap-2.5 text-sm text-slate-700"
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.05 }}
+                className="flex items-center gap-2.5 text-sm text-foreground"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
                 {symptom}
@@ -98,14 +99,14 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
         {/* Safety confirmation toggle */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
           className={cn(
             'rounded-xl border-2 p-5 transition-all duration-200',
             safetyConfirmed
-              ? 'border-emerald-500 bg-emerald-50/50'
-              : 'border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5'
+              ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10'
+              : 'border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5'
           )}
         >
           <IOSToggle
@@ -119,12 +120,12 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
           <AnimatePresence>
             {safetyConfirmed && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
+                initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-emerald-200 text-emerald-700">
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400">
                   <Shield className="w-4 h-4" />
                   <span className="text-sm font-medium">Ready to continue</span>
                 </div>
@@ -135,20 +136,20 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
         {/* Emergency help link */}
         <motion.button
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
           onClick={handleEmergencyClick}
-          className="w-full text-center text-sm text-slate-500 hover:text-slate-700 py-2 transition-colors"
+          className="w-full text-center text-sm text-muted-foreground hover:text-foreground py-2 transition-colors"
         >
           Need emergency help? <span className="underline">View resources</span>
         </motion.button>
 
         {/* Continue button */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.35 }}
           className="pt-2"
         >
           <Button
@@ -158,7 +159,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
               'w-full h-13 text-base font-semibold rounded-xl transition-all duration-200',
               safetyConfirmed
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20'
-                : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
             )}
           >
             Continue
@@ -171,28 +172,28 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
       <AnimatePresence>
         {showEmergencyResources && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
             onClick={() => setShowEmergencyResources(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+              className="w-full max-w-md bg-card/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
                   <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-slate-900">
+                  <h3 className="font-semibold text-lg text-foreground">
                     Emergency Resources
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted-foreground">
                     If you&apos;re experiencing a medical emergency
                   </p>
                 </div>
@@ -201,34 +202,34 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
               <div className="space-y-3 mb-6">
                 <a
                   href="tel:000"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border-2 border-red-200 hover:bg-red-100 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
                 >
-                  <Phone className="w-5 h-5 text-red-600" />
+                  <Phone className="w-5 h-5 text-red-600 dark:text-red-400" />
                   <div>
-                    <p className="font-semibold text-red-900">Call 000</p>
-                    <p className="text-sm text-red-700">Emergency services</p>
+                    <p className="font-semibold text-red-900 dark:text-red-200">Call 000</p>
+                    <p className="text-sm text-red-700 dark:text-red-400">Emergency services</p>
                   </div>
                 </a>
 
                 <a
                   href="tel:131114"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
                 >
-                  <Heart className="w-5 h-5 text-blue-600" />
+                  <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="font-semibold text-blue-900">Lifeline: 13 11 14</p>
-                    <p className="text-sm text-blue-700">24/7 crisis support</p>
+                    <p className="font-semibold text-blue-900 dark:text-blue-200">Lifeline: 13 11 14</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">24/7 crisis support</p>
                   </div>
                 </a>
 
                 <a
                   href="tel:1800022222"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
                 >
-                  <Phone className="w-5 h-5 text-blue-600" />
+                  <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="font-semibold text-blue-900">Healthdirect: 1800 022 222</p>
-                    <p className="text-sm text-blue-700">Health advice line</p>
+                    <p className="font-semibold text-blue-900 dark:text-blue-200">Healthdirect: 1800 022 222</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">Health advice line</p>
                   </div>
                 </a>
               </div>

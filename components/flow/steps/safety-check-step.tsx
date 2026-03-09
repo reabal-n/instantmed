@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   CheckCircle2,
   AlertCircle,
@@ -41,27 +41,27 @@ const outcomeConfig: Record<
 > = {
   ALLOW: {
     icon: CheckCircle2,
-    bgColor: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    borderColor: 'border-emerald-200',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    borderColor: 'border-emerald-200 dark:border-emerald-500/30',
   },
   REQUEST_MORE_INFO: {
     icon: FileText,
-    bgColor: 'bg-dawn-50',
-    iconColor: 'text-dawn-600',
-    borderColor: 'border-dawn-200',
+    bgColor: 'bg-dawn-50 dark:bg-dawn-500/10',
+    iconColor: 'text-dawn-600 dark:text-dawn-400',
+    borderColor: 'border-dawn-200 dark:border-dawn-500/30',
   },
   REQUIRES_CALL: {
     icon: Phone,
-    bgColor: 'bg-blue-50',
+    bgColor: 'bg-blue-50 dark:bg-blue-500/10',
     iconColor: 'text-primary',
     borderColor: 'border-primary',
   },
   DECLINE: {
     icon: AlertCircle,
-    bgColor: 'bg-red-50',
-    iconColor: 'text-red-600',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-red-50 dark:bg-red-500/10',
+    iconColor: 'text-red-600 dark:text-red-400',
+    borderColor: 'border-red-200 dark:border-red-500/30',
   },
 }
 
@@ -80,6 +80,7 @@ export function SafetyCheckStep({
   onDecline,
   onRequestCall,
 }: SafetyCheckStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const serviceSlug = useFlowService()
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep, setEligibility } = useFlowStore()
@@ -191,15 +192,15 @@ export function SafetyCheckStep({
       <FlowContent title="Checking your information" description="">
         <div className="flex flex-col items-center justify-center py-12">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
               <Shield className="w-8 h-8 text-emerald-600 animate-pulse" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center">
-              <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-white/10 shadow-md flex items-center justify-center">
+              <Loader2 className="w-4 h-4 text-muted-foreground/60 animate-spin" />
             </div>
           </div>
-          <p className="mt-6 text-slate-600">Reviewing your responses...</p>
-          <p className="text-sm text-slate-400 mt-1">This only takes a moment</p>
+          <p className="mt-6 text-muted-foreground">Reviewing your responses...</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">This only takes a moment</p>
         </div>
       </FlowContent>
     )
@@ -217,7 +218,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center py-8"
         >
@@ -230,15 +231,15 @@ export function SafetyCheckStep({
             <Icon className={cn('w-10 h-10', config.iconColor)} />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 mt-6">
+          <h2 className="text-2xl font-bold text-foreground mt-6">
             {result.patientTitle}
           </h2>
-          <p className="text-slate-600 mt-2 max-w-md mx-auto">
+          <p className="text-muted-foreground mt-2 max-w-md mx-auto">
             {result.patientMessage}
           </p>
 
           <div className="mt-8 space-y-3">
-            <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Shield className="w-4 h-4" />
               <span>Your information has been reviewed</span>
             </div>
@@ -263,7 +264,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
@@ -277,10 +278,10 @@ export function SafetyCheckStep({
               <Icon className={cn('w-8 h-8', config.iconColor)} />
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 mt-4">
+            <h2 className="text-xl font-bold text-foreground mt-4">
               {result.patientTitle}
             </h2>
-            <p className="text-slate-600 mt-2">{result.patientMessage}</p>
+            <p className="text-muted-foreground mt-2">{result.patientMessage}</p>
           </div>
 
           {/* Additional info form */}
@@ -294,14 +295,14 @@ export function SafetyCheckStep({
             <div className="space-y-4">
               {result.additionalInfoRequired.map((item) => (
                 <div key={item.id}>
-                  <Label className="text-sm font-medium text-slate-700">
+                  <Label className="text-sm font-medium text-foreground">
                     {item.label}
                     {item.required && (
                       <span className="text-red-500 ml-1">*</span>
                     )}
                   </Label>
                   {item.description && (
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {item.description}
                     </p>
                   )}
@@ -315,7 +316,7 @@ export function SafetyCheckStep({
                           [item.id]: e.target.value,
                         }))
                       }
-                      className="mt-1.5 w-full min-h-20 p-3 rounded-lg border border-slate-200 focus:border-dawn-500 focus:ring-0 resize-none text-sm"
+                      className="mt-1.5 w-full min-h-20 p-3 rounded-lg border border-border focus:border-dawn-500 focus:ring-0 resize-none text-sm"
                       placeholder="Type your response..."
                     />
                   ) : item.type === 'select' && item.options ? (
@@ -327,7 +328,7 @@ export function SafetyCheckStep({
                           [item.id]: e.target.value,
                         }))
                       }
-                      className="mt-1.5 w-full h-11 px-3 rounded-lg border border-slate-200 focus:border-dawn-500 focus:ring-0 text-sm"
+                      className="mt-1.5 w-full h-11 px-3 rounded-lg border border-border focus:border-dawn-500 focus:ring-0 text-sm"
                     >
                       <option value="">Select an option</option>
                       {item.options.map((opt) => (
@@ -384,7 +385,7 @@ export function SafetyCheckStep({
       return (
         <FlowContent title="" description="">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-8"
           >
@@ -392,10 +393,10 @@ export function SafetyCheckStep({
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-900 mt-6">
+            <h2 className="text-2xl font-bold text-foreground mt-6">
               We&apos;ll be in touch soon
             </h2>
-            <p className="text-slate-600 mt-2 max-w-md mx-auto">
+            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
               A member of our team will call you within 2 business hours to
               complete your consultation.
             </p>
@@ -404,15 +405,15 @@ export function SafetyCheckStep({
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary" />
                 <div className="text-left">
-                  <p className="font-medium text-slate-900">What happens next?</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-medium text-foreground">What happens next?</p>
+                  <p className="text-sm text-muted-foreground">
                     Our doctor will review your case and call you to discuss
                   </p>
                 </div>
               </div>
             </div>
 
-            <p className="text-sm text-slate-500 mt-6">
+            <p className="text-sm text-muted-foreground mt-6">
               You won&apos;t be charged until after your consultation
             </p>
           </motion.div>
@@ -423,7 +424,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
@@ -437,10 +438,10 @@ export function SafetyCheckStep({
               <Icon className={cn('w-8 h-8', config.iconColor)} />
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 mt-4">
+            <h2 className="text-xl font-bold text-foreground mt-4">
               {result.patientTitle}
             </h2>
-            <p className="text-slate-600 mt-2 max-w-md mx-auto">
+            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
               {result.patientMessage}
             </p>
           </div>
@@ -456,10 +457,10 @@ export function SafetyCheckStep({
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium text-slate-900">
+                  <p className="font-medium text-foreground">
                     Phone consultation required
                   </p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-muted-foreground">
                     A doctor will call you to discuss your request in more detail.
                     This usually takes 5-10 minutes.
                   </p>
@@ -469,10 +470,10 @@ export function SafetyCheckStep({
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium text-slate-900">
+                  <p className="font-medium text-foreground">
                     Typical wait time: 1-2 hours
                   </p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-muted-foreground">
                     During business hours (8am-8pm AEST)
                   </p>
                 </div>
@@ -481,8 +482,8 @@ export function SafetyCheckStep({
               <div className="flex items-start gap-3">
                 <Shield className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium text-slate-900">No upfront charge</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-medium text-foreground">No upfront charge</p>
+                  <p className="text-sm text-muted-foreground">
                     You&apos;ll only pay if the doctor can help you
                   </p>
                 </div>
@@ -507,7 +508,7 @@ export function SafetyCheckStep({
             <Button
               variant="ghost"
               onClick={() => window.location.href = '/'}
-              className="w-full text-slate-500"
+              className="w-full text-muted-foreground"
             >
               Start a new request instead
             </Button>
@@ -523,7 +524,7 @@ export function SafetyCheckStep({
   return (
     <FlowContent title="" description="">
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
@@ -537,10 +538,10 @@ export function SafetyCheckStep({
             <Icon className={cn('w-8 h-8', config.iconColor)} />
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 mt-4">
+          <h2 className="text-xl font-bold text-foreground mt-4">
             {result.patientTitle}
           </h2>
-          <p className="text-slate-600 mt-2 max-w-md mx-auto">
+          <p className="text-muted-foreground mt-2 max-w-md mx-auto">
             {result.patientMessage}
           </p>
         </div>
@@ -564,20 +565,20 @@ export function SafetyCheckStep({
         )}
 
         {/* Alternative options */}
-        <div className="p-5 rounded-xl bg-slate-50 border border-slate-200">
-          <p className="font-medium text-slate-900 mb-3">
+        <div className="p-5 rounded-xl bg-muted/50 border border-border">
+          <p className="font-medium text-foreground mb-3">
             Alternative options for you:
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-slate-400 mt-0.5" />
-              <span className="text-sm text-slate-600">
+              <CheckCircle2 className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+              <span className="text-sm text-muted-foreground">
                 Visit your regular GP for in-person assessment
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-slate-400 mt-0.5" />
-              <span className="text-sm text-slate-600">
+              <CheckCircle2 className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+              <span className="text-sm text-muted-foreground">
                 Use the{' '}
                 <a
                   href="https://www.healthdirect.gov.au/symptom-checker"
@@ -591,10 +592,10 @@ export function SafetyCheckStep({
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-slate-400 mt-0.5" />
-              <span className="text-sm text-slate-600">
+              <CheckCircle2 className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+              <span className="text-sm text-muted-foreground">
                 Call healthdirect 24/7 on{' '}
-                <strong className="text-slate-900">1800 022 222</strong>
+                <strong className="text-foreground">1800 022 222</strong>
               </span>
             </li>
           </ul>

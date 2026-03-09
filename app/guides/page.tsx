@@ -49,12 +49,12 @@ export default function GuidesIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
+      <div className="flex min-h-screen flex-col bg-background dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-16 border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                 <BookOpen className="w-4 h-4 text-primary" />
@@ -78,7 +78,7 @@ export default function GuidesIndexPage() {
                   <Link
                     key={guide.slug}
                     href={`/guides/${guide.slug}`}
-                    className="group block bg-white/60 dark:bg-white/5 rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group block bg-card/60 dark:bg-white/5 rounded-2xl border border-border/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
 import { Moon, Users } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 const OPEN_HOUR = 8
 const CLOSE_HOUR = 22
@@ -35,6 +35,7 @@ export function DoctorAvailabilityPill() {
   const [isOnline, setIsOnline] = useState(true)
   const [visitors, setVisitors] = useState(() => getRandomVisitors())
   const mounted = useHasMounted()
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(isWithinHours())
@@ -60,9 +61,9 @@ export function DoctorAvailabilityPill() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, duration: 0.4 }}
+      transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
       className="flex justify-center"
     >
       <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all duration-300">
@@ -70,7 +71,9 @@ export function DoctorAvailabilityPill() {
           <>
             <span className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                {!prefersReducedMotion && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                )}
                 <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-sm shadow-emerald-500/50" />
               </span>
               Doctors online now
@@ -80,9 +83,9 @@ export function DoctorAvailabilityPill() {
               <Users className="w-3 h-3" />
               <motion.span
                 key={visitors}
-                initial={{ opacity: 0.5, y: -2 }}
+                initial={prefersReducedMotion ? false : { opacity: 0.5, y: -2 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               >
                 {visitors}
               </motion.span>
@@ -91,11 +94,11 @@ export function DoctorAvailabilityPill() {
           </>
         ) : (
           <>
-            <Moon className="w-4 h-4 text-slate-400" />
+            <Moon className="w-4 h-4 text-muted-foreground/60" />
             <span className="text-sm font-medium text-foreground">
               Doctors back at 8am AEST
             </span>
-            <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-muted-foreground">
+            <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               Submit now — reviewed first thing in the morning
             </span>
           </>

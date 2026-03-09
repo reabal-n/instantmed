@@ -111,7 +111,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           content: "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member."
         }}
       >
-        <div className="relative flex rounded-xl bg-slate-100 dark:bg-white/5 p-1 gap-1 mt-2">
+        <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1 mt-2">
           {CERT_TYPES.map((type) => {
             const isSelected = certType === type.id
             const Icon = type.icon
@@ -150,7 +150,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       >
         <div className="space-y-3 mt-2">
           {/* Segmented control */}
-          <div className="relative flex rounded-xl bg-slate-100 dark:bg-white/5 p-1 gap-1">
+          <div className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1">
             {MED_CERT_DURATIONS.options.map((days) => {
               const isSelected = duration === String(days)
               return (

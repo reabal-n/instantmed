@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Clock, FileText, Pill, Phone, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -13,8 +13,8 @@ const SERVICE_WAIT_TIMES = {
     icon: FileText,
     minWait: 12,
     maxWait: 35,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500/10',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
   },
   'scripts': {
     label: 'Repeat Prescriptions',
@@ -22,7 +22,7 @@ const SERVICE_WAIT_TIMES = {
     icon: Pill,
     minWait: 25,
     maxWait: 60,
-    color: 'text-emerald-600',
+    color: 'text-emerald-600 dark:text-emerald-400',
     bgColor: 'bg-emerald-500/10',
   },
   'consult': {
@@ -31,8 +31,8 @@ const SERVICE_WAIT_TIMES = {
     icon: Phone,
     minWait: 35,
     maxWait: 75,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500/10',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
   },
 } as const
 
@@ -91,6 +91,7 @@ export function LiveWaitTime({
   showTrending = true,
 }: LiveWaitTimeProps) {
   const mounted = useHasMounted()
+  const prefersReducedMotion = useReducedMotion()
   const [isOnline, setIsOnline] = useState(true)
   const [waitTimes, setWaitTimes] = useState<Record<ServiceType, number>>(() => ({
     'med-cert': generateWaitTime(SERVICE_WAIT_TIMES['med-cert'].minWait, SERVICE_WAIT_TIMES['med-cert'].maxWait),
@@ -155,7 +156,7 @@ export function LiveWaitTime({
           )}
         </span>
         {showTrending && isFast && isOnline && (
-          <span className="flex items-center gap-1 text-xs text-emerald-600">
+          <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
             <TrendingDown className="w-3 h-3" />
             Fast
           </span>
@@ -194,8 +195,9 @@ export function LiveWaitTime({
               {isOnline ? (
                 <motion.span
                   key={time}
-                  initial={{ opacity: 0.5, y: -2 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0.5, y: -2 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   className="font-medium text-foreground"
                 >
                   ~{time} min
@@ -247,14 +249,15 @@ export function LiveWaitTime({
                       <>
                         <motion.span
                           key={time}
-                          initial={{ opacity: 0.5 }}
+                          initial={prefersReducedMotion ? false : { opacity: 0.5 }}
                           animate={{ opacity: 1 }}
+                          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                           className="font-semibold text-foreground"
                         >
                           ~{time} min
                         </motion.span>
                         {showTrending && isFast && (
-                          <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 font-medium">
+                          <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                             <TrendingDown className="w-3 h-3" />
                           </span>
                         )}
@@ -289,7 +292,7 @@ export function LiveWaitTime({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-emerald-600 font-medium">Live</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Live</span>
           </div>
         )}
       </div>
@@ -317,14 +320,15 @@ export function LiveWaitTime({
                   <>
                     <motion.span
                       key={time}
-                      initial={{ opacity: 0.5, scale: 0.95 }}
+                      initial={prefersReducedMotion ? false : { opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                       className="text-lg font-bold text-foreground"
                     >
                       ~{time} min
                     </motion.span>
                     {showTrending && isFast && (
-                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
                         <TrendingDown className="w-3 h-3" />
                         Fast
                       </span>

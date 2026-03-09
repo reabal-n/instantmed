@@ -63,12 +63,12 @@ const SelectTrigger = React.forwardRef<
       "rounded-md px-3 py-2",
       "text-sm",
       // Clean surface
-      "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
+      "bg-card/95 dark:bg-white/10 backdrop-blur-xl",
       "border border-border",
       "ring-offset-background",
       "transition-all duration-200",
       // Hover state
-      "hover:border-slate-300 dark:hover:border-slate-600",
+      "hover:border-border",
       // Focus state - clean ring
       "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2",
       "focus:border-primary",
@@ -133,7 +133,7 @@ const SelectContent = React.forwardRef<
       className={cn(
         "relative z-50 max-h-96 min-w-[8rem] overflow-hidden",
         // Clean surface
-        "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
+        "bg-card/95 dark:bg-white/10 backdrop-blur-xl",
         "border border-border",
         "rounded-md",
         "shadow-lg",
@@ -230,7 +230,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-white/20 dark:bg-white/10", className)}
+    className={cn("-mx-1 my-1 h-px bg-border/20 dark:bg-white/10", className)}
     {...props}
   />
 ))

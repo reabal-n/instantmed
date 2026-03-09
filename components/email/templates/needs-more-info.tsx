@@ -16,7 +16,7 @@ export interface NeedsMoreInfoEmailProps {
 }
 
 export function needsMoreInfoSubject(requestType: string) {
-  return `Action needed: Additional information required for your ${requestType}`
+  return `Quick question about your ${requestType} request`
 }
 
 export function NeedsMoreInfoEmail({
@@ -27,13 +27,13 @@ export function NeedsMoreInfoEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: NeedsMoreInfoEmailProps) {
   return (
-    <BaseEmail previewText="Action needed: Additional information required" appUrl={appUrl}>
+    <BaseEmail previewText="Quick update — the doctor needs a bit more info" appUrl={appUrl}>
       <StatusBanner title="We need a bit more information" variant="warning" />
 
       <Text>Hi {patientName},</Text>
       <Text>
-        The doctor reviewing your <strong>{requestType}</strong> request needs some additional
-        information before they can proceed.
+        The doctor reviewing your <strong>{requestType}</strong> request has a quick
+        question before they can move forward.
       </Text>
 
       <Box>

@@ -26,25 +26,26 @@ export function WelcomeEmail({
 }: WelcomeEmailProps) {
   return (
     <BaseEmail
-      previewText="Welcome to InstantMed - healthcare made simple"
+      previewText="Welcome to InstantMed 👋 Healthcare, simplified"
       appUrl={appUrl}
     >
-      <Heading>Welcome to InstantMed</Heading>
+      <Heading>Welcome aboard</Heading>
 
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Thanks for joining InstantMed. We make healthcare simple and accessible
-        — from your phone, on your schedule.
+        Thanks for creating your InstantMed account. We&apos;re a small Australian
+        telehealth team that makes it easy to get the healthcare docs you need —
+        from your phone, on your schedule.
       </Text>
 
       <Box>
-        <Heading as="h3">What you can do</Heading>
+        <Heading as="h3">Here&apos;s what you can do</Heading>
         <List
           items={[
-            "Get medical certificates reviewed within hours",
-            "Request prescriptions from registered doctors",
-            "Access pathology test requests online",
+            "Get medical certificates reviewed by a doctor within hours",
+            "Request prescriptions from registered Australian doctors",
+            "Access specialist consultations online",
           ]}
         />
       </Box>

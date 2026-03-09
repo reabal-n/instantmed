@@ -37,18 +37,9 @@ interface IntakesClientProps {
   }
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  approved: { label: "Approved", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
-  paid: { label: "In Queue", color: "bg-blue-100 text-blue-700", icon: Clock },
-  in_review: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  pending: { label: "Awaiting Payment", color: "bg-amber-100 text-amber-700", icon: Clock },
-  pending_payment: { label: "Awaiting Payment", color: "bg-amber-100 text-amber-700", icon: Clock },
-  declined: { label: "Declined", color: "bg-red-100 text-red-700", icon: XCircle },
-  pending_info: { label: "Needs Info", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
-  cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-700", icon: XCircle },
-  awaiting_script: { label: "Awaiting Script", color: "bg-blue-100 text-blue-700", icon: Clock },
-}
+// Use shared status config — single source of truth
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { formatDate } from "@/lib/format"
 
 export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
   const router = useRouter()
@@ -171,11 +162,11 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   }
   
   return (
-    <div className="container max-w-4xl py-8 px-4 sm:px-6">
+    <div className="container max-w-6xl py-8 px-4 sm:px-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">My Requests</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Requests</h1>
           <p className="text-muted-foreground mt-1">
             View and manage all your medical requests
           </p>
@@ -200,50 +191,50 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
       </div>
       
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold">{intakes.length}</p>
             <p className="text-xs text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{upcomingIntakes.length}</p>
             <p className="text-xs text-muted-foreground">Upcoming</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold text-emerald-600">{completedIntakes.length}</p>
             <p className="text-xs text-muted-foreground">Completed</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{declinedIntakes.length}</p>
             <p className="text-xs text-muted-foreground">Declined</p>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="all" className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5" />
+        <TabsList className="w-full mb-6">
+          <TabsTrigger value="all" className="flex-1">
+            <Filter className="w-3.5 h-3.5 hidden sm:block" />
             All
           </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
+          <TabsTrigger value="upcoming" className="flex-1">
+            <Clock className="w-3.5 h-3.5 hidden sm:block" />
             Upcoming
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-1.5">
-            <CheckCircle className="w-3.5 h-3.5" />
+          <TabsTrigger value="history" className="flex-1">
+            <CheckCircle className="w-3.5 h-3.5 hidden sm:block" />
             History
           </TabsTrigger>
-          <TabsTrigger value="declined" className="flex items-center gap-1.5">
-            <XCircle className="w-3.5 h-3.5" />
+          <TabsTrigger value="declined" className="flex-1">
+            <XCircle className="w-3.5 h-3.5 hidden sm:block" />
             Declined
           </TabsTrigger>
         </TabsList>
@@ -311,7 +302,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
 }
 
 function IntakeCard({ intake }: { intake: IntakeWithPatient }) {
-  const config = STATUS_CONFIG[intake.status] || STATUS_CONFIG.pending
+  const config = INTAKE_STATUS[intake.status as IntakeStatus] || INTAKE_STATUS.pending
   const StatusIcon = config.icon
   
   // Handle service being array or object
@@ -327,10 +318,10 @@ function IntakeCard({ intake }: { intake: IntakeWithPatient }) {
             <div className="flex items-center gap-4 flex-1">
               <div className={cn(
                 "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                isPrescription ? "bg-blue-50" : "bg-primary/10"
+                isPrescription ? "bg-blue-50 dark:bg-blue-950/40" : "bg-primary/10"
               )}>
                 {isPrescription ? (
-                  <Pill className="w-6 h-6 text-blue-600" />
+                  <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 ) : (
                   <FileText className="w-6 h-6 text-primary" />
                 )}
@@ -342,11 +333,7 @@ function IntakeCard({ intake }: { intake: IntakeWithPatient }) {
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
-                    {new Date(intake.created_at).toLocaleDateString("en-AU", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {formatDate(intake.created_at)}
                   </span>
                   <span>Ref: {intake.id.slice(0, 8).toUpperCase()}</span>
                 </div>

@@ -253,28 +253,28 @@ export function DocumentBuilderClient({
               <span className="text-xs font-normal text-blue-500 ml-auto">Auto-generated — review before issuing</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-2 text-gray-700">
+          <CardContent className="text-sm space-y-2 text-muted-foreground">
             {Boolean(aiDrafts.clinicalNote.presentingComplaint) && (
               <div>
-                <span className="font-medium text-gray-900">Presenting Complaint: </span>
+                <span className="font-medium text-foreground">Presenting Complaint: </span>
                 {String(aiDrafts.clinicalNote.presentingComplaint)}
               </div>
             )}
             {Boolean(aiDrafts.clinicalNote.historyOfPresentIllness) && (
               <div>
-                <span className="font-medium text-gray-900">History: </span>
+                <span className="font-medium text-foreground">History: </span>
                 {String(aiDrafts.clinicalNote.historyOfPresentIllness)}
               </div>
             )}
             {Boolean(aiDrafts.clinicalNote.relevantInformation) && (
               <div>
-                <span className="font-medium text-gray-900">Relevant Info: </span>
+                <span className="font-medium text-foreground">Relevant Info: </span>
                 {String(aiDrafts.clinicalNote.relevantInformation)}
               </div>
             )}
             {Boolean(aiDrafts.clinicalNote.certificateDetails) && (
               <div>
-                <span className="font-medium text-gray-900">Certificate Details: </span>
+                <span className="font-medium text-foreground">Certificate Details: </span>
                 {String(aiDrafts.clinicalNote.certificateDetails)}
               </div>
             )}

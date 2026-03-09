@@ -244,7 +244,7 @@ export default function EmployersPage() {
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                     <Shield className="w-7 h-7 text-emerald-600" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">AHPRA-Registered Doctors</h3>
@@ -264,7 +264,7 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                     <Lock className="w-7 h-7 text-emerald-600" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Secure & Tamper-Proof</h3>
@@ -275,7 +275,7 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                     <FileText className="w-7 h-7 text-emerald-600" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Clinical Standards</h3>

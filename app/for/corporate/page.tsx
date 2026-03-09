@@ -63,9 +63,9 @@ export default function CorporatePage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-500/10 border border-slate-500/20 mb-4 interactive-pill cursor-default">
-                    <Building2 className="w-3.5 h-3.5 text-slate-600" />
-                    <span className="text-xs font-medium text-slate-700">For Corporate Professionals</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted-foreground/10 border border-border mb-4 interactive-pill cursor-default">
+                    <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-foreground">For Corporate Professionals</span>
                   </div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
@@ -79,7 +79,7 @@ export default function CorporatePage() {
                   </p>
 
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm px-6">
+                    <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -88,15 +88,15 @@ export default function CorporatePage() {
                   {/* Trust badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Zap className="h-3.5 w-3.5 text-slate-600" />
+                      <Zap className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Mail className="h-3.5 w-3.5 text-slate-600" />
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">PDF to email</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Shield className="h-3.5 w-3.5 text-slate-600" />
+                      <Shield className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">HR-approved</span>
                     </div>
                   </div>
@@ -108,19 +108,19 @@ export default function CorporatePage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-white/5">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-slate-600">2 min</div>
+                      <div className="text-2xl font-bold mb-1 text-muted-foreground">2 min</div>
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-slate-600">15 min</div>
+                      <div className="text-2xl font-bold mb-1 text-muted-foreground">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-slate-600">Instant</div>
+                      <div className="text-2xl font-bold mb-1 text-muted-foreground">Instant</div>
                       <div className="text-xs text-muted-foreground">email delivery</div>
                     </div>
                   </div>
@@ -157,8 +157,8 @@ export default function CorporatePage() {
                       desc: "Clean PDF with doctor's name, provider number, and digital signature. Ready for HR systems.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <item.icon className="h-5 w-5 text-slate-600 shrink-0 mt-0.5" />
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                      <item.icon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -222,7 +222,7 @@ export default function CorporatePage() {
                       quote: "WFH with a cold. Got my cert in 10 minutes while still in my pyjamas.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -251,10 +251,10 @@ export default function CorporatePage() {
                     { title: "Weight Management", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-management" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
-                      <div className="glass-card rounded-xl p-4 h-full hover:border-slate-500/30 transition-all">
+                      <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-all">
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
-                        <span className="text-xs text-slate-600 font-medium">{item.price}</span>
+                        <span className="text-xs text-muted-foreground font-medium">{item.price}</span>
                       </div>
                     </Link>
                   ))}
@@ -291,7 +291,7 @@ export default function CorporatePage() {
                       a: "We provide carer's certificates for looking after sick family members. Same process, same 15-minute turnaround.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
@@ -305,13 +305,13 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-white/5">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
                   <h2 className="text-2xl font-bold mb-3">Certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm h-12 px-8">
+                    <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -326,15 +326,15 @@ export default function CorporatePage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/for/shift-workers" className="text-slate-600 hover:underline">
+                <Link href="/for/shift-workers" className="text-muted-foreground hover:underline">
                   Shift Workers
                 </Link>
                 {" • "}
-                <Link href="/medical-certificate" className="text-slate-600 hover:underline">
+                <Link href="/medical-certificate" className="text-muted-foreground hover:underline">
                   Work Med Certs
                 </Link>
                 {" • "}
-                <Link href="/prescriptions" className="text-slate-600 hover:underline">
+                <Link href="/prescriptions" className="text-muted-foreground hover:underline">
                   Prescriptions
                 </Link>
               </p>

@@ -63,9 +63,9 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4 interactive-pill cursor-default">
-                    <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-                    <span className="text-xs font-medium text-indigo-700">For Uni & TAFE Students</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4 interactive-pill cursor-default">
+                    <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-400">For Uni & TAFE Students</span>
                   </div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
@@ -79,7 +79,7 @@ export default function StudentsPage() {
                   </p>
 
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm px-6">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -88,15 +88,15 @@ export default function StudentsPage() {
                   {/* Speed badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Zap className="h-3.5 w-3.5 text-indigo-600" />
+                      <Zap className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <GraduationCap className="h-3.5 w-3.5 text-indigo-600" />
+                      <GraduationCap className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">All unis accept</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
-                      <Shield className="h-3.5 w-3.5 text-indigo-600" />
+                      <Shield className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">AHPRA doctors</span>
                     </div>
                   </div>
@@ -108,19 +108,19 @@ export default function StudentsPage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-indigo-600">2 min</div>
+                      <div className="text-2xl font-bold mb-1 text-primary">2 min</div>
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-indigo-600">15 min</div>
+                      <div className="text-2xl font-bold mb-1 text-primary">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-indigo-600">PDF</div>
+                      <div className="text-2xl font-bold mb-1 text-primary">PDF</div>
                       <div className="text-xs text-muted-foreground">straight to email</div>
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export default function StudentsPage() {
                       "QUT",
                       "All TAFEs",
                     ].map((uni) => (
-                      <span key={uni} className="px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-700">
+                      <span key={uni} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300">
                         {uni}
                       </span>
                     ))}
@@ -186,7 +186,7 @@ export default function StudentsPage() {
                     },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4 text-center">
-                      <item.icon className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
+                      <item.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
@@ -224,8 +224,8 @@ export default function StudentsPage() {
                       desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <item.icon className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                      <item.icon className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -265,7 +265,7 @@ export default function StudentsPage() {
                       quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -310,7 +310,7 @@ export default function StudentsPage() {
                       a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
@@ -324,13 +324,13 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
                   <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Don&apos;t miss your special consideration deadline. Get sorted now.
                   </p>
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm h-12 px-8">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -345,15 +345,15 @@ export default function StudentsPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificate" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificate" className="text-primary hover:underline">
                   Uni Med Certs
                 </Link>
                 {" • "}
-                <Link href="/medical-certificate" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificate" className="text-primary hover:underline">
                   All Certificates
                 </Link>
                 {" • "}
-                <Link href="/how-it-works" className="text-indigo-600 hover:underline">
+                <Link href="/how-it-works" className="text-primary hover:underline">
                   How It Works
                 </Link>
               </p>

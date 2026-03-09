@@ -148,7 +148,7 @@ export function AuditLogsClient({
       case "refund_processed":
         return "bg-amber-100 text-amber-700"
       default:
-        return "bg-gray-100 text-gray-700"
+        return "bg-muted text-muted-foreground"
     }
   }
 
@@ -162,7 +162,7 @@ export function AuditLogsClient({
       completed: "bg-emerald-100 text-emerald-700",
     }
     return (
-      <Badge className={colors[status] || "bg-gray-100 text-gray-700"}>
+      <Badge className={colors[status] || "bg-muted text-muted-foreground"}>
         {status.replace(/_/g, " ")}
       </Badge>
     )

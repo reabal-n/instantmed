@@ -25,9 +25,9 @@ const TabsList = React.forwardRef<
     className={cn(
       // Soft Pop Glass tab list
       "inline-flex items-center justify-center gap-1 p-1",
-      "bg-white/60 dark:bg-white/5",
+      "bg-card/60 dark:bg-white/5",
       "backdrop-blur-xl",
-      "border border-white/40 dark:border-white/10",
+      "border border-border/40 dark:border-white/10",
       "rounded-full",
       "shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
       "text-muted-foreground",
@@ -53,9 +53,9 @@ const TabsTrigger = React.forwardRef<
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       // Hover state
-      "hover:bg-white/50 dark:hover:bg-white/10",
+      "hover:bg-card/50 dark:hover:bg-white/10",
       // Active/selected state - Soft Pop Glass glow
-      "data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800",
+      "data-[state=active]:bg-white dark:data-[state=active]:bg-card",
       "data-[state=active]:text-foreground",
       "data-[state=active]:shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
       "dark:data-[state=active]:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",

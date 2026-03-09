@@ -82,7 +82,7 @@ export function PatientCommunicationHistory({
     if (email.sent_at) {
       return <Clock className="h-4 w-4 text-amber-500" />
     }
-    return <Clock className="h-4 w-4 text-gray-400" />
+    return <Clock className="h-4 w-4 text-muted-foreground/60" />
   }
 
   const getStatusBadge = (email: EmailLog) => {
@@ -90,16 +90,16 @@ export function PatientCommunicationHistory({
       return <Badge variant="destructive">Bounced</Badge>
     }
     if (email.opened_at) {
-      return <Badge className="bg-emerald-100 text-emerald-700">Opened</Badge>
+      return <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">Opened</Badge>
     }
     if (email.delivered_at) {
-      return <Badge className="bg-blue-100 text-blue-700">Delivered</Badge>
+      return <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">Delivered</Badge>
     }
     if (email.status === "failed") {
       return <Badge variant="destructive">Failed</Badge>
     }
     if (email.sent_at) {
-      return <Badge className="bg-amber-100 text-amber-700">Sent</Badge>
+      return <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">Sent</Badge>
     }
     return <Badge variant="secondary">Pending</Badge>
   }
@@ -146,7 +146,7 @@ export function PatientCommunicationHistory({
         {displayedEmails.map((email) => (
           <div
             key={email.id}
-            className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
+            className="border border-border/50 rounded-xl p-4 hover:bg-muted/50 transition-colors"
           >
             <div 
               className="flex items-start justify-between cursor-pointer"
@@ -206,7 +206,7 @@ export function PatientCommunicationHistory({
                 </div>
 
                 {email.bounced_at && (
-                  <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-red-700 dark:text-red-300">
+                  <div className="bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300">
                     <span className="font-medium">Bounced:</span> {formatDate(email.bounced_at)}
                     {email.error_message && (
                       <p className="text-xs mt-1">{email.error_message}</p>
@@ -215,7 +215,7 @@ export function PatientCommunicationHistory({
                 )}
 
                 {email.status === "failed" && email.error_message && (
-                  <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-red-700 dark:text-red-300">
+                  <div className="bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300">
                     <span className="font-medium">Error:</span> {email.error_message}
                   </div>
                 )}
@@ -225,7 +225,7 @@ export function PatientCommunicationHistory({
                     <summary className="text-muted-foreground cursor-pointer hover:text-foreground">
                       View metadata
                     </summary>
-                    <pre className="bg-muted p-2 rounded mt-1 overflow-x-auto">
+                    <pre className="bg-muted/40 p-3 rounded-lg border border-border/30 mt-1 overflow-x-auto font-mono text-xs">
                       {JSON.stringify(email.metadata, null, 2)}
                     </pre>
                   </details>

@@ -125,11 +125,11 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
       case "admin":
         return "bg-dawn-100 text-dawn-800"
       case "system":
-        return "bg-gray-100 text-gray-800"
+        return "bg-muted text-foreground"
       case "webhook":
         return "bg-amber-100 text-amber-800"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-muted text-foreground"
     }
   }
 

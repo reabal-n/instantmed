@@ -60,7 +60,7 @@ const colors = {
   errorText: "#991B1B",     // Red-800
 }
 
-const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+const fontFamily = "'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
 interface BaseEmailProps {
   children: React.ReactNode
@@ -76,6 +76,12 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="light" />
         <meta name="supported-color-schemes" content="light" />
+        {/* Source Sans 3 — matches the website font */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
         <title>InstantMed</title>
       </head>
       <body
@@ -128,7 +134,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                   }}
                 >
                   <tbody>
-                    {/* Header — Clean wordmark on white */}
+                    {/* Header — Logo */}
                     <tr>
                       <td
                         style={{
@@ -140,13 +146,22 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                           style={{
                             textDecoration: "none",
                             display: "inline-block",
-                            fontSize: "17px",
-                            fontWeight: 700,
-                            color: colors.primary,
-                            letterSpacing: "-0.4px",
                           }}
                         >
-                          Instant<span style={{ color: colors.accent }}>Med</span>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`${appUrl}/branding/logo.png`}
+                            alt="InstantMed"
+                            width="130"
+                            height="auto"
+                            style={{
+                              display: "block",
+                              border: "0",
+                              outline: "none",
+                              maxWidth: "130px",
+                              height: "auto",
+                            }}
+                          />
                         </a>
                       </td>
                     </tr>
@@ -204,13 +219,22 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                 </p>
                                 <p
                                   style={{
+                                    margin: "0 0 6px 0",
+                                    fontSize: "12px",
+                                    color: colors.textSecondary,
+                                  }}
+                                >
+                                  Made with care in Australia 🌤️
+                                </p>
+                                <p
+                                  style={{
                                     margin: 0,
                                     fontSize: "11px",
                                     color: colors.textMuted,
                                     letterSpacing: "0.02em",
                                   }}
                                 >
-                                  InstantMed Pty Ltd · ABN 64 694 559 334 · Australia
+                                  InstantMed Pty Ltd · ABN 64 694 559 334
                                 </p>
                               </td>
                             </tr>
@@ -307,7 +331,7 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
                 letterSpacing: "0.01em",
                 ...(isPrimary
                   ? {
-                      backgroundColor: colors.primary,
+                      backgroundColor: colors.accent,
                       color: "#ffffff",
                     }
                   : {

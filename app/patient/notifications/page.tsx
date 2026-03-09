@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NotificationsClient } from "./notifications-client"
 
@@ -11,7 +11,8 @@ export const metadata = {
 }
 
 export default async function NotificationsPage() {
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   const supabase = createServiceRoleClient()
   const profile = authUser.profile
@@ -25,7 +26,7 @@ export default async function NotificationsPage() {
     .limit(100)
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div>
       <NotificationsClient notifications={notifications || []} patientId={profile.id} />
     </div>
   )

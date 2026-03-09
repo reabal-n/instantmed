@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { QueueClient } from "../queue/queue-client"
@@ -20,7 +20,8 @@ export default async function DoctorDashboardPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string }>
 }) {
-  const { profile } = await requireRole(["doctor", "admin"])
+  // Layout enforces doctor/admin role — use cached profile
+  const { profile } = (await getAuthenticatedUserWithProfile())!
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10))
@@ -70,7 +71,7 @@ export default async function DoctorDashboardPage({
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>
       </div>
 

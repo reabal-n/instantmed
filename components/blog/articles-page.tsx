@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Filter, Eye, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react'
@@ -101,7 +102,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
   return (
     <div className="space-y-8">
       {/* Search and Filters */}
-      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 sm:p-6 border border-white/50 dark:border-white/10">
+      <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 sm:p-6 border border-border/50 dark:border-white/10">
         {/* Search with Autocomplete */}
         <div className="mb-4">
           <SearchAutocomplete
@@ -115,11 +116,12 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
         <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => handleCategoryChange('all')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
               selectedCategory === 'all'
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-white/60 dark:bg-white/5 text-muted-foreground hover:bg-white/80 dark:hover:bg-white/10'
-            }`}
+                : 'bg-card/60 dark:bg-white/5 text-muted-foreground hover:bg-card/80 dark:hover:bg-white/10'
+            )}
           >
             All Articles
           </button>
@@ -127,11 +129,12 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
             <button
               key={cat.slug}
               onClick={() => handleCategoryChange(cat.slug)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
                 selectedCategory === cat.slug
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-white/60 dark:bg-white/5 text-muted-foreground hover:bg-white/80 dark:hover:bg-white/10'
-              }`}
+                  : 'bg-card/60 dark:bg-white/5 text-muted-foreground hover:bg-card/80 dark:hover:bg-white/10'
+              )}
             >
               {cat.name}
             </button>
@@ -176,8 +179,8 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((article) => (
             <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
-              <article className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden h-full border border-white/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
-                <div className="relative h-40 bg-white/40 dark:bg-white/10">
+              <article className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
+                <div className="relative h-40 bg-card/40 dark:bg-white/10">
                   <Image
                     src={article.heroImage}
                     alt={article.heroImageAlt}
@@ -185,7 +188,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                     className="object-cover"
                   />
                   <div className="absolute top-3 left-3">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-card/90 dark:bg-white/10 backdrop-blur-sm text-primary">
                       {categories[article.category]?.name || article.category}
                     </span>
                   </div>
@@ -213,7 +216,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10">
+        <div className="text-center py-16 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10">
           <p className="text-muted-foreground mb-4">No articles found matching your criteria.</p>
           <Button variant="outline" onClick={clearFilters}>
             Clear filters
@@ -253,11 +256,12 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
+                  className={cn(
+                    "w-8 h-8 rounded-md text-sm font-medium transition-colors",
                     currentPage === page
                       ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-slate-100 dark:hover:bg-white/10'
-                  }`}
+                      : 'hover:bg-muted'
+                  )}
                 >
                   {page}
                 </button>

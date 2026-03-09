@@ -46,24 +46,24 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
       <main className="flex-1 bg-background">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" />
-          <div className="absolute top-20 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-muted/50 to-muted dark:from-muted/30 dark:to-muted/50" />
+          <div className="absolute top-20 right-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-block px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-full text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-6">
+              <div className="inline-block px-3 py-1 bg-primary/10 dark:bg-primary/20 rounded-full text-sm font-medium text-primary dark:text-primary mb-6">
                 {pageType === 'condition' && '🏥 Health Condition'}
                 {pageType === 'certificate' && '📄 Certificate Type'}
                 {pageType === 'benefit' && '✨ Why Choose Us'}
                 {pageType === 'resource' && '📚 Information & FAQ'}
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
                 {page.h1}
               </h1>
 
-              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
                 {heroText}
               </p>
 
@@ -80,37 +80,37 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         </section>
 
         {/* Content Section */}
-        <section className="py-20 bg-white dark:bg-black">
+        <section className="py-20 bg-background">
           <div className="container mx-auto px-4 max-w-3xl">
             {/* Condition Page: Symptoms & Red Flags */}
             {condPage && (
               <>
                 {/* Symptoms */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     Common symptoms
                   </h2>
                   <ul className="space-y-3">
                     {condPage.symptoms.map((symptom, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-                        <span className="text-slate-700 dark:text-slate-300">{symptom}</span>
+                        <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{symptom}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 {/* When to See GP (Red Flags) */}
-                <div className="mb-16 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                <div className="mb-16 p-6 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
                   <div className="flex items-start gap-3 mb-4">
                     <AlertCircle className="h-6 w-6 text-red-600 shrink-0 mt-0 dark:text-red-400" />
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       When to see a doctor in person
                     </h3>
                   </div>
                   <ul className="space-y-2">
                     {condPage.whenToSeeGP.map((flag, idx) => (
-                      <li key={idx} className="text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                      <li key={idx} className="text-muted-foreground flex items-start gap-2">
                         <span className="text-red-600 dark:text-red-400 font-bold mt-0.5">•</span>
                         <span>{flag}</span>
                       </li>
@@ -120,14 +120,14 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* When We Can Help */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     When we can help
                   </h2>
                   <ul className="space-y-3">
                     {condPage.whenWeCanHelp.map((item, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Stethoscope className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5 dark:text-indigo-400" />
-                        <span className="text-slate-700 dark:text-slate-300">{item}</span>
+                        <Stethoscope className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -135,21 +135,21 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* How We Help */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     How it works
                   </h2>
                   <div className="space-y-4">
                     {condPage.howWeHelp.map((step, idx) => (
                       <div key={idx} className="flex gap-4">
                         <div className="shrink-0">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                            <span className="text-indigo-700 dark:text-indigo-300 font-bold">
+                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20">
+                            <span className="text-primary font-bold">
                               {idx + 1}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <p className="text-slate-700 dark:text-slate-300">{step}</p>
+                          <p className="text-muted-foreground">{step}</p>
                         </div>
                       </div>
                     ))}
@@ -157,13 +157,13 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-primary dark:border-primary">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-4">
+                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-primary dark:border-primary">
+                  <h3 className="font-semibold text-foreground mb-4">
                     Important disclaimers
                   </h3>
                   <ul className="space-y-2">
                     {condPage.disclaimers.map((disclaimer, idx) => (
-                      <li key={idx} className="text-sm text-slate-700 dark:text-slate-300">
+                      <li key={idx} className="text-sm text-muted-foreground">
                         {disclaimer}
                       </li>
                     ))}
@@ -177,14 +177,14 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {/* Use Cases */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     Use cases
                   </h2>
                   <ul className="space-y-3">
                     {certPage.useCases.map((useCase, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-                        <span className="text-slate-700 dark:text-slate-300">{useCase}</span>
+                        <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{useCase}</span>
                       </li>
                     ))}
                   </ul>
@@ -192,39 +192,39 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* How to Use */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     How to use your certificate
                   </h2>
                   <div className="space-y-4">
                     {certPage.howToUse.map((step, idx) => (
                       <div key={idx} className="flex gap-4">
                         <div className="shrink-0">
-                          <FileCheck className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                          <FileCheck className="h-6 w-6 text-primary" />
                         </div>
-                        <p className="text-slate-700 dark:text-slate-300">{step}</p>
+                        <p className="text-muted-foreground">{step}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Backdating */}
-                <div className="mb-16 p-6 bg-dawn-50 dark:bg-dawn-900/20 rounded-lg border border-dawn-200 dark:border-dawn-800">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
+                <div className="mb-16 p-6 bg-dawn-50 dark:bg-dawn-950/30 rounded-lg border border-dawn-200 dark:border-dawn-800">
+                  <h3 className="font-semibold text-foreground mb-2">
                     📅 Can we backdate certificates?
                   </h3>
-                  <p className="text-slate-700 dark:text-slate-300 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {certPage.backdatingInfo}
                   </p>
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-4">
+                <div className="mb-16 p-6 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+                  <h3 className="font-semibold text-foreground mb-4">
                     Important disclaimers
                   </h3>
                   <ul className="space-y-2">
                     {certPage.disclaimers.map((disclaimer, idx) => (
-                      <li key={idx} className="text-sm text-slate-700 dark:text-slate-300">
+                      <li key={idx} className="text-sm text-muted-foreground">
                         {disclaimer}
                       </li>
                     ))}
@@ -238,10 +238,10 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {benefitPage.sections.map((section, idx) => (
                   <div key={idx} className="mb-12">
-                    <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
+                    <h2 className="text-2xl font-bold mb-4 text-foreground">
                       {section.title}
                     </h2>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {section.content}
                     </p>
                   </div>
@@ -254,10 +254,10 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {resourcePage.sections.map((section, idx) => (
                   <div key={idx} className="mb-12">
-                    <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
+                    <h2 className="text-2xl font-bold mb-4 text-foreground">
                       {section.title}
                     </h2>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {section.content}
                     </p>
                   </div>
@@ -267,10 +267,10 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
             {/* CTA Section */}
             <div className="mt-16 p-8 bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
-              <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
+              <h2 className="text-2xl font-bold mb-4 text-foreground">
                 Ready to get started?
               </h2>
-              <p className="text-slate-700 dark:text-slate-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Complete your request in under 2 minutes. Only pay if we can help.
               </p>
               <Button asChild size="lg" className="rounded-full">
@@ -284,9 +284,9 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-20 bg-white/50 dark:bg-white/5">
+        <section className="py-20 bg-muted/50 dark:bg-muted/10">
           <div className="container mx-auto px-4 max-w-3xl">
-            <h2 className="text-3xl font-bold mb-12 text-center text-slate-900 dark:text-white">
+            <h2 className="text-3xl font-bold mb-12 text-center text-foreground">
               Frequently asked questions
             </h2>
 
@@ -295,10 +295,11 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 <AccordionItem
                   key={idx.toString()}
                   value={idx.toString()}
+                  className="border-b border-border last:border-0"
                 >
                   <AccordionTrigger>{faq.q}</AccordionTrigger>
                   <AccordionContent>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {faq.a}
                     </p>
                   </AccordionContent>

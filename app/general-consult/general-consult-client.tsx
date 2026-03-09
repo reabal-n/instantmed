@@ -1,16 +1,15 @@
 'use client'
 
 import Link from "next/link"
-import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Users } from "lucide-react"
+import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2 } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { CenteredHero } from "@/components/heroes"
@@ -150,29 +149,14 @@ const processSteps = [
   },
 ]
 
-// Live stats — seeded by date so they look realistic and vary daily
-function getDailyStats() {
-  const today = new Date()
-  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
-  return {
-    reviewedToday: 2 + Math.floor(hash(seed + 20) * 7), // 2–8
-    avgReviewTime: 45 + Math.floor(hash(seed + 21) * 76), // 45–120 min
-    rating: (4.8 + hash(seed + 22) * 0.1) as number, // 4.8–4.9
-  }
-}
-const liveStats = getDailyStats()
-
-// Doctor avatar illustrations (DiceBear)
-const doctorAvatars = [
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor7',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor8',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor9',
+// Static trust signals (replaces fake live stats)
+const trustSignals = [
+  { icon: Stethoscope, text: 'Australian GP-reviewed' },
+  { icon: Clock, text: 'Same-day response' },
+  { icon: Shield, text: 'Full refund guarantee' },
 ]
 
 export default function GeneralConsultPage() {
-  const _prefersReducedMotion = useReducedMotion()
-
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
@@ -242,7 +226,7 @@ export default function GeneralConsultPage() {
             <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
               <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
               <p className="text-xs text-muted-foreground">Flat fee</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
+              <p className="text-xs text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
             </div>
             <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
               <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
@@ -283,7 +267,7 @@ export default function GeneralConsultPage() {
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
-                    <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
+                    <div className={cn("w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm", badge.color)}>
                       <badge.icon className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
@@ -321,7 +305,7 @@ export default function GeneralConsultPage() {
               </p>
             </motion.div>
 
-            {/* Live stats */}
+            {/* Trust signals */}
             <motion.div
               className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10"
               initial={{ opacity: 0, y: 10 }}
@@ -329,25 +313,12 @@ export default function GeneralConsultPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {doctorAvatars.map((src, i) => (
-                    <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                      <Image src={src} alt="Doctor illustration" fill className="object-cover" unoptimized />
-                    </div>
-                  ))}
+              {trustSignals.map((signal) => (
+                <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <signal.icon className="w-3.5 h-3.5 text-primary" />
+                  <span>{signal.text}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">AHPRA doctors</span>
-              </div>
-              <div className="h-4 w-px bg-border hidden sm:block" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Users className="w-3.5 h-3.5 text-primary" />
-                <span><strong className="text-foreground">{liveStats.reviewedToday}</strong> consults today</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Clock className="w-3.5 h-3.5 text-primary" />
-                <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong> response</span>
-              </div>
+              ))}
             </motion.div>
 
             {/* Cards */}
@@ -363,8 +334,8 @@ export default function GeneralConsultPage() {
                   <Link href={consult.href} className="group block h-full">
                       <div className={cn(
                         "relative h-full rounded-2xl overflow-hidden flex flex-col",
-                        "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
-                        "border border-white/20 dark:border-white/10",
+                        "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
+                        "border border-border/20 dark:border-white/10",
                         "shadow-lg shadow-black/5 dark:shadow-black/20",
                         "hover:shadow-xl transition-all duration-300",
                         "group-hover:-translate-y-1",
@@ -380,12 +351,12 @@ export default function GeneralConsultPage() {
                         )}
 
                         {/* Gradient header */}
-                        <div className={`h-1.5 w-full bg-linear-to-r ${consult.color}`} />
+                        <div className={cn("h-1.5 w-full bg-linear-to-r", consult.color)} />
 
                         <div className="p-6 flex-1 flex flex-col">
                           {/* Icon */}
                           <div
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${consult.bgColor}`}
+                            className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4", consult.bgColor)}
                           >
                             <consult.icon className="w-6 h-6 text-primary" />
                           </div>
@@ -483,23 +454,6 @@ export default function GeneralConsultPage() {
           </div>
         </section>
 
-        {/* Safety Notice — softened */}
-        <section className="py-8">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="p-4 rounded-xl bg-muted/30 border border-border/50"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="text-xs text-muted-foreground text-center">
-                For emergencies (chest pain, difficulty breathing, severe symptoms), call <strong>000</strong> or go to your nearest emergency department.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
         {/* How It Works — ProcessSteps */}
         <ProcessSteps
           id="how-it-works"
@@ -509,20 +463,6 @@ export default function GeneralConsultPage() {
           steps={processSteps}
           className="scroll-mt-20"
         />
-
-        {/* Safety Notice - Positioned before testimonials for visibility */}
-        <section className="py-8">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <EmergencyDisclaimer variant="inline" />
-            </motion.div>
-          </div>
-        </section>
 
         {/* Testimonials */}
         <section className="py-8 overflow-hidden">

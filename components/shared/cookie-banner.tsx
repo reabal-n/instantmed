@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const COOKIE_CONSENT_KEY = "instantmed_cookie_consent"
 const COOKIE_CONSENT_VERSION = "1.0"
@@ -108,20 +109,19 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checke
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`
-        relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full 
-        transition-colors duration-200 ease-in-out
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2
-        ${checked ? 'bg-sky-500' : 'bg-white/60 dark:bg-white/10'}
-      `}
+      className={cn(
+        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full",
+        "transition-colors duration-200 ease-in-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        checked ? "bg-primary" : "bg-card/60 dark:bg-white/10"
+      )}
     >
       <span
-        className={`
-          pointer-events-none inline-block h-4 w-4 transform rounded-full 
-          bg-white shadow-sm ring-0 transition duration-200 ease-in-out
-          ${checked ? 'translate-x-4' : 'translate-x-0.5'}
-          mt-0.5
-        `}
+        className={cn(
+          "pointer-events-none inline-block h-4 w-4 transform rounded-full",
+          "bg-white shadow-sm ring-0 transition duration-200 ease-in-out mt-0.5",
+          checked ? "translate-x-4" : "translate-x-0.5"
+        )}
       />
     </button>
   )
@@ -209,27 +209,26 @@ export function CookieBanner() {
 
   return (
     <div 
-      className={`
-        fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-sm
-        transition-all duration-300 ease-out
-        motion-reduce:transition-none
-        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-      `}
+      className={cn(
+        "fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-sm",
+        "transition-all duration-300 ease-out motion-reduce:transition-none",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      )}
       role="dialog"
       aria-label="Cookie consent"
     >
-      <div className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 dark:border-white/10 overflow-hidden">
+      <div className="bg-card/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 dark:border-white/10 overflow-hidden">
         {!showDetails ? (
           // Simple view - compact floating card
           <div className="p-4">
             <div className="flex items-start gap-3">
               <CookieIcon className="w-10 h-10 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
+                <p className="text-sm text-foreground leading-snug">
                   We use cookies to keep things running smoothly.{" "}
                   <Link 
                     href="/privacy#cookies" 
-                    className="text-sky-600 dark:text-sky-400 hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Learn more
                   </Link>
@@ -240,7 +239,7 @@ export function CookieBanner() {
             <div className="flex items-center gap-2 mt-4">
               <button 
                 onClick={() => setShowDetails(true)}
-                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Manage
               </button>
@@ -249,14 +248,14 @@ export function CookieBanner() {
                 variant="ghost"
                 size="sm" 
                 onClick={handleRejectNonEssential}
-                className="text-xs h-8 px-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
+                className="text-xs h-8 px-3 text-muted-foreground hover:bg-muted"
               >
                 Essential only
               </Button>
               <Button 
                 size="sm" 
                 onClick={handleAcceptAll}
-                className="h-8 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-medium shadow-sm"
+                className="h-8 px-4 bg-foreground hover:bg-foreground/90 text-background font-medium shadow-sm"
               >
                 Accept all
               </Button>
@@ -268,14 +267,14 @@ export function CookieBanner() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <CookieIcon className="w-6 h-6" />
-                <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Cookie settings</h3>
+                <h3 className="font-semibold text-foreground text-sm">Cookie settings</h3>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setShowDetails(false)}
                 aria-label="Close preferences"
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -283,21 +282,21 @@ export function CookieBanner() {
 
             <div className="space-y-2">
               {/* Essential - always on */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
                 <div>
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Essential</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-sm font-medium text-foreground">Essential</p>
+                  <p className="text-xs text-muted-foreground">
                     Required for the site to work
                   </p>
                 </div>
-                <span className="text-xs text-slate-400 dark:text-slate-500">Always on</span>
+                <span className="text-xs text-muted-foreground/60">Always on</span>
               </div>
 
               {/* Analytics */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
                 <label htmlFor="analytics-toggle" className="cursor-pointer flex-1">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Analytics</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-sm font-medium text-foreground">Analytics</p>
+                  <p className="text-xs text-muted-foreground">
                     Helps us improve the experience
                   </p>
                 </label>
@@ -309,10 +308,10 @@ export function CookieBanner() {
               </div>
 
               {/* Marketing */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
                 <label htmlFor="marketing-toggle" className="cursor-pointer flex-1">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Marketing</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-sm font-medium text-foreground">Marketing</p>
+                  <p className="text-xs text-muted-foreground">
                     Measures ad effectiveness
                   </p>
                 </label>
@@ -324,19 +323,19 @@ export function CookieBanner() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-white/10">
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-border/50">
               <Button 
                 variant="ghost"
                 size="sm" 
                 onClick={handleRejectNonEssential}
-                className="text-xs h-8 px-3 text-slate-600 dark:text-slate-300"
+                className="text-xs h-8 px-3 text-muted-foreground"
               >
                 Essential only
               </Button>
               <Button 
                 size="sm" 
                 onClick={handleSavePreferences}
-                className="h-8 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-medium shadow-sm"
+                className="h-8 px-4 bg-foreground hover:bg-foreground/90 text-background font-medium shadow-sm"
               >
                 Save
               </Button>

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
@@ -121,11 +122,12 @@ export function PricingClient() {
                     service.color === "#2563EB" ? "blue" : "purple"
                   }
                   customSize={true}
-                  className={`rounded-2xl p-5 lg:p-6 relative ${
+                  className={cn(
+                    "rounded-2xl p-5 lg:p-6 relative",
                     service.popular
                       ? "ring-2 ring-primary shadow-lg"
                       : "shadow-md"
-                  }`}
+                  )}
                   style={{
                     animationDelay: `${0.1 + idx * 0.1}s`,
                   }}
@@ -188,11 +190,12 @@ export function PricingClient() {
 
                   <Button
                     asChild
-                    className={`w-full rounded-xl h-12 font-medium ${
+                    className={cn(
+                      "w-full rounded-xl h-12 font-medium",
                       service.popular
                         ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                         : "bg-foreground hover:bg-foreground/90 text-background"
-                    }`}
+                    )}
                   >
                     <Link href={service.href}>
                       Start a request

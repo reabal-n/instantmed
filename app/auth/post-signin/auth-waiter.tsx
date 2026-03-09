@@ -27,15 +27,17 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
 
-  // Master timeout: if nothing resolves within 12 seconds (including Clerk
+  // Master timeout: if nothing resolves within 20 seconds (including Clerk
   // failing to load entirely), show the error/retry UI. Without this, the
   // spinner is infinite when Clerk's JS fails to initialise.
+  // 20s accounts for the full redirect chain: middleware → post-signin →
+  // auth-waiter → Clerk handshake → back to post-signin → profile link → cookie set.
   useEffect(() => {
     const masterTimer = setTimeout(() => {
       if (!hasNavigated.current) {
         setTimedOut(true)
       }
-    }, 12000)
+    }, 20000)
 
     return () => clearTimeout(masterTimer)
   }, [])
@@ -95,7 +97,7 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
 
   if (timedOut) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" role="alert" aria-live="assertive">
         <div className="max-w-sm w-full text-center space-y-4">
           <p className="text-muted-foreground">
             Having trouble signing in. Please try again.
@@ -116,9 +118,9 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+    <div className="min-h-screen flex items-center justify-center" aria-live="polite">
+      <div className="text-center space-y-4" role="status">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" aria-hidden="true" />
         <p className="text-muted-foreground">Setting up your account...</p>
       </div>
     </div>

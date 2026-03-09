@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getPatientIntakes } from "@/lib/data/intakes"
 import { IntakesClient } from "./intakes-client"
 import type { Metadata } from "next"
@@ -15,8 +15,8 @@ interface PageProps {
 }
 
 export default async function PatientIntakesPage({ searchParams }: PageProps) {
-  // Layout enforces patient role and onboarding
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
   
   const params = await searchParams
   const page = parseInt(params.page || "1", 10)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { FlowContent } from '../flow-content'
 import { FieldRenderer } from '../field-renderer'
@@ -21,6 +21,7 @@ export function QuestionnaireStep({
   onComplete,
   onEligibilityFail,
 }: QuestionnaireStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const { currentGroupIndex } = useFlowProgress()
   const answers = useFlowAnswers()
   const { updateAnswer, nextGroup, prevGroup, nextStep, setEligibility } = useFlowStore()
@@ -115,9 +116,9 @@ export function QuestionnaireStep({
 
   // Animation variants
   const groupVariants = {
-    initial: { opacity: 0, x: 20 },
+    initial: prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 20 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
+    exit: prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 },
   }
 
   if (!currentGroup) return null
@@ -151,7 +152,7 @@ export function QuestionnaireStep({
           initial="initial"
           animate="animate"
           exit="exit"
-          transition={{ duration: 0.2 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
           className="space-y-6"
         >
           {currentGroup.fields.map((field) => {
@@ -179,7 +180,7 @@ export function QuestionnaireStep({
           <Button
             variant="ghost"
             onClick={prevGroup}
-            className="text-slate-600"
+            className="text-muted-foreground"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
@@ -198,7 +199,7 @@ export function QuestionnaireStep({
                   ? 'bg-emerald-500'
                   : idx < currentGroupIndex
                   ? 'bg-emerald-300'
-                  : 'bg-slate-200'
+                  : 'bg-muted'
               )}
             />
           ))}

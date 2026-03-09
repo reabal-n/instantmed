@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { formatDate } from "@/lib/format"
 
 interface PrescriptionIntake {
   id: string
@@ -46,18 +48,6 @@ interface PrescriptionsClientProps {
   medicationMap: Record<string, string>
   activePrescriptions: ActivePrescription[]
   error?: string | null
-}
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  approved: { label: "Approved", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
-  awaiting_script: { label: "Preparing Script", color: "bg-blue-100 text-blue-700", icon: Clock },
-  paid: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  in_review: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  pending: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
-  declined: { label: "Declined", color: "bg-red-100 text-red-700", icon: XCircle },
-  pending_info: { label: "Info Needed", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
-  cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-700", icon: XCircle },
 }
 
 function needsRenewalSoon(renewalDate: string): boolean {
@@ -113,11 +103,11 @@ export function PrescriptionsClient({
   const intakesToShow = getIntakesToShow()
   
   return (
-    <div className="container max-w-4xl py-8 px-4 sm:px-6">
+    <div className="container max-w-6xl py-8 px-4 sm:px-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">My Prescriptions</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Prescriptions</h1>
           <p className="text-muted-foreground mt-1">
             View your prescription history and manage renewals
           </p>
@@ -132,29 +122,29 @@ export function PrescriptionsClient({
 
       {/* Error State */}
       {error && (
-        <Card className="border-red-200 bg-red-50 mb-6">
+        <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 mb-6">
           <CardContent className="flex items-center gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </CardContent>
         </Card>
       )}
       
       {/* Renewal Alerts */}
       {renewalNeeded.length > 0 && (
-        <Card className="mb-6 border-amber-200 bg-amber-50">
+        <Card className="mb-6 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+            <CardTitle className="text-lg flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <RefreshCw className="w-5 h-5" />
               Prescriptions Due for Renewal
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {renewalNeeded.map((rx) => (
-              <div key={rx.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
+              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-amber-100 dark:border-amber-800/50">
                 <div>
                   <p className="font-medium">{rx.medication_name}</p>
-                  <p className="text-sm text-amber-600">
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
                     Renews in {getDaysUntilRenewal(rx.renewal_date)} days
                   </p>
                 </div>
@@ -170,45 +160,45 @@ export function PrescriptionsClient({
       )}
       
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold">{prescriptionIntakes.length}</p>
-            <p className="text-sm text-muted-foreground">Total Requests</p>
+            <p className="text-xs text-muted-foreground">Total Requests</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold text-emerald-600">{completedIntakes.length}</p>
-            <p className="text-sm text-muted-foreground">Approved</p>
+            <p className="text-xs text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{pendingIntakes.length}</p>
-            <p className="text-sm text-muted-foreground">Pending</p>
+            <p className="text-xs text-muted-foreground">Pending</p>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="all" className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5" />
-            All ({prescriptionIntakes.length})
+        <TabsList className="w-full mb-6">
+          <TabsTrigger value="all" className="flex-1">
+            <Filter className="w-3.5 h-3.5 hidden sm:block" />
+            All
           </TabsTrigger>
-          <TabsTrigger value="pending" className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            Pending ({pendingIntakes.length})
+          <TabsTrigger value="pending" className="flex-1">
+            <Clock className="w-3.5 h-3.5 hidden sm:block" />
+            Pending
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex items-center gap-1.5">
-            <CheckCircle className="w-3.5 h-3.5" />
-            Approved ({completedIntakes.length})
+          <TabsTrigger value="completed" className="flex-1">
+            <CheckCircle className="w-3.5 h-3.5 hidden sm:block" />
+            Approved
           </TabsTrigger>
-          <TabsTrigger value="declined" className="flex items-center gap-1.5">
-            <XCircle className="w-3.5 h-3.5" />
-            Declined ({declinedIntakes.length})
+          <TabsTrigger value="declined" className="flex-1">
+            <XCircle className="w-3.5 h-3.5 hidden sm:block" />
+            Declined
           </TabsTrigger>
         </TabsList>
         
@@ -254,7 +244,7 @@ function PrescriptionCard({
   intake: PrescriptionIntake
   medicationName?: string 
 }) {
-  const config = STATUS_CONFIG[intake.status] || STATUS_CONFIG.pending
+  const config = INTAKE_STATUS[intake.status as IntakeStatus] || INTAKE_STATUS.pending
   const StatusIcon = config.icon
   
   // Handle service being array or object
@@ -268,8 +258,8 @@ function PrescriptionCard({
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                <Pill className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+                <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground truncate">
@@ -278,11 +268,7 @@ function PrescriptionCard({
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
-                    {new Date(intake.created_at).toLocaleDateString("en-AU", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {formatDate(intake.created_at)}
                   </span>
                   <span>Ref: {intake.reference_number?.slice(0, 8) || intake.id.slice(0, 8)}</span>
                 </div>

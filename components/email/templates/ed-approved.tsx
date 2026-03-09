@@ -43,7 +43,7 @@ export function EdApprovedEmail({
 
   return (
     <BaseEmail
-      previewText={`Your ED prescription for ${medicationName} has been approved`}
+      previewText={`Your ${medicationName} prescription has been approved ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Prescription approved" />
@@ -124,7 +124,7 @@ export function EdApprovedEmail({
       <Text muted small>
         Questions about your medication? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         .
       </Text>

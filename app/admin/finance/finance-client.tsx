@@ -287,7 +287,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 <p className="text-sm text-muted-foreground">Active payment disputes requiring attention</p>
               </div>
               {summary.activeDisputes > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full dark:bg-amber-900/30 dark:text-amber-400">
+                <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full dark:bg-amber-500/20 dark:text-amber-400">
                   {summary.activeDisputes} active
                 </span>
               )}
@@ -302,9 +302,9 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "px-2 py-0.5 text-xs font-medium rounded",
-                          d.status === "won" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" :
-                          d.status === "lost" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
-                          "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                          d.status === "won" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400" :
+                          d.status === "lost" ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" :
+                          "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400"
                         )}>
                           {d.status}
                         </span>
@@ -345,7 +345,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 <p className="text-sm text-muted-foreground">Suspicious activity detected by fraud detection</p>
               </div>
               {summary.recentFraudFlags > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full dark:bg-red-900/30 dark:text-red-400">
+                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full dark:bg-red-500/20 dark:text-red-400">
                   {summary.recentFraudFlags} high/critical
                 </span>
               )}
@@ -360,10 +360,10 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "px-2 py-0.5 text-xs font-medium rounded",
-                          f.severity === "critical" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
-                          f.severity === "high" ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" :
-                          f.severity === "medium" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" :
-                          "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+                          f.severity === "critical" ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" :
+                          f.severity === "high" ? "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400" :
+                          f.severity === "medium" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" :
+                          "bg-muted text-foreground"
                         )}>
                           {f.severity}
                         </span>

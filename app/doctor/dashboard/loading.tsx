@@ -71,13 +71,13 @@ export default function DoctorLoading() {
                     <div className="flex items-center gap-2 mb-1">
                       <div className="h-4 w-32 bg-muted/60 rounded" />
                       <div className="h-4 w-8 bg-muted/40 rounded" />
-                      <div className="h-5 w-16 bg-indigo-100/50 rounded-full" />
+                      <div className="h-5 w-16 bg-primary/10 rounded-full" />
                     </div>
                     <div className="h-3 w-24 bg-muted/40 rounded" />
                   </div>
                   <div className="flex gap-2">
                     <div className="h-8 w-8 bg-muted/40 rounded-xl" />
-                    <div className="h-8 w-8 bg-indigo-100/50 rounded-xl" />
+                    <div className="h-8 w-8 bg-primary/10 rounded-xl" />
                     <div className="h-8 w-8 bg-muted/40 rounded-xl" />
                   </div>
                 </div>

@@ -352,7 +352,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
 
   return (
     <motion.div initial="initial" animate="animate" className="w-full">
-      <div className="w-full max-w-md mx-auto overflow-hidden rounded-2xl bg-linear-to-b from-background to-muted/30 border border-white/20">
+      <div className="w-full max-w-md mx-auto overflow-hidden rounded-2xl bg-linear-to-b from-background to-muted/30 border border-border/20">
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{

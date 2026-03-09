@@ -1,11 +1,12 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { MessagesClient } from "./messages-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
 export default async function PatientMessagesPage() {
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id

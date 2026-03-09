@@ -44,12 +44,12 @@ export function MedicationStep({
 
       {/* Selected medication display */}
       {medication && (
-        <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-800/40">
-          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+        <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800">
+          <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
             Selected: {medication.drug_name}
           </p>
           {medication.strength && (
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
               {medication.strength} {medication.form && `• ${medication.form}`}
             </p>
           )}

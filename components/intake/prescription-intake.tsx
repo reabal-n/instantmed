@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -158,7 +158,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
                   ? "bg-primary text-primary-foreground"
                   : i === currentIndex
                     ? "bg-primary/20 text-primary border-2 border-primary"
-                    : "bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+                    : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 text-muted-foreground"
               )}
             >
               {i < currentIndex ? <Check className="w-4 h-4" /> : i + 1}
@@ -167,7 +167,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
               <div
                 className={cn(
                   "h-0.5 w-8 sm:w-12 mx-1 sm:mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10"
+                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10"
                 )}
               />
             )}
@@ -206,6 +206,8 @@ function SelectCard({
   description: string
   disabled?: boolean
 }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.button
       type="button"
@@ -217,7 +219,7 @@ function SelectCard({
         "active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "bg-white/70 dark:bg-white/5 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
+          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border-border/40 dark:border-white/10 hover:border-primary/50 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -227,7 +229,7 @@ function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 text-muted-foreground"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -238,7 +240,7 @@ function SelectCard({
         </div>
         {selected && (
           <motion.div
-            initial={{ scale: 0 }}
+            initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
           >
@@ -268,7 +270,7 @@ function OptionChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-white/70 dark:bg-white/5 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border-2 border-border/40 dark:border-white/10 hover:border-primary/50 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
       )}
     >
       {label}
@@ -286,7 +288,7 @@ function SafetyQuestion({
   onChange: (val: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
       <CinematicSwitch
         value={value}
@@ -313,6 +315,8 @@ function FormField({
   required?: boolean
   children: React.ReactNode
 }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-foreground flex items-center gap-1">
@@ -322,7 +326,7 @@ function FormField({
       {children}
       {error && (
         <motion.p
-          initial={{ opacity: 0, y: -5 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-xs text-destructive flex items-center gap-1"
         >
@@ -342,6 +346,7 @@ export function PrescriptionIntake({
   onSubmit,
   onAuthRequired,
 }: PrescriptionIntakeProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [step, setStep] = useState<PrescriptionStep>("type")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -519,7 +524,7 @@ export function PrescriptionIntake({
       {showControlledWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={prefersReducedMotion ? false : { scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4"
           >
@@ -544,7 +549,7 @@ export function PrescriptionIntake({
 
       {/* Progress */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
@@ -557,10 +562,10 @@ export function PrescriptionIntake({
         {step === "type" && (
           <motion.div
             key="type"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -612,10 +617,10 @@ export function PrescriptionIntake({
         {step === "medication" && (
           <motion.div
             key="medication"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -654,7 +659,7 @@ export function PrescriptionIntake({
 
               {/* Autocomplete suggestions */}
               {medicationSuggestions.length > 0 && !isControlled && (
-                <div className="bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
+                <div className="bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
                   {medicationSuggestions.map((med) => (
                     <button
                       key={med}
@@ -672,7 +677,7 @@ export function PrescriptionIntake({
               )}
 
               {isControlled && (
-                <div className="p-3 rounded-2xl bg-dawn-50/80 dark:bg-dawn-900/30 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm text-dawn-800">
+                <div className="p-3 rounded-2xl bg-dawn-50/80 dark:bg-dawn-500/20 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm text-dawn-800">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>This medication cannot be prescribed online. Please visit your GP.</span>
@@ -703,10 +708,10 @@ export function PrescriptionIntake({
         {step === "details" && (
           <motion.div
             key="details"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -775,7 +780,7 @@ export function PrescriptionIntake({
                 placeholder="E.g., dosage, frequency, any concerns..."
                 value={formData.additionalNotes}
                 onChange={(e) => updateField("additionalNotes", e.target.value)}
-                className="min-h-20 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
+                className="min-h-20 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-lg border-border/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
               />
             </FormField>
 
@@ -797,10 +802,10 @@ export function PrescriptionIntake({
         {step === "safety" && (
           <motion.div
             key="safety"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -845,10 +850,10 @@ export function PrescriptionIntake({
         {step === "account" && !isAuthenticated && (
           <motion.div
             key="account"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -940,10 +945,10 @@ export function PrescriptionIntake({
         {step === "review" && (
           <motion.div
             key="review"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">

@@ -26,6 +26,8 @@ import {
   Eye,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { generatePreviewPdfAction } from "@/app/doctor/intakes/[id]/document/actions"
+import { toast } from "sonner"
 
 export interface CertificatePreviewData {
   patientName: string
@@ -80,6 +82,9 @@ export function CertificatePreviewDialog({
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<CertificatePreviewData>(data)
   const [dateError, setDateError] = useState<string | null>(null)
+  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null)
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false)
+  const [showPdf, setShowPdf] = useState(false)
 
   // Reset state when dialog opens
   const handleOpenChange = (open: boolean) => {
@@ -87,8 +92,33 @@ export function CertificatePreviewDialog({
       setEditedData(data)
       setIsEditing(false)
       setDateError(null)
+      setPdfDataUrl(null)
+      setShowPdf(false)
     }
     onOpenChange(open)
+  }
+
+  const handlePreviewPdf = async () => {
+    setIsLoadingPdf(true)
+    try {
+      const result = await generatePreviewPdfAction({
+        patientName: editedData.patientName,
+        certificateType: editedData.certificateType,
+        startDate: editedData.startDate,
+        endDate: editedData.endDate,
+        consultDate: editedData.consultDate,
+      })
+      if (result.success && result.pdfDataUrl) {
+        setPdfDataUrl(result.pdfDataUrl)
+        setShowPdf(true)
+      } else {
+        toast.error(result.error || "Failed to generate preview")
+      }
+    } catch {
+      toast.error("Failed to generate preview")
+    } finally {
+      setIsLoadingPdf(false)
+    }
   }
 
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
@@ -129,14 +159,14 @@ export function CertificatePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[560px] p-0 gap-0 overflow-hidden">
+      <DialogContent className={cn("p-0 gap-0 overflow-hidden", showPdf ? "sm:max-w-[700px]" : "sm:max-w-[560px]")}>
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Eye className="h-4 w-4 text-primary" />
             Certificate Preview
           </DialogTitle>
-          <DialogDescription className="text-[13px]">
+          <DialogDescription className="text-sm">
             Review the certificate details below before sending to the patient.
           </DialogDescription>
         </DialogHeader>
@@ -287,10 +317,55 @@ export function CertificatePreviewDialog({
           {hasEdits && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
               <Edit3 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <span className="text-[13px] font-medium text-amber-700 dark:text-amber-300">
+              <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
                 You&apos;ve made edits — changes will be recorded in the audit trail.
               </span>
             </div>
+          )}
+
+          {/* PDF Preview */}
+          {showPdf && pdfDataUrl ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <FileText className="h-3 w-3" />
+                  PDF Preview
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs text-muted-foreground hover:text-foreground gap-1 px-2"
+                  onClick={() => setShowPdf(false)}
+                >
+                  Hide
+                </Button>
+              </div>
+              <iframe
+                src={pdfDataUrl}
+                className="w-full h-[400px] rounded-lg border border-border/50"
+                title="Certificate PDF Preview"
+              />
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviewPdf}
+              disabled={isLoadingPdf || !!dateError}
+              className="w-full text-sm gap-2"
+            >
+              {isLoadingPdf ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Generating preview...
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3.5 w-3.5" />
+                  Preview PDF
+                </>
+              )}
+            </Button>
           )}
         </div>
 

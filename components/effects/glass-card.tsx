@@ -20,19 +20,19 @@ interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
 // Glass styles
 const glassStyles = {
   subtle: cn(
-    "bg-white/60 dark:bg-white/5",
+    "bg-card/60 dark:bg-white/5",
     "backdrop-blur-lg",
-    "border border-white/40 dark:border-white/10",
+    "border border-border/40 dark:border-white/10",
   ),
   normal: cn(
-    "bg-white/75 dark:bg-white/5",
+    "bg-card/75 dark:bg-white/5",
     "backdrop-blur-xl",
-    "border border-white/50 dark:border-white/10",
+    "border border-border/50 dark:border-white/10",
   ),
   elevated: cn(
-    "bg-white/90 dark:bg-white/10",
+    "bg-card/90 dark:bg-white/10",
     "backdrop-blur-2xl",
-    "border border-white/50 dark:border-white/15",
+    "border border-border/50 dark:border-white/15",
   ),
 }
 

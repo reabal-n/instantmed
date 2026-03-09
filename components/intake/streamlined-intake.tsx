@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -142,6 +142,8 @@ function SelectCard({
   description: string
   disabled?: boolean
 }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.button
       type="button"
@@ -153,7 +155,7 @@ function SelectCard({
         "active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/5 shadow-sm"
-          : "bg-white dark:bg-slate-900 border-border hover:border-primary/50 hover:shadow-sm",
+          : "bg-white dark:bg-background border-border hover:border-primary/50 hover:shadow-sm",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -174,7 +176,7 @@ function SelectCard({
         </div>
         {selected && (
           <motion.div
-            initial={{ scale: 0 }}
+            initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
           >
@@ -204,7 +206,7 @@ function DurationChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary text-white shadow-sm"
-          : "bg-white dark:bg-slate-900 border-2 border-border hover:border-primary/50 hover:shadow-sm"
+          : "bg-white dark:bg-background border-2 border-border hover:border-primary/50 hover:shadow-sm"
       )}
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.97 }}
@@ -232,7 +234,7 @@ function SymptomChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary/10 text-primary border border-primary"
-          : "bg-white dark:bg-slate-900 hover:bg-muted/50 border border-border"
+          : "bg-white dark:bg-background hover:bg-muted/50 border border-border"
       )}
     >
       {label}
@@ -253,6 +255,8 @@ function FormField({
   required?: boolean
   children: React.ReactNode
 }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-foreground flex items-center gap-1">
@@ -262,7 +266,7 @@ function FormField({
       {children}
       {error && (
         <motion.p
-          initial={{ opacity: 0, y: -5 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-xs text-destructive flex items-center gap-1"
         >
@@ -284,6 +288,7 @@ export function StreamlinedIntake({
   onSubmit,
   onAuthRequired,
 }: StreamlinedIntakeProps) {
+  const prefersReducedMotion = useReducedMotion()
   const router = useRouter()
   const [step, setStep] = useState<IntakeStep>("purpose")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -437,7 +442,7 @@ export function StreamlinedIntake({
     <div ref={mainRef} className="w-full max-w-lg mx-auto px-4 py-6 sm:py-8">
       {/* Progress */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
@@ -450,10 +455,10 @@ export function StreamlinedIntake({
         {step === "purpose" && (
           <motion.div
             key="purpose"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -496,9 +501,9 @@ export function StreamlinedIntake({
 
               {formData.certType === "carer" && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 rounded-2xl bg-dawn-50/80 dark:bg-dawn-900/30 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm"
+                  className="p-4 rounded-2xl bg-dawn-50/80 dark:bg-dawn-500/20 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm"
                 >
                   <div className="flex gap-3">
                     <Info className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" />
@@ -534,10 +539,10 @@ export function StreamlinedIntake({
         {step === "details" && (
           <motion.div
             key="details"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -553,13 +558,13 @@ export function StreamlinedIntake({
 
             {/* Carer-specific fields */}
             {formData.certType === "carer" && (
-              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <div className="space-y-4 p-4 rounded-2xl bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <FormField label="Who are you caring for?" required error={errors.carerPatientName}>
                   <Input
                     placeholder="Patient's full name"
                     value={formData.carerPatientName}
                     onChange={(e) => updateField("carerPatientName", e.target.value)}
-                    className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                    className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                   />
                 </FormField>
                 <FormField label="Your relationship" required error={errors.carerRelationship}>
@@ -619,7 +624,7 @@ export function StreamlinedIntake({
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => updateField("startDate", e.target.value)}
-                className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
               />
             </FormField>
 
@@ -649,7 +654,7 @@ export function StreamlinedIntake({
                 placeholder="E.g., ongoing condition, specific requirements..."
                 value={formData.additionalNotes}
                 onChange={(e) => updateField("additionalNotes", e.target.value)}
-                className="min-h-20 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
+                className="min-h-20 rounded-xl bg-card/60 dark:bg-background/40 backdrop-blur-lg border-border/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
               />
             </FormField>
 
@@ -671,10 +676,10 @@ export function StreamlinedIntake({
         {step === "account" && !isAuthenticated && (
           <motion.div
             key="account"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -718,7 +723,7 @@ export function StreamlinedIntake({
                   placeholder="As shown on Medicare card"
                   value={formData.fullName}
                   onChange={(e) => updateField("fullName", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
 
@@ -728,7 +733,7 @@ export function StreamlinedIntake({
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
 
@@ -737,13 +742,13 @@ export function StreamlinedIntake({
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => updateField("dateOfBirth", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
             </div>
 
             {/* Trust signals */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
               <Shield className="w-5 h-5 text-primary shrink-0" />
               <span>Your information is encrypted and secure. We never share your data.</span>
             </div>
@@ -766,10 +771,10 @@ export function StreamlinedIntake({
         {step === "review" && (
           <motion.div
             key="review"
-            variants={fadeSlide}
-            initial="initial"
+            variants={prefersReducedMotion ? undefined : fadeSlide}
+            initial={prefersReducedMotion ? false : "initial"}
             animate="animate"
-            exit="exit"
+            exit={prefersReducedMotion ? undefined : "exit"}
             className="space-y-6"
           >
             <div className="text-center space-y-2">
@@ -785,8 +790,8 @@ export function StreamlinedIntake({
             </div>
 
             {/* Summary card */}
-            <div className="rounded-2xl border-2 border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
-              <div className="p-4 bg-white/50 dark:bg-slate-900/40 backdrop-blur-lg border-b border-white/40 dark:border-white/10">
+            <div className="rounded-2xl border-2 border-border/40 dark:border-white/10 bg-card/70 dark:bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
+              <div className="p-4 bg-card/50 dark:bg-background/40 backdrop-blur-lg border-b border-border/40 dark:border-white/10">
                 <div className="flex items-center gap-3">
                   {formData.certType === "work" && <Briefcase className="w-5 h-5 text-primary" />}
                   {formData.certType === "uni" && <GraduationCap className="w-5 h-5 text-primary" />}
@@ -827,7 +832,7 @@ export function StreamlinedIntake({
                   <span className="text-sm text-muted-foreground">Symptoms/Reason</span>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {formData.symptoms.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-xs">
+                      <span key={s} className="px-2 py-0.5 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 text-xs">
                         {s}
                       </span>
                     ))}

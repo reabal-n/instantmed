@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GradientBg } from './gradient-bg'
 import { fadeUp, stagger } from '@/lib/motion'
@@ -89,8 +89,11 @@ export function PageHeader({
   animate = true,
   className,
 }: PageHeaderProps) {
+  const prefersReducedMotion = useReducedMotion()
   const Wrapper = animate ? motion.div : 'div'
-  const wrapperProps = animate ? { variants: fadeUp, initial: 'initial', animate: 'animate' } : {}
+  const wrapperProps = animate
+    ? { variants: fadeUp, initial: prefersReducedMotion ? false as const : 'initial', animate: 'animate' }
+    : {}
 
   return (
     <Wrapper className={cn('mb-8', className)} {...wrapperProps}>
@@ -127,6 +130,8 @@ export function PageContent({
   animate = true,
   className,
 }: PageContentProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   if (!animate) {
     return <div className={className}>{children}</div>
   }
@@ -134,7 +139,7 @@ export function PageContent({
   return (
     <motion.div
       variants={stagger.container}
-      initial="initial"
+      initial={prefersReducedMotion ? false : "initial"}
       animate="animate"
       className={className}
     >

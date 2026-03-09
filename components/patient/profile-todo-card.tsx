@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import {
   Phone,
   MapPin,
@@ -77,6 +77,7 @@ function getTodoItems(profile: ProfileData): TodoItem[] {
 }
 
 export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardProps) {
+  const prefersReducedMotion = useReducedMotion()
   const items = getTodoItems(profileData)
   const completedCount = items.filter((i) => i.isComplete).length
   const totalRequired = items.filter((i) => !i.isOptional).length
@@ -95,10 +96,10 @@ export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardPr
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8, height: 0, marginBottom: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8, height: 0, marginBottom: 0 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         className="rounded-xl border border-border bg-gradient-to-br from-background to-muted/30 overflow-hidden"
       >
         {/* Header */}
@@ -116,9 +117,9 @@ export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardPr
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
+              initial={prefersReducedMotion ? false : { width: 0 }}
               animate={{ width: `${(completedCount / items.length) * 100}%` }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.2 }}
             />
           </div>
         </div>
@@ -181,7 +182,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardPr
                       {item.label}
                     </span>
                     {item.hint && !item.isComplete && (
-                      <span className="text-[11px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         {item.hint}
                       </span>
                     )}

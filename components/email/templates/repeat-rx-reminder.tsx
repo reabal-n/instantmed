@@ -31,7 +31,7 @@ export function RepeatRxReminderEmail({
 
   return (
     <BaseEmail
-      previewText={`Time to renew your ${medicationName} prescription`}
+      previewText={`Time to renew your ${medicationName} prescription ⏱️`}
       appUrl={appUrl}
     >
       <div
@@ -85,7 +85,7 @@ export function RepeatRxReminderEmail({
         If you no longer need this medication or have questions, just reply to this email
         or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help center
+          help centre
         </a>
         . You can also unsubscribe from these reminders in your{" "}
         <a href={`${appUrl}/patient/settings`} style={{ color: colors.accent, fontWeight: 500 }}>

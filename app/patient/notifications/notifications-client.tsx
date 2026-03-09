@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
   Bell, 
@@ -14,7 +14,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { formatDistanceToNow, format } from "date-fns"
+import { format } from "date-fns"
+import { formatRelative } from "@/lib/format"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import type { RealtimeChannel } from "@supabase/supabase-js"
@@ -53,22 +54,23 @@ function getNotificationIcon(type: Notification["type"]) {
 function getNotificationColor(type: Notification["type"]) {
   switch (type) {
     case "request_update":
-      return "bg-blue-100 text-primary"
+      return "bg-blue-50 dark:bg-blue-500/10 text-primary"
     case "payment":
-      return "bg-green-100 text-green-600"
+      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
     case "document_ready":
-      return "bg-emerald-100 text-emerald-600"
+      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
     case "refill_reminder":
-      return "bg-amber-100 text-dawn-600"
+      return "bg-amber-50 dark:bg-amber-500/10 text-dawn-600 dark:text-dawn-400"
     default:
-      return "bg-gray-100 text-gray-600"
+      return "bg-muted text-muted-foreground"
   }
 }
 
 export function NotificationsClient({ notifications: initialNotifications, patientId }: NotificationsClientProps) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const [filter, setFilter] = useState<"all" | "unread">("all")
-  const supabase = createClient()
+  // Memoize Supabase client to prevent recreation on every render
+  const supabase = useMemo(() => createClient(), [])
 
   // Subscribe to new notifications in realtime
   useEffect(() => {
@@ -129,19 +131,19 @@ export function NotificationsClient({ notifications: initialNotifications, patie
 
   const unreadCount = notifications.filter(n => !n.read).length
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
     await supabase.from("notifications").update({ read: true }).eq("id", id)
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-  }
+  }, [supabase])
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     const unreadIds = notifications.filter(n => !n.read).map(n => n.id)
     if (unreadIds.length === 0) return
 
     await supabase.from("notifications").update({ read: true }).in("id", unreadIds)
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     toast.success("All notifications marked as read")
-  }
+  }, [supabase, notifications])
 
   // Group notifications by date
   const groupedNotifications = useMemo(() => {
@@ -163,11 +165,11 @@ export function NotificationsClient({ notifications: initialNotifications, patie
   }, [filteredNotifications])
 
   return (
-    <div className="space-y-6">
+    <div className="container max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
           <p className="text-sm text-muted-foreground">
             {unreadCount > 0 ? `${unreadCount} unread` : "All caught up!"}
           </p>
@@ -260,7 +262,7 @@ export function NotificationsClient({ notifications: initialNotifications, patie
                           </div>
                           <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            {formatRelative(notification.created_at)}
                           </p>
                         </div>
                       </div>

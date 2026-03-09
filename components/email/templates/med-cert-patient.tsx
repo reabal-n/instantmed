@@ -46,7 +46,7 @@ export function MedCertPatientEmail({
 
   return (
     <BaseEmail
-      previewText={`Your medical certificate for ${certTypeLabel} is ready to download`}
+      previewText={`Your medical certificate is ready to download ✅`}
       appUrl={appUrl}
     >
       <HeroBlock

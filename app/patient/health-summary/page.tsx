@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getPatientHealthSummary } from "@/lib/data/health-summary"
 import { HealthSummaryClient } from "./client"
 import type { Metadata } from "next"
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function HealthSummaryPage() {
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role — use cached profile
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   const healthSummary = await getPatientHealthSummary(authUser.profile.id)
 

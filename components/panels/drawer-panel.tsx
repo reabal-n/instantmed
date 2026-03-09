@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { usePanel } from './panel-provider'
 import { drawerVariants, backdropVariants } from '@/lib/motion/panel-variants'
@@ -41,6 +41,7 @@ export function DrawerPanel({
   className
 }: DrawerPanelProps) {
   const { closePanel } = usePanel()
+  const prefersReducedMotion = useReducedMotion()
 
   const handleClose = () => {
     onClose?.()
@@ -71,10 +72,10 @@ export function DrawerPanel({
       {/* Backdrop - lighter than session panels */}
       <motion.div
         variants={backdropVariants}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
         onClick={handleClose}
         aria-hidden="true"
       />
@@ -82,9 +83,9 @@ export function DrawerPanel({
       {/* Drawer */}
       <motion.div
         variants={drawerVariants(side)}
-        initial="hidden"
+        initial={prefersReducedMotion ? false : "hidden"}
         animate="visible"
-        exit="exit"
+        exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(
           'absolute top-0 h-full bg-background shadow-2xl flex flex-col',
           side === 'right' ? 'right-0' : 'left-0',

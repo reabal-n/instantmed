@@ -49,9 +49,9 @@ const DropdownMenuSubContent = React.forwardRef<
     className={cn(
       "z-50 min-w-[8rem] overflow-hidden rounded-2xl p-1",
       // Glass surface
-      "bg-white/85 dark:bg-white/10 backdrop-blur-xl",
+      "bg-card/85 dark:bg-white/10 backdrop-blur-xl",
       // Border
-      "border border-white/50 dark:border-white/15",
+      "border border-border/50 dark:border-white/15",
       // Glow shadow
       "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]",
       // Text
@@ -79,9 +79,9 @@ const DropdownMenuContent = React.forwardRef<
       className={cn(
         "z-[100] min-w-[8rem] overflow-hidden rounded-2xl p-1",
         // Glass surface
-        "bg-white/85 dark:bg-white/10 backdrop-blur-xl",
+        "bg-card/85 dark:bg-white/10 backdrop-blur-xl",
         // Border
-        "border border-white/50 dark:border-white/15",
+        "border border-border/50 dark:border-white/15",
         // Glow shadow
         "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]",
         // Text

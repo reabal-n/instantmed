@@ -151,7 +151,7 @@ export default function ShiftWorkersPage() {
                     { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery" },
                     { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <item.icon className="h-5 w-5 text-blue-600 shrink-0" />
                       <div>
                         <h3 className="text-sm font-semibold">{item.title}</h3>
@@ -226,7 +226,7 @@ export default function ShiftWorkersPage() {
                       quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -313,7 +313,7 @@ export default function ShiftWorkersPage() {
                       a: "Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>

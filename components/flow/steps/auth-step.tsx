@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Mail,
   Loader2,
@@ -38,6 +38,7 @@ export function AuthStep({
   onSkip,
   allowSkip = false,
 }: AuthStepProps) {
+  const prefersReducedMotion = useReducedMotion()
   const router = useRouter()
   const supabase = createClient()
   const identityData = useFlowIdentity()
@@ -186,7 +187,7 @@ export function AuthStep({
       <FlowContent title="Account" description="">
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-          <p className="mt-4 text-slate-600">Checking your session...</p>
+          <p className="mt-4 text-muted-foreground">Checking your session...</p>
         </div>
       </FlowContent>
     )
@@ -199,7 +200,7 @@ export function AuthStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center py-8"
         >
@@ -207,15 +208,15 @@ export function AuthStep({
             <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 mt-6">
+          <h2 className="text-2xl font-bold text-foreground mt-6">
             You&apos;re signed in
           </h2>
-          <p className="text-slate-600 mt-2">
+          <p className="text-muted-foreground mt-2">
             Continuing to payment...
           </p>
 
           <div className="mt-6">
-            <Loader2 className="w-5 h-5 text-slate-400 animate-spin mx-auto" />
+            <Loader2 className="w-5 h-5 text-muted-foreground/60 animate-spin mx-auto" />
           </div>
         </motion.div>
       </FlowContent>
@@ -231,7 +232,7 @@ export function AuthStep({
       description="Sign in to save your progress and receive your documents"
     >
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
@@ -240,7 +241,7 @@ export function AuthStep({
           onClick={handleGoogleSignIn}
           disabled={isLoading}
           variant="outline"
-          className="w-full h-12 text-base rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+          className="w-full h-12 text-base rounded-xl border-2 border-border hover:border-border hover:bg-muted/50"
         >
           <GoogleIcon />
           <span className="ml-3">Continue with Google</span>
@@ -249,10 +250,10 @@ export function AuthStep({
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-slate-200" />
+            <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-3 text-slate-400">or</span>
+            <span className="bg-background px-3 text-muted-foreground/60">or</span>
           </div>
         </div>
 
@@ -260,7 +261,7 @@ export function AuthStep({
           onClick={handleSignIn}
           disabled={isLoading}
           variant="outline"
-          className="w-full h-12 text-base rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+          className="w-full h-12 text-base rounded-xl border-2 border-border hover:border-border hover:bg-muted/50"
         >
           <Mail className="w-5 h-5 mr-3" />
           Continue with email
@@ -273,13 +274,13 @@ export function AuthStep({
         {allowSkip && (
           <button
             onClick={handleSkip}
-            className="w-full text-sm text-slate-500 hover:text-slate-700 py-2"
+            className="w-full text-sm text-muted-foreground hover:text-foreground py-2"
           >
             Continue as guest
           </button>
         )}
 
-        <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Lock className="w-4 h-4 shrink-0" />
           <p>
             Your data is secure and never shared without your permission.
@@ -287,8 +288,8 @@ export function AuthStep({
         </div>
 
         {/* Trust signals */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-center gap-6 text-xs text-slate-400">
+        <div className="pt-4 border-t border-border/50">
+          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground/60">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>No spam</span>

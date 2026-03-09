@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
 import { createLogger } from "@/lib/observability/logger"
@@ -14,8 +14,8 @@ const logger = createLogger("patient-dashboard")
 export const dynamic = "force-dynamic"
 
 export default async function PatientDashboard() {
-  // Layout enforces patient role and onboarding - just get profile for data
-  const authUser = await requireRole(["patient"])
+  // Layout enforces patient role and onboarding — just get profile for data (cached)
+  const authUser = (await getAuthenticatedUserWithProfile())!
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id

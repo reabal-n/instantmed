@@ -263,7 +263,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
         {/* Account section (if not logged in) */}
         {!isLoggedIn && (
           <FlowSection title="Create account">
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Sign in to track your request and access your documents.
             </p>
 
@@ -283,7 +283,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
                 </div>
               )}
 
-              <p className="text-sm text-slate-500 text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 You&apos;ll need to sign in to continue with your request.
               </p>
             </div>
@@ -300,9 +300,9 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
                 type="email"
                 value={formData.email || user?.email || ''}
                 disabled
-                className="mt-1.5 h-11 bg-slate-50"
+                className="mt-1.5 h-11 bg-muted/50"
               />
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-muted-foreground/60">
                 Logged in as {user?.email}
               </p>
             </div>
@@ -320,8 +320,8 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
                   className={cn(
                     'p-4 rounded-xl border-2 transition-all duration-200',
                     isAccepted
-                      ? 'border-emerald-500 bg-emerald-50/50'
-                      : 'border-slate-200 bg-white'
+                      ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10'
+                      : 'border-border bg-white dark:bg-white/5 dark:border-white/10'
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">

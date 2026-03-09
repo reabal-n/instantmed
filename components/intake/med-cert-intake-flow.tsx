@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, type ReactNode } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -92,6 +92,7 @@ interface ProgressIndicatorProps {
 }
 
 function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion()
   const progress = ((currentStep + 1) / totalSteps) * 100
   const currentStepData = steps[currentStep]
 
@@ -100,7 +101,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
       {/* Progress bar container */}
       <div className="relative">
         {/* Background track */}
-        <div className="h-2 bg-white/40 dark:bg-white/10 rounded-full overflow-hidden">
+        <div className="h-2 bg-card/40 dark:bg-white/10 rounded-full overflow-hidden">
           {/* Animated progress fill */}
           <motion.div
             className="h-full bg-gradient-to-r from-primary via-primary to-blue-500 rounded-full"
@@ -125,17 +126,17 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                   "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                   isCompleted && "bg-primary border-primary",
                   isCurrent && "bg-white dark:bg-white/10 border-primary ring-4 ring-primary/20",
-                  isPending && "bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
+                  isPending && "bg-card/60 dark:bg-white/5 border-border/50 dark:border-white/10"
                 )}
-                initial={{ scale: 0.8 }}
+                initial={prefersReducedMotion ? false : { scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 20 }}
               >
                 {isCompleted && (
                   <motion.div
-                    initial={{ scale: 0 }}
+                    initial={prefersReducedMotion ? false : { scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 15 }}
                   >
                     <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                   </motion.div>
@@ -143,9 +144,9 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                 {isCurrent && (
                   <motion.div
                     className="w-1.5 h-1.5 bg-primary rounded-full"
-                    initial={{ scale: 0 }}
+                    initial={prefersReducedMotion ? false : { scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 15 }}
                   />
                 )}
               </motion.div>
@@ -157,18 +158,18 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
       {/* Step text indicator */}
       <motion.div
         key={currentStep}
-        initial={{ opacity: 0, y: -5 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
         className="text-center"
       >
         <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">Step {currentStep + 1}</span>
-          <span className="mx-1.5 text-slate-300 dark:text-slate-600">of</span>
+          <span className="mx-1.5 text-muted-foreground/60">of</span>
           <span>{totalSteps}</span>
           {currentStepData?.title && (
             <>
-              <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+              <span className="mx-2 text-muted-foreground/60">·</span>
               <span className="text-foreground font-medium">{currentStepData.title}</span>
             </>
           )}
@@ -199,6 +200,8 @@ export function MedCertIntakeFlow({
   children,
   className,
 }: MedCertIntakeFlowProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   // Support both controlled and uncontrolled modes
   const [internalStep, setInternalStep] = useState(0)
   const [direction, setDirection] = useState(1)
@@ -249,28 +252,28 @@ export function MedCertIntakeFlow({
     <div
       className={cn(
         "min-h-screen flex items-start justify-center px-4 py-8 sm:py-12",
-        "bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
+        "bg-linear-to-b from-muted/50 via-blue-50/30 to-white dark:from-background dark:via-background dark:to-background",
         className
       )}
     >
       {/* Main container */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
         className={cn(
           "w-full max-w-2xl relative",
-          "bg-white/95 dark:bg-white/5 backdrop-blur-xl",
+          "bg-card/95 dark:bg-white/5 backdrop-blur-xl",
           "rounded-2xl",
           "shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none",
-          "border border-white/50 dark:border-white/10",
+          "border border-border/50 dark:border-white/10",
           "overflow-hidden"
         )}
       >
         {/* Close (X) button */}
         {!hideCloseButton && onClose && (
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -278,12 +281,12 @@ export function MedCertIntakeFlow({
             className={cn(
               "absolute top-4 right-4 z-10",
               "w-10 h-10 rounded-full",
-              "bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700",
-              "border border-slate-200/60 dark:border-white/10",
+              "bg-linear-to-br from-muted/50 to-muted dark:from-muted dark:to-muted",
+              "border border-border/60 dark:border-white/10",
               "flex items-center justify-center",
-              "text-slate-500 dark:text-slate-400",
-              "hover:text-slate-700 dark:hover:text-slate-200",
-              "hover:border-slate-300 dark:hover:border-slate-500",
+              "text-muted-foreground",
+              "hover:text-foreground",
+              "hover:border-border",
               "hover:shadow-md",
               "transition-all duration-200"
             )}
@@ -297,11 +300,11 @@ export function MedCertIntakeFlow({
         <AnimatePresence mode="wait">
           {!hideProgress && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 pt-6 pb-4 sm:px-8 sm:pt-8 border-b border-slate-100 dark:border-slate-800"
+              transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+              className="px-6 pt-6 pb-4 sm:px-8 sm:pt-8 border-b border-border/50 dark:border-border"
             >
               <ProgressIndicator
                 currentStep={currentStep}
@@ -318,11 +321,11 @@ export function MedCertIntakeFlow({
             <motion.div
               key={currentStep}
               custom={direction}
-              variants={stepVariants}
-              initial="enter"
+              variants={prefersReducedMotion ? undefined : stepVariants}
+              initial={prefersReducedMotion ? false : "enter"}
               animate="center"
-              exit="exit"
-              transition={{
+              exit={prefersReducedMotion ? undefined : "exit"}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 x: { type: "spring", stiffness: 200, damping: 30 },
                 opacity: { duration: 0.2 },
               }}
@@ -337,11 +340,11 @@ export function MedCertIntakeFlow({
         <AnimatePresence mode="wait">
           {!hideNavigation && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 py-4 sm:px-8 sm:py-5 bg-white/60 dark:bg-white/5 border-t border-white/50 dark:border-white/10"
+              transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+              className="px-6 py-4 sm:px-8 sm:py-5 bg-card/60 dark:bg-white/5 border-t border-border/50 dark:border-white/10"
             >
               <div className="flex items-center justify-between gap-4">
                 {/* Back button */}
@@ -408,13 +411,15 @@ interface StepContentProps {
 }
 
 export function StepContent({ title, description, children, className }: StepContentProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn("space-y-6", className)}>
       {/* Step header */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.1, duration: prefersReducedMotion ? 0 : 0.3 }}
         className="text-center sm:text-left"
       >
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
@@ -429,9 +434,9 @@ export function StepContent({ title, description, children, className }: StepCon
 
       {/* Step content */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={prefersReducedMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.3 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.15, duration: prefersReducedMotion ? 0 : 0.3 }}
       >
         {children}
       </motion.div>

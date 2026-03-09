@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface IOSToggleProps {
@@ -26,6 +26,8 @@ export function IOSToggle({
   size = 'md',
   className,
 }: IOSToggleProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   const sizes = {
     sm: { track: 'w-10 h-6', thumb: 'w-5 h-5', translate: 'translate-x-4' },
     md: { track: 'w-12 h-7', thumb: 'w-6 h-6', translate: 'translate-x-5' },
@@ -63,10 +65,10 @@ export function IOSToggle({
           track,
           checked
             ? 'bg-emerald-500 border-emerald-500/40'
-            : 'bg-slate-200 border-slate-200/60',
+            : 'bg-muted border-border/60',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
-        whileTap={disabled ? {} : { scale: 0.95 }}
+        whileTap={disabled || prefersReducedMotion ? undefined : { scale: 0.95 }}
       >
         <motion.span
           className={cn(
@@ -77,11 +79,11 @@ export function IOSToggle({
           animate={{
             x: checked ? parseInt(translate.replace('translate-x-', '')) * 4 : 2,
           }}
-          transition={{
-            type: 'spring',
-            stiffness: 500,
-            damping: 30,
-          }}
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 500, damping: 30 }
+          }
           style={{ marginTop: '0.5px' }}
         />
       </motion.button>
@@ -95,13 +97,13 @@ export function IOSToggle({
           {label && (
             <p className={cn(
               'text-sm font-medium',
-              checked ? 'text-slate-900' : 'text-slate-700'
+              checked ? 'text-foreground' : 'text-foreground'
             )}>
               {label}
             </p>
           )}
           {description && (
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {description}
             </p>
           )}
@@ -130,12 +132,13 @@ export function SegmentedControl({
   disabled = false,
   className,
 }: SegmentedControlProps) {
+  const prefersReducedMotion = useReducedMotion()
   const selectedIndex = options.findIndex(opt => opt.value === value)
 
   return (
     <div
       className={cn(
-        'relative inline-flex p-1 bg-slate-100 rounded-xl',
+        'relative inline-flex p-1 bg-muted rounded-xl',
         disabled && 'opacity-50 pointer-events-none',
         className
       )}
@@ -143,17 +146,17 @@ export function SegmentedControl({
       {/* Sliding background pill */}
       {selectedIndex >= 0 && (
         <motion.div
-          className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm"
+          className="absolute top-1 bottom-1 bg-white dark:bg-white/15 rounded-lg shadow-sm"
           initial={false}
           animate={{
             left: `calc(${(selectedIndex / options.length) * 100}% + 4px)`,
             width: `calc(${100 / options.length}% - 8px)`,
           }}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 30,
-          }}
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 400, damping: 30 }
+          }
         />
       )}
 
@@ -169,8 +172,8 @@ export function SegmentedControl({
             className={cn(
               'relative z-10 flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
               isSelected
-                ? 'text-slate-900'
-                : 'text-slate-600 hover:text-slate-800'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {option.label}

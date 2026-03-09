@@ -106,7 +106,7 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
         "relative z-50 flex items-center justify-center",
         "h-10 w-10 rounded-xl",
         "bg-transparent",
-        "hover:bg-white/50 dark:hover:bg-white/10",
+        "hover:bg-card/50 dark:hover:bg-white/10",
         "transition-colors duration-200",
         "outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       )}
@@ -191,9 +191,9 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
           "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
           "transition-all duration-300",
           // Glass hover effect
-          "hover:bg-white/70 dark:hover:bg-white/15",
+          "hover:bg-card/70 dark:hover:bg-white/15",
           "hover:shadow-[0_4px_20px_rgb(59,130,246,0.1)]",
-          "active:bg-white/90 dark:active:bg-white/25",
+          "active:bg-card/90 dark:active:bg-white/25",
           "group"
         )}
       >
@@ -319,10 +319,10 @@ export function AnimatedMobileMenu({
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
           // Glass surface
-          "bg-white/85 dark:bg-white/10",
+          "bg-card/85 dark:bg-white/10",
           "backdrop-blur-2xl",
           // Border
-          "border-l border-white/50 dark:border-white/15",
+          "border-l border-border/50 dark:border-white/15",
           // Glow shadow
           "shadow-[-20px_0_60px_rgb(59,130,246,0.12)] dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]"
         )}

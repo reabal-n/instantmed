@@ -119,7 +119,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* Who This Is For */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">Who qualifies for carer&apos;s leave</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -127,7 +127,7 @@ export default function CarersMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -139,7 +139,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -151,7 +151,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -163,7 +163,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -186,7 +186,7 @@ export default function CarersMedCertPage() {
                 The certificate provides what your employer needs while protecting privacy.
               </p>
 
-              <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
+              <div className="p-6 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <FileCheck className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
@@ -220,7 +220,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* What Doctors Review */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -228,7 +228,7 @@ export default function CarersMedCertPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <Users className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Relationship</h3>
@@ -238,7 +238,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <Stethoscope className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Care requirement</h3>
@@ -248,7 +248,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                   <Clock className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration</h3>
@@ -267,7 +267,7 @@ export default function CarersMedCertPage() {
               <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-4 flex items-center gap-2">
                     <Check className="h-5 w-5" />
                     We can usually help if...
@@ -292,7 +292,7 @@ export default function CarersMedCertPage() {
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
                   <h3 className="font-semibold text-red-800 dark:text-red-300 mb-4 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     We&apos;ll refer you elsewhere if...
@@ -325,13 +325,13 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
+                  <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question.replace(/&apos;/g, "'")}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer.replace(/&apos;/g, "'")}</p>
                   </div>
@@ -341,7 +341,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-rose-50 dark:bg-rose-900/20">
+          <section className="px-4 py-16 bg-rose-50 dark:bg-rose-950/30">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">

@@ -118,7 +118,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
     : "text-red-600"
 
   const readinessBg = data.launchReadiness.score >= 85
-    ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800"
+    ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
     : data.launchReadiness.score >= 60
     ? "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800"
     : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
@@ -395,7 +395,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
                     <span className="w-32 text-sm font-medium truncate">{ref.source}</span>
                     <div className="flex-1 bg-secondary rounded-full h-2">
                       <div
-                        className="h-2 rounded-full bg-indigo-500"
+                        className="h-2 rounded-full bg-primary"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

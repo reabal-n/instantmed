@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 // =============================================================================
@@ -124,7 +124,9 @@ export function GlowingEffect({
     `radial-gradient(${radius}px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`,
   )
 
-  if (disabled) {
+  const prefersReducedMotion = useReducedMotion()
+
+  if (disabled || prefersReducedMotion) {
     return <div className={className}>{children}</div>
   }
 
@@ -144,7 +146,7 @@ export function GlowingEffect({
           filter: `blur(${blur}px)`,
         }}
       />
-      
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -163,6 +165,7 @@ export function GlowingBorder({
   borderRadius = '1rem',
   className,
 }: GlowingBorderProps) {
+  const prefersReducedMotion = useReducedMotion()
   const gradient = `linear-gradient(90deg, ${colors.join(', ')})`
 
   return (
@@ -171,46 +174,50 @@ export function GlowingBorder({
       style={{ borderRadius }}
     >
       {/* Animated border */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          borderRadius,
-          padding: borderWidth,
-          backgroundImage: gradient,
-          backgroundSize: '200% 100%',
-          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          WebkitMaskComposite: 'xor',
-          maskComposite: 'exclude',
-        }}
-        animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-        }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      
-      {/* Outer glow */}
-      <motion.div
-        className="absolute -inset-px pointer-events-none opacity-50"
-        style={{
-          borderRadius,
-          backgroundImage: gradient,
-          backgroundSize: '200% 100%',
-          filter: 'blur(8px)',
-        }}
-        animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-        }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              borderRadius,
+              padding: borderWidth,
+              backgroundImage: gradient,
+              backgroundSize: '200% 100%',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+            }}
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+
+          {/* Outer glow */}
+          <motion.div
+            className="absolute -inset-px pointer-events-none opacity-50"
+            style={{
+              borderRadius,
+              backgroundImage: gradient,
+              backgroundSize: '200% 100%',
+              filter: 'blur(8px)',
+            }}
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+        </>
+      )}
+
       {/* Content */}
       <div className="relative z-10 bg-background" style={{ borderRadius }}>
         {children}
@@ -229,6 +236,7 @@ export function Spotlight({
   size = 300,
   className,
 }: SpotlightProps) {
+  const prefersReducedMotion = useReducedMotion()
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = React.useState(false)
@@ -242,6 +250,10 @@ export function Spotlight({
       })
     }
   }, [])
+
+  if (prefersReducedMotion) {
+    return <div className={cn('relative overflow-hidden', className)}>{children}</div>
+  }
 
   return (
     <div
@@ -262,7 +274,7 @@ export function Spotlight({
           background: `radial-gradient(${size}px circle at ${position.x}px ${position.y}px, ${color}, transparent 70%)`,
         }}
       />
-      
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -280,27 +292,31 @@ export function PulseGlow({
   scale = 1.05,
   className,
 }: PulseGlowProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn('relative', className)}>
       {/* Pulsing glow */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none rounded-inherit"
-        style={{
-          background: color,
-          filter: 'blur(20px)',
-          opacity: 0.3,
-        }}
-        animate={{
-          scale: [1, scale, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      
+      {!prefersReducedMotion && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none rounded-inherit"
+          style={{
+            background: color,
+            filter: 'blur(20px)',
+            opacity: 0.3,
+          }}
+          animate={{
+            scale: [1, scale, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -328,26 +344,30 @@ export function Shimmer({
   duration = 2,
   className,
 }: ShimmerProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn('relative overflow-hidden', className)}>
       {/* Shimmer effect */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `linear-gradient(90deg, transparent 0%, ${color} 50%, transparent 100%)`,
-          transform: 'skewX(-20deg)',
-        }}
-        animate={{
-          x: ['-200%', '200%'],
-        }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-          repeatDelay: 1,
-        }}
-      />
-      
+      {!prefersReducedMotion && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${color} 50%, transparent 100%)`,
+            transform: 'skewX(-20deg)',
+          }}
+          animate={{
+            x: ['-200%', '200%'],
+          }}
+          transition={{
+            duration,
+            repeat: Infinity,
+            ease: 'linear',
+            repeatDelay: 1,
+          }}
+        />
+      )}
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -377,34 +397,38 @@ export function MagneticCard({
   borderRadius = '1rem',
   className,
 }: MagneticCardProps) {
+  const prefersReducedMotion = useReducedMotion()
   const containerRef = React.useRef<HTMLDivElement>(null)
   const rotateX = useMotionValue(0)
   const rotateY = useMotionValue(0)
   const scaleValue = useMotionValue(1)
-  
+
   const springConfig = { damping: 20, stiffness: 200 }
   const springRotateX = useSpring(rotateX, springConfig)
   const springRotateY = useSpring(rotateY, springConfig)
   const springScale = useSpring(scaleValue, springConfig)
 
   const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (prefersReducedMotion) return
     const rect = containerRef.current?.getBoundingClientRect()
     if (rect) {
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
       const centerX = rect.width / 2
       const centerY = rect.height / 2
-      
+
       rotateX.set(((y - centerY) / centerY) * -intensity)
       rotateY.set(((x - centerX) / centerX) * intensity)
     }
-  }, [intensity, rotateX, rotateY])
+  }, [intensity, rotateX, rotateY, prefersReducedMotion])
 
   const handleMouseEnter = () => {
+    if (prefersReducedMotion) return
     scaleValue.set(scale)
   }
 
   const handleMouseLeave = () => {
+    if (prefersReducedMotion) return
     rotateX.set(0)
     rotateY.set(0)
     scaleValue.set(1)
@@ -417,9 +441,9 @@ export function MagneticCard({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateX: springRotateX,
-        rotateY: springRotateY,
-        scale: springScale,
+        rotateX: prefersReducedMotion ? 0 : springRotateX,
+        rotateY: prefersReducedMotion ? 0 : springRotateY,
+        scale: prefersReducedMotion ? 1 : springScale,
         borderRadius,
         transformStyle: 'preserve-3d',
         perspective: 1000,
@@ -457,46 +481,52 @@ export function GradientBorderChase({
   borderRadius = '1rem',
   className,
 }: GradientBorderChaseProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={cn('relative group', className)} style={{ borderRadius }}>
       {/* Rotating gradient border */}
-      <motion.div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          borderRadius,
-          padding: borderWidth,
-          background: `conic-gradient(from var(--angle, 0deg), ${colors.join(', ')})`,
-          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          WebkitMaskComposite: 'xor',
-          maskComposite: 'exclude',
-        }}
-        animate={{
-          '--angle': ['0deg', '360deg'],
-        } as never}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      
-      {/* Glow effect */}
-      <motion.div
-        className="absolute -inset-1 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-lg"
-        style={{
-          borderRadius,
-          background: `conic-gradient(from var(--angle, 0deg), ${colors.join(', ')})`,
-        }}
-        animate={{
-          '--angle': ['0deg', '360deg'],
-        } as never}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-      
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              borderRadius,
+              padding: borderWidth,
+              background: `conic-gradient(from var(--angle, 0deg), ${colors.join(', ')})`,
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+            }}
+            animate={{
+              '--angle': ['0deg', '360deg'],
+            } as never}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+
+          {/* Glow effect */}
+          <motion.div
+            className="absolute -inset-1 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-lg"
+            style={{
+              borderRadius,
+              background: `conic-gradient(from var(--angle, 0deg), ${colors.join(', ')})`,
+            }}
+            animate={{
+              '--angle': ['0deg', '360deg'],
+            } as never}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+        </>
+      )}
+
       {/* Content */}
       <div className="relative z-10 bg-background dark:bg-card" style={{ borderRadius }}>
         {children}
@@ -528,6 +558,7 @@ export function SpotlightReveal({
   borderRadius = '1rem',
   className,
 }: SpotlightRevealProps) {
+  const prefersReducedMotion = useReducedMotion()
   const containerRef = React.useRef<HTMLDivElement>(null)
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -555,6 +586,14 @@ export function SpotlightReveal({
     ([x, y]) => `radial-gradient(${size * 0.6}px circle at ${x}px ${y}px, ${color}60, transparent 50%)`
   )
 
+  if (prefersReducedMotion) {
+    return (
+      <div className={cn('relative', className)} style={{ borderRadius }}>
+        <div className="relative z-10">{children}</div>
+      </div>
+    )
+  }
+
   return (
     <div
       ref={containerRef}
@@ -578,7 +617,7 @@ export function SpotlightReveal({
           transition: 'opacity 0.3s',
         }}
       />
-      
+
       {/* Fill spotlight */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
@@ -589,7 +628,7 @@ export function SpotlightReveal({
           transition: 'opacity 0.3s',
         }}
       />
-      
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -763,6 +802,7 @@ export function GlowCard({
   hoverOnly = true,
   className,
 }: GlowCardProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isHovered, setIsHovered] = React.useState(false)
 
   return (
@@ -776,32 +816,36 @@ export function GlowCard({
       )}
     >
       {/* Glow effect */}
-      <motion.div
-        className="absolute -inset-px rounded-xl pointer-events-none"
-        style={{
-          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${glowColor}, transparent 40%)`,
-          opacity: hoverOnly ? (isHovered ? 0.15 : 0) : 0.1,
-        }}
-        animate={{
-          opacity: hoverOnly ? (isHovered ? 0.15 : 0) : 0.1,
-        }}
-        transition={{ duration: 0.3 }}
-      />
-      
-      {/* Border glow */}
-      <motion.div
-        className="absolute -inset-px rounded-xl pointer-events-none"
-        style={{
-          background: glowColor,
-          opacity: hoverOnly ? (isHovered ? 0.1 : 0) : 0.05,
-          filter: 'blur(10px)',
-        }}
-        animate={{
-          opacity: hoverOnly ? (isHovered ? 0.1 : 0) : 0.05,
-        }}
-        transition={{ duration: 0.3 }}
-      />
-      
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            className="absolute -inset-px rounded-xl pointer-events-none"
+            style={{
+              background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${glowColor}, transparent 40%)`,
+              opacity: hoverOnly ? (isHovered ? 0.15 : 0) : 0.1,
+            }}
+            animate={{
+              opacity: hoverOnly ? (isHovered ? 0.15 : 0) : 0.1,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+
+          {/* Border glow */}
+          <motion.div
+            className="absolute -inset-px rounded-xl pointer-events-none"
+            style={{
+              background: glowColor,
+              opacity: hoverOnly ? (isHovered ? 0.1 : 0) : 0.05,
+              filter: 'blur(10px)',
+            }}
+            animate={{
+              opacity: hoverOnly ? (isHovered ? 0.1 : 0) : 0.05,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </>
+      )}
+
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>

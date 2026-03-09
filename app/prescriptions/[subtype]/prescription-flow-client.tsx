@@ -143,8 +143,8 @@ const PillButton = ({
     onClick={onClick}
     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
-        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-        : "bg-white/90 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+        ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        : "bg-card/90 dark:bg-white/5 text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-white"
     }`}
   >
     {children}
@@ -166,8 +166,8 @@ const MultiPillButton = ({
     onClick={onClick}
     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
-        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-        : "bg-white/90 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+        ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        : "bg-card/90 dark:bg-white/5 text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-white"
     }`}
   >
     {children}
@@ -461,7 +461,7 @@ export function PrescriptionFlowClient({
               Continue to questionnaire
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button variant="outline" asChild className="flex-1 rounded-xl bg-white/50 hover:bg-white/80">
+            <Button variant="outline" asChild className="flex-1 rounded-xl bg-card/50 hover:bg-card/80">
               <Link href="/prescriptions">Back to options</Link>
             </Button>
           </div>
@@ -556,7 +556,7 @@ export function PrescriptionFlowClient({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-xl hover:bg-white/60"
+          className="h-10 w-10 rounded-xl hover:bg-card/60"
           onClick={() => setStep("intro")}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -775,7 +775,7 @@ export function PrescriptionFlowClient({
             value={additionalNotes}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalNotes(e.target.value)}
             placeholder="Any other relevant information for the doctor..."
-            className="rounded-xl bg-white/50 border-white/40 focus:border-primary/40 min-h-20 resize-none"
+            className="rounded-xl bg-card/50 border-border/40 focus:border-primary/40 min-h-20 resize-none"
           />
         </div>
       </div>
@@ -795,7 +795,7 @@ export function PrescriptionFlowClient({
           {redFlags.map((rf) => (
             <div
               key={rf.id}
-              className="flex items-center justify-between py-2 border-b border-white/20 last:border-b-0"
+              className="flex items-center justify-between py-2 border-b border-border/20 last:border-b-0"
             >
               <span className="text-sm text-foreground pr-4">{rf.label}</span>
               <div className="flex gap-2">
@@ -805,7 +805,7 @@ export function PrescriptionFlowClient({
                   className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     redFlagValues[rf.id] === false
                       ? "bg-emerald-500 text-white shadow-md"
-                      : "bg-white/60 text-muted-foreground hover:bg-white/80"
+                      : "bg-card/60 text-muted-foreground hover:bg-card/80"
                   }`}
                 >
                   No
@@ -816,7 +816,7 @@ export function PrescriptionFlowClient({
                   className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     redFlagValues[rf.id] === true
                       ? "bg-red-500 text-white shadow-md"
-                      : "bg-white/60 text-muted-foreground hover:bg-white/80"
+                      : "bg-card/60 text-muted-foreground hover:bg-card/80"
                   }`}
                 >
                   Yes
@@ -835,7 +835,7 @@ export function PrescriptionFlowClient({
         <Button
           variant="outline"
           onClick={() => setStep("intro")}
-          className="rounded-xl border-white/40 bg-white/50 hover:bg-white/70"
+          className="rounded-xl border-border/40 bg-card/50 hover:bg-card/70"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back

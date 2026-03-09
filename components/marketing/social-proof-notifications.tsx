@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { CheckCircle2, MapPin, Clock, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -144,6 +144,7 @@ export function SocialProofNotifications({
   maxNotifications = 5,
   serviceFilter,
 }: SocialProofNotificationsProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [notification, setNotification] = useState<Notification | null>(null)
   const [notificationCount, setNotificationCount] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -233,19 +234,21 @@ export function SocialProofNotifications({
         {notification && (
           <motion.div
             key={notification.id}
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
+            animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: prefersReducedMotion ? 0.15 : 0.3, ease: 'easeOut' }}
             className="relative max-w-sm bg-card border border-border rounded-xl shadow-lg overflow-hidden"
           >
             {/* Progress bar */}
-            <motion.div
-              className="absolute top-0 left-0 h-0.5 bg-primary/60"
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ duration: displayDuration / 1000, ease: 'linear' }}
-            />
+            {!prefersReducedMotion && (
+              <motion.div
+                className="absolute top-0 left-0 h-0.5 bg-primary/60"
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: displayDuration / 1000, ease: 'linear' }}
+              />
+            )}
 
             <div className="p-4">
               <div className="flex items-start gap-3">
@@ -310,8 +313,9 @@ const SERVICE_RANGES = {
 } as const
 
 export function LiveServiceCounter({ service, className }: LiveCounterProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isAnimating, setIsAnimating] = useState(false)
-  
+
   // Lazy initialize count
   const [count, setCount] = useState(() => {
     const range = SERVICE_RANGES[service]
@@ -340,9 +344,10 @@ export function LiveServiceCounter({ service, className }: LiveCounterProps) {
       <span>
         <motion.span
           key={count}
-          initial={isAnimating ? { scale: 1.2, color: 'rgb(16, 185, 129)' } : {}}
-          animate={{ scale: 1, color: 'inherit' }}
-          className="font-medium"
+          initial={isAnimating && !prefersReducedMotion ? { scale: 1.2 } : {}}
+          animate={{ scale: 1 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+          className="font-medium text-emerald-600 dark:text-emerald-400"
         >
           {count}
         </motion.span>
@@ -436,6 +441,7 @@ function generateActivities(service: string | undefined, count: number): Notific
 }
 
 export function RecentActivityList({ service, count = 3, className }: RecentActivityProps) {
+  const prefersReducedMotion = useReducedMotion()
   // Lazy initialize activities
   const [activities] = useState(() => generateActivities(service, count))
 
@@ -444,9 +450,9 @@ export function RecentActivityList({ service, count = 3, className }: RecentActi
       {activities.map((activity, index) => (
         <motion.div
           key={activity.id}
-          initial={{ opacity: 0, x: -10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.1 }}
+          transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : 0.3 }}
           className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50"
         >
           <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
@@ -482,8 +488,9 @@ const HOUR_RANGES = {
 } as const
 
 export function LastHourCounter({ service, className }: LastHourCounterProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isAnimating, setIsAnimating] = useState(false)
-  
+
   const [count, setCount] = useState(() => {
     const range = HOUR_RANGES[service]
     return Math.floor(Math.random() * (range.max - range.min)) + range.min
@@ -514,12 +521,13 @@ export function LastHourCounter({ service, className }: LastHourCounterProps) {
       'bg-emerald-500/10 border border-emerald-500/20',
       className
     )}>
-      <Clock className="w-3.5 h-3.5 text-emerald-600" />
+      <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
       <span className="text-sm text-emerald-700 dark:text-emerald-400">
         <motion.span
           key={count}
-          initial={isAnimating ? { scale: 1.3, color: 'rgb(16, 185, 129)' } : {}}
-          animate={{ scale: 1, color: 'inherit' }}
+          initial={isAnimating && !prefersReducedMotion ? { scale: 1.3 } : {}}
+          animate={{ scale: 1 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           className="font-semibold"
         >
           {count}

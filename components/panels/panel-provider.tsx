@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, useReducedMotion } from 'framer-motion'
 
 /**
  * Panel System - Core interaction model
@@ -39,6 +39,7 @@ interface PanelContextValue {
 const PanelContext = createContext<PanelContextValue | null>(null)
 
 export function PanelProvider({ children }: { children: ReactNode }) {
+  const prefersReducedMotion = useReducedMotion()
   const [activePanel, setActivePanel] = useState<Panel | null>(null)
 
   const openPanel = useCallback((panel: Panel) => {
@@ -73,7 +74,7 @@ export function PanelProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode={prefersReducedMotion ? undefined : "wait"}>
         {activePanel && (
           <div key={activePanel.id}>
             {activePanel.component}
