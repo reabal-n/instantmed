@@ -142,7 +142,7 @@ const steps = [
   {
     number: 2,
     title: "Doctor reviews your request",
-    description: "A real GP looks over everything and makes the call.",
+    description: "A real GP reviews your request and makes a clinical decision.",
   },
   {
     number: 3,

@@ -88,7 +88,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border bg-card shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-border/50 dark:border-white/10 bg-card dark:bg-white/10 shadow-xl dark:shadow-2xl dark:shadow-black/40 z-50 animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-semibold text-foreground">Notifications</h3>

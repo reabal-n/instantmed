@@ -17,7 +17,7 @@ export function Footer() {
   return (
     <footer className="my-8 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card with tape decorations */}
-      <div className="relative bg-card dark:bg-card rounded-3xl max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-border shadow-sm">
+      <div className="relative bg-card dark:bg-white/5 rounded-3xl max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none">
         {/* Tape decorations */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />

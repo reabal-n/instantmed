@@ -59,7 +59,7 @@ export function CTABanner({
           </p>
         )}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <PulseGlow color="hsl(var(--primary))" duration={3} scale={1.02}>
+          <PulseGlow color="hsl(var(--primary))" duration={2.5} scale={1.02}>
             <Link
               href={ctaHref}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-md hover:shadow-lg transition-shadow"
@@ -71,7 +71,7 @@ export function CTABanner({
           {secondaryText && secondaryHref && (
             <Link
               href={secondaryHref}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors underline underline-offset-4 decoration-border"
             >
               {secondaryText}
             </Link>

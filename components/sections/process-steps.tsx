@@ -55,7 +55,7 @@ export function ProcessSteps({
                   : undefined
             }
             style={{ transformOrigin: "left" }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
           />
 
           {steps.map((step, i) => (
@@ -90,11 +90,19 @@ export function ProcessSteps({
         </div>
 
         {/* Mobile: vertical stack */}
-        <div className="sm:hidden space-y-6">
+        <div className="sm:hidden space-y-6 relative">
+          {/* Vertical connecting line */}
+          <motion.div
+            className="absolute left-4 top-8 bottom-8 w-0.5 -translate-x-1/2 bg-gradient-to-b from-dawn-200 via-sky-200 to-dawn-200 dark:from-accent-teal/20 dark:via-accent-teal/10 dark:to-accent-teal/20"
+            initial={prefersReducedMotion ? {} : { scaleY: 0 }}
+            animate={prefersReducedMotion ? {} : isInView ? { scaleY: 1 } : undefined}
+            style={{ transformOrigin: "top" }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+          />
           {steps.map((step, i) => (
             <motion.div
               key={step.number}
-              className="flex gap-4"
+              className="flex gap-4 relative"
               initial={prefersReducedMotion ? {} : { opacity: 0, x: -12 }}
               animate={
                 prefersReducedMotion

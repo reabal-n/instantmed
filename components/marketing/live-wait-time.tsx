@@ -278,7 +278,7 @@ export function LiveWaitTime({
   // Card variant (more prominent display)
   return (
     <div className={cn(
-      'rounded-2xl border border-border bg-card p-6',
+      'rounded-2xl border border-border dark:border-white/10 bg-card dark:bg-white/5 p-6',
       className
     )}>
       <div className="flex items-center justify-between mb-4">

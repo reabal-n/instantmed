@@ -17,13 +17,13 @@ const steps = [
   {
     number: "2",
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor looks it over and makes the call. Same standards as an in-person visit. \ud83e\ude7a",
+    description: "An AHPRA-registered doctor reviews your request and makes a clinical decision. Same standards as in-person. \ud83e\ude7a",
     time: "~1 hour",
   },
   {
     number: "3",
     title: "Sorted",
-    description: "Certificate to your inbox, eScript to your phone. Done and dusted.",
+    description: "Certificate to your inbox, eScript to your phone. All sorted.",
     time: "Same day",
   },
 ]
@@ -68,7 +68,7 @@ export function HowItWorks() {
                 >
                   {/* Number + connector */}
                   <div className="flex flex-col items-center shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shadow-md shadow-primary/30 ring-2 ring-primary/10">
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shadow-md shadow-primary/30 dark:shadow-primary/20 ring-2 ring-primary/10">
                       {step.number}
                     </div>
                     {index < steps.length - 1 && (
@@ -106,7 +106,7 @@ export function HowItWorks() {
                 asChild
                 variant="default"
                 size="lg"
-                className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
+                className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
               >
                 <Link href="/request">
                   Start a request <ArrowRight className="h-4 w-4" />
@@ -120,7 +120,7 @@ export function HowItWorks() {
 
           {/* Image — laptop + certificate + coffee */}
           <motion.div
-            className="hidden lg:block shrink-0 w-72 xl:w-80 aspect-square rounded-2xl overflow-hidden shadow-lg"
+            className="hidden lg:block shrink-0 w-72 xl:w-80 aspect-square rounded-2xl overflow-hidden shadow-lg dark:shadow-none"
             initial={animate ? { opacity: 0, x: 20 } : false}
             whileInView={animate ? { opacity: 1, x: 0 } : undefined}
             viewport={{ once: true }}

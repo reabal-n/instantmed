@@ -45,7 +45,7 @@ export function TiltCard({ children, className, tiltAmount = 10, ...props }: Til
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "relative rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-xl overflow-hidden transition-transform duration-200 ease-out",
+        "relative rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-xl dark:shadow-none overflow-hidden transition-transform duration-200 ease-out",
         className
       )}
       style={{ transform }}

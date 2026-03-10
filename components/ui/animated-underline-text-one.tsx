@@ -46,7 +46,7 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
       >
         <div className="relative inline-block">
           <motion.h2
-            className={cn("text-4xl font-bold text-center", textClassName)}
+            className={cn("text-2xl sm:text-3xl md:text-4xl font-bold text-center", textClassName)}
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}

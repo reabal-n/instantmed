@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { X, Clock } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -27,6 +28,7 @@ export function StickyCTABar() {
   })
   const [isNearFooter, setIsNearFooter] = useState(false)
   const pathname = usePathname()
+  const prefersReducedMotion = useReducedMotion()
 
   // Get page-specific config
   const config = Object.entries(SERVICE_CONFIG).find(([path]) => pathname?.startsWith(path))?.[1] || DEFAULT_CONFIG
@@ -55,48 +57,58 @@ export function StickyCTABar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isDismissed, handleScroll])
 
-  // Don't show on request flows or patient dashboard
+  // Don't show on request flows or patient/doctor portals
   if (!pathname || pathname.includes("/request") || pathname.startsWith("/patient") || pathname.startsWith("/doctor")) {
     return null
   }
 
-  if (!isVisible || isDismissed || isNearFooter) return null
+  const shouldShow = isVisible && !isDismissed && !isNearFooter
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden animate-slide-in-up">
-      <div className="bg-card/95 dark:bg-white/10 backdrop-blur-xl border-t border-border/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground flex items-center gap-1.5 truncate">
-              {config.name}
-            </p>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {config.price} · Usually under an hour
-            </p>
+    <AnimatePresence>
+      {shouldShow && (
+        <motion.div
+          className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 48 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 48 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <div className="bg-card/95 dark:bg-white/10 backdrop-blur-xl border-t border-border/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground flex items-center gap-1.5 truncate">
+                  {config.name}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {config.price} · Usually under an hour
+                </p>
+              </div>
+              <Button
+                asChild
+                size="sm"
+                className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
+              >
+                <Link href={config.href}>Start a request</Link>
+              </Button>
+              <button
+                onClick={() => {
+                  setIsDismissed(true)
+                  if (typeof window !== "undefined") {
+                    const current = parseInt(sessionStorage.getItem(SESSION_KEY) || "0", 10)
+                    sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
+                  }
+                }}
+                className="p-1.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors shrink-0"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <Button
-            asChild
-            size="sm"
-            className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
-          >
-            <Link href={config.href}>Start a request</Link>
-          </Button>
-          <button
-            onClick={() => {
-              setIsDismissed(true)
-              if (typeof window !== "undefined") {
-                const current = parseInt(sessionStorage.getItem(SESSION_KEY) || "0", 10)
-                sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
-              }
-            }}
-            className="p-1.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors shrink-0"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

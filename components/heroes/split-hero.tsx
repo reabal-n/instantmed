@@ -54,7 +54,7 @@ export function SplitHero({
             className="mt-6 text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
+            transition={{ duration: 0.3, delay: 0.6 }}
           >
             {subtitle}
           </motion.p>
@@ -63,7 +63,7 @@ export function SplitHero({
               className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: 0.8 }}
             >
               {children}
             </motion.div>
@@ -77,7 +77,7 @@ export function SplitHero({
             alt={imageAlt}
             width={1200}
             height={1500}
-            className="aspect-[4/5] rounded-3xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10"
+            className="aspect-[4/5] rounded-3xl shadow-2xl dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10"
             direction="right"
             priority
           />

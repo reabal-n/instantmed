@@ -156,7 +156,7 @@ export const howItWorks = [
   {
     step: 2,
     title: "A doctor reviews it",
-    description: "A real Australian doctor looks at your request and makes the call.",
+    description: "A real Australian doctor reviews your request and makes a clinical decision.",
     icon: "Stethoscope",
     emoji: "🩺",
   },

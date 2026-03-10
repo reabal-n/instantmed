@@ -129,7 +129,7 @@ export function TotalPatientsCounter({
       viewport={{ once: true }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
       className={cn(
-        'rounded-2xl border border-border bg-card p-6 text-center',
+        'rounded-2xl border border-border dark:border-white/10 bg-card dark:bg-white/5 p-6 text-center',
         className
       )}
     >

@@ -498,7 +498,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
             >
               <div className="relative">
                 {/* Main image */}
-                <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl dark:shadow-black/40">
                   <Image
                     src={config.hero.images!.primary}
                     alt="Patient using InstantMed from home"
@@ -569,10 +569,10 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className={cn(
-                  'rounded-2xl p-6 border transition-all hover:shadow-lg',
-                  isPositive && 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800',
-                  isNegative && 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800',
-                  !isPositive && !isNegative && 'bg-card border-border'
+                  'rounded-2xl p-6 border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5',
+                  isPositive && 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 hover:shadow-emerald-200/30 dark:hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700',
+                  isNegative && 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800 hover:shadow-rose-200/30 dark:hover:shadow-rose-500/10 hover:border-rose-300 dark:hover:border-rose-700',
+                  !isPositive && !isNegative && 'bg-card border-border hover:shadow-dawn-200/30 dark:hover:shadow-accent-teal/10 hover:border-primary/20 dark:hover:border-accent-teal/20'
                 )}
               >
                 <div className={cn(
@@ -700,7 +700,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
                   <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-border" />
                 )}
                 
-                <div className="relative bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-border/50 dark:border-white/10 hover:shadow-lg dark:hover:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-all text-center">
+                <div className="relative bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-border/50 dark:border-white/10 hover:shadow-lg hover:shadow-dawn-200/25 dark:hover:shadow-accent-teal/[0.06] hover:border-primary/20 dark:hover:border-accent-teal/20 hover:-translate-y-0.5 transition-all duration-200 text-center">
                   {/* Step number */}
                   <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold', colors.button)}>
                     {step.number}
@@ -778,7 +778,7 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex gap-4 p-5 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
+                className="flex gap-4 p-5 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 hover:shadow-md hover:shadow-dawn-200/20 dark:hover:shadow-accent-teal/[0.04] hover:border-primary/15 dark:hover:border-accent-teal/15 transition-all duration-200"
               >
                 <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', colors.light)}>
                   <Icon className={cn('w-5 h-5', colors.text)} />
@@ -845,7 +845,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
   if (!config.faq) return null
 
   return (
-    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
+    <section id="faq" className="py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -884,7 +884,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
               <AccordionItem
                 key={index.toString()}
                 value={index.toString()}
-                className="rounded-xl bg-card/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 hover:shadow-md transition-all px-5"
+                className="rounded-xl bg-card/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 dark:hover:border-accent-teal/20 hover:shadow-md hover:shadow-dawn-200/20 dark:hover:shadow-accent-teal/[0.04] transition-all duration-200 px-5"
               >
                 <AccordionTrigger className="text-foreground py-5">
                   <span className="font-medium text-foreground text-left">{item.question}</span>
