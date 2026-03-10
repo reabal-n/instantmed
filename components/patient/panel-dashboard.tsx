@@ -311,7 +311,7 @@ export function PanelDashboard({
           <EmptyState
             icon={FileText}
             title={FEEDBACK_MESSAGES.noRequests}
-            description="Pick what you need and a GP will review it — most people are sorted within the hour."
+            description="Pick what you need and a doctor will review it — we'll let you know when it's ready."
             action={{
               label: "New Request",
               href: "/request",
@@ -436,7 +436,7 @@ export function PanelDashboard({
         className="fixed bottom-20 md:bottom-6 right-6 z-50"
         initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: prefersReducedMotion ? 0 : 0.5, type: "spring", stiffness: 200 }}
+        transition={{ delay: prefersReducedMotion ? 0 : 0.5, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
       >
         <Link href="/request">
           <Button

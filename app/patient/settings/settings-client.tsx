@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AUSTRALIAN_STATES } from "@/lib/constants"
+import { AUSTRALIAN_STATES, CONTACT_EMAIL } from "@/lib/constants"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -418,7 +418,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               <p className="text-xs text-muted-foreground mt-4">
                 To update your Medicare details, please{" "}
                 <a 
-                  href="mailto:support@instantmed.com.au?subject=Medicare%20Details%20Update" 
+                  href={`mailto:${CONTACT_EMAIL}?subject=Medicare%20Details%20Update`}
                   className="text-primary hover:underline font-medium"
                 >
                   contact our support team

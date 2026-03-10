@@ -34,7 +34,7 @@ function getItemVariants(reduced: boolean | null) {
       y: 0,
       transition: reduced
         ? { duration: 0 }
-        : { type: 'spring' as const, stiffness: 200, damping: 25 },
+        : { duration: 0.3, ease: 'easeOut' as const },
     },
   }
 }

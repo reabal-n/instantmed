@@ -466,11 +466,11 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
         
         {/* Secondary Fields - Collapsible or less prominent */}
         {secondaryFields.length > 0 && (
-          <div className="border-t pt-3">
-            <p className="text-xs text-muted-foreground mb-2 font-medium">Additional Information</p>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="border-t pt-4">
+            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wide">Additional Information</p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
               {secondaryFields.slice(0, 8).map(([key, value]) => (
-                <div key={key} className="flex justify-between gap-2">
+                <div key={key} className="flex justify-between gap-2 p-2.5 bg-muted/40 rounded-lg">
                   <span className="text-muted-foreground truncate">
                     {FIELD_LABELS[key] || formatFieldLabel(key)}
                   </span>

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { motion, AnimatePresence, type Variants } from "framer-motion"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import { useReducedMotion } from "@/components/ui/motion"
 
 // Hook to get container dimensions
 const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -263,6 +264,7 @@ export function AnimatedMobileMenu({
   header,
   footer,
 }: AnimatedMobileMenuProps) {
+  const prefersReducedMotion = useReducedMotion()
   const containerRef = useRef<HTMLDivElement>(null)
   const { height } = useDimensions(containerRef)
 
@@ -301,10 +303,10 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
             onClick={onClose}
             className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-sm"
           />
@@ -330,10 +332,10 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.1 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1 }}
             className="fixed top-0 right-0 bottom-0 z-50 w-[300px] flex flex-col"
           >
             {/* Header */}

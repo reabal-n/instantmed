@@ -14,13 +14,13 @@ import type { Transition, Variants, TargetAndTransition } from 'framer-motion'
 // =============================================================================
 // GLOBAL TIMING CONSTANTS
 // =============================================================================
-// InstantMed Design System: Subtle, physical motion (150-220ms)
-// No bounce. No elastic. Ease-out only.
+// InstantMed Design System: Subtle, physical motion (200-500ms)
+// No bounce. No elastic. Ease-out only. Brand minimum 200ms.
 
 export const duration = {
-  instant: 0.15,  // 150ms - minimum perceptible
-  fast: 0.15,     // 150ms - snappy, responsive
-  normal: 0.18,   // 180ms - standard smooth
+  instant: 0.2,   // 200ms - brand minimum
+  fast: 0.2,      // 200ms - snappy, responsive
+  normal: 0.2,    // 200ms - standard smooth
   slow: 0.22,     // 220ms - generous, reassuring
   slower: 0.25,   // 250ms - final fallback for complex motions
   page: 0.2,      // 200ms - page transitions
@@ -99,7 +99,7 @@ export const springFallback = {
 // =============================================================================
 // TRANSITION PRESETS
 // =============================================================================
-// All transitions use ease-out with 150-220ms durations
+// All transitions use ease-out with 200ms+ durations
 
 export const transition = {
   fast: { duration: duration.fast, ease: 'easeOut' } as Transition,
@@ -569,7 +569,7 @@ export const buttonGhost = {
  */
 export const buttonIcon = {
   whileHover: {
-    scale: 1.05,
+    scale: 1.02,
     backgroundColor: 'rgba(0, 0, 0, 0.04)',
     transition: { duration: duration.fast },
   } as TargetAndTransition,

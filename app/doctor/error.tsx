@@ -14,6 +14,7 @@ import {
   WifiOff,
   LogIn,
 } from "lucide-react"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -146,7 +147,7 @@ export default function DoctorError({
 
           <p className="text-xs text-muted-foreground/60">
             <Mail className="inline h-3 w-3 mr-1" />
-            support@instantmed.com.au
+            {CONTACT_EMAIL}
           </p>
         </div>
       </div>

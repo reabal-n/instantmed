@@ -68,6 +68,13 @@ export function QueueClient({
   const { openPanel } = usePanel()
   const [intakes, setIntakes] = useState(initialIntakes)
 
+  // Sync server data into local state after router.refresh() soft-refreshes the page.
+  // useState(initialIntakes) only reads the prop on mount, so without this effect
+  // the 60s background refresh never updates what's shown in the queue.
+  useEffect(() => {
+    setIntakes(initialIntakes)
+  }, [initialIntakes])
+
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -114,7 +121,7 @@ export function QueueClient({
           event: "*",
           schema: "public",
           table: "intakes",
-          filter: "status=in.(paid,in_review,pending_info)",
+          filter: "status=in.(paid,in_review,pending_info,awaiting_script)",
         },
         (payload) => {
           lastSyncTimeRef.current = new Date()

@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function NotificationsLoading() {
   return (
-    <div className="container max-w-2xl py-8 px-4">
+    <div>
       <div className="mb-8">
         <Skeleton className="h-8 w-40 mb-2" />
         <Skeleton className="h-4 w-48" />

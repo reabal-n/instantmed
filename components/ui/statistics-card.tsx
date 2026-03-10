@@ -4,6 +4,7 @@ import NumberFlow from "@number-flow/react";
 import { motion } from "framer-motion";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/components/ui/motion";
 
 const css = `
 .candy-bg {
@@ -33,7 +34,7 @@ interface StatsProps {
   }[];
 }
 
-const Stats = ({ 
+const Stats = ({
   title = "We don&apos;t believe in talk we Deliver Results",
   description = "Experience the difference with our proven track record of success.",
   items = [
@@ -49,6 +50,7 @@ const Stats = ({
     { value: 37, label: "competitor 4", delay: 0.8 },
   ]
 }: StatsProps) => {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <section className="py-16 md:py-24">
       <style>{css}</style>
@@ -65,17 +67,17 @@ const Stats = ({
           {items.map((props, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.5,
+              transition={prefersReducedMotion ? { duration: 0 } : {
+                duration: 0.3,
                 delay: index * 0.2,
-                type: "spring",
-                damping: 10,
+                type: "tween",
+                ease: [0.22, 1, 0.36, 1],
               }}
               className="h-full w-full"
             >
-              <BarChart {...props} />
+              <BarChart {...props} prefersReducedMotion={prefersReducedMotion} />
             </motion.div>
           ))}
         </div>
@@ -92,20 +94,22 @@ const BarChart = ({
   className = "",
   showToolTip = false,
   delay = 0,
+  prefersReducedMotion = false,
 }: {
   value: number;
   label: string;
   className?: string;
   showToolTip?: boolean;
   delay?: number;
+  prefersReducedMotion?: boolean;
 }) => {
   return (
     <div className="group relative h-full w-full">
       <div className="candy-bg relative h-full w-full overflow-hidden rounded-[24px] md:rounded-[40px]">
         <motion.div
-          initial={{ opacity: 0, y: 100, height: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 100, height: 0 }}
           animate={{ opacity: 1, y: 0, height: `${value}%` }}
-          transition={{ duration: 0.5, type: "spring", damping: 20, delay }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
           className={cn(
             "absolute bottom-0 mt-auto w-full rounded-[24px] md:rounded-[40px] bg-muted-foreground/80 dark:bg-muted p-2 md:p-3 text-foreground",
             className,
@@ -118,15 +122,15 @@ const BarChart = ({
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 100, height: 0 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 100, height: 0 }}
         animate={{ opacity: 1, y: 0, height: `${value}%` }}
-        transition={{ duration: 0.5, type: "spring", damping: 15, delay }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
         className="absolute bottom-0 w-full"
       >
         <motion.div
-          initial={{ opacity: 0, y: 100 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 100 }}
           animate={{ opacity: showToolTip ? 1 : 0, y: showToolTip ? 0 : 100 }}
-          transition={{ duration: 0.5, type: "spring", damping: 15, delay }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
           className={cn(
             "absolute -top-9 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-muted-foreground px-2 py-1 text-xs md:text-sm text-primary-foreground",
             className,

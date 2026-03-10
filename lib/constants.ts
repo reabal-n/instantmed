@@ -7,11 +7,20 @@ export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
   "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs."
 
+// Company identity
+export const COMPANY_NAME = "InstantMed Pty Ltd"
+export const ABN = "64 694 559 334"
+export const COMPANY_ADDRESS = "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010"
+export const COMPANY_ADDRESS_SHORT = "Level 1/457-459 Elizabeth St, Surry Hills NSW 2010"
+
 // Contact info — use these constants instead of hardcoded strings
 export const CONTACT_EMAIL = "support@instantmed.com.au"
 export const CONTACT_EMAIL_HELLO = "hello@instantmed.com.au"
 export const CONTACT_EMAIL_NOREPLY = "noreply@instantmed.com.au"
 export const CONTACT_EMAIL_ADMIN = "admin@instantmed.com.au"
+export const CONTACT_EMAIL_COMPLAINTS = "complaints@instantmed.com.au"
+export const CONTACT_EMAIL_PRIVACY = "privacy@instantmed.com.au"
+export const CONTACT_EMAIL_LEGAL = "legal@instantmed.com.au"
 export const CONTACT_PHONE = "0450 722 549"
 
 // Service pricing (in AUD) — SINGLE SOURCE OF TRUTH

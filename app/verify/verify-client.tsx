@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Search,
 } from "lucide-react"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 interface VerificationResult {
   valid: boolean
@@ -277,7 +278,7 @@ export function VerifyClient() {
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  If you believe this is an error, please contact support@instantmed.com.au
+                  If you believe this is an error, please contact {CONTACT_EMAIL}
                 </p>
               </div>
             </div>
@@ -293,8 +294,8 @@ export function VerifyClient() {
         </p>
         <p>
           Need help? Contact us at{" "}
-          <a href="mailto:support@instantmed.com.au" className="text-primary hover:underline">
-            support@instantmed.com.au
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+            {CONTACT_EMAIL}
           </a>
         </p>
       </div>

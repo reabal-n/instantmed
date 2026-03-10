@@ -54,13 +54,13 @@ export function ContextualHelp({
     return (
       <div
         className={cn(
-          "p-3 rounded-xl bg-blue-50 border border-blue-100",
+          "p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800/40",
           className
         )}
       >
         <div className="flex items-start gap-2">
-          <Icon className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
-          <div className="text-sm text-blue-900 flex-1">
+          <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+          <div className="text-sm text-blue-900 dark:text-blue-100 flex-1">
             {typeof content === "string" ? <p>{content}</p> : content}
           </div>
         </div>
@@ -104,35 +104,35 @@ export function InfoCard({
 }: InfoCardProps) {
   const variantStyles = {
     info: {
-      bg: "bg-blue-50",
-      border: "border-blue-100",
+      bg: "bg-blue-50 dark:bg-blue-950/30",
+      border: "border-blue-100 dark:border-blue-800/40",
       iconColor: "text-blue-600",
-      titleColor: "text-blue-900",
-      textColor: "text-blue-700",
+      titleColor: "text-blue-900 dark:text-blue-100",
+      textColor: "text-blue-700 dark:text-blue-300",
       defaultIcon: Info,
     },
     success: {
-      bg: "bg-green-50",
-      border: "border-green-100",
+      bg: "bg-green-50 dark:bg-green-950/30",
+      border: "border-green-100 dark:border-green-800/40",
       iconColor: "text-green-600",
-      titleColor: "text-green-900",
-      textColor: "text-green-700",
+      titleColor: "text-green-900 dark:text-green-100",
+      textColor: "text-green-700 dark:text-green-300",
       defaultIcon: Info,
     },
     warning: {
-      bg: "bg-dawn-50",
-      border: "border-dawn-100",
+      bg: "bg-dawn-50 dark:bg-amber-950/30",
+      border: "border-dawn-100 dark:border-amber-700/40",
       iconColor: "text-dawn-600",
-      titleColor: "text-dawn-900",
-      textColor: "text-dawn-700",
+      titleColor: "text-dawn-900 dark:text-dawn-100",
+      textColor: "text-dawn-700 dark:text-dawn-300",
       defaultIcon: AlertCircle,
     },
     error: {
-      bg: "bg-red-50",
-      border: "border-red-100",
+      bg: "bg-red-50 dark:bg-red-950/30",
+      border: "border-red-100 dark:border-red-800/40",
       iconColor: "text-red-600",
-      titleColor: "text-red-900",
-      textColor: "text-red-700",
+      titleColor: "text-red-900 dark:text-red-100",
+      textColor: "text-red-700 dark:text-red-400",
       defaultIcon: AlertCircle,
     },
   }

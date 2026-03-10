@@ -66,7 +66,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
   const isComplete = preferredTimeSlot && preferredDays && !validatePhone(callbackPhone, true)
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Phone className="w-4 h-4" />

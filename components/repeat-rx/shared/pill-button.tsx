@@ -5,6 +5,7 @@
  */
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface PillButtonProps {
@@ -15,6 +16,8 @@ interface PillButtonProps {
 }
 
 export function PillButton({ selected, onClick, children, className }: PillButtonProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.button
       type="button"
@@ -30,9 +33,9 @@ export function PillButton({ selected, onClick, children, className }: PillButto
           : "hover:border-primary/40 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]",
         className
       )}
-      whileHover={selected ? {} : { y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 200, damping: 30 }}
+      whileHover={prefersReducedMotion ? undefined : (selected ? {} : { y: -2 })}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut" }}
     >
       {children}
     </motion.button>

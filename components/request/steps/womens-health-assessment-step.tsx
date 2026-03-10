@@ -96,7 +96,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   const isComplete = contraceptionType && contraceptionCurrent && pregnancyStatus
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Sparkles className="w-4 h-4" />
         <AlertDescription className="text-xs">
@@ -231,7 +231,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
 
   if (isBlocked) {
     return (
-      <div className="space-y-6 animate-in fade-in">
+      <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="w-5 h-5" />
           <AlertTitle className="font-semibold">This service is not suitable</AlertTitle>
@@ -248,7 +248,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
   const isComplete = hoursSinceIntercourse && hoursSinceIntercourse !== 'over_120'
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
         <Sparkles className="w-4 h-4 text-amber-600" />
         <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
@@ -348,7 +348,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
 
   if (isBlocked) {
     return (
-      <div className="space-y-6 animate-in fade-in">
+      <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="w-5 h-5" />
           <AlertTitle className="font-semibold">Please seek urgent care</AlertTitle>
@@ -374,7 +374,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no'
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Sparkles className="w-4 h-4" />
         <AlertDescription className="text-xs">
@@ -478,7 +478,7 @@ function GeneralWomensAssessment({ onNext, answers, setAnswer, errors, setErrors
   const isComplete = womensDetails.length >= 20
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Sparkles className="w-4 h-4" />
         <AlertDescription className="text-xs">

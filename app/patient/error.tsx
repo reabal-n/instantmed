@@ -14,6 +14,7 @@ import {
   LogIn,
   Mail,
 } from "lucide-react"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -146,7 +147,7 @@ export default function PatientError({
 
           <p className="text-xs text-muted-foreground/60">
             <Mail className="inline h-3 w-3 mr-1" />
-            <a href="mailto:support@instantmed.com.au" className="hover:text-foreground transition-colors">support@instantmed.com.au</a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL}</a>
           </p>
         </div>
       </div>

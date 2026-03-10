@@ -18,6 +18,7 @@ import {
   Eye,
 } from "lucide-react"
 import { SampleCertificate } from "@/components/marketing/sample-certificate"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "For Employers | Verify Medical Certificates",
@@ -60,7 +61,7 @@ export default function EmployersPage() {
     {
       question: "Can I contact InstantMed to verify directly?",
       answer:
-        "Yes. For additional verification or if you have concerns, you can email support@instantmed.com.au with the certificate details. We respond within one business day.",
+        `Yes. For additional verification or if you have concerns, you can email ${CONTACT_EMAIL} with the certificate details. We respond within one business day.`,
     },
     {
       question: "Who issues the certificates?",
@@ -76,8 +77,7 @@ export default function EmployersPage() {
       <main className="flex-1">
         {/* Hero */}
         <section className="relative pt-32 pb-16 overflow-hidden bg-linear-to-b from-background to-blue-50/30 dark:to-blue-950/10">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-3xl mx-auto px-4 text-center">
               <Badge className="mb-4 bg-blue-500/10 text-blue-700 dark:text-blue-400 border-0 px-4 py-1.5">
                 <Building2 className="w-3.5 h-3.5 mr-1.5" />
                 For Employers & HR Teams
@@ -96,14 +96,12 @@ export default function EmployersPage() {
                   Go to Verification Portal
                 </Link>
               </Button>
-            </div>
           </div>
         </section>
 
         {/* About InstantMed */}
         <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
                 About InstantMed
               </h2>
@@ -125,8 +123,8 @@ export default function EmployersPage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Mail className="w-4 h-4 text-muted-foreground" />
-                    <a href="mailto:support@instantmed.com.au" className="text-primary hover:underline">
-                      support@instantmed.com.au
+                    <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+                      {CONTACT_EMAIL}
                     </a>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
@@ -135,14 +133,12 @@ export default function EmployersPage() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </section>
 
         {/* How to Verify */}
         <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
                 How to verify a certificate
               </h2>
@@ -198,14 +194,12 @@ export default function EmployersPage() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </section>
 
         {/* What Certificates Include */}
         <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
                 What our certificates look like
               </h2>
@@ -231,14 +225,12 @@ export default function EmployersPage() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </section>
 
         {/* Trust Indicators */}
         <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
                 Why you can trust our certificates
               </h2>
@@ -292,14 +284,12 @@ export default function EmployersPage() {
                   </Link>
                 </div>
               </div>
-            </div>
           </div>
         </section>
 
         {/* FAQs */}
         <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
                 <HelpCircle className="w-6 h-6 inline mr-2" />
                 Frequently Asked Questions
@@ -313,13 +303,11 @@ export default function EmployersPage() {
                 ))}
               </div>
             </div>
-          </div>
         </section>
 
         {/* Contact CTA */}
         <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-xl mx-auto text-center">
+          <div className="max-w-xl mx-auto px-4 text-center">
               <h2 className="text-2xl font-bold text-foreground mb-4">
                 Need further assistance?
               </h2>
@@ -332,13 +320,12 @@ export default function EmployersPage() {
                   <Link href="/verify">Verify a Certificate</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full bg-transparent">
-                  <a href="mailto:support@instantmed.com.au">
+                  <a href={`mailto:${CONTACT_EMAIL}`}>
                     <Mail className="w-4 h-4 mr-2" />
                     Contact Support
                   </a>
                 </Button>
               </div>
-            </div>
           </div>
         </section>
 

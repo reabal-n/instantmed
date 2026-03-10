@@ -123,6 +123,32 @@ const nextConfig = {
         source: "/admin/performance-dashboard",
         destination: "/admin/performance",
         permanent: true
+      },
+      // Missing route redirects — prevent external 404s
+      {
+        source: "/erectile-dysfunction",
+        destination: "/mens-health",
+        permanent: true
+      },
+      {
+        source: "/prescription",
+        destination: "/repeat-prescription",
+        permanent: true
+      },
+      {
+        source: "/why-us",
+        destination: "/about",
+        permanent: true
+      },
+      {
+        source: "/auth/sign-in",
+        destination: "/auth/login",
+        permanent: true
+      },
+      {
+        source: "/health/:path*",
+        destination: "/conditions/:path*",
+        permanent: false
       }
     ];
   },

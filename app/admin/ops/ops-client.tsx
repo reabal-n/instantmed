@@ -84,7 +84,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
   return (
     <div className="min-h-screen dashboard-bg">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
         <DashboardHeader
           title="Operations Dashboard"

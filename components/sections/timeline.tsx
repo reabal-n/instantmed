@@ -54,9 +54,8 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
                 : undefined
           }
           transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 20,
+            duration: 0.3,
+            ease: "easeOut",
             delay: 0.15,
           }}
         >

@@ -4,6 +4,7 @@ import { getCurrentUser, getUserProfile } from "@/lib/auth"
 import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode } from "@/lib/feature-flags"
+import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
@@ -56,7 +57,7 @@ export default async function RequestPage({
           </div>
           <p className="text-xs text-muted-foreground">
             Need urgent help?{" "}
-            <a href="mailto:hello@instantmed.com.au" className="text-primary hover:underline">
+            <a href={`mailto:${CONTACT_EMAIL_HELLO}`} className="text-primary hover:underline">
               Contact support
             </a>
           </p>

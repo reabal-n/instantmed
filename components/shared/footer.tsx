@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 import { FooterAuth } from "@/components/shared/footer-auth"
 import { Phone } from "lucide-react"
+import { CONTACT_PHONE, COMPANY_NAME, ABN } from "@/lib/constants"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -17,7 +18,7 @@ export function Footer() {
   return (
     <footer className="my-8 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card with tape decorations */}
-      <div className="relative bg-card dark:bg-white/5 rounded-3xl max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none">
+      <div className="relative bg-card dark:bg-white/5 rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none">
         {/* Tape decorations */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
@@ -35,7 +36,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Phone className="w-3.5 h-3.5 shrink-0" />
-              <a href="tel:0450722549" className="hover:text-foreground transition-colors">0450 722 549</a>
+              <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
             </div>
           </div>
 
@@ -92,7 +93,7 @@ export function Footer() {
       <div className="my-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center">
           <p className="whitespace-nowrap text-xs">
-            © {currentYear} InstantMed Pty Ltd. All rights reserved.
+            © {currentYear} {COMPANY_NAME}. All rights reserved.
           </p>
           <div className="flex flex-row gap-4 text-xs">
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
@@ -103,7 +104,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          Operating since 2025 · ABN: 64 694 559 334
+          Operating since 2025 · ABN: {ABN}
         </p>
       </div>
     </footer>

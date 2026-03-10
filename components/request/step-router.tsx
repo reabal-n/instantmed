@@ -105,7 +105,7 @@ export function StepRouter({
         initial={prefersReducedMotion ? false : "enter"}
         animate="center"
         exit="exit"
-        transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeInOut" }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
       >
         <StepErrorBoundary stepId={currentStepId}>
           <Suspense fallback={<StepLoadingFallback />}>

@@ -309,7 +309,7 @@ export default function MedicalCertificatePage() {
                   className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
                   initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.7, delay: 0.5 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
                 >
                   <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                     <Image
@@ -430,7 +430,7 @@ export default function MedicalCertificatePage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5 }}
               >
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
                   Pick what you need

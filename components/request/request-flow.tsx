@@ -387,6 +387,12 @@ export function RequestFlow({
     reset,
   } = useRequestStore()
   
+  // Rehydrate persisted store after mount (SSR-safe pattern).
+  // The store uses skipHydration:true to avoid a server/client mismatch on first render.
+  useEffect(() => {
+    useRequestStore.persist.rehydrate()
+  }, [])
+
   // Track unsaved changes
   const previousAnswersRef = useRef(JSON.stringify(answers))
   useEffect(() => {
@@ -1070,7 +1076,7 @@ export function RequestFlow({
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
+                x: { duration: prefersReducedMotion ? 0 : 0.3, ease: [0, 0, 0.2, 1] },
                 opacity: { duration: prefersReducedMotion ? 0 : 0.2 },
               }}
             >

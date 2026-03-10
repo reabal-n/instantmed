@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Keyboard, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +29,7 @@ interface KeyboardShortcutsModalProps {
  * - Clicking the keyboard icon button
  */
 export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcutsModalProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
@@ -84,9 +86,9 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
             {DOCTOR_SHORTCUTS.map((shortcut, index) => (
               <motion.div
                 key={shortcut.label}
-                initial={{ opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.03 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.03 }}
                 className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex-1">
@@ -125,6 +127,7 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
  * Floating shortcut hint that appears on first visit
  */
 export function ShortcutDiscoveryHint() {
+  const prefersReducedMotion = useReducedMotion()
   const [show, setShow] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0
@@ -151,9 +154,10 @@ export function ShortcutDiscoveryHint() {
     <AnimatePresence>
       {!dismissed && (
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.95 }}
+          transition={prefersReducedMotion ? { duration: 0 } : undefined}
           className="fixed bottom-20 right-4 z-50 max-w-xs"
         >
           <div className="bg-card border border-border rounded-xl shadow-lg p-4">

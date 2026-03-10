@@ -1,89 +1,76 @@
-import { Loader } from "@/components/ui/loader"
+import { Skeleton } from "@/components/ui/loader"
 
 export default function DoctorLoading() {
   return (
-    <div 
-      className="min-h-screen bg-linear-to-b from-background to-muted/30"
+    <div
+      className="space-y-6"
       aria-busy="true"
       aria-live="polite"
     >
       <span className="sr-only" role="status">Loading doctor dashboard</span>
-      <div className="container max-w-6xl py-8 px-4">
-        {/* Animated loader */}
-        <div className="flex justify-center mb-8">
-          <Loader size="md" />
+
+      {/* Page header skeleton */}
+      <Skeleton className="h-8 w-36" />
+
+      {/* IntakeMonitor skeleton — single Card with 4-cell stat grid inside */}
+      <div className="rounded-xl border border-border/50 bg-card animate-pulse">
+        {/* CardHeader */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+          <Skeleton className="h-5 w-28" animated={false} />
+          <Skeleton className="h-8 w-8 rounded-md" animated={false} />
         </div>
-        {/* Header skeleton */}
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 w-64 bg-muted/60 rounded-lg mb-2" />
-          <div className="h-4 w-48 bg-muted/40 rounded-lg" />
+        {/* CardContent */}
+        <div className="px-6 py-4 space-y-4">
+          {/* 4-cell stat grid: grid-cols-2 sm:grid-cols-4 */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3 w-14" animated={false} />
+                <Skeleton className="h-7 w-10" animated={false} />
+              </div>
+            ))}
+          </div>
+          {/* Secondary metrics row (paid count, badges, approval rate) */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-5 w-16 rounded-full" animated={false} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* QueueClient skeleton — no tabs, just header + card list */}
+      <div className="space-y-3">
+        {/* Queue header: count text + search input + refresh button */}
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-6 w-32" />
+          <div className="flex-1" />
+          <Skeleton className="h-9 w-60 rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
         </div>
 
-        {/* Stats cards with stagger animation */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {/* Queue card rows (expandable cards with chevron) */}
+        <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div 
-              key={i} 
-              className="glass-card rounded-2xl p-5 animate-pulse"
-              style={{ animationDelay: `${i * 0.1}s` }}
+            <div
+              key={i}
+              className="rounded-xl border border-border/50 bg-card px-4 py-3.5 animate-pulse"
+              style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-4 w-24 bg-muted/60 rounded" />
-                <div className="h-4 w-4 bg-muted/40 rounded" />
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-9 w-9 rounded-full shrink-0" animated={false} />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-28" animated={false} />
+                    <Skeleton className="h-5 w-16 rounded-full" animated={false} />
+                  </div>
+                  <Skeleton className="h-3 w-44" animated={false} />
+                </div>
+                <Skeleton className="h-3 w-12 shrink-0" animated={false} />
+                <Skeleton className="h-4 w-4 shrink-0 rounded-sm" animated={false} />
               </div>
-              <div className="h-9 w-14 bg-muted/60 rounded" />
             </div>
           ))}
-        </div>
-
-        {/* Queue skeleton */}
-        <div className="glass-card rounded-2xl overflow-hidden animate-pulse" style={{ animationDelay: '0.5s' }}>
-          <div className="p-6 pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="h-6 w-40 bg-muted/60 rounded mb-2" />
-                <div className="h-4 w-56 bg-muted/40 rounded" />
-              </div>
-              <div className="flex gap-2">
-                <div className="h-8 w-20 bg-muted/40 rounded-lg" />
-                <div className="h-8 w-20 bg-muted/40 rounded-lg" />
-              </div>
-            </div>
-            {/* Tabs skeleton */}
-            <div className="flex gap-2 mb-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-9 w-24 bg-muted/40 rounded-lg" />
-              ))}
-            </div>
-          </div>
-          
-          {/* Request rows */}
-          <div className="px-6 pb-6">
-            <div className="divide-y divide-white/10">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div 
-                  key={i} 
-                  className="flex items-center gap-4 py-5"
-                  style={{ animationDelay: `${0.6 + i * 0.1}s` }}
-                >
-                  <div className="h-10 w-10 bg-muted/60 rounded-full" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="h-4 w-32 bg-muted/60 rounded" />
-                      <div className="h-4 w-8 bg-muted/40 rounded" />
-                      <div className="h-5 w-16 bg-primary/10 rounded-full" />
-                    </div>
-                    <div className="h-3 w-24 bg-muted/40 rounded" />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-8 w-8 bg-muted/40 rounded-xl" />
-                    <div className="h-8 w-8 bg-primary/10 rounded-xl" />
-                    <div className="h-8 w-8 bg-muted/40 rounded-xl" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

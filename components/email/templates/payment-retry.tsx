@@ -5,6 +5,7 @@ import {
   Button,
   Box,
 } from "../base-email"
+import { COMPANY_NAME, ABN } from "@/lib/constants"
 
 export interface PaymentRetryEmailProps {
   patientName: string
@@ -122,7 +123,7 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
                 <a href="${baseUrl}/patient/settings" style="color: #A8A29E; text-decoration: none;">Preferences</a>
               </p>
               <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0;">
-                InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Australia
+                {COMPANY_NAME} &middot; ABN {ABN} &middot; Australia
               </p>
             </td>
           </tr>

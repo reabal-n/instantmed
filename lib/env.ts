@@ -1,5 +1,6 @@
 import "server-only"
 import { z } from "zod"
+import { COMPANY_NAME, CONTACT_EMAIL_NOREPLY, CONTACT_EMAIL_ADMIN } from "@/lib/constants"
 
 /**
  * Environment variable validation and access
@@ -178,7 +179,7 @@ export function getResendApiKey(): string {
  * Format: "Name <email@domain.com>"
  */
 export function getResendFromEmail(): string {
-  const raw = process.env.RESEND_FROM_EMAIL || "InstantMed <noreply@instantmed.com.au>"
+  const raw = process.env.RESEND_FROM_EMAIL || `${COMPANY_NAME} <${CONTACT_EMAIL_NOREPLY}>`
   // Strip wrapping quotes — a common env var misconfiguration that causes Resend 422 errors
   return raw.replace(/^["']|["']$/g, "")
 }
@@ -262,7 +263,7 @@ export function getAdminEmails(): string[] {
   const emails = process.env.ADMIN_EMAILS
   if (!emails) {
     // Default fallback for backwards compatibility
-    return ["admin@instantmed.com.au"]
+    return [CONTACT_EMAIL_ADMIN]
   }
   return emails.split(",").map(e => e.trim().toLowerCase())
 }

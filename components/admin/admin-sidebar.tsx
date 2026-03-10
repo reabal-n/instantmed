@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
-  FileText,
   Users,
   BarChart3,
   Building2,
@@ -48,7 +47,6 @@ interface NavItem {
 // ── Doctor quick-access ──────────────────────────────────────
 const doctorNavItems: NavItem[] = [
   { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered },
-  { href: "/doctor/admin", label: "All Requests", icon: FileText },
   { href: "/doctor/patients", label: "Patients", icon: Users },
 ]
 

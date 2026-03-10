@@ -401,7 +401,7 @@ export function SafetyCheckStep({
               complete your consultation.
             </p>
 
-            <div className="mt-8 p-4 rounded-xl bg-blue-50 border border-primary max-w-sm mx-auto">
+            <div className="mt-8 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-primary max-w-sm mx-auto">
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary" />
                 <div className="text-left">

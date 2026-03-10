@@ -298,23 +298,23 @@ function EmergencyBanner({
   timestamp: string | null
 }) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50/80 p-5 space-y-4">
+    <div className="rounded-2xl border border-red-200 dark:border-red-800/40 bg-red-50/80 dark:bg-red-950/20 p-5 space-y-4">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-          <Phone className="w-5 h-5 text-red-600" />
+        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+          <Phone className="w-5 h-5 text-red-600 dark:text-red-400" />
         </div>
         <div className="space-y-1 flex-1">
-          <h3 className="font-semibold text-red-900">
+          <h3 className="font-semibold text-red-900 dark:text-red-200">
             {MED_CERT_COPY.emergency.heading}
           </h3>
-          <p className="text-sm text-red-800 leading-relaxed">
+          <p className="text-sm text-red-800 dark:text-red-300 leading-relaxed">
             {MED_CERT_COPY.emergency.body}
           </p>
         </div>
       </div>
 
-      <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white border border-red-200 cursor-pointer hover:bg-red-50/50 transition-colors">
-        <span className="text-sm text-red-900 font-medium flex-1">
+      <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-card border border-red-200 dark:border-red-800/40 cursor-pointer hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors">
+        <span className="text-sm text-red-900 dark:text-red-200 font-medium flex-1">
           {MED_CERT_COPY.emergency.checkbox}
         </span>
         <Switch
@@ -688,7 +688,7 @@ export function MedCertFlowV2({
         >
           {/* Error banner */}
           {error && (
-            <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+            <div className="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-sm text-red-600 dark:text-red-400">
               {error}
             </div>
           )}

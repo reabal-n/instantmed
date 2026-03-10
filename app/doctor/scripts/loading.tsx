@@ -1,6 +1,6 @@
 export default function ScriptsLoading() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 animate-pulse rounded-xl bg-muted" />
         <div className="space-y-2">

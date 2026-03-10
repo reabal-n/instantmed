@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence, MotionConfig } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { ChevronDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -65,7 +66,7 @@ const IconWrapper = ({
     <motion.div
       className="w-5 h-5 mr-2.5 relative flex items-center justify-center"
       initial={false}
-      animate={isHovered ? { scale: 1.15 } : { scale: 1 }}
+      animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
       transition={{ duration: 0.2 }}
     >
       <Icon
@@ -159,7 +160,7 @@ export function AnimatedSelect({
             "transition-all duration-200 ease-out",
             "focus:outline-none focus:ring-2 focus:ring-offset-2",
             // Light mode
-            "bg-white border border-border/60",
+            "bg-white dark:bg-popover border border-border/60",
             "text-foreground",
             "hover:bg-muted/50 hover:border-border",
             "focus:ring-primary/20 focus:ring-offset-background focus:border-primary/50",
@@ -209,10 +210,8 @@ export function AnimatedSelect({
                 y: 0,
                 height: "auto",
                 transition: {
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 30,
-                  mass: 1,
+                  duration: 0.2,
+                  ease: "easeOut",
                 },
               }}
               exit={{
@@ -220,10 +219,8 @@ export function AnimatedSelect({
                 y: -4,
                 height: 0,
                 transition: {
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 30,
-                  mass: 1,
+                  duration: 0.2,
+                  ease: "easeOut",
                 },
               }}
               className="absolute left-0 right-0 top-full mt-2 z-50"
@@ -268,9 +265,8 @@ export function AnimatedSelect({
                         opacity: hoveredOption || selectedValue ? 1 : 0,
                       }}
                       transition={{
-                        type: "spring",
-                        bounce: 0.15,
-                        duration: 0.4,
+                        duration: 0.2,
+                        ease: "easeOut",
                       }}
                     />
                   )}

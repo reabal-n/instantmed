@@ -9,6 +9,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import * as React from "react"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
+import { CONTACT_EMAIL_NOREPLY, COMPANY_NAME } from "@/lib/constants"
 
 import { WelcomeEmail } from "@/components/email/templates/welcome"
 import { MedCertPatientEmail } from "@/components/email/templates/med-cert-patient"
@@ -172,7 +173,7 @@ export default async function EmailPreviewPage({ params }: PageProps) {
               <div className="space-y-2 text-sm">
                 <div className="flex">
                   <span className="w-16 text-gray-500">From:</span>
-                  <span className="text-gray-900">InstantMed &lt;noreply@instantmed.com.au&gt;</span>
+                  <span className="text-gray-900">{COMPANY_NAME} &lt;{CONTACT_EMAIL_NOREPLY}&gt;</span>
                 </div>
                 <div className="flex">
                   <span className="w-16 text-gray-500">To:</span>

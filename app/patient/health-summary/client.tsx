@@ -202,7 +202,7 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
   })
   
   return (
-    <div className="container max-w-6xl py-8 px-4 sm:px-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PatientsLoading() {
   return (
-    <div className="container max-w-6xl py-8 px-4" aria-busy="true">
+    <div aria-busy="true">
       <div className="mb-6">
         <Skeleton className="h-8 w-40 mb-2" />
         <Skeleton className="h-4 w-64" />

@@ -4,6 +4,7 @@ import React from 'react'
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface LoaderProps {
   size?: "sm" | "md" | "lg"
@@ -24,6 +25,7 @@ const colorMap = {
 }
 
 export function Loader({ size = "md", color = "primary", className }: LoaderProps) {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <div className={cn("flex items-center justify-center gap-1", className)}>
       {[...Array(3)].map((_, i) => (
@@ -31,12 +33,12 @@ export function Loader({ size = "md", color = "primary", className }: LoaderProp
           key={i}
           className={cn("rounded-full", sizeMap[size], colorMap[color])}
           initial={{ x: 0 }}
-          animate={{
+          animate={prefersReducedMotion ? {} : {
             x: [0, 6, 0],
             opacity: [0.4, 1, 0.4],
             scale: [1, 1.2, 1],
           }}
-          transition={{
+          transition={prefersReducedMotion ? { duration: 0 } : {
             duration: 0.8,
             repeat: Infinity,
             delay: i * 0.15,
@@ -66,27 +68,28 @@ export function LoaderWithText({
 // PREMIUM BRANDED LOADER - With InstantMed logo animation
 // =============================================================================
 
-export function PremiumLoader({ 
+export function PremiumLoader({
   text = "Loading...",
   showBranding = true,
-  className 
+  className
 }: { text?: string; showBranding?: boolean; className?: string }) {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <div className={cn("flex flex-col items-center justify-center gap-6", className)}>
       {/* Animated logo */}
-      <motion.div 
+      <motion.div
         className="relative"
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        animate={prefersReducedMotion ? {} : { scale: [1, 1.05, 1] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
         {/* Glow effect */}
         <motion.div
           className="absolute inset-0 rounded-2xl bg-primary/30 blur-xl"
-          animate={{ 
+          animate={prefersReducedMotion ? {} : {
             opacity: [0.3, 0.6, 0.3],
-            scale: [0.8, 1.2, 0.8] 
+            scale: [0.8, 1.2, 0.8]
           }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
         
         {/* Logo container */}
@@ -107,18 +110,18 @@ export function PremiumLoader({
         {showBranding && (
           <motion.span
             className="text-lg font-semibold text-foreground"
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.2 }}
           >
             InstantMed
           </motion.span>
         )}
-        <motion.p 
+        <motion.p
           className="text-sm text-muted-foreground flex items-center gap-1"
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
         >
           {text}
           <span className="flex gap-0.5 ml-1">
@@ -126,8 +129,8 @@ export function PremiumLoader({
               <motion.span
                 key={i}
                 className="w-1.5 h-1.5 rounded-full bg-muted-foreground"
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{
+                animate={prefersReducedMotion ? {} : { opacity: [0.3, 1, 0.3] }}
+                transition={prefersReducedMotion ? { duration: 0 } : {
                   duration: 1,
                   repeat: Infinity,
                   delay: i * 0.2,

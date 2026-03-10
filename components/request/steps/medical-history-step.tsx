@@ -93,7 +93,7 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
   })
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <div className="space-y-5">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <HeartPulse className="w-4 h-4" />

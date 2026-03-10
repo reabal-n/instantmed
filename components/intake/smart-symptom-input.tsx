@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Sparkles, Check, AlertCircle } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
 
@@ -85,6 +86,7 @@ export function SmartSymptomInput({
   required = true,
   helperText,
 }: SmartSymptomInputProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoadingAI, setIsLoadingAI] = useState(false)
@@ -240,9 +242,10 @@ export function SmartSymptomInput({
         <AnimatePresence>
           {showSuggestions && suggestions.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
+              transition={prefersReducedMotion ? { duration: 0 } : undefined}
               className="absolute z-10 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 shadow-lg overflow-hidden"
             >
               <div className="p-2 text-xs text-muted-foreground border-b">
@@ -270,9 +273,10 @@ export function SmartSymptomInput({
       <AnimatePresence>
         {aiSuggestions.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : undefined}
             className="space-y-2"
           >
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

@@ -3382,3 +3382,21 @@ button:not(.no-micro):active:not(:disabled),
 .animate-testimonial-scroll {
   animation: testimonial-scroll linear infinite;
 }
+
+/* ==========================================================================
+   GLOBAL REDUCED MOTION
+   Comprehensive prefers-reduced-motion support.
+   Disables all non-essential animations for users who prefer reduced motion.
+   Essential animations (loading spinners, progress bars) use duration: 0
+   so state changes are still visible.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

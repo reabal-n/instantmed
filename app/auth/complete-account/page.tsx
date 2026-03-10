@@ -43,7 +43,7 @@ export default async function CompleteAccountPage({
     <>
       <Navbar />
       <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
-        <div className="container max-w-md mx-auto px-4">
+        <div className="max-w-md mx-auto px-4">
           <Suspense fallback={<div>Loading...</div>}>
             <CompleteAccountForm intakeId={intakeId} email={email} sessionId={params.session_id} />
           </Suspense>

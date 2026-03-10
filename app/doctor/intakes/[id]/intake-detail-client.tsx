@@ -516,7 +516,7 @@ export function IntakeDetailClient({
   const answers = intake.answers?.answers || {}
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
@@ -550,43 +550,43 @@ export function IntakeDetailClient({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Name</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Name</p>
               <p className="font-medium">{intake.patient.full_name}</p>
             </div>
-            <div className="flex items-start gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Age / DOB</p>
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Age / DOB</p>
                 <p className="font-medium">{patientAge != null ? `${patientAge}y` : "N/A"} • {intake.patient.date_of_birth ? new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU") : "Not provided"}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Medicare</p>
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+              <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Medicare</p>
                 <p className="font-medium font-mono">{maskedMedicare}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Phone</p>
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+              <Phone className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Phone</p>
                 <p className="font-medium">{intake.patient.phone || "Not provided"}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+              <Mail className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Email</p>
                 <p className="font-medium text-sm truncate">{intake.patient.email || "Not provided"}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Location</p>
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Location</p>
                 <p className="font-medium">
                   {intake.patient.suburb || "N/A"}, {intake.patient.state || ""}
                 </p>

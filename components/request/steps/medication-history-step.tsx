@@ -87,7 +87,7 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
   })
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <div className="space-y-5">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <History className="w-4 h-4" />

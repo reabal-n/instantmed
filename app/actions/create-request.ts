@@ -1,4 +1,6 @@
 "use server"
+import { revalidatePath } from "next/cache"
+import { CONTACT_EMAIL } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("create-request")
 
@@ -150,7 +152,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       if (intakeError?.code === "42501") {
         return {
           success: false,
-          error: "You don't have permission to create requests. Please contact support at help@instantmed.com.au",
+          error: `You don't have permission to create requests. Please contact support at ${CONTACT_EMAIL}`,
           errorCode: "PERMISSION_DENIED",
         }
       }
@@ -173,6 +175,8 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       // Don't fail - the request exists, answers are supplementary
     }
 
+    revalidatePath("/patient")
+
     return {
       success: true,
       intakeId: intake.id,
@@ -181,7 +185,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     log.error("[createRequestAction] Unexpected error", { error: String(error) })
     return {
       success: false,
-      error: "We couldn't create your request. Please try again or contact us at help@instantmed.com.au",
+      error: `We couldn't create your request. Please try again or contact us at ${CONTACT_EMAIL}`,
       errorCode: "UNEXPECTED_ERROR",
     }
   }
@@ -269,7 +273,7 @@ async function checkServiceAvailability(input: CreateRequestInput): Promise<{
 
     return {
       available: false,
-      error: `This service is temporarily unavailable. Please try again later or contact support at help@instantmed.com.au [${errorCode}]`,
+      error: `This service is temporarily unavailable. Please try again later or contact support at ${CONTACT_EMAIL} [${errorCode}]`,
       errorCode,
     }
   }

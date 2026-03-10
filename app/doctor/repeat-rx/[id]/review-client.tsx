@@ -243,7 +243,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b">
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -269,7 +269,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
       </header>
 
       {/* Main content - two-column request card */}
-      <main className="max-w-5xl mx-auto px-6 py-6">
+      <main className="px-6 py-6">
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
             {/* Left: Patient details (copy-ready for Parchment) */}

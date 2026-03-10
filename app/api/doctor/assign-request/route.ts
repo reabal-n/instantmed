@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("assign-intake")
 
@@ -10,6 +11,9 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const supabase = createServiceRoleClient()
     const { userId: clerkUserId } = await auth()
     userId = clerkUserId ?? null

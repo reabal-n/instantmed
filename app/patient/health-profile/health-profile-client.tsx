@@ -108,7 +108,7 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 text-white">
           <Heart className="h-5 w-5" />

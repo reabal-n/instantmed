@@ -121,7 +121,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
   const isComplete = currentWeight && currentHeight && targetWeight && previousAttempts && eatingDisorderHistory && weightLossMedPreference && wlAdverseReactions && (wlAdverseReactions !== 'yes' || wlAdverseReactionsDetails.length >= 10) && weightLossGoals.length >= 20
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Scale className="w-4 h-4" />
@@ -428,7 +428,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
 
         {wlAdverseReactions === 'yes' && (
-          <div className="space-y-2 animate-in fade-in">
+          <div className="space-y-2">
             <Label className="text-sm font-medium">
               Please describe the reaction(s)<span className="text-destructive ml-0.5">*</span>
             </Label>

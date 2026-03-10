@@ -7,6 +7,7 @@ import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 import { env } from "../env"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { Redis } from "@upstash/redis"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 /**
  * Email delivery service using Resend
@@ -179,7 +180,7 @@ async function checkEmailRateLimit(email: string): Promise<boolean> {
  * Falls back to console logging in development if no API key
  */
 export async function sendViaResend(params: ResendEmailParams): Promise<EmailResult> {
-  const { to, subject, html, replyTo = "support@instantmed.com.au", tags } = params
+  const { to, subject, html, replyTo = CONTACT_EMAIL, tags } = params
   const from = params.from || env.resendFromEmail
   const apiKey = env.resendApiKey
 
@@ -289,7 +290,7 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
         return { success: false, error: lastError }
       }
       
-      logger.info(`[Resend] Email sent to ${to}, id: ${data.id}${attempt > 0 ? ` (attempt ${attempt + 1})` : ""})`)
+      logger.info(`[Resend] Email sent to ${to}, id: ${data.id}${attempt > 0 ? ` (attempt ${attempt + 1})` : ""}`)
       return { success: true, id: data.id }
       
     } catch (error) {

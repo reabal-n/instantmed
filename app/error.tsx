@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
-import { fadeIn, slideUp } from "@/components/ui/animations"
+import { fadeIn, fadeUp as slideUp } from "@/lib/motion"
 // Sentry import removed — dynamic import in useEffect to avoid module factory race condition.
 // Sentry auto-captures unhandled errors via instrumentation-client.ts anyway.
 
@@ -164,7 +164,7 @@ export default function Error({
         <motion.div
           className="absolute top-1/3 left-1/3 w-80 h-80 bg-dawn-500/10 rounded-full blur-3xl"
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeOut" }}
         />
       )}
       
@@ -184,7 +184,7 @@ export default function Error({
               <motion.div
                 className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl"
                 animate={{ opacity: [0.3, 0.6, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
               />
             )}
             <div className="relative bg-card/80 backdrop-blur-md rounded-3xl p-8 border border-amber-200/50 dark:border-dawn-500/20 shadow-2xl">

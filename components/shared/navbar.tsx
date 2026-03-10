@@ -94,10 +94,9 @@ const navGlowVariants = {
 }
 
 const sharedTransition = {
-  type: "spring",
-  stiffness: 100,
-  damping: 20,
-  duration: 0.5,
+  type: "tween" as const,
+  ease: [0.22, 1, 0.36, 1] as const,
+  duration: 0.3,
 }
 
 interface AnimatedNavLinkProps {
@@ -190,7 +189,7 @@ function AnimatedNavLink({ href, children, gradient, icon, isActive, onClick }: 
         <motion.div
           layoutId="navbar-tubelight"
           className="absolute inset-0 rounded-lg bg-primary/10 -z-10"
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
         >
           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full">
             <div className="absolute w-8 h-4 bg-primary/20 rounded-full blur-md -top-1 -left-1" />

@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { requireRole } from "@/lib/auth"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { getDoctorDashboardStats } from "@/lib/data/intakes"
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -12,31 +11,19 @@ export const metadata: Metadata = {
   },
 }
 
-export const dynamic = "force-dynamic"
-
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Require admin role for all admin routes
-  const authUser = await requireRole(["admin"], { redirectTo: "/" })
+  // Allow both admin and doctor roles to access admin portal
+  const authUser = await requireRole(["admin", "doctor"], { redirectTo: "/" })
 
-  // Get stats for sidebar badge
-  let pendingCount = 0
-  try {
-    const stats = await getDoctorDashboardStats()
-    pendingCount = stats.in_queue
-  } catch {
-    // Non-blocking
-  }
-  
   return (
     <div className="flex min-h-screen bg-linear-to-br from-background via-blue-50/30 to-blue-50/20 dark:from-background dark:via-background dark:to-background">
-      <AdminSidebar 
+      <AdminSidebar
         userName={authUser.profile.full_name}
-        userRole="Admin"
-        pendingCount={pendingCount}
+        userRole={authUser.profile.role === "admin" ? "Admin" : "Doctor"}
       />
       <main className="flex-1 min-w-0 py-6 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">

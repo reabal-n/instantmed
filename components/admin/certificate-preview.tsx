@@ -7,6 +7,8 @@ import type {
   PreviewData,
 } from "@/types/certificate-template"
 
+import { CONTACT_EMAIL } from "@/lib/constants"
+
 // Import constants directly to avoid type issues
 const MARGIN_VALUES_MAP = {
   S: 24,
@@ -61,7 +63,7 @@ export function CertificatePreview({
     postcode: "3000",
     abn: "00 000 000 000",
     phone: null,
-    email: "support@instantmed.com.au",
+    email: CONTACT_EMAIL,
     footer_disclaimer: "This medical certificate was issued via InstantMed telehealth services.",
     logo_storage_path: null,
   }

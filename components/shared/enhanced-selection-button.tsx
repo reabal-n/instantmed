@@ -2,6 +2,7 @@
 
 import React from "react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +27,7 @@ export function EnhancedSelectionButton({
   label,
   description,
 }: EnhancedSelectionButtonProps) {
+  const prefersReducedMotion = useReducedMotion()
   const baseClasses = "relative transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
   
   // Brand: Selections feel like light settling, not color switching
@@ -63,8 +65,8 @@ export function EnhancedSelectionButton({
     <motion.button
       type="button"
       onClick={onClick}
-      whileTap={{ scale: 0.96 }}
-      transition={{ duration: 0.1 }}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.1 }}
       className={cn(baseClasses, variantClasses[variant], className)}
       aria-pressed={selected}
     >

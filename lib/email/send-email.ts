@@ -16,6 +16,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 // ============================================
 // TYPES
@@ -333,7 +334,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     certificateId,
     metadata = {},
     from = env.resendFromEmail,
-    replyTo = "support@instantmed.com.au",
+    replyTo = CONTACT_EMAIL,
     tags = [],
   } = params
 
@@ -678,7 +679,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     subject: row.subject,
     html,
     text: textBody,
-    reply_to: "support@instantmed.com.au",
+    reply_to: CONTACT_EMAIL,
     tags: [{ name: "email_type", value: row.email_type }],
   }
 

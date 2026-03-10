@@ -11,6 +11,7 @@
 
 import { useCallback } from "react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { EmergencyGate } from "@/components/shared/emergency-gate"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, ArrowRight } from "lucide-react"
@@ -33,6 +34,7 @@ const SERVICE_NAMES: Record<UnifiedServiceType, string> = {
 
 export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
   const { safetyConfirmed, setSafetyConfirmed } = useRequestStore()
+  const prefersReducedMotion = useReducedMotion()
 
   const handleAcknowledge = useCallback(() => {
     setSafetyConfirmed(true)
@@ -42,7 +44,7 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
   // Already confirmed (navigated back) — show compact confirmation with continue
   if (safetyConfirmed) {
     return (
-      <div className="space-y-4 animate-in fade-in">
+      <div className="space-y-4">
         <div className="flex items-center gap-3 p-3.5 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
           <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
             <CheckCircle className="w-4 h-4 text-green-600" />
@@ -65,9 +67,9 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
     >
       <EmergencyGate
         serviceName={SERVICE_NAMES[serviceType]}

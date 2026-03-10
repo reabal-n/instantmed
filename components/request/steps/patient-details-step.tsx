@@ -187,7 +187,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   })
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <div className="space-y-5">
       {/* Autofill banner */}
       {showAutofillBanner && savedData && (
         <Alert variant="default" className="border-primary/20 bg-primary/5">

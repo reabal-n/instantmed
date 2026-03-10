@@ -1,4 +1,4 @@
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, CONTACT_EMAIL, CONTACT_PHONE, ABN, COMPANY_NAME, COMPANY_ADDRESS } from "@/lib/constants"
 
 // Homepage Marketing Data
 // All content centralized for easy updates
@@ -12,13 +12,13 @@ export const siteConfig = {
     publicHolidays: "8am – 10pm AEST",
   },
   contact: {
-    email: "support@instantmed.com.au",
-    phone: "0450 722 549",
+    email: CONTACT_EMAIL,
+    phone: CONTACT_PHONE,
   },
   legal: {
-    abn: "64 694 559 334",
-    clinicName: "InstantMed Pty Ltd",
-    clinicAddress: "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010",
+    abn: ABN,
+    clinicName: COMPANY_NAME,
+    clinicAddress: COMPANY_ADDRESS,
     ahpraStatement: "All consulting doctors hold current AHPRA registration",
   },
 }

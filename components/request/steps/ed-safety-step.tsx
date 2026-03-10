@@ -107,7 +107,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
   // Hard block screen
   if (isBlocked) {
     return (
-      <div className="space-y-6 animate-in fade-in">
+      <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="w-5 h-5" />
           <AlertTitle className="font-semibold">
@@ -153,7 +153,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Progress indicator */}
       <div className="flex gap-1.5">
         {SAFETY_QUESTIONS.map((_, i) => (
@@ -192,7 +192,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
 
       {/* Follow-up for soft-block cardiac/BP questions */}
       {showFollowUp && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+        <div className="space-y-4 slide-in-from-bottom-2">
           <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
             <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">

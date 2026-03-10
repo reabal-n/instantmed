@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic"
 
 export default async function EmailTestPage() {
   return (
-    <div className="container py-6 space-y-6">
+    <div className="space-y-6">
       <Suspense fallback={<Skeleton className="h-[600px] rounded-lg" />}>
         <EmailTestClient />
       </Suspense>

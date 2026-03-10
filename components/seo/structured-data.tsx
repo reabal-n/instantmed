@@ -7,6 +7,7 @@
 
 import Script from "next/script"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/constants"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 const BUSINESS_NAME = "InstantMed"
@@ -33,7 +34,7 @@ export function OrganizationSchema() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "support@instantmed.com.au",
+      email: CONTACT_EMAIL,
       availableLanguage: "English",
     },
   }
@@ -58,8 +59,8 @@ export function MedicalBusinessSchema() {
     name: BUSINESS_NAME,
     description: "Australian telehealth platform providing online medical certificates, prescription renewals, and doctor consultations. AHPRA-registered doctors available 7 days a week.",
     url: SITE_URL,
-    telephone: "+61-support", // Update with actual phone if available
-    email: "support@instantmed.com.au",
+    telephone: `+61${CONTACT_PHONE.replace(/^0/, '').replace(/\s/g, '')}`,
+    email: CONTACT_EMAIL,
     logo: `${SITE_URL}/branding/logo.png`,
     image: `${SITE_URL}/og-image.jpg`,
     priceRange: "$$",

@@ -45,7 +45,7 @@ export function ForgotPasswordClient() {
       <>
         <Navbar variant="marketing" />
         <main className="min-h-screen bg-hero pt-32 pb-20">
-          <div className="container max-w-md mx-auto px-4">
+          <div className="max-w-md mx-auto px-4">
             <div className="glass-card rounded-3xl p-8 text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-6">
                 <CheckCircle className="w-8 h-8 text-emerald-600" />

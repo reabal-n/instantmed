@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function EmailPreviewPage() {
   return (
-    <div className="container py-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Email Template Preview</h1>
         <p className="text-muted-foreground">

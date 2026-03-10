@@ -3,9 +3,13 @@ import { getApiAuth } from "@/lib/auth"
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const auth = await getApiAuth()
     if (!auth || (auth.profile.role !== "doctor" && auth.profile.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

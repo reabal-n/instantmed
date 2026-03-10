@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Search, Pill, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -23,6 +24,7 @@ export function MedicationSearchInline({
   onSelect, 
   placeholder = "Start typing medication name..." 
 }: MedicationSearchInlineProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PBSProduct[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -74,8 +76,9 @@ export function MedicationSearchInline({
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="w-full space-y-2"
     >
       <p className="text-xs text-muted-foreground">
@@ -100,9 +103,10 @@ export function MedicationSearchInline({
         <AnimatePresence>
           {isOpen && results.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+              transition={prefersReducedMotion ? { duration: 0 } : undefined}
               className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-10 max-h-48 overflow-y-auto"
             >
               {results.slice(0, 5).map((med, idx) => (
@@ -129,8 +133,9 @@ export function MedicationSearchInline({
         
         {isOpen && query.length >= 2 && results.length === 0 && !isLoading && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={prefersReducedMotion ? { duration: 0 } : undefined}
             className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg p-3 text-center"
           >
             <p className="text-sm text-muted-foreground">

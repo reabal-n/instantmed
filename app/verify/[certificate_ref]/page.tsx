@@ -16,6 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { getCertificateByRef } from "@/lib/data/issued-certificates"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 interface Props {
   params: Promise<{ certificate_ref: string }>
@@ -76,7 +77,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
       <Navbar variant="marketing" />
 
       <main className="flex-1 bg-hero pt-28 pb-16">
-        <div className="container mx-auto px-4 max-w-2xl">
+        <div className="mx-auto px-4 max-w-2xl">
           {/* Header */}
           <div className="text-center mb-10">
             <Badge className="mb-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-0 px-4 py-1.5">
@@ -169,7 +170,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  If you believe this is an error, please contact support@instantmed.com.au
+                  If you believe this is an error, please contact {CONTACT_EMAIL}
                 </p>
               </div>
             </div>
@@ -202,7 +203,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  If you believe this is an error, please contact support@instantmed.com.au
+                  If you believe this is an error, please contact {CONTACT_EMAIL}
                 </p>
               </div>
             </div>

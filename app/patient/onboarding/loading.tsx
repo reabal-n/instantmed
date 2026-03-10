@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function OnboardingLoading() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex justify-center py-8">
       <div className="w-full max-w-md">
         {/* Stepper */}
         <div className="flex justify-center gap-2 mb-8">

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { createClient } from "@/lib/supabase/client"
 import { Mail, AlertTriangle, Check } from "lucide-react"
@@ -27,6 +28,7 @@ export function SuccessClient({
   isPriority = false,
   patientEmail,
 }: SuccessClientProps) {
+  const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
   const [status, setStatus] = useState(initialStatus)
   const [isVerifying, setIsVerifying] = useState(initialStatus === "pending_payment")
@@ -187,16 +189,17 @@ export function SuccessClient({
   // P2 FIX: Show error state if polling failed due to errors (not just timeout)
   if (pollingError) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="space-y-6"
       >
         <div className="text-center space-y-4">
-          <motion.div 
-            initial={{ scale: 0 }}
+          <motion.div
+            initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.1 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut", delay: 0.1 }}
             className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center"
           >
             <AlertTriangle className="w-8 h-8 text-amber-600" />
@@ -262,15 +265,16 @@ export function SuccessClient({
   // No intake ID - show generic success
   if (!intakeId) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="text-center space-y-4"
       >
         <motion.div
-          initial={{ scale: 0 }}
+          initial={prefersReducedMotion ? false : { scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", delay: 0.1 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: 0.1 }}
           className="w-16 h-16 mx-auto rounded-full bg-emerald-500 flex items-center justify-center"
         >
           <Check className="w-8 h-8 text-white" strokeWidth={2.5} />

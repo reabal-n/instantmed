@@ -56,7 +56,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const totalDocs = certificates.length + receipts.length
 
   return (
-      <div className="container max-w-6xl mx-auto space-y-6">
+      <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>

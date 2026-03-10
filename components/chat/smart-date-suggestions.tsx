@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -10,6 +11,7 @@ interface SmartDateSuggestionsProps {
 }
 
 export function SmartDateSuggestions({ onSelect, context = 'certificate' }: SmartDateSuggestionsProps) {
+  const prefersReducedMotion = useReducedMotion()
   const today = new Date()
   const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
   
@@ -17,8 +19,9 @@ export function SmartDateSuggestions({ onSelect, context = 'certificate' }: Smar
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="flex flex-wrap gap-2 mt-2"
     >
       {suggestions.map((suggestion, idx) => (
@@ -102,13 +105,14 @@ function formatDate(date: Date): string {
 }
 
 // Duration suggestions based on context
-export function SmartDurationSuggestions({ 
-  onSelect, 
-  startDate: _startDate 
-}: { 
+export function SmartDurationSuggestions({
+  onSelect,
+  startDate: _startDate
+}: {
   onSelect: (duration: string) => void
-  startDate?: string 
+  startDate?: string
 }) {
+  const prefersReducedMotion = useReducedMotion()
   const today = new Date()
   const dayOfWeek = today.getDay()
   
@@ -136,8 +140,9 @@ export function SmartDurationSuggestions({
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="flex flex-wrap gap-2 mt-2"
     >
       {suggestions.map((suggestion, idx) => (
@@ -146,7 +151,7 @@ export function SmartDurationSuggestions({
           onClick={() => onSelect(suggestion.value)}
           className={cn(
             "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs",
-            suggestion.popular 
+            suggestion.popular
               ? "bg-primary text-primary-foreground"
               : "bg-muted hover:bg-muted/80 text-foreground",
             "border border-transparent transition-colors"

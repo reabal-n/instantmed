@@ -526,7 +526,7 @@ export function PrescriptionIntake({
           <motion.div
             initial={prefersReducedMotion ? false : { scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4"
+            className="bg-white dark:bg-card rounded-2xl p-6 max-w-sm w-full space-y-4"
           >
             <div className="flex items-start gap-3">
               <div className="w-12 h-12 rounded-full bg-dawn-100 flex items-center justify-center shrink-0">

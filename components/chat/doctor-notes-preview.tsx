@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { FileText, ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -12,6 +13,7 @@ interface DoctorNotesPreviewProps {
 }
 
 export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: DoctorNotesPreviewProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isExpanded, setIsExpanded] = useState(false)
   
   if (!serviceType || Object.keys(collectedData).length === 0) {
@@ -22,8 +24,9 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="bg-muted/50 border border-border rounded-lg overflow-hidden"
     >
       <button
@@ -43,9 +46,10 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
       
       {isExpanded && (
         <motion.div
-          initial={{ height: 0, opacity: 0 }}
+          initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
+          exit={prefersReducedMotion ? undefined : { height: 0, opacity: 0 }}
+          transition={prefersReducedMotion ? { duration: 0 } : undefined}
           className="px-3 pb-3"
         >
           <p className="text-xs text-muted-foreground mb-2">

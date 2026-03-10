@@ -42,6 +42,7 @@ const SUPPORTED_EMAIL_TYPES = [
   "womens_health_approved",
   "med_cert_employer",
   "payment_confirmed",
+  "request_received",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {

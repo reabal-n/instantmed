@@ -1,4 +1,5 @@
 "use server"
+import { revalidatePath } from "next/cache"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
@@ -48,10 +49,12 @@ export async function createOrGetProfile(
           .eq("id", existingProfile.id)
 
         if (updateError) {
-          log.warn("Profile update failed (non-fatal)", { 
-            profileId: existingProfile.id, 
-            code: updateError.code 
+          log.warn("Profile update failed (non-fatal)", {
+            profileId: existingProfile.id,
+            code: updateError.code
           }, updateError)
+        } else {
+          revalidatePath("/patient")
         }
       }
 
@@ -137,6 +140,7 @@ export async function createOrGetProfile(
       return { profileId: null, error: "Profile created but could not be retrieved. Please try signing in." }
     }
 
+    revalidatePath("/patient")
     return { profileId: newProfile.id, error: null }
   } catch (err) {
     return {

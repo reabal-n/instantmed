@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface Avatar {
   id: number
@@ -339,6 +340,7 @@ interface AvatarPickerProps {
 }
 
 export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }: AvatarPickerProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar>(
     avatars.find((a) => a.id === selectedAvatarId) || avatars[0]
   )
@@ -354,11 +356,11 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
     <motion.div initial="initial" animate="animate" className="w-full">
       <div className="w-full max-w-md mx-auto overflow-hidden rounded-2xl bg-linear-to-b from-background to-muted/30 border border-border/20">
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
           animate={{
             opacity: 1,
             height: "6rem",
-            transition: {
+            transition: prefersReducedMotion ? { duration: 0 } : {
               height: {
                 duration: 0.3,
                 ease: "easeOut",
@@ -380,7 +382,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
                 rotate: rotationCount,
               }}
               transition={{
-                duration: 0.8,
+                duration: 0.5,
                 ease: [0.4, 0, 0.2, 1],
               }}
             >
@@ -391,17 +393,17 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
           <motion.div className="text-center mt-3" variants={pickerVariants.item}>
             <motion.h2
               className="text-lg font-semibold text-foreground"
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.3 }}
             >
               {userName}
             </motion.h2>
             <motion.p
               className="text-muted-foreground text-xs"
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
             >
               Select your avatar
             </motion.p>

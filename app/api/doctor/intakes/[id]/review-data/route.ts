@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { getApiAuth } from "@/lib/auth"
 import { getIntakeWithDetails, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
@@ -12,9 +13,12 @@ import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
  * Auth: doctor or admin only.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
+
   const { id: intakeId } = await params
 
   // Auth check

@@ -377,6 +377,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           // They are cleared explicitly via clearDraft()
         },
       },
+      // Prevent Zustand from rehydrating during SSR/first render.
+      // Without this, the store reads localStorage synchronously on first client render,
+      // producing HTML that differs from the server render → React hydration error.
+      // We call useRequestStore.persist.rehydrate() in a useEffect instead.
+      skipHydration: true,
     }
   )
 )

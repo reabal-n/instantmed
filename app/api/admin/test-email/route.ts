@@ -3,11 +3,15 @@ import { getApiAuth } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const logger = createLogger("test-email-api")
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     // Auth check - admin only
     const authResult = await getApiAuth()
     if (!authResult || authResult.profile.role !== "admin") {

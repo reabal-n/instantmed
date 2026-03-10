@@ -10,6 +10,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { 
   Clock, 
@@ -39,6 +40,7 @@ export function ExtendedDurationInterstitial({
   onGoBack,
   className,
 }: ExtendedDurationInterstitialProps) {
+  const prefersReducedMotion = useReducedMotion()
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -74,8 +76,9 @@ export function ExtendedDurationInterstitial({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={className}
     >
       <div className="max-w-md mx-auto space-y-6 p-6">

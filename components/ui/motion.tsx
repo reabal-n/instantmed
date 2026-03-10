@@ -4,80 +4,22 @@
 import * as React from "react"
 import { motion, type Variants, type Transition, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { duration, easing } from "@/lib/motion"
 
 /**
- * InstantMed Motion System
- * 
+ * InstantMed Motion System — React Components & Hooks
+ *
+ * Canonical motion presets live in `@/lib/motion`.
+ * This file provides React wrapper components, hooks, and scroll config.
+ *
  * Motion exists to confirm, not to impress.
- * All animation is slow, intentional, and subtle.
- * No bounce, snap, or aggressive acceleration.
  */
 
 // ===========================================
-// INSTANTMED MOTION PRESETS (Calm, Intentional)
+// SCROLL REVEAL CONFIG (unique to this file)
 // ===========================================
 
-export const springPresets = {
-  /** Gentle - for most interactions (default) */
-  gentle: {
-    type: "spring",
-    stiffness: 200,
-    damping: 30,
-    mass: 1,
-  } as Transition,
-
-  /** Calm - for modals, page transitions */
-  calm: {
-    type: "spring",
-    stiffness: 150,
-    damping: 25,
-    mass: 1,
-  } as Transition,
-
-  /** Smooth - for subtle movements */
-  smooth: {
-    type: "spring",
-    stiffness: 120,
-    damping: 20,
-    mass: 1,
-  } as Transition,
-
-  /** Dramatic - for hero reveals, large transitions */
-  dramatic: {
-    type: "spring",
-    stiffness: 80,
-    damping: 15,
-    mass: 1,
-  } as Transition,
-
-  /** Bouncy - for playful micro-interactions */
-  bouncy: {
-    type: "spring",
-    stiffness: 300,
-    damping: 20,
-    mass: 1,
-  } as Transition,
-}
-
-// InstantMed easing functions (CSS-compatible)
-export const motionEasing = {
-  standard: [0.4, 0, 0.2, 1] as [number, number, number, number],
-  gentle: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-  calm: [0.33, 0, 0.2, 1] as [number, number, number, number],
-}
-
-// InstantMed durations
-export const motionDurations = {
-  micro: 0.15,    // 150ms — micro-interactions
-  fast: 0.2,      // 200ms
-  normal: 0.3,    // 300ms
-  slow: 0.4,      // 400ms
-  slower: 0.5,    // 500ms
-  dramatic: 0.7,  // 700ms — hero reveals
-  ambient: 20,    // 20s — background animations
-}
-
-// Scroll reveal defaults for IntersectionObserver-based animations
+/** Scroll reveal defaults for IntersectionObserver-based animations */
 export const scrollRevealConfig = {
   threshold: 0.15,
   once: true,
@@ -85,80 +27,69 @@ export const scrollRevealConfig = {
 } as const;
 
 // ===========================================
-// VARIANT PRESETS
+// VARIANT PRESETS (thin wrappers over lib/motion)
 // ===========================================
 
-/** Hover variants for interactive elements - InstantMed: subtle, not energetic */
+/** Hover variants for interactive elements */
 export const hoverVariants: Variants = {
-  rest: { 
+  rest: {
     scale: 1,
     y: 0,
   },
-  hover: { 
+  hover: {
     scale: 1.01,
     y: -2,
     transition: {
-      duration: motionDurations.normal,
-      ease: motionEasing.gentle,
+      duration: duration.normal,
+      ease: easing.out,
     },
   },
-  tap: { 
+  tap: {
     scale: 0.99,
     y: 0,
-    transition: { duration: motionDurations.fast },
+    transition: { duration: duration.fast },
   },
 }
 
-/** Modal/dialog entrance variants - InstantMed: slow, intentional */
+/** Modal/dialog entrance variants */
 export const modalVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     scale: 0.98,
     y: 8,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      duration: motionDurations.slow,
-      ease: motionEasing.gentle,
+      duration: duration.slow,
+      ease: easing.out,
     },
   },
   exit: {
     opacity: 0,
     scale: 0.98,
     y: 8,
-    transition: { 
-      duration: motionDurations.fast, 
-      ease: motionEasing.standard,
+    transition: {
+      duration: duration.fast,
+      ease: easing.out,
     },
   },
 }
 
-/** Fade-in variants for content */
-export const fadeInVariants: Variants = {
-  hidden: { 
-    opacity: 0,
-  },
-  visible: { 
-    opacity: 1,
-    transition: { duration: 0.3 },
-  },
-}
-
-/** Slide-up variants for cards, list items - InstantMed: gentle rise */
+/** Slide-up variants for cards, list items */
 export const slideUpVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 12,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
-      duration: motionDurations.normal,
-      ease: motionEasing.gentle,
+      duration: duration.normal,
+      ease: easing.out,
     },
   },
 }
@@ -174,18 +105,18 @@ export const staggerContainerVariants: Variants = {
   },
 }
 
-/** Stagger item for list children - InstantMed: no scale, just opacity + position */
+/** Stagger item for list children */
 export const staggerItemVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 12,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
-      duration: motionDurations.normal,
-      ease: motionEasing.gentle,
+      duration: duration.normal,
+      ease: easing.out,
     },
   },
 }
@@ -204,17 +135,17 @@ interface MotionCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'on
   delay?: number
 }
 
-/** 
+/**
  * Glass card with motion effects
  * Use for any interactive card component
  */
-export function MotionCard({ 
-  children, 
+export function MotionCard({
+  children,
   className,
   hover = true,
   pressable = false,
   delay = 0,
-  ...props 
+  ...props
 }: MotionCardProps) {
   return (
     <motion.div
@@ -230,19 +161,19 @@ export function MotionCard({
       initial="hidden"
       animate="visible"
       variants={slideUpVariants}
-      whileHover={hover ? { 
-        y: -2, 
+      whileHover={hover ? {
+        y: -2,
         boxShadow: "0 8px 30px rgba(197, 221, 240, 0.20)",
         transition: {
-          duration: motionDurations.normal,
-          ease: motionEasing.gentle,
+          duration: duration.normal,
+          ease: easing.out,
         },
       } : undefined}
-      whileTap={pressable ? { 
+      whileTap={pressable ? {
         scale: 0.99,
-        transition: { duration: motionDurations.fast },
+        transition: { duration: duration.fast },
       } : undefined}
-      transition={{ duration: motionDurations.normal, ease: motionEasing.gentle, delay }}
+      transition={{ duration: duration.normal, ease: easing.out, delay }}
       {...(props as any)}
     >
       {children}
@@ -256,15 +187,15 @@ interface MotionButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEl
   glowColor?: "primary" | "accent" | "success" | "danger"
 }
 
-/** 
+/**
  * Button with motion effects
  * Use for any interactive button
  */
-export function MotionButton({ 
-  children, 
+export function MotionButton({
+  children,
   className,
   glowColor = "primary",
-  ...props 
+  ...props
 }: MotionButtonProps) {
   // Glow styles - warm dawn tones
   const glowStyles = {
@@ -298,7 +229,7 @@ interface MotionListProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'on
   children: React.ReactNode
 }
 
-/** 
+/**
  * Stagger container for lists
  * Wrap list items with this for staggered animations
  */
@@ -320,7 +251,7 @@ interface MotionListItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   children: React.ReactNode
 }
 
-/** 
+/**
  * Stagger item for list children
  * Use as direct child of MotionList
  */
@@ -342,7 +273,7 @@ interface MotionFadeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'on
   show?: boolean
 }
 
-/** 
+/**
  * Fade wrapper with AnimatePresence
  * Use for conditional content that fades in/out
  */
@@ -355,7 +286,7 @@ export function MotionFade({ children, show = true, className, ...props }: Motio
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: duration.fast }}
           {...(props as any)}
         >
           {children}
@@ -371,8 +302,8 @@ interface MotionModalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'o
   isOpen: boolean
 }
 
-/** 
- * Modal wrapper with spring entrance
+/**
+ * Modal wrapper with entrance animation
  * Use for dialogs, sheets, popovers
  */
 export function MotionModal({ children, isOpen, className, ...props }: MotionModalProps) {
@@ -406,7 +337,7 @@ interface MotionScaleProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'o
   children: React.ReactNode
 }
 
-/** 
+/**
  * Scale-in animation wrapper
  * Use for elements that pop in
  */
@@ -416,7 +347,7 @@ export function MotionScale({ children, className, ...props }: MotionScaleProps)
       className={className}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: motionDurations.normal, ease: motionEasing.gentle }}
+      transition={{ duration: duration.normal, ease: easing.out }}
       {...(props as any)}
     >
       {children}
@@ -433,21 +364,21 @@ export function MotionScale({ children, className, ...props }: MotionScaleProps)
  * Use to disable animations for users who prefer reduced motion
  */
 export function useReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false)
+  const [reduced, setReduced] = React.useState(false)
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mediaQuery.matches)
+    setReduced(mediaQuery.matches)
 
     const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
+      setReduced(event.matches)
     }
 
     mediaQuery.addEventListener("change", handleChange)
     return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
 
-  return prefersReducedMotion
+  return reduced
 }
 
 /**
@@ -455,11 +386,10 @@ export function useReducedMotion() {
  * Returns empty object if user prefers reduced motion
  */
 export function useMotionProps(props: object) {
-  const prefersReducedMotion = useReducedMotion()
-  return prefersReducedMotion ? {} : props
+  const reduced = useReducedMotion()
+  return reduced ? {} : props
 }
 
 // Re-export framer-motion essentials for convenience
 export { motion, AnimatePresence }
 export type { Variants, Transition }
-

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { 
   AlertCircle, 
   AlertTriangle, 
@@ -41,6 +42,7 @@ export function SmartValidation({
   autoValidate = true,
   triggerValidation = 0,
 }: SmartValidationProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isValidating, setIsValidating] = useState(false)
   const [issues, setIssues] = useState<ValidationIssue[]>([])
   const [summary, setSummary] = useState<string | null>(null)
@@ -109,8 +111,9 @@ export function SmartValidation({
   if (hasValidated && displayIssues.length === 0 && !isValidating) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className={cn(
           "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800",
           className
@@ -157,8 +160,9 @@ export function SmartValidation({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={cn("space-y-3", className)}
     >
       {/* Header */}
@@ -223,17 +227,18 @@ export function SmartValidation({
       <AnimatePresence>
         {isExpanded && displayIssues.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : undefined}
             className="space-y-2"
           >
             {displayIssues.map((issue, index) => (
               <motion.div
                 key={`${issue.field}-${index}`}
-                initial={{ opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.05 }}
                 className={cn(
                   "p-3 rounded-xl border",
                   getIssueBgColor(issue.severity)

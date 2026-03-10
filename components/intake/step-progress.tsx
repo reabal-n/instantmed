@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import { Check, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface StepProgressProps {
   currentStep: number
@@ -22,6 +23,7 @@ export function StepProgress({
   showTimeEstimate = false,
   timeEstimates = []
 }: StepProgressProps) {
+  const prefersReducedMotion = useReducedMotion()
   const progress = ((currentStep - 1) / (totalSteps - 1)) * 100
   
   // Calculate remaining time
@@ -73,18 +75,15 @@ export function StepProgress({
         <div className="flex items-start gap-3 relative pb-4">
           {/* Animated progress overlay - behind dots */}
           <motion.div
-            initial={{ width: '12px' }}
+            initial={prefersReducedMotion ? false : { width: '12px' }}
             animate={{
               width: calculateProgressWidth(),
             }}
             className="absolute -left-[6px] top-[3px] h-[2px] bg-primary rounded-full z-0"
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 20,
-              mass: 0.8,
-              bounce: 0.25,
-              duration: 0.6
+            transition={prefersReducedMotion ? { duration: 0 } : {
+              type: "tween",
+              ease: [0.22, 1, 0.36, 1],
+              duration: 0.3,
             }}
           />
           
@@ -238,8 +237,9 @@ export function StepProgress({
       {/* Final step encouragement */}
       {currentStep === totalSteps && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? { duration: 0 } : undefined}
           className="flex justify-center mt-3"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">

@@ -65,7 +65,7 @@ export default async function WebhookMonitoringPage() {
   ])
   
   return (
-    <div className="container py-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Webhook Monitoring</h1>
         <p className="text-muted-foreground">

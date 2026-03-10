@@ -4,6 +4,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("doctor-drafts-api")
 
@@ -16,6 +17,9 @@ export async function GET(
   { params }: { params: Promise<{ intakeId: string }> }
 ) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     // Require doctor or admin role
     const authResult = await getApiAuth()
     if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
@@ -60,6 +64,9 @@ export async function POST(
   { params }: { params: Promise<{ intakeId: string }> }
 ) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     // Require doctor or admin role
     const authResult = await getApiAuth()
     if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {

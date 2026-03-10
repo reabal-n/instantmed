@@ -26,6 +26,7 @@ import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
+import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
 
 interface ApproveCertResult {
   success: boolean
@@ -393,11 +394,11 @@ export async function approveAndSendCert(
       doctor_ahpra_number: doctorProfile.ahpra_number!,
       template_config_snapshot: DEFAULT_TEMPLATE_CONFIG as unknown as Record<string, unknown>,
       clinic_identity_snapshot: {
-        name: "InstantMed Pty Ltd",
-        abn: "64 694 559 334",
-        address: "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010",
-        phone: "0450 722 549",
-        email: "support@instantmed.com.au",
+        name: COMPANY_NAME,
+        abn: ABN,
+        address: COMPANY_ADDRESS,
+        phone: CONTACT_PHONE,
+        email: CONTACT_EMAIL,
       } as Record<string, unknown>,
       storage_path: storagePath,
       file_size_bytes: pdfBuffer.length,

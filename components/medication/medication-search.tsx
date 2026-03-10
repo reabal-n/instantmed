@@ -151,7 +151,7 @@ export function MedicationSearch({
 
       {/* Dropdown Results */}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-border rounded-xl shadow-lg max-h-96 overflow-auto">
+        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-popover border border-border rounded-xl shadow-lg max-h-96 overflow-auto">
           {results.map((med, index) => (
             <button
               key={med.id}
@@ -206,7 +206,7 @@ export function MedicationSearch({
 
       {/* No Results */}
       {isOpen && query.length >= 2 && results.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-border rounded-xl shadow-lg p-4">
+        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-popover border border-border rounded-xl shadow-lg p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
             <div className="text-sm">
@@ -247,7 +247,7 @@ export function MedicationSearch({
                 {selectedMed.uses.map((use) => (
                   <span
                     key={use}
-                    className="text-xs px-2 py-1 bg-white rounded-full border border-border"
+                    className="text-xs px-2 py-1 bg-white dark:bg-card rounded-full border border-border"
                   >
                     {use}
                   </span>
@@ -255,7 +255,7 @@ export function MedicationSearch({
               </div>
 
               {selectedMed.warnings.length > 0 && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+                <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2 mt-3">
                   <AlertCircle className="w-3 h-3 inline mr-1" />
                   {selectedMed.warnings[0]}
                 </p>

@@ -79,9 +79,8 @@ export function IconChecklist({
                     : undefined
               }
               transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 20,
+                duration: 0.3,
+                ease: "easeOut",
                 delay: i * 0.05 + 0.15,
               }}
             >

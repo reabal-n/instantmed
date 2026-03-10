@@ -130,7 +130,7 @@ export function WhatHappensNext({
           <motion.div
             initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: prefersReducedMotion ? 0 : 0.2 }}
+            transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: prefersReducedMotion ? 0 : 0.2 }}
             className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500 flex items-center justify-center"
           >
             <CheckCircle2 className="w-8 h-8 text-white" />

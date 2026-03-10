@@ -91,7 +91,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   })
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <div className="space-y-5">
       {/* Trust indicator */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Shield className="w-4 h-4" />
@@ -183,7 +183,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
 
           {/* Active price display */}
           {duration && (
-            <div className="flex items-center justify-between px-1 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between px-1 duration-200">
               <p className="text-xs text-muted-foreground">
                 No waiting rooms. Reviewed by a doctor within ~1 hour.
               </p>

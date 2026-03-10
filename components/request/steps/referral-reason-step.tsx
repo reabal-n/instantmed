@@ -19,7 +19,7 @@ interface ReferralReasonStepProps {
 
 export default function ReferralReasonStep({ onBack }: ReferralReasonStepProps) {
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Coming soon badge */}
       <div className="text-center">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">

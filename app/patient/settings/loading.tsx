@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function SettingsLoading() {
   return (
-    <div className="container py-8 max-w-2xl">
+    <div>
       <Skeleton className="h-8 w-32 mb-8" />
       
       {/* Profile section */}

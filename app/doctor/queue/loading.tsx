@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function QueueLoading() {
   return (
-    <div className="container py-8">
+    <div className="space-y-6">
       {/* Header with filters */}
       <div className="flex items-center justify-between mb-6">
         <Skeleton className="h-8 w-48" />

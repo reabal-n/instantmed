@@ -17,7 +17,7 @@ export default async function PaymentHistoryPage() {
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       <div className="flex items-center gap-4 mb-6">
         <Link href="/patient">
           <Button variant="ghost" size="sm">

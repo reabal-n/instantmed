@@ -9,6 +9,7 @@
  */
 
 import * as React from "react"
+import { COMPANY_NAME, ABN } from "@/lib/constants"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
@@ -234,7 +235,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                     letterSpacing: "0.02em",
                                   }}
                                 >
-                                  InstantMed Pty Ltd · ABN 64 694 559 334
+                                  {COMPANY_NAME} · ABN {ABN}
                                 </p>
                               </td>
                             </tr>

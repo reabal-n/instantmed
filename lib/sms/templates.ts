@@ -1,16 +1,18 @@
 /**
  * SMS Templates for InstantMed
- * 
+ *
  * Separated from service.ts to avoid "use server" restrictions
  * (Server Action files can only export async functions)
  */
+
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 export const SMS_TEMPLATES = {
   REQUEST_APPROVED: (patientName: string, requestType: string) =>
     `Hi ${patientName}, your ${requestType} request has been approved. Check your email for details or view at instantmed.com.au/patient`,
 
   REQUEST_DECLINED: (patientName: string) =>
-    `Hi ${patientName}, we couldn't complete your request this time. A refund has been processed. See email for details or contact support@instantmed.com.au`,
+    `Hi ${patientName}, we couldn't complete your request this time. A refund has been processed. See email for details or contact ${CONTACT_EMAIL}`,
 
   REQUEST_NEEDS_INFO: (patientName: string) =>
     `Hi ${patientName}, the doctor needs more info before completing your request. Please check your email and respond ASAP.`,

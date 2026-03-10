@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface ChatProgressProps {
   currentStep: number
@@ -10,6 +11,7 @@ interface ChatProgressProps {
 }
 
 export function ChatProgress({ currentStep, totalSteps, labels }: ChatProgressProps) {
+  const prefersReducedMotion = useReducedMotion()
   const progress = Math.min(Math.max(currentStep / totalSteps, 0), 1)
   
   return (
@@ -21,9 +23,9 @@ export function ChatProgress({ currentStep, totalSteps, labels }: ChatProgressPr
         return (
           <motion.div
             key={idx}
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: idx * 0.05 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { delay: idx * 0.05 }}
             className={cn(
               "h-1.5 rounded-full transition-all duration-300",
               isCompleted || isCurrent
@@ -43,15 +45,16 @@ export function ChatProgress({ currentStep, totalSteps, labels }: ChatProgressPr
 }
 
 export function ChatProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  const prefersReducedMotion = useReducedMotion()
   const progress = Math.min(Math.max(currentStep / totalSteps, 0), 1)
   
   return (
     <div className="h-0.5 bg-primary-foreground/20 w-full">
       <motion.div
         className="h-full bg-primary-foreground"
-        initial={{ width: 0 }}
+        initial={prefersReducedMotion ? false : { width: 0 }}
         animate={{ width: `${progress * 100}%` }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut" }}
       />
     </div>
   )

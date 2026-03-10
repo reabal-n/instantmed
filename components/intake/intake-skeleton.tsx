@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface IntakeSkeletonProps {
@@ -96,6 +97,8 @@ export function IntakeSkeleton({ className, variant = "form" }: IntakeSkeletonPr
  * Full-page intake loading state
  */
 export function IntakePageSkeleton() {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       {/* Header skeleton */}
@@ -108,8 +111,8 @@ export function IntakePageSkeleton() {
           {/* Progress bar skeleton */}
           <div className="mt-3 h-1 w-full bg-card/40 dark:bg-white/10 rounded-full overflow-hidden">
             <motion.div
-              animate={{ x: ["-100%", "100%"] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              animate={prefersReducedMotion ? {} : { x: ["-100%", "100%"] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               className="w-1/3 h-full bg-primary/50 rounded-full"
             />
           </div>

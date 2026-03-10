@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { capture } from "@/lib/analytics/capture"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 interface ConfirmedClientProps {
   intakeId?: string
@@ -91,8 +92,8 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
 
       <p className="text-xs text-muted-foreground mt-6">
         Questions? Contact us at{" "}
-        <a href="mailto:support@instantmed.com.au" className="text-primary hover:underline">
-          support@instantmed.com.au
+        <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+          {CONTACT_EMAIL}
         </a>
       </p>
     </Card>

@@ -31,6 +31,7 @@ import {
   uploadClinicLogoAction,
 } from "@/app/actions/admin-settings"
 import Link from "next/link"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 interface ClinicIdentityClientProps {
   initialData: ClinicIdentity | null
@@ -288,7 +289,7 @@ export function ClinicIdentityClient({ initialData, logoUrl }: ClinicIdentityCli
                   type="email"
                   value={formData.email || ""}
                   onChange={(e) => handleInputChange("email", e.target.value || null)}
-                  placeholder="support@instantmed.com.au"
+                  placeholder={CONTACT_EMAIL}
                 />
               </div>
             </div>

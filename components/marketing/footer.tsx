@@ -3,6 +3,7 @@ import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
 import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from 'lucide-react'
 import { PaymentMethodIcons, StripeBadge } from '@/components/checkout/trust-badges'
+import { CONTACT_EMAIL, CONTACT_PHONE, COMPANY_ADDRESS_SHORT, ABN } from '@/lib/constants'
 
 /**
  * Footer trust badges strip - compact trust signals
@@ -56,7 +57,7 @@ export function MarketingFooter() {
   return (
     <footer className="my-8 px-4 max-w-5xl mx-auto">
       {/* Main card with tape decorations */}
-      <div className="relative bg-white/70 dark:bg-white/[0.06] rounded-3xl max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-dawn-200/40 dark:border-border/50 shadow-sm shadow-dawn-200/15 dark:shadow-none backdrop-blur-sm">
+      <div className="relative bg-white/70 dark:bg-white/[0.06] rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-dawn-200/40 dark:border-border/50 shadow-sm shadow-dawn-200/15 dark:shadow-none backdrop-blur-sm">
         {/* Tape decorations */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
@@ -75,15 +76,15 @@ export function MarketingFooter() {
             <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
               <div className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <span>Level 1/457-459 Elizabeth St, Surry Hills NSW 2010</span>
+                <span>{COMPANY_ADDRESS_SHORT}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 shrink-0" />
-                <a href="mailto:support@instantmed.com.au" className="hover:text-foreground transition-colors">support@instantmed.com.au</a>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL}</a>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 shrink-0" />
-                <a href="tel:0450722549" className="hover:text-foreground transition-colors">0450 722 549</a>
+                <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
               </div>
             </div>
           </div>
@@ -164,7 +165,7 @@ export function MarketingFooter() {
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          Operating since 2025 · ABN: 64 694 559 334
+          Operating since 2025 · ABN: {ABN}
         </p>
       </div>
     </footer>

@@ -63,7 +63,7 @@ export default function WomensHealthTypeStep({ onNext }: WomensHealthTypeStepPro
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Sparkles className="w-4 h-4" />

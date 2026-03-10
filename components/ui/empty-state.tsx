@@ -4,7 +4,7 @@ import { LucideIcon, Plus, Lightbulb, Sparkles } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
 import { motion, useReducedMotion } from "framer-motion"
-import { fadeIn, slideUp } from "./animations"
+import { fadeIn, fadeUp as slideUp } from "@/lib/motion"
 import Link from "next/link"
 
 interface EmptyStateProps {
@@ -59,7 +59,7 @@ export function EmptyState({
       <motion.div
         initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "spring", stiffness: 200 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
         className="mb-6"
       >
         {illustration ? (

@@ -6,6 +6,7 @@ import { refundIfEligible } from "@/lib/stripe/refunds"
 import { logTriageApproved, logTriageDeclined } from "@/lib/audit/compliance-audit"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("bulk-action")
 
@@ -34,6 +35,9 @@ export async function POST(request: NextRequest) {
   let clerkUserId: string | null = null
 
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     // CSRF protection for session-based requests
     const csrfError = await requireValidCsrf(request)
     if (csrfError) {

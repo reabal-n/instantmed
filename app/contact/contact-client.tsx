@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -139,8 +140,7 @@ export function ContactClient() {
           <h2 id="contact-section-title" className="sr-only">
             Contact Information and Form
           </h2>
-          <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto grid gap-12 lg:grid-cols-5">
+          <div className="max-w-6xl mx-auto px-4 grid gap-12 lg:grid-cols-5">
               {/* Contact Info Sidebar */}
               <div className="lg:col-span-2 space-y-6">
                 <ContactInfoCard prefersReducedMotion={prefersReducedMotion} />
@@ -156,7 +156,6 @@ export function ContactClient() {
                 handleSubmit={handleSubmit}
                 prefersReducedMotion={prefersReducedMotion}
               />
-            </div>
           </div>
         </section>
 
@@ -211,10 +210,10 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
             <div>
               <p className="text-sm font-medium">Email</p>
               <a
-                href="mailto:support@instantmed.com.au"
+                href={`mailto:${CONTACT_EMAIL}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                support@instantmed.com.au
+                {CONTACT_EMAIL}
               </a>
             </div>
           </div>

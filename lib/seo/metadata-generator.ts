@@ -13,7 +13,7 @@
 import type { Metadata } from 'next'
 import type { SEOPage, PageType, MedicationPageData as _MedicationPageData, IntentPageData as _IntentPageData } from './registry'
 import { getCanonicalUrl, getRobotsConfig, isMedicationPage, isIntentPage } from './registry'
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
 // ============================================
 // TITLE TEMPLATES
@@ -345,7 +345,7 @@ export function generateMedicalBusinessSchema() {
     name: 'InstantMed',
     description: 'Online medical certificates and prescriptions from Australian doctors',
     url: 'https://instantmed.com.au',
-    email: 'hello@instantmed.com.au',
+    email: CONTACT_EMAIL_HELLO,
     priceRange: PRICING_DISPLAY.RANGE,
     areaServed: {
       '@type': 'Country',

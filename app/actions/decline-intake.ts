@@ -14,6 +14,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
+import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
@@ -279,6 +280,8 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     } catch (auditError) {
       logger.warn("[Decline] Failed to log compliance event", { intakeId }, auditError instanceof Error ? auditError : undefined)
     }
+
+    revalidatePath("/doctor")
 
     return {
       success: true,

@@ -344,7 +344,7 @@ export function LiveServiceCounter({ service, className }: LiveCounterProps) {
       <span>
         <motion.span
           key={count}
-          initial={isAnimating && !prefersReducedMotion ? { scale: 1.2 } : {}}
+          initial={isAnimating && !prefersReducedMotion ? { scale: 1.02 } : {}}
           animate={{ scale: 1 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           className="font-medium text-emerald-600 dark:text-emerald-400"
@@ -525,7 +525,7 @@ export function LastHourCounter({ service, className }: LastHourCounterProps) {
       <span className="text-sm text-emerald-700 dark:text-emerald-400">
         <motion.span
           key={count}
-          initial={isAnimating && !prefersReducedMotion ? { scale: 1.3 } : {}}
+          initial={isAnimating && !prefersReducedMotion ? { scale: 1.02 } : {}}
           animate={{ scale: 1 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           className="font-semibold"

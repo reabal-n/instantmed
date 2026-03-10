@@ -1,6 +1,6 @@
 import Script from "next/script"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -85,7 +85,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     contactPoint: [{
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "hello@instantmed.com.au",
+      email: CONTACT_EMAIL_HELLO,
       availableLanguage: ["English"]
     }],
     // sameAs omitted — no verified social profiles yet

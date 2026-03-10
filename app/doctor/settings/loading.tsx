@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function SettingsLoading() {
   return (
-    <div className="container max-w-4xl py-8 px-4" aria-busy="true">
+    <div aria-busy="true">
       <Skeleton className="h-8 w-32 mb-6" />
       <div className="space-y-6">
         {[1, 2, 3].map((i) => (

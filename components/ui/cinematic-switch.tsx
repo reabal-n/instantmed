@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import { motion } from "framer-motion";
+import { useReducedMotion } from "@/components/ui/motion";
 
 interface CinematicSwitchProps {
   value: boolean | undefined;
@@ -21,6 +22,7 @@ export function CinematicSwitch({
   className,
   variant = "default",
 }: CinematicSwitchProps) {
+  const prefersReducedMotion = useReducedMotion()
   const isOn = value === true;
 
   const handleClick = () => {
@@ -68,7 +70,7 @@ export function CinematicSwitch({
         animate={{
           backgroundColor: trackColor,
         }}
-        transition={{ duration: 0.3 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
       >
         {/* Switch Thumb */}
         <motion.div
@@ -78,7 +80,7 @@ export function CinematicSwitch({
             x: isOn ? 32 : 0,
             backgroundColor: thumbColor,
           }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.2 }}
           whileTap={{ scale: 0.9 }}
         >
           {/* Thumb Highlight (Gloss) */}

@@ -97,7 +97,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
   const isComplete = hairPattern && hairDuration && hairFamilyHistory && hairMedicationPreference
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Scissors className="w-4 h-4" />

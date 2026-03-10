@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Clock, ArrowRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DraftIntake, getDraftSummary, clearDraft } from "@/lib/chat/draft-intake"
@@ -12,6 +13,7 @@ interface DraftResumeProps {
 }
 
 export function DraftResume({ draft, onResume, onStartNew }: DraftResumeProps) {
+  const prefersReducedMotion = useReducedMotion()
   const summary = getDraftSummary(draft)
   
   const handleDiscard = () => {
@@ -21,8 +23,9 @@ export function DraftResume({ draft, onResume, onStartNew }: DraftResumeProps) {
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="p-4 space-y-4"
     >
       <div className="bg-muted/50 border border-border rounded-lg p-4">

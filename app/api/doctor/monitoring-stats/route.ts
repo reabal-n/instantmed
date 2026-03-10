@@ -1,11 +1,15 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { getApiAuth } from "@/lib/auth"
 import { getIntakeMonitoringStats, getSlaBreachIntakes } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     // Require doctor or admin role
     const authResult = await getApiAuth()
     if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {

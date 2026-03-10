@@ -46,6 +46,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { CheckCircle2 } from 'lucide-react'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { ImageTextSplit } from '@/components/sections'
+import { CONTACT_EMAIL } from '@/lib/constants'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -495,7 +496,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
               className="hidden lg:block relative shrink-0 mt-0"
               initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               <div className="relative">
                 {/* Main image */}
@@ -854,7 +855,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
             <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -873,7 +874,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           <Accordion
             type="single"
@@ -908,7 +909,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
         >
           <p className="text-muted-foreground mb-2 text-sm">Still have questions?</p>
           <a
-            href="mailto:support@instantmed.com.au"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors text-sm"
           >
             Contact our support team
@@ -939,7 +940,7 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
           <Button
             asChild
             size="lg"
-            className="bg-white text-foreground hover:bg-white/90 px-10 h-14 text-lg font-semibold shadow-lg"
+            className="bg-white dark:bg-white text-foreground dark:text-foreground hover:bg-white/90 dark:hover:bg-white/90 px-10 h-14 text-lg font-semibold shadow-lg"
           >
             <Link href={config.hero.ctaHref}>
               {config.finalCta.ctaText}

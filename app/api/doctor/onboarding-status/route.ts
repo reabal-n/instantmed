@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -25,8 +26,11 @@ export interface OnboardingStep {
  * 5. Signature uploaded (optional)
  * 6. Test intake reviewed (optional)
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

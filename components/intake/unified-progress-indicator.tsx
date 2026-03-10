@@ -2,6 +2,7 @@
 
 import React from "react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { CircleCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,6 +31,7 @@ export function UnifiedProgressIndicator({
   backLabel = "Back",
   className,
 }: UnifiedProgressIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion()
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1)
   const progressWidth = currentStep === 1 ? 24 : currentStep === 2 ? 60 : 96
 
@@ -42,17 +44,17 @@ export function UnifiedProgressIndicator({
             key={step}
             className={cn(
               "w-2 h-2 rounded-full relative z-10 transition-colors duration-300",
-              step <= currentStep ? "bg-white" : "bg-border"
+              step <= currentStep ? "bg-white dark:bg-white" : "bg-border"
             )}
           />
         ))}
 
         {/* Animated progress overlay */}
         <motion.div
-          initial={{ width: "12px" }}
+          initial={prefersReducedMotion ? false : { width: "12px" }}
           animate={{ width: `${progressWidth}px` }}
           className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
         />
       </div>
 
@@ -66,9 +68,9 @@ export function UnifiedProgressIndicator({
         >
           {!isExpanded && onBack && (
             <motion.button
-              initial={{ opacity: 0, width: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: "64px" }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
               onClick={onBack}
               className="px-4 py-3 text-foreground flex items-center justify-center bg-muted font-semibold rounded-full hover:bg-muted/80 transition-colors flex-1 w-16 text-sm"
             >
@@ -89,9 +91,9 @@ export function UnifiedProgressIndicator({
             <div className="flex items-center font-semibold justify-center gap-2 text-sm">
               {isLastStep && (
                 <motion.div
-                  initial={{ opacity: 0 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.15 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
                 >
                   <CircleCheck size={16} />
                 </motion.div>

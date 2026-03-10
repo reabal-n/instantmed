@@ -512,7 +512,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   })
 
   return (
-    <div className="space-y-4 animate-in fade-in">
+    <div className="space-y-4">
       {/* Header */}
       <div className="text-center mb-6">
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">

@@ -8,6 +8,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
@@ -269,7 +270,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       logger.error("Invalid base URL", { baseUrl })
       return { 
         success: false, 
-        error: "Server configuration error. Please contact support at help@instantmed.com.au" 
+        error: `Server configuration error. Please contact support at ${CONTACT_EMAIL}`
       }
     }
 

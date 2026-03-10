@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface ShakeAnimationProps {
@@ -30,13 +31,14 @@ export function ShakeAnimation({
   duration = 0.5,
   className,
 }: ShakeAnimationProps) {
+  const prefersReducedMotion = useReducedMotion()
   const shakeAmount = intensityValues[intensity]
 
   return (
     <motion.div
       className={className}
       animate={
-        trigger
+        trigger && !prefersReducedMotion
           ? {
               x: [0, -shakeAmount, shakeAmount, -shakeAmount, shakeAmount, 0],
               transition: { duration },
@@ -61,14 +63,15 @@ export function ShakeInput({
   hasError: boolean
   className?: string
 }) {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <motion.div
       className={cn("relative", className)}
       animate={
-        hasError
+        hasError && !prefersReducedMotion
           ? {
               x: [0, -4, 4, -4, 4, -2, 2, 0],
-              transition: { duration: 0.4, ease: "easeInOut" },
+              transition: { duration: 0.4, ease: "easeOut" },
             }
           : {}
       }
@@ -88,14 +91,15 @@ export function AnimatedErrorMessage({
   message?: string
   className?: string
 }) {
+  const prefersReducedMotion = useReducedMotion()
   if (!message) return null
 
   return (
     <motion.p
-      initial={{ opacity: 0, y: -10, height: 0 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: -10, height: 0 }}
       animate={{ opacity: 1, y: 0, height: "auto" }}
-      exit={{ opacity: 0, y: -10, height: 0 }}
-      transition={{ duration: 0.2 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, height: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
       className={cn("text-sm text-destructive mt-1", className)}
     >
       {message}

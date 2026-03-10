@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { Loader2, Lock, Shield } from "lucide-react"
 
@@ -12,17 +13,20 @@ interface PaymentSkeletonProps {
  * Beautiful loading skeleton shown while payment is processing
  */
 export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={cn("space-y-6", className)}
     >
       {/* Header with loading spinner */}
       <div className="text-center">
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          animate={prefersReducedMotion ? {} : { rotate: 360 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: "linear" }}
           className="w-16 h-16 mx-auto mb-4"
         >
           <div className="w-full h-full rounded-2xl bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
@@ -74,11 +78,11 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            animate={{
+            animate={prefersReducedMotion ? {} : {
               scale: [1, 1.3, 1],
               opacity: [0.5, 1, 0.5],
             }}
-            transition={{
+            transition={prefersReducedMotion ? { duration: 0 } : {
               duration: 1,
               repeat: Infinity,
               delay: i * 0.2,
@@ -95,19 +99,22 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
  * Full-screen loading overlay for payment redirect
  */
 export function PaymentRedirectOverlay() {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={prefersReducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="fixed inset-0 z-50 flex items-center justify-center bg-card/95 dark:bg-white/10 backdrop-blur-sm"
     >
       <div className="text-center px-4">
         <motion.div
-          animate={{ 
+          animate={prefersReducedMotion ? {} : {
             scale: [1, 1.05, 1],
             rotate: [0, 5, -5, 0],
           }}
-          transition={{ duration: 2, repeat: Infinity }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
           className="w-20 h-20 mx-auto mb-6"
         >
           <div className="w-full h-full rounded-2xl bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-emerald-500/30">
@@ -125,8 +132,8 @@ export function PaymentRedirectOverlay() {
         {/* Animated progress bar */}
         <div className="w-64 h-1.5 mx-auto bg-card/40 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
-            animate={{ x: ["-100%", "100%"] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? {} : { x: ["-100%", "100%"] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="w-1/2 h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full"
           />
         </div>

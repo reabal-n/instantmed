@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -146,8 +147,7 @@ export function ReadReceiptAvatars({ readers, maxDisplay = 3, className }: ReadR
           title={`Read by ${reader.name}`}
         >
           {reader.avatar ? (
-            /* eslint-disable-next-line @next/next/no-img-element -- Dynamic avatar URLs from external sources */
-            <img src={reader.avatar} alt={reader.name} className="w-full h-full rounded-full object-cover" />
+            <Image src={reader.avatar} alt={reader.name} width={16} height={16} unoptimized className="w-full h-full rounded-full object-cover" />
           ) : (
             reader.name.charAt(0).toUpperCase()
           )}

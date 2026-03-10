@@ -3,6 +3,7 @@
 import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/components/ui/motion";
 
 type Testimonial = {
   text: string;
@@ -26,6 +27,8 @@ export function TestimonialsColumnsWrapper({
   badgeText = "Testimonials",
   className,
 }: TestimonialsColumnsWrapperProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   // Split testimonials into 3 columns
   const firstColumn = testimonials.slice(0, Math.ceil(testimonials.length / 3));
   const secondColumn = testimonials.slice(
@@ -38,9 +41,9 @@ export function TestimonialsColumnsWrapper({
     <section className={cn("relative", className)}>
       <div className="container z-10 mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >

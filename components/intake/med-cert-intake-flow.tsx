@@ -73,10 +73,9 @@ const progressVariants = {
   animate: (progress: number) => ({
     width: `${progress}%`,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 20,
-      mass: 0.8,
+      type: "tween",
+      ease: [0.22, 1, 0.36, 1],
+      duration: 0.3,
     },
   }),
 }
@@ -130,13 +129,13 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                 )}
                 initial={prefersReducedMotion ? false : { scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 20 }}
+                transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
               >
                 {isCompleted && (
                   <motion.div
                     initial={prefersReducedMotion ? false : { scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 15 }}
+                    transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
                   >
                     <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                   </motion.div>
@@ -146,7 +145,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                     className="w-1.5 h-1.5 bg-primary rounded-full"
                     initial={prefersReducedMotion ? false : { scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: prefersReducedMotion ? 100 : 15 }}
+                    transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
                   />
                 )}
               </motion.div>
@@ -275,7 +274,7 @@ export function MedCertIntakeFlow({
           <motion.button
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClose}
             className={cn(
@@ -326,7 +325,7 @@ export function MedCertIntakeFlow({
               animate="center"
               exit={prefersReducedMotion ? undefined : "exit"}
               transition={prefersReducedMotion ? { duration: 0 } : {
-                x: { type: "spring", stiffness: 200, damping: 30 },
+                x: { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 },
                 opacity: { duration: 0.2 },
               }}
               className="px-6 py-6 sm:px-8 sm:py-8"

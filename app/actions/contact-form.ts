@@ -4,6 +4,7 @@ import { sendViaResend } from "@/lib/email/resend"
 import { logger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 // ============================================
 // CONTACT FORM SCHEMA
@@ -104,7 +105,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
     // Send email to support
     const result = await sendViaResend({
-      to: "support@instantmed.com.au",
+      to: CONTACT_EMAIL,
       subject: `[Contact Form] ${subject}`,
       html,
       replyTo: email,

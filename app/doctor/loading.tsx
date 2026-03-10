@@ -2,13 +2,12 @@ import { Loader } from "@/components/ui/loader"
 
 export default function DoctorLoading() {
   return (
-    <div 
-      className="min-h-screen bg-linear-to-b from-background to-muted/30"
+    <div
+      className="space-y-6"
       aria-busy="true"
       aria-live="polite"
     >
       <span className="sr-only" role="status">Loading doctor dashboard</span>
-      <div className="container max-w-6xl py-8 px-4">
         {/* Animated loader */}
         <div className="flex justify-center mb-8">
           <Loader size="md" />
@@ -85,7 +84,6 @@ export default function DoctorLoading() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   )
 }

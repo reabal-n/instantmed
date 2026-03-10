@@ -78,7 +78,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
   const isComplete = edAgeConfirmed && edOnset && edFrequency && edMorningErections && edPreference
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       {/* Age gate */}
       <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
         <ShieldCheck className="w-4 h-4 text-amber-600" />

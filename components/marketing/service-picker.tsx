@@ -119,7 +119,7 @@ export function ServicePicker() {
           <motion.div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-dawn-100/60 border border-dawn-200/40 dark:bg-accent-teal/15 dark:border-accent-teal/20 mb-6 interactive-pill cursor-default"
             whileHover={prefersReducedMotion ? undefined : { y: -2 }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <SparklesPremium className="w-4 h-4 text-dawn-700 dark:text-accent-teal" />
             <span className="text-xs font-medium text-foreground/80 dark:text-foreground">Pick what you need</span>

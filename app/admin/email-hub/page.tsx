@@ -31,7 +31,7 @@ export default async function EmailHubPage() {
   const yesterdayEmails = yesterdayCountResult.count || 0
 
   return (
-    <div className="container py-6 space-y-6">
+    <div className="space-y-6">
       <Suspense fallback={<Skeleton className="h-[600px] rounded-lg" />}>
         <EmailHubClient
           initialStats={statsResult.stats}

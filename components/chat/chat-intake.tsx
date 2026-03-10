@@ -1075,7 +1075,7 @@ export function ChatIntakeButton() {
           "transition-shadow duration-200",
           isOpen && "hidden"
         )}
-        whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
+        whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
         aria-label="Open chat assistant"
       >
@@ -1085,7 +1085,7 @@ export function ChatIntakeButton() {
           <motion.span
             className="absolute inset-0 rounded-full bg-primary"
             initial={prefersReducedMotion ? false : { opacity: 0.5, scale: 1 }}
-            animate={prefersReducedMotion ? undefined : { opacity: 0, scale: 1.3 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 0, scale: 1.02 }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
         )}

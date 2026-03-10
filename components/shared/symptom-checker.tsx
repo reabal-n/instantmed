@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { AlertTriangle, Phone, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/uix"
@@ -209,13 +210,13 @@ export function EmergencyDialog({
 
         <div className="space-y-4 py-4">
           {/* Red flags list */}
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-sm font-medium text-red-800 mb-2">
+          <div className="rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 p-4">
+            <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
               Concerning symptoms detected:
             </p>
             <ul className="space-y-1">
               {redFlags.map((flag) => (
-                <li key={flag} className="text-sm text-red-700 flex items-center gap-2">
+                <li key={flag} className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {flag}
                 </li>
@@ -270,6 +271,7 @@ export function SymptomChecker({
   onEmergency,
   className,
 }: SymptomCheckerProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(false)
 
   const result = checkSymptoms(selectedSymptoms, symptomDetails)
@@ -288,8 +290,9 @@ export function SymptomChecker({
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className={cn(
           "rounded-xl border p-4",
           result.severity === "critical"

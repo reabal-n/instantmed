@@ -10,6 +10,7 @@ import { AvailabilityIndicator } from "@/components/shared/availability-indicato
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { SplitHero } from "@/components/heroes"
@@ -158,6 +159,7 @@ const trustSignals = [
 ]
 
 export default function GeneralConsultPage() {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
@@ -254,18 +256,18 @@ export default function GeneralConsultPage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
             >
               {trustBadges.map((badge, index) => (
                 <motion.div
                   key={badge.name}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.1 }}
                 >
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
                     <div className={cn("w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm", badge.color)}>
@@ -293,10 +295,10 @@ export default function GeneralConsultPage() {
             {/* Section Header */}
             <motion.div
               className="text-center mb-10"
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
             >
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
                 How can we help?
@@ -309,10 +311,10 @@ export default function GeneralConsultPage() {
             {/* Trust signals */}
             <motion.div
               className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10"
-              initial={{ opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1 }}
             >
               {trustSignals.map((signal) => (
                 <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -327,10 +329,10 @@ export default function GeneralConsultPage() {
               {CONSULT_TYPES.map((consult, index) => (
                 <motion.div
                   key={consult.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: index * 0.1 }}
                 >
                   <Link href={consult.href} className="group block h-full">
                       <div className={cn(
@@ -405,10 +407,10 @@ export default function GeneralConsultPage() {
             {/* Guarantee badge */}
             <motion.div
               className="mt-8 flex justify-center"
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.3 }}
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
                 <Shield className="w-4 h-4 text-success" />
@@ -423,10 +425,10 @@ export default function GeneralConsultPage() {
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="text-center mb-8"
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
             >
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
                 Common presenting concerns
@@ -440,10 +442,10 @@ export default function GeneralConsultPage() {
               {COMMON_CONCERNS.map((concern, index) => (
                 <motion.div
                   key={concern.title}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.05 }}
                 >
                   <div className="p-4 rounded-xl bg-card/50 border border-border/50">
                     <h3 className="font-semibold text-foreground text-sm mb-1">{concern.title}</h3>

@@ -8,6 +8,7 @@ import { createClient } from "@supabase/supabase-js"
 import { sendViaResend, sendCriticalEmail } from "./resend"
 import { createLogger } from "../observability/logger"
 import { env } from "../env"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 const log = createLogger("template-sender")
 
@@ -317,7 +318,7 @@ export async function sendDisputeAlertEmail(params: {
   reason: string
   evidenceDueBy?: string
 }): Promise<SendResult> {
-  const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0] || "support@instantmed.com.au"
+  const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0] || CONTACT_EMAIL
   
   return sendTemplateEmail({
     to: adminEmail,

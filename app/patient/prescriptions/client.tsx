@@ -103,7 +103,7 @@ export function PrescriptionsClient({
   const intakesToShow = getIntakesToShow()
   
   return (
-    <div className="container max-w-6xl py-8 px-4 sm:px-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

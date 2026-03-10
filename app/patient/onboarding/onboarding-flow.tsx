@@ -4,6 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
@@ -64,6 +65,7 @@ const steps: Step[] = [
 ]
 
 export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFlowProps) {
+  const prefersReducedMotion = useReducedMotion()
   const router = useRouter()
   const [step, setStep] = useState(0) // 0-indexed for stepper
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -229,10 +231,10 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
         {step === 0 && (
           <motion.div
             key="step-0"
-            initial={{ opacity: 0, x: -20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={spring.smooth}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 20 }}
+            transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
           >
             <FormSection
               icon={<MapPin className="w-5 h-5 text-primary" />}
@@ -366,10 +368,10 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
         {step === 1 && (
           <motion.div
             key="step-1"
-            initial={{ opacity: 0, x: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={spring.smooth}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
+            transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
             className="space-y-6"
           >
             <FormSection
@@ -384,8 +386,9 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               {/* Global error */}
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : undefined}
                   className="p-4 rounded-xl bg-destructive/5 border border-destructive/20 text-sm text-destructive"
                 >
                   {error}
@@ -395,8 +398,9 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               {/* Expiry warning */}
               {expiryWarning && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : undefined}
                   className="p-4 rounded-xl bg-dawn-500/5 border border-dawn-500/20 text-sm text-amber-700 dark:text-dawn-400 flex items-start gap-2"
                 >
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />

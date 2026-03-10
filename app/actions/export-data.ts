@@ -5,6 +5,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 import { createLogger } from "@/lib/observability/logger"
 import { sendViaResend } from "@/lib/email/resend"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 const logger = createLogger("export-data")
 
@@ -192,7 +193,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
               <li>${exportData.documents.length} document${exportData.documents.length !== 1 ? "s" : ""}</li>
               <li>${exportData.notifications.length} notification${exportData.notifications.length !== 1 ? "s" : ""}</li>
             </ul>
-            <p style="color: #666; font-size: 14px;">If you did not request this export, please contact us immediately at support@instantmed.com.au</p>
+            <p style="color: #666; font-size: 14px;">If you did not request this export, please contact us immediately at ${CONTACT_EMAIL}</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
             <p style="color: #999; font-size: 12px;">InstantMed Australia Pty Ltd</p>
           </body>

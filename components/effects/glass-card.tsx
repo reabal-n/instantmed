@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 import { motion, type HTMLMotionProps } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: ReactNode
@@ -44,15 +45,17 @@ const glowColors = {
   none: "",
 }
 
-export function GlassCard({ 
-  children, 
-  className, 
+export function GlassCard({
+  children,
+  className,
   hover = true,
   glass = "normal",
   pressable = false,
   glowColor = "blue",
   ...props
 }: GlassCardProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.div
       className={cn(
@@ -68,14 +71,14 @@ export function GlassCard({
         className,
       )}
       // Gentle motion
-      whileHover={hover ? {
+      whileHover={hover && !prefersReducedMotion ? {
         y: -2,
         transition: {
           duration: 0.3,
           ease: [0.25, 0.1, 0.25, 1],
         },
       } : undefined}
-      whileTap={pressable ? {
+      whileTap={pressable && !prefersReducedMotion ? {
         y: 0,
         transition: { duration: 0.2 },
       } : undefined}

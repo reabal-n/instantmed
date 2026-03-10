@@ -136,7 +136,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   })
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <div className="space-y-5">
       {/* Recently used symptoms suggestion */}
       {suggestedSymptoms.length > 0 && symptoms.length === 0 && (
         <div className="p-3 rounded-lg border bg-muted/30">

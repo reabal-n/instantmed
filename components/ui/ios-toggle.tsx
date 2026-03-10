@@ -82,7 +82,7 @@ export function IOSToggle({
           transition={
             prefersReducedMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 500, damping: 30 }
+              : { type: 'tween', ease: [0.22, 1, 0.36, 1], duration: 0.2 }
           }
           style={{ marginTop: '0.5px' }}
         />
@@ -155,7 +155,7 @@ export function SegmentedControl({
           transition={
             prefersReducedMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 400, damping: 30 }
+              : { type: 'tween', ease: [0.22, 1, 0.36, 1], duration: 0.2 }
           }
         />
       )}

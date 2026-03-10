@@ -125,7 +125,7 @@ export function Hero() {
             className="hidden lg:block relative shrink-0 mt-0"
             initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Spotlight
               color="oklch(0.65 0.12 210 / 0.12)"
