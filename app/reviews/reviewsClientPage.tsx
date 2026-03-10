@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils"
 import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { TiltCard } from "@/components/shared/tilt-card"
 import { CenteredHero } from "@/components/heroes"
 import { LogoBadgeStrip, CTABanner } from "@/components/sections"
 import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
@@ -78,9 +77,10 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
       {/* Reviews grid with GridStagger */}
       <div className="grid gap-6 sm:grid-cols-2">
         {filteredReviews.map((review) => (
-          <TiltCard
+          <PerspectiveTiltCard
             key={review.id}
-            className="dashboard-card rounded-2xl p-6 hover-lift"
+            variant="glass"
+            className="dashboard-card hover-lift"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-0.5">
@@ -123,7 +123,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 {review.service}
               </span>
             </div>
-          </TiltCard>
+          </PerspectiveTiltCard>
         ))}
       </div>
 
@@ -154,7 +154,7 @@ export function ReviewsClientPageComponent() {
           subtitle="Real feedback from real Australians. No cherry-picking — just honest experiences."
         >
           {/* Rating summary card */}
-          <TiltCard className="dashboard-card rounded-2xl p-6 inline-block">
+          <PerspectiveTiltCard variant="glass" className="dashboard-card inline-block">
             <div className="flex items-center gap-6">
               <div className="text-center">
                 <p className="text-4xl font-bold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
@@ -174,7 +174,7 @@ export function ReviewsClientPageComponent() {
                 <p className="text-sm text-muted-foreground">satisfaction</p>
               </div>
             </div>
-          </TiltCard>
+          </PerspectiveTiltCard>
         </CenteredHero>
 
         {/* Trust Badges → LogoBadgeStrip */}

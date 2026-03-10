@@ -992,15 +992,6 @@ body {
 /* Glass Card - Unified with dashboard-card for consistency */
 /* NOTE: .glass-card now aliases .dashboard-card styling - see dashboard section below */
 
-/* Subtle card hover lift - no 3D transforms */
-.tilt-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.tilt-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
 
 /* Primary glow - single layer */
 .glow-primary {

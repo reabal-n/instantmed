@@ -19,8 +19,3 @@ export type {
   AccordionMultipleProps,
 } from "@radix-ui/react-accordion"
 
-// Aliases for consistency
-export {
-  Accordion as UIXAccordion,
-  AccordionItem as UIXAccordionItem,
-} from "@/components/ui/accordion"

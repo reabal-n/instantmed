@@ -23,7 +23,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { TiltCard } from '@/components/shared/tilt-card'
+import { PerspectiveTiltCard } from '@/components/ui/morning/perspective-tilt-card'
 import { GlassCard } from '@/components/effects/glass-card'
 // Client-side component - use console for logging (wrapped in dev check)
 
@@ -195,7 +195,7 @@ export function AccountClient() {
           </div>
 
           {/* Profile Card */}
-          <TiltCard tiltAmount={5} className="mb-6">
+          <PerspectiveTiltCard maxRotation={5} variant="glass" className="p-0 mb-6">
             <div className="card-premium-bg rounded-2xl shadow-premium border border-border/50 p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
@@ -233,7 +233,7 @@ export function AccountClient() {
               </Button>
             </div>
             </div>
-          </TiltCard>
+          </PerspectiveTiltCard>
 
           {/* Recent Requests */}
           <GlassCard hover className="mb-6">
@@ -295,7 +295,7 @@ export function AccountClient() {
 
           {/* Quick Actions */}
           <div className="mt-6 grid sm:grid-cols-2 gap-4">
-            <TiltCard tiltAmount={3} className="hover-lift">
+            <PerspectiveTiltCard maxRotation={3} variant="outline" className="p-0 hover-lift">
               <Link
                 href="/request"
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
@@ -308,8 +308,8 @@ export function AccountClient() {
                 <div className="text-sm text-muted-foreground">Start a medical certificate, script, or referral</div>
               </div>
               </Link>
-            </TiltCard>
-            <TiltCard tiltAmount={3} className="hover-lift">
+            </PerspectiveTiltCard>
+            <PerspectiveTiltCard maxRotation={3} variant="outline" className="p-0 hover-lift">
               <Link
                 href="/contact"
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
@@ -322,7 +322,7 @@ export function AccountClient() {
                 <div className="text-sm text-muted-foreground">Get help with your requests</div>
               </div>
               </Link>
-            </TiltCard>
+            </PerspectiveTiltCard>
           </div>
         </div>
       </main>

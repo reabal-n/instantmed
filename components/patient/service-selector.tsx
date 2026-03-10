@@ -2,7 +2,7 @@
 
 import { FileText, Pill, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TiltCard } from '@/components/shared/tilt-card'
+import { PerspectiveTiltCard } from '@/components/ui/morning/perspective-tilt-card'
 
 /**
  * ServiceSelector - Choose which service to request
@@ -60,7 +60,7 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
         {SERVICES.map((service) => {
           const Icon = service.icon
           return (
-            <TiltCard key={service.id} tiltAmount={8}>
+            <PerspectiveTiltCard key={service.id} maxRotation={8} variant="outline" className="p-0">
               <button
                 onClick={() => onSelectService(service.id)}
                 className={cn(
@@ -90,7 +90,7 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
                   </div>
                 </div>
               </button>
-            </TiltCard>
+            </PerspectiveTiltCard>
           )
         })}
       </div>

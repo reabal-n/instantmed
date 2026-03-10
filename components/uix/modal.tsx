@@ -134,4 +134,3 @@ function ModalFooter({
 ModalFooter.displayName = "ModalFooter"
 
 export { Modal, ModalHeader, ModalBody, ModalFooter, useDisclosure }
-export { Modal as UIXModal }

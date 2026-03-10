@@ -4,9 +4,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
-import { SectionPill } from "@/components/ui/section-pill"
 import { GlowingBorder } from "@/components/ui/glowing-effect"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
@@ -60,7 +60,9 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <BlurFade delay={0.1}>
             <div className="flex justify-center mb-4">
-              <SectionPill emoji="⚡" text="Get started" hoverText="Choose your service" />
+              <Badge variant="default" shape="pill" size="lg" icon={<Sparkles className="h-3.5 w-3.5" />}>
+                Get started
+              </Badge>
             </div>
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
@@ -163,13 +165,14 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           {/* Features */}
                           <div className="flex flex-wrap gap-2">
                             {service.features.map((feature) => (
-                              <span 
-                                key={feature} 
-                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground"
+                              <Badge
+                                key={feature}
+                                variant="secondary"
+                                shape="pill"
+                                icon={<Check className="h-3 w-3" style={{ color: service.color }} />}
                               >
-                                <Check className="h-3 w-3" style={{ color: service.color }} />
                                 {feature}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
                         </div>

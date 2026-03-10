@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { Spotlight } from '@/components/ui/glowing-effect'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -61,9 +62,9 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/15 transition-colors duration-200 cursor-default">
+              <Badge variant="price" shape="pill" size="lg" className="hover:bg-emerald-500/15 transition-colors duration-200 cursor-default">
                 Medical certificates from $19.95
-              </span>
+              </Badge>
               <p className="text-xs text-muted-foreground mt-1 text-center lg:text-left">
                 Typically $60–90 at a GP clinic
               </p>

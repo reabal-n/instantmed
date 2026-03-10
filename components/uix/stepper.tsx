@@ -225,4 +225,3 @@ export function CompactStepper({ total, current, className }: CompactStepperProp
   )
 }
 
-export { Stepper as UIXStepper, CompactStepper as UIXCompactStepper }

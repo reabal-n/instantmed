@@ -19,20 +19,17 @@ export {
   CardTitle,
   CardDescription,
   CardContent,
-  CardBody,
   CardFooter,
-  CardFooterWrapper,
-  UIXCard,
+  CardAction,
   type CardProps,
-} from "./card"
-export { Input, UIXInput, type InputProps } from "./input"
+} from "@/components/ui/card"
+export { Input, type InputProps } from "@/components/ui/input"
 export {
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
   useDisclosure,
-  UIXModal,
   type ModalProps,
 } from "./modal"
 
@@ -40,14 +37,10 @@ export {
 export {
   Accordion,
   AccordionItem,
-  UIXAccordion,
-  UIXAccordionItem,
 } from "./accordion"
 export {
   Stepper,
   CompactStepper,
-  UIXStepper,
-  UIXCompactStepper,
   type StepperProps,
   type Step,
   type CompactStepperProps,
@@ -55,10 +48,7 @@ export {
 
 // Loading States
 export {
-  Skeleton as UIXSkeletonWrapper,
   CardSkeleton,
-  ListItemSkeleton,
-  StatsSkeleton,
   FormSkeleton,
   TableSkeleton,
   type SkeletonProps,
@@ -66,7 +56,7 @@ export {
 
 // Re-export from @/components/ui for components that app code imports via @/components/uix
 export { Skeleton, Spinner } from "@/components/ui/skeleton"
-export { Badge, Badge as Chip } from "@/components/ui/badge"
+export { Badge } from "@/components/ui/badge"
 
 // Tooltip wrapper (supports <Tooltip content="..."> API)
 export { Tooltip, type TooltipProps } from "./tooltip"

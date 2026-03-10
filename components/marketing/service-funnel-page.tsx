@@ -27,6 +27,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
@@ -428,9 +429,9 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+              <Badge variant="price" shape="pill" size="lg">
                 {config.serviceName} from ${config.pricing.price.toFixed(2)}
-              </span>
+              </Badge>
               {config.pricing.originalPrice && (
                 <p className="text-xs text-muted-foreground">
                   Typically ${config.pricing.originalPrice}+ at a GP clinic
@@ -539,7 +540,7 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-24 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -605,7 +606,7 @@ function SpecializedServicesSection({ config, colors }: { config: ServiceFunnelC
   if (!config.specializedServices) return null
 
   return (
-    <section className="py-16 lg:py-24">
+    <section className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -667,7 +668,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section id="how-it-works" className="py-16 lg:py-24">
+    <section id="how-it-works" className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -752,7 +753,7 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-24 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -800,7 +801,7 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-24 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -845,7 +846,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
   if (!config.faq) return null
 
   return (
-    <section id="faq" className="py-16 lg:py-24 scroll-mt-20">
+    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -922,7 +923,7 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className={cn('py-16 lg:py-24 bg-linear-to-br', colors.gradient)}>
+    <section className={cn('py-16 lg:py-20 bg-linear-to-br', colors.gradient)}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
