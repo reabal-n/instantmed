@@ -3382,3 +3382,12 @@ button:not(.no-micro):active:not(:disabled),
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(15px); }
 }
+
+@keyframes testimonial-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.animate-testimonial-scroll {
+  animation: testimonial-scroll linear infinite;
+}

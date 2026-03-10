@@ -281,14 +281,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuTrigger asChild>
                       <button
                         className={cn(
-                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                          "group/services flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                           isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
                             ? "text-foreground"
                             : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         Services
-                        <ChevronDown className="h-3 w-3 transition-transform" />
+                        <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=open]/services:rotate-180" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-2">

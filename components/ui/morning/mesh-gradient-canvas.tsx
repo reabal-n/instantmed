@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
 const LIGHT_BLOBS = [
   { color: "rgba(186, 218, 246, 0.12)", x: "20%", y: "30%", size: "60%" },
@@ -14,8 +14,18 @@ const DARK_BLOBS = [
   { color: "rgba(20, 40, 60, 0.10)", x: "40%", y: "70%", size: "55%" },
 ];
 
+// Each blob gets a slightly different parallax speed for depth
+const PARALLAX_SPEEDS = [-0.08, -0.12, -0.05];
+
 export function MeshGradientCanvas() {
   const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+
+  // Create parallax transforms — each blob moves at a different rate
+  const y0 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[0] * 100}%`]);
+  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[1] * 100}%`]);
+  const y2 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[2] * 100}%`]);
+  const parallaxYs = [y0, y1, y2];
 
   return (
     <div
@@ -34,14 +44,15 @@ export function MeshGradientCanvas() {
               height: blob.size,
               left: blob.x,
               top: blob.y,
-              transform: "translate(-50%, -50%)",
+              translateX: "-50%",
+              translateY: "-50%",
+              y: prefersReducedMotion ? 0 : parallaxYs[i],
             }}
             animate={
               prefersReducedMotion
                 ? {}
                 : {
                     x: [0, 40, -30, 0],
-                    y: [0, -35, 20, 0],
                     scale: [1, 1.15, 0.9, 1],
                   }
             }
@@ -67,14 +78,15 @@ export function MeshGradientCanvas() {
               height: blob.size,
               left: blob.x,
               top: blob.y,
-              transform: "translate(-50%, -50%)",
+              translateX: "-50%",
+              translateY: "-50%",
+              y: prefersReducedMotion ? 0 : parallaxYs[i],
             }}
             animate={
               prefersReducedMotion
                 ? {}
                 : {
                     x: [0, 40, -30, 0],
-                    y: [0, -35, 20, 0],
                     scale: [1, 1.15, 0.9, 1],
                   }
             }

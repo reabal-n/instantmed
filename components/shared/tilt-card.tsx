@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useRef, useState } from "react"
+import { useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface TiltCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -14,9 +15,10 @@ export function TiltCard({ children, className, tiltAmount = 10, ...props }: Til
   const cardRef = useRef<HTMLDivElement>(null)
   const [transform, setTransform] = useState("")
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const prefersReducedMotion = useReducedMotion()
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return
+    if (!cardRef.current || prefersReducedMotion) return
 
     const rect = cardRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
@@ -52,12 +54,14 @@ export function TiltCard({ children, className, tiltAmount = 10, ...props }: Til
       {...props}
     >
       {/* Hover highlight effect */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(0, 226, 181, 0.15), transparent 50%)`,
-        }}
-      />
+      {!prefersReducedMotion && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(0, 226, 181, 0.15), transparent 50%)`,
+          }}
+        />
+      )}
       {children}
     </div>
   )

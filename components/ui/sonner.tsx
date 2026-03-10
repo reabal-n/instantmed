@@ -17,7 +17,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           '--normal-border': 'var(--border)',
         } as React.CSSProperties
       }
-      position="top-right"
+      position="top-center"
       expand={false}
       richColors
       closeButton
@@ -26,7 +26,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         ...props.toastOptions,
         classNames: {
           // Base toast - Glass surface with colored glow
-          toast: 'group toast group-[.toaster]:bg-card/85 dark:group-[.toaster]:bg-background/80 group-[.toaster]:text-foreground group-[.toaster]:border-border/50 dark:group-[.toaster]:border-white/15 group-[.toaster]:shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:group-[.toaster]:shadow-[0_8px_30px_rgb(93,184,201,0.12)] group-[.toaster]:rounded-2xl group-[.toaster]:backdrop-blur-xl group-[.toaster]:border group-[.toaster]:animate-in group-[.toaster]:slide-in-from-right group-[.toaster]:duration-300',
+          toast: 'group toast group-[.toaster]:bg-card/85 dark:group-[.toaster]:bg-background/80 group-[.toaster]:text-foreground group-[.toaster]:border-border/50 dark:group-[.toaster]:border-white/15 group-[.toaster]:shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:group-[.toaster]:shadow-[0_8px_30px_rgb(93,184,201,0.12)] group-[.toaster]:rounded-2xl group-[.toaster]:backdrop-blur-xl group-[.toaster]:border group-[.toaster]:animate-in group-[.toaster]:slide-in-from-top group-[.toaster]:duration-300',
           description: 'group-[.toast]:text-muted-foreground',
           // Action button with pill shape and glow
           actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:rounded-full group-[.toast]:font-medium group-[.toast]:shadow-[0_4px_20px_rgb(59,130,246,0.3)] group-[.toast]:hover:shadow-[0_4px_25px_rgb(59,130,246,0.4)] group-[.toast]:transition-all',

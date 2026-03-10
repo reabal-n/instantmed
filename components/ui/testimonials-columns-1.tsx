@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Avatar } from "@/components/ui/avatar";
 import { BadgeCheck } from "lucide-react";
@@ -27,19 +26,23 @@ export const TestimonialsColumn = (props: {
   testimonials: Testimonial[];
   duration?: number;
 }) => {
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const duration = props.duration || 10;
+
   return (
-    <div className={props.className}>
-      <motion.div
-        animate={{
-          translateY: "-50%",
+    <div
+      className={props.className}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div
+        ref={scrollRef}
+        className="flex flex-col gap-4 pb-4 animate-testimonial-scroll"
+        style={{
+          animationDuration: `${duration}s`,
+          animationPlayState: isPaused ? "paused" : "running",
         }}
-        transition={{
-          duration: props.duration || 10,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop",
-        }}
-        className="flex flex-col gap-4 pb-4"
       >
         {[
           ...new Array(2).fill(0).map((_, index) => (
@@ -81,8 +84,7 @@ export const TestimonialsColumn = (props: {
             </React.Fragment>
           )),
         ]}
-      </motion.div>
+      </div>
     </div>
   );
 };
-

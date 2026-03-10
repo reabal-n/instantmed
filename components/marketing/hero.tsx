@@ -9,6 +9,7 @@ import { Spotlight } from '@/components/ui/glowing-effect'
 import { motion, useReducedMotion } from 'framer-motion'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
+import { MagneticButton } from '@/components/ui/magnetic-button'
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion()
@@ -75,16 +76,18 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
-              <Button
-                asChild
-                size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-              >
-                <Link href="/request?service=med-cert">
-                  Get your medical certificate
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <MagneticButton>
+                <Button
+                  asChild
+                  size="lg"
+                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                >
+                  <Link href="/request?service=med-cert">
+                    Get your medical certificate
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </MagneticButton>
               <Button
                 asChild
                 variant="outline"
