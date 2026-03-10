@@ -26,6 +26,7 @@ import {
   SectionHeader,
 } from "@/components/sections";
 import { scrollRevealConfig } from "@/components/ui/motion";
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -289,7 +290,7 @@ interface HairLossClientProps {
 
 export function HairLossClient({ faqSchema }: HairLossClientProps) {
   return (
-    <>
+    <MarketingPageShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -368,6 +369,6 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
 
         <MarketingFooter />
       </div>
-    </>
+    </MarketingPageShell>
   );
 }

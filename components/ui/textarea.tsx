@@ -59,9 +59,9 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           style={minRowStyle}
           className={cn(
             "w-full rounded-md px-3 py-2",
-            "bg-white dark:bg-background",
+            "bg-card",
             "border border-border",
-            "text-foreground placeholder:text-muted-foreground/50",
+            "text-foreground placeholder:text-muted-foreground/60",
             "font-sans",
             "shadow-none outline-none",
             "transition-all duration-200",

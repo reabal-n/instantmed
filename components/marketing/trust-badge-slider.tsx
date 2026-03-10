@@ -53,8 +53,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {trustBadges.map((badge, index) => {
             const content = (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 dark:bg-card border border-border/50 dark:border-border hover:border-primary/20 dark:hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 h-full">
-                <div className={cn('relative w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:shadow-primary/10 transition-all duration-300', badge.color)}>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/70 dark:bg-white/[0.06] border border-dawn-200/40 dark:border-border/50 hover:border-dawn-300/50 dark:hover:border-accent-teal/20 hover:shadow-lg hover:shadow-dawn-200/20 dark:hover:shadow-none hover:-translate-y-0.5 transition-all duration-300 h-full backdrop-blur-sm">
+                <div className={cn('relative w-10 h-10 rounded-lg bg-dawn-50/80 dark:bg-white/10 flex items-center justify-center shadow-sm shadow-dawn-100/30 dark:shadow-none group-hover:shadow-md group-hover:shadow-dawn-200/20 dark:group-hover:shadow-none transition-all duration-300', badge.color)}>
                   <badge.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -95,9 +95,10 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {/* Background decoration */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.05),transparent_50%)]" />
+          {/* Background decoration — warm morning spectrum */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.06),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(240,180,160,0.08),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(253,230,138,0.06),transparent_60%)]" />
           
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">

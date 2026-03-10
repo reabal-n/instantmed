@@ -111,7 +111,7 @@ function GoogleIcon({ className }: { className?: string }) {
 function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) {
   return (
     <div className="text-center mb-4">
-      {emoji && <div className="text-4xl mb-2 animate-bounce-gentle">{emoji}</div>}
+      {emoji && <div className="text-4xl mb-2 animate-float-gentle">{emoji}</div>}
       <h2 className="text-xl font-semibold">{title}</h2>
       {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </div>

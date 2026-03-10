@@ -13,6 +13,7 @@ import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } fro
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
+import { SpotlightReveal } from '@/components/ui/glowing-effect'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -101,6 +102,11 @@ export function ServicePicker() {
 
   return (
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
+      {/* Warm background accent */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[50%] left-[-100px] w-[500px] h-[400px] bg-[#F0B4A0]/[0.06] dark:bg-[#F0B4A0]/[0.02] rounded-full blur-3xl" />
+        <div className="absolute top-[20%] right-[-150px] w-[400px] h-[300px] bg-dawn-200/[0.08] dark:bg-dawn-400/[0.03] rounded-full blur-3xl" />
+      </div>
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -111,11 +117,11 @@ export function ServicePicker() {
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-dawn-100/60 border border-dawn-200/40 dark:bg-accent-teal/15 dark:border-accent-teal/20 mb-6 interactive-pill cursor-default"
             whileHover={prefersReducedMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
-            <SparklesPremium className="w-4 h-4 text-primary" />
+            <SparklesPremium className="w-4 h-4 text-dawn-700 dark:text-accent-teal" />
             <span className="text-xs font-medium text-foreground/80 dark:text-foreground">Pick what you need</span>
           </motion.div>
           
@@ -134,20 +140,21 @@ export function ServicePicker() {
           </p>
           
           {/* Trust Signals */}
-          <motion.div
-            className="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.2 }}
-          >
-            {trustSignals.map((signal) => (
-              <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            {trustSignals.map((signal, index) => (
+              <motion.div
+                key={signal.text}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.3 + index * 0.08 }}
+              >
                 <signal.icon className="w-3.5 h-3.5 text-primary" />
                 <span>{signal.text}</span>
-              </div>
+              </motion.div>
             ))}
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Service Cards Grid */}
@@ -171,6 +178,7 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
+                  <SpotlightReveal color={colors.accent} size={350} borderRadius="0.75rem" className="h-full">
                   <div className="relative h-full">
                     {/* Most common badge */}
                     {service.popular && (
@@ -181,21 +189,23 @@ export function ServicePicker() {
                       </div>
                     )}
                     
-                    {/* Clean card - Glass style */}
+                    {/* Clean card - Glass style with gradient accent */}
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
-                      "bg-card/80",
-                      "border border-border/50 dark:border-white/15",
+                      "bg-white/70 dark:bg-white/[0.08]",
+                      "border border-dawn-200/40 dark:border-white/15",
                       "backdrop-blur-xl",
-                      "shadow-sm dark:shadow-none",
-                      "hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30",
+                      "shadow-sm shadow-dawn-200/20 dark:shadow-none",
+                      "hover:shadow-lg hover:shadow-dawn-300/25 hover:border-dawn-300/50 dark:hover:shadow-[0_4px_20px_rgba(93,184,201,0.08)] dark:hover:border-accent-teal/25",
                       "transition-all duration-300",
                       // Elevate popular card
                       service.popular && [
-                        "ring-1 ring-primary/20 dark:ring-primary/30",
-                        "shadow-md dark:shadow-primary/5",
+                        "ring-1 ring-dawn-300/30 dark:ring-accent-teal/20",
+                        "shadow-md shadow-dawn-200/25 dark:shadow-none",
                       ]
                     )}>
+                      {/* Gradient accent bar */}
+                      <div className={cn("h-1 w-full bg-gradient-to-r", colors.gradient)} />
                       
                       <div className="p-3 pb-2.5 flex-1 flex flex-col">
                         {/* Icon with animated background */}
@@ -303,6 +313,7 @@ export function ServicePicker() {
                       )}
                     </div>
                   </div>
+                  </SpotlightReveal>
                 </Link>
               </motion.div>
             )

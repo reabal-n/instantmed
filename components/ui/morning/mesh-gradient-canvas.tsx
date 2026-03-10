@@ -3,15 +3,15 @@
 import { motion, useReducedMotion } from "framer-motion";
 
 const LIGHT_BLOBS = [
-  { color: "rgba(186, 218, 246, 0.03)", x: "20%", y: "30%", size: "60%" },
-  { color: "rgba(240, 180, 160, 0.03)", x: "70%", y: "20%", size: "50%" },
-  { color: "rgba(250, 245, 235, 0.03)", x: "40%", y: "70%", size: "55%" },
+  { color: "rgba(186, 218, 246, 0.12)", x: "20%", y: "30%", size: "60%" },
+  { color: "rgba(240, 180, 160, 0.10)", x: "70%", y: "20%", size: "50%" },
+  { color: "rgba(250, 245, 235, 0.08)", x: "40%", y: "70%", size: "55%" },
 ];
 
 const DARK_BLOBS = [
-  { color: "rgba(30, 50, 80, 0.04)", x: "20%", y: "30%", size: "60%" },
-  { color: "rgba(50, 40, 70, 0.03)", x: "70%", y: "20%", size: "50%" },
-  { color: "rgba(20, 40, 60, 0.04)", x: "40%", y: "70%", size: "55%" },
+  { color: "rgba(30, 50, 80, 0.12)", x: "20%", y: "30%", size: "60%" },
+  { color: "rgba(50, 40, 70, 0.08)", x: "70%", y: "20%", size: "50%" },
+  { color: "rgba(20, 40, 60, 0.10)", x: "40%", y: "70%", size: "55%" },
 ];
 
 export function MeshGradientCanvas() {
@@ -40,9 +40,9 @@ export function MeshGradientCanvas() {
               prefersReducedMotion
                 ? {}
                 : {
-                    x: [0, 30, -20, 0],
-                    y: [0, -25, 15, 0],
-                    scale: [1, 1.1, 0.95, 1],
+                    x: [0, 40, -30, 0],
+                    y: [0, -35, 20, 0],
+                    scale: [1, 1.15, 0.9, 1],
                   }
             }
             transition={{
@@ -73,9 +73,9 @@ export function MeshGradientCanvas() {
               prefersReducedMotion
                 ? {}
                 : {
-                    x: [0, 30, -20, 0],
-                    y: [0, -25, 15, 0],
-                    scale: [1, 1.1, 0.95, 1],
+                    x: [0, 40, -30, 0],
+                    y: [0, -35, 20, 0],
+                    scale: [1, 1.15, 0.9, 1],
                   }
             }
             transition={{

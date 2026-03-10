@@ -55,7 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cn(
             "flex items-center w-full rounded-md",
-            "bg-white dark:bg-background",
+            "bg-card",
             "border border-border",
             "shadow-none outline-none",
             "transition-all duration-200",
@@ -78,7 +78,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={isInvalid || undefined}
             className={cn(
               "flex-1 bg-transparent px-3 py-2",
-              "text-foreground placeholder:text-muted-foreground/80",
+              "text-foreground placeholder:text-muted-foreground/60",
               "font-sans",
               "border-none shadow-none outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50",

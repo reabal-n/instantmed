@@ -8,6 +8,7 @@ import Link from "next/link"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { CenteredHero } from "@/components/heroes"
 import { AccordionSection, ProcessSteps, CTABanner } from "@/components/sections"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 
 export function WeightManagementClient() {
   const faqSchema = {
@@ -96,7 +97,7 @@ export function WeightManagementClient() {
   ]
 
   return (
-    <>
+    <MarketingPageShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
@@ -298,6 +299,6 @@ export function WeightManagementClient() {
 
         <MarketingFooter />
       </div>
-    </>
+    </MarketingPageShell>
   )
 }

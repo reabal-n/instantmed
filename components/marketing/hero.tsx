@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { Spotlight } from '@/components/ui/glowing-effect'
 import { motion, useReducedMotion } from 'framer-motion'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
@@ -14,11 +15,6 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
-      {/* Subtle gradient background accent */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.03] rounded-full blur-3xl" />
-      </div>
-
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -64,7 +60,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/15 transition-colors duration-200 cursor-default">
                 Medical certificates from $19.95
               </span>
               <p className="text-xs text-muted-foreground mt-1 text-center lg:text-left">
@@ -82,7 +78,7 @@ export function Hero() {
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
               >
                 <Link href="/request?service=med-cert">
                   Get your medical certificate
@@ -127,17 +123,23 @@ export function Hero() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-              <Image
-                src="/images/home-1.jpeg"
-                alt="Woman requesting a medical certificate from her phone in bed"
-                fill
-                className="object-cover"
-                priority
-                sizes="(min-width: 1024px) 320px, 0px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
-            </div>
+            <Spotlight
+              color="oklch(0.65 0.12 210 / 0.12)"
+              size={250}
+              className="rounded-3xl"
+            >
+              <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl shadow-sky-900/10 dark:shadow-sky-400/10">
+                <Image
+                  src="/images/home-1.jpeg"
+                  alt="Woman requesting a medical certificate from her phone in bed"
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(min-width: 1024px) 320px, 0px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-dawn-900/10 to-transparent" />
+              </div>
+            </Spotlight>
           </motion.div>
         </div>
       </div>

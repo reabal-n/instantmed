@@ -46,10 +46,10 @@ export class ErrorBoundary extends React.Component<
         this.props.fallback?.(this.state.error!, this.resetError) || (
           <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
             <div className="text-center max-w-md">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 rounded-full bg-red-500/10 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
                 Something went wrong
               </h1>
               <p className="text-muted-foreground mb-6">

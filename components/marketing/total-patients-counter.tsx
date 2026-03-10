@@ -174,14 +174,21 @@ export function StatsStrip({
 }: StatsStripProps) {
   const mounted = useHasMounted()
   const patientCount = usePatientCount()
+  const prefersReducedMotion = useReducedMotion()
 
   if (!mounted) return null
 
   return (
-    <div className={cn(
-      'flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-4',
-      className
-    )}>
+    <motion.div
+      className={cn(
+        'flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-6 backdrop-blur-sm',
+        className
+      )}
+      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.5 }}
+    >
       {showPatients && (
         <div className="flex items-center gap-2 text-sm">
           <Users className="w-4 h-4 text-primary" />
@@ -215,6 +222,6 @@ export function StatsStrip({
           </span>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

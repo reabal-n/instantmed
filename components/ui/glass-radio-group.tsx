@@ -85,7 +85,7 @@ export function GlassRadioGroup({
         style={{
           background: "rgba(255, 255, 255, 0.06)",
           boxShadow:
-            "inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15)",
+            "inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(197, 221, 240, 0.3), 0 4px 12px rgba(197, 221, 240, 0.15)",
         }}
       >
         {options.map((option) => (
@@ -115,7 +115,7 @@ export function GlassRadioGroup({
 
         {/* Glider */}
         <div
-          className="absolute top-0 bottom-0 rounded-2xl z-0 transition-all duration-500 ease-[cubic-bezier(0.37,1.95,0.66,0.56)]"
+          className="absolute top-0 bottom-0 rounded-2xl z-0 transition-all duration-500 ease-out"
           style={{
             width: `${100 / options.length}%`,
             transform: getGliderTransform(),

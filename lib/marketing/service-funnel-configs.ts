@@ -332,7 +332,21 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       },
     ],
   },
-  
+
+  imageSection: {
+    title: 'Your script, sent to any pharmacy',
+    highlightWords: ['any pharmacy'],
+    description: 'Once approved, your e-script is sent straight to your phone. Present it at any pharmacy in Australia — no paper scripts, no waiting. PBS subsidies apply at the counter.',
+    imageSrc: '/images/rptrx-2.jpeg',
+    imageAlt: 'Prescription medication ready for pharmacy collection',
+    imagePosition: 'right' as const,
+    badges: [
+      { icon: 'CheckCircle2', text: 'E-script via SMS', color: 'success' as const },
+      { icon: 'Building2', text: 'Any Australian pharmacy', color: 'primary' as const },
+      { icon: 'Clock', text: 'Same-day turnaround', color: 'primary' as const },
+    ],
+  },
+
   pricing: {
     title: 'One flat fee. Save $30–60 vs a GP.',
     subtitle: `${PRICING_DISPLAY.REPEAT_SCRIPT} flat fee. Full refund if we can't help. Medication cost is separate at your pharmacy.`,

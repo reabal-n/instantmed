@@ -49,7 +49,7 @@ const legacyPosts: Record<
     date: "2024-01-15",
     readTime: "5 min",
     category: "Medical Certificates",
-    image: "/woman-sick-at-home-laptop.jpg",
+    image: "/images/consult-1.jpeg",
     relatedLinks: [
       { href: "/medical-certificate/request", text: "Get a Medical Certificate" },
       { href: "/locations", text: "Find your city" },
@@ -103,7 +103,7 @@ const legacyPosts: Record<
     date: "2024-01-05",
     readTime: "6 min",
     category: "Telehealth",
-    image: "/doctor-video-call-telehealth.jpg",
+    image: "/images/consult-2.jpeg",
     relatedLinks: [
       { href: "/how-it-works", text: "How InstantMed Works" },
       { href: "/locations", text: "Serving 25+ Australian cities" },

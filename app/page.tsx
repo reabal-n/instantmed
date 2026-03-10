@@ -18,6 +18,7 @@ import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { CTABanner } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
+import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 
 export const revalidate = 3600
 
@@ -78,6 +79,7 @@ export default function HomePage() {
   }))
 
   return (
+    <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
       {/* SEO Structured Data - FAQ Schema for rich snippets */}
       <FAQSchema faqs={faqSchemaData} />
@@ -136,5 +138,6 @@ export default function HomePage() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

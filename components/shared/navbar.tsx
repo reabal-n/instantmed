@@ -281,7 +281,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuTrigger asChild>
                       <button
                         className={cn(
-                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                           isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
                             ? "text-foreground"
                             : "text-muted-foreground hover:text-foreground"
@@ -291,14 +291,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         <ChevronDown className="h-3 w-3 transition-transform" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-border/50 dark:border-white/10 bg-card/95 dark:bg-white/10 backdrop-blur-xl p-2">
+                    <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-2">
                       {services.map((service) => (
                         <DropdownMenuItem key={service.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                           <Link
                             href={service.href}
                             className="flex items-center gap-3 px-3 py-2.5 w-full"
                           >
-                            <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15 transition-colors">
                               <service.icon className="h-4 w-4 text-primary" />
                             </div>
                             <div>

@@ -12,8 +12,9 @@ import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
-import { CenteredHero } from "@/components/heroes"
-import { ProcessSteps, AccordionSection, CTABanner } from "@/components/sections"
+import { SplitHero } from "@/components/heroes"
+import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 
 // Consultation types
 const CONSULT_TYPES = [
@@ -158,95 +159,95 @@ const trustSignals = [
 
 export default function GeneralConsultPage() {
   return (
+    <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
 
       <main className="relative">
-        {/* Hero Section — CenteredHero with bespoke children */}
-        <CenteredHero
+        {/* Hero Section — SplitHero with lifestyle image */}
+        <SplitHero
           title="General GP consultation. Online."
           highlightWords={["Online."]}
           subtitle="Full clinical assessment for non-emergency concerns. Treatment, referrals, or prescriptions issued where appropriate."
+          imageSrc="/images/consult-1.jpeg"
+          imageAlt="Woman discussing health concern with doctor from home"
           className="pt-8 pb-0 sm:pt-12 lg:pt-16"
         >
-          {/* Availability badge */}
-          <div className="flex justify-center mb-6 -mt-2">
-            <AvailabilityIndicator variant="badge" />
-          </div>
+          <Button
+            asChild
+            size="lg"
+            className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
+          >
+            <Link href="/request?service=consult">
+              Start your consult <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="h-12 px-8"
+          >
+            <Link href="#how-it-works">See how it works</Link>
+          </Button>
+        </SplitHero>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <Button
-              asChild
-              size="lg"
-              className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
-            >
-              <Link href="/request?service=consult">
-                Start your consult <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="h-12 px-8"
-            >
-              <Link href="#how-it-works">See how it works</Link>
-            </Button>
-          </div>
+        {/* Hero supporting content */}
+        <section className="pb-8 px-4">
+          <div className="mx-auto max-w-5xl">
+            {/* Availability + safety */}
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <AvailabilityIndicator variant="badge" />
+              <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Shield className="w-4 h-4 text-success" />
+                Full refund if we can&apos;t help
+              </p>
+            </div>
 
-          {/* Safety notice + Guarantee badge */}
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
-              <Shield className="w-4 h-4 text-success" />
-              Full refund if we can&apos;t help
+            {/* Trust signals row */}
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-8">
+              {[
+                { icon: Stethoscope, text: "Real clinical assessment" },
+                { icon: Phone, text: "Doctor calls you" },
+                { icon: Shield, text: "AHPRA registered doctors" },
+              ].map((signal) => (
+                <div
+                  key={signal.text}
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                >
+                  <signal.icon className="h-4 w-4 text-primary/70" />
+                  <span>{signal.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Stats bar with price justification */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
+                <p className="text-xs text-muted-foreground">Flat fee</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
+                <p className="text-xs text-muted-foreground">Doctor response</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
+                <p className="text-xs text-muted-foreground">A week</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-foreground mb-1">$0</div>
+                <p className="text-xs text-muted-foreground">If we can&apos;t help</p>
+              </div>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              No account required &middot; Full refund if we can&apos;t help
             </p>
           </div>
-
-          {/* Trust signals row */}
-          <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
-            {[
-              { icon: Stethoscope, text: "Real clinical assessment" },
-              { icon: Phone, text: "Doctor calls you" },
-              { icon: Shield, text: "AHPRA registered doctors" },
-            ].map((signal) => (
-              <div
-                key={signal.text}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <signal.icon className="h-4 w-4 text-primary/70" />
-                <span>{signal.text}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats bar with price justification */}
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
-              <p className="text-xs text-muted-foreground">Flat fee</p>
-              <p className="text-xs text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
-              <p className="text-xs text-muted-foreground">Doctor response</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
-              <p className="text-xs text-muted-foreground">A week</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-foreground mb-1">$0</div>
-              <p className="text-xs text-muted-foreground">If we can&apos;t help</p>
-            </div>
-          </div>
-
-          {/* No account required */}
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            No account required &middot; Full refund if we can&apos;t help
-          </p>
-        </CenteredHero>
+        </section>
 
         {/* Trust Badges */}
         <section className="py-12 lg:py-16">
@@ -454,6 +455,22 @@ export default function GeneralConsultPage() {
           </div>
         </section>
 
+        {/* Doctor trust section with image */}
+        <ImageTextSplit
+          title="Reviewed by real doctors"
+          highlightWords={["real doctors"]}
+          description="Every consultation is assessed by an AHPRA-registered GP — the same standard of care as an in-person visit. Your doctor reviews your history, asks follow-up questions if needed, and provides a personalised treatment plan."
+          imageSrc="/images/consult-2.jpeg"
+          imageAlt="Doctor reviewing patient case on video call"
+          imagePosition="left"
+        >
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5"><BadgeCheck className="w-4 h-4 text-success" /> AHPRA registered</span>
+            <span className="flex items-center gap-1.5"><Shield className="w-4 h-4 text-primary" /> Full clinical assessment</span>
+            <span className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-primary" /> Doctor calls when needed</span>
+          </div>
+        </ImageTextSplit>
+
         {/* How It Works — ProcessSteps */}
         <ProcessSteps
           id="how-it-works"
@@ -494,5 +511,6 @@ export default function GeneralConsultPage() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

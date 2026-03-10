@@ -26,7 +26,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
 
   return (
     <Wrapper {...wrapperProps} className={className}>
-      <div className="relative bg-white rounded-lg shadow-2xl dark:shadow-lg dark:shadow-black/30 border border-gray-200 dark:border-white/20 overflow-hidden max-w-md mx-auto">
+      <div className="relative bg-white rounded-lg shadow-2xl dark:shadow-lg dark:shadow-sky-900/30 border border-gray-200 dark:border-white/20 overflow-hidden max-w-md mx-auto">
         {/* Sample badge */}
         <div className="absolute top-3 right-3 z-10">
           <span className="px-2 py-1 text-xs font-semibold bg-amber-100 text-amber-800 rounded-full uppercase tracking-wide">

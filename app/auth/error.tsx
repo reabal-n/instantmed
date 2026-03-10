@@ -23,11 +23,11 @@ export default function AuthError({
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-linear-to-b from-background to-muted/30">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-dawn-500/10 mb-6">
-          <AlertTriangle className="h-8 w-8 text-dawn-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-dawn-500/10 dark:bg-dawn-500/20 mb-6">
+          <AlertTriangle className="h-8 w-8 text-dawn-600 dark:text-dawn-400" />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2">Authentication Error</h1>
+        <h1 className="text-2xl font-semibold tracking-tight mb-2">Authentication Error</h1>
         <p className="text-muted-foreground mb-6">
           We had trouble signing you in. Please try again or use a different method.
         </p>
@@ -51,7 +51,7 @@ export default function AuthError({
           </Button>
         </div>
 
-        <div className="mt-6 pt-6 border-t">
+        <div className="mt-6 pt-6 border-t border-border/50">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

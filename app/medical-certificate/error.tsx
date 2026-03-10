@@ -4,7 +4,6 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw } from "lucide-react"
-import { logger } from "@/lib/observability/logger"
 
 export default function MedicalCertificateError({
   error,
@@ -14,27 +13,29 @@ export default function MedicalCertificateError({
   reset: () => void
 }) {
   useEffect(() => {
-    logger.error("[MedCertError] Unhandled error in medical certificate flow", {
-      digest: error.digest,
-      message: error.message,
+    import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(error, {
+        tags: { boundary: "medical-certificate" },
+        extra: { digest: error.digest },
+      })
     })
   }, [error])
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 mb-6">
-          <AlertTriangle className="h-8 w-8 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 dark:bg-red-500/20 mb-6">
+          <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-500" />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+        <h1 className="text-2xl font-semibold tracking-tight mb-2">Something went wrong</h1>
         <p className="text-muted-foreground mb-6">
           We couldn&apos;t load your medical certificate request. This might be a temporary issue.
         </p>
 
         {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono">
-            Reference: {error.digest}
+          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
+            Ref: {error.digest}
           </p>
         )}
 
@@ -51,7 +52,7 @@ export default function MedicalCertificateError({
           </Button>
         </div>
 
-        <div className="mt-6 pt-6 border-t">
+        <div className="mt-6 pt-6 border-t border-border/50">
           <p className="text-sm text-muted-foreground">
             Need help?{" "}
             <Link href="/contact" className="text-primary hover:underline">

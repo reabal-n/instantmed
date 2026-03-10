@@ -33,7 +33,9 @@ export function HowItWorks() {
   const animate = !prefersReducedMotion
 
   return (
-    <section id="how-it-works" className="py-14 lg:py-18 scroll-mt-20">
+    <section id="how-it-works" className="relative py-14 lg:py-18 scroll-mt-20">
+      {/* Warm section background */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-dawn-50/40 via-transparent to-transparent dark:from-dawn-950/10 dark:via-transparent" />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
           {/* Steps — clean vertical list */}
@@ -62,11 +64,11 @@ export function HowItWorks() {
                   whileInView={animate ? { opacity: 1, x: 0 } : undefined}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="relative flex items-start gap-4 py-5"
+                  className="relative flex items-start gap-4 py-5 px-4 -mx-4 rounded-xl hover:bg-white/40 dark:hover:bg-white/[0.03] transition-colors duration-300"
                 >
                   {/* Number + connector */}
                   <div className="flex flex-col items-center shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-semibold">
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shadow-md shadow-primary/30 ring-2 ring-primary/10">
                       {step.number}
                     </div>
                     {index < steps.length - 1 && (
@@ -104,7 +106,7 @@ export function HowItWorks() {
                 asChild
                 variant="default"
                 size="lg"
-                className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
               >
                 <Link href="/request">
                   Start a request <ArrowRight className="h-4 w-4" />

@@ -71,7 +71,7 @@ export function FeatureGrid({
             }}
           >
             <PerspectiveTiltCard variant="glass" className="h-full">
-              <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-3 text-primary">
+              <div className="mb-4 inline-flex rounded-xl bg-dawn-100/50 p-3 text-dawn-700 dark:bg-accent-teal/15 dark:text-accent-teal">
                 {feature.icon}
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">

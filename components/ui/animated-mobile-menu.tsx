@@ -96,8 +96,6 @@ interface MenuToggleProps {
 }
 
 export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
-  const { theme } = useTheme()
-  const strokeColor = theme === "dark" ? "hsl(0, 0%, 90%)" : "hsl(0, 0%, 18%)"
 
   return (
     <button
@@ -119,7 +117,7 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
             closed: { d: "M 2 2.5 L 20 2.5" },
             open: { d: "M 3 16.5 L 17 2.5" },
           }}
-          stroke={strokeColor}
+          stroke="currentColor"
         />
         <Path
           d="M 2 9.423 L 20 9.423"
@@ -128,14 +126,14 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
             open: { opacity: 0 },
           }}
           transition={{ duration: 0.1 }}
-          stroke={strokeColor}
+          stroke="currentColor"
         />
         <Path
           variants={{
             closed: { d: "M 2 16.346 L 20 16.346" },
             open: { d: "M 3 2.5 L 17 16.346" },
           }}
-          stroke={strokeColor}
+          stroke="currentColor"
         />
       </svg>
     </button>

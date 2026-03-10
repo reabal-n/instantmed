@@ -48,7 +48,7 @@ export function EngagingStepHeader({
   return (
     <div className={cn("text-center mb-6", className)}>
       {emoji && (
-        <div className="text-4xl mb-3 animate-bounce-gentle">{emoji}</div>
+        <div className="text-4xl mb-3 animate-float-gentle">{emoji}</div>
       )}
       <h2 className="text-xl font-semibold text-foreground">{title}</h2>
       {subtitle && (
@@ -104,7 +104,7 @@ export function OptionCard({
     >
       <div className="flex items-center gap-3">
         {emoji && (
-          <span className={cn("text-2xl", selected && "animate-bounce-once")}>
+          <span className={cn("text-2xl", selected && "animate-scale-in")}>
             {emoji}
           </span>
         )}
@@ -289,7 +289,7 @@ export function SuccessConfetti({ show }: SuccessConfettiProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-6xl animate-bounce-gentle">🎉</div>
+        <div className="text-6xl animate-float-gentle">🎉</div>
       </div>
     </div>
   )

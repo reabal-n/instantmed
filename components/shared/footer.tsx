@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 import { FooterAuth } from "@/components/shared/footer-auth"
+import { Phone } from "lucide-react"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -32,6 +33,10 @@ export function Footer() {
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               See a doctor from bed. Sorted in under an hour.
             </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Phone className="w-3.5 h-3.5 shrink-0" />
+              <a href="tel:0450722549" className="hover:text-foreground transition-colors">0450 722 549</a>
+            </div>
           </div>
 
           <div className="flex flex-col md:mx-4 md:flex-row gap-6 md:gap-16 items-start md:items-start">

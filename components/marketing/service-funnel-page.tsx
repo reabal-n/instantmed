@@ -43,12 +43,14 @@ import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { CheckCircle2 } from 'lucide-react'
+import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
+import { ImageTextSplit } from '@/components/sections'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Shield, Clock, Lock, Check, Building2, Users, Star, FileText, Pill,
   Stethoscope, ClipboardList, FileCheck, MessageCircle, AlertCircle,
-  Phone, Mail, RefreshCw, BadgeCheck, HelpCircle, Sparkles,
+  Phone, Mail, RefreshCw, BadgeCheck, HelpCircle, Sparkles, CheckCircle2,
 }
 
 // ===========================================
@@ -161,6 +163,21 @@ export interface ServiceFunnelConfig {
     }>
   }
 
+  // Optional mid-page image + text section (rendered between After Submit and Pricing)
+  imageSection?: {
+    title: string
+    highlightWords?: string[]
+    description: string
+    imageSrc: string
+    imageAlt: string
+    imagePosition?: 'left' | 'right'
+    badges?: Array<{
+      icon: string
+      text: string
+      color?: 'success' | 'primary'
+    }>
+  }
+
   // Specialized services (optional — grid of service cards, e.g. consult sub-types)
   specializedServices?: {
     title: string
@@ -236,6 +253,7 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
   const testimonialsForColumns = columnsData.length >= 6 ? columnsData : getTestimonialsForColumns().slice(0, 9)
 
   return (
+    <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
 
       {/* Returning patient recognition */}
@@ -265,6 +283,32 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 
       {/* Section 4: What Happens After */}
       <AfterSubmitSection config={config} colors={colors} />
+
+      {/* Optional: Image + Text Section */}
+      {config.imageSection && (
+        <ImageTextSplit
+          title={config.imageSection.title}
+          highlightWords={config.imageSection.highlightWords}
+          description={config.imageSection.description}
+          imageSrc={config.imageSection.imageSrc}
+          imageAlt={config.imageSection.imageAlt}
+          imagePosition={config.imageSection.imagePosition}
+        >
+          {config.imageSection.badges && (
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              {config.imageSection.badges.map((badge) => {
+                const BadgeIcon = iconMap[badge.icon] || CheckCircle2
+                return (
+                  <span key={badge.text} className="flex items-center gap-1.5">
+                    <BadgeIcon className={cn('w-4 h-4', badge.color === 'success' ? 'text-success' : 'text-primary')} />
+                    {badge.text}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+        </ImageTextSplit>
+      )}
 
       {/* Section 5: Pricing */}
       <StandalonePricingSection
@@ -313,6 +357,7 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }
 

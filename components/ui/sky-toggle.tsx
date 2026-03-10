@@ -84,8 +84,8 @@ function getStyles(size: number, scopeId: string) {
     --stars-color: #fff;
     --clouds-color: #F3FDFF;
     --back-clouds-color: #AACADF;
-    --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
-    --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
+    --transition: .5s cubic-bezier(0, 0, 0.2, 1);
+    --circle-transition: .3s cubic-bezier(0, 0, 0.2, 1);
   }
   .sky-toggle-${scopeId} .theme-switch, .sky-toggle-${scopeId} .theme-switch *, .sky-toggle-${scopeId} .theme-switch *::before, .sky-toggle-${scopeId} .theme-switch *::after {
     box-sizing: border-box; margin: 0; padding: 0; font-size: var(--toggle-size);
@@ -135,7 +135,7 @@ function getStyles(size: number, scopeId: string) {
     width: 1.25em; height: 1.25em; background-color: var(--clouds-color);
     border-radius: var(--container-radius); position: absolute; bottom: -0.625em; left: 0.312em;
     box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
-    transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+    transition: 0.5s cubic-bezier(0, 0, 0.2, 1);
   }
   .sky-toggle-${scopeId} .theme-switch__stars-container {
     position: absolute; color: var(--stars-color); top: -100%; left: 0.312em;
@@ -148,6 +148,16 @@ function getStyles(size: number, scopeId: string) {
   .sky-toggle-${scopeId} .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon { transform: translate(0); }
   .sky-toggle-${scopeId} .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds { bottom: -4.062em; }
   .sky-toggle-${scopeId} .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container { top: 50%; transform: translateY(-50%); }
+  @media (prefers-reduced-motion: reduce) {
+    .sky-toggle-${scopeId} .theme-switch,
+    .sky-toggle-${scopeId} .theme-switch *,
+    .sky-toggle-${scopeId} .theme-switch *::before,
+    .sky-toggle-${scopeId} .theme-switch *::after {
+      --transition: 0.01s !important;
+      --circle-transition: 0.01s !important;
+      transition-duration: 0.01s !important;
+    }
+  }
   `;
 }
 

@@ -13,6 +13,7 @@ import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { motion, useReducedMotion } from "framer-motion"
 import { useState, useEffect } from "react"
@@ -206,6 +207,7 @@ export default function MedicalCertificatePage() {
   const _prefersReducedMotion = useReducedMotion()
 
   return (
+    <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
 
@@ -705,5 +707,6 @@ export default function MedicalCertificatePage() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

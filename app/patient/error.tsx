@@ -86,8 +86,8 @@ export default function PatientError({
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 mb-6" aria-hidden="true">
-          <IconComponent className="h-8 w-8 text-amber-600 dark:text-amber-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 dark:bg-red-500/20 mb-6" aria-hidden="true">
+          <IconComponent className="h-8 w-8 text-red-600 dark:text-red-500" />
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight mb-2">{errorInfo.title}</h1>
@@ -146,7 +146,7 @@ export default function PatientError({
 
           <p className="text-xs text-muted-foreground/60">
             <Mail className="inline h-3 w-3 mr-1" />
-            support@instantmed.com.au
+            <a href="mailto:support@instantmed.com.au" className="hover:text-foreground transition-colors">support@instantmed.com.au</a>
           </p>
         </div>
       </div>

@@ -241,7 +241,7 @@ function Progress({ stages, currentIndex }: { stages: readonly string[]; current
 function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) {
   return (
     <header className="text-center space-y-1">
-      {emoji && <div className="text-4xl mb-2 animate-bounce-gentle">{emoji}</div>}
+      {emoji && <div className="text-4xl mb-2 animate-float-gentle">{emoji}</div>}
       <h1 className="text-xl font-semibold">{title}</h1>
       {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </header>

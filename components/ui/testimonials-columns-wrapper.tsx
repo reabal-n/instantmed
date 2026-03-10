@@ -45,7 +45,7 @@ export function TestimonialsColumnsWrapper({
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
           <div className="flex justify-center">
-            <div className="border dark:border-border bg-card/30 dark:bg-card/80 py-1 px-3 rounded-lg text-xs text-foreground">{badgeText}</div>
+            <div className="border border-dawn-200/40 dark:border-border bg-dawn-50/50 dark:bg-accent-teal/10 py-1 px-3 rounded-lg text-xs text-dawn-700 dark:text-accent-teal font-medium">{badgeText}</div>
           </div>
 
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">

@@ -1230,19 +1230,19 @@ body {
   animation: wiggle 2s ease-in-out infinite;
 }
 
-/* Added bounce animation */
-@keyframes bounce-gentle {
+/* Gentle floating animation (no bounce) */
+@keyframes float-gentle {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-4px);
   }
 }
 
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
+.animate-float-gentle {
+  animation: float-gentle 2s ease-in-out infinite;
 }
 
 .animate-fade-in-up {
@@ -3362,4 +3362,23 @@ button:not(.no-micro):active:not(:disabled),
   .animate-shooting-star {
     animation: none !important;
   }
+}
+
+/* ================================
+   MORNING SKY CLOUD ANIMATIONS
+   Ultra-slow drift for atmospheric clouds
+   ================================ */
+@keyframes cloud-drift-1 {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(25px); }
+}
+
+@keyframes cloud-drift-2 {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-20px); }
+}
+
+@keyframes cloud-drift-3 {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(15px); }
 }
