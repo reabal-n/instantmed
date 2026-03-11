@@ -189,7 +189,7 @@ app/actions/approve-cert.ts
 
 1. Doctor loads draft from `med_cert_drafts` table
 2. Edits fields (patient name, dates, reason, cert type)
-3. Calls `renderMedicalCertificateToPdf(draft, logoUrl)` via `@react-pdf/renderer`
+3. Calls `renderMedicalCertificateToPdf(draft, logoUrl)` via `pdf-lib` (template overlay)
 4. Draft marked `status: 'issued'`, `issued_at` + `issued_by` set
 5. PDF stored; `issued_certificates` record created with template config snapshot
 6. Patient notified via email

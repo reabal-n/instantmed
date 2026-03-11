@@ -15,6 +15,12 @@ import {
   isEncryptedPHI,
   type EncryptedPHI,
 } from "@/lib/security/phi-encryption"
+import {
+  prepareAllergyDetailsWrite,
+  readAllergyDetails,
+  prepareMedicalConditionsWrite,
+  readMedicalConditions,
+} from "@/lib/security/phi-field-wrappers"
 
 const logger = createLogger("intake-answers")
 
@@ -70,19 +76,24 @@ export async function saveIntakeAnswers(
   const supabase = createServiceRoleClient()
 
   try {
+    // Encrypt extracted PHI fields (graceful fallback — logs but doesn't abort)
+    const allergyFields = await prepareAllergyDetailsWrite(input.allergy_details ?? null)
+    const conditionsFields = await prepareMedicalConditionsWrite(input.medical_conditions ?? null)
+
     // Base insert data
     const insertData: Record<string, unknown> = {
       intake_id: input.intake_id,
       answers: input.answers,
       // Extracted fields
       has_allergies: input.has_allergies,
-      allergy_details: input.allergy_details,
       has_current_medications: input.has_current_medications,
       current_medications: input.current_medications,
       has_medical_conditions: input.has_medical_conditions,
-      medical_conditions: input.medical_conditions,
       symptom_duration: input.symptom_duration,
       symptom_severity: input.symptom_severity,
+      // Dual-write: plaintext + encrypted PHI columns
+      ...allergyFields,
+      ...conditionsFields,
     }
 
     // Encrypt if enabled
@@ -203,7 +214,7 @@ export async function getIntakeAnswers(
 
   const { data, error } = await supabase
     .from("intake_answers")
-    .select("id, answers, answers_encrypted, encryption_metadata")
+    .select("id, answers, answers_encrypted, encryption_metadata, allergy_details, allergy_details_enc, medical_conditions, medical_conditions_enc")
     .eq("intake_id", intakeId)
     .single()
 
@@ -214,7 +225,22 @@ export async function getIntakeAnswers(
     return null
   }
 
-  return decryptAnswersRow(data as IntakeAnswersRow)
+  // Decrypt the main answers blob
+  const answers = await decryptAnswersRow(data as unknown as IntakeAnswersRow)
+
+  // Decrypt extracted PHI fields (prefer _enc, fall back to plaintext)
+  const allergyDetails = await readAllergyDetails(data)
+  const medicalConditions = await readMedicalConditions(data)
+
+  // Merge decrypted extracted fields back into answers
+  if (allergyDetails !== null) {
+    answers.allergy_details = allergyDetails
+  }
+  if (medicalConditions !== null) {
+    answers.medical_conditions = medicalConditions
+  }
+
+  return answers
 }
 
 /**

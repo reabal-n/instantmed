@@ -18,7 +18,7 @@ import {
   IntakeLifecycleError,
 } from "./intake-lifecycle"
 import { logStatusChange } from "./intake-events"
-import { prepareDoctorNotesWrite, readDoctorNotes, readAnswers } from "@/lib/security/phi-field-wrappers"
+import { prepareDoctorNotesWrite, readDoctorNotes, readAnswers, preparePatientNoteContentWrite, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 
 // ============================================
@@ -1303,7 +1303,7 @@ export async function getPatientNotes(
 
   let query = supabase
     .from("patient_notes")
-    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
+    .select("id, patient_id, note_type, content, content_enc, created_by, created_by_name, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -1319,7 +1319,16 @@ export async function getPatientNotes(
     return []
   }
 
-  return data as unknown as PatientNote[]
+  // Decrypt content for each note (prefers encrypted, falls back to plaintext)
+  const decrypted = await Promise.all(
+    (data ?? []).map(async (note) => ({
+      ...note,
+      content: await readPatientNoteContent(note),
+      content_enc: undefined, // Don't leak encrypted envelope to callers
+    }))
+  )
+
+  return decrypted as unknown as PatientNote[]
 }
 
 /**
@@ -1335,15 +1344,18 @@ export async function createPatientNote(
 ): Promise<PatientNote | null> {
   const supabase = createServiceRoleClient()
 
+  // Encrypt content (dual-write: plaintext + encrypted during migration)
+  const contentFields = await preparePatientNoteContentWrite(content)
+
   const { data, error } = await supabase
     .from("patient_notes")
     .insert({
       patient_id: patientId,
       note_type: options?.noteType || "encounter",
-      content,
+      ...contentFields,
       created_by: createdBy,
     })
-    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
+    .select("id, patient_id, note_type, content, content_enc, created_by, created_by_name, created_at, updated_at")
     .single()
 
   if (error) {
@@ -1351,7 +1363,11 @@ export async function createPatientNote(
     return null
   }
 
-  return data as unknown as PatientNote
+  return {
+    ...data,
+    content: await readPatientNoteContent(data),
+    content_enc: undefined,
+  } as unknown as PatientNote
 }
 
 /**
@@ -1363,10 +1379,13 @@ export async function updatePatientNote(
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
+  // Encrypt content (dual-write: plaintext + encrypted during migration)
+  const contentFields = await preparePatientNoteContentWrite(content)
+
   const { error } = await supabase
     .from("patient_notes")
     .update({
-      content,
+      ...contentFields,
       updated_at: new Date().toISOString(),
     })
     .eq("id", noteId)

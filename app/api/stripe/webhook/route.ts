@@ -688,7 +688,7 @@ export async function POST(request: Request) {
 
       // STEP 6: Generate AI drafts (fire-and-forget, non-blocking)
       // This generates clinical note + med cert drafts for doctor review
-      // Wrap with timeout to prevent hanging promises from OpenAI
+      // Wrap with timeout to prevent hanging promises from AI draft generation
       const AI_DRAFT_TIMEOUT_MS = 30000 // 30 seconds
       const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
         setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 30s" }), AI_DRAFT_TIMEOUT_MS)

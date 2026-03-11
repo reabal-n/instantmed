@@ -4,6 +4,7 @@ import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 const log = createLogger("med-cert-preview-route")
 import type { MedCertDraft } from "@/types/db"
 
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
 
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
+
+    // Rate limit: 30 preview renders per hour per doctor
+    const rateLimitResponse = await applyRateLimit(request, "upload", `preview:${authResult.profile.id}`)
+    if (rateLimitResponse) return rateLimitResponse
 
     const body = await request.json() as { draftData?: MedCertDraft; requestId?: string; draftId?: string }
     const { draftData } = body

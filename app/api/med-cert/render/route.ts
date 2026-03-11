@@ -7,6 +7,7 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 /**
  * Render API endpoint for generating and uploading medical certificate PDFs.
@@ -30,6 +31,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult
+
+    // Rate limit: 30 renders per hour per doctor (matches upload config)
+    const rateLimitResponse = await applyRateLimit(request, "upload", `render:${profile.id}`)
+    if (rateLimitResponse) return rateLimitResponse
 
     const body = await request.json() as {
       requestId: string
@@ -148,22 +153,34 @@ export async function POST(request: NextRequest) {
       path: uploadData.path,
     })
 
-    // Create document record in database
-    const { error: docError } = await supabase
+    // Create document record in database — skip if one already exists for this intake + type
+    // to prevent duplicate rows on double-submit or retry.
+    const { data: existingDoc } = await supabase
       .from("documents")
-      .insert({
-        intake_id: requestId,
-        type: "med_cert",
-        subtype: draftData.certificate_type || "work",
-        pdf_url: pdfUrl,
-      })
+      .select("id")
+      .eq("intake_id", requestId)
+      .eq("type", "med_cert")
+      .maybeSingle()
 
-    if (docError) {
-      log.error("Failed to create document record", {
-        error: docError,
-        requestId,
-      })
-      // Don't fail the request - PDF is uploaded successfully
+    if (!existingDoc) {
+      const { error: docError } = await supabase
+        .from("documents")
+        .insert({
+          intake_id: requestId,
+          type: "med_cert",
+          subtype: draftData.certificate_type || "work",
+          pdf_url: pdfUrl,
+        })
+
+      if (docError) {
+        log.error("Failed to create document record", {
+          error: docError,
+          requestId,
+        })
+        // Don't fail the request - PDF is uploaded successfully
+      }
+    } else {
+      log.info("Document record already exists, skipping insert", { requestId })
     }
 
     return NextResponse.json({

@@ -7,6 +7,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import crypto from "crypto"
 import type { ClinicIdentity, TemplateConfig } from "@/types/certificate-template"
+import {
+  prepareCertificatePatientNameWrite,
+  readCertificatePatientName,
+} from "@/lib/security/phi-field-wrappers"
 
 const log = createLogger("issued-certificates")
 
@@ -116,7 +120,7 @@ export async function findExistingCertificate(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
@@ -128,7 +132,12 @@ export async function findExistingCertificate(
     return null
   }
 
-  return data as IssuedCertificate | null
+  if (!data) return null
+
+  // Decrypt patient_name from encrypted column
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 /**
@@ -141,7 +150,7 @@ export async function findByIdempotencyKey(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("idempotency_key", idempotencyKey)
     .maybeSingle()
 
@@ -150,7 +159,11 @@ export async function findByIdempotencyKey(
     return null
   }
 
-  return data as IssuedCertificate | null
+  if (!data) return null
+
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 // ============================================================================
@@ -193,6 +206,9 @@ export async function createIssuedCertificate(
     return { success: true, certificate: existingForIntake, isExisting: true }
   }
 
+  // Encrypt patient_name for write (dual-write: plaintext + encrypted)
+  const patientNameFields = await prepareCertificatePatientNameWrite(input.patient_name)
+
   // Create new certificate record
   const { data, error } = await supabase
     .from("issued_certificates")
@@ -207,7 +223,7 @@ export async function createIssuedCertificate(
       start_date: input.start_date,
       end_date: input.end_date,
       patient_id: input.patient_id,
-      patient_name: input.patient_name,
+      ...patientNameFields,
       patient_dob: input.patient_dob,
       doctor_id: input.doctor_id,
       doctor_name: input.doctor_name,
@@ -356,11 +372,15 @@ export async function atomicApproveCertificate(
     input.issue_date
   )
 
+  // Pre-encrypt patient name for PHI dual-write via RPC
+  const phiWrite = await prepareCertificatePatientNameWrite(input.patient_name)
+
   log.info("Calling atomic approval RPC", {
     intakeId: input.intake_id,
     certificateNumber: input.certificate_number,
     idempotencyKey,
     preValidatedStatus: intakeCheck.status,
+    phiEncrypted: phiWrite.patient_name_enc !== null,
   })
 
   const { data, error } = await supabase.rpc("atomic_approve_certificate", {
@@ -387,6 +407,7 @@ export async function atomicApproveCertificate(
     p_filename: input.filename,
     p_pdf_hash: input.pdf_hash || null,
     p_certificate_ref: input.certificate_ref || null,
+    p_patient_name_enc: phiWrite.patient_name_enc,
   })
 
   if (error) {
@@ -537,7 +558,7 @@ export async function getCertificateById(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("id", certificateId)
     .single()
 
@@ -546,7 +567,10 @@ export async function getCertificateById(
     return null
   }
 
-  return data as IssuedCertificate
+  if (!data) return null
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 /**
@@ -559,7 +583,7 @@ export async function getCertificateByVerificationCode(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("verification_code", verificationCode)
     .maybeSingle()
 
@@ -567,7 +591,10 @@ export async function getCertificateByVerificationCode(
     return null
   }
 
-  return data as IssuedCertificate
+  if (!data) return null
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 /**
@@ -581,7 +608,7 @@ export async function getCertificateByRef(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("certificate_ref", certificateRef)
     .maybeSingle()
 
@@ -589,7 +616,10 @@ export async function getCertificateByRef(
     return null
   }
 
-  return data as IssuedCertificate
+  if (!data) return null
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 /**
@@ -602,7 +632,7 @@ export async function getPatientCertificates(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
@@ -611,7 +641,12 @@ export async function getPatientCertificates(
     return []
   }
 
-  return (data || []) as IssuedCertificate[]
+  const decryptedCerts = await Promise.all((data || []).map(async (cert) => {
+    const decryptedName = await readCertificatePatientName(cert)
+    const { patient_name_enc: _enc, ...certWithoutEnc } = cert
+    return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
+  }))
+  return decryptedCerts
 }
 
 /**
@@ -624,7 +659,7 @@ export async function getCertificateForIntake(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
@@ -636,7 +671,10 @@ export async function getCertificateForIntake(
     return null
   }
 
-  return data as IssuedCertificate | null
+  if (!data) return null
+  const decryptedName = await readCertificatePatientName(data)
+  const { patient_name_enc: _enc, ...certWithoutEnc } = data
+  return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
 /**
@@ -698,7 +736,7 @@ export async function getFailedEmailDeliveries(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .not("email_failed_at", "is", null)
     .is("email_sent_at", null)
     .lt("email_retry_count", 3)
@@ -710,7 +748,12 @@ export async function getFailedEmailDeliveries(
     return []
   }
 
-  return (data || []) as IssuedCertificate[]
+  const decryptedCerts = await Promise.all((data || []).map(async (cert) => {
+    const decryptedName = await readCertificatePatientName(cert)
+    const { patient_name_enc: _enc, ...certWithoutEnc } = cert
+    return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
+  }))
+  return decryptedCerts
 }
 
 // ============================================================================

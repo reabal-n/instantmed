@@ -2,11 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star } from 'lucide-react'
-import useSWR from 'swr'
 import { serviceCategories } from '@/lib/marketing/homepage'
-
-const pricingFetcher = (url: string) => fetch(url).then(r => r.json())
-
 import { motion, useReducedMotion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
@@ -92,14 +88,6 @@ function useServicePickerVariants() {
 export function ServicePicker() {
   const { containerVariants, itemVariants, prefersReducedMotion } = useServicePickerVariants()
 
-  // Fetch live pricing from services table, fall back to static prices
-  const { data: pricingData } = useSWR<{ prices: Record<string, number> }>(
-    '/api/services/pricing',
-    pricingFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 300000 }
-  )
-  const livePrices = pricingData?.prices || {}
-
   return (
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
       {/* Warm background accent */}
@@ -169,8 +157,7 @@ export function ServicePicker() {
             const Icon = iconMap[service.icon as keyof typeof iconMap] || DocumentPremium
             const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
             const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
-            // Use live price if available, fall back to static
-            const displayPrice = livePrices[service.id] ?? service.priceFrom
+            const displayPrice = service.priceFrom
             
             return (
               <motion.div key={service.id} variants={itemVariants}>

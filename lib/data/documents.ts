@@ -1,5 +1,13 @@
+import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
 import type { DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
+import {
+  prepareDocumentDraftDataWrite,
+  readDocumentDraftData,
+} from "@/lib/security/phi-field-wrappers"
+
+const logger = createLogger("documents")
 
 /**
  * Get today's date in AEST (YYYY-MM-DD).
@@ -27,7 +35,7 @@ export async function updateMedCertDraftData(
   // First get the current draft to merge data
   const { data: currentDraft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("data")
+    .select("data, data_enc")
     .eq("id", draftId)
     .single()
 
@@ -35,27 +43,36 @@ export async function updateMedCertDraftData(
     return null
   }
 
+  // Decrypt current data (prefer encrypted, fall back to plaintext)
+  const currentData = await readDocumentDraftData(currentDraft) || {}
+
   // Merge the new data with existing
   const mergedData = {
-    ...currentDraft.data,
+    ...currentData,
     ...data,
   }
+
+  // Encrypt for write (dual-write: plaintext + encrypted)
+  const dataFields = await prepareDocumentDraftDataWrite(mergedData as Record<string, unknown>)
 
   const { data: updatedDraft, error: updateError } = await supabase
     .from("document_drafts")
     .update({
-      data: mergedData,
+      ...dataFields,
       updated_at: new Date().toISOString(),
     })
     .eq("id", draftId)
-    .select("id, intake_id, type, subtype, data, created_at, updated_at")
+    .select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at")
     .single()
 
   if (updateError) {
     return null
   }
 
-  return updatedDraft as DocumentDraft
+  // Decrypt before returning
+  const decryptedData = await readDocumentDraftData(updatedDraft)
+  const { data_enc: _enc, ...draftWithoutEnc } = updatedDraft
+  return { ...draftWithoutEnc, data: decryptedData } as DocumentDraft
 }
 
 /**
@@ -68,13 +85,16 @@ export async function getDraftById(draftId: string): Promise<DocumentDraft | nul
 
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase.from("document_drafts").select("id, intake_id, type, subtype, data, created_at, updated_at").eq("id", draftId).single()
+  const { data, error } = await supabase.from("document_drafts").select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at").eq("id", draftId).single()
 
   if (error) {
     return null
   }
 
-  return data as DocumentDraft
+  // Decrypt before returning
+  const decryptedData = await readDocumentDraftData(data)
+  const { data_enc: _enc, ...draftWithoutEnc } = data
+  return { ...draftWithoutEnc, data: decryptedData } as DocumentDraft
 }
 
 /**
@@ -98,7 +118,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   // causes the "missing date information" error on approve.
   const { data: existingDraft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("id, intake_id, type, subtype, data, created_at, updated_at")
+    .select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("type", "med_cert")
     .or("is_ai_generated.is.null,is_ai_generated.eq.false")
@@ -109,7 +129,10 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   }
 
   if (existingDraft) {
-    return existingDraft as DocumentDraft
+    // Decrypt before returning
+    const decryptedData = await readDocumentDraftData(existingDraft)
+    const { data_enc: _enc, ...draftWithoutEnc } = existingDraft
+    return { ...draftWithoutEnc, data: decryptedData } as DocumentDraft
   }
 
   // Fetch intake with patient profile and answers
@@ -231,6 +254,10 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   // NOTE: Production DB has NOT NULL constraints on legacy columns (request_id, subtype)
   // that aren't in the original migration. We bridge by setting them explicitly.
   const subtype = certType === "uni" ? "study" : certType  // "work" | "study" | "carer"
+
+  // Encrypt for write (dual-write: plaintext + encrypted)
+  const dataFields = await prepareDocumentDraftDataWrite(initialData as unknown as Record<string, unknown>)
+
   const { data: newDraft, error: insertError } = await supabase
     .from("document_drafts")
     .insert({
@@ -238,10 +265,10 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
       intake_id: intakeId,
       type: "med_cert",
       subtype,               // Bridge: legacy NOT NULL column
-      data: initialData,
+      ...dataFields,
       is_ai_generated: false,
     })
-    .select("id, intake_id, type, subtype, data, created_at, updated_at")
+    .select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at")
     .single()
 
   if (insertError) {
@@ -249,16 +276,22 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
     if (insertError.code === "23505") {
       const { data: raceDraft } = await supabase
         .from("document_drafts")
-        .select("id, intake_id, type, subtype, data, created_at, updated_at")
+        .select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at")
         .eq("intake_id", intakeId)
         .eq("type", "med_cert")
         .single()
-      return raceDraft as DocumentDraft | null
+      if (!raceDraft) return null
+      const raceDecrypted = await readDocumentDraftData(raceDraft)
+      const { data_enc: _raceEnc, ...raceWithoutEnc } = raceDraft
+      return { ...raceWithoutEnc, data: raceDecrypted } as DocumentDraft
     }
     return null
   }
 
-  return newDraft as DocumentDraft
+  // Decrypt before returning
+  const newDecrypted = await readDocumentDraftData(newDraft)
+  const { data_enc: _newEnc, ...newWithoutEnc } = newDraft
+  return { ...newWithoutEnc, data: newDecrypted } as DocumentDraft
 }
 
 /**

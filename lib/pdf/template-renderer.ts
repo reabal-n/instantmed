@@ -207,7 +207,9 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL
           ? `https://${process.env.VERCEL_URL}`
           : "http://localhost:3000")
-        const res = await fetch(`${baseUrl}/templates/${templateFile}`)
+        const res = await fetch(`${baseUrl}/templates/${templateFile}`, {
+          signal: AbortSignal.timeout(5000),
+        })
         if (!res.ok) {
           return { success: false, error: `Template not found: ${templateFile} (HTTP ${res.status})` }
         }

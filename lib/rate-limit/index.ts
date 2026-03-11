@@ -9,6 +9,5 @@ export {
   applyRateLimit,
   getClientIdentifier,
   withRateLimit,
-  isRedisEnabled,
   rateLimitConfigs,
 } from './redis'

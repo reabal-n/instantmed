@@ -291,7 +291,7 @@ Patients must be informed at intake of:
 | Access | RLS on all tables + role-based access via Clerk (see SECURITY.md) |
 | Government IDs | Medicare number used only for eligibility; never internal ID (UUID primary keys) |
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
-| AI data sharing | Clinical notes sent to OpenAI with no patient identifiers; BAA in place |
+| AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
 
 ### Australian Privacy Principles (APP 1-13) Summary
 
@@ -321,7 +321,7 @@ Patients must be informed at intake of:
 | Resend | Email, patient name | US | Signed |
 | Sentry | Error context (sanitized) | US | Signed |
 | PostHog | Analytics (anonymized) | EU | Signed |
-| OpenAI | Clinical notes (no identifiers) | US | DPA ("appropriate data protection agreements") |
+| Anthropic | Clinical notes (no identifiers) | US | DPA (data processing agreement) |
 
 ---
 

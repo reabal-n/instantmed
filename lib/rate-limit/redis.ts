@@ -1,21 +1,26 @@
 /**
  * Rate Limiting - CANONICAL IMPLEMENTATION
- * 
+ *
  * This is the ONLY rate limiting module that should be used.
  * Do NOT import from ./index.ts, ./upstash.ts, or ./limiter.ts
- * 
+ *
  * Uses Upstash Redis for distributed rate limiting across serverless instances.
- * Falls back to in-memory store if Redis is not configured (development only).
- * 
+ * Falls back to fail-open (allow request) if Redis is unavailable — this is
+ * intentional for serverless: in-memory Maps don't persist across invocations,
+ * so the only safe fallback is to allow the request and log the failure.
+ *
  * @example
  * import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
- * 
+ *
  * const rateLimitResponse = await applyRateLimit(request, 'standard')
  * if (rateLimitResponse) return rateLimitResponse
  */
 
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("rate-limit")
 
 // Check if Redis is configured
 const isRedisConfigured = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
@@ -40,7 +45,7 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:standard",
         })
       : null,
-    fallback: { limit: 100, windowMs: 60 * 1000 },
+    label: "standard",
   },
 
   /** Auth operations: 10 requests per minute */
@@ -53,7 +58,7 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:auth",
         })
       : null,
-    fallback: { limit: 10, windowMs: 60 * 1000 },
+    label: "auth",
   },
 
   /** Sensitive operations: 20 requests per hour */
@@ -66,7 +71,7 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:sensitive",
         })
       : null,
-    fallback: { limit: 20, windowMs: 60 * 60 * 1000 },
+    label: "sensitive",
   },
 
   /** File uploads: 30 per hour */
@@ -79,7 +84,7 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:upload",
         })
       : null,
-    fallback: { limit: 30, windowMs: 60 * 60 * 1000 },
+    label: "upload",
   },
 
   /** Webhooks: 1000 per minute (high volume) */
@@ -92,36 +97,34 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:webhook",
         })
       : null,
-    fallback: { limit: 1000, windowMs: 60 * 1000 },
+    label: "webhook",
   },
 } as const
 
-// In-memory fallback store for development
-const memoryStore = new Map<string, { count: number; resetAt: number }>()
-
-// Clean up expired entries periodically
-if (!redis) {
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, entry] of memoryStore.entries()) {
-      if (entry.resetAt < now) {
-        memoryStore.delete(key)
-      }
-    }
-  }, 60000) // Clean every minute
-}
-
 /**
- * Check rate limit for a given identifier
+ * Check rate limit for a given identifier.
+ *
+ * FAIL-OPEN: If Redis is down or throws, the request is ALLOWED.
+ * This prevents a Redis outage from taking down the entire application.
+ * Rate limiting is a best-effort protection, not a hard security boundary.
  */
-async function checkRateLimitRedis(
+async function checkRateLimit(
   identifier: string,
   config: keyof typeof rateLimitConfigs
 ): Promise<{ success: boolean; limit: number; remaining: number; resetAt: number }> {
   const rateLimitConfig = rateLimitConfigs[config]
 
-  // Use Redis if configured
-  if (rateLimitConfig.limiter) {
+  // No Redis configured — skip rate limiting (dev/test only)
+  if (!rateLimitConfig.limiter) {
+    if (process.env.NODE_ENV === "production") {
+      logger.warn("[RateLimit] Redis not configured in production — rate limiting disabled", {
+        config,
+      })
+    }
+    return { success: true, limit: 0, remaining: 0, resetAt: 0 }
+  }
+
+  try {
     const result = await rateLimitConfig.limiter.limit(identifier)
     return {
       success: result.success,
@@ -129,44 +132,14 @@ async function checkRateLimitRedis(
       remaining: result.remaining,
       resetAt: result.reset,
     }
-  }
-
-  // Fallback to in-memory (development only)
-  return checkRateLimitMemory(identifier, rateLimitConfig.fallback)
-}
-
-/**
- * In-memory rate limiting (fallback for development)
- */
-function checkRateLimitMemory(
-  identifier: string,
-  config: { limit: number; windowMs: number }
-): { success: boolean; limit: number; remaining: number; resetAt: number } {
-  const now = Date.now()
-  const key = identifier
-
-  let entry = memoryStore.get(key)
-
-  // Create new entry if none exists or window has passed
-  if (!entry || entry.resetAt < now) {
-    entry = {
-      count: 0,
-      resetAt: now + config.windowMs,
-    }
-    memoryStore.set(key, entry)
-  }
-
-  // Increment count
-  entry.count++
-
-  const remaining = Math.max(0, config.limit - entry.count)
-  const success = entry.count <= config.limit
-
-  return {
-    success,
-    limit: config.limit,
-    remaining,
-    resetAt: entry.resetAt,
+  } catch (error) {
+    // FAIL-OPEN: Redis error → allow the request, log the failure
+    logger.error(
+      "[RateLimit] Redis error — failing open (request allowed)",
+      { config, identifier: identifier.substring(0, 20) },
+      error instanceof Error ? error : undefined
+    )
+    return { success: true, limit: 0, remaining: 0, resetAt: 0 }
   }
 }
 
@@ -199,7 +172,7 @@ export async function applyRateLimit(
   customIdentifier?: string
 ): Promise<Response | null> {
   const identifier = customIdentifier || getClientIdentifier(request)
-  const result = await checkRateLimitRedis(identifier, config)
+  const result = await checkRateLimit(identifier, config)
 
   if (!result.success) {
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000)
@@ -242,13 +215,6 @@ export function withRateLimit<T extends (...args: [Request, ...unknown[]]) => Pr
 }
 
 /**
- * Check if Redis is properly configured
- */
-export function isRedisEnabled(): boolean {
-  return isRedisConfigured && redis !== null
-}
-
-/**
  * Rate limit for server actions (no Request object)
  * Uses user ID as identifier
  */
@@ -257,7 +223,7 @@ export async function checkServerActionRateLimit(
   config: keyof typeof rateLimitConfigs = "sensitive"
 ): Promise<{ success: boolean; error?: string; retryAfter?: number }> {
   const identifier = `action:${userId}`
-  const result = await checkRateLimitRedis(identifier, config)
+  const result = await checkRateLimit(identifier, config)
 
   if (!result.success) {
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000)
@@ -270,4 +236,3 @@ export async function checkServerActionRateLimit(
 
   return { success: true }
 }
-

@@ -11,15 +11,17 @@ describe("rate-limit/redis", () => {
       expect(rateLimitConfigs).toHaveProperty("webhook")
     })
 
-    it("should have fallback limits > 0 for all tiers", () => {
-      for (const [, config] of Object.entries(rateLimitConfigs)) {
-        expect(config.fallback.limit).toBeGreaterThan(0)
-        expect(config.fallback.windowMs).toBeGreaterThan(0)
+    it("should have a label for each tier", () => {
+      for (const [key, config] of Object.entries(rateLimitConfigs)) {
+        expect(config.label).toBe(key)
       }
     })
 
-    it("should have auth tier stricter than standard", () => {
-      expect(rateLimitConfigs.auth.fallback.limit).toBeLessThan(rateLimitConfigs.standard.fallback.limit)
+    it("should have limiter as null when Redis is not configured", () => {
+      // In test environment, Redis is not configured
+      for (const [, config] of Object.entries(rateLimitConfigs)) {
+        expect(config.limiter).toBeNull()
+      }
     })
   })
 

@@ -205,8 +205,8 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           const context = { ...authContext, serviceType: serviceType || 'med-cert', answers }
           activeSteps = _getStepsForService(serviceType || 'med-cert', context).map(s => s.id)
         } catch {
-          // Fallback if step registry throws
-          activeSteps = ['certificate', 'symptoms', 'medication', 'medication-history', 'medical-history', 'consult-reason', 'details', 'review', 'checkout']
+          // Step registry threw — allow navigation to proceed without blocking
+          activeSteps = []
         }
 
         const currentIndex = activeSteps.indexOf(currentStepId)
@@ -346,10 +346,15 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         },
         setItem: (name: string, value: StorageValue<Partial<RequestState>>): void => {
           if (typeof localStorage === 'undefined') return
-          
-          // Write to legacy key (for backward compatibility)
-          localStorage.setItem(name, JSON.stringify(value))
-          
+
+          try {
+            // Write to legacy key (for backward compatibility)
+            localStorage.setItem(name, JSON.stringify(value))
+          } catch {
+            // QuotaExceededError or SecurityError — silently ignore (private mode, full storage)
+            return
+          }
+
           // Dual-write to new service-scoped key
           const state = value.state
           if (state?.serviceType) {
@@ -372,7 +377,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         },
         removeItem: (name: string): void => {
           if (typeof localStorage === 'undefined') return
-          localStorage.removeItem(name)
+          try {
+            localStorage.removeItem(name)
+          } catch {
+            // Ignore storage errors
+          }
           // Note: We don't clear service-scoped keys here
           // They are cleared explicitly via clearDraft()
         },

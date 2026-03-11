@@ -262,7 +262,10 @@ const sentryConfig = {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,
-  widenClientFileUpload: true,
+  // widenClientFileUpload disabled — adds significant memory overhead to
+  // builds (contributes to 8GB heap requirement). Default source map upload
+  // covers the standard _next/static directory which is sufficient.
+  widenClientFileUpload: false,
   hideSourceMaps: true,
   webpack: {
     automaticVercelMonitors: true,

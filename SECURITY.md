@@ -24,19 +24,53 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 | Table | PHI Fields | Encrypted | RLS |
 |-------|------------|-----------|-----|
-| `profiles` | `medicare_number`, `date_of_birth`, `phone`, `full_name`, `address_*` | Yes | Yes |
-| `intakes` | `client_ip`, `doctor_notes`, `decline_reason` | No | Yes |
-| `intake_answers` | `answers` (JSONB), `allergy_details`, `medical_conditions`, symptom fields | No | Yes |
+| `profiles` | `medicare_number`, `date_of_birth`, `phone`, `full_name`, `address_*` | Yes (Phase 1) | Yes |
+| `intakes` | `client_ip`, `doctor_notes`, `decline_reason` | `doctor_notes` ✅ Phase 2 | Yes |
+| `intake_answers` | `answers` (JSONB), `allergy_details`, `medical_conditions`, symptom fields | All 3 ✅ Phase 2 | Yes |
 | `intake_drafts` | `draft_data` (JSONB) | No | Yes |
 | `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | No | Yes |
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
-| `patient_notes` | `content`, `title` | No | Yes |
-| `issued_certificates` | `generated_data` (JSONB), `patient_name`, `pdf_storage_path` | No | Yes |
+| `patient_notes` | `content`, `title` | `content` ✅ Phase 2 | Yes |
+| `issued_certificates` | `generated_data` (JSONB), `patient_name`, `pdf_storage_path` | `patient_name` ✅ Phase 2 | Yes |
 | `health_summary` | Clinical summary content | No | Yes |
-| `document_drafts` | `content` (AI-generated clinical content) | No | Yes |
+| `document_drafts` | `data` (JSONB), `content` (AI-generated), `edited_content` | `data` ✅ Phase 2 | Yes |
 | `documents` | `storage_path` (references PDF with PHI) | N/A (ref) | Yes |
 
-**Currently encrypted (AES-256-GCM):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted`.
+### Encryption Status
+
+**Phase 1 (profiles — shipped):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted`.
+
+**Phase 2 (data layer — shipped, migration `20260311000002`):**
+
+| Table | Plaintext Column | Encrypted Column | Data Layer File | Status |
+|-------|-----------------|------------------|-----------------|--------|
+| `intake_answers` | `answers` (JSONB) | `answers_encrypted` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
+| `intake_answers` | `allergy_details` | `allergy_details_enc` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
+| `intake_answers` | `medical_conditions` | `medical_conditions_enc` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
+| `intakes` | `doctor_notes` | `doctor_notes_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
+| `patient_notes` | `content` | `content_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
+| `document_drafts` | `data` (JSONB) | `data_enc` | `lib/data/documents.ts` | ✅ Dual-write + decrypt-on-read |
+| `document_drafts` | `edited_content` | `edited_content_enc` | Migration only | ⏳ Column created, app-layer TBD |
+| `issued_certificates` | `patient_name` | `patient_name_enc` | `lib/data/issued-certificates.ts` | ✅ Dual-write + decrypt-on-read |
+
+**Known gap:** `atomicApproveCertificate()` PostgreSQL RPC writes `patient_name` directly in SQL. Adding `patient_name_enc` to the RPC requires a separate DB migration.
+
+### Dual-Write Pattern
+
+During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:
+- Zero-downtime rollout via feature flags
+- Gradual confidence building (compare decrypted vs plaintext)
+- Safe rollback by disabling read flags
+
+```
+Write: plaintext + _enc column (dual-write)
+Read:  _enc → decrypt → return  ||  fallback → plaintext
+```
+
+Wrapper functions in `lib/security/phi-field-wrappers.ts`:
+- `prepare*Write()` — returns spread-ready object with both columns
+- `read*()` — prefers encrypted, falls back to plaintext
+- All async, all graceful-fallback on error (log + continue)
 
 **In transit:** TLS 1.2+ only, Vercel-managed, Let's Encrypt auto-renewed certificates.
 
