@@ -38,4 +38,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build
           SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-build
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder-for-build
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: pnpm build
