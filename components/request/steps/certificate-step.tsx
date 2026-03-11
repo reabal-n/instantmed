@@ -55,6 +55,10 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
     if (defaults.certType && !certType) {
       setAnswer('certType', defaults.certType as string)
     }
+    // Default to 2-day duration (most common choice, better AOV)
+    if (!duration) {
+      setAnswer('duration', '2')
+    }
     // Ensure startDate is set in store (defaults to today if not set)
     if (!answers.startDate) {
       setAnswer('startDate', new Date().toISOString().split("T")[0])

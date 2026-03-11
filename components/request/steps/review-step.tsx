@@ -5,12 +5,13 @@
  * Shows all collected information for patient to verify
  */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
+import { usePostHog } from "posthog-js/react"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface ReviewStepProps {
@@ -112,6 +113,12 @@ function ReviewSection({
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
+  const posthog = usePostHog()
+
+  // Track review step views
+  useEffect(() => {
+    posthog?.capture('review_step_viewed', { service_type: serviceType })
+  }, [posthog, serviceType])
 
   // Build review sections based on service type
   const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []
@@ -453,14 +460,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       })
 
       // Call scheduling (if present)
-      if (answers.preferredTimeSlot || answers.preferredDays || answers.callbackPhone) {
+      if (answers.preferredTimeSlot || answers.callbackPhone) {
         const TIME_LABELS: Record<string, string> = { morning: 'Morning (9am-12pm)', afternoon: 'Afternoon (12pm-5pm)', evening: 'Evening (5pm-8pm)' }
-        const DAY_LABELS: Record<string, string> = { weekday: 'Weekdays', weekend: 'Weekends', any: 'Any day' }
         sections.push({
           title: 'Call Scheduling',
           items: [
             { label: 'Preferred time', value: TIME_LABELS[answers.preferredTimeSlot as string] || String(answers.preferredTimeSlot || '—') },
-            { label: 'Preferred days', value: DAY_LABELS[answers.preferredDays as string] || String(answers.preferredDays || '—') },
             { label: 'Phone', value: String(answers.callbackPhone || '—') },
           ],
           stepId: 'weight-loss-call',
