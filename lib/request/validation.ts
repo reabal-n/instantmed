@@ -214,7 +214,6 @@ export const weightLossAssessmentStepSchema = z
 
 export const weightLossCallStepSchema = z.object({
   preferredTimeSlot: nonEmptyString("Please select a preferred time"),
-  preferredDays: nonEmptyString("Please select preferred days"),
   callbackPhone: z
     .string()
     .refine((v) => {

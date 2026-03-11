@@ -42,12 +42,12 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const edOnset = answers.edOnset as string | undefined
-  const edFrequency = answers.edFrequency as string | undefined
-  const edMorningErections = answers.edMorningErections as string | undefined
+  const edOnset = (answers.edOnset as string) || ""
+  const edFrequency = (answers.edFrequency as string) || ""
+  const edMorningErections = (answers.edMorningErections as string) || ""
   const edAdditionalInfo = (answers.edAdditionalInfo as string) || ""
   const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
-  const edPreference = answers.edPreference as string | undefined
+  const edPreference = (answers.edPreference as string) || ""
 
   const validate = () => {
     const newErrors: Record<string, string> = {}

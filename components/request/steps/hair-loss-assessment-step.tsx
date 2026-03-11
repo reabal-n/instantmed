@@ -62,10 +62,10 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const hairPattern = answers.hairPattern as string | undefined
-  const hairDuration = answers.hairDuration as string | undefined
-  const hairFamilyHistory = answers.hairFamilyHistory as string | undefined
-  const hairMedicationPreference = answers.hairMedicationPreference as string | undefined
+  const hairPattern = (answers.hairPattern as string) || ""
+  const hairDuration = (answers.hairDuration as string) || ""
+  const hairFamilyHistory = (answers.hairFamilyHistory as string) || ""
+  const hairMedicationPreference = (answers.hairMedicationPreference as string) || ""
   const hairAdditionalInfo = (answers.hairAdditionalInfo as string) || ""
 
   const validate = () => {
