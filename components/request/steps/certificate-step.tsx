@@ -43,23 +43,21 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
   const certType = answers.certType as CertType | undefined
-  const duration = answers.duration as Duration | undefined
+  // Default to 2-day duration (best value for most patients, $29.95)
+  // Inline default avoids Zustand hydration race — store uses skipHydration:true
+  const duration = (answers.duration as Duration) || "2"
   const startDate = (answers.startDate as string) || new Date().toISOString().split("T")[0]
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  // Load smart defaults on mount
+  // Load smart defaults for certType from preferences
   useEffect(() => {
     const defaults = getSmartDefaults('certificate')
-    if (defaults.certType && !certType) {
+    if (defaults.certType && !answers.certType) {
       setAnswer('certType', defaults.certType as string)
     }
-    // Ensure startDate is set in store (defaults to today if not set)
-    if (!answers.startDate) {
-      setAnswer('startDate', new Date().toISOString().split("T")[0])
-    }
-  }, [certType, answers.startDate, setAnswer])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -73,12 +71,15 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
 
   const handleNext = useCallback(() => {
     if (validate()) {
+      // Persist inline defaults to store before navigating
+      if (!answers.duration) setAnswer('duration', duration)
+      if (!answers.startDate) setAnswer('startDate', startDate)
       // Save preferences for future
       savePreferences({ preferredCertType: certType })
       recordStepCompletion('certificate', { certType, duration })
       onNext()
     }
-  }, [validate, certType, duration, onNext])
+  }, [validate, certType, duration, startDate, answers.duration, answers.startDate, setAnswer, onNext])
 
   const isComplete = certType && duration
   const hasNoErrors = Object.keys(errors).length === 0

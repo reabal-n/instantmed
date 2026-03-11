@@ -20,6 +20,9 @@ import { IntakeStatusTracker } from "./intake-status-tracker"
 import Link from "next/link"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
+// Stable options object — defined at module level to prevent new reference on each render
+const CONFETTI_OPTIONS = { particleCount: 40 }
+
 // Service-specific messaging for the success page
 const SERVICE_MESSAGING: Record<string, { deliveryTitle: string; deliveryDescription: string; documentTitle: string; documentDescription: string }> = {
   "medical certificate": {
@@ -118,7 +121,7 @@ export function WhatHappensNext({
 
   return (
     <>
-      {showConfetti && <Confetti trigger={confettiTrigger} options={{ particleCount: 40 }} />}
+      {showConfetti && <Confetti trigger={confettiTrigger} options={CONFETTI_OPTIONS} />}
 
       <div className="max-w-lg mx-auto space-y-6">
         {/* Success header */}

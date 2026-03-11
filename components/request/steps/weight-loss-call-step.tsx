@@ -24,35 +24,25 @@ const TIME_SLOTS = [
   { value: 'evening', label: 'Evening (5pm - 8pm)' },
 ]
 
-const DAY_OPTIONS = [
-  { value: 'weekday', label: 'Weekdays' },
-  { value: 'weekend', label: 'Weekends' },
-  { value: 'any', label: 'Any day' },
-]
-
 export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const preferredTimeSlot = answers.preferredTimeSlot as string | undefined
-  const preferredDays = answers.preferredDays as string | undefined
   const callbackPhone = (answers.callbackPhone as string) || ""
   const callNotes = (answers.callNotes as string) || ""
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!preferredTimeSlot) {
       newErrors.preferredTimeSlot = "Please select a preferred time"
-    }
-    if (!preferredDays) {
-      newErrors.preferredDays = "Please select preferred days"
     }
     const phoneError = validatePhone(callbackPhone, true)
     if (phoneError) {
       newErrors.callbackPhone = phoneError
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -63,7 +53,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
     }
   }
 
-  const isComplete = preferredTimeSlot && preferredDays && !validatePhone(callbackPhone, true)
+  const isComplete = preferredTimeSlot && !validatePhone(callbackPhone, true)
 
   return (
     <div className="space-y-6">
@@ -71,7 +61,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Phone className="w-4 h-4" />
         <AlertDescription className="text-xs">
-          A doctor will call you for a brief consultation (usually 5-10 minutes) to discuss your weight loss goals and ensure any treatment is right for you.
+          A doctor will call you for a brief consultation (usually 5-10 minutes) to discuss your weight loss goals and ensure the treatment is right for you. We typically call within 30 minutes.
         </AlertDescription>
       </Alert>
 
@@ -118,38 +108,6 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
         )}
       </div>
 
-      {/* Preferred days */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Which days work best?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <div className="flex gap-2" role="radiogroup" aria-label="Preferred days">
-          {DAY_OPTIONS.map((day) => (
-            <button
-              key={day.value}
-              type="button"
-              role="radio"
-              aria-checked={preferredDays === day.value}
-              onClick={() => setAnswer("preferredDays", day.value)}
-              className={cn(
-                "flex-1 p-3 rounded-xl border text-center transition-all text-sm",
-                preferredDays === day.value
-                  ? "border-primary bg-primary/5 ring-1 ring-primary font-medium"
-                  : "border-border hover:border-primary/50"
-              )}
-            >
-              {day.label}
-            </button>
-          ))}
-        </div>
-        {errors.preferredDays && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.preferredDays}
-          </p>
-        )}
-      </div>
-
       {/* Callback phone */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">
@@ -192,7 +150,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
         <ul className="space-y-1.5 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-            <span>A doctor will call within 1-2 business days</span>
+            <span>A doctor will call you shortly — usually within 30 minutes</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />

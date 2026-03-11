@@ -128,7 +128,7 @@ Entry points (doctor queue | admin panel | API)
      5. Log: intake_events + compliance_audit_log
 ```
 
-**Refund tracking** on `intakes`: `refund_status` (not_applicable | not_eligible | pending | succeeded | failed | skipped_e2e), `refund_stripe_id`, `refunded_at`, `refunded_by`. Failed refunds -> Sentry alert + reconciliation panel (`lib/data/reconciliation.ts`). Manual fix via `markAsRefundedAction()`.
+**Refund tracking** on `intakes`: `refund_status` (not_applicable | not_eligible | pending | succeeded | failed | skipped_e2e), `refund_stripe_id`, `refunded_at`, `refunded_by`. Failed refunds -> Sentry alert + reconciliation panel (`lib/data/reconciliation.ts`). Standalone refunds (any status) via `issueRefundAction()` in `app/doctor/queue/actions.ts`.
 
 ---
 

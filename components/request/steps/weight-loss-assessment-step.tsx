@@ -45,11 +45,11 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
   const currentWeight = (answers.currentWeight as string) || ""
   const currentHeight = (answers.currentHeight as string) || ""
   const targetWeight = (answers.targetWeight as string) || ""
-  const previousAttempts = answers.previousAttempts as string | undefined
-  const eatingDisorderHistory = answers.eatingDisorderHistory as string | undefined
+  const previousAttempts = (answers.previousAttempts as string) || ""
+  const eatingDisorderHistory = (answers.eatingDisorderHistory as string) || ""
   const weightLossGoals = (answers.weightLossGoals as string) || ""
-  const weightLossMedPreference = answers.weightLossMedPreference as string | undefined
-  const wlAdverseReactions = answers.wlAdverseReactions as string | undefined
+  const weightLossMedPreference = (answers.weightLossMedPreference as string) || ""
+  const wlAdverseReactions = (answers.wlAdverseReactions as string) || ""
   const wlAdverseReactionsDetails = (answers.wlAdverseReactionsDetails as string) || ""
 
   // Calculate BMI

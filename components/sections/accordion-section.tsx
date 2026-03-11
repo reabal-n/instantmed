@@ -13,6 +13,8 @@ import { SectionHeader } from "./section-header";
 import type { SectionProps } from "./types";
 import { scrollRevealConfig } from "@/components/ui/motion";
 
+const MotionAccordionItem = motion(AccordionItem);
+
 interface AccordionEntry {
   question: string;
   answer: string;
@@ -77,8 +79,10 @@ export function AccordionSection({
             )}
             <Accordion type="single" collapsible className="space-y-2">
               {group.items.map((item, ii) => (
-                <motion.div
+                <MotionAccordionItem
                   key={item.question}
+                  value={`${gi}-${ii}`}
+                  className="rounded-xl border border-dawn-200/40 dark:border-border/50 bg-white/70 dark:bg-white/[0.06] backdrop-blur-sm px-5 transition-colors hover:bg-dawn-50/50 dark:hover:bg-white/[0.08]"
                   initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
                   animate={
                     prefersReducedMotion
@@ -92,18 +96,13 @@ export function AccordionSection({
                     delay: gi * 0.1 + ii * 0.05,
                   }}
                 >
-                  <AccordionItem
-                    value={`${gi}-${ii}`}
-                    className="rounded-xl border border-dawn-200/40 dark:border-border/50 bg-white/70 dark:bg-white/[0.06] backdrop-blur-sm px-5 transition-colors hover:bg-dawn-50/50 dark:hover:bg-white/[0.08]"
-                  >
-                    <AccordionTrigger className="text-sm font-medium text-foreground">
-                      {item.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                      {item.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                </motion.div>
+                  <AccordionTrigger className="text-sm font-medium text-foreground">
+                    {item.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {item.answer}
+                  </AccordionContent>
+                </MotionAccordionItem>
               ))}
             </Accordion>
           </div>

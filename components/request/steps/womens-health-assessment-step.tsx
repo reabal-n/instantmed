@@ -64,8 +64,8 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
     }
   }, [resolvedType, answers.contraceptionType, setAnswer])
   const contraceptionType = (answers.contraceptionType as string | undefined) || resolvedType
-  const contraceptionCurrent = answers.contraceptionCurrent as string | undefined
-  const pregnancyStatus = answers.pregnancyStatus as string | undefined
+  const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
+  const pregnancyStatus = (answers.pregnancyStatus as string) || ""
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
 
@@ -205,7 +205,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
   setBlockReason: (reason: string) => void
   router: ReturnType<typeof useRouter>
 }) {
-  const hoursSinceIntercourse = answers.hoursSinceIntercourse as string | undefined
+  const hoursSinceIntercourse = (answers.hoursSinceIntercourse as string) || ""
   const mapDetails = (answers.mapDetails as string) || ""
 
   const handleHoursChange = (value: string) => {
@@ -304,8 +304,8 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   router: ReturnType<typeof useRouter>
 }) {
   const utiSymptoms = answers.utiSymptoms as string[] | undefined
-  const utiRedFlags = answers.utiRedFlags as string | undefined
-  const utiPregnant = answers.utiPregnant as string | undefined
+  const utiRedFlags = (answers.utiRedFlags as string) || ""
+  const utiPregnant = (answers.utiPregnant as string) || ""
   const utiDetails = (answers.utiDetails as string) || ""
 
   const handlePregnancyChange = (value: string) => {

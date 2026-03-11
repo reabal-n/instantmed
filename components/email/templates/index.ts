@@ -92,3 +92,7 @@ export type { IntakeSubmittedEmailProps } from "./intake-submitted"
 // --- Request Received (merged payment + review status) ---
 export { RequestReceivedEmail, requestReceivedSubject } from "./request-received"
 export type { RequestReceivedEmailProps } from "./request-received"
+
+// --- Refund Issued ---
+export { RefundIssuedEmail, refundIssuedEmailSubject } from "./refund-issued"
+export type { RefundIssuedEmailProps } from "./refund-issued"

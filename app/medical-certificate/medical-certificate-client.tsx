@@ -151,18 +151,9 @@ const steps = [
   },
 ]
 
+import { getDailyStats } from '@/lib/marketing/daily-stats'
+
 // Live stats — seeded by date so they look realistic and vary daily
-function getDailyStats() {
-  const today = new Date()
-  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  // Simple hash for deterministic-per-day pseudo-random
-  const hash = (n: number) => ((n * 2654435761) >>> 0) / 4294967296
-  return {
-    reviewedToday: 2 + Math.floor(hash(seed) * 7), // 2–8
-    avgReviewTime: 45 + Math.floor(hash(seed + 1) * 76), // 45–120 min
-    rating: (4.8 + hash(seed + 2) * 0.1) as number, // 4.8–4.9
-  }
-}
 const liveStats = getDailyStats()
 
 // Rotating headline variations - high CRO copy (brand voice compliant)

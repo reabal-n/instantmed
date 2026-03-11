@@ -1,4 +1,5 @@
 import "server-only"
+import { unstable_cache } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
@@ -583,15 +584,17 @@ export async function getAllIntakesForAdmin(
 /**
  * Get dashboard stats for doctor
  * Uses SQL COUNT queries for efficiency at scale
+ * Cached for 30s — router.refresh() won't cause repeated DB hits or Suspense skeleton flashes
  */
-export async function getDoctorDashboardStats(): Promise<{
-  total: number
-  in_queue: number
-  approved: number
-  declined: number
-  pending_info: number
-  scripts_pending: number
-}> {
+export const getDoctorDashboardStats = unstable_cache(
+  async (): Promise<{
+    total: number
+    in_queue: number
+    approved: number
+    declined: number
+    pending_info: number
+    scripts_pending: number
+  }> => {
   const supabase = createServiceRoleClient()
 
   try {
@@ -658,7 +661,10 @@ export async function getDoctorDashboardStats(): Promise<{
       scripts_pending: 0,
     }
   }
-}
+},
+  ["doctor-dashboard-stats"],
+  { revalidate: 30, tags: ["doctor-stats"] }
+)
 
 /**
  * Get live intake monitoring stats for doctor dashboard
