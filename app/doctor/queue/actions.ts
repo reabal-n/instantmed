@@ -414,55 +414,144 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
   return { success: true, templates: data }
 }
 
-export async function markAsRefundedAction(
+/**
+ * Issue a standalone Stripe refund for any paid intake.
+ * Separate from the decline flow — works on any paid request regardless of status.
+ */
+export async function issueRefundAction(
   intakeId: string,
-  reason?: string,
-  processStripeRefund: boolean = false
-): Promise<{ success: boolean; error?: string; refundId?: string; amountRefunded?: number }> {
+): Promise<{ success: boolean; error?: string; refundId?: string; amount?: number }> {
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
 
-  if (!isValidUUID(intakeId)) {
-    return { success: false, error: "Invalid intake ID" }
-  }
+  Sentry.setTag("action", "issue_refund")
+  Sentry.setTag("intake_id", intakeId)
 
   try {
-    // If processStripeRefund is true, actually process the Stripe refund
-    if (processStripeRefund) {
-      const { refundIfEligible } = await import("@/lib/stripe/refunds")
-      const refundResult = await refundIfEligible(intakeId, profile.id)
-      
-      if (!refundResult.success) {
-        return { 
-          success: false, 
-          error: refundResult.reason || "Failed to process Stripe refund" 
-        }
-      }
-      
-      if (refundResult.refunded) {
-        revalidatePath("/doctor/dashboard")
-        revalidatePath("/doctor/queue")
-        revalidatePath(`/doctor/intakes/${intakeId}`)
-        revalidatePath(`/patient/intakes/${intakeId}`)
-        
-        return { 
-          success: true, 
-          refundId: refundResult.stripeRefundId,
-          amountRefunded: refundResult.amountRefunded
-        }
-      }
-      
-      // If not refunded but successful (e.g., not eligible), fall through to manual marking
+    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+    const supabase = createServiceRoleClient()
+    const timestamp = new Date().toISOString()
+
+    // Fetch intake with patient info
+    const { data: intake, error: fetchError } = await supabase
+      .from("intakes")
+      .select(`
+        id,
+        status,
+        category,
+        payment_status,
+        payment_id,
+        stripe_payment_intent_id,
+        amount_cents,
+        patient_id,
+        patient:profiles!patient_id (
+          id,
+          full_name,
+          email
+        )
+      `)
+      .eq("id", intakeId)
+      .single()
+
+    if (fetchError || !intake) {
+      return { success: false, error: "Request not found" }
     }
-    
-    // Manual marking (for cases already refunded externally or not eligible for auto-refund)
-    const { markIntakeRefunded } = await import("@/lib/data/intakes")
-    const success = await markIntakeRefunded(intakeId, profile.id, reason)
-    
-    if (!success) {
-      return { success: false, error: "Failed to mark as refunded" }
+
+    // Guard: only refund requests with payment_status "paid".
+    // Once refunded, payment_status becomes "refunded" — this naturally prevents re-runs.
+    // Stripe idempotency key is a secondary backstop.
+    if (intake.payment_status !== "paid") {
+      return { success: false, error: "Refund can only be issued for paid requests" }
+    }
+
+    // Get payment intent ID
+    let paymentIntentId = intake.stripe_payment_intent_id
+
+    if (!paymentIntentId && intake.payment_id) {
+      try {
+        const { stripe } = await import("@/lib/stripe/client")
+        const session = await stripe.checkout.sessions.retrieve(intake.payment_id)
+        paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id || null
+      } catch {
+        logger.warn("[IssueRefund] Failed to fetch checkout session", { intakeId })
+      }
+    }
+
+    if (!paymentIntentId) {
+      return { success: false, error: "No payment found for this request" }
+    }
+
+    // Process Stripe refund
+    const { stripe } = await import("@/lib/stripe/client")
+    const refund = await stripe.refunds.create(
+      {
+        payment_intent: paymentIntentId,
+        reason: "requested_by_customer",
+        metadata: {
+          intake_id: intakeId,
+          category: intake.category || "unknown",
+          refunded_by: profile.id,
+          refund_type: "standalone",
+        },
+      },
+      { idempotencyKey: `standalone_refund_${intakeId}` }
+    )
+
+    // Update intake
+    await supabase
+      .from("intakes")
+      .update({
+        payment_status: "refunded",
+        refund_status: "succeeded",
+        refund_stripe_id: refund.id,
+        refund_amount_cents: refund.amount,
+        refunded_at: timestamp,
+        refunded_by: profile.id,
+        updated_at: timestamp,
+      })
+      .eq("id", intakeId)
+
+    logger.info("[IssueRefund] Refund succeeded", { intakeId, refundId: refund.id, amount: refund.amount })
+
+    // Send patient email (non-critical)
+    try {
+      const patientRaw = intake.patient as unknown
+      const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as {
+        id: string
+        full_name: string | null
+        email: string | null
+      } | null
+
+      if (patient?.email) {
+        const { sendRefundIssuedEmail } = await import("@/lib/email/senders")
+        const amountFormatted = refund.amount
+          ? `$${(refund.amount / 100).toFixed(2)}`
+          : undefined
+
+        await sendRefundIssuedEmail({
+          to: patient.email,
+          patientName: patient.full_name || "there",
+          patientId: patient.id,
+          intakeId,
+          requestType: intake.category || "request",
+          amountFormatted,
+        })
+      }
+    } catch (emailErr) {
+      Sentry.captureException(emailErr, {
+        tags: { email_type: "refund_issued", intake_id: intakeId },
+        level: "warning",
+      })
+      logger.warn("[IssueRefund] Failed to send refund email", { intakeId })
     }
 
     revalidatePath("/doctor/dashboard")
@@ -470,8 +559,11 @@ export async function markAsRefundedAction(
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/patient/intakes/${intakeId}`)
 
-    return { success: true }
-  } catch {
-    return { success: false, error: "Failed to mark as refunded" }
+    return { success: true, refundId: refund.id, amount: refund.amount }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    logger.error("[IssueRefund] Failed", { intakeId }, error instanceof Error ? error : undefined)
+    Sentry.captureException(error, { tags: { action: "issue_refund", intake_id: intakeId } })
+    return { success: false, error: `Failed to process refund: ${msg}` }
   }
 }

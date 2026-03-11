@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+import { getDailyStats } from '@/lib/marketing/daily-stats'
 import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
@@ -23,22 +24,23 @@ export const metadata: Metadata = {
 }
 
 export default function PrescriptionsPage() {
+  const liveStats = getDailyStats(7) // offset to differ from med-cert page
   return (
     <>
       {/* SEO Structured Data */}
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Prescriptions", url: "https://instantmed.com.au/prescriptions" }
-        ]} 
+        ]}
       />
-      <MedicalServiceSchema 
+      <MedicalServiceSchema
         name="Online Repeat Prescription"
         description="Renew your regular medications online. Reviewed by Australian registered doctors. eScript sent to your phone via SMS."
         price="29.95"
       />
       <PrescriptionHowToSchema />
-      <ServiceFunnelPage config={repeatScriptFunnelConfig} />
+      <ServiceFunnelPage config={{ ...repeatScriptFunnelConfig, liveStats }} />
     </>
   )
 }

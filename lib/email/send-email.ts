@@ -52,6 +52,7 @@ export type EmailType =
   // Merged email (replaces payment_confirmed + intake_submitted for new sends)
   | "request_received"
   | "referral_credit"
+  | "refund_issued"
 
 interface SendEmailParams {
   to: string

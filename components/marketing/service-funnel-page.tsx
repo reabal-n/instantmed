@@ -165,6 +165,12 @@ export interface ServiceFunnelConfig {
     }>
   }
 
+  // Optional daily live stats for hero section
+  liveStats?: {
+    reviewedToday: number
+    avgReviewTime: number
+  }
+
   // Optional mid-page image + text section (rendered between After Submit and Pricing)
   imageSection?: {
     title: string
@@ -487,6 +493,21 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                   <span>{item}</span>
                 </p>
               ))}
+
+              {/* Live daily stats strip */}
+              {config.liveStats && (
+                <div className={cn('flex items-center gap-3 pt-2', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Users className="w-3.5 h-3.5 text-primary" />
+                    <span><strong className="text-foreground">{config.liveStats.reviewedToday}</strong> reviewed today</span>
+                  </div>
+                  <div className="h-3 w-px bg-border" />
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5 text-primary" />
+                    <span>Avg <strong className="text-foreground">{config.liveStats.avgReviewTime} min</strong></span>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
 

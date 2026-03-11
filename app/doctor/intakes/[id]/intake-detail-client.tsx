@@ -41,9 +41,8 @@ import {
   Loader2,
   Send,
   Mail,
-  Sparkles,
 } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
+import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
@@ -55,7 +54,6 @@ import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonC
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
 import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescription-checklist"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 import { toast } from "sonner"
@@ -174,7 +172,6 @@ export function IntakeDetailClient({
     setDeclineReason(template)
   }
   const [parchmentReference, setParchmentReference] = useState("")
-  const [refundReason, setRefundReason] = useState("")
   
   // P0 SAFETY: Red flag acknowledgment before approval
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
@@ -212,6 +209,7 @@ export function IntakeDetailClient({
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const viewStartTime = useRef<number>(Date.now())
   const hasLoggedView = useRef(false)
+  const autoAppliedDraft = useRef(false)
 
   // P1 MEDICOLEGAL: Log clinician view events for audit trail
   // P1 EFFICIENCY: Acquire soft lock to prevent duplicate review work
@@ -275,6 +273,21 @@ export function IntakeDetailClient({
       releaseIntakeLockAction(intake.id)
     }
   }, [intake.id, intake.answers, service?.type])
+
+  // Auto-populate clinical notes from AI draft when no saved notes exist
+  useEffect(() => {
+    if (autoAppliedDraft.current) return
+    if (intake.doctor_notes) return // Don't overwrite existing saved notes
+    const clinicalDraft = aiDrafts.find(d => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at)
+    if (!clinicalDraft) return
+    const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
+    const formatted = formatDraftAsNote(content)
+    if (formatted) {
+      setDoctorNotes(formatted)
+      autoAppliedDraft.current = true
+      toast.info("Clinical note auto-drafted — review and edit before saving", { duration: 4000 })
+    }
+  }, [aiDrafts, intake.doctor_notes])
 
   // P1 RK-1: Minimum clinical notes length for defensibility
   const MIN_CLINICAL_NOTES_LENGTH = 20
@@ -449,13 +462,14 @@ export function IntakeDetailClient({
 
   const handleMarkRefunded = async () => {
     startTransition(async () => {
-      const result = await markAsRefundedAction(intake.id, refundReason || undefined)
+      const result = await issueRefundAction(intake.id)
       if (result.success) {
         setShowRefundDialog(false)
-        toast.success("Marked as refunded")
+        const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
+        toast.success(`Refund processed${amountText}`)
         setTimeout(advanceToNext, 1000)
       } else {
-        toast.error(result.error || "Failed to mark as refunded")
+        toast.error(result.error || "Failed to process refund")
       }
     })
   }
@@ -647,9 +661,6 @@ export function IntakeDetailClient({
         />
       )}
 
-      {/* AI Chat Transcript */}
-      <ChatTranscriptPanel intakeId={intake.id} />
-
       {/* Repeat Prescription Checklist */}
       {service?.type === "common_scripts" && (
         <RepeatPrescriptionChecklist
@@ -698,31 +709,6 @@ export function IntakeDetailClient({
           ) : (
             // Editable view for pending intakes
             <>
-              {/* Use AI Draft button — show when clinical note draft is ready and notes are empty */}
-              {(() => {
-                const clinicalDraft = aiDrafts.find(d => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at)
-                if (clinicalDraft && !doctorNotes.trim()) {
-                  return (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950"
-                      onClick={() => {
-                        const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
-                        const formatted = formatDraftAsNote(content)
-                        if (formatted) {
-                          setDoctorNotes(formatted)
-                          toast.success("AI draft loaded into notes — review and edit before saving")
-                        }
-                      }}
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Use AI Draft as Notes
-                    </Button>
-                  )
-                }
-                return null
-              })()}
               <Textarea
                 ref={notesRef}
                 placeholder="Add your clinical notes here... (⌘+N to focus)"
@@ -876,7 +862,7 @@ export function IntakeDetailClient({
             {intake.payment_status === "paid" && (
               <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-amber-600 border-amber-300 hover:bg-amber-50">
                 <CreditCard className="h-4 w-4 mr-2" />
-                Mark Refunded
+                Issue Refund
               </Button>
             )}
 
@@ -985,27 +971,16 @@ export function IntakeDetailClient({
       <AlertDialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark as Refunded</AlertDialogTitle>
+            <AlertDialogTitle>Issue Refund</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm that you have processed a refund for this request in Stripe. This will update the payment status to refunded.
+              This will automatically process a full refund via Stripe and notify the patient by email. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Refund Reason (optional)</Label>
-              <Textarea
-                placeholder="e.g., Patient requested cancellation"
-                value={refundReason}
-                onChange={(e) => setRefundReason(e.target.value)}
-                className="min-h-[60px]"
-              />
-            </div>
-          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleMarkRefunded} disabled={isPending} className="bg-amber-600 hover:bg-amber-700">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Confirm Refunded
+              Issue Refund
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

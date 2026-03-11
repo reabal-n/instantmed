@@ -12,15 +12,12 @@ import {
   ChevronRight,
   Plus,
   AlertTriangle,
-  Lightbulb,
-  Heart,
   CreditCard,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
-import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
@@ -50,33 +47,11 @@ interface Intake {
 interface Prescription {
   id: string
   medication_name: string
-  dosage: string
+  dosage_instructions: string
   issued_date: string
-  renewal_date: string
+  expiry_date: string
   status: "active" | "expired"
 }
-
-// Health tips for engagement
-const HEALTH_TIPS = [
-  {
-    id: "hydration",
-    icon: Heart,
-    title: "Stay hydrated",
-    content: "Drinking enough water helps your body recover faster when you're unwell.",
-  },
-  {
-    id: "sleep",
-    icon: Clock,
-    title: "Prioritise rest",
-    content: "Quality sleep is essential for immune function and recovery.",
-  },
-  {
-    id: "medications",
-    icon: Pill,
-    title: "Take medications as directed",
-    content: "Always complete your prescribed course, even if you feel better.",
-  },
-]
 
 // Check if prescription needs renewal soon (within 14 days)
 function needsRenewalSoon(renewalDate: string): boolean {
@@ -164,7 +139,7 @@ export function PanelDashboard({
 
   const pendingIntakes = intakes.filter((r) => r.status === "paid" || r.status === "in_review" || r.status === "pending_info")
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
-  const prescriptionsNeedingRenewal = prescriptions.filter((p) => p.status === "active" && needsRenewalSoon(p.renewal_date))
+  const prescriptionsNeedingRenewal = prescriptions.filter((p) => p.status === "active" && needsRenewalSoon(p.expiry_date))
   
   // Find stale pending_payment intakes (older than 1 hour) for payment recovery
   const stalePaymentIntakes = intakes.filter((r) => {
@@ -174,10 +149,6 @@ export function PanelDashboard({
     return createdAt < hourAgo
   })
   
-  // Deterministic health tip based on day of week
-  const tipIndex = new Date().getDay() % HEALTH_TIPS.length
-  const dailyTip = HEALTH_TIPS[tipIndex]
-
   // Track dashboard view on mount
   useEffect(() => {
     capture("patient_dashboard_viewed", {
@@ -210,7 +181,7 @@ export function PanelDashboard({
     <div className="space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-semibold text-foreground mb-2">
+        <h1 className="text-2xl font-semibold text-foreground mb-2">
           Welcome back, {firstName}
         </h1>
         <p className="text-muted-foreground">
@@ -274,28 +245,6 @@ export function PanelDashboard({
         </section>
       )}
 
-      {/* Quick Stats - Glass cards with glow effects */}
-      <DashboardGrid columns={3} gap="md">
-        <GlassStatCard
-          label="Total Requests"
-          value={intakes.length}
-          icon={<FileText className="h-5 w-5" />}
-          status="info"
-        />
-        <GlassStatCard
-          label="Pending Review"
-          value={pendingIntakes.length}
-          icon={<Clock className="h-5 w-5" />}
-          status={pendingIntakes.length > 0 ? "warning" : "neutral"}
-        />
-        <GlassStatCard
-          label="Active Prescriptions"
-          value={activeRxCount}
-          icon={<Pill className="h-5 w-5" />}
-          status="success"
-        />
-      </DashboardGrid>
-
       {/* Recent Requests */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -352,10 +301,10 @@ export function PanelDashboard({
                 <div>
                   <p className="font-medium text-foreground">{rx.medication_name}</p>
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    Renews in {getDaysUntilRenewal(rx.renewal_date)} days
+                    Renews in {getDaysUntilRenewal(rx.expiry_date)} days
                   </p>
                 </div>
-                <Link href="/repeat-prescription/request">
+                <Link href="/request?service=repeat-prescription">
                   <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
                     <Pill className="w-4 h-4 mr-1" />
                     Renew now
@@ -372,6 +321,11 @@ export function PanelDashboard({
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">Active Prescriptions</h2>
+            {prescriptions.filter((p) => p.status === "active").length > 3 && (
+              <Link href="/patient/documents" className="text-sm text-primary hover:underline">
+                View all
+              </Link>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -386,7 +340,7 @@ export function PanelDashboard({
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-foreground">{rx.medication_name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{rx.dosage}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{rx.dosage_instructions}</p>
                       <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-4 h-4" />
@@ -394,11 +348,11 @@ export function PanelDashboard({
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
-                          Renews {new Date(rx.renewal_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                          Renews {new Date(rx.expiry_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>
                     </div>
-                    <Link href="/repeat-prescription/request">
+                    <Link href="/request?service=repeat-prescription">
                       <Button variant="outline" size="sm" className="magnetic-button">
                         <Pill className="w-4 h-4 mr-2" />
                         Request renewal
@@ -410,21 +364,6 @@ export function PanelDashboard({
           </div>
         </section>
       )}
-
-      {/* Health Tips Section */}
-      <section>
-        <div className="p-5 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Lightbulb className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-1">{dailyTip.title}</h3>
-              <p className="text-sm text-muted-foreground">{dailyTip.content}</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Referral Section */}
       <section>

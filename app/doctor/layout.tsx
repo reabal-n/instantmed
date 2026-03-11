@@ -7,7 +7,6 @@ import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { DoctorShell } from "./doctor-shell"
 import { DoctorOnboardingBanner } from "@/components/doctor/onboarding-banner"
-import { Skeleton } from "@/components/ui/skeleton"
 import { toError } from "@/lib/errors"
 
 export const metadata: Metadata = {
@@ -57,8 +56,8 @@ export default async function DoctorLayout({
   return (
     <DoctorShell>
       <div className="flex min-h-screen bg-background">
-        {/* AUDIT FIX: Wrap async stats fetch in Suspense to prevent blocking page render */}
-        <Suspense fallback={<div className="hidden lg:flex w-64 flex-col gap-4 p-4"><Skeleton className="h-8 w-32" /><Skeleton className="h-6 w-full" /><Skeleton className="h-6 w-full" /><Skeleton className="h-6 w-3/4" /></div>}>
+        {/* Suspense for async stats — invisible fallback preserves layout width without skeleton flash */}
+        <Suspense fallback={<div className="hidden lg:block w-[260px] shrink-0" />}>
           <DoctorSidebarWithStats
             userName={authUser.profile.full_name}
             userRole={isAdmin ? "Admin" : "Doctor"}

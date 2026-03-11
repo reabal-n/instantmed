@@ -82,17 +82,20 @@ export function CertificatePreviewDialog({
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<CertificatePreviewData>(data)
   const [dateError, setDateError] = useState<string | null>(null)
-  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null)
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [isLoadingPdf, setIsLoadingPdf] = useState(false)
   const [showPdf, setShowPdf] = useState(false)
 
-  // Reset state when dialog opens
+  // Revoke blob URL when dialog closes to free memory
   const handleOpenChange = (open: boolean) => {
     if (open) {
       setEditedData(data)
       setIsEditing(false)
       setDateError(null)
-      setPdfDataUrl(null)
+    }
+    if (!open && pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl)
+      setPdfBlobUrl(null)
       setShowPdf(false)
     }
     onOpenChange(open)
@@ -109,7 +112,12 @@ export function CertificatePreviewDialog({
         consultDate: editedData.consultDate,
       })
       if (result.success && result.pdfDataUrl) {
-        setPdfDataUrl(result.pdfDataUrl)
+        // Convert data: URL to blob: URL — Chrome blocks data: URLs in iframes
+        const base64 = result.pdfDataUrl.split(",")[1]
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: "application/pdf" })
+        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl)
+        setPdfBlobUrl(URL.createObjectURL(blob))
         setShowPdf(true)
       } else {
         toast.error(result.error || "Failed to generate preview")
@@ -324,7 +332,7 @@ export function CertificatePreviewDialog({
           )}
 
           {/* PDF Preview */}
-          {showPdf && pdfDataUrl ? (
+          {showPdf && pdfBlobUrl ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -341,7 +349,7 @@ export function CertificatePreviewDialog({
                 </Button>
               </div>
               <iframe
-                src={pdfDataUrl}
+                src={pdfBlobUrl}
                 className="w-full h-[400px] rounded-lg border border-border/50"
                 title="Certificate PDF Preview"
               />

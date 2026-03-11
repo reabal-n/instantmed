@@ -59,7 +59,7 @@ export interface DeclineResult {
 }
 
 // Valid statuses that can be declined
-const DECLINABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info", "pending_review"]
+const DECLINABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info", "pending_review", "awaiting_script"]
 
 // Categories eligible for auto-refund on decline
 const REFUND_ELIGIBLE_CATEGORIES = ["medical_certificate", "prescription"]
