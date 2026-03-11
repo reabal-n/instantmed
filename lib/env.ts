@@ -139,8 +139,8 @@ function validateServerEnv() {
     throw new Error(`Environment validation failed: ${parsed.error.message}`)
   }
   
-  // Additional checks for production
-  if (parsed.data.NODE_ENV === "production") {
+  // Additional checks for production (skip in CI — NODE_ENV=production is set by Next.js build but CI isn't production)
+  if (parsed.data.NODE_ENV === "production" && !process.env.CI) {
     const prodParsed = productionRequirements.safeParse(process.env)
     if (!prodParsed.success) {
       const missing = prodParsed.error.issues.map(i => i.path.join(".")).join(", ")
