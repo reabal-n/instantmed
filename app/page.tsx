@@ -23,22 +23,23 @@ import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 export const revalidate = 3600
 
 // SEO metadata for homepage - critical for Google ranking
+// Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: 'Online Doctor Australia | Med Certs & Scripts',
-  description: 'Medical certificates from $19.95, prescriptions from $29.95. AHPRA-registered Australian doctors. Results in under an hour, 100% online.',
+  title: 'Online Doctor Australia | Med Certs & Medication',
+  description: 'Medical certificates from $19.95, repeat medication from $29.95. AHPRA-registered Australian doctors. Results in under an hour, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
     'medical certificate online',
     'online doctor',
     'sick certificate',
-    'repeat script online',
+    'repeat medication online',
     'telehealth doctor',
     'virtual doctor australia',
   ],
   openGraph: {
     title: 'InstantMed - Online Doctor Consultations Australia',
-    description: 'Medical certificates and prescriptions sorted in under an hour by Australian-registered doctors.',
+    description: 'Medical certificates and repeat medication sorted in under an hour by Australian-registered doctors.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates and prescriptions in under an hour.',
+    description: 'Medical certificates and repeat medication in under an hour.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {

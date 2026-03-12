@@ -17,13 +17,13 @@ const steps = [
   {
     number: "2",
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor reviews your request and makes a clinical decision. Same standards as in-person. \ud83e\ude7a",
+    description: "An AHPRA-registered doctor reviews your request and makes a clinical decision. Same standards as in-person.",
     time: "~1 hour",
   },
   {
     number: "3",
     title: "Sorted",
-    description: "Certificate to your inbox, eScript to your phone. All sorted.",
+    description: "Certificate to your inbox, medication to your phone. All sorted.",
     time: "Same day",
   },
 ]
@@ -113,7 +113,7 @@ export function HowItWorks() {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-2.5">
-                Most people are sorted in under an hour ⏱️
+                Most people are sorted in under an hour
               </p>
             </motion.div>
           </div>

@@ -96,7 +96,7 @@ export function Hero() {
                 className="h-12 px-6 text-base active:scale-[0.98]"
               >
                 <Link href="/request?service=prescription">
-                  Renew a prescription
+                  Renew medication
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

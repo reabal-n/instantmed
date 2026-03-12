@@ -315,7 +315,7 @@ export function ServicePicker() {
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.3 }}
         >
-          Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy 👍
+          Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy
         </motion.p>
       </div>
     </section>

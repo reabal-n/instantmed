@@ -17,8 +17,8 @@ const SERVICE_WAIT_TIMES = {
     bgColor: 'bg-primary/10',
   },
   'scripts': {
-    label: 'Repeat Prescriptions',
-    shortLabel: 'Scripts',
+    label: 'Repeat medication',
+    shortLabel: 'Medication',
     icon: Pill,
     minWait: 25,
     maxWait: 60,

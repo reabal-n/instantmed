@@ -22,12 +22,12 @@ const processSteps = [
   {
     title: "A real doctor reviews it",
     description:
-      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Most reviews done within the hour. \ud83e\ude7a",
+      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Most reviews done within the hour.",
   },
   {
     title: "Get your document",
     description:
-      "If approved: med cert emailed as PDF, script sent as e-prescription to any pharmacy. If not approved, you get a full refund — no questions asked.",
+      "If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. If not approved, you get a full refund — no questions asked.",
   },
 ]
 
@@ -99,7 +99,7 @@ export function HowItWorksContent() {
           subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Most people are sorted within the hour."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
-          secondaryText="Get Script"
+          secondaryText="Renew medication"
           secondaryHref="/request?service=prescription"
         />
       </main>

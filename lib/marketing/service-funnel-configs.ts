@@ -61,7 +61,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   },
   
   howItWorks: {
-    title: 'Three steps. Stay in bed. \uD83D\uDECB\uFE0F',
+    title: 'Three steps. Stay in bed.',
     subtitle: 'No appointments. No waiting rooms. Just your phone and a few minutes.',
     steps: [
       {
@@ -229,20 +229,20 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
 
   hero: {
     badge: 'Prescribed by Australian GPs',
-    headline: 'Repeat prescriptions.',
-    headlineRotatingWords: ['Reviewed by Australian GPs.', 'eScript to your phone.', 'Any pharmacy, same day.'],
-    subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone. No appointment needed.`,
+    headline: 'Repeat medication.',
+    headlineRotatingWords: ['Reviewed by Australian GPs.', 'Sent to your phone.', 'Any pharmacy, same day.'],
+    subheadline: `For medications you already take. A doctor reviews your request and sends straight to your phone. No appointment needed.`,
     reassurances: [
       'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
     ],
-    ctaText: `Renew your script — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+    ctaText: `Renew your medication — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
     images: {
       primary: '/images/rptrx-1.jpeg',
     },
     highlightBadge: {
-      text: 'eScript sent via SMS',
+      text: 'Sent via SMS',
       glow: true,
     },
   },
@@ -279,8 +279,8 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   howItWorks: {
-    title: 'Three steps. Script on your phone. \uD83D\uDCF1',
-    subtitle: 'Tell us what you need. A doctor checks it\'s safe. eScript sent via SMS.',
+    title: 'Three steps. Medication on your phone.',
+    subtitle: 'Tell us what you need. A doctor checks it\'s safe. Sent via SMS.',
     steps: [
       {
         number: '1',
@@ -299,8 +299,8 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       {
         number: '3',
         icon: 'FileCheck',
-        title: 'eScript sent to your phone',
-        description: 'Your prescription is sent as an eScript via SMS. Take your phone to any pharmacy to collect.',
+        title: 'Sent to your phone',
+        description: 'Your medication token is sent via SMS. Take your phone to any pharmacy to collect.',
         time: 'Same day',
       },
     ],
@@ -334,14 +334,14 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
 
   imageSection: {
-    title: 'Your script, sent to any pharmacy',
+    title: 'Your medication, sent to any pharmacy',
     highlightWords: ['any pharmacy'],
-    description: 'Once approved, your e-script is sent straight to your phone. Present it at any pharmacy in Australia — no paper scripts, no waiting. PBS subsidies apply at the counter.',
+    description: 'Once approved, your medication token is sent straight to your phone. Present it at any pharmacy in Australia — no paper needed, no waiting. PBS subsidies apply at the counter.',
     imageSrc: '/images/rptrx-2.jpeg',
     imageAlt: 'Prescription medication ready for pharmacy collection',
     imagePosition: 'right' as const,
     badges: [
-      { icon: 'CheckCircle2', text: 'E-script via SMS', color: 'success' as const },
+      { icon: 'CheckCircle2', text: 'Sent via SMS', color: 'success' as const },
       { icon: 'Building2', text: 'Any Australian pharmacy', color: 'primary' as const },
       { icon: 'Clock', text: 'Same-day turnaround', color: 'primary' as const },
     ],
@@ -354,7 +354,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     originalPrice: 80,
     features: [
       'Reviewed by an AHPRA-registered GP',
-      'eScript sent straight to your phone',
+      'Sent straight to your phone',
       'Works at any pharmacy in Australia',
       'Repeats included where appropriate',
       'Message your doctor with questions',
@@ -365,7 +365,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
   
   trust: {
-    title: 'Safe, legitimate prescriptions',
+    title: 'Safe, legitimate medication',
     badges: [
       {
         icon: 'BadgeCheck',
@@ -443,9 +443,9 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
 
   finalCta: {
-    headline: 'Don\'t wait a week for a 5-minute script.',
-    subheadline: 'Answer a few questions. A doctor reviews it. eScript on your phone, same day.',
-    ctaText: 'Renew your script',
+    headline: 'Don\'t wait a week for a 5-minute renewal.',
+    subheadline: 'Answer a few questions. A doctor reviews it. Sent to your phone, same day.',
+    ctaText: 'Renew your medication',
   },
 
   accentColor: 'blue',
@@ -543,7 +543,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
 
   howItWorks: {
-    title: 'Three steps. A real doctor. \uD83E\uDE7A',
+    title: 'Three steps. A real doctor.',
     subtitle: 'Start with a questionnaire, then a doctor assesses your situation — often with a brief call.',
     steps: [
       {

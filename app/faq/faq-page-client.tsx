@@ -23,11 +23,11 @@ const faqCategories = [
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 1\u20132 hours during our operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked. \u23F1\uFE0F",
+        a: "Most requests are reviewed within 1\u20132 hours during our operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
       },
       {
         q: "How do I know if I need an in-person visit instead?",
-        a: "We\u2019re best for straightforward things \u2014 sick certificates for common illness, repeat prescriptions for stable conditions, and routine consultations. If something needs hands-on care, our doctors will let you know and recommend seeing a GP in person. That\u2019s the responsible thing to do. \uD83D\uDC4D",
+        a: "We\u2019re best for straightforward things \u2014 sick certificates for common illness, repeat medication for stable conditions, and routine consultations. If something needs hands-on care, our doctors will let you know and recommend seeing a GP in person. That\u2019s the responsible thing to do.",
       },
       {
         q: "How does the doctor decide on my request?",
@@ -39,7 +39,7 @@ const faqCategories = [
       },
       {
         q: "Will a doctor call me?",
-        a: "Most requests are handled online without a call. But if the doctor needs to clarify something or has a clinical concern, they may reach out by phone or message. Think of it as your doctor being thorough \u2014 it\u2019s a good sign. \uD83E\uDE7A",
+        a: "Most requests are handled online without a call. But if the doctor needs to clarify something or has a clinical concern, they may reach out by phone or message. Think of it as your doctor being thorough \u2014 it\u2019s a good sign.",
       },
     ],
   },
@@ -65,7 +65,7 @@ const faqCategories = [
     ],
   },
   {
-    title: "Prescriptions",
+    title: "Repeat Medication",
     faqs: [
       {
         q: "What medications can you prescribe?",
@@ -76,8 +76,8 @@ const faqCategories = [
         a: "You\u2019ll get a full refund. The doctor may suggest alternatives or recommend an in-person visit \u2014 common reasons include needing physical monitoring or potential interactions with other medications.",
       },
       {
-        q: "How do I receive my prescription?",
-        a: "Via eScript \u2014 you\u2019ll get an SMS with a token you can show at any pharmacy in Australia. No paper script needed, just your phone. \uD83D\uDC4D",
+        q: "How do I receive my medication?",
+        a: "Via SMS \u2014 you\u2019ll get a token you can show at any pharmacy in Australia. No paper needed, just your phone.",
       },
       {
         q: "Can you send it to my usual pharmacy?",

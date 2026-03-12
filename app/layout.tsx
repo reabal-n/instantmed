@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     template: "%s | InstantMed",
   },
   description:
-    "Get medical certificates, prescriptions & doctor consults online from $19.95. AHPRA-registered Australian doctors. No video calls, results in under an hour.",
+    "Get medical certificates, repeat medication & doctor consults online from $19.95. AHPRA-registered Australian doctors. No video calls, results in under an hour.",
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
@@ -74,13 +74,13 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed | Online Doctor Australia",
     description:
-      "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
+      "Med certs, medication renewals & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
     // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: "summary_large_image",
     title: "InstantMed | Online Doctor Australia",
-    description: "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
+    description: "Med certs, medication renewals & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   robots: {

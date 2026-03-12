@@ -5,18 +5,18 @@ import { getDailyStats } from '@/lib/marketing/daily-stats'
 import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: 'Online Repeat Prescriptions | Same-Day Scripts',
-  description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments, no waiting rooms.',
+  title: 'Online Repeat Medication | Same-Day Service',
+  description: 'Renew your regular medications online. Australian doctors review your request and send to any pharmacy. No appointments, no waiting rooms.',
   openGraph: {
-    title: 'Online Repeat Prescriptions | InstantMed',
-    description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy.',
+    title: 'Online Repeat Medication | InstantMed',
+    description: 'Renew your regular medications online. Australian doctors review your request and send to any pharmacy.',
     type: 'website',
     url: 'https://instantmed.com.au/prescriptions',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Online Repeat Prescriptions | InstantMed',
-    description: 'Renew your regular medications online. Australian doctors review your request and send eScripts to your phone.',
+    title: 'Online Repeat Medication | InstantMed',
+    description: 'Renew your regular medications online. Australian doctors review your request and send to your phone.',
   },
   alternates: {
     canonical: 'https://instantmed.com.au/prescriptions',
@@ -31,12 +31,12 @@ export default function PrescriptionsPage() {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Prescriptions", url: "https://instantmed.com.au/prescriptions" }
+          { name: "Repeat Medication", url: "https://instantmed.com.au/prescriptions" }
         ]}
       />
       <MedicalServiceSchema
-        name="Online Repeat Prescription"
-        description="Renew your regular medications online. Reviewed by Australian registered doctors. eScript sent to your phone via SMS."
+        name="Online Repeat Medication"
+        description="Renew your regular medications online. Reviewed by Australian registered doctors. Delivered to your phone via SMS."
         price="29.95"
       />
       <PrescriptionHowToSchema />

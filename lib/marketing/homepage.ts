@@ -27,7 +27,7 @@ export const heroRotatingTexts = [
   `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — most sorted in under an hour.`,
   "Too sick to visit a GP? Get your cert from bed.",
   "AHPRA-registered doctors. Employer-accepted certificates.",
-  `Prescriptions renewed from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy, Australia-wide.`,
+  `Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy, Australia-wide.`,
   "Save $40–70 compared to a GP visit. Same doctor review.",
 ]
 
@@ -81,20 +81,20 @@ export const serviceCategories = [
   {
     id: "scripts",
     slug: "prescription",
-    title: "Repeat Scripts",
-    shortTitle: "Scripts",
+    title: "Repeat Medication",
+    shortTitle: "Medication",
     benefitQuestion: "Need your regular medication?",
-    description: "Get your regular meds sorted without the hassle",
+    description: "Get your regular medication sorted without the hassle",
     icon: "Pill",
     color: "cyan",
     priceFrom: 29.95,
     href: "/request?service=prescription",
     popular: false,
-    cta: "Renew prescription",
+    cta: "Renew medication",
     benefits: [
       "Works with any chemist",
-      "Repeat scripts included",
-      "eScript sent via SMS"
+      "Repeats included where appropriate",
+      "Sent to your phone via SMS"
     ],
   },
   {
@@ -123,25 +123,21 @@ export const proofMetrics = [
     label: "Typical turnaround",
     value: "Under 1 hour",
     icon: "Zap",
-    emoji: "\u26A1",
   },
   {
     label: "Every request",
     value: "Real GP reviewed",
     icon: "MessageSquare",
-    emoji: "\uD83E\uDE7A",
   },
   {
     label: "No account needed",
     value: "Start in 2 mins",
     icon: "CheckCircle",
-    emoji: "\u2705",
   },
   {
     label: "Flat pricing",
     value: "Full refund if declined",
     icon: "CreditCard",
-    emoji: "\uD83D\uDCB3",
   },
 ]
 
@@ -151,21 +147,18 @@ export const howItWorks = [
     title: "Answer a few questions",
     description: "Tell us what's going on. Takes about 2 minutes.",
     icon: "ClipboardList",
-    emoji: "📝",
   },
   {
     step: 2,
     title: "A doctor reviews it",
     description: "A real Australian doctor reviews your request and makes a clinical decision.",
     icon: "Stethoscope",
-    emoji: "🩺",
   },
   {
     step: 3,
     title: "Done",
-    description: "Certificate to your inbox, eScript to your phone. That's it.",
+    description: "Certificate to your inbox, medication to your phone. That's it.",
     icon: "FileCheck",
-    emoji: "✅",
   },
 ]
 
@@ -178,11 +171,11 @@ export const featuredServices = [
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
   {
-    title: "Prescriptions",
-    description: "Running low on your regular medication? A doctor reviews your request and sends an eScript to your phone. Any pharmacy, Australia-wide.",
+    title: "Repeat Medication",
+    description: "Running low on your regular medication? A doctor reviews your request and sends to your phone. Any pharmacy, Australia-wide.",
     priceFrom: 29.95,
     href: "/request?service=prescription",
-    features: ["Contraception", "Blood pressure", "Skin treatments", "eScript to your phone"],
+    features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your phone"],
   },
 ]
 
@@ -205,14 +198,14 @@ export const faqItems = [
   },
   {
     question: "How much does it cost compared to a GP?",
-    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, prescriptions from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save — and definitely save time.`,
+    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save — and definitely save time.`,
   },
 ]
 
 export const footerLinks = {
   services: [
     { label: "Medical Certificates", href: "/request?service=med-cert" },
-    { label: "Prescriptions", href: "/request?service=prescription" },
+    { label: "Repeat Medication", href: "/request?service=prescription" },
     { label: "General Consult", href: "/request?service=consult" },
   ],
   company: [

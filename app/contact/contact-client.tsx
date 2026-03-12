@@ -101,7 +101,7 @@ export function ContactClient() {
                   <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
                 </div>
                 <h1 className="text-2xl font-bold mb-3">
-                  Message sent! ✅
+                  Message sent!
                 </h1>
                 <p className="text-muted-foreground mb-8">
                   We&apos;ve got it — a real person will read your message and get back to you, usually within a few hours. Keep an eye on your inbox.
@@ -161,7 +161,7 @@ export function ContactClient() {
 
         {/* CTA Banner */}
         <CTABanner
-          title="Looking for a medical certificate or prescription?"
+          title="Looking for a medical certificate or repeat medication?"
           subtitle="Fill in a quick form and a real GP reviews your request — most are done within the hour."
           ctaText="Get started"
           ctaHref="/request"
@@ -263,7 +263,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
         <HelpCircle className="h-8 w-8 text-primary mb-3" aria-hidden="true" />
         <h3 className="font-semibold mb-2">Looking for quick answers?</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Check our FAQ — chances are someone&apos;s already asked. 🙂
+          Check our FAQ — chances are someone&apos;s already asked.
         </p>
         <Button variant="outline" asChild className="rounded-full w-full bg-transparent transition-colors">
           <Link href="/faq">
