@@ -43,8 +43,6 @@ import {
   Send,
   Mail,
 } from "lucide-react"
-import { regenerateDrafts } from "@/app/actions/draft-approval"
-import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
@@ -169,7 +167,6 @@ export function IntakeDetailClient({
   const [isPending, startTransition] = useTransition()
   const [doctorNotes, setDoctorNotes] = useState(intake.doctor_notes || "")
   const [noteSaved, setNoteSaved] = useState(false)
-  const [isRegenerating, setIsRegenerating] = useState(false)
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
   const [showScriptDialog, setShowScriptDialog] = useState(false)
@@ -461,38 +458,6 @@ export function IntakeDetailClient({
     })
   }
 
-  const hasClinicalDraft = !!findClinicalNoteDraft(aiDrafts)
-
-  const handleGenerateOrRegenerateNote = async () => {
-    setIsRegenerating(true)
-    try {
-      const result = await regenerateDrafts(intake.id)
-      if (result.success) {
-        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
-        if (res.ok) {
-          const data = await res.json()
-          const clinicalDraft = findClinicalNoteDraft(data.aiDrafts || [])
-          if (clinicalDraft) {
-            const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
-            const formatted = formatDraftAsNote(content)
-            if (formatted) {
-              setDoctorNotes(formatted)
-              setIsAiPrefilled(true)
-              toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
-            }
-          }
-        }
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to generate draft")
-      }
-    } catch {
-      toast.error("Failed to generate draft")
-    } finally {
-      setIsRegenerating(false)
-    }
-  }
-
   const handleMarkScriptSent = async () => {
     startTransition(async () => {
       const result = await markScriptSentAction(intake.id, parchmentReference || undefined)
@@ -673,9 +638,6 @@ export function IntakeDetailClient({
         </CardContent>
       </Card>
 
-      {/* AI Chat Transcript */}
-      <ChatTranscriptPanel intakeId={intake.id} />
-
       {/* AI-Generated Drafts (excludes clinical_note — shown in Clinical Notes textarea) */}
       {(() => {
         const nonNoteDrafts = aiDrafts.filter((d) => d.type !== "clinical_note")
@@ -741,42 +703,18 @@ export function IntakeDetailClient({
                   Pre-filled from AI analysis of intake answers. Review, edit as needed, then save.
                 </p>
               )}
-              {isRegenerating && !doctorNotes ? (
-                <div className="flex items-center gap-2 py-6 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Generating draft...</span>
-                </div>
-              ) : (
-                <Textarea
-                  ref={notesRef}
-                  placeholder="Add your clinical notes here... (⌘+N to focus)"
-                  value={doctorNotes}
-                  onChange={(e) => setDoctorNotes(e.target.value)}
-                  disabled={isRegenerating}
-                  className="min-h-[120px] text-sm"
-                />
-              )}
+              <Textarea
+                ref={notesRef}
+                placeholder="Add your clinical notes here... (⌘+N to focus)"
+                value={doctorNotes}
+                onChange={(e) => setDoctorNotes(e.target.value)}
+                disabled={isPending}
+                className="min-h-[120px] text-sm"
+              />
               <div className="flex items-center gap-2">
-                <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
+                <Button onClick={handleSaveNotes} disabled={isPending} variant="outline" size="sm">
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save Notes
-                </Button>
-                <Button
-                  onClick={handleGenerateOrRegenerateNote}
-                  disabled={isPending || isRegenerating}
-                  variant={hasClinicalDraft ? "ghost" : "outline"}
-                  size="sm"
-                >
-                  {isRegenerating ? (
-                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                  ) : (
-                    <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  )}
-                  {isRegenerating
-                    ? "Generating draft..."
-                    : hasClinicalDraft
-                      ? "Regenerate AI Note"
-                      : "Generate AI draft"}
                 </Button>
                 {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
               </div>

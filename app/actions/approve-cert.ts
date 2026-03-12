@@ -601,12 +601,20 @@ export async function approveAndSendCert(
     } catch { /* non-blocking */ }
 
     // Track funnel: approved + document delivered
+    // Use clerk_user_id for PostHog distinctId to match client-side identification
+    const { data: phPatient } = await supabase
+      .from("profiles")
+      .select("clerk_user_id")
+      .eq("id", patient.id)
+      .maybeSingle()
+    const phDistinctId = phPatient?.clerk_user_id || patient.id
+
     trackIntakeFunnelStep({
       step: 'approved',
       intakeId,
       serviceSlug: service.slug,
       serviceType: 'med_certs',
-      userId: patient.id,
+      userId: phDistinctId,
       metadata: { certificate_type: certificateType, doctor_id: doctorProfile.id },
     })
     if (emailResult.success) {
@@ -615,7 +623,7 @@ export async function approveAndSendCert(
         intakeId,
         serviceSlug: service.slug,
         serviceType: 'med_certs',
-        userId: patient.id,
+        userId: phDistinctId,
       })
     }
 

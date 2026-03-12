@@ -548,12 +548,19 @@ export async function POST(request: Request) {
       })
 
       // Track funnel: payment completed
+      // Fetch clerk_user_id early so server-side PostHog distinctId matches client-side
+      const { data: phProfile } = await supabase
+        .from("profiles")
+        .select("clerk_user_id")
+        .eq("id", patientId)
+        .maybeSingle()
+
       trackIntakeFunnelStep({
         step: 'payment_completed',
         intakeId: intakeId!,
         serviceSlug: session.metadata?.service_slug || 'unknown',
         serviceType: session.metadata?.category || session.metadata?.service_type || 'unknown',
-        userId: patientId || undefined,
+        userId: phProfile?.clerk_user_id || patientId || undefined,
         metadata: { amount_cents: session.amount_total },
       })
 
