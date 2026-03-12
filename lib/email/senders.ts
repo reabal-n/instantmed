@@ -27,7 +27,7 @@ interface SendRequestDeclinedEmailParams {
   reason?: string
 }
 
-export async function sendRequestDeclinedEmailNew(params: SendRequestDeclinedEmailParams) {
+export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailParams) {
   const { to, patientName, patientId, intakeId, requestType, reason } = params
 
   return sendEmail({

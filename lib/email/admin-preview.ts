@@ -38,9 +38,9 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
     .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
   </style>
 </head>
@@ -84,7 +84,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: "John Smith",
       dashboardUrl: "https://instantmed.com.au/dashboard",
       verificationCode: "ABC12345",
-      certType: "Work Absence",
+      certType: "Medical Certificate",
       appUrl: "https://instantmed.com.au",
     },
   },
@@ -104,7 +104,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     .container { max-width: 600px; margin: 0 auto; background: white; }
     .header-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px 24px; margin: 24px; text-align: center; }
     .content { padding: 0 24px 32px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
   </style>
 </head>
@@ -119,7 +119,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       <p>{{greeting}}</p>
       <p><strong>{{patientName}}</strong> has requested that we forward their medical certificate to you. This certificate was issued by a registered Australian doctor through InstantMed's telehealth service.</p>
       {{#patientNote}}
-      <div style="background: #f9fafb; border-left: 4px solid #00C9A7; padding: 16px; margin: 20px 0;">
+      <div style="background: #f9fafb; border-left: 4px solid #3B82F6; padding: 16px; margin: 20px 0;">
         <p style="margin: 0 0 8px 0; font-weight: 600;">Note from {{patientName}}</p>
         <p style="margin: 0; font-style: italic;">"{{patientNote}}"</p>
       </div>
@@ -173,9 +173,9 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
     .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
   </style>
 </head>
@@ -230,9 +230,9 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
     .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
     .receipt-table { width: 100%; border-collapse: collapse; }
     .receipt-table td { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
@@ -261,7 +261,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       <p style="text-align: center; margin: 24px 0;">
         <a href="{{dashboardUrl}}" class="button">Track Your Request</a>
       </p>
-      <p style="font-size: 13px; color: #6b7280;">This receipt is for your records. You can view your request status on your <a href="{{dashboardUrl}}" style="color: #00C9A7;">dashboard</a>.</p>
+      <p style="font-size: 13px; color: #6b7280;">This receipt is for your records. You can view your request status on your <a href="{{dashboardUrl}}" style="color: #3B82F6;">dashboard</a>.</p>
     </div>
     <div class="footer">
       <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
@@ -296,9 +296,9 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
     .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
   </style>
 </head>
@@ -357,9 +357,9 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
     .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
     .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
   </style>
 </head>

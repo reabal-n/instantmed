@@ -631,10 +631,13 @@ export async function POST(request: Request) {
             const { sendEmail } = await import("@/lib/email/send-email")
             const { RequestReceivedEmail, requestReceivedSubject } = await import("@/components/email/templates/request-received")
 
-            const serviceName = session.metadata?.service_slug
-              ?.replace(/-/g, " ")
-              ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
-              || "medical request"
+            const slugDisplayNames: Record<string, string> = {
+              "med-cert-sick": "Medical Certificate",
+              "med-cert-carer": "Medical Certificate",
+              "common-scripts": "Prescription",
+              "consult": "Consultation",
+            }
+            const serviceName = slugDisplayNames[session.metadata?.service_slug ?? ""] || "Medical Request"
 
             const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
             const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
@@ -668,21 +671,6 @@ export async function POST(request: Request) {
             log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
           }
 
-          // STEP 5c: Send guest account completion email if this was a guest checkout
-          const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
-          if (isGuestCheckout) {
-            const serviceName = session.metadata?.service_slug || "medical certificate"
-            sendGuestCompleteAccountEmail({
-              to: patientProfile.email,
-              patientName: patientProfile.full_name || "there",
-              serviceName,
-              intakeId,
-              patientId,
-            }).catch((err) => {
-              log.error("Guest account email error (non-fatal)", { intakeId }, err)
-            })
-            log.info("Guest account completion email queued", { intakeId, email: patientProfile.email })
-          }
         }
       }
 

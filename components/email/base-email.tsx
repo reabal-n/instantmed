@@ -140,6 +140,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                       <td
                         style={{
                           padding: "32px 40px 0 40px",
+                          textAlign: "center",
                         }}
                       >
                         <a
@@ -153,13 +154,13 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                           <img
                             src={`${appUrl}/branding/logo.png`}
                             alt="InstantMed"
-                            width="130"
+                            width="90"
                             height="auto"
                             style={{
                               display: "block",
                               border: "0",
                               outline: "none",
-                              maxWidth: "130px",
+                              maxWidth: "90px",
                               height: "auto",
                             }}
                           />

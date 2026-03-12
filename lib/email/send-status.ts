@@ -1,15 +1,8 @@
 import "server-only"
 import * as React from "react"
-import { createClient } from "@supabase/supabase-js"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendEmail } from "./send-email"
 import { logger } from "@/lib/observability/logger"
-
-function getServiceClient() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error("Missing Supabase credentials")
-  return createClient(url, key)
-}
 
 export type EmailTemplateType = "request_approved" | "request_declined" | "needs_more_info"
 
@@ -86,7 +79,7 @@ export async function sendStatusTransitionEmail(
   templateType: EmailTemplateType,
   additionalData?: Record<string, unknown>,
 ): Promise<void> {
-  const supabase = getServiceClient()
+  const supabase = createServiceRoleClient()
 
   // Fetch intake and patient details
   const { data: intake } = await supabase

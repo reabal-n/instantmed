@@ -93,14 +93,27 @@ export async function POST(request: Request) {
         .single()
 
       if (profile?.email) {
-        // Send email (fire and forget)
-        sendViaResend({
+        const emailResult = await sendViaResend({
           to: profile.email,
           subject: title,
           html: generateEmailHtml(title, message, actionUrl),
         }).catch((err) => {
           log.warn('Failed to send email notification', { userId, email: profile.email }, err)
+          return { success: false as const, error: String(err) }
         })
+        try {
+          await supabase.from("email_outbox").insert({
+            email_type: "notification",
+            to_email: profile.email,
+            patient_id: userId,
+            subject: title,
+            status: emailResult?.success ? "sent" : "failed",
+            provider_message_id: emailResult?.id,
+            sent_at: emailResult?.success ? new Date().toISOString() : null,
+            error_message: emailResult?.error,
+            metadata: { type, notificationId: notification?.id },
+          })
+        } catch { /* non-blocking */ }
       }
     }
 
@@ -164,7 +177,7 @@ function generateEmailHtml(title: string, message: string, actionUrl?: string): 
 
       ${safeActionUrl ? `
         <p>
-          <a href="${safeActionUrl}" style="display: inline-block; background: linear-gradient(135deg, #2563EB, #00C9A7); color: #0A0F1C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
+          <a href="${safeActionUrl}" style="display: inline-block; background: linear-gradient(135deg, #2563EB, #3B82F6); color: #0A0F1C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
             View Details
           </a>
         </p>

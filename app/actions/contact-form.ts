@@ -1,6 +1,7 @@
 "use server"
 
 import { sendViaResend } from "@/lib/email/resend"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
@@ -120,7 +121,21 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
       return { success: false, error: "Failed to send message. Please try again." }
     }
 
-    logger.info("[Contact Form] Successfully submitted", { 
+    // Log to email_outbox for audit trail
+    try {
+      const supabase = createServiceRoleClient()
+      await supabase.from("email_outbox").insert({
+        email_type: "contact_form",
+        to_email: CONTACT_EMAIL,
+        subject: `[Contact Form] ${subject}`,
+        status: "sent",
+        provider_message_id: result.id,
+        sent_at: new Date().toISOString(),
+        metadata: { reason },
+      })
+    } catch { /* non-blocking */ }
+
+    logger.info("[Contact Form] Successfully submitted", {
       emailId: result.id,
       reason,
       subject,

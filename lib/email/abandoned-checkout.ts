@@ -126,6 +126,23 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
     },
   })
   
+  // Log to email_outbox for audit trail
+  try {
+    const supabase = createServiceRoleClient()
+    await supabase.from("email_outbox").insert({
+      email_type: "abandoned_checkout",
+      to_email: patient.email,
+      intake_id: intake.id,
+      patient_id: intake.patient_id,
+      subject: `Complete your ${serviceName} request`,
+      status: result.success ? 'sent' : 'failed',
+      provider_message_id: result.id,
+      sent_at: result.success ? new Date().toISOString() : null,
+      error_message: result.error,
+      metadata: { category: intake.category },
+    })
+  } catch { /* non-blocking */ }
+
   if (result.success) {
     // Mark as sent to avoid duplicate emails
     const supabase = createServiceRoleClient()

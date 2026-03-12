@@ -38,12 +38,6 @@ export function MedCertPatientEmail({
   certType = "work",
   appUrl = "https://instantmed.com.au",
 }: MedCertPatientEmailProps) {
-  const certTypeLabel = {
-    work: "Work Absence",
-    study: "University/School",
-    carer: "Carer's Leave",
-  }[certType]
-
   return (
     <BaseEmail
       previewText={`Your medical certificate is ready to download ✅`}
@@ -52,14 +46,14 @@ export function MedCertPatientEmail({
       <HeroBlock
         icon="✓"
         headline="Your certificate is ready"
-        subtitle={`Medical Certificate — ${certTypeLabel}`}
+        subtitle="Medical Certificate"
         variant="success"
       />
 
       <Text>Hi {patientName},</Text>
 
       <Text>
-        Great news — your <strong>Medical Certificate ({certTypeLabel})</strong>{" "}
+        Great news — your <strong>Medical Certificate</strong>{" "}
         has been reviewed and approved by one of our doctors. You can download
         it right away using the button below.
       </Text>

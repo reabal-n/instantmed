@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         paymentUrl,
       })
 
-      await sendViaResend({
+      const emailResult = await sendViaResend({
         to: patientEmail,
         subject: "Complete your InstantMed payment",
         html: emailHtml,
@@ -104,6 +104,19 @@ export async function POST(request: NextRequest) {
           { name: "invoice_id", value: invoiceId },
         ],
       })
+      try {
+        await supabase.from("email_outbox").insert({
+          email_type: "payment_retry",
+          to_email: patientEmail,
+          patient_id: authResult.profile.id,
+          subject: "Complete your InstantMed payment",
+          status: emailResult.success ? "sent" : "failed",
+          provider_message_id: emailResult.id,
+          sent_at: emailResult.success ? new Date().toISOString() : null,
+          error_message: emailResult.error,
+          metadata: { invoice_id: invoiceId },
+        })
+      } catch { /* non-blocking */ }
     }
 
     return NextResponse.json(
