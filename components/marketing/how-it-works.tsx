@@ -18,7 +18,7 @@ const steps = [
     number: "2",
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor reviews your request and makes a clinical decision. Same standards as in-person.",
-    time: "~1 hour",
+    time: "~30 min",
   },
   {
     number: "3",

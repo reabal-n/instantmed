@@ -64,12 +64,13 @@ interface WhatHappensNextProps {
   patientEmail?: string
   isPriority?: boolean
   showConfetti?: boolean
+  initialQueuePosition?: number | null
 }
 
 const FAQ_ITEMS = [
   {
     question: "How long does review take?",
-    answer: "Most requests are reviewed within an hour during business hours (8am–10pm AEST). Priority requests are reviewed within 15 minutes.",
+    answer: "Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST). Priority requests are reviewed within 15 minutes.",
   },
   {
     question: "What if the doctor needs more info?",
@@ -92,12 +93,13 @@ export function WhatHappensNext({
   patientEmail,
   isPriority = false,
   showConfetti = false,
+  initialQueuePosition,
 }: WhatHappensNextProps) {
   const prefersReducedMotion = useReducedMotion()
   const [confettiTrigger, setConfettiTrigger] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
-  const [queuePosition, setQueuePosition] = useState<number | null>(null)
+  const [queuePosition, setQueuePosition] = useState<number | null>(initialQueuePosition ?? null)
   // Trigger confetti on mount
   useEffect(() => {
     if (showConfetti) {
@@ -107,17 +109,20 @@ export function WhatHappensNext({
 
   // Fetch queue position estimate
   useEffect(() => {
+    if (!intakeId) return
     async function fetchQueue() {
       try {
-        const res = await fetch("/api/queue/position")
+        const res = await fetch(`/api/queue/position?intake_id=${encodeURIComponent(intakeId)}`)
         const data = await res.json()
-        if (data.position) setQueuePosition(data.position)
+        if (data.position !== null && data.position !== undefined) {
+          setQueuePosition(Number(data.position))
+        }
       } catch {
         // Non-critical — just don't show position
       }
     }
     fetchQueue()
-  }, [])
+  }, [intakeId])
 
   return (
     <>

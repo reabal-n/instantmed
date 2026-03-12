@@ -89,6 +89,26 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.support_tickets_enabled = row.value === true
       } else if (row.key === FLAG_KEYS.CLINICAL_DECISION_SUPPORT_ENABLED) {
         flags.clinical_decision_support_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_ENABLED) {
+        flags.business_hours_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_OPEN) {
+        flags.business_hours_open = typeof row.value === "number" ? row.value : 8
+      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_CLOSE) {
+        flags.business_hours_close = typeof row.value === "number" ? row.value : 22
+      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_TIMEZONE) {
+        flags.business_hours_timezone = typeof row.value === "string" ? row.value : "Australia/Sydney"
+      } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_ENABLED) {
+        flags.capacity_limit_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_MAX) {
+        flags.capacity_limit_max = typeof row.value === "number" ? row.value : 100
+      } else if (row.key === FLAG_KEYS.URGENT_NOTICE_ENABLED) {
+        flags.urgent_notice_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.URGENT_NOTICE_MESSAGE) {
+        flags.urgent_notice_message = typeof row.value === "string" ? row.value : ""
+      } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_START) {
+        flags.maintenance_scheduled_start = typeof row.value === "string" && row.value ? row.value : null
+      } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_END) {
+        flags.maintenance_scheduled_end = typeof row.value === "string" && row.value ? row.value : null
       }
     }
 
@@ -123,12 +143,17 @@ export async function refreshFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
- * Check if the platform is in maintenance mode
+ * Check if the platform is in maintenance mode (manual or scheduled)
  */
 export async function isMaintenanceMode(): Promise<{ enabled: boolean; message: string }> {
   const flags = await getFeatureFlags()
+  const scheduled =
+    flags.maintenance_scheduled_start &&
+    flags.maintenance_scheduled_end &&
+    new Date().getTime() >= new Date(flags.maintenance_scheduled_start).getTime() &&
+    new Date().getTime() <= new Date(flags.maintenance_scheduled_end).getTime()
   return {
-    enabled: flags.maintenance_mode,
+    enabled: flags.maintenance_mode || !!scheduled,
     message: flags.maintenance_message || DEFAULT_FLAGS.maintenance_message,
   }
 }
@@ -185,7 +210,7 @@ export async function isMedicationBlocked(
  */
 export async function updateFeatureFlag(
   key: FlagKey,
-  value: boolean | string | string[],
+  value: boolean | string | string[] | number | null,
   updatedBy: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getServiceClient()
@@ -203,15 +228,18 @@ export async function updateFeatureFlag(
 
     const oldValue = oldData?.value
 
-    // Update the flag
+    // Upsert so new keys (from migration) work
     const { error } = await supabase
       .from("feature_flags")
-      .update({
-        value: value,
-        updated_at: new Date().toISOString(),
-        updated_by: updatedBy,
-      })
-      .eq("key", key)
+      .upsert(
+        {
+          key,
+          value: value ?? null,
+          updated_at: new Date().toISOString(),
+          updated_by: updatedBy,
+        },
+        { onConflict: "key" }
+      )
 
     if (error) {
       logger.error("Update error", {}, toError(error))

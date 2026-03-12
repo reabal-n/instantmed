@@ -16,6 +16,7 @@ import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
+import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
@@ -72,7 +73,8 @@ const faqGroups = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const flags = await getFeatureFlags()
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
     question: item.question,
@@ -92,6 +94,19 @@ export default function HomePage() {
       <ReturningPatientBanner className="mx-4 mt-2" />
 
       <Navbar variant="marketing" />
+
+      {/* Maintenance banner when platform is closed (below Navbar) */}
+      {flags.maintenance_mode && (
+        <div className="mx-4 mt-2 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
+          <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">We&apos;re currently performing maintenance.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-200">{flags.maintenance_message || "New requests will be accepted soon."}</p>
+          </div>
+        </div>
+      )}
 
       <main className="relative">
         {/* Hero with main value prop */}

@@ -260,6 +260,18 @@ export async function claimIntakeAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  // Check doctor availability (paused doctors cannot claim)
+  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+  const supabaseCheck = createServiceRoleClient()
+  const { data: profileData } = await supabaseCheck
+    .from("profiles")
+    .select("doctor_available")
+    .eq("id", profile.id)
+    .single()
+  if (profileData?.doctor_available === false) {
+    return { success: false, error: "You have paused new requests. Go to Settings to resume." }
+  }
+
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
   }

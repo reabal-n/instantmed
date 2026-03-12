@@ -15,6 +15,7 @@ export interface DoctorIdentity {
   ahpra_number: string | null
   signature_storage_path: string | null
   certificate_identity_complete: boolean
+  doctor_available?: boolean
 }
 
 export interface DoctorIdentityInput {

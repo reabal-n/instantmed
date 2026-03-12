@@ -5,14 +5,14 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Clock, FileText, Pill, Phone, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Service wait time configurations (realistic ranges in minutes for a small clinic)
+// Service wait time configurations — usually 30 mins or less
 const SERVICE_WAIT_TIMES = {
   'med-cert': {
     label: 'Medical Certificates',
     shortLabel: 'Med Certs',
     icon: FileText,
-    minWait: 12,
-    maxWait: 35,
+    minWait: 8,
+    maxWait: 25,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },
@@ -20,8 +20,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Repeat medication',
     shortLabel: 'Medication',
     icon: Pill,
-    minWait: 25,
-    maxWait: 60,
+    minWait: 10,
+    maxWait: 30,
     color: 'text-emerald-600 dark:text-emerald-400',
     bgColor: 'bg-emerald-500/10',
   },
@@ -29,8 +29,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Consultations',
     shortLabel: 'Consults',
     icon: Phone,
-    minWait: 35,
-    maxWait: 75,
+    minWait: 12,
+    maxWait: 35,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },

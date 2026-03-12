@@ -164,6 +164,21 @@ export async function getAuditLogStatsAction() {
   return getAuditLogStats()
 }
 
+export async function getFeatureFlagAuditLogsAction() {
+  await requireAdmin()
+  const { data } = await getAuditLogs(
+    { eventType: "settings_changed" },
+    1,
+    20
+  )
+  // Filter to feature flag and operational config changes
+  return data.filter(
+    (log) =>
+      (log.metadata?.action_type === "feature_flag_updated" ||
+        log.metadata?.action_type === "operational_config_updated")
+  )
+}
+
 // ============================================================================
 // FEATURE FLAG ACTIONS
 // ============================================================================
@@ -173,7 +188,7 @@ export async function getFeatureFlagsAction() {
   return getFeatureFlags()
 }
 
-export async function updateFeatureFlagAction(key: FlagKey, value: boolean | string | string[]) {
+export async function updateFeatureFlagAction(key: FlagKey, value: boolean | string | string[] | number | null) {
   const admin = await requireAdmin()
   const result = await updateFeatureFlag(key, value, admin.id)
   if (result.success) {

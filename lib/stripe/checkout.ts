@@ -6,6 +6,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { isOutsideBusinessHours, isAtCapacity } from "@/lib/operational-config"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { CONTACT_EMAIL } from "@/lib/constants"
@@ -120,6 +121,23 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return {
         success: false,
         error: `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
+      }
+    }
+
+    // Business hours
+    const outsideHours = await isOutsideBusinessHours()
+    if (outsideHours.closed) {
+      return {
+        success: false,
+        error: `We're outside our operating hours. We'll be back at ${outsideHours.nextOpen ?? "8am"} AEST.`,
+      }
+    }
+
+    // Capacity limit
+    if (await isAtCapacity()) {
+      return {
+        success: false,
+        error: "We're experiencing high demand today. Please try again tomorrow.",
       }
     }
 

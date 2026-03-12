@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 interface DoctorAvailabilityProps {
   className?: string
@@ -11,43 +12,41 @@ interface DoctorAvailabilityProps {
   onAfterHoursClick?: () => void
 }
 
-// Operating hours in AEST (UTC+10/+11)
-const OPEN_HOUR = 8 // 8am AEST
-const CLOSE_HOUR = 22 // 10pm AEST
-
-function getAESTTime(): Date {
+function getHourAndMinuteInTimezone(timezone: string): { hour: number; minute: number } {
   const now = new Date()
-  // Convert to AEST (UTC+10, ignoring DST for simplicity)
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000
-  return new Date(utc + 10 * 3600000)
+  const formatter = new Intl.DateTimeFormat("en-AU", {
+    timeZone: timezone,
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(now)
+  const hour = parseInt(parts.find(p => p.type === "hour")?.value ?? "0", 10)
+  const minute = parseInt(parts.find(p => p.type === "minute")?.value ?? "0", 10)
+  return { hour, minute }
 }
 
-function isWithinHours(): boolean {
-  const aest = getAESTTime()
-  const hour = aest.getHours()
-  return hour >= OPEN_HOUR && hour < CLOSE_HOUR
+function isWithinHours(openHour: number, closeHour: number, timezone: string): boolean {
+  const { hour } = getHourAndMinuteInTimezone(timezone)
+  return hour >= openHour && hour < closeHour
 }
 
-function getTimeUntilOpen(): { hours: number; minutes: number } {
-  const aest = getAESTTime()
-  const currentHour = aest.getHours()
-  const currentMinute = aest.getMinutes()
+function getTimeUntilOpen(openHour: number, closeHour: number, timezone: string): { hours: number; minutes: number } {
+  const { hour: currentHour, minute: currentMinute } = getHourAndMinuteInTimezone(timezone)
 
   let hoursUntil: number
   let minutesUntil: number
 
-  if (currentHour >= CLOSE_HOUR) {
-    // After closing, next open is tomorrow at 8am
-    hoursUntil = 24 - currentHour + OPEN_HOUR
+  if (currentHour >= closeHour) {
+    hoursUntil = 24 - currentHour + openHour
     minutesUntil = 60 - currentMinute
     if (minutesUntil === 60) {
       minutesUntil = 0
     } else {
       hoursUntil -= 1
     }
-  } else if (currentHour < OPEN_HOUR) {
-    // Before opening
-    hoursUntil = OPEN_HOUR - currentHour - 1
+  } else if (currentHour < openHour) {
+    hoursUntil = openHour - currentHour - 1
     minutesUntil = 60 - currentMinute
     if (minutesUntil === 60) {
       minutesUntil = 0
@@ -61,14 +60,25 @@ function getTimeUntilOpen(): { hours: number; minutes: number } {
   return { hours: hoursUntil, minutes: minutesUntil }
 }
 
+function formatNextOpen(openHour: number): string {
+  const ampm = openHour >= 12 ? "pm" : "am"
+  const displayHour = openHour > 12 ? openHour - 12 : openHour === 0 ? 12 : openHour
+  return `${displayHour}${ampm}`
+}
+
 export function DoctorAvailability({
   className,
   variant = "badge",
   showAfterHoursUpsell = false,
   onAfterHoursClick,
 }: DoctorAvailabilityProps) {
-  const [isOnline, setIsOnline] = useState(() => isWithinHours())
-  const [countdown, setCountdown] = useState(() => getTimeUntilOpen())
+  const { businessHours } = useServiceAvailability()
+  const openHour = businessHours.enabled ? businessHours.open : 0
+  const closeHour = businessHours.enabled ? businessHours.close : 24
+  const tz = businessHours.timezone || "Australia/Sydney"
+
+  const [isOnline, setIsOnline] = useState(() => isWithinHours(openHour, closeHour, tz))
+  const [countdown, setCountdown] = useState(() => getTimeUntilOpen(openHour, closeHour, tz))
   const isClient = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -78,35 +88,40 @@ export function DoctorAvailability({
   useEffect(() => {
     if (!isClient) return
     const updateStatus = () => {
-      setIsOnline(isWithinHours())
-      if (!isWithinHours()) {
-        setCountdown(getTimeUntilOpen())
+      const online = isWithinHours(openHour, closeHour, tz)
+      setIsOnline(online)
+      if (!online) {
+        setCountdown(getTimeUntilOpen(openHour, closeHour, tz))
       }
     }
 
     updateStatus()
-    const interval = setInterval(updateStatus, 60000) // Update every minute
+    const interval = setInterval(updateStatus, 60000)
 
     return () => clearInterval(interval)
-  }, [isClient])
+  }, [isClient, openHour, closeHour, tz])
 
   if (!isClient) {
-    return null // Avoid hydration mismatch
+    return null
   }
+
+  // When hours disabled, always show as online
+  const showOnline = !businessHours.enabled || isOnline
+  const nextOpen = formatNextOpen(openHour)
 
   if (variant === "badge") {
     return (
       <div
         className={cn(
           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-          isOnline
+          showOnline
             ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
             : "bg-card/60 text-muted-foreground dark:bg-white/10",
           className,
         )}
       >
-        <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/60")} />
-        {isOnline ? "Doctors online now" : `Back at 8am AEST`}
+        <span className={cn("w-1.5 h-1.5 rounded-full", showOnline ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/60")} />
+        {showOnline ? "Doctors online now" : `Back at ${nextOpen} AEST`}
       </div>
     )
   }
@@ -116,13 +131,13 @@ export function DoctorAvailability({
     <div
       className={cn(
         "w-full px-4 py-2.5 flex items-center justify-center gap-3",
-        isOnline
+        showOnline
           ? "bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-800"
           : "bg-card/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10",
         className,
       )}
     >
-      {isOnline ? (
+      {showOnline ? (
         <>
           <Sun className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span className="text-sm text-emerald-700 dark:text-emerald-400">
@@ -130,7 +145,7 @@ export function DoctorAvailability({
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Doctors online now
             </span>
-            <span className="text-emerald-600/70 dark:text-emerald-500/70 ml-1.5">— Average response: 45 min</span>
+            <span className="text-emerald-600/70 dark:text-emerald-500/70 ml-1.5">— Average response: 30 min</span>
           </span>
         </>
       ) : (

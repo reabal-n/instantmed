@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2 } from "lucide-react"
+import { AlertCircle, ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2 } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
@@ -16,6 +16,7 @@ import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { SplitHero } from "@/components/heroes"
 import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 // Consultation types
 const CONSULT_TYPES = [
@@ -158,11 +159,25 @@ const trustSignals = [
   { icon: Shield, text: 'Full refund guarantee' },
 ]
 
+const CONTACT_EMAIL = "support@instantmed.com.au"
+
 export default function GeneralConsultPage() {
   const prefersReducedMotion = useReducedMotion()
+  const isDisabled = useServiceAvailability().isServiceDisabled("consult")
   return (
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
+      {isDisabled && (
+        <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">This service is temporarily unavailable.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-200">
+              We&apos;ll be back soon. <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">Contact us</a> if you have questions.
+            </p>
+          </div>
+        </div>
+      )}
       <Navbar variant="marketing" />
 
       <main className="relative">
@@ -178,10 +193,11 @@ export default function GeneralConsultPage() {
           <Button
             asChild
             size="lg"
-            className="px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
+            variant={isDisabled ? "outline" : "default"}
+            className={isDisabled ? "" : "px-8 h-12 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"}
           >
-            <Link href="/request?service=consult">
-              Start your consult <ArrowRight className="ml-2 h-4 w-4" />
+            <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
+              {isDisabled ? "Contact us" : "Start your consult"} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button
@@ -334,7 +350,7 @@ export default function GeneralConsultPage() {
                   viewport={{ once: true }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Link href={consult.href} className="group block h-full">
+                  <Link href={isDisabled ? "/contact" : consult.href} className="group block h-full">
                       <div className={cn(
                         "relative h-full rounded-2xl overflow-hidden flex flex-col",
                         "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
@@ -506,8 +522,8 @@ export default function GeneralConsultPage() {
         <CTABanner
           title="Ready to speak with a doctor?"
           subtitle="Takes 3-5 minutes to get started. $49.95 flat fee. No account required. Full refund if we can't help."
-          ctaText="Start your consult"
-          ctaHref="/request?service=consult"
+          ctaText={isDisabled ? "Contact us" : "Start your consult"}
+          ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
         />
       </main>
 

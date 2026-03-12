@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { medCertFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+import { getFeatureFlags } from '@/lib/feature-flags'
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MedicalCertificatesPage() {
-  return <ServiceFunnelPage config={medCertFunnelConfig} />
+export default async function MedicalCertificatesPage() {
+  const flags = await getFeatureFlags()
+  return <ServiceFunnelPage config={medCertFunnelConfig} isDisabled={flags.disable_med_cert} />
 }

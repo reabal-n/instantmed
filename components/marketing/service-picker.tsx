@@ -277,10 +277,19 @@ export function ServicePicker() {
                           </span>
                         </div>
                         
-                        <Button size="sm" className="gap-1">
-                          {'cta' in service ? service.cta : 'Start request'}
-                          <ArrowRight className="h-3 w-3" />
-                        </Button>
+                        {disabled ? (
+                          <Button size="sm" variant="outline" className="gap-1" asChild>
+                            <Link href="/contact">
+                              Contact us
+                              <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button size="sm" className="gap-1">
+                            {'cta' in service ? service.cta : 'Start request'}
+                            <ArrowRight className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                       
                       {/* #5: Testimonial for popular card */}
@@ -312,7 +321,7 @@ export function ServicePicker() {
             return (
               <motion.div key={service.id} variants={itemVariants}>
                 {disabled ? (
-                  <div className="group block h-full cursor-not-allowed pointer-events-none select-none" aria-disabled="true">
+                  <div className="group block h-full cursor-default" aria-disabled="true">
                     {cardContent}
                   </div>
                 ) : (

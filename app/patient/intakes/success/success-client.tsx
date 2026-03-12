@@ -20,6 +20,7 @@ interface SuccessClientProps {
   serviceName?: string
   isPriority?: boolean
   patientEmail?: string
+  queuePosition?: number | null
 }
 
 export function SuccessClient({
@@ -28,6 +29,7 @@ export function SuccessClient({
   serviceName,
   isPriority = false,
   patientEmail,
+  queuePosition: initialQueuePosition,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -248,6 +250,7 @@ export function SuccessClient({
           patientEmail={patientEmail}
           isPriority={isPriority}
           showConfetti={false}
+          initialQueuePosition={initialQueuePosition}
         />
         {/* P0 FIX: Resend confirmation email button */}
         <div className="p-4 rounded-xl bg-muted/50 text-sm space-y-3">
@@ -311,6 +314,7 @@ export function SuccessClient({
       patientEmail={patientEmail}
       isPriority={isPriority}
       showConfetti={status === "paid"}
+      initialQueuePosition={initialQueuePosition}
     />
   )
 }

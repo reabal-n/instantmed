@@ -72,7 +72,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [estimatedWait, setEstimatedWait] = useState("~1 hour")
+  const [estimatedWait, setEstimatedWait] = useState("~30 min")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
 
@@ -283,7 +283,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             </li>
             <li className="flex items-start gap-2">
               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>Typically reviewed within 1 hour during business hours</span>
+              <span>Typically reviewed within 30 minutes during business hours</span>
             </li>
           </ul>
           <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">

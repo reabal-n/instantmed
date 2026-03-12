@@ -31,14 +31,28 @@ import {
   Plus,
   X,
   Wrench,
+  Clock,
+  Users,
+  Megaphone,
+  Calendar,
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
+interface AuditLogEntry {
+  id: string
+  action: string
+  actor_type: string
+  metadata: Record<string, unknown> | null
+  created_at: string
+  actor?: { full_name: string; email: string }
+}
+
 interface FeatureFlagsClientProps {
   initialFlags: FeatureFlags
+  auditLogs?: AuditLogEntry[]
 }
 
 // Kill switch flags that require confirmation before disabling
@@ -54,7 +68,7 @@ const KILL_SWITCH_LABELS: Record<string, string> = {
   [FLAG_KEYS.DISABLE_CONSULTS]: "Consultations",
 }
 
-export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
+export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlagsClientProps) {
   const router = useRouter()
   const [flags, setFlags] = useState(initialFlags)
   const [isSaving, setIsSaving] = useState<string | null>(null)
@@ -363,6 +377,202 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
         </CardContent>
       </Card>
 
+      {/* Operational Config */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Operational Controls
+          </CardTitle>
+          <CardDescription>
+            Business hours, capacity limits, urgent notices, and scheduled maintenance
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Business Hours */}
+          <div className="space-y-3 p-4 rounded-lg border">
+            <p className="font-medium">Business Hours</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Switch
+                checked={flags.business_hours_enabled}
+                onCheckedChange={() => handleToggleFlag(FLAG_KEYS.BUSINESS_HOURS_ENABLED, flags.business_hours_enabled)}
+                disabled={isSaving === FLAG_KEYS.BUSINESS_HOURS_ENABLED}
+              />
+              <span className="text-sm text-muted-foreground">
+                {flags.business_hours_enabled ? "Enforce hours" : "Always open"}
+              </span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={flags.business_hours_open}
+                  onChange={(e) => setFlags(prev => ({ ...prev, business_hours_open: Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0)) }))}
+                  onBlur={async () => {
+                    setIsSaving(FLAG_KEYS.BUSINESS_HOURS_OPEN)
+                    try {
+                      const result = await updateFeatureFlagAction(FLAG_KEYS.BUSINESS_HOURS_OPEN, flags.business_hours_open)
+                      if (result.success) { toast.success("Saved"); router.refresh() }
+                    } finally { setIsSaving(null) }
+                  }}
+                  className="w-16"
+                />
+                <span className="text-sm">to</span>
+                <Input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={flags.business_hours_close}
+                  onChange={(e) => setFlags(prev => ({ ...prev, business_hours_close: Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0)) }))}
+                  onBlur={async () => {
+                    setIsSaving(FLAG_KEYS.BUSINESS_HOURS_CLOSE)
+                    try {
+                      const result = await updateFeatureFlagAction(FLAG_KEYS.BUSINESS_HOURS_CLOSE, flags.business_hours_close)
+                      if (result.success) { toast.success("Saved"); router.refresh() }
+                    } finally { setIsSaving(null) }
+                  }}
+                  className="w-16"
+                />
+                <span className="text-sm text-muted-foreground">(0-23, {flags.business_hours_timezone})</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Capacity Limit */}
+          <div className="space-y-3 p-4 rounded-lg border">
+            <p className="font-medium">Capacity Limit</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Switch
+                checked={flags.capacity_limit_enabled}
+                onCheckedChange={() => handleToggleFlag(FLAG_KEYS.CAPACITY_LIMIT_ENABLED, flags.capacity_limit_enabled)}
+                disabled={isSaving === FLAG_KEYS.CAPACITY_LIMIT_ENABLED}
+              />
+              <span className="text-sm text-muted-foreground">
+                {flags.capacity_limit_enabled ? "Limit enabled" : "No limit"}
+              </span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  value={flags.capacity_limit_max}
+                  onChange={(e) => setFlags(prev => ({ ...prev, capacity_limit_max: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                  onBlur={async () => {
+                    setIsSaving(FLAG_KEYS.CAPACITY_LIMIT_MAX)
+                    try {
+                      const result = await updateFeatureFlagAction(FLAG_KEYS.CAPACITY_LIMIT_MAX, flags.capacity_limit_max)
+                      if (result.success) { toast.success("Saved"); router.refresh() }
+                    } finally { setIsSaving(null) }
+                  }}
+                  className="w-20"
+                />
+                <span className="text-sm text-muted-foreground">max intakes per day</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Urgent Notice */}
+          <div className="space-y-3 p-4 rounded-lg border">
+            <p className="font-medium flex items-center gap-2">
+              <Megaphone className="h-4 w-4" />
+              Urgent Notice
+            </p>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={flags.urgent_notice_enabled}
+                onCheckedChange={() => handleToggleFlag(FLAG_KEYS.URGENT_NOTICE_ENABLED, flags.urgent_notice_enabled)}
+                disabled={isSaving === FLAG_KEYS.URGENT_NOTICE_ENABLED}
+              />
+              <span className="text-sm text-muted-foreground">
+                {flags.urgent_notice_enabled ? "Banner visible" : "Hidden"}
+              </span>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm">Message</label>
+              <Input
+                value={flags.urgent_notice_message}
+                onChange={(e) => setFlags(prev => ({ ...prev, urgent_notice_message: e.target.value }))}
+                onBlur={async () => {
+                  if (flags.urgent_notice_message !== initialFlags.urgent_notice_message) {
+                    setIsSaving(FLAG_KEYS.URGENT_NOTICE_MESSAGE)
+                    try {
+                      const result = await updateFeatureFlagAction(FLAG_KEYS.URGENT_NOTICE_MESSAGE, flags.urgent_notice_message)
+                      if (result.success) {
+                        toast.success("Message saved")
+                        router.refresh()
+                      }
+                    } finally {
+                      setIsSaving(null)
+                    }
+                  }
+                }}
+                placeholder="e.g. Review times may be longer than usual"
+              />
+            </div>
+          </div>
+
+          {/* Scheduled Maintenance */}
+          <div className="space-y-3 p-4 rounded-lg border">
+            <p className="font-medium flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Scheduled Maintenance
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Set start and end (ISO datetime). Platform will auto-close during this window.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Start</label>
+                <Input
+                  type="datetime-local"
+                  value={flags.maintenance_scheduled_start ? new Date(flags.maintenance_scheduled_start).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => {
+                    const v = e.target.value ? new Date(e.target.value).toISOString() : null
+                    setFlags(prev => ({ ...prev, maintenance_scheduled_start: v }))
+                  }}
+                  onBlur={async () => {
+                    const v = flags.maintenance_scheduled_start || null
+                    if (v !== (initialFlags.maintenance_scheduled_start || null)) {
+                      setIsSaving(FLAG_KEYS.MAINTENANCE_SCHEDULED_START)
+                      try {
+                        await updateFeatureFlagAction(FLAG_KEYS.MAINTENANCE_SCHEDULED_START, v)
+                        toast.success("Saved")
+                        router.refresh()
+                      } finally {
+                        setIsSaving(null)
+                      }
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">End</label>
+                <Input
+                  type="datetime-local"
+                  value={flags.maintenance_scheduled_end ? new Date(flags.maintenance_scheduled_end).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => {
+                    const v = e.target.value ? new Date(e.target.value).toISOString() : null
+                    setFlags(prev => ({ ...prev, maintenance_scheduled_end: v }))
+                  }}
+                  onBlur={async () => {
+                    const v = flags.maintenance_scheduled_end || null
+                    if (v !== (initialFlags.maintenance_scheduled_end || null)) {
+                      setIsSaving(FLAG_KEYS.MAINTENANCE_SCHEDULED_END)
+                      try {
+                        await updateFeatureFlagAction(FLAG_KEYS.MAINTENANCE_SCHEDULED_END, v)
+                        toast.success("Saved")
+                        router.refresh()
+                      } finally {
+                        setIsSaving(null)
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Blocked Medication Terms */}
       <Card>
         <CardHeader>
@@ -463,6 +673,41 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Feature Flag Audit Log */}
+      {auditLogs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Recent changes</CardTitle>
+            <CardDescription>
+              Who changed what and when
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {auditLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="flex items-center justify-between gap-2 py-2 border-b border-border/50 last:border-0 text-sm"
+                >
+                  <div>
+                    <span className="font-medium">{String(log.metadata?.flag_key ?? "—")}</span>
+                    <span className="text-muted-foreground ml-1">
+                      {log.actor?.full_name || log.actor_type}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {new Date(log.created_at).toLocaleString("en-AU", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Kill Switch Confirmation Dialog */}
       <AlertDialog open={!!pendingToggle} onOpenChange={(open) => !open && setPendingToggle(null)}>

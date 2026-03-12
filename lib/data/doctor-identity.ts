@@ -47,7 +47,8 @@ export async function getDoctorIdentity(profileId: string): Promise<DoctorIdenti
       provider_number,
       ahpra_number,
       signature_storage_path,
-      certificate_identity_complete
+      certificate_identity_complete,
+      doctor_available
     `)
     .eq("id", profileId)
     .single()

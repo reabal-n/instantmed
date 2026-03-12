@@ -34,31 +34,17 @@ import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-
 import { cn } from "@/lib/utils"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
+import { useServiceAvailability, type ServiceId } from "@/components/providers/service-availability-provider"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
   userName?: string
 }
 
-const services = [
-  {
-    title: "Medical Certificates",
-    href: "/medical-certificates",
-    description: "Work, uni & carer's leave",
-    icon: FileText,
-  },
-  {
-    title: "Repeat Scripts",
-    href: "/repeat-prescriptions",
-    description: "Medications you already take",
-    icon: Pill,
-  },
-  {
-    title: "General Consult",
-    href: "/general-consult",
-    description: "New prescriptions & dose changes",
-    icon: Stethoscope,
-  },
+const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; icon: typeof FileText }> = [
+  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificates", description: "Work, uni & carer's leave", icon: FileText },
+  { serviceId: "scripts", title: "Repeat Scripts", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
+  { serviceId: "consult", title: "General Consult", href: "/general-consult", description: "New prescriptions & dose changes", icon: Stethoscope },
 ]
 
 
@@ -213,6 +199,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const { signOut } = useClerk()
   const { user, isLoaded: isClerkLoaded } = useUser()
   const prefersReducedMotion = useReducedMotion()
+  const { isServiceDisabled } = useServiceAvailability()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -285,22 +272,42 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-2">
-                      {services.map((service) => (
-                        <DropdownMenuItem key={service.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
-                          <Link
-                            href={service.href}
-                            className="flex items-center gap-3 px-3 py-2.5 w-full"
+                      {services.map((service) => {
+                        const disabled = isServiceDisabled(service.serviceId)
+                        return (
+                          <DropdownMenuItem
+                            key={service.href}
+                            disabled={disabled}
+                            asChild={!disabled}
+                            className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20"
                           >
-                            <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15 transition-colors">
-                              <service.icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{service.title}</p>
-                              <p className="text-xs text-muted-foreground">{service.description}</p>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
+                            {disabled ? (
+                              <div className="flex items-center gap-3 px-3 py-2.5 w-full">
+                                <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15">
+                                  <service.icon className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-muted-foreground">{service.title}</p>
+                                  <p className="text-xs text-muted-foreground">Temporarily unavailable</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <Link
+                                href={service.href}
+                                className="flex items-center gap-3 px-3 py-2.5 w-full"
+                              >
+                                <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15 transition-colors">
+                                  <service.icon className="h-4 w-4 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-foreground">{service.title}</p>
+                                  <p className="text-xs text-muted-foreground">{service.description}</p>
+                                </div>
+                              </Link>
+                            )}
+                          </DropdownMenuItem>
+                        )
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
@@ -379,21 +386,27 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      {services.map((service) => (
-                        <DropdownMenuItem
-                          key={service.href}
-                          className="cursor-pointer"
-                          onClick={() => router.push(service.href)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <service.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                            <div>
-                              <p className="text-sm font-medium">{service.title}</p>
-                              <p className="text-xs text-muted-foreground">{service.description}</p>
+                      {services.map((service) => {
+                        const disabled = isServiceDisabled(service.serviceId)
+                        return (
+                          <DropdownMenuItem
+                            key={service.href}
+                            disabled={disabled}
+                            className="cursor-pointer"
+                            onClick={() => !disabled && router.push(service.href)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <service.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                              <div>
+                                <p className="text-sm font-medium">{service.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {disabled ? "Temporarily unavailable" : service.description}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
+                          </DropdownMenuItem>
+                        )
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
@@ -545,36 +558,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         {variant === "marketing" && (
           <>
             <AnimatedMobileMenu.Section title="Services" />
-            <AnimatedMobileMenu.Item
-              item={{
-                label: "Medical certificates",
-                href: "/request?service=med-cert",
-                description: "Work, uni & carer's leave",
-                icon: <FileText className="h-5 w-5" />,
-              }}
-              index={0}
-              onClose={() => setMobileMenuOpen(false)}
-            />
-            <AnimatedMobileMenu.Item
-              item={{
-                label: "Repeat Rx",
-                href: "/request?service=prescription",
-                description: "Medications you already take",
-                icon: <Pill className="h-5 w-5" />,
-              }}
-              index={1}
-              onClose={() => setMobileMenuOpen(false)}
-            />
-            <AnimatedMobileMenu.Item
-              item={{
-                label: "General consult",
-                href: "/request?service=consult",
-                description: "New prescriptions & dose changes",
-                icon: <Stethoscope className="h-5 w-5" />,
-              }}
-              index={2}
-              onClose={() => setMobileMenuOpen(false)}
-            />
+            {services.map((service, index) => (
+              <AnimatedMobileMenu.Item
+                key={service.href}
+                item={{
+                  label: service.title,
+                  href: service.href,
+                  description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
+                  icon: <service.icon className="h-5 w-5" />,
+                  disabled: isServiceDisabled(service.serviceId),
+                }}
+                index={index}
+                onClose={() => setMobileMenuOpen(false)}
+              />
+            ))}
             <AnimatedMobileMenu.Divider />
             <AnimatedMobileMenu.Item
               item={{ label: "Why us?", href: "/trust", icon: <Shield className="h-5 w-5" /> }}
@@ -619,8 +616,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 item={{
                   label: service.title,
                   href: service.href,
-                  description: service.description,
+                  description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
                   icon: <service.icon className="h-5 w-5" />,
+                  disabled: isServiceDisabled(service.serviceId),
                 }}
                 index={index + 3}
                 onClose={() => setMobileMenuOpen(false)}

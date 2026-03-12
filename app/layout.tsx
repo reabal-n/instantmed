@@ -18,6 +18,7 @@ import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-regis
 import { CookieBanner } from "@/components/shared/cookie-banner"
 import { LazyOverlays } from "@/components/shared/lazy-overlays"
 import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
+import { UrgentNoticeBanner } from "@/components/shared/urgent-notice-banner"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
 import Script from "next/script"
 import "./globals.css"
@@ -180,6 +181,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>
                 <MeshGradientCanvas />
+                <UrgentNoticeBanner />
                 <NavigationProgress />
                 <NetworkStatus />
                 <SkipToContent />

@@ -243,9 +243,10 @@ const colorClasses = {
 
 interface ServiceFunnelPageProps {
   config: ServiceFunnelConfig
+  isDisabled?: boolean
 }
 
-export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
+export function ServiceFunnelPage({ config, isDisabled }: ServiceFunnelPageProps) {
   const colors = colorClasses[config.accentColor]
 
   // Get testimonials for scrolling columns (filtered by service)
@@ -264,13 +265,32 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
 
+      {/* Temporarily unavailable banner */}
+      {isDisabled && (
+        <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+              This service is temporarily unavailable.
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-200">
+              We&apos;ll be back soon.{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">
+                Contact us
+              </a>{" "}
+              if you have questions.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
 
       <Navbar variant="marketing" />
 
       {/* Section 1: Hero */}
-      <HeroSection config={config} colors={colors} />
+      <HeroSection config={config} colors={colors} isDisabled={isDisabled} />
 
       {/* Live wait time strip — right below hero like homepage */}
       <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
@@ -327,8 +347,8 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
         features={config.pricing.features}
         refundNote={config.pricing.refundNote}
         medicareNote={config.pricing.medicareNote}
-        ctaText={config.hero.ctaText}
-        ctaHref={config.hero.ctaHref}
+        ctaText={isDisabled ? "Contact us" : config.hero.ctaText}
+        ctaHref={isDisabled ? `/contact` : config.hero.ctaHref}
         colors={colors}
         showComparisonTable={config.serviceId === 'med-cert'}
       />
@@ -361,7 +381,7 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       )}
 
       {/* Final CTA */}
-      <FinalCtaSection config={config} colors={colors} />
+      <FinalCtaSection config={config} colors={colors} isDisabled={isDisabled} />
 
       <MarketingFooter />
     </div>
@@ -373,7 +393,7 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 // SECTION COMPONENTS
 // ===========================================
 
-function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
+function HeroSection({ config, colors, isDisabled }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald; isDisabled?: boolean }) {
   const hasImages = config.hero.images?.primary
   const hasRotatingWords = config.hero.headlineRotatingWords && config.hero.headlineRotatingWords.length > 0
   const prefersReducedMotion = useReducedMotion()
@@ -453,16 +473,30 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
               transition={{ duration: 0.4, delay: 0.15 }}
               className={cn('flex flex-col sm:flex-row items-center gap-3 mb-6', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
-              <Button
-                asChild
-                size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
-              >
-                <Link href={config.hero.ctaHref}>
-                  {config.hero.ctaText}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              {isDisabled ? (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="px-8 h-12 text-base font-semibold"
+                >
+                  <Link href={`mailto:${CONTACT_EMAIL}`}>
+                    Contact us
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="lg"
+                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
+                >
+                  <Link href={config.hero.ctaHref}>
+                    {config.hero.ctaText}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
 
               {/* Glowing highlight badge */}
               {config.hero.highlightBadge && (
@@ -941,7 +975,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
   )
 }
 
-function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
+function FinalCtaSection({ config, colors, isDisabled }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald; isDisabled?: boolean }) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -963,8 +997,8 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
             size="lg"
             className="bg-white dark:bg-white text-foreground dark:text-foreground hover:bg-white/90 dark:hover:bg-white/90 px-10 h-14 text-lg font-semibold shadow-lg"
           >
-            <Link href={config.hero.ctaHref}>
-              {config.finalCta.ctaText}
+            <Link href={isDisabled ? "/contact" : config.hero.ctaHref}>
+              {isDisabled ? "Contact us" : config.finalCta.ctaText}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>

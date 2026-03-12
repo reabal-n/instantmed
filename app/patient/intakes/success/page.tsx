@@ -24,12 +24,17 @@ export default async function PaymentSuccessPage({
   let serviceName: string | undefined
   let isPriority = false
   let patientEmail: string | undefined
+  let queuePosition: number | null = null
 
   // Get authenticated user for ownership verification
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (intakeId) {
     const supabase = createServiceRoleClient()
+    const { data: queueData } = await supabase.rpc("get_queue_position", { p_intake_id: intakeId })
+    if (queueData !== null && queueData !== undefined) {
+      queuePosition = Number(queueData)
+    }
     const { data } = await supabase
       .from("intakes")
       .select(`
@@ -70,6 +75,7 @@ export default async function PaymentSuccessPage({
           serviceName={serviceName}
           isPriority={isPriority}
           patientEmail={patientEmail}
+          queuePosition={queuePosition}
         />
       </div>
     </div>

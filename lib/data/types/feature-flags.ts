@@ -12,6 +12,17 @@
 export const FLAG_KEYS = {
   MAINTENANCE_MODE: "maintenance_mode",
   MAINTENANCE_MESSAGE: "maintenance_message",
+  // Operational config
+  BUSINESS_HOURS_ENABLED: "business_hours_enabled",
+  BUSINESS_HOURS_OPEN: "business_hours_open",
+  BUSINESS_HOURS_CLOSE: "business_hours_close",
+  BUSINESS_HOURS_TIMEZONE: "business_hours_timezone",
+  CAPACITY_LIMIT_ENABLED: "capacity_limit_enabled",
+  CAPACITY_LIMIT_MAX: "capacity_limit_max",
+  URGENT_NOTICE_ENABLED: "urgent_notice_enabled",
+  URGENT_NOTICE_MESSAGE: "urgent_notice_message",
+  MAINTENANCE_SCHEDULED_START: "maintenance_scheduled_start",
+  MAINTENANCE_SCHEDULED_END: "maintenance_scheduled_end",
   DISABLE_MED_CERT: "disable_med_cert",
   DISABLE_REPEAT_SCRIPTS: "disable_repeat_scripts",
   DISABLE_CONSULTS: "disable_consults",
@@ -37,6 +48,17 @@ export interface FeatureFlags {
   maintenance_mode: boolean
   maintenance_message: string
   disable_med_cert: boolean
+  // Operational config
+  business_hours_enabled: boolean
+  business_hours_open: number
+  business_hours_close: number
+  business_hours_timezone: string
+  capacity_limit_enabled: boolean
+  capacity_limit_max: number
+  urgent_notice_enabled: boolean
+  urgent_notice_message: string
+  maintenance_scheduled_start: string | null
+  maintenance_scheduled_end: string | null
   disable_repeat_scripts: boolean
   disable_consults: boolean
   blocked_medication_terms: string[]
@@ -67,6 +89,16 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   maintenance_mode: false,
   maintenance_message: "We're currently performing scheduled maintenance. Please check back shortly — we'll be back online soon.",
   disable_med_cert: false,
+  business_hours_enabled: true,
+  business_hours_open: 8,
+  business_hours_close: 22,
+  business_hours_timezone: "Australia/Sydney",
+  capacity_limit_enabled: false,
+  capacity_limit_max: 100,
+  urgent_notice_enabled: false,
+  urgent_notice_message: "",
+  maintenance_scheduled_start: null,
+  maintenance_scheduled_end: null,
   disable_repeat_scripts: false,
   disable_consults: false,
   blocked_medication_terms: [],
@@ -97,6 +129,46 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     maintenance_message: {
       label: "Maintenance Message",
       description: "Custom message shown to patients when maintenance mode is active",
+    },
+    business_hours_enabled: {
+      label: "Enforce Business Hours",
+      description: "Block new requests outside configured hours",
+    },
+    business_hours_open: {
+      label: "Open Hour",
+      description: "Opening hour (0-23)",
+    },
+    business_hours_close: {
+      label: "Close Hour",
+      description: "Closing hour (0-23)",
+    },
+    business_hours_timezone: {
+      label: "Timezone",
+      description: "Timezone for business hours (e.g. Australia/Sydney)",
+    },
+    capacity_limit_enabled: {
+      label: "Capacity Limit",
+      description: "Block new requests when daily limit is reached",
+    },
+    capacity_limit_max: {
+      label: "Max Intakes Per Day",
+      description: "Maximum intakes per day when limit is enabled",
+    },
+    urgent_notice_enabled: {
+      label: "Urgent Notice",
+      description: "Show site-wide notice banner",
+    },
+    urgent_notice_message: {
+      label: "Urgent Notice Message",
+      description: "Message shown in the urgent notice banner",
+    },
+    maintenance_scheduled_start: {
+      label: "Scheduled Maintenance Start",
+      description: "ISO datetime when maintenance starts",
+    },
+    maintenance_scheduled_end: {
+      label: "Scheduled Maintenance End",
+      description: "ISO datetime when maintenance ends",
     },
     disable_med_cert: {
       label: "Disable Medical Certificates",
@@ -183,6 +255,10 @@ export function isArrayFlag(key: FlagKey): boolean {
 export function isStringFlag(key: FlagKey): boolean {
   const stringFlags: FlagKey[] = [
     FLAG_KEYS.MAINTENANCE_MESSAGE,
+    FLAG_KEYS.BUSINESS_HOURS_TIMEZONE,
+    FLAG_KEYS.URGENT_NOTICE_MESSAGE,
+    FLAG_KEYS.MAINTENANCE_SCHEDULED_START,
+    FLAG_KEYS.MAINTENANCE_SCHEDULED_END,
   ]
   return stringFlags.includes(key)
 }

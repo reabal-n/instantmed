@@ -158,6 +158,7 @@ export interface MenuItemData {
   icon?: React.ReactNode
   description?: string
   onClick?: () => void
+  disabled?: boolean
 }
 
 interface MenuItemProps {
@@ -172,17 +173,60 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   const accentColor = theme === "dark" ? menuColors[colorIndex].dark : menuColors[colorIndex].light
 
   const handleClick = () => {
+    if (item.disabled) return
     item.onClick?.()
     onClose()
   }
 
+  const content = (
+    <>
+      {item.icon ? (
+        <div
+          className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+          style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+        >
+          {item.icon}
+        </div>
+      ) : (
+        <div
+          className="w-10 h-10 rounded-xl transition-colors"
+          style={{ backgroundColor: `${accentColor}20`, borderColor: accentColor, borderWidth: 2 }}
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <span className={cn("text-sm font-medium block", item.disabled ? "text-muted-foreground" : "text-foreground")}>
+          {item.label}
+        </span>
+        {item.description && (
+          <span className="text-xs text-muted-foreground">{item.description}</span>
+        )}
+      </div>
+      {!item.disabled && (
+        <motion.div
+          className="w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ backgroundColor: accentColor }}
+        />
+      )}
+    </>
+  )
+
   return (
     <motion.li
       variants={itemVariants}
-      whileHover={{ y: -2, x: 8 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={item.disabled ? undefined : { y: -2, x: 8 }}
+      whileTap={item.disabled ? undefined : { scale: 0.98 }}
       className="list-none"
     >
+      {item.disabled ? (
+        <div
+          className={cn(
+            "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
+            "opacity-60 cursor-not-allowed"
+          )}
+        >
+          {content}
+        </div>
+      ) : (
       <Link
         href={item.href}
         onClick={handleClick}
@@ -196,30 +240,9 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
           "group"
         )}
       >
-        {item.icon ? (
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
-            style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-          >
-            {item.icon}
-          </div>
-        ) : (
-          <div
-            className="w-10 h-10 rounded-xl transition-colors"
-            style={{ backgroundColor: `${accentColor}20`, borderColor: accentColor, borderWidth: 2 }}
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-foreground block">{item.label}</span>
-          {item.description && (
-            <span className="text-xs text-muted-foreground">{item.description}</span>
-          )}
-        </div>
-        <motion.div
-          className="w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ backgroundColor: accentColor }}
-        />
+        {content}
       </Link>
+      )}
     </motion.li>
   )
 }

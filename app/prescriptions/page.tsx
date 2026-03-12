@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
+import { getFeatureFlags } from '@/lib/feature-flags'
 import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
@@ -23,8 +24,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PrescriptionsPage() {
-  const liveStats = getDailyStats(7) // offset to differ from med-cert page
+export default async function PrescriptionsPage() {
+  const [liveStats, flags] = await Promise.all([
+    getDailyStats(7),
+    getFeatureFlags(),
+  ])
   return (
     <>
       {/* SEO Structured Data */}
@@ -40,7 +44,7 @@ export default function PrescriptionsPage() {
         price="29.95"
       />
       <PrescriptionHowToSchema />
-      <ServiceFunnelPage config={{ ...repeatScriptFunnelConfig, liveStats }} />
+      <ServiceFunnelPage config={{ ...repeatScriptFunnelConfig, liveStats }} isDisabled={flags.disable_repeat_scripts} />
     </>
   )
 }

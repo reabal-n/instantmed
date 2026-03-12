@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+import { getFeatureFlags } from '@/lib/feature-flags'
 import { BreadcrumbSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 
@@ -32,7 +33,10 @@ interface ConsultPageProps {
 }
 
 export default async function ConsultPage({ searchParams }: ConsultPageProps) {
-  const params = await searchParams
+  const [params, flags] = await Promise.all([
+    searchParams,
+    getFeatureFlags(),
+  ])
   const isFromMedCert = params.source === 'med_cert' && params.reason === 'extended_duration'
   
   return (
@@ -51,7 +55,7 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
       />
       {/* Show contextual banner for med cert redirects */}
       {isFromMedCert && <MedCertRedirectBanner />}
-      <ServiceFunnelPage config={generalConsultFunnelConfig} />
+      <ServiceFunnelPage config={generalConsultFunnelConfig} isDisabled={flags.disable_consults} />
     </>
   )
 }

@@ -674,6 +674,7 @@ export async function POST(request: Request) {
           // 5c: Telegram notification to doctor
           import("@/lib/notifications/telegram")
             .then(({ notifyNewIntakeViaTelegram }) => {
+              const serviceSlug = session.metadata?.service_slug ?? ""
               const slugDisplayNames: Record<string, string> = {
                 "med-cert-sick": "Medical Certificate",
                 "med-cert-carer": "Carers Certificate",
@@ -683,8 +684,9 @@ export async function POST(request: Request) {
               return notifyNewIntakeViaTelegram({
                 intakeId,
                 patientName: patientProfile.full_name || "Patient",
-                serviceName: slugDisplayNames[session.metadata?.service_slug ?? ""] || "Medical Request",
+                serviceName: slugDisplayNames[serviceSlug] || "Medical Request",
                 amount: `$${(session.amount_total! / 100).toFixed(2)}`,
+                serviceSlug,
               })
             })
             .catch((err) => {

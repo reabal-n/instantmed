@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Users, Smartphone, School, Landmark } from "lucide-react"
+import { AlertCircle, ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Users, Smartphone, School, Landmark } from "lucide-react"
 import { AccordionSection, CTABanner, ProcessSteps } from "@/components/sections"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { LiveWaitTime, StatsStrip } from "@/components/marketing"
@@ -18,6 +18,7 @@ import { AvailabilityIndicator } from "@/components/shared/availability-indicato
 import { motion, useReducedMotion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 // Certificate types - 3 tiers
 // Pricing: 1-day $19.95, 2-day $29.95 (tiered based on duration selected in flow)
@@ -193,13 +194,27 @@ function useRotatingSubheadline() {
   return SUBHEADLINE_VARIATIONS[index]
 }
 
+const CONTACT_EMAIL = "support@instantmed.com.au"
+
 export default function MedicalCertificatePage() {
   const currentSubheadline = useRotatingSubheadline()
   const _prefersReducedMotion = useReducedMotion()
+  const isDisabled = useServiceAvailability().isServiceDisabled("med-cert")
 
   return (
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
+      {isDisabled && (
+        <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">This service is temporarily unavailable.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-200">
+              We&apos;ll be back soon. <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">Contact us</a> if you have questions.
+            </p>
+          </div>
+        </div>
+      )}
       <Navbar variant="marketing" />
 
       <main className="relative pb-20 lg:pb-0">
@@ -265,10 +280,11 @@ export default function MedicalCertificatePage() {
                     <Button
                       asChild
                       size="lg"
-                      className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                      variant={isDisabled ? "outline" : "default"}
+                      className={cn(isDisabled ? "" : "px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all")}
                     >
-                      <Link href="/request?service=med-cert">
-                        Get your certificate — $19.95
+                      <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
+                        {isDisabled ? "Contact us" : "Get your certificate — $19.95"}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -470,7 +486,7 @@ export default function MedicalCertificatePage() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <Link href={cert.href} className="group block h-full">
+                    <Link href={isDisabled ? "/contact" : cert.href} className="group block h-full">
                         <div className={cn(
                           "relative h-full rounded-2xl overflow-hidden flex flex-col",
                           "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
@@ -687,8 +703,8 @@ export default function MedicalCertificatePage() {
               size="sm"
               className="px-5 font-semibold shadow-lg shadow-primary/25 shrink-0"
             >
-              <Link href="/request?service=med-cert">
-                Get started
+              <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
+                {isDisabled ? "Contact us" : "Get started"}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>

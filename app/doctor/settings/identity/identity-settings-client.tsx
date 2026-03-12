@@ -16,11 +16,15 @@ import {
   AlertTriangle,
   User,
   FileSignature,
+  Pause,
+  Play,
 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 import {
   saveDoctorIdentityAction,
   uploadSignatureAction,
 } from "@/app/actions/doctor-identity"
+import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
 import {
   validateProviderNumber,
   validateAhpraNumber,
@@ -47,6 +51,9 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
   // Validation errors
   const [providerError, setProviderError] = useState<string | null>(null)
   const [ahpraError, setAhpraError] = useState<string | null>(null)
+
+  const [doctorAvailable, setDoctorAvailable] = useState(initialData.doctor_available !== false)
+  const [availabilitySaving, setAvailabilitySaving] = useState(false)
 
   // Track changes
   const hasChanges =
@@ -139,8 +146,47 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
     []
   )
 
+  const handleAvailabilityChange = useCallback(async (checked: boolean) => {
+    setDoctorAvailable(checked)
+    setAvailabilitySaving(true)
+    const result = await setDoctorAvailabilityAction(checked)
+    setAvailabilitySaving(false)
+    if (result.success) {
+      setMessage({ type: "success", text: checked ? "Accepting new requests" : "Paused — no new requests" })
+      setTimeout(() => setMessage(null), 3000)
+    } else {
+      setMessage({ type: "error", text: result.error || "Failed to update" })
+      setDoctorAvailable(!checked)
+    }
+  }, [])
+
   return (
     <div className="space-y-4">
+      {/* Availability */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            {doctorAvailable ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+            Request availability
+          </CardTitle>
+          <CardDescription>
+            When paused, you won&apos;t receive new requests in your queue. Existing claims continue as normal.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {doctorAvailable ? "Accepting new requests" : "Paused — no new requests"}
+            </span>
+            <Switch
+              checked={doctorAvailable}
+              onCheckedChange={handleAvailabilityChange}
+              disabled={availabilitySaving}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>

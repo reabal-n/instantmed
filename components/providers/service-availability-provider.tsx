@@ -16,12 +16,20 @@ interface AvailabilityState {
   disable_med_cert: boolean
   disable_repeat_scripts: boolean
   disable_consults: boolean
+  urgent_notice_enabled: boolean
+  urgent_notice_message: string
+  business_hours_open: number
+  business_hours_close: number
+  business_hours_timezone: string
+  business_hours_enabled: boolean
 }
 
 interface ServiceAvailabilityContextValue {
   maintenanceMode: boolean
   isServiceDisabled: (serviceId: ServiceId) => boolean
   isLoading: boolean
+  urgentNotice: { enabled: boolean; message: string }
+  businessHours: { open: number; close: number; timezone: string; enabled: boolean }
 }
 
 const defaultState: AvailabilityState = {
@@ -29,12 +37,20 @@ const defaultState: AvailabilityState = {
   disable_med_cert: false,
   disable_repeat_scripts: false,
   disable_consults: false,
+  urgent_notice_enabled: false,
+  urgent_notice_message: "",
+  business_hours_open: 8,
+  business_hours_close: 22,
+  business_hours_timezone: "Australia/Sydney",
+  business_hours_enabled: true,
 }
 
 const ServiceAvailabilityContext = createContext<ServiceAvailabilityContextValue>({
   maintenanceMode: false,
   isServiceDisabled: () => false,
   isLoading: true,
+  urgentNotice: { enabled: false, message: "" },
+  businessHours: { open: 8, close: 22, timezone: "Australia/Sydney", enabled: true },
 })
 
 export function useServiceAvailability() {
@@ -85,6 +101,16 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
     maintenanceMode: state.maintenance_mode,
     isServiceDisabled,
     isLoading,
+    urgentNotice: {
+      enabled: state.urgent_notice_enabled === true,
+      message: state.urgent_notice_message || "",
+    },
+    businessHours: {
+      open: state.business_hours_open ?? 8,
+      close: state.business_hours_close ?? 22,
+      timezone: state.business_hours_timezone || "Australia/Sydney",
+      enabled: state.business_hours_enabled !== false,
+    },
   }
 
   return (
