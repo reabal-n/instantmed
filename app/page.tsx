@@ -26,7 +26,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: 'Online Doctor Australia | Med Certs & Medication',
-  description: 'Medical certificates from $19.95, repeat medication from $29.95. AHPRA-registered Australian doctors. Results in under an hour, 100% online.',
+  description: 'Medical certificates from $19.95, repeat medication from $29.95. AHPRA-registered Australian doctors. Most requests reviewed within 1–2 hours, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'InstantMed - Online Doctor Consultations Australia',
-    description: 'Medical certificates and repeat medication sorted in under an hour by Australian-registered doctors.',
+    description: 'Medical certificates and repeat medication. Most requests reviewed within 1–2 hours by Australian-registered doctors.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates and repeat medication in under an hour.',
+    description: 'Medical certificates and repeat medication. Most requests reviewed within 1–2 hours.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {

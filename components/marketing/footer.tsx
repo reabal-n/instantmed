@@ -3,7 +3,7 @@ import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
 import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from 'lucide-react'
 import { PaymentMethodIcons, StripeBadge } from '@/components/checkout/trust-badges'
-import { CONTACT_EMAIL, CONTACT_PHONE, COMPANY_ADDRESS_SHORT, ABN } from '@/lib/constants'
+import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE, COMPANY_ADDRESS_SHORT, ABN } from '@/lib/constants'
 
 /**
  * Footer trust badges strip - compact trust signals
@@ -71,7 +71,7 @@ export function MarketingFooter() {
           <div className="flex flex-col items-start gap-3">
             <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              See a doctor from bed. Sorted in under an hour.
+              See a doctor from bed. Most requests reviewed within 1–2 hours.
             </p>
             <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
               <div className="flex items-start gap-2">
@@ -85,6 +85,10 @@ export function MarketingFooter() {
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 shrink-0" />
                 <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground/70">Complaints:</span>
+                <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL_COMPLAINTS}</a>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ export const siteConfig = {
 }
 
 export const heroRotatingTexts = [
-  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — most sorted in under an hour.`,
+  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — most reviewed within 1–2 hours.`,
   "Too sick to visit a GP? Get your cert from bed.",
   "AHPRA-registered doctors. Employer-accepted certificates.",
   `Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy, Australia-wide.`,
@@ -34,7 +34,7 @@ export const heroRotatingTexts = [
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Reviewed in under an hour",
+    text: "Most reviewed within 1–2 hours",
     description: "Most requests sorted same day",
   },
   {

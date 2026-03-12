@@ -463,7 +463,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     badge: 'Australian GP consultations',
     headline: 'See a doctor today.',
     headlineRotatingWords: ['No waiting rooms.', 'Prescriptions if needed.', 'From your phone.'],
-    subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Prescriptions and referrals included if appropriate.`,
+    subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Prescriptions may be issued by your doctor if clinically appropriate.`,
     reassurances: [
       'AHPRA-registered doctors · Prescriptions & referrals if needed · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
@@ -471,7 +471,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     ctaText: `Start your consult — ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
     highlightBadge: {
-      text: 'Prescriptions included',
+      text: 'Prescriptions if clinically appropriate',
       glow: true,
     },
   },

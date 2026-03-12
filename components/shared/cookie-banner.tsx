@@ -222,7 +222,7 @@ export function CookieBanner() {
   return (
     <div 
       className={cn(
-        "fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-sm",
+        "fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:bottom-6 z-50 sm:max-w-sm",
         "transition-all duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}

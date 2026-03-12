@@ -67,6 +67,10 @@ export const GP_COMPARISON = {
   COMPLEX: "$80–120",
 } as const
 
+// Consent/terms version for compliance audit (align with Terms page "Last updated")
+export const TERMS_VERSION = "2026-02"
+export const TELEHEALTH_CONSENT_VERSION = "2026-02"
+
 // Response time guarantees
 export const RESPONSE_TIMES = {
   AVERAGE: "2-4 hours",

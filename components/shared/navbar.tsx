@@ -235,12 +235,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
   return (
     <>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-1/2 focus:-translate-x-1/2 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-primary focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-none"
-      >
-        Skip to content
-      </a>
       <header
         className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-2")}
       >

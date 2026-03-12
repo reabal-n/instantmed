@@ -15,8 +15,22 @@ import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/sa
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 import { completeTranscript } from "@/lib/chat/audit-trail"
+import {
+  logRequestCreated,
+  logTermsConsentGiven,
+  logTelehealthConsentGiven,
+  logAccuracyAttestationGiven,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
+import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 
 const logger = createLogger("stripe-checkout")
+
+function mapCategoryToRequestType(category: string, subtype: string): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (category === "prescription" && (subtype === "repeat" || subtype === "chronic_review")) return "repeat_rx"
+  return "intake"
+}
 
 interface CreateCheckoutInput {
   category: string
@@ -78,6 +92,7 @@ function getServiceSlug(category: string, subtype: string): string {
  * Uses intakes table as the canonical case object
  */
 export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
+  const startTime = Date.now()
   try {
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
@@ -421,6 +436,19 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
 
+    // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
+    const requestType = mapCategoryToRequestType(input.category, input.subtype)
+    await logRequestCreated(intake.id, requestType, patientId, {
+      category: input.category,
+      subtype: input.subtype,
+    })
+    // Per-episode consent evidence (CLINICAL.md)
+    await Promise.all([
+      logTermsConsentGiven(intake.id, requestType, patientId, TERMS_VERSION),
+      logTelehealthConsentGiven(intake.id, requestType, patientId, TELEHEALTH_CONSENT_VERSION),
+      logAccuracyAttestationGiven(intake.id, requestType, patientId),
+    ])
+
     // 6a. Save fraud flags if any were detected (non-blocking)
     if (fraudResult.flagged) {
       try {
@@ -597,10 +625,25 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       .update({ payment_id: session.id })
       .eq("id", intake.id)
 
+    const latencyMs = Date.now() - startTime
     logger.info("Checkout session created successfully", { 
       intakeId: intake.id, 
-      sessionId: session.id 
+      sessionId: session.id,
+      latencyMs,
     })
+    // Checkout latency tracking for OPERATIONS.md Golden Signals (P95 < 5s)
+    if (latencyMs > 5000) {
+      const Sentry = await import("@sentry/nextjs")
+      Sentry.captureMessage(`Checkout latency exceeded 5s threshold`, {
+        level: "warning",
+        tags: {
+          source: "checkout_latency",
+          service_type: input.category,
+          consult_subtype: input.subtype,
+        },
+        extra: { latencyMs, intakeId: intake.id },
+      })
+    }
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
@@ -619,11 +662,13 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         service_type: input.category,
         consult_subtype: input.subtype,
         step_id: "checkout_outer_catch",
+        checkout_error: "true",
       },
       extra: {
         category: input.category,
         subtype: input.subtype,
         serviceSlug: input.serviceSlug,
+        latencyMs: Date.now() - startTime,
       },
     })
     

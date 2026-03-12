@@ -17,6 +17,7 @@ import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
 import { LazyOverlays } from "@/components/shared/lazy-overlays"
+import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
 import Script from "next/script"
 import "./globals.css"
@@ -177,6 +178,7 @@ export default function RootLayout({
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogLoader>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+                <ServiceAvailabilityProvider>
                 <MeshGradientCanvas />
                 <NavigationProgress />
                 <NetworkStatus />
@@ -192,6 +194,7 @@ export default function RootLayout({
                 <WebVitalsReporter />
                 <ServiceWorkerRegistration />
                 <CookieBanner />
+                </ServiceAvailabilityProvider>
           </ThemeProvider>
           </PostHogLoader>
         </body>

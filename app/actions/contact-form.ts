@@ -6,17 +6,18 @@ import { logger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { sanitizeString, sanitizeEmail } from "@/lib/security/sanitize"
 
 // ============================================
-// CONTACT FORM SCHEMA
+// CONTACT FORM SCHEMA (with input sanitization)
 // ============================================
 
 const contactFormSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Invalid email address"),
-  subject: z.string().min(1, "Subject is required").max(200),
-  message: z.string().min(10, "Message must be at least 10 characters").max(5000),
-  reason: z.string().optional(),
+  name: z.string().transform(sanitizeString).pipe(z.string().min(1, "Name is required").max(100)),
+  email: z.string().transform(sanitizeEmail).pipe(z.string().email("Invalid email address")),
+  subject: z.string().transform(sanitizeString).pipe(z.string().min(1, "Subject is required").max(200)),
+  message: z.string().transform(sanitizeString).pipe(z.string().min(10, "Message must be at least 10 characters").max(5000)),
+  reason: z.union([z.string(), z.null(), z.undefined()]).optional().transform((s) => (s && typeof s === "string" ? sanitizeString(s) : undefined)),
 })
 
 export type ContactFormData = z.infer<typeof contactFormSchema>

@@ -524,12 +524,14 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   onClick={() => setConsentMyhr(!consentMyhr)}
                   className={cn(
                     "relative w-14 h-8 rounded-full transition-all duration-300 shrink-0",
-                    consentMyhr ? "bg-primary shadow-[0_8px_30px_rgb(59,130,246,0.3)]" : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10"
+                    consentMyhr
+                      ? "bg-primary shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
+                      : "bg-muted/80 dark:bg-muted/60 border-2 border-border dark:border-white/20"
                   )}
                 >
                   <span
                     className={cn(
-                      "absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-300",
+                      "absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md ring-1 ring-black/5 transition-transform duration-300",
                       consentMyhr && "translate-x-6"
                     )}
                   />

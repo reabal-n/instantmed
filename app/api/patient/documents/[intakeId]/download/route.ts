@@ -14,6 +14,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 const log = createLogger("route")
 import { NextResponse } from "next/server"
 
@@ -22,6 +23,7 @@ export const runtime = "nodejs"
 /**
  * GET handler for document download
  * Validates patient auth, verifies intake/request ownership, streams PDF from Supabase
+ * Rate limited: 30 downloads/hour per user to prevent abuse
  */
 export async function GET(
   request: Request,
@@ -38,6 +40,10 @@ export async function GET(
     }
 
     const { profile } = authResult
+
+    // Rate limit: 30 downloads/hour per user
+    const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
+    if (rateLimitResponse) return rateLimitResponse
 
     // Validate UUID format
     if (!intakeId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {

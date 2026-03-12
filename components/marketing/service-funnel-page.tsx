@@ -437,11 +437,11 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <Badge variant="price" shape="pill" size="lg">
-                {config.serviceName} from ${config.pricing.price.toFixed(2)}
+                {config.serviceName} from $${config.pricing.price.toFixed(2)}
               </Badge>
               {config.pricing.originalPrice && (
                 <p className="text-xs text-muted-foreground">
-                  Typically ${config.pricing.originalPrice}+ at a GP clinic
+                  Typically $${config.pricing.originalPrice}+ at a GP clinic
                 </p>
               )}
             </motion.div>
@@ -969,7 +969,7 @@ function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colo
             </Link>
           </Button>
           <p className="mt-4 text-white/80 text-sm font-medium">
-            From ${config.pricing.price.toFixed(2)} · No account required
+            From $${config.pricing.price.toFixed(2)} · No account required
           </p>
           <p className="mt-1 text-white/60 text-xs">
             Takes about 2 minutes · Full refund if we can&apos;t help

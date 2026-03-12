@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import * as Sentry from "@sentry/nextjs"
 import { getCurrentProfile } from "@/lib/data/profiles"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import {
   getCertificateById,
   getSecureDownloadUrl,
@@ -43,6 +44,10 @@ export async function GET(
         { status: 401 }
       )
     }
+
+    // Rate limit: 30 downloads/hour per user
+    const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
+    if (rateLimitResponse) return rateLimitResponse
 
     // 3. Get certificate
     const certificate = await getCertificateById(certificateId)

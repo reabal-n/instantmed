@@ -12,8 +12,22 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
+import {
+  logRequestCreated,
+  logTermsConsentGiven,
+  logTelehealthConsentGiven,
+  logAccuracyAttestationGiven,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
+import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 
 const logger = createLogger("guest-checkout")
+
+function mapCategoryToRequestType(category: string, subtype: string): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (category === "prescription" && (subtype === "repeat" || subtype === "chronic_review")) return "repeat_rx"
+  return "intake"
+}
 
 interface GuestCheckoutInput {
   category: ServiceCategory
@@ -375,6 +389,20 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
       return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
+
+    // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
+    const requestType = mapCategoryToRequestType(input.category, input.subtype || "")
+    await logRequestCreated(intake.id, requestType, guestProfileId, {
+      category: input.category,
+      subtype: input.subtype,
+      guest: true,
+    })
+    // Per-episode consent evidence (CLINICAL.md)
+    await Promise.all([
+      logTermsConsentGiven(intake.id, requestType, guestProfileId, TERMS_VERSION),
+      logTelehealthConsentGiven(intake.id, requestType, guestProfileId, TELEHEALTH_CONSENT_VERSION),
+      logAccuracyAttestationGiven(intake.id, requestType, guestProfileId),
+    ])
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
     const { error: answersError } = await supabase.from("intake_answers").insert({

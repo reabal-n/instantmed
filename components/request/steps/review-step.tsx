@@ -546,7 +546,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         {[
           { icon: Shield, color: 'text-primary', label: 'Real Australian doctor' },
           { icon: Clock, color: 'text-primary', label: 'Issued within ~1 hour' },
-          { icon: RefreshCw, color: 'text-primary', label: 'Full refund guarantee' },
+          { icon: RefreshCw, color: 'text-primary', label: 'Full refund if we can\'t help' },
         ].map((badge) => (
           <div
             key={badge.label}

@@ -3,6 +3,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { CompleteAccountForm } from "./complete-account-form"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Prevent static generation for dynamic auth
 
@@ -44,7 +45,15 @@ export default async function CompleteAccountPage({
       <Navbar />
       <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
         <div className="max-w-md mx-auto px-4">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={
+            <div className="space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
+              <span className="sr-only" role="status">Loading form</span>
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-full" />
+            </div>
+          }>
             <CompleteAccountForm intakeId={intakeId} email={email} sessionId={params.session_id} />
           </Suspense>
         </div>

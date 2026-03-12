@@ -265,7 +265,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </span>
         <span className="flex items-center gap-1">
           <RefreshCw className="w-3.5 h-3.5 text-primary" />
-          Money-back guarantee
+          Full refund if we can&apos;t help
         </span>
       </motion.div>
 
@@ -351,7 +351,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           {/* Refund guarantee right next to pay button */}
           <div className="flex items-center justify-center gap-2 text-xs text-primary">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="font-medium">Full refund if we can&apos;t help — guaranteed</span>
+            <span className="font-medium">Full refund if we can&apos;t help</span>
           </div>
 
           {/* Payment method logos */}

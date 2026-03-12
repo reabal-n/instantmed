@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
-import { CONTACT_EMAIL } from "@/lib/constants"
+import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS } from "@/lib/constants"
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -233,6 +233,21 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
             <div>
               <p className="text-sm font-medium">Business Hours</p>
               <p className="text-sm text-muted-foreground">Mon - Sun: 8am - 10pm AEST</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4 pt-2 border-t border-border/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <AlertCircle className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Formal Complaints</p>
+              <a
+                href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors block"
+              >
+                {CONTACT_EMAIL_COMPLAINTS}
+              </a>
+              <p className="text-xs text-muted-foreground mt-1">14 business day response, AHPRA escalation path</p>
             </div>
           </div>
         </address>

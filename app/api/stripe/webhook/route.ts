@@ -671,6 +671,26 @@ export async function POST(request: Request) {
             log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
           }
 
+          // 5c: Telegram notification to doctor
+          import("@/lib/notifications/telegram")
+            .then(({ notifyNewIntakeViaTelegram }) => {
+              const slugDisplayNames: Record<string, string> = {
+                "med-cert-sick": "Medical Certificate",
+                "med-cert-carer": "Carers Certificate",
+                "common-scripts": "Prescription",
+                "consult": "Consultation",
+              }
+              return notifyNewIntakeViaTelegram({
+                intakeId,
+                patientName: patientProfile.full_name || "Patient",
+                serviceName: slugDisplayNames[session.metadata?.service_slug ?? ""] || "Medical Request",
+                amount: `$${(session.amount_total! / 100).toFixed(2)}`,
+              })
+            })
+            .catch((err) => {
+              log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+            })
+
         }
       }
 

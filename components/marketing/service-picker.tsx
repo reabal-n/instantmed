@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star } from 'lucide-react'
+import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
 import { SpotlightReveal } from '@/components/ui/glowing-effect'
+import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -54,7 +55,7 @@ const serviceMetadata: Record<string, { time: string; callNote: string; gpCompar
 const trustSignals = [
   { icon: Stethoscope, text: 'Australian GP-reviewed' },
   { icon: Clock, text: 'Same-day turnaround' },
-  { icon: ShieldCheck, text: 'Full refund guarantee' },
+  { icon: ShieldCheck, text: 'Full refund if we can\'t help' },
 ]
 
 function useServicePickerVariants() {
@@ -87,6 +88,7 @@ function useServicePickerVariants() {
 
 export function ServicePicker() {
   const { containerVariants, itemVariants, prefersReducedMotion } = useServicePickerVariants()
+  const { isServiceDisabled } = useServiceAvailability()
 
   return (
     <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
@@ -158,17 +160,22 @@ export function ServicePicker() {
             const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
             const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
             const displayPrice = service.priceFrom
+            const disabled = isServiceDisabled(service.id as ServiceId)
             
-            return (
-              <motion.div key={service.id} variants={itemVariants}>
-                <Link
-                  href={service.href || `/${service.slug}/request`}
-                  className="group block h-full"
-                >
+            const cardContent = (
                   <SpotlightReveal color={colors.accent} size={350} borderRadius="0.75rem" className="h-full">
                   <div className="relative h-full">
+                    {/* Temporarily unavailable badge */}
+                    {disabled && (
+                      <div className="absolute -top-3 left-4 right-4 z-20">
+                        <div className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                          <AlertCircle className="h-3 w-3" />
+                          Temporarily unavailable
+                        </div>
+                      </div>
+                    )}
                     {/* Most common badge */}
-                    {service.popular && (
+                    {service.popular && !disabled && (
                       <div className="absolute -top-3 right-4 z-20">
                         <div className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
                           Most common
@@ -183,12 +190,11 @@ export function ServicePicker() {
                       "border border-dawn-200/40 dark:border-white/15",
                       "backdrop-blur-xl",
                       "shadow-sm shadow-dawn-200/20 dark:shadow-none",
-                      "hover:shadow-lg hover:shadow-dawn-300/25 hover:border-dawn-300/50 dark:hover:shadow-[0_4px_20px_rgba(93,184,201,0.08)] dark:hover:border-accent-teal/25",
                       "transition-all duration-300",
-                      // Elevate popular card
-                      service.popular && [
-                        "ring-1 ring-dawn-300/30 dark:ring-accent-teal/20",
-                        "shadow-md shadow-dawn-200/25 dark:shadow-none",
+                      disabled && "opacity-60",
+                      !disabled && [
+                        "hover:shadow-lg hover:shadow-dawn-300/25 hover:border-dawn-300/50 dark:hover:shadow-[0_4px_20px_rgba(93,184,201,0.08)] dark:hover:border-accent-teal/25",
+                        service.popular && "ring-1 ring-dawn-300/30 dark:ring-accent-teal/20 shadow-md shadow-dawn-200/25 dark:shadow-none",
                       ]
                     )}>
                       {/* Gradient accent bar */}
@@ -301,7 +307,22 @@ export function ServicePicker() {
                     </div>
                   </div>
                   </SpotlightReveal>
-                </Link>
+            )
+
+            return (
+              <motion.div key={service.id} variants={itemVariants}>
+                {disabled ? (
+                  <div className="group block h-full cursor-not-allowed pointer-events-none select-none" aria-disabled="true">
+                    {cardContent}
+                  </div>
+                ) : (
+                  <Link
+                    href={service.href || `/${service.slug}/request`}
+                    className="group block h-full"
+                  >
+                    {cardContent}
+                  </Link>
+                )}
               </motion.div>
             )
           })}

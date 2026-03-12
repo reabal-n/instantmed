@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("certificate-download")
 
 /**
  * Generate a signed download URL for a patient's certificate.
  * Validates ownership before generating the URL.
+ * Rate limited: 30 downloads/hour per user.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -34,6 +36,10 @@ export async function GET(
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
+
+    // Rate limit: 30 downloads/hour per user
+    const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
+    if (rateLimitResponse) return rateLimitResponse
 
     // Get certificate with ownership check
     const { data: certificate, error } = await supabase
