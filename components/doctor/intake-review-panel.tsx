@@ -49,6 +49,7 @@ import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
+import { regenerateDrafts } from "@/app/actions/draft-approval"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
@@ -60,27 +61,20 @@ import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { toast } from "sonner"
 
 /**
- * Format clinical note draft JSON into readable text.
- * Mirrors server-side formatClinicalNoteAsText in draft-approval.ts.
- * Fixed section order for determinism.
+ * Format clinical note draft JSON into SOAP clinical note text.
  */
 function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
-  const sections: string[] = []
   const c = content as Record<string, string>
+  const sections: string[] = []
+  const subj = c.presentingComplaint?.trim() || ""
+  const obj = c.historyOfPresentIllness?.trim() || ""
+  const assess = c.relevantInformation?.trim() || ""
+  const plan = c.certificateDetails?.trim() || ""
 
-  if (c.presentingComplaint?.trim()) {
-    sections.push(`Presenting Complaint:\n${c.presentingComplaint.trim()}`)
-  }
-  if (c.historyOfPresentIllness?.trim()) {
-    sections.push(`History of Present Illness:\n${c.historyOfPresentIllness.trim()}`)
-  }
-  if (c.relevantInformation?.trim()) {
-    sections.push(`Relevant Information:\n${c.relevantInformation.trim()}`)
-  }
-  if (c.certificateDetails?.trim()) {
-    sections.push(`Certificate Details:\n${c.certificateDetails.trim()}`)
-  }
-
+  if (subj) sections.push(`Subjective:\n${subj}`)
+  if (obj) sections.push(`Objective:\n${obj}`)
+  if (assess) sections.push(`Assessment:\n${assess}`)
+  if (plan) sections.push(`Plan:\n${plan}`)
   return sections.length > 0 ? sections.join("\n\n") : null
 }
 
@@ -135,6 +129,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   const [showCertPreview, setShowCertPreview] = useState(false)
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   // Lock warning
   const [lockWarning, setLockWarning] = useState<string | null>(null)
@@ -376,6 +371,38 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         toast.error(result.error || "Failed to decline")
       }
     })
+  }
+
+  const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
+
+  const handleGenerateOrRegenerateNote = async () => {
+    if (!intake) return
+    setIsRegenerating(true)
+    try {
+      const result = await regenerateDrafts(intake.id)
+      if (result.success) {
+        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
+        if (res.ok) {
+          const reviewData: ReviewData = await res.json()
+          setData(reviewData)
+          const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts || [])
+          if (clinicalDraft) {
+            const formatted = formatClinicalNoteContent(clinicalDraft.content)
+            if (formatted) {
+              setDoctorNotes(formatted)
+              setIsAiPrefilled(true)
+              toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
+            }
+          }
+        }
+      } else {
+        toast.error(result.error || "Failed to generate draft")
+      }
+    } catch {
+      toast.error("Failed to generate draft")
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   const handleSaveNotes = async () => {
@@ -683,24 +710,48 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                 <>
                   {isAiPrefilled && (
                     <p className="text-xs text-muted-foreground">
-                      Pre-filled from AI analysis of intake answers. Review, edit as needed, then save.
+                      Pre-filled from AI draft. Edits save on approval, or click Save to persist now.
                     </p>
                   )}
-                  <Textarea
-                    ref={notesRef}
-                    placeholder="Add your clinical notes here... (⌘+N to focus)"
-                    value={doctorNotes}
-                    onChange={(e) => {
-                      setDoctorNotes(e.target.value)
-                      setNoteSaved(false)
-                    }}
-                    disabled={isPending}
-                    className="min-h-[140px] text-sm"
-                  />
+                  {isRegenerating && !doctorNotes ? (
+                    <div className="flex items-center gap-2 py-8 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Generating draft...</span>
+                    </div>
+                  ) : (
+                    <Textarea
+                      ref={notesRef}
+                      placeholder="Add your clinical notes here... (⌘+N to focus)"
+                      value={doctorNotes}
+                      onChange={(e) => {
+                        setDoctorNotes(e.target.value)
+                        setNoteSaved(false)
+                      }}
+                      disabled={isPending || isRegenerating}
+                      className="min-h-[140px] text-sm"
+                    />
+                  )}
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleSaveNotes} disabled={isPending} variant="outline" size="sm">
+                    <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
                       <Save className="h-3.5 w-3.5 mr-1.5" />
                       Save Notes
+                    </Button>
+                    <Button
+                      onClick={handleGenerateOrRegenerateNote}
+                      disabled={isPending || isRegenerating}
+                      variant={hasClinicalDraft ? "ghost" : "outline"}
+                      size="sm"
+                    >
+                      {isRegenerating ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <FileText className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      {isRegenerating
+                        ? "Generating..."
+                        : hasClinicalDraft
+                          ? "Regenerate AI draft"
+                          : "Generate AI draft"}
                     </Button>
                     {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
                   </div>

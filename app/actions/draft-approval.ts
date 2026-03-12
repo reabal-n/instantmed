@@ -473,32 +473,28 @@ function isClinicalNoteJson(content: unknown): content is ClinicalNoteContent {
 }
 
 /**
- * Format clinical note JSON content into readable text for intake.doctor_notes
- * 
+ * Format clinical note JSON content into SOAP-format text for intake.doctor_notes
+ *
  * DETERMINISTIC: Same input always produces same output.
- * Section order is fixed, empty sections are omitted.
+ * Section order: Subjective, Objective, Assessment, Plan.
  */
 function formatClinicalNoteAsText(content: ClinicalNoteContent): string {
   const sections: string[] = []
-  
-  // Fixed section order for determinism
+
   if (content.presentingComplaint?.trim()) {
-    sections.push(`Presenting Complaint:\n${content.presentingComplaint.trim()}`)
+    sections.push(`Subjective:\n${content.presentingComplaint.trim()}`)
   }
-  
   if (content.historyOfPresentIllness?.trim()) {
-    sections.push(`History of Present Illness:\n${content.historyOfPresentIllness.trim()}`)
+    sections.push(`Objective:\n${content.historyOfPresentIllness.trim()}`)
   }
-  
   if (content.relevantInformation?.trim()) {
-    sections.push(`Relevant Information:\n${content.relevantInformation.trim()}`)
+    sections.push(`Assessment:\n${content.relevantInformation.trim()}`)
   }
-  
   if (content.certificateDetails?.trim()) {
-    sections.push(`Certificate Details:\n${content.certificateDetails.trim()}`)
+    sections.push(`Plan:\n${content.certificateDetails.trim()}`)
   }
-  
-  return sections.join('\n\n')
+
+  return sections.join("\n\n")
 }
 
 /**
