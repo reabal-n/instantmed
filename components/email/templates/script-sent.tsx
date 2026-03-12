@@ -27,20 +27,23 @@ export function ScriptSentEmail({
   patientName,
   requestId,
   escriptReference,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: ScriptSentEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText="Your eScript has been sent to your phone ✅"
+      previewText="Your eScript is ready — check your phone ✅"
       appUrl={appUrl}
     >
       <SuccessBanner title="Your eScript has been sent" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Your prescription has been approved and your eScript has been sent to your phone
-        via SMS. Take your phone to any pharmacy to collect your medication.
+        Your prescription has been approved and the eScript has been sent to
+        your phone via SMS. Take your phone to any pharmacy to pick up your
+        medication.
       </Text>
 
       {escriptReference && (
@@ -75,14 +78,12 @@ export function ScriptSentEmail({
         />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
+        View Request Details
+      </Button>
 
       <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
+        Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>

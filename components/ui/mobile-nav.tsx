@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X } from "lucide-react"
+import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -14,6 +14,7 @@ interface NavItem {
 
 interface MobileNavProps {
   items?: NavItem[]
+  moreMenuItems?: NavItem[]
   className?: string
 }
 
@@ -71,7 +72,7 @@ const doctorItems: NavItem[] = [
   },
   {
     label: "Scripts",
-    icon: FolderOpen,
+    icon: ClipboardList,
     href: "/doctor/scripts",
   },
   {
@@ -80,23 +81,41 @@ const doctorItems: NavItem[] = [
     href: "/doctor/patients",
   },
   {
+    label: "More",
+    icon: MoreHorizontal,
+    href: "__more__",
+  },
+]
+
+const doctorMoreItems: NavItem[] = [
+  {
+    label: "All Requests",
+    icon: Shield,
+    href: "/doctor/admin",
+  },
+  {
+    label: "Analytics",
+    icon: BarChart3,
+    href: "/doctor/analytics",
+  },
+  {
     label: "Settings",
-    icon: Home,
+    icon: Settings,
     href: "/doctor/settings/identity",
   },
 ]
 
 /** Doctor-specific mobile navigation with doctor routes pre-configured */
 export function DoctorMobileNav({ className }: { className?: string }) {
-  return <MobileNav items={doctorItems} className={className} />
+  return <MobileNav items={doctorItems} moreMenuItems={doctorMoreItems} className={className} />
 }
 
-export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
+export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [moreOpen, setMoreOpen] = useState(false)
 
-  const isMoreActive = moreItems.some(
+  const isMoreActive = moreMenuItems.some(
     (item) => pathname === item.href || pathname?.startsWith(item.href + "/")
   )
 
@@ -121,7 +140,7 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
               </button>
             </div>
             <nav className="px-3 pb-4 space-y-1">
-              {moreItems.map((item) => {
+              {moreMenuItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
                 return (

@@ -27,18 +27,21 @@ export function GuestCompleteAccountEmail({
   completeAccountUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: GuestCompleteAccountEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
-    <BaseEmail previewText={`Create your InstantMed account to track your ${requestType}`} appUrl={appUrl}>
+    <BaseEmail previewText={`Set up your account to track your ${requestType} ✅`} appUrl={appUrl}>
       <HeroBlock
         icon="👤"
         headline="Create your InstantMed account"
         variant="neutral"
       />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
       <Text>
-        Set up your account to track your {requestType} request, download your
-        certificate when it&apos;s ready, and reorder in seconds next time.
+        Your {requestType} request is underway. Set up a free account to track
+        it in real-time, download your documents, and reorder in seconds next
+        time.
       </Text>
 
       <List
@@ -50,16 +53,22 @@ export function GuestCompleteAccountEmail({
         ]}
       />
 
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <Button href={completeAccountUrl}>Create Your Account</Button>
-      </div>
+      <Button href={completeAccountUrl}>Create Your Account</Button>
 
       <Box variant="info">
         <p style={{ margin: 0, fontSize: "13px", color: colors.infoText }}>
-          Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready,
+          No pressure — your certificate will be emailed to you when it&apos;s ready,
           even if you don&apos;t create an account.
         </p>
       </Box>
+
+      <Text muted small>
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
+      </Text>
     </BaseEmail>
   )
 }

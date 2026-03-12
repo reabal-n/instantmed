@@ -21,9 +21,7 @@ import {
 
 export interface MedCertPatientEmailProps {
   patientName: string
-  /** Direct signed download URL for the PDF (7-day expiry) */
   downloadUrl?: string
-  /** Dashboard URL (requires auth — fallback for account holders) */
   dashboardUrl: string
   verificationCode?: string
   certType?: "work" | "study" | "carer"
@@ -38,9 +36,11 @@ export function MedCertPatientEmail({
   certType = "work",
   appUrl = "https://instantmed.com.au",
 }: MedCertPatientEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Your medical certificate is ready to download ✅`}
+      previewText="Your medical certificate is ready to download ✅"
       appUrl={appUrl}
     >
       <HeroBlock
@@ -50,52 +50,45 @@ export function MedCertPatientEmail({
         variant="success"
       />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Great news — your <strong>Medical Certificate</strong>{" "}
-        has been reviewed and approved by one of our doctors. You can download
-        it right away using the button below.
+        Good news — a doctor has reviewed and approved your{" "}
+        <strong>Medical Certificate</strong>. You can download it right
+        away using the button below.
       </Text>
 
-      {/* Primary CTA — direct download (works without login) */}
-      <div style={{ textAlign: "center" as const }}>
-        <Button href={downloadUrl || dashboardUrl}>
-          Download Certificate
-        </Button>
-      </div>
+      <Button href={downloadUrl || dashboardUrl}>
+        Download Certificate
+      </Button>
 
-      {/* Secondary: dashboard link for account holders */}
       <Text muted small style={{ textAlign: "center" as const }}>
-        You can also access your certificate anytime from your{" "}
+        Also available anytime from your{" "}
         <a href={dashboardUrl} style={{ color: colors.accent, fontWeight: 500 }}>
           patient dashboard
         </a>
         .
       </Text>
 
-      {/* Verification code block */}
       {verificationCode && (
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
       )}
 
-      {/* Next steps */}
       <Box>
         <Heading as="h3">What to do next</Heading>
         <List
           items={[
             "Download and save your certificate",
-            "Forward it to your employer, university, or relevant institution",
-            "Your employer can verify it at instantmed.com.au/verify",
+            "Forward it to your employer, university, or wherever it's needed",
+            "They can verify it anytime at instantmed.com.au/verify",
           ]}
         />
       </Box>
 
-      {/* Download link expiry notice */}
       {downloadUrl && (
         <Text muted small>
-          The download link expires in 7 days. After that, sign in to your
-          dashboard to re-download.
+          The download link expires in 7 days. After that, just sign in to
+          your dashboard to grab a fresh copy.
         </Text>
       )}
 

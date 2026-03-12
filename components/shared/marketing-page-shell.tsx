@@ -6,9 +6,9 @@ interface MarketingPageShellProps {
 
 export function MarketingPageShell({ children }: MarketingPageShellProps) {
   return (
-    <>
+    <div data-marketing="">
       <MorningSkyBackground />
       {children}
-    </>
+    </div>
   )
 }

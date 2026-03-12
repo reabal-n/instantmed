@@ -1,5 +1,5 @@
 /**
- * Request Received Email Template (merged payment-confirmed + intake-submitted)
+ * Request Received Email Template
  *
  * Sent after Stripe payment succeeds. Combines payment receipt with
  * "your request is being reviewed" guidance in a single email.
@@ -39,23 +39,26 @@ export function RequestReceivedEmail({
   isGuest,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: RequestReceivedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Your ${requestType} request is being reviewed 👍`}
+      previewText={`All sorted — your ${requestType} request is with a doctor now 👍`}
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
-        headline="Request received"
+        headline="You're all set"
         subtitle={`${requestType} — ${amount}`}
         variant="info"
       />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Your payment has been confirmed and your <strong>{requestType}</strong> request
-        is with a doctor for review. Most requests are reviewed within a couple of hours.
+        Payment confirmed — your <strong>{requestType}</strong> request is
+        now with a doctor for review. Most requests are wrapped up within a
+        couple of hours, and we'll email you the moment there's an update.
       </Text>
 
       <Box>
@@ -63,7 +66,7 @@ export function RequestReceivedEmail({
           <tbody>
             <DetailRow label="Reference" value={requestId.slice(0, 8).toUpperCase()} />
             <DetailRow label="Amount paid" value={amount} />
-            <DetailRow label="Status" value="In review" />
+            <DetailRow label="Status" value="🩺 In review" />
           </tbody>
         </table>
       </Box>
@@ -72,38 +75,36 @@ export function RequestReceivedEmail({
         <Heading as="h3">What happens next</Heading>
         <List
           items={[
-            "A doctor reviews your request (typically within 1\u20132 hours)",
-            "You\u2019ll receive an email once a decision is made",
-            "If any follow-up is needed, the doctor will reach out",
+            "A doctor reviews your request (typically 1–2 hours)",
+            "You'll get an email as soon as a decision is made",
+            "If anything else is needed, the doctor will reach out directly",
           ]}
         />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>
-          Track Your Request
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+        Track Your Request
+      </Button>
 
       {isGuest && (
         <Box>
-          <Heading as="h3">Create your account</Heading>
-          <Text>Set up a free account to get the most out of InstantMed:</Text>
+          <Heading as="h3">Create your free account</Heading>
+          <Text>
+            Set up an account to get the most out of InstantMed — it only takes a minute:
+          </Text>
           <List
             items={[
               "Track your request status in real-time",
-              "Download your certificate instantly when ready",
-              "Access your medical history",
-              "Request future certificates faster",
+              "Download your certificate the moment it's ready",
+              "Access your medical history anytime",
+              "Reorder faster next time",
             ]}
           />
-          <div style={{ textAlign: "center" }}>
-            <Button href={`${appUrl}/auth/complete-account?intake_id=${requestId}`}>
-              Create Your Account
-            </Button>
-          </div>
+          <Button href={`${appUrl}/auth/complete-account?intake_id=${requestId}`}>
+            Create Your Account
+          </Button>
           <Text muted small style={{ textAlign: "center" as const }}>
-            Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready, even if you don&apos;t create an account.
+            No pressure — your certificate will be emailed to you either way.
           </Text>
         </Box>
       )}

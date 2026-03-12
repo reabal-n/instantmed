@@ -27,20 +27,22 @@ export function ConsultApprovedEmail({
   patientName,
   requestId,
   doctorNotes,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: ConsultApprovedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText="Your consultation has been reviewed ✅"
+      previewText="Your consultation has been reviewed — here's what's next ✅"
       appUrl={appUrl}
     >
       <SuccessBanner title="Consultation reviewed" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Your doctor has reviewed your consultation and everything looks good. Here are the
-        details and recommended next steps.
+        Your doctor has reviewed your consultation and everything looks good.
+        Here are the details and recommended next steps.
       </Text>
 
       {doctorNotes && (
@@ -62,11 +64,9 @@ export function ConsultApprovedEmail({
         />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+        View Request Details
+      </Button>
 
       <Text muted small>
         Questions? Reply to this email or visit our{" "}

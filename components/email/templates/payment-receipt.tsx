@@ -34,16 +34,18 @@ export function PaymentReceiptEmail({
   intakeRef,
   paidAt,
   dashboardUrl,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PaymentReceiptEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Payment confirmed — ${amount} for ${serviceName}`}
+      previewText={`Payment confirmed — ${amount} for ${serviceName} ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Payment confirmed" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
         We&apos;ve received your payment of <strong>{amount}</strong> for{" "}
@@ -68,16 +70,22 @@ export function PaymentReceiptEmail({
         </table>
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={dashboardUrl}>Track Your Request</Button>
-      </div>
+      <Button href={dashboardUrl}>Track Your Request</Button>
 
       <Text muted small>
         This receipt is for your records. You can view your request status on your{" "}
         <a href={dashboardUrl} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
         </a>
-        . Questions? Reply to this email.
+        .
+      </Text>
+
+      <Text muted small>
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
       </Text>
     </BaseEmail>
   )

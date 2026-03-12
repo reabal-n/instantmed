@@ -3,6 +3,7 @@
 import { type ReactNode } from 'react'
 import { ShortcutDiscoveryHint } from '@/components/doctor/keyboard-shortcuts-modal'
 import { IntakeNotificationListener } from '@/components/doctor/intake-notification-listener'
+import { DoctorMobileNav } from '@/components/ui/mobile-nav'
 import { PanelProvider } from '@/components/panels/panel-provider'
 import { useAuth } from '@clerk/nextjs'
 
@@ -26,11 +27,10 @@ export function DoctorShell({ children }: DoctorShellProps) {
 
   return (
     <PanelProvider>
-      {/* One-time hint about keyboard shortcuts */}
       <ShortcutDiscoveryHint />
-      {/* Real-time intake notifications */}
       {userId && <IntakeNotificationListener />}
       {children}
+      <DoctorMobileNav />
     </PanelProvider>
   )
 }

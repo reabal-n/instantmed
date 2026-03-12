@@ -25,13 +25,14 @@ export function RepeatRxReminderEmail({
   patientName,
   medicationName,
   reorderUrl,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: RepeatRxReminderEmailProps) {
+  const firstName = patientName.split(" ")[0]
   const orderUrl = reorderUrl || `${appUrl}/request?type=repeat-script`
 
   return (
     <BaseEmail
-      previewText={`Time to renew your ${medicationName} prescription ⏱️`}
+      previewText={`⏱️ ${firstName}, it might be time to renew your ${medicationName}`}
       appUrl={appUrl}
     >
       <div
@@ -59,11 +60,11 @@ export function RepeatRxReminderEmail({
         </p>
       </div>
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
         It&apos;s been about 30 days since your last <strong>{medicationName}</strong> prescription.
-        If you&apos;re running low, you can quickly request a repeat through InstantMed.
+        If you&apos;re running low, you can request a repeat through InstantMed.
       </Text>
 
       <Box>
@@ -75,19 +76,16 @@ export function RepeatRxReminderEmail({
         </ul>
       </Box>
 
-      <div style={{ textAlign: "center", margin: "24px 0" }}>
-        <Button href={orderUrl}>
-          Renew my prescription
-        </Button>
-      </div>
+      <Button href={orderUrl}>
+        Renew my prescription
+      </Button>
 
       <Text muted small>
-        If you no longer need this medication or have questions, just reply to this email
-        or visit our{" "}
+        Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>
-        . You can also unsubscribe from these reminders in your{" "}
+        . You can unsubscribe from reminders in your{" "}
         <a href={`${appUrl}/patient/settings`} style={{ color: colors.accent, fontWeight: 500 }}>
           account settings
         </a>

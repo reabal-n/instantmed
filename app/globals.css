@@ -431,46 +431,57 @@ body {
   }
   
   /* ================================
-     UNIFIED TYPOGRAPHY
-     Consistent, premium headings
+     BASE TYPOGRAPHY
+     Shared heading defaults for all pages.
+     Uses :where() for zero specificity so Tailwind utilities always win.
      ================================ */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-sans);
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1.25;
     color: var(--foreground);
   }
-  
-  h1 { 
+
+  :where(h1) { font-size: 1.5rem; letter-spacing: -0.025em; }
+  :where(h2) { font-size: 1.25rem; letter-spacing: -0.02em; }
+  :where(h3) { font-size: 1.125rem; font-weight: 500; }
+  :where(h4) { font-size: 1rem; font-weight: 500; }
+  :where(h5) { font-size: 0.875rem; font-weight: 500; }
+  :where(h6) { font-size: 0.875rem; font-weight: 500; }
+
+  /* ================================
+     MARKETING TYPOGRAPHY
+     Responsive clamp() sizes for pages with [data-marketing] attribute.
+     Marketing pages opt in; dashboards get the :where() defaults above.
+     ================================ */
+  [data-marketing] h1 {
     font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 600;
     letter-spacing: -0.03em;
   }
-  h2 { 
+  [data-marketing] h2 {
     font-size: clamp(1.5rem, 4vw, 2.5rem);
-    font-weight: 600;
     letter-spacing: -0.02em;
   }
-  h3 { 
+  [data-marketing] h3 {
     font-size: clamp(1.25rem, 3vw, 1.875rem);
     font-weight: 500;
   }
-  h4 { 
+  [data-marketing] h4 {
     font-size: clamp(1.125rem, 2.5vw, 1.5rem);
     font-weight: 500;
   }
-  h5 { 
+  [data-marketing] h5 {
     font-size: 1.125rem;
     font-weight: 500;
   }
-  h6 { 
+  [data-marketing] h6 {
     font-size: 1rem;
     font-weight: 500;
   }
   
-  /* Body text: readable like an article */
-  p { 
+  /* Body text — :where() so Tailwind leading-* and text-* win */
+  :where(p) { 
     line-height: 1.75;
     font-size: var(--font-size-base);
   }
@@ -607,11 +618,11 @@ body {
   
   /* ================================
      PREMIUM INPUT STYLING
-     Calm, elegant, focused
+     Zero specificity via :where() so shadcn Input/Textarea sizing wins.
      ================================ */
-  input:not([type="checkbox"]):not([type="radio"]),
-  textarea,
-  select {
+  :where(input:not([type="checkbox"]):not([type="radio"])),
+  :where(textarea),
+  :where(select) {
     @apply bg-input text-foreground;
     border-radius: var(--radius-sm);
     border: 1.5px solid rgba(0, 0, 0, 0.08);
@@ -745,15 +756,14 @@ body {
    ================================ */
 
 .dark {
-  /* Dark mode card styling - using specific data attributes and classes */
+  /* Card, input, badge — target specific classes, safe to keep unscoped */
   .card,
   [data-slot="base"],
   .glass-card {
     background: var(--card);
     border-color: var(--border);
   }
-  
-  /* Dark mode input styling */
+
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
@@ -761,97 +771,54 @@ body {
     border-color: var(--border);
     color: var(--foreground);
   }
-  
+
   input::placeholder,
   textarea::placeholder {
     color: var(--muted-foreground);
   }
-  
-  /* Dark mode text colors */
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--foreground);
-  }
-  
-  p, span, label {
-    color: var(--foreground);
-  }
-  
-  /* Dark mode links — moved to @layer base so Tailwind utilities can override (see @layer base block) */
-  
-  /* Dark mode badges and chips */
+
   .badge,
   .chip {
     background: var(--secondary);
     color: var(--secondary-foreground);
     border-color: var(--border);
   }
-  
-  /* Dark mode borders */
-  hr,
-  .border,
-  [class*="border"] {
-    border-color: var(--border);
-  }
-  
-  /* Dark mode tables */
-  table {
-    color: var(--foreground);
-  }
-  
-  th {
-    color: var(--foreground);
-    background: var(--secondary);
-  }
-  
-  td {
-    color: var(--foreground);
-    border-color: var(--border);
-  }
-  
-  /* Dark mode code blocks */
-  pre, code {
-    background: var(--secondary);
-    color: var(--foreground);
-  }
-  
-  /* Dark mode blockquotes */
-  blockquote {
-    border-left-color: var(--primary);
-    background: var(--secondary);
-    color: var(--foreground);
-  }
-  
-  /* Dark mode lists */
-  ul, ol {
-    color: var(--foreground);
-  }
-  
-  li::marker {
-    color: var(--muted-foreground);
-  }
-  
-  /* Dark mode card hover */
+
   .card:hover,
   [data-slot="base"]:hover,
   .glass-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
-  
-  /* Dark mode selection */
+
   ::selection {
     background: rgba(37, 99, 235, 0.4);
     color: var(--foreground);
   }
-  
-  /* Dark mode scrollbar */
+
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.25);
   }
+}
+
+/* Rich text dark mode — scoped to marketing/content pages.
+   Dashboards use Tailwind dark: utilities instead. */
+.dark [data-marketing] {
+  h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
+  p, span, label { color: var(--foreground); }
+
+  table { color: var(--foreground); }
+  th { color: var(--foreground); background: var(--secondary); }
+  td { color: var(--foreground); border-color: var(--border); }
+
+  pre, code { background: var(--secondary); color: var(--foreground); }
+  blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
+  ul, ol { color: var(--foreground); }
+  li::marker { color: var(--muted-foreground); }
 }
 
 /* ================================
@@ -2443,12 +2410,12 @@ body {
     transition: opacity 0.1s ease;
   }
 
-  /* Larger form inputs on mobile */
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="password"],
-  textarea {
+  /* Larger form inputs on mobile — :where() so shadcn sizing wins */
+  :where(input[type="text"]),
+  :where(input[type="email"]),
+  :where(input[type="tel"]),
+  :where(input[type="password"]),
+  :where(textarea) {
     min-height: 48px;
     padding: 12px 16px;
   }
@@ -2499,12 +2466,6 @@ body {
   border-width: 0;
 }
 
-/* Enhanced focus indicators for accessibility */
-*:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {

@@ -33,25 +33,28 @@ export function ReferralCreditEmail({
   friendName,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: ReferralCreditEmailProps) {
+  const firstName = patientName.split(" ")[0]
+  const friendFirstName = friendName?.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`You've earned a ${creditAmount} referral credit 🙂`}
+      previewText={`Nice one — you've earned a ${creditAmount} credit 👍`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Referral credit earned" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        {friendName ? (
+        {friendFirstName ? (
           <>
-            Your friend <strong>{friendName}</strong> has completed their first request on
+            Your friend <strong>{friendFirstName}</strong> just completed their first request on
             InstantMed. As a thank you, we&apos;ve added a <strong>{creditAmount}</strong> credit
             to your account.
           </>
         ) : (
           <>
-            Someone you referred has completed their first request on InstantMed. As a thank you,
+            Someone you referred just completed their first request on InstantMed. As a thank you,
             we&apos;ve added a <strong>{creditAmount}</strong> credit to your account.
           </>
         )}
@@ -62,17 +65,23 @@ export function ReferralCreditEmail({
         <DetailRow label="Applied to" value="Your next request" />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient`}>View Your Credits</Button>
-      </div>
+      <Button href={`${appUrl}/patient`}>View Your Credits</Button>
 
       <Text muted small>
         Credits are applied automatically at checkout. Share your referral link
-        to keep earning — visit your{" "}
+        to keep earning — find it on your{" "}
         <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
-        </a>{" "}
-        to find it.
+        </a>
+        .
+      </Text>
+
+      <Text muted small>
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
       </Text>
     </BaseEmail>
   )

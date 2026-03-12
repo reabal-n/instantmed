@@ -19,7 +19,7 @@ export default async function ConfirmedPage({
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="max-w-lg mx-auto px-4">
+      <div className="max-w-lg mx-auto">
         <Suspense fallback={<div className="animate-pulse h-64 bg-muted rounded-xl" />}>
           <ConfirmedClient intakeId={intakeId} email={params.email} />
         </Suspense>

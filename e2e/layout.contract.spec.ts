@@ -38,7 +38,7 @@ test.describe("Layout Contracts - Doctor Dashboard", () => {
     await expect(container).toBeVisible()
 
     const containerClass = await container.getAttribute("class")
-    expect(containerClass).toContain("max-w-7xl")
+    expect(containerClass).toContain("max-w-5xl")
     expect(containerClass).toContain("mx-auto")
   })
 
@@ -151,8 +151,7 @@ test.describe("Layout Contracts - Cross-Dashboard Consistency", () => {
     const adminContainer = page.locator(".max-w-7xl").first()
     await expect(adminContainer).toBeVisible()
 
-    // Both should use max-w-7xl
-    expect(doctorMaxWidth).toBe("max-w-7xl")
+    expect(doctorMaxWidth).toBe("max-w-5xl")
   })
 
   test("responsive padding is consistent", async ({ page }) => {

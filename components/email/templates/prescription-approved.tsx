@@ -28,27 +28,29 @@ export function PrescriptionApprovedEmail({
   patientName,
   medicationName,
   intakeId,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PrescriptionApprovedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Your ${medicationName} prescription has been approved ✅`}
+      previewText={`Good news — your ${medicationName} prescription is approved ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Prescription approved" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Great news — your doctor has reviewed and approved your prescription for{" "}
+        Your doctor has reviewed and approved your prescription for{" "}
         <strong>{medicationName}</strong>.
       </Text>
 
       <Box variant="info">
         <Heading as="h3">Your eScript is on its way</Heading>
         <Text small>
-          You will receive an eScript token via <strong>SMS</strong> shortly. This is a
-          unique code that any pharmacy in Australia can use to dispense your medication.
+          You&apos;ll receive an eScript token via <strong>SMS</strong> shortly.
+          Any pharmacy in Australia can use this code to dispense your medication.
         </Text>
       </Box>
 
@@ -56,9 +58,9 @@ export function PrescriptionApprovedEmail({
         <Heading as="h3">What to do next</Heading>
         <List
           items={[
-            "Check your phone for the eScript SMS (usually arrives within a few minutes)",
+            "Check your phone for the eScript SMS (usually arrives within minutes)",
             "Take your phone to any pharmacy",
-            "Show the pharmacist your eScript token -- they'll scan the QR code",
+            "Show the pharmacist your eScript token — they'll scan the QR code",
             "Bring your Medicare card for any PBS-subsidised medications",
           ]}
         />
@@ -75,14 +77,12 @@ export function PrescriptionApprovedEmail({
         />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${intakeId}`}>
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${intakeId}`}>
+        View Request Details
+      </Button>
 
       <Text muted small>
-        Questions about your prescription? Reply to this email or visit our{" "}
+        Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>

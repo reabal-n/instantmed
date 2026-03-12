@@ -18,7 +18,7 @@ export default async function PaymentCancelledPage({
     <>
       <CancelledPageTracker intakeId={intakeId} />
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="max-w-lg mx-auto px-4">
+        <div className="max-w-lg mx-auto">
           <div className="glass-card rounded-3xl p-8 text-center">
             {/* Icon */}
             <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center mb-6">

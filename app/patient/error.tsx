@@ -85,7 +85,7 @@ export default function PatientError({
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4">
+    <div className="min-h-[60vh] flex items-center justify-center">
       <div className="text-center max-w-md">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 dark:bg-red-500/20 mb-6" aria-hidden="true">
           <IconComponent className="h-8 w-8 text-red-600 dark:text-red-500" />

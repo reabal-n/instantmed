@@ -4,6 +4,7 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
 import { toError } from "@/lib/errors"
+import { sendClerkVerificationEmail } from '@/lib/email/clerk-emails'
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -162,6 +163,31 @@ export async function POST(req: Request) {
     }
 
     // Profile synced successfully
+  }
+
+  // Handle email.created — when "Delivered by Clerk" is OFF, we send via Resend
+  if (eventType === 'email.created') {
+    const emailData = evt.data as unknown as Record<string, unknown>
+    const toEmail = emailData.to_email_address as string
+    const slug = emailData.slug as string
+    const templateData = (emailData.data ?? emailData.template_variables ?? {}) as Record<string, string>
+
+    if (slug === 'verification_code' && toEmail) {
+      try {
+        await sendClerkVerificationEmail({
+          to: toEmail,
+          code: templateData.otp_code || templateData.code || '',
+          requestedFrom: templateData.requested_from,
+          requestedAt: templateData.requested_at,
+        })
+        log.info('Verification email sent via Resend', { to: toEmail, slug })
+      } catch (error) {
+        log.error('Failed to send verification email via Resend', { slug }, toError(error))
+        return new Response('Email send failed', { status: 500 })
+      }
+    } else {
+      log.info('Unhandled email slug, skipping', { slug })
+    }
   }
 
   if (eventType === 'user.deleted') {

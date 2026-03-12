@@ -27,20 +27,22 @@ export function RequestDeclinedEmail({
   requestType,
   requestId,
   reason,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: RequestDeclinedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Update on your ${requestType} request`}
+      previewText={`An update on your ${requestType} request 🩺`}
       appUrl={appUrl}
     >
       <Heading>Update on your request</Heading>
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        After careful review, our doctor was unable to approve your{" "}
-        <strong>{requestType}</strong> request through our telehealth service at this time.
+        After reviewing your <strong>{requestType}</strong> request, the doctor
+        wasn&apos;t able to approve it through our telehealth service this time.
       </Text>
 
       {reason && (
@@ -53,29 +55,31 @@ export function RequestDeclinedEmail({
               fontWeight: "600",
             }}
           >
-            Doctor's note:
+            Doctor&apos;s note:
           </p>
           <Text style={{ margin: 0, color: colors.errorText }}>{reason}</Text>
         </Box>
       )}
 
       <Box variant="info">
-        <Heading as="h3">What happens next?</Heading>
+        <Heading as="h3">Refund details</Heading>
         <Text small style={{ margin: 0 }}>
-          A full refund will be processed to your original payment method within 5–7 business
-          days. If your symptoms are concerning, please consider booking an in-person
-          appointment with your regular doctor.
+          A full refund will be processed to your original payment method within
+          5–7 business days. If your symptoms are concerning, we&apos;d recommend
+          booking an in-person appointment with your regular GP.
         </Text>
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
+        View Request Details
+      </Button>
 
       <Text muted small>
-        If you have questions about this decision, please reply to this email.
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
       </Text>
     </BaseEmail>
   )

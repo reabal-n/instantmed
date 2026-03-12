@@ -1,3 +1,9 @@
+/**
+ * Needs More Info Email Template
+ *
+ * Sent to patient when the doctor has a follow-up question.
+ */
+
 import {
   BaseEmail,
   StatusBanner,
@@ -26,14 +32,16 @@ export function NeedsMoreInfoEmail({
   doctorMessage,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: NeedsMoreInfoEmailProps) {
-  return (
-    <BaseEmail previewText="Quick update — the doctor needs a bit more info" appUrl={appUrl}>
-      <StatusBanner title="We need a bit more information" variant="warning" />
+  const firstName = patientName.split(" ")[0]
 
-      <Text>Hi {patientName},</Text>
+  return (
+    <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl}>
+      <StatusBanner title="The doctor has a question" variant="warning" />
+
+      <Text>Hi {firstName},</Text>
       <Text>
-        The doctor reviewing your <strong>{requestType}</strong> request has a quick
-        question before they can move forward.
+        The doctor reviewing your <strong>{requestType}</strong> request needs
+        a bit more information before they can move forward.
       </Text>
 
       <Box>
@@ -53,12 +61,10 @@ export function NeedsMoreInfoEmail({
         </table>
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>Respond Now</Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Respond Now</Button>
 
       <Text muted small>
-        Please respond as soon as possible so we can continue processing your request.
+        No rush, but responding soon helps us process your request faster.
         Your spot in the queue is saved.
       </Text>
 

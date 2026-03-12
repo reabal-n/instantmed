@@ -96,3 +96,7 @@ export type { RequestReceivedEmailProps } from "./request-received"
 // --- Refund Issued ---
 export { RefundIssuedEmail, refundIssuedEmailSubject } from "./refund-issued"
 export type { RefundIssuedEmailProps } from "./refund-issued"
+
+// --- Verification Code (Clerk OTP via Resend) ---
+export { VerificationCodeEmail, verificationCodeSubject } from "./verification-code"
+export type { VerificationCodeEmailProps } from "./verification-code"

@@ -28,23 +28,23 @@ export function AbandonedCheckoutEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
   hoursAgo,
 }: AbandonedCheckoutEmailProps) {
-  return (
-    <BaseEmail previewText={`Your ${serviceName} request is waiting`} appUrl={appUrl}>
-      <Heading>Your request is waiting</Heading>
+  const firstName = patientName.split(" ")[0]
 
-      <Text>Hi {patientName},</Text>
+  return (
+    <BaseEmail previewText={`No rush — your ${serviceName} request is still here ⏱️`} appUrl={appUrl}>
+      <Heading>Your request is still here</Heading>
+
+      <Text>Hi {firstName},</Text>
       <Text>
         You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
-        but didn&apos;t complete checkout. No worries — your information is saved
-        and ready when you are.
+        but didn&apos;t finish checkout. No worries — everything is saved and
+        ready when you are.
       </Text>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={resumeUrl}>Resume your request</Button>
-      </div>
+      <Button href={resumeUrl}>Resume your request</Button>
 
       <Box>
-        <Heading as="h3">What happens when you complete checkout?</Heading>
+        <Heading as="h3">What happens next</Heading>
         <List
           items={[
             "A doctor reviews your request (usually within an hour)",
@@ -55,16 +55,16 @@ export function AbandonedCheckoutEmail({
       </Box>
 
       <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
+        If you&apos;ve already completed your request or no longer need it,
+        you can safely ignore this email.
+      </Text>
+
+      <Text muted small>
+        Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>
         .
-      </Text>
-
-      <Text muted small>
-        If you&apos;ve already completed your request or no longer need it,
-        you can safely ignore this email.
       </Text>
     </BaseEmail>
   )
@@ -75,6 +75,7 @@ export function AbandonedCheckoutEmail({
  */
 export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps): string {
   const { patientName, serviceName, resumeUrl, appUrl = "https://instantmed.com.au", hoursAgo } = props
+  const firstName = patientName.split(" ")[0]
 
   return `<!DOCTYPE html>
 <html>
@@ -99,25 +100,32 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
           <tr><td style="padding: 20px 40px 0 40px;"><div style="border-top: 1px solid #F5F5F4;"></div></td></tr>
           <tr>
             <td style="padding: 28px 40px 36px 40px;">
-              <h1 style="font-size: 22px; font-weight: 600; color: #1C1917; margin: 0 0 16px 0; letter-spacing: -0.4px;">Your request is waiting</h1>
-              <p style="font-size: 15px; color: #44403C; margin: 0 0 16px 0;">Hi ${patientName},</p>
+              <h1 style="font-size: 22px; font-weight: 600; color: #1C1917; margin: 0 0 16px 0; letter-spacing: -0.4px;">Your request is still here</h1>
+              <p style="font-size: 15px; color: #44403C; margin: 0 0 16px 0;">Hi ${firstName},</p>
               <p style="font-size: 15px; color: #44403C; margin: 0 0 20px 0;">
                 You started a <strong>${serviceName}</strong> request about ${hoursAgo} hours ago
-                but didn't complete checkout. No worries — your information is saved and ready when you are.
+                but didn't finish checkout. No worries — everything is saved and ready when you are.
               </p>
-              <div style="text-align: center; margin: 24px 0;">
-                <a href="${resumeUrl}" style="display: inline-block; background-color: #0D9488; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Resume your request</a>
-              </div>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="${resumeUrl}" style="display: inline-block; background-color: #0D9488; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Resume your request</a>
+                  </td>
+                </tr>
+              </table>
               <div style="background: #F5F5F4; border-radius: 8px; padding: 16px 20px; margin: 20px 0; border: 1px solid #E7E5E4;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #1C1917;">What happens when you complete checkout?</p>
+                <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #1C1917;">What happens next</p>
                 <ul style="margin: 0; padding-left: 18px; color: #44403C; font-size: 14px; line-height: 1.8;">
                   <li style="margin-bottom: 4px;">A doctor reviews your request (usually within an hour)</li>
                   <li style="margin-bottom: 4px;">You'll receive your document via email</li>
                   <li>No phone call required for most requests</li>
                 </ul>
               </div>
-              <p style="font-size: 12px; color: #A8A29E; margin: 24px 0 0 0;">
+              <p style="font-size: 12px; color: #A8A29E; margin: 24px 0 8px 0;">
                 If you've already completed your request or no longer need it, you can safely ignore this email.
+              </p>
+              <p style="font-size: 12px; color: #A8A29E; margin: 0;">
+                Questions? Reply to this email or visit our <a href="${appUrl}/contact" style="color: #0D9488; font-weight: 500; text-decoration: none;">help centre</a>.
               </p>
             </td>
           </tr>

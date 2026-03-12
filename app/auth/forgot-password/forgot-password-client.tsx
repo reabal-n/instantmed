@@ -73,7 +73,7 @@ export function ForgotPasswordClient() {
     <>
       <Navbar variant="marketing" />
       <main className="min-h-screen bg-hero pt-32 pb-20">
-        <div className="container max-w-md mx-auto px-4">
+        <div className="max-w-md mx-auto px-4">
           <div className="glass-card rounded-3xl p-8">
             <Link
               href="/sign-in"

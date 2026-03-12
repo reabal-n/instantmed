@@ -27,11 +27,13 @@ export function PaymentConfirmedEmail({
   requestId,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PaymentConfirmedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
-    <BaseEmail previewText={`Payment confirmed — ${amount} for your ${requestType}`} appUrl={appUrl}>
+    <BaseEmail previewText={`Payment confirmed — ${amount} for your ${requestType} ✅`} appUrl={appUrl}>
       <StatusBanner title="Payment confirmed" variant="success" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
       <Text>
         We&apos;ve received your payment of <strong>{amount}</strong> for your {requestType} request.
         A doctor will review it shortly.
@@ -42,15 +44,21 @@ export function PaymentConfirmedEmail({
         <DetailRow label="Amount" value={amount} />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>Track Your Request</Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Track Your Request</Button>
 
       <Text muted small>
-        A receipt has been sent to your email. If you need an invoice for tax purposes,
-        you can download it from your{" "}
+        A receipt has been sent to your email. Need an invoice for tax purposes?
+        Download it from your{" "}
         <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
+        </a>
+        .
+      </Text>
+
+      <Text muted small>
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
         </a>
         .
       </Text>

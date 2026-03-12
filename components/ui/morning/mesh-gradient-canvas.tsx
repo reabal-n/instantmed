@@ -1,6 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+
+const DASHBOARD_PREFIXES = ["/patient", "/doctor", "/admin"];
 
 const LIGHT_BLOBS = [
   { color: "rgba(186, 218, 246, 0.12)", x: "20%", y: "30%", size: "60%" },
@@ -18,14 +21,16 @@ const DARK_BLOBS = [
 const PARALLAX_SPEEDS = [-0.08, -0.12, -0.05];
 
 export function MeshGradientCanvas() {
+  const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
-
-  // Create parallax transforms — each blob moves at a different rate
   const y0 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[0] * 100}%`]);
   const y1 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[1] * 100}%`]);
   const y2 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[2] * 100}%`]);
   const parallaxYs = [y0, y1, y2];
+
+  const isDashboard = DASHBOARD_PREFIXES.some(p => pathname?.startsWith(p));
+  if (isDashboard) return null;
 
   return (
     <div

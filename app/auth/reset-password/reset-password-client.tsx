@@ -72,7 +72,7 @@ export function ResetPasswordClient() {
     <>
       <Navbar variant="marketing" />
       <main className="min-h-screen bg-hero pt-32 pb-20">
-        <div className="container max-w-md mx-auto px-4">
+        <div className="max-w-md mx-auto px-4">
           <div className="glass-card rounded-3xl p-8">
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">

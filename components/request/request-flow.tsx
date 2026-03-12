@@ -1002,7 +1002,7 @@ export function RequestFlow({
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
-        <div className="container max-w-lg mx-auto px-4 h-14 sm:h-14 flex items-center justify-between">
+        <div className="max-w-lg mx-auto px-4 h-14 sm:h-14 flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -1035,7 +1035,7 @@ export function RequestFlow({
         </div>
         
         {/* Progress bar + indicators row */}
-        <div className="container max-w-lg mx-auto px-4 pb-3">
+        <div className="max-w-lg mx-auto px-4 pb-3">
           {/* Time remaining + Auto-save indicator */}
           <div className="flex items-center justify-between mb-2">
             <TimeRemaining 
@@ -1059,7 +1059,7 @@ export function RequestFlow({
       {/* Content with swipe gestures */}
       <motion.main 
         ref={contentRef}
-        className="container max-w-lg mx-auto px-4 py-6 pb-28 sm:pb-6 touch-pan-y"
+        className="max-w-lg mx-auto px-4 py-6 pb-28 sm:pb-6 touch-pan-y"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}

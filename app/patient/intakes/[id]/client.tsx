@@ -313,7 +313,7 @@ export function IntakeDetailClient({
   }
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
+    <div className="space-y-6">
       {/* Real-time status listener */}
       <IntakeStatusListener 
         intakeId={intake.id} 
@@ -353,7 +353,7 @@ export function IntakeDetailClient({
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="font-semibold text-amber-900 dark:text-amber-200">Payment Required</h3>
+                      <h3 className="text-base font-semibold text-amber-900 dark:text-amber-200">Payment Required</h3>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
@@ -507,7 +507,7 @@ export function IntakeDetailClient({
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="font-semibold text-emerald-900 dark:text-emerald-200">Your Document is Ready</h3>
+                        <h3 className="text-base font-semibold text-emerald-900 dark:text-emerald-200">Your Document is Ready</h3>
                         <p className="text-sm text-emerald-700 dark:text-emerald-300">
                           Download your {service?.short_name || service?.name || "document"} below.
                         </p>
@@ -612,7 +612,7 @@ export function IntakeDetailClient({
           {/* Submitted Answers - Show what the patient submitted */}
           {intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers && (
             <div className="pt-4 border-t">
-              <h3 className="font-medium mb-3">Your Submitted Information</h3>
+              <h3 className="text-base font-medium mb-3">Your Submitted Information</h3>
               <SubmittedAnswers
                 answers={intake.answers[0].answers}
                 serviceType={service?.short_name || service?.name || ""}
@@ -622,7 +622,7 @@ export function IntakeDetailClient({
 
           {/* Timeline */}
           <div>
-            <h3 className="font-medium mb-3">Timeline</h3>
+            <h3 className="text-base font-medium mb-3">Timeline</h3>
             <div className="space-y-3">
               <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
               {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-emerald-500" />}

@@ -11,6 +11,7 @@ import {
   Text,
   Button,
   Box,
+  colors,
 } from "../base-email"
 
 export interface RefundIssuedEmailProps {
@@ -26,41 +27,46 @@ export function RefundIssuedEmail({
   requestType,
   requestId,
   amountFormatted,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: RefundIssuedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
     <BaseEmail
-      previewText={`Your refund for your ${requestType} request has been processed`}
+      previewText={`Your ${requestType} refund has been processed ✅`}
       appUrl={appUrl}
     >
       <Heading>Refund processed</Heading>
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
         We&apos;ve processed a refund for your{" "}
         <strong>{requestType}</strong> request.
-        {amountFormatted ? ` The amount of ${amountFormatted} will be returned to your original payment method.` : " The amount will be returned to your original payment method."}
+        {amountFormatted
+          ? ` ${amountFormatted} will be returned to your original payment method.`
+          : " The amount will be returned to your original payment method."}
       </Text>
 
       <Box variant="info">
         <Heading as="h3">What to expect</Heading>
         <Text small style={{ margin: 0 }}>
           Refunds typically appear within 5–7 business days, depending on your
-          bank or card issuer. If you don&apos;t see the refund after 7 business
-          days, please contact your bank directly.
+          bank or card issuer. If you don&apos;t see it after 7 business days,
+          contact your bank directly.
         </Text>
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
+        View Request Details
+      </Button>
 
       <Text muted small>
-        If you have any questions, please reply to this email or contact us at
-        support@instantmed.com.au.
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
       </Text>
     </BaseEmail>
   )

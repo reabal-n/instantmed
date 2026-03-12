@@ -38,7 +38,7 @@ export function MedCertEmployerEmail({
   patientNote,
   certStartDate,
   certEndDate,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: MedCertEmployerEmailProps) {
   const greeting = employerName
     ? `Dear ${employerName},`
@@ -89,9 +89,7 @@ export function MedCertEmployerEmail({
         </Box>
       )}
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={downloadUrl}>Download Certificate (PDF)</Button>
-      </div>
+      <Button href={downloadUrl}>Download Certificate (PDF)</Button>
 
       <Text muted small style={{ textAlign: "center" }}>
         This link expires in {expiresInDays} days for security.
@@ -121,18 +119,14 @@ export function MedCertEmployerEmail({
         </Box>
       )}
 
-      <Box>
-        <Heading as="h3">About InstantMed</Heading>
-        <Text small muted style={{ margin: 0 }}>
-          InstantMed is an Australian telehealth service. All medical certificates are issued by
-          AHPRA-registered doctors and include verification codes for authenticity checks.
-          If you have questions about this certificate, please contact us at{" "}
-          <a href={`${appUrl}/contact`} style={{ color: colors.accent }}>
-            {appUrl.replace("https://", "")}/contact
-          </a>
-          .
-        </Text>
-      </Box>
+      <Text muted small>
+        InstantMed is an Australian telehealth service. All certificates are issued by
+        AHPRA-registered doctors. Questions about this certificate? Please visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
+      </Text>
     </BaseEmail>
   )
 }

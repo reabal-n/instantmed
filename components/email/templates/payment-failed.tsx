@@ -6,6 +6,7 @@ import {
   Button,
   Box,
   List,
+  colors,
 } from "../base-email"
 
 export interface PaymentFailedEmailProps {
@@ -27,11 +28,13 @@ export function PaymentFailedEmail({
   retryUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PaymentFailedEmailProps) {
+  const firstName = patientName.split(" ")[0]
+
   return (
-    <BaseEmail previewText={`Payment issue with your ${serviceName} request`} appUrl={appUrl}>
+    <BaseEmail previewText={`We couldn't process your payment — here's how to fix it ⏱️`} appUrl={appUrl}>
       <StatusBanner title="Payment could not be processed" variant="warning" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
       <Text>
         We weren&apos;t able to process your payment for your <strong>{serviceName}</strong> request.
       </Text>
@@ -57,12 +60,10 @@ export function PaymentFailedEmail({
         <strong>Your request is saved</strong> — you can complete payment whenever you&apos;re ready.
       </Text>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={retryUrl}>Complete Payment</Button>
-      </div>
+      <Button href={retryUrl}>Complete Payment</Button>
 
       <Box>
-        <Heading as="h3">Common reasons for payment issues:</Heading>
+        <Heading as="h3">Common reasons for payment issues</Heading>
         <List
           items={[
             "Card expired or incorrect details",
@@ -76,7 +77,11 @@ export function PaymentFailedEmail({
       </Box>
 
       <Text muted small>
-        Need help? Reply to this email and we&apos;ll assist you.
+        Questions? Reply to this email or visit our{" "}
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
+          help centre
+        </a>
+        .
       </Text>
     </BaseEmail>
   )

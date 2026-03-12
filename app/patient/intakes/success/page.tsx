@@ -63,7 +63,7 @@ export default async function PaymentSuccessPage({
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center py-12">
-      <div className="w-full max-w-lg mx-auto px-4">
+      <div className="w-full max-w-lg mx-auto">
         <SuccessClient
           intakeId={intakeId}
           initialStatus={initialStatus}

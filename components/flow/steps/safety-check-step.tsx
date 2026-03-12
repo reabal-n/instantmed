@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   CheckCircle2,
@@ -80,6 +81,7 @@ export function SafetyCheckStep({
   onDecline,
   onRequestCall,
 }: SafetyCheckStepProps) {
+  const router = useRouter()
   const prefersReducedMotion = useReducedMotion()
   const serviceSlug = useFlowService()
   const answers = useFlowAnswers()
@@ -507,7 +509,7 @@ export function SafetyCheckStep({
 
             <Button
               variant="ghost"
-              onClick={() => window.location.href = '/'}
+              onClick={() => router.push('/')}
               className="w-full text-muted-foreground"
             >
               Start a new request instead

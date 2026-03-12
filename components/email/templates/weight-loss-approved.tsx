@@ -39,22 +39,23 @@ export function WeightLossApprovedEmail({
   patientName,
   medicationName,
   requestId,
-  appUrl = "https://instantmed.com.au",
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: WeightLossApprovedEmailProps) {
+  const firstName = patientName.split(" ")[0]
   const glp1 = isGLP1(medicationName)
 
   return (
     <BaseEmail
-      previewText={`Your ${medicationName} prescription has been approved ✅`}
+      previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Treatment approved" />
 
-      <Text>Hi {patientName},</Text>
+      <Text>Hi {firstName},</Text>
 
       <Text>
-        Your doctor has reviewed your consultation and approved your prescription for{" "}
-        <strong>{medicationName}</strong>. Your eScript token will arrive via SMS shortly.
+        Good news — your prescription for{" "}
+        <strong>{medicationName}</strong> has been approved. Your eScript will arrive by SMS shortly.
       </Text>
 
       <Box variant="info">
@@ -135,14 +136,12 @@ export function WeightLossApprovedEmail({
         />
       </Box>
 
-      <div style={{ textAlign: "center" }}>
-        <Button href={`${appUrl}/patient/intakes/${requestId}`}>
-          View Request Details
-        </Button>
-      </div>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+        View Request Details
+      </Button>
 
       <Text muted small>
-        Questions about your treatment? Reply to this email or visit our{" "}
+        Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
           help centre
         </a>

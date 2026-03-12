@@ -317,19 +317,19 @@ interface ButtonProps {
 export function Button({ href, children, variant = "primary" }: ButtonProps) {
   const isPrimary = variant === "primary"
   return (
-    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "24px 0" }}>
+    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "24px auto", width: "100%" }}>
       <tbody>
         <tr>
-          <td>
+          <td style={{ textAlign: "center" as const }}>
             <a
               href={href}
               style={{
                 display: "inline-block",
-                padding: isPrimary ? "12px 28px" : "10px 24px",
-                fontSize: "14px",
+                padding: isPrimary ? "14px 32px" : "12px 28px",
+                fontSize: "15px",
                 fontWeight: "600",
                 textDecoration: "none",
-                borderRadius: "8px",
+                borderRadius: "10px",
                 letterSpacing: "0.01em",
                 ...(isPrimary
                   ? {
