@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { capture } from "@/lib/analytics/capture"
 import { ClipboardList, Send, CheckCircle2, Clock, Filter, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { formatDateTime } from "@/lib/format"
@@ -56,6 +57,9 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
 
       if (!res.ok) throw new Error("Failed to update")
 
+      if (newStatus === "sent") {
+        capture("doctor_script_sent", { task_id: taskId })
+      }
       toast.success(`Marked as ${STATUS_CONFIG[newStatus].label}`)
 
       // Refresh data
@@ -75,19 +79,12 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <ClipboardList className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Script To-Do</h1>
-            <p className="text-sm text-muted-foreground">
-              Prescriptions to send via Parchment
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Script To-Do</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Prescriptions to send via Parchment</p>
         </div>
 
         <button
@@ -110,7 +107,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
       </div>
 
       {/* Status summary cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {(["pending_send", "sent", "confirmed"] as const).map((status) => {
           const config = STATUS_CONFIG[status]
           const Icon = config.icon
@@ -118,18 +115,18 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
             <button
               key={status}
               onClick={() => setFilter(filter === status ? "all" : status)}
-              className={`flex items-center gap-3 rounded-xl border p-4 transition-all ${
+              className={`flex items-center gap-3 rounded-xl border border-border/50 p-3 transition-all duration-200 ${
                 filter === status
                   ? "border-sky-300 bg-sky-50/50 dark:border-sky-700 dark:bg-sky-950/30"
                   : "border-border/50 bg-card hover:border-border"
               }`}
               aria-label={`Filter by ${config.label}`}
             >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.color}`}>
-                <Icon className="h-5 w-5" />
+              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${config.color}`}>
+                <Icon className="h-4 w-4" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-semibold">{counts[status]}</p>
+                <p className="text-xl font-bold tabular-nums">{counts[status]}</p>
                 <p className="text-xs text-muted-foreground">{config.label}</p>
               </div>
             </button>
@@ -155,7 +152,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
       )}
 
       {/* Task list */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {filteredTasks.length === 0 ? (
           <EmptyState
             icon={CheckCircle2}
@@ -169,7 +166,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
             return (
               <div
                 key={task.id}
-                className="flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-start gap-3">
                   <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.color}`}>

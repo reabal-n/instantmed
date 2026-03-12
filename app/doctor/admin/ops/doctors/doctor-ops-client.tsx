@@ -126,7 +126,7 @@ export function DoctorOpsClient({
   const totalBreaches = initialData.reduce((sum, d) => sum + d.sla_breaches, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -176,16 +176,16 @@ export function DoctorOpsClient({
 
       {/* Error state */}
       {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl border-destructive">
+          <CardContent className="pt-4 px-4 pb-4">
             <p className="text-destructive">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-3 md:grid-cols-4">
+        <Card className="rounded-xl border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Doctors</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -195,7 +195,7 @@ export function DoctorOpsClient({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
           </CardHeader>
@@ -205,7 +205,7 @@ export function DoctorOpsClient({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Decisions</CardTitle>
           </CardHeader>
@@ -215,7 +215,7 @@ export function DoctorOpsClient({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">SLA Breaches</CardTitle>
           </CardHeader>
@@ -229,7 +229,7 @@ export function DoctorOpsClient({
       </div>
 
       {/* Data Table */}
-      <Card>
+      <Card className="rounded-xl border-border/50">
         <CardContent className="p-0">
           <Table data-testid="doctor-ops-table">
             <TableHeader>

@@ -43,6 +43,8 @@ import {
   Send,
   Mail,
 } from "lucide-react"
+import { regenerateDrafts } from "@/app/actions/draft-approval"
+import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
@@ -133,6 +135,13 @@ function formatDraftAsNote(content: Record<string, unknown>): string {
   return lines.join("\n\n")
 }
 
+/** Find a usable clinical_note draft from the AI drafts list. */
+function findClinicalNoteDraft(drafts: AIDraft[]): AIDraft | null {
+  return drafts.find(
+    (d) => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at
+  ) ?? null
+}
+
 // Format consult subtype for display
 function formatConsultSubtype(subtype: string): string {
   const labels: Record<string, string> = {
@@ -160,6 +169,8 @@ export function IntakeDetailClient({
   const [isPending, startTransition] = useTransition()
   const [doctorNotes, setDoctorNotes] = useState(intake.doctor_notes || "")
   const [noteSaved, setNoteSaved] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
   const [showScriptDialog, setShowScriptDialog] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
@@ -280,12 +291,13 @@ export function IntakeDetailClient({
   useEffect(() => {
     if (autoAppliedDraft.current) return
     if (intake.doctor_notes) return // Don't overwrite existing saved notes
-    const clinicalDraft = aiDrafts.find(d => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at)
+    const clinicalDraft = findClinicalNoteDraft(aiDrafts)
     if (!clinicalDraft) return
     const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
     const formatted = formatDraftAsNote(content)
     if (formatted) {
       setDoctorNotes(formatted)
+      setIsAiPrefilled(true)
       autoAppliedDraft.current = true
       toast.info("Clinical note auto-drafted — review and edit before saving", { duration: 4000 })
     }
@@ -441,11 +453,44 @@ export function IntakeDetailClient({
       const result = await saveDoctorNotesAction(intake.id, doctorNotes)
       if (result.success) {
         setNoteSaved(true)
+        setIsAiPrefilled(false)
         setTimeout(() => setNoteSaved(false), 3000)
       } else {
         toast.error(result.error || "Failed to save notes")
       }
     })
+  }
+
+  const hasClinicalDraft = !!findClinicalNoteDraft(aiDrafts)
+
+  const handleGenerateOrRegenerateNote = async () => {
+    setIsRegenerating(true)
+    try {
+      const result = await regenerateDrafts(intake.id)
+      if (result.success) {
+        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
+        if (res.ok) {
+          const data = await res.json()
+          const clinicalDraft = findClinicalNoteDraft(data.aiDrafts || [])
+          if (clinicalDraft) {
+            const content = (clinicalDraft.edited_content || clinicalDraft.content) as Record<string, unknown>
+            const formatted = formatDraftAsNote(content)
+            if (formatted) {
+              setDoctorNotes(formatted)
+              setIsAiPrefilled(true)
+              toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
+            }
+          }
+        }
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to generate draft")
+      }
+    } catch {
+      toast.error("Failed to generate draft")
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   const handleMarkScriptSent = async () => {
@@ -509,7 +554,7 @@ export function IntakeDetailClient({
   const answers = intake.answers?.answers || {}
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
@@ -526,7 +571,7 @@ export function IntakeDetailClient({
       {/* Action Message */}
       {actionMessage && (
         <div
-          className={`p-4 rounded-lg ${
+          className={`p-3 rounded-lg text-sm ${
             actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-destructive/10 text-destructive"
           }`}
         >
@@ -536,13 +581,13 @@ export function IntakeDetailClient({
 
       {/* Patient Info Card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
             Patient Information
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 py-3">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Name</p>
@@ -591,9 +636,9 @@ export function IntakeDetailClient({
 
       {/* Request Info */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
             {service?.name || formatServiceType(service?.type || "")}
             {/* Display consult subtype for consult service */}
             {intake.category === 'consult' && intake.subtype && intake.subtype !== 'general' && (
@@ -603,7 +648,7 @@ export function IntakeDetailClient({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-4 py-3 space-y-3">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -628,16 +673,22 @@ export function IntakeDetailClient({
         </CardContent>
       </Card>
 
-      {/* AI-Generated Drafts */}
-      {aiDrafts.length > 0 && (
-        <DraftReviewPanel
-          drafts={aiDrafts}
-          intakeId={intake.id}
-          onDraftApproved={() => router.refresh()}
-          onDraftRejected={() => router.refresh()}
-          onRegenerated={() => router.refresh()}
-        />
-      )}
+      {/* AI Chat Transcript */}
+      <ChatTranscriptPanel intakeId={intake.id} />
+
+      {/* AI-Generated Drafts (excludes clinical_note — shown in Clinical Notes textarea) */}
+      {(() => {
+        const nonNoteDrafts = aiDrafts.filter((d) => d.type !== "clinical_note")
+        return nonNoteDrafts.length > 0 ? (
+          <DraftReviewPanel
+            drafts={nonNoteDrafts}
+            intakeId={intake.id}
+            onDraftApproved={() => router.refresh()}
+            onDraftRejected={() => router.refresh()}
+            onRegenerated={() => router.refresh()}
+          />
+        ) : null
+      })()}
 
       {/* Repeat Prescription Checklist */}
       {service?.type === "common_scripts" && (
@@ -652,20 +703,25 @@ export function IntakeDetailClient({
 
       {/* Doctor Notes - Editable for pending, read-only for approved/completed */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
             {["approved", "completed", "awaiting_script"].includes(intake.status)
               ? "Approved Clinical Note"
               : "Clinical Notes (Private)"}
+            {isAiPrefilled && !["approved", "completed", "awaiting_script"].includes(intake.status) && (
+              <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
+                AI Draft
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="px-4 py-3 space-y-3">
           {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
             // Read-only view for approved intakes
             <div className="space-y-2">
               {intake.doctor_notes ? (
-                <div className="p-4 bg-muted/50 rounded-lg border">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
                   <p className="text-sm whitespace-pre-wrap">{intake.doctor_notes}</p>
                 </div>
               ) : (
@@ -680,19 +736,49 @@ export function IntakeDetailClient({
           ) : (
             // Editable view for pending intakes
             <>
-              <Textarea
-                ref={notesRef}
-                placeholder="Add your clinical notes here... (⌘+N to focus)"
-                value={doctorNotes}
-                onChange={(e) => setDoctorNotes(e.target.value)}
-                className="min-h-[120px]"
-              />
+              {isAiPrefilled && (
+                <p className="text-xs text-muted-foreground">
+                  Pre-filled from AI analysis of intake answers. Review, edit as needed, then save.
+                </p>
+              )}
+              {isRegenerating && !doctorNotes ? (
+                <div className="flex items-center gap-2 py-6 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Generating draft...</span>
+                </div>
+              ) : (
+                <Textarea
+                  ref={notesRef}
+                  placeholder="Add your clinical notes here... (⌘+N to focus)"
+                  value={doctorNotes}
+                  onChange={(e) => setDoctorNotes(e.target.value)}
+                  disabled={isRegenerating}
+                  className="min-h-[120px] text-sm"
+                />
+              )}
               <div className="flex items-center gap-2">
-                <Button onClick={handleSaveNotes} disabled={isPending} variant="outline">
-                  <Save className="h-4 w-4 mr-2" />
+                <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save Notes
                 </Button>
-                {noteSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+                <Button
+                  onClick={handleGenerateOrRegenerateNote}
+                  disabled={isPending || isRegenerating}
+                  variant={hasClinicalDraft ? "ghost" : "outline"}
+                  size="sm"
+                >
+                  {isRegenerating ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  {isRegenerating
+                    ? "Generating draft..."
+                    : hasClinicalDraft
+                      ? "Regenerate AI Note"
+                      : "Generate AI draft"}
+                </Button>
+                {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
               </div>
             </>
           )}
@@ -702,10 +788,10 @@ export function IntakeDetailClient({
       {/* Patient History */}
       {previousIntakes.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Previous Requests</CardTitle>
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base">Previous Requests</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 py-3">
             <div className="space-y-2">
               {previousIntakes.map((prev) => {
                 const prevService = prev.service as { short_name?: string } | undefined
@@ -744,9 +830,9 @@ export function IntakeDetailClient({
       {/* P0 SAFETY: Red Flag Acknowledgment Card */}
       {hasRedFlags && (
         <Card className="border-destructive/50 bg-destructive/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-destructive flex items-center gap-2">
-              <XCircle className="h-5 w-5" />
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-destructive flex items-center gap-2 text-base">
+              <XCircle className="h-4 w-4" />
               Safety Flags Detected
             </CardTitle>
           </CardHeader>
@@ -779,7 +865,7 @@ export function IntakeDetailClient({
 
       {/* Actions */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="px-4 py-4">
           <div className="flex flex-wrap gap-3">
             {/* For med certs - preview then approve: shows preview dialog first */}
             {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (

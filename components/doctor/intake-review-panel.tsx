@@ -246,6 +246,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const answers = (intake?.answers?.answers || {}) as Record<string, unknown>
   const intakeAnswers = intake?.answers?.answers as Record<string, unknown> | undefined
+  const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
 
   // Helper: check if a value is actually concerning (not "None", "No", "mild", etc.)
   const isConcerningValue = (val: unknown): boolean => {
@@ -395,7 +396,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     })
   }
 
-  const handleRegenerateNote = async () => {
+  const handleGenerateOrRegenerateNote = async () => {
     if (!intake) return
     setIsRegenerating(true)
     try {
@@ -412,15 +413,15 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
             if (formatted) {
               setDoctorNotes(formatted)
               setIsAiPrefilled(true)
-              toast.success("AI note regenerated")
+              toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
             }
           }
         }
       } else {
-        toast.error(result.error || "Failed to regenerate note")
+        toast.error(result.error || "Failed to generate draft")
       }
     } catch {
-      toast.error("Failed to regenerate note")
+      toast.error("Failed to generate draft")
     } finally {
       setIsRegenerating(false)
     }
@@ -521,7 +522,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         width={720}
         onClose={handlePanelClose}
       >
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Top bar: status + open full page */}
           <div className="flex items-center justify-between">
             <Badge className={getStatusColor(intake.status)}>
@@ -546,13 +547,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Patient Info (compact) */}
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
+            <CardHeader className="py-3 px-4">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4" />
                 Patient
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent className="px-4 py-3">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
@@ -606,13 +607,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Request Info + Clinical Summary */}
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
+            <CardHeader className="py-3 px-4">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
                 {service?.name || formatServiceType(service?.type || "")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4 space-y-3">
+            <CardContent className="px-4 py-3 space-y-3">
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
@@ -659,13 +660,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
           {/* Safety Flags */}
           {hasRedFlags && (
             <Card className="border-destructive/50 bg-destructive/5">
-              <CardHeader className="pb-2 pt-4 px-4">
+              <CardHeader className="py-3 px-4">
                 <CardTitle className="text-destructive flex items-center gap-2 text-sm">
                   <XCircle className="h-4 w-4" />
                   Safety Flags Detected
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-4 pb-4 space-y-3">
+              <CardContent className="px-4 py-3 space-y-3">
                 <div className="text-sm space-y-1">
                   {redFlagDetails.map((detail, i) => (
                     <p key={i} className="text-destructive-foreground">
@@ -692,7 +693,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Clinical Notes */}
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
+            <CardHeader className="py-3 px-4">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
                 {["approved", "completed", "awaiting_script"].includes(intake.status)
@@ -705,7 +706,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4 space-y-3">
+            <CardContent className="px-4 py-3 space-y-3">
               {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
                 <div className="space-y-2">
                   {intake.doctor_notes ? (
@@ -723,25 +724,33 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       Pre-filled from AI analysis of intake answers. Review, edit as needed, then save.
                     </p>
                   )}
-                  <Textarea
-                    ref={notesRef}
-                    placeholder="Add your clinical notes here... (⌘+N to focus)"
-                    value={doctorNotes}
-                    onChange={(e) => {
-                      setDoctorNotes(e.target.value)
-                      setNoteSaved(false)
-                    }}
-                    className="min-h-[140px] text-sm"
-                  />
+                  {isRegenerating && !doctorNotes ? (
+                    <div className="flex items-center gap-2 py-8 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Generating draft...</span>
+                    </div>
+                  ) : (
+                    <Textarea
+                      ref={notesRef}
+                      placeholder="Add your clinical notes here... (⌘+N to focus)"
+                      value={doctorNotes}
+                      onChange={(e) => {
+                        setDoctorNotes(e.target.value)
+                        setNoteSaved(false)
+                      }}
+                      disabled={isRegenerating}
+                      className="min-h-[140px] text-sm"
+                    />
+                  )}
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleSaveNotes} disabled={isPending} variant="outline" size="sm">
+                    <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
                       <Save className="h-3.5 w-3.5 mr-1.5" />
                       Save Notes
                     </Button>
                     <Button
-                      onClick={handleRegenerateNote}
+                      onClick={handleGenerateOrRegenerateNote}
                       disabled={isPending || isRegenerating}
-                      variant="ghost"
+                      variant={hasClinicalDraft ? "ghost" : "outline"}
                       size="sm"
                     >
                       {isRegenerating ? (
@@ -749,7 +758,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       ) : (
                         <FileText className="h-3.5 w-3.5 mr-1.5" />
                       )}
-                      {isRegenerating ? "Regenerating..." : "Regenerate AI Note"}
+                      {isRegenerating
+                        ? "Generating draft..."
+                        : hasClinicalDraft
+                          ? "Regenerate AI Note"
+                          : "Generate AI draft"}
                     </Button>
                     {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
                   </div>
@@ -759,7 +772,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
           </Card>
 
           {/* Action Buttons (sticky bottom) */}
-          <div className="sticky bottom-0 bg-background border-t border-border -mx-8 px-8 py-4 -mb-6 flex flex-wrap gap-2">
+          <div className="sticky bottom-0 bg-background border-t border-border -mx-6 px-6 py-3 -mb-4 flex flex-wrap gap-2">
             {/* Med cert: preview then approve */}
             {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
               <Button

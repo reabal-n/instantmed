@@ -166,7 +166,7 @@ export function AuditLogsClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -188,8 +188,8 @@ export function AuditLogsClient({
       </div>
 
       {/* Search & Filters */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="rounded-xl border-border/50">
+        <CardContent className="pt-4 px-4 pb-4">
           <div className="space-y-4">
             {/* Row 1: Intake ID search + Event type filter */}
             <div className="flex gap-4 flex-wrap">
@@ -270,14 +270,14 @@ export function AuditLogsClient({
 
       {/* Certificate Events (if viewing specific intake) */}
       {certificateEvents.length > 0 && (
-        <Card>
-          <CardHeader>
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="py-3 px-4">
             <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="h-5 w-5" />
+              <FileText className="h-4 w-4" />
               Certificate Events
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 py-3">
             <div className="space-y-3">
               {certificateEvents.map((event) => {
                 const actorData = event.actor
@@ -314,15 +314,15 @@ export function AuditLogsClient({
       )}
 
       {/* Intake Events */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Activity className="h-5 w-5" />
+            <Activity className="h-4 w-4" />
             Intake Events
             <Badge variant="secondary" className="ml-2">{total} total</Badge>
           </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+        <CardContent className="px-4 py-3">
           {events.length > 0 ? (
             <div className="space-y-3">
               {events.map((event) => {
@@ -337,7 +337,7 @@ export function AuditLogsClient({
                 return (
                   <div
                     key={event.id}
-                    className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg"
+                    className="flex items-start gap-4 p-3 bg-muted/50 rounded-lg"
                   >
                     <div className={`p-2 rounded-full ${getEventColor(event.event_type)}`}>
                       {getEventIcon(event.event_type)}

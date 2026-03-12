@@ -270,11 +270,11 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
       </header>
 
       {/* Main content - two-column request card */}
-      <main className="px-6 py-6">
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <main className="px-6 py-4">
+        <div className="rounded-xl border border-border/50 bg-card shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
             {/* Left: Patient details (copy-ready for Parchment) */}
-            <div className="p-6 space-y-4">
+            <div className="p-4 space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <User className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">Patient Details</h3>
@@ -340,7 +340,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
             </div>
 
             {/* Right: Medication requested + patient notes */}
-            <div className="p-6 space-y-4">
+            <div className="p-4 space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Pill className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">Medication Requested</h3>
@@ -369,7 +369,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
 
           {/* Bottom: Actions */}
           {isActionable ? (
-            <div className="border-t border-border px-6 py-5 bg-muted/20">
+            <div className="border-t border-border px-6 py-4 bg-muted/20">
               {!showDecline ? (
                 <div className="flex items-center gap-3">
                   {/* Primary action: Mark Script Sent */}
@@ -446,7 +446,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
               )}
             </div>
           ) : (
-            <div className="border-t border-border px-6 py-5 bg-muted/20">
+            <div className="border-t border-border px-6 py-4 bg-muted/20">
               <div className="flex items-center gap-2">
                 <StatusBadge status={request.status} />
                 {request.decisions?.[0] && (

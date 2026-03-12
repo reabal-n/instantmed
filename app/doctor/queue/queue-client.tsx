@@ -56,6 +56,7 @@ import { toast } from "sonner"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
+import { capture } from "@/lib/analytics/capture"
 import { usePanel } from "@/components/panels/panel-provider"
 import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 
@@ -358,6 +359,10 @@ export function QueueClient({
     startTransition(async () => {
       const result = await declineIntakeAction(declineDialog, declineReasonCode, declineReasonNote || undefined)
       if (result.success) {
+        capture("doctor_decline_submitted", {
+          intake_id: declineDialog,
+          reason_code: declineReasonCode,
+        })
         setIntakes((prev) => prev.filter((r) => r.id !== declineDialog))
         setDeclineDialog(null)
         setDeclineReasonCode("")
@@ -405,7 +410,7 @@ export function QueueClient({
       )}
 
       {/* Header + Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-testid="queue-header">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" data-testid="queue-header">
         <h2 className="text-lg font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
           {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
         </h2>
@@ -441,12 +446,23 @@ export function QueueClient({
             return (
               <Card
                 key={intake.id}
-                className={cn("transition-all", isExpanded && "ring-2 ring-primary/20")}
+                className={cn(
+                  "rounded-xl border-border/50 transition-all duration-200",
+                  isExpanded && "ring-2 ring-primary/20"
+                )}
               >
                 {/* Collapsed row */}
                 <CardHeader
-                  className="cursor-pointer hover:bg-muted/50 transition-colors py-3 px-4"
-                  onClick={() => setExpandedId(isExpanded ? null : intake.id)}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors py-2.5 px-3"
+                  onClick={() => {
+                    if (!isExpanded) {
+                      capture("doctor_case_opened", {
+                        intake_id: intake.id,
+                        service_type: (intake.service as { type?: string })?.type,
+                      })
+                    }
+                    setExpandedId(isExpanded ? null : intake.id)
+                  }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -516,7 +532,7 @@ export function QueueClient({
 
                 {/* Expanded — just link + actions, detailed review on the detail page */}
                 {isExpanded && (
-                  <CardContent className="pt-0 pb-4 space-y-3">
+                  <CardContent className="pt-0 pb-3 px-3 space-y-2">
                     <button
                       type="button"
                       onClick={() => openReviewPanel(intake.id)}

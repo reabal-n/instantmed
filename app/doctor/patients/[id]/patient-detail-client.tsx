@@ -116,7 +116,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
@@ -139,15 +139,15 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       </div>
 
       {/* Patient Profile Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
             Patient Profile
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="px-4 py-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left column - Basic info */}
             <div className="space-y-4">
               <div>
@@ -223,22 +223,22 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="p-4">
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="rounded-xl border-border/50 p-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Total Requests</span>
             <FileText className="h-4 w-4 text-primary" />
           </div>
           <p className="text-2xl font-semibold mt-2">{stats.totalRequests}</p>
         </Card>
-        <Card className="p-4">
+        <Card className="rounded-xl border-border/50 p-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Approved</span>
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </div>
           <p className="text-2xl font-semibold mt-2">{stats.approvedRequests}</p>
         </Card>
-        <Card className="p-4">
+        <Card className="rounded-xl border-border/50 p-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Certificates</span>
             <Activity className="h-4 w-4 text-blue-500" />
@@ -248,14 +248,14 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       </div>
 
       {/* Request History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock className="h-4 w-4" />
             Request History
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 py-3">
           {intakes.length > 0 ? (
             <div className="space-y-3">
               {intakes.map((intake) => (
@@ -302,11 +302,11 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       </Card>
 
       {/* Patient Notes */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <StickyNote className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <StickyNote className="h-4 w-4" />
               Patient Notes
             </CardTitle>
             <Button
@@ -319,7 +319,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 py-3">
           {showNoteForm && (
             <div className="mb-4 p-4 bg-muted/50 rounded-lg space-y-3">
               <Textarea

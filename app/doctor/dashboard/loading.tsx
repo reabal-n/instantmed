@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/loader"
 export default function DoctorLoading() {
   return (
     <div
-      className="space-y-6"
+      className="space-y-4"
       aria-busy="true"
       aria-live="polite"
     >
@@ -22,7 +22,7 @@ export default function DoctorLoading() {
         {/* CardContent */}
         <div className="px-6 py-4 space-y-4">
           {/* 4-cell stat grid: grid-cols-2 sm:grid-cols-4 */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-3 w-14" animated={false} />

@@ -180,7 +180,7 @@ export function DocumentBuilderClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
@@ -198,7 +198,7 @@ export function DocumentBuilderClient({
       {/* Action Message */}
       {actionMessage && (
         <div
-          className={`p-4 rounded-lg ${
+          className={`p-3 rounded-xl ${
             actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : actionMessage.type === "warning" ? "bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"
           }`}
           data-testid={actionMessage.type === "success" ? "success-message" : actionMessage.type === "warning" ? "warning-message" : "error-message"}
@@ -209,8 +209,8 @@ export function DocumentBuilderClient({
 
       {/* Missing Credentials Warning */}
       {!hasCredentials && (
-        <Card className="bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20">
+          <CardContent className="pt-4 px-4 pb-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-red-800 dark:text-red-300 font-medium">
                 <AlertTriangle className="h-4 w-4" />
@@ -229,10 +229,10 @@ export function DocumentBuilderClient({
 
       {/* AI Review Flags — requires doctor attention */}
       {aiDrafts?.flags?.requiresReview && (
-        <Card className="bg-amber-50 border-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl bg-amber-50 border-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20">
+          <CardContent className="pt-4 px-4 pb-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium text-amber-800 dark:text-amber-200">AI Flag: Requires Extra Review</p>
                 {aiDrafts.flags.flagReason && (
@@ -246,15 +246,15 @@ export function DocumentBuilderClient({
 
       {/* AI Clinical Note — pre-consultation summary for doctor */}
       {aiDrafts?.clinicalNote && (
-        <Card className="border-blue-200 dark:border-blue-500/20">
-          <CardHeader className="pb-3">
+        <Card className="rounded-xl border-blue-200 dark:border-blue-500/20">
+          <CardHeader className="py-3 px-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-300">
               <Brain className="h-4 w-4" />
               AI Clinical Summary
               <span className="text-xs font-normal text-blue-500 dark:text-blue-400 ml-auto">Auto-generated — review before issuing</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-2 text-muted-foreground">
+          <CardContent className="text-sm space-y-2 text-muted-foreground px-4 py-3">
             {Boolean(aiDrafts.clinicalNote.presentingComplaint) && (
               <div>
                 <span className="font-medium text-foreground">Presenting Complaint: </span>
@@ -285,8 +285,8 @@ export function DocumentBuilderClient({
 
       {/* Existing Document Notice */}
       {existingDocument && (
-        <Card className="bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
+          <CardContent className="pt-4 px-4 pb-4">
             <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
               <CheckCircle className="h-5 w-5" />
               <span>Certificate already generated</span>
@@ -296,14 +296,14 @@ export function DocumentBuilderClient({
       )}
 
       {/* Patient Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
             Patient Details
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-2 gap-3 px-4 py-3">
           <div>
             <Label>Full Name</Label>
             <Input
@@ -327,15 +327,15 @@ export function DocumentBuilderClient({
       </Card>
 
       {/* Certificate Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
             Certificate Details
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4 px-4 py-3">
+          <div className="grid grid-cols-2 gap-3">
             <DatePickerField
               label="Date From"
               value={formData.dateFrom}

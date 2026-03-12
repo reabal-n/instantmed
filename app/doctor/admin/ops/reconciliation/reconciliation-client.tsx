@@ -43,6 +43,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import type { ReconciliationRecord, DeliveryStatus } from "@/lib/data/reconciliation"
+import { cn } from "@/lib/utils"
 
 // ============================================================================
 // PROPS
@@ -166,7 +167,7 @@ export function ReconciliationClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -195,17 +196,17 @@ export function ReconciliationClient({
 
       {/* Error state */}
       {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl border-destructive">
+          <CardContent className="pt-4 px-4 pb-4">
             <p className="text-destructive">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="grid gap-3 md:grid-cols-5">
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 px-4">
             <CardTitle className="text-sm font-medium">Total Records</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -214,8 +215,8 @@ export function ReconciliationClient({
           </CardContent>
         </Card>
 
-        <Card className={summary.mismatches > 0 ? "border-destructive" : ""}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className={cn("rounded-xl border-border/50", summary.mismatches > 0 && "border-destructive")}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 px-4">
             <CardTitle className="text-sm font-medium">Mismatches</CardTitle>
             <AlertTriangle className={`h-4 w-4 ${summary.mismatches > 0 ? "text-destructive" : "text-muted-foreground"}`} />
           </CardHeader>
@@ -226,8 +227,8 @@ export function ReconciliationClient({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 px-4">
             <CardTitle className="text-sm font-medium">Delivered</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           </CardHeader>
@@ -236,8 +237,8 @@ export function ReconciliationClient({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 px-4">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -246,8 +247,8 @@ export function ReconciliationClient({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 px-4">
             <CardTitle className="text-sm font-medium">Failed</CardTitle>
             <XCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
@@ -260,12 +261,12 @@ export function ReconciliationClient({
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="text-base">Filters</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-6">
+        <CardContent className="px-4 py-3">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center space-x-2">
               <Switch
                 id="mismatch-only"
@@ -302,7 +303,7 @@ export function ReconciliationClient({
       </Card>
 
       {/* Data Table */}
-      <Card>
+      <Card className="rounded-xl border-border/50">
         <CardContent className="p-0">
           <Table data-testid="reconciliation-table">
             <TableHeader>

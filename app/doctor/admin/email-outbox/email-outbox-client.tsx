@@ -119,23 +119,23 @@ function StatsCards({
 }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-      <Card className="p-3">
+      <Card className="rounded-xl border-border/50 p-3">
         <div className="text-2xl font-bold">{stats.total}</div>
         <div className="text-xs text-muted-foreground">Total</div>
       </Card>
-      <Card className="p-3">
+      <Card className="rounded-xl border-border/50 p-3">
         <div className="text-2xl font-bold text-emerald-600">{stats.sent}</div>
         <div className="text-xs text-muted-foreground">Sent</div>
       </Card>
-      <Card className="p-3">
+      <Card className="rounded-xl border-border/50 p-3">
         <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
         <div className="text-xs text-muted-foreground">Failed</div>
       </Card>
-      <Card className="p-3">
+      <Card className="rounded-xl border-border/50 p-3">
         <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
         <div className="text-xs text-muted-foreground">Pending</div>
       </Card>
-      <Card className="p-3">
+      <Card className="rounded-xl border-border/50 p-3">
         <div className="text-2xl font-bold text-dawn-600">
           {stats.skipped_e2e}
         </div>
@@ -518,7 +518,7 @@ export function EmailOutboxClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -543,8 +543,8 @@ export function EmailOutboxClient({
       <StatsCards stats={stats} />
 
       {/* Filters */}
-      <Card>
-        <CardHeader className="py-3">
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="text-sm flex items-center gap-2">
             <Filter className="h-4 w-4" />
             Filters
@@ -573,7 +573,7 @@ export function EmailOutboxClient({
       )}
 
       {/* Table */}
-      <Card>
+      <Card className="rounded-xl border-border/50">
         <div className="overflow-x-auto">
           <Table data-testid="email-outbox-table">
             <TableHeader>

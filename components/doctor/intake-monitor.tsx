@@ -60,12 +60,12 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
   }
 
   return (
-    <div className="flex flex-col gap-2 p-5 rounded-xl bg-card border border-border/50 shadow-sm" aria-label={`${label}: ${value}`}>
+    <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border/50 shadow-sm" aria-label={`${label}: ${value}`}>
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <div className={cn("text-2xl font-bold tabular-nums tracking-tight", colorMap[variant])}>
+      <div className={cn("text-xl font-bold tabular-nums tracking-tight", colorMap[variant])}>
         {value}
       </div>
     </div>
@@ -106,8 +106,8 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
   const avgTimeHealthy = stats.avgReviewTimeMinutes === null || stats.avgReviewTimeMinutes < 60
 
   return (
-    <Card className="border-border/50">
-      <CardHeader className="pb-3">
+    <Card className="border-border/50 rounded-xl">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Activity className="h-4 w-4 text-primary" />
@@ -130,9 +130,9 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Primary Metrics */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCell
             label="Today"
             value={stats.todaySubmissions}

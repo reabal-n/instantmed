@@ -61,53 +61,44 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Patient Directory</h1>
-        <p className="mt-1 text-sm text-muted-foreground">View and manage all registered patients</p>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Patient Directory</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">View and manage all registered patients</p>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card
-          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-        >
-          <CardContent className="p-5">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
               <Users className="h-4 w-4 text-primary" />
             </div>
-            <div className="mt-2 text-lg font-semibold text-foreground">{totalPatients}</div>
+            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">{totalPatients}</div>
           </CardContent>
         </Card>
 
-        <Card
-          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
-        >
-          <CardContent className="p-5">
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Onboarded</span>
               <CheckCircle className="h-4 w-4 text-emerald-500" />
             </div>
-            <div className="mt-2 text-lg font-semibold text-foreground">
+            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">
               {patients.filter((p) => p.onboarding_completed).length}
             </div>
           </CardContent>
         </Card>
 
-        <Card
-          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
-        >
-          <CardContent className="p-5">
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
               <XCircle className="h-4 w-4 text-dawn-500" />
             </div>
-            <div className="mt-2 text-lg font-semibold text-foreground">
+            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">
               {patients.filter((p) => !p.onboarding_completed).length}
             </div>
           </CardContent>
@@ -115,12 +106,9 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
       </div>
 
       {/* Filters */}
-      <Card
-        className="rounded-2xl animate-fade-in-up opacity-0"
-        style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
-      >
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <Card className="rounded-xl border-border/50">
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex-1 max-w-md">
               <Input
                 placeholder="Search by name, suburb, or phone..."
@@ -158,17 +146,14 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             </div>
           </div>
 
-          <div className="mt-4 text-sm text-muted-foreground">
+          <div className="mt-3 text-sm text-muted-foreground">
             Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
           </div>
         </CardContent>
       </Card>
 
       {/* Table */}
-      <Card
-        className="rounded-2xl overflow-hidden animate-fade-in-up opacity-0"
-        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
-      >
+      <Card className="rounded-xl border-border/50 overflow-hidden">
         <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
@@ -191,8 +176,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                   return (
                     <TableRow
                       key={patient.id}
-                      className="animate-fade-in opacity-0 hover:bg-card/40 transition-colors cursor-pointer group"
-                      style={{ animationDelay: `${0.05 * index}s`, animationFillMode: "forwards" }}
+                      className="hover:bg-muted/50 transition-colors duration-200 cursor-pointer group"
                     >
                       <TableCell>
                         <Link href={`/doctor/patients/${patient.id}`} className="block">
@@ -279,7 +263,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between animate-fade-in-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+        <div className="flex items-center justify-between pt-2 border-t border-border/40">
           <p className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </p>

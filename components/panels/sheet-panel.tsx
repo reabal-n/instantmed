@@ -102,7 +102,7 @@ export function SheetPanel({
         aria-describedby={description ? 'sheet-description' : undefined}
       >
         {/* Header - sticky with more prominence */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-6">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               {title && (
@@ -128,7 +128,7 @@ export function SheetPanel({
         </div>
 
         {/* Content - scrollable with more padding */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {children}
         </div>
       </motion.div>

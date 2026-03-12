@@ -138,7 +138,7 @@ export function IntakesStuckClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -167,16 +167,16 @@ export function IntakesStuckClient({
 
       {/* Error state */}
       {error && (
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl border-destructive">
+          <CardContent className="pt-4 px-4 pb-4">
             <p className="text-destructive">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
+      <div className="grid gap-3 md:grid-cols-5">
+        <Card className="rounded-xl border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Stuck</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -192,7 +192,7 @@ export function IntakesStuckClient({
           onClick={() => handleFilterChange("reason", filters.reason === "paid_no_review" ? "all" : "paid_no_review")}
           aria-pressed={filters.reason === "paid_no_review"}
         >
-          <Card className="cursor-pointer hover:bg-muted/50">
+          <Card className="rounded-xl border-border/50 cursor-pointer hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Paid, No Review</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -210,7 +210,7 @@ export function IntakesStuckClient({
           onClick={() => handleFilterChange("reason", filters.reason === "review_timeout" ? "all" : "review_timeout")}
           aria-pressed={filters.reason === "review_timeout"}
         >
-          <Card className="cursor-pointer hover:bg-muted/50">
+          <Card className="rounded-xl border-border/50 cursor-pointer hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Review Timeout</CardTitle>
               <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -228,7 +228,7 @@ export function IntakesStuckClient({
           onClick={() => handleFilterChange("reason", filters.reason === "delivery_pending" ? "all" : "delivery_pending")}
           aria-pressed={filters.reason === "delivery_pending"}
         >
-          <Card className="cursor-pointer hover:bg-muted/50">
+          <Card className="rounded-xl border-border/50 cursor-pointer hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Delivery Pending</CardTitle>
               <Mail className="h-4 w-4 text-muted-foreground" />
@@ -246,7 +246,7 @@ export function IntakesStuckClient({
           onClick={() => handleFilterChange("reason", filters.reason === "delivery_failed" ? "all" : "delivery_failed")}
           aria-pressed={filters.reason === "delivery_failed"}
         >
-          <Card className="cursor-pointer hover:bg-muted/50">
+          <Card className="rounded-xl border-border/50 cursor-pointer hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Delivery Failed</CardTitle>
               <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -260,11 +260,11 @@ export function IntakesStuckClient({
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="text-base">Filters</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 py-3">
           <div className="flex flex-wrap gap-4">
             <div className="w-48">
               <label className="text-sm font-medium mb-1.5 block">Reason</label>
@@ -336,7 +336,7 @@ export function IntakesStuckClient({
       </Card>
 
       {/* Data Table */}
-      <Card>
+      <Card className="rounded-xl border-border/50">
         <CardContent className="p-0">
           <Table data-testid="stuck-intakes-table">
             <TableHeader>

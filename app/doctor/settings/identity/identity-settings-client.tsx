@@ -140,7 +140,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
@@ -158,8 +158,8 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
 
       {/* Incomplete Warning */}
       {!isComplete && (
-        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40">
-          <CardContent className="pt-6">
+        <Card className="rounded-xl border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40">
+          <CardContent className="pt-4 px-4 pb-4">
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
@@ -179,7 +179,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
       {/* Message */}
       {message && (
         <div
-          className={`p-4 rounded-lg flex items-center gap-2 ${
+          className={`p-3 rounded-xl flex items-center gap-2 ${
             message.type === "success"
               ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
               : "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800"
@@ -195,8 +195,8 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
       )}
 
       {/* Professional Details */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
             Professional Details
@@ -205,7 +205,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
             This information appears on certificates you issue
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 py-3">
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name</Label>
             <Input
@@ -286,8 +286,8 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
       </Card>
 
       {/* Signature */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
           <CardTitle className="text-base flex items-center gap-2">
             <FileSignature className="h-4 w-4" />
             Signature
@@ -296,7 +296,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
             Upload your signature image for certificates (optional)
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 py-3">
           <div className="flex items-center gap-4">
             <div className="w-40 h-16 bg-muted flex items-center justify-center text-xs text-muted-foreground border rounded">
               {signaturePath ? (

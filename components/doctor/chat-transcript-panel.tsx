@@ -53,11 +53,6 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
     }
   }, [isExpanded, loaded, isPending, intakeId])
 
-  // Don't render if we've loaded and there's no transcript
-  if (loaded && !transcript && !error) {
-    return null
-  }
-
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString("en-AU", {
       hour: "2-digit",
@@ -111,6 +106,12 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                 {error}
               </div>
+            )}
+
+            {loaded && !transcript && !error && (
+              <p className="py-4 text-sm text-muted-foreground">
+                This request was completed via the form. No AI chat transcript is available.
+              </p>
             )}
 
             {transcript && (

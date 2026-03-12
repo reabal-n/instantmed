@@ -59,9 +59,9 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const [activeTab, setActiveTab] = useState("certificates")
 
   return (
-      <div className="space-y-6">
+      <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">My Documents</h1>
               <p className="text-muted-foreground mt-1">
@@ -95,15 +95,15 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
 
               <TabsContent value="certificates" className="mt-0 space-y-3">
                 {certificates.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
+                  <Card className="rounded-xl border-border/50">
+                    <CardContent className="py-6 px-4 text-center text-muted-foreground">
                       No certificates available yet.
                     </CardContent>
                   </Card>
                 ) : (
                   certificates.map((cert) => (
-                    <Card key={cert.id} className="hover:border-primary/50 hover:shadow-sm transition-all">
-                      <CardContent className="flex items-center justify-between p-4">
+                    <Card key={cert.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
+                      <CardContent className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
                             <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -134,14 +134,14 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
 
               <TabsContent value="receipts" className="mt-0 space-y-3">
                 {receipts.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
+                  <Card className="rounded-xl border-border/50">
+                    <CardContent className="py-6 px-4 text-center text-muted-foreground">
                       No receipts available yet.
                     </CardContent>
                   </Card>
                 ) : (
                   receipts.map((receipt) => (
-                    <Card key={receipt.id} className="hover:border-primary/50 hover:shadow-sm transition-all">
+                    <Card key={receipt.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">

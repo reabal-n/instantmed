@@ -3,7 +3,7 @@ import { Loader } from "@/components/ui/loader"
 export default function DoctorLoading() {
   return (
     <div
-      className="space-y-6"
+      className="space-y-4"
       aria-busy="true"
       aria-live="polite"
     >
@@ -23,7 +23,7 @@ export default function DoctorLoading() {
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="glass-card rounded-2xl p-5 animate-pulse"
+              className="glass-card rounded-xl p-3 animate-pulse"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
               <div className="flex items-center justify-between mb-3">
@@ -36,8 +36,8 @@ export default function DoctorLoading() {
         </div>
 
         {/* Queue skeleton */}
-        <div className="glass-card rounded-2xl overflow-hidden animate-pulse" style={{ animationDelay: '0.5s' }}>
-          <div className="p-6 pb-4">
+        <div className="glass-card rounded-xl overflow-hidden animate-pulse" style={{ animationDelay: '0.5s' }}>
+          <div className="p-4 pb-3">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="h-6 w-40 bg-muted/60 rounded mb-2" />
@@ -57,12 +57,12 @@ export default function DoctorLoading() {
           </div>
           
           {/* Request rows */}
-          <div className="px-6 pb-6">
+          <div className="px-4 pb-4">
             <div className="divide-y divide-white/10">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div 
                   key={i} 
-                  className="flex items-center gap-4 py-5"
+                  className="flex items-center gap-4 py-3"
                   style={{ animationDelay: `${0.6 + i * 0.1}s` }}
                 >
                   <div className="h-10 w-10 bg-muted/60 rounded-full" />

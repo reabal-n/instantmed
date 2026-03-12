@@ -321,17 +321,17 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
   const callCompleted = answers.call_completed === true || answers.call_completed === "true"
 
   return (
-    <Card className={cn("", className)}>
-      <CardHeader className="pb-3">
+    <Card className={cn("rounded-xl border-border/50", className)}>
+      <CardHeader className="py-3 px-4">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Heart className="h-5 w-5 text-primary" />
+          <Heart className="h-4 w-4 text-primary" />
           Clinical Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-4 py-3 space-y-3">
         {/* Red Flags - Critical, requires immediate attention */}
         {redFlagFields.length > 0 && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-2">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2 text-destructive font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
               Red Flags — Requires Immediate Attention
@@ -349,7 +349,7 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
         
         {/* Yellow Flags - Caution, review carefully */}
         {yellowFlagFields.length > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-4 space-y-2">
+          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-sm">
               <AlertCircle className="h-4 w-4" />
               Caution Flags — Review Carefully
@@ -402,7 +402,7 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
 
         {/* Consult Subtype-Specific Assessment Section */}
         {subtypeConfig && subtypeFields.length > 0 && (
-          <div className="border border-border/50 rounded-xl p-4 space-y-3">
+          <div className="border border-border/50 rounded-xl p-3 space-y-3">
             <div className="flex items-center gap-2 font-semibold text-sm">
               <FileText className="h-4 w-4 text-primary" />
               {subtypeConfig.label}
@@ -441,7 +441,7 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
         
         {/* Primary Clinical Fields - Key decision data */}
         {primaryFields.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {primaryFields.map(([key, value]) => (
               <div 
                 key={key} 
@@ -465,9 +465,9 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
         
         {/* Secondary Fields - Collapsible or less prominent */}
         {secondaryFields.length > 0 && (
-          <div className="border-t pt-4">
-            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wide">Additional Information</p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="border-t border-border/40 pt-3">
+            <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Additional Information</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
               {secondaryFields.slice(0, 8).map(([key, value]) => (
                 <div key={key} className="flex justify-between gap-2 p-2.5 bg-muted/40 rounded-lg">
                   <span className="text-muted-foreground truncate">

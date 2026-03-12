@@ -2,9 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function QueueLoading() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header with filters */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <Skeleton className="h-8 w-48" />
         <div className="flex gap-2">
           <Skeleton className="h-10 w-32 rounded-lg" />
@@ -15,7 +15,7 @@ export default function QueueLoading() {
       {/* Queue cards */}
       <div className="space-y-3">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-          <div key={i} className="rounded-xl border bg-card p-4 flex items-center gap-4">
+          <div key={i} className="rounded-xl border border-border/50 bg-card p-3 flex items-center gap-4">
             <div className="flex items-center gap-3 flex-1">
               <Skeleton className="h-10 w-10 rounded-full" />
               <div>
