@@ -26,6 +26,7 @@ import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
 import { PRICING as APP_PRICING, MED_CERT_DURATIONS } from "@/lib/constants"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
@@ -126,6 +127,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       price_dollars: price,
       consult_subtype: consultSubtype,
     })
+    trackFunnelStep('checkout', serviceType)
 
     try {
       const identity = getIdentity()

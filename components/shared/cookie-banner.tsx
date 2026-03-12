@@ -11,6 +11,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { updateConsent } from "@/lib/analytics/conversion-tracking"
 
 const COOKIE_CONSENT_KEY = "instantmed_cookie_consent"
 const COOKIE_CONSENT_VERSION = "1.0"
@@ -29,6 +30,15 @@ const DEFAULT_PREFERENCES: CookiePreferences = {
   marketing: false,
   version: COOKIE_CONSENT_VERSION,
   acceptedAt: "",
+}
+
+function syncGoogleConsent(preferences: CookiePreferences) {
+  updateConsent({
+    adStorage: preferences.marketing,
+    adUserData: preferences.marketing,
+    adPersonalization: preferences.marketing,
+    analyticsStorage: preferences.analytics,
+  })
 }
 
 function CookieIcon({ className }: { className?: string }) {
@@ -141,6 +151,7 @@ export function CookieBanner() {
         const parsed = JSON.parse(stored) as CookiePreferences
         // Check if version matches - consent already given, don't show banner
         if (parsed.version === COOKIE_CONSENT_VERSION) {
+          syncGoogleConsent(parsed)
           return
         }
       } catch {
@@ -174,6 +185,7 @@ export function CookieBanner() {
       acceptedAt: new Date().toISOString(),
     }
     localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(updated))
+    syncGoogleConsent(updated)
     setPreferences(updated)
     setShowBanner(false)
 

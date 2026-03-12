@@ -10,6 +10,7 @@ import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { Button } from "@/components/ui/button"
+import { trackConversion } from "@/lib/analytics/conversion-tracking"
 
 const RESEND_COOLDOWN_SECONDS = 60
 
@@ -38,6 +39,7 @@ export function SuccessClient({
   const [emailResent, setEmailResent] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const purchaseTrackedRef = useRef(false)
 
   // Cleanup cooldown timer
   useEffect(() => {
@@ -168,6 +170,17 @@ export function SuccessClient({
 
     return () => clearInterval(intervalId)
   }, [intakeId, initialStatus, posthog, serviceName])
+
+  useEffect(() => {
+    if (!intakeId || status !== "paid" || purchaseTrackedRef.current) return
+
+    trackConversion("PURCHASE", {
+      transaction_id: intakeId,
+      currency: "AUD",
+      service: serviceName,
+    })
+    purchaseTrackedRef.current = true
+  }, [intakeId, serviceName, status])
 
   // Show loading state while verifying payment
   if (isVerifying) {

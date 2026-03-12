@@ -38,6 +38,7 @@ import {
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/flow/safety"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
 // Must match server-side getServiceSlug() in lib/stripe/checkout.ts
@@ -370,6 +371,7 @@ export function RequestFlow({
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const dragX = useMotionValue(0)
+  const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   
   const { 
     serviceType, 
@@ -533,6 +535,11 @@ export function RequestFlow({
     [serviceType]
   )
 
+  // Reset funnel event de-duplication state when changing flows.
+  useEffect(() => {
+    trackedFunnelEventsRef.current = new Set()
+  }, [serviceType])
+
   // Find current step index - default to first step if current step not found
   const currentStepIndex = useMemo(() => {
     const index = activeSteps.findIndex(s => s.id === currentStepId)
@@ -566,6 +573,28 @@ export function RequestFlow({
       })
     }
   }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, activeSteps.length, isAuthenticated, posthog])
+
+  // Track Google Ads funnel milestones once per flow.
+  useEffect(() => {
+    if (!currentStep || !serviceType) return
+
+    const tracked = trackedFunnelEventsRef.current
+
+    if (!tracked.has('landing')) {
+      trackFunnelStep('landing', analyticsServiceType)
+      tracked.add('landing')
+    }
+
+    if (currentStepIndex === 0 && !tracked.has('start')) {
+      trackFunnelStep('start', analyticsServiceType)
+      tracked.add('start')
+    }
+
+    if (currentStepId === 'checkout' && !tracked.has('intake_complete')) {
+      trackFunnelStep('intake_complete', analyticsServiceType)
+      tracked.add('intake_complete')
+    }
+  }, [currentStep, serviceType, currentStepIndex, currentStepId, analyticsServiceType])
 
   // Handle back navigation with tracking
   const handleBack = useCallback(() => {

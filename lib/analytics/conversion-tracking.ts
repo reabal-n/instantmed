@@ -11,12 +11,12 @@
 // Conversion action IDs - configure these in Google Ads
 const CONVERSION_IDS = {
   // Main conversion: Payment completed
-  PURCHASE: 'AW-17795889471/purchase',
+  PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
   // Micro-conversions for funnel optimization
-  LANDING_VIEW: 'AW-17795889471/landing_view',
-  START_INTAKE: 'AW-17795889471/start_intake',
-  INTAKE_COMPLETE: 'AW-17795889471/intake_complete',
-  CHECKOUT_START: 'AW-17795889471/checkout_start',
+  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',
+  START_INTAKE: 'AW-17795889471/BD9bCPyf8IYcEL_y3qVC',
+  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',
+  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS
