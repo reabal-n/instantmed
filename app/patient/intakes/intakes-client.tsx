@@ -189,52 +189,54 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
         </div>
       </div>
       
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <p className="text-2xl font-bold">{intakes.length}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <p className="text-2xl font-bold text-blue-600">{upcomingIntakes.length}</p>
-            <p className="text-xs text-muted-foreground">Upcoming</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-600">{completedIntakes.length}</p>
-            <p className="text-xs text-muted-foreground">Completed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <p className="text-2xl font-bold text-red-600">{declinedIntakes.length}</p>
-            <p className="text-xs text-muted-foreground">Declined</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Stats — only show when patient has enough requests for the overview to be useful */}
+      {intakes.length >= 5 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-lg font-semibold">{intakes.length}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-lg font-semibold text-blue-600">{upcomingIntakes.length}</p>
+              <p className="text-xs text-muted-foreground">Upcoming</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-lg font-semibold text-emerald-600">{completedIntakes.length}</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-lg font-semibold text-red-600">{declinedIntakes.length}</p>
+              <p className="text-xs text-muted-foreground">Declined</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-6">
           <TabsTrigger value="all" className="flex-1">
             <Filter className="w-3.5 h-3.5 hidden sm:block" />
-            All
+            All ({intakes.length})
           </TabsTrigger>
           <TabsTrigger value="upcoming" className="flex-1">
             <Clock className="w-3.5 h-3.5 hidden sm:block" />
-            Upcoming
+            Upcoming{upcomingIntakes.length > 0 && ` (${upcomingIntakes.length})`}
           </TabsTrigger>
           <TabsTrigger value="history" className="flex-1">
             <CheckCircle className="w-3.5 h-3.5 hidden sm:block" />
-            History
+            History{completedIntakes.length > 0 && ` (${completedIntakes.length})`}
           </TabsTrigger>
           <TabsTrigger value="declined" className="flex-1">
             <XCircle className="w-3.5 h-3.5 hidden sm:block" />
-            Declined
+            Declined{declinedIntakes.length > 0 && ` (${declinedIntakes.length})`}
           </TabsTrigger>
         </TabsList>
         

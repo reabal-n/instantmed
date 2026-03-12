@@ -7,12 +7,11 @@ import {
   Pill,
   Calendar,
   Clock,
-  CheckCircle,
   AlertCircle,
   ChevronRight,
-  Plus,
   AlertTriangle,
   CreditCard,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import { usePanel, DrawerPanel } from "@/components/panels"
@@ -22,8 +21,9 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
-import { motion, useReducedMotion } from "framer-motion"
 import { capture } from "@/lib/analytics/capture"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { formatDate, formatRelative } from "@/lib/format"
 
 /**
  * Panel-Based Patient Dashboard
@@ -41,7 +41,6 @@ interface Intake {
   created_at: string
   updated_at: string
   service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string }
-  doctor_notes?: string
 }
 
 interface Prescription {
@@ -76,32 +75,9 @@ interface PatientDashboardProps {
   profileData?: ProfileData
 }
 
-const STATUS_CONFIG = {
-  approved: { color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400", icon: CheckCircle, label: "Approved" },
-  rejected: { color: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400", icon: AlertCircle, label: "Declined" },
-  pending: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Clock, label: "Under Review" },
-  in_review: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Clock, label: "Under Review" },
-  requires_info: { color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400", icon: AlertTriangle, label: "Action Needed" },
-  awaiting_script: { color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400", icon: Pill, label: "Preparing Script" },
-  cancelled: { color: "bg-muted text-muted-foreground", icon: AlertCircle, label: "Cancelled" },
-  pending_payment: { color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400", icon: CreditCard, label: "Payment Pending" },
-}
-
-/** Maps raw intake status to STATUS_CONFIG key */
-const INTAKE_STATUS_MAP: Record<string, keyof typeof STATUS_CONFIG> = {
-  paid: "pending",
-  in_review: "in_review",
-  pending_info: "requires_info",
-  approved: "approved",
-  declined: "rejected",
-  completed: "approved",
-  awaiting_script: "awaiting_script",
-  cancelled: "cancelled",
-  pending_payment: "pending_payment",
-}
-
+/** Resolve status config from lib/status.ts — single source of truth */
 function resolveStatusConfig(status: string) {
-  return STATUS_CONFIG[INTAKE_STATUS_MAP[status] || "pending"] || STATUS_CONFIG.pending
+  return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }
 
 export function PanelDashboard({
@@ -112,7 +88,6 @@ export function PanelDashboard({
   error,
   profileData,
 }: PatientDashboardProps) {
-  const prefersReducedMotion = useReducedMotion()
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
 
@@ -232,7 +207,7 @@ export function PanelDashboard({
                   <div>
                     <p className="font-medium text-foreground">{serviceName}</p>
                     <p className="text-sm text-muted-foreground">
-                      Started {new Date(intake.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                      Started {formatDate(intake.created_at)}
                     </p>
                   </div>
                   <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
@@ -344,11 +319,11 @@ export function PanelDashboard({
                       <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-4 h-4" />
-                          Issued {new Date(rx.issued_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                          Issued {formatDate(rx.issued_date)}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
-                          Renews {new Date(rx.expiry_date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                          Renews {formatDate(rx.expiry_date)}
                         </span>
                       </div>
                     </div>
@@ -365,28 +340,13 @@ export function PanelDashboard({
         </section>
       )}
 
-      {/* Referral Section */}
-      <section>
-        <ReferralCard patientId={patientId} />
-      </section>
+      {/* Referral Section — only show after patient has completed at least one request */}
+      {intakes.some(i => i.status === "approved" || i.status === "completed") && (
+        <section>
+          <ReferralCard patientId={patientId} />
+        </section>
+      )}
 
-      {/* Floating Action Button - New Request */}
-      <motion.div
-        className="fixed bottom-20 md:bottom-6 right-6 z-50"
-        initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: prefersReducedMotion ? 0 : 0.5, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
-      >
-        <Link href="/request">
-          <Button
-            size="lg"
-            className="h-14 px-6 rounded-full shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all hover:-translate-y-1"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            New request
-          </Button>
-        </Link>
-      </motion.div>
     </div>
   )
 }
@@ -408,53 +368,6 @@ function IntakeCard({
     if (intake.service?.type === "common_scripts") return "Prescription"
     return "Request"
   }
-
-  // Contextual "What's Next" guidance based on intake status
-  const whatsNextConfig: Record<string, { message: string; actionLabel?: string; actionHref?: string; color: string }> = {
-    paid: {
-      message: "A doctor will review your request shortly — we'll email you when it's done. ⏱️",
-      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
-    },
-    in_review: {
-      message: "A doctor is looking at your request right now. Hang tight — shouldn't be long. 🩺",
-      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
-    },
-    pending_info: {
-      message: "The doctor has a quick question for you. Please respond so we can keep things moving.",
-      actionLabel: "Respond now",
-      actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300",
-    },
-    approved: {
-      message: intake.service?.type === "med_certs"
-        ? "Your certificate is ready — download it or forward it to your employer. ✅"
-        : "All approved — your document is ready to download. ✅",
-      actionLabel: "View & download",
-      actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300",
-    },
-    declined: {
-      message: "This one wasn't approved — you can view the reason or start a new request.",
-      actionLabel: "View details",
-      actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-800 text-red-700 dark:text-red-300",
-    },
-    awaiting_script: {
-      message: "Your prescription is being prepared — we'll let you know as soon as it's ready.",
-      color: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300",
-    },
-    completed: {
-      message: "This request is complete. Your documents are available below.",
-      actionLabel: "View documents",
-      actionHref: `/patient/intakes/${intake.id}`,
-      color: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300",
-    },
-    cancelled: {
-      message: "This request was cancelled. No charge was made.",
-      color: "bg-muted/50 border-border text-muted-foreground",
-    },
-  }
-  const whatsNext = whatsNextConfig[intake.status]
 
   return (
     <button
@@ -478,48 +391,50 @@ function IntakeCard({
               {getServiceName()}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {new Date(intake.created_at).toLocaleDateString("en-AU", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDate(intake.created_at)}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={cn("interactive-pill px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium", config.color)}>
+          <div className={cn("px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium", config.color)}>
             <Icon className="w-4 h-4" />
             {config.label}
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
-
-      {/* What's Next contextual guidance */}
-      {whatsNext && (
-        <div className={cn("mt-3 px-3 py-2.5 rounded-xl border text-xs flex items-center justify-between gap-3", whatsNext.color)}>
-          <p>{whatsNext.message}</p>
-          {whatsNext.actionLabel && whatsNext.actionHref && (
-            <Link
-              href={whatsNext.actionHref}
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0 font-semibold underline underline-offset-2 hover:no-underline"
-            >
-              {whatsNext.actionLabel}
-            </Link>
-          )}
-        </div>
-      )}
     </button>
   )
+}
+
+/** What's Next guidance — moved from card to drawer for cleaner list view */
+const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
+  paid: { message: "A doctor will review your request shortly — we'll email you when it's done." },
+  in_review: { message: "A doctor is reviewing your request now. Hang tight — shouldn't be long." },
+  pending_info: { message: "The doctor has a question for you. Please respond so we can keep things moving.", actionLabel: "Respond now" },
+  approved: { message: "All approved — your document is ready to download.", actionLabel: "View & download" },
+  declined: { message: "This request wasn't approved — you can view the reason below.", actionLabel: "View details" },
+  awaiting_script: { message: "Your prescription is being prepared — we'll let you know when it's ready." },
+  completed: { message: "This request is complete. Your documents are available.", actionLabel: "View documents" },
+  cancelled: { message: "This request was cancelled. No charge was made." },
 }
 
 function IntakeDetailDrawer({ intake }: { intake: Intake }) {
   const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
 
+  const serviceName = intake.service?.name || intake.service?.short_name || "Request"
+  const refId = intake.id.slice(0, 8).toUpperCase()
+  const whatsNext = WHATS_NEXT[intake.status]
+
   return (
     <div className="p-6 space-y-6">
+      {/* Service & Ref */}
+      <div>
+        <h3 className="text-lg font-semibold text-foreground">{serviceName}</h3>
+        <p className="text-sm text-muted-foreground mt-0.5">Ref: {refId}</p>
+      </div>
+
       {/* Status */}
       <div>
         <p className="text-sm text-muted-foreground mb-2">Status</p>
@@ -529,60 +444,37 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
         </div>
       </div>
 
-      {/* Dates */}
+      {/* What's Next */}
+      {whatsNext && (
+        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">What happens next</p>
+          <p className="text-sm text-foreground">{whatsNext.message}</p>
+        </div>
+      )}
+
+      {/* Timeline */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Submitted</p>
-          <p className="font-medium text-foreground">
-            {new Date(intake.created_at).toLocaleDateString("en-AU", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
+          <p className="font-medium text-foreground">{formatDate(intake.created_at)}</p>
+          <p className="text-xs text-muted-foreground">{formatRelative(intake.created_at)}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground mb-1">Last updated</p>
-          <p className="font-medium text-foreground">
-            {new Date(intake.updated_at).toLocaleDateString("en-AU", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
+          <p className="font-medium text-foreground">{formatDate(intake.updated_at)}</p>
+          <p className="text-xs text-muted-foreground">{formatRelative(intake.updated_at)}</p>
         </div>
       </div>
 
-      {/* Doctor Notes */}
-      {intake.doctor_notes && (
-        <div>
-          <p className="text-sm text-muted-foreground mb-2">Doctor notes</p>
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-sm text-foreground">
-            {intake.doctor_notes}
-          </div>
-        </div>
-      )}
-
-      {/* Actions */}
-      {intake.status === "approved" && (
-        <div className="pt-4 border-t border-border">
-          <Button asChild className="w-full magnetic-button">
-            <Link href={`/patient/intakes/${intake.id}`}>
-              Download {intake.service?.type === "med_certs" ? "certificate" : "document"}
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {intake.status === "pending_info" && (
-        <div className="pt-4 border-t border-border">
-          <Button asChild className="w-full magnetic-button">
-            <Link href={`/patient/intakes/${intake.id}`}>
-              Provide information
-            </Link>
-          </Button>
-        </div>
-      )}
+      {/* Action */}
+      <div className="pt-4 border-t border-border">
+        <Button asChild className="w-full">
+          <Link href={`/patient/intakes/${intake.id}`}>
+            <ExternalLink className="w-4 h-4 mr-2" />
+            {whatsNext?.actionLabel || "View full details"}
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }

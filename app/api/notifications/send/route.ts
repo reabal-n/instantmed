@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             patient_id: userId,
             subject: title,
             status: emailResult?.success ? "sent" : "failed",
-            provider_message_id: emailResult?.id,
+            provider_message_id: emailResult?.success ? emailResult.id : undefined,
             sent_at: emailResult?.success ? new Date().toISOString() : null,
             error_message: emailResult?.error,
             metadata: { type, notificationId: notification?.id },

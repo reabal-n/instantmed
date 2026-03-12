@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { AuthenticatedShell } from '@/components/shell'
 import { usePanel, SessionPanel } from '@/components/panels'
 import { ServiceSelector } from '@/components/patient/service-selector'
@@ -30,7 +31,8 @@ interface PatientShellProps {
  * and can safely call usePanel().
  */
 function PatientShellContent({ children }: { children: ReactNode }) {
-  const { openPanel } = usePanel()
+  const { openPanel, closePanel } = usePanel()
+  const router = useRouter()
   const openPanelRef = useRef(openPanel)
   openPanelRef.current = openPanel
 
@@ -44,12 +46,14 @@ function PatientShellContent({ children }: { children: ReactNode }) {
           <SessionPanel maxWidth="md">
             <ServiceSelector
               onSelectService={(service) => {
+                // Close panel first, then soft-navigate (no full page reload)
+                closePanel()
                 if (service === 'medical-certificate') {
-                  window.location.href = '/medical-certificate/request'
+                  router.push('/medical-certificate/request')
                 } else if (service === 'prescription') {
-                  window.location.href = '/prescriptions'
+                  router.push('/prescriptions')
                 } else if (service === 'consultation') {
-                  window.location.href = '/consult/request'
+                  router.push('/consult/request')
                 }
               }}
             />
@@ -60,7 +64,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
 
     window.addEventListener('patient:new-request', handler)
     return () => window.removeEventListener('patient:new-request', handler)
-  }, [])
+  }, [closePanel, router])
 
   return (
     <>

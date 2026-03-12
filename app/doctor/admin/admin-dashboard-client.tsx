@@ -114,7 +114,7 @@ export function AdminDashboardClient({
               <FileText className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-lg font-semibold">{stats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -125,7 +125,7 @@ export function AdminDashboardClient({
               <Clock className="h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-xs text-muted-foreground">In Queue</p>
-                <p className="text-2xl font-bold">{stats.in_queue}</p>
+                <p className="text-lg font-semibold">{stats.in_queue}</p>
               </div>
             </div>
           </CardContent>
@@ -136,7 +136,7 @@ export function AdminDashboardClient({
               <CheckCircle className="h-5 w-5 text-emerald-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold">{stats.approved}</p>
+                <p className="text-lg font-semibold">{stats.approved}</p>
               </div>
             </div>
           </CardContent>
@@ -147,7 +147,7 @@ export function AdminDashboardClient({
               <XCircle className="h-5 w-5 text-red-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Declined</p>
-                <p className="text-2xl font-bold">{stats.declined}</p>
+                <p className="text-lg font-semibold">{stats.declined}</p>
               </div>
             </div>
           </CardContent>
@@ -158,7 +158,7 @@ export function AdminDashboardClient({
               <Send className="h-5 w-5 text-dawn-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Scripts Pending</p>
-                <p className="text-2xl font-bold">{stats.scripts_pending}</p>
+                <p className="text-lg font-semibold">{stats.scripts_pending}</p>
               </div>
             </div>
           </CardContent>
@@ -169,7 +169,7 @@ export function AdminDashboardClient({
               <TrendingUp className="h-5 w-5 text-dawn-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Needs Info</p>
-                <p className="text-2xl font-bold">{stats.pending_info}</p>
+                <p className="text-lg font-semibold">{stats.pending_info}</p>
               </div>
             </div>
           </CardContent>

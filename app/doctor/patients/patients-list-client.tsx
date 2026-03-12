@@ -76,7 +76,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
             <Users className="h-4 w-4 text-primary" />
           </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{totalPatients}</div>
+          <div className="mt-2 text-lg font-semibold text-foreground">{totalPatients}</div>
         </div>
 
         <div
@@ -87,7 +87,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             <span className="text-sm font-medium text-muted-foreground">Onboarded</span>
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">
+          <div className="mt-2 text-lg font-semibold text-foreground">
             {patients.filter((p) => p.onboarding_completed).length}
           </div>
         </div>
@@ -100,7 +100,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
             <XCircle className="h-4 w-4 text-dawn-500" />
           </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">
+          <div className="mt-2 text-lg font-semibold text-foreground">
             {patients.filter((p) => !p.onboarding_completed).length}
           </div>
         </div>

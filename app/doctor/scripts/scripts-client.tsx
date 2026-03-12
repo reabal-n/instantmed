@@ -127,7 +127,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                 <Icon className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <p className="text-2xl font-semibold">{counts[status]}</p>
+                <p className="text-lg font-semibold">{counts[status]}</p>
                 <p className="text-xs text-muted-foreground">{config.label}</p>
               </div>
             </button>
