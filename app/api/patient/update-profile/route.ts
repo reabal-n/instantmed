@@ -2,6 +2,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
 
 const updateProfileSchema = z.object({
@@ -12,6 +13,9 @@ const updateProfileSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const authResult = await getApiAuth()
 
     if (!authResult || authResult.profile.role !== "patient") {

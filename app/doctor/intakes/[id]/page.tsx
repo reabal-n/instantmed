@@ -6,6 +6,8 @@ import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 
+export const metadata = { title: "Review Intake" }
+
 export const dynamic = "force-dynamic"
 
 export default async function DoctorIntakeDetailPage({

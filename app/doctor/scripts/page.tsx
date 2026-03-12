@@ -1,6 +1,8 @@
 import { getScriptTasks, getScriptTaskCounts } from "@/lib/data/script-tasks"
 import { ScriptsClient } from "./scripts-client"
 
+export const metadata = { title: "Scripts" }
+
 export const dynamic = "force-dynamic"
 
 export default async function ScriptsPage() {

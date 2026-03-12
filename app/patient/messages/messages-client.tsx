@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,16 +9,17 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   MessageSquare,
   Send,
-  ArrowLeft,
   User,
   Stethoscope,
   Clock,
   CheckCheck,
   Inbox,
-  AlertCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { formatDate } from "@/lib/format"
+import { EmptyState } from "@/components/ui/empty-state"
+import { PatientErrorAlert } from "@/components/patient/error-alert"
 
 interface Message {
   id: string
@@ -40,7 +40,6 @@ interface MessagesClientProps {
   messages: Message[]
   messagesByIntake: Record<string, Message[]>
   unreadCount: number
-  patientId: string
   error?: string | null
 }
 
@@ -57,7 +56,6 @@ export function MessagesClient({
   messages,
   messagesByIntake,
   unreadCount,
-  patientId: _patientId,
   error,
 }: MessagesClientProps) {
   const router = useRouter()
@@ -110,15 +108,10 @@ export function MessagesClient({
   return (
     <div>
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/patient">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-            </Button>
-            <div className="flex-1">
+          <div className="flex items-center justify-between mb-8">
+            <div>
               <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1">
                 Communicate with your doctor about your requests
               </p>
             </div>
@@ -128,33 +121,24 @@ export function MessagesClient({
           </div>
 
           {/* Error State */}
-          {error && (
-            <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 mb-6">
-              <CardContent className="flex items-center gap-3 py-4">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-              </CardContent>
-            </Card>
-          )}
+          {error && <PatientErrorAlert error={error} className="mb-6" />}
 
           {messages.length === 0 && !error ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <Inbox className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No messages yet</h3>
-                <p className="text-sm text-muted-foreground text-center max-w-sm">
-                  If a doctor needs more information about your request, they&apos;ll message you here.
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Inbox}
+              title="No messages yet"
+              description="If a doctor needs more information about your request, they'll message you here."
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Conversation List */}
-              <div className="space-y-2">
+              <div role="listbox" aria-label="Conversations" className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground px-2">Conversations</p>
                 {conversations.map((conv) => (
                   <button
                     key={conv.intakeId}
+                    role="option"
+                    aria-selected={selectedIntake === conv.intakeId}
                     onClick={() => setSelectedIntake(conv.intakeId)}
                     className={cn(
                       "w-full text-left p-3 rounded-xl transition-colors",
@@ -170,7 +154,7 @@ export function MessagesClient({
                           {conv.lastMessage?.content}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(conv.lastMessage?.created_at || "").toLocaleDateString("en-AU")}
+                          {conv.lastMessage?.created_at ? formatDate(conv.lastMessage.created_at) : ""}
                         </p>
                       </div>
                       {conv.unread > 0 && (

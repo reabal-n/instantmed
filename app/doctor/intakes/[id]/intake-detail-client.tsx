@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/status"
 import { Label } from "@/components/ui/label"
 import {
   AlertDialog,
@@ -50,6 +51,7 @@ import { CertificatePreviewDialog, type CertificatePreviewData } from "@/compone
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
+import { formatDateLong, formatDate, formatDateTime } from "@/lib/format"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
@@ -310,7 +312,7 @@ export function IntakeDetailClient({
         setShowDeclineDialog(true)
       }
     },
-    onNext: () => router.push("/doctor/queue"),
+    onNext: () => router.push("/doctor/dashboard"),
     onNote: () => notesRef.current?.focus(),
     onEscape: () => {
       setShowDeclineDialog(false)
@@ -327,7 +329,7 @@ export function IntakeDetailClient({
     if (nextIntakeId) {
       window.location.href = `/doctor/intakes/${nextIntakeId}`
     } else {
-      window.location.href = "/doctor/queue"
+      window.location.href = "/doctor/dashboard"
     }
   }
 
@@ -410,8 +412,7 @@ export function IntakeDetailClient({
         await saveDoctorNotesAction(intake.id, doctorNotes)
       }
 
-      // Note: server action uses authenticated profile.id internally; this param is vestigial
-      const result = await updateStatusAction(intake.id, status, intake.id)
+      const result = await updateStatusAction(intake.id, status)
       if (result.success) {
         toast.success(status === "approved" ? "Case approved" : "Case updated")
         setTimeout(advanceToNext, 1000)
@@ -500,30 +501,8 @@ export function IntakeDetailClient({
     })
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-      case "completed":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
-      case "declined":
-        return "bg-destructive/10 text-destructive"
-      case "pending_info":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
-      case "awaiting_script":
-        return "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300"
-      default:
-        return "bg-primary/10 text-primary"
-    }
+    return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
   }
 
   // Parse answers for display
@@ -534,7 +513,7 @@ export function IntakeDetailClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link href="/doctor/queue">
+          <Link href="/doctor/dashboard">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Queue
           </Link>
@@ -573,7 +552,7 @@ export function IntakeDetailClient({
               <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground mb-1">Age / DOB</p>
-                <p className="font-medium">{patientAge != null ? `${patientAge}y` : "N/A"} • {intake.patient.date_of_birth ? new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU") : "Not provided"}</p>
+                <p className="font-medium">{patientAge != null ? `${patientAge}y` : "N/A"} • {intake.patient.date_of_birth ? formatDate(intake.patient.date_of_birth) : "Not provided"}</p>
               </div>
             </div>
             <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
@@ -628,12 +607,12 @@ export function IntakeDetailClient({
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              Submitted: {formatDate(intake.created_at)}
+              Submitted: {formatDateLong(intake.created_at)}
             </div>
             {intake.paid_at && (
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-emerald-500" />
-                Paid: {formatDate(intake.paid_at)}
+                Paid: {formatDateLong(intake.paid_at)}
               </div>
             )}
           </div>
@@ -642,7 +621,6 @@ export function IntakeDetailClient({
           {Object.keys(answers).length > 0 && (
             <ClinicalSummary 
               answers={answers} 
-              serviceType={service?.type}
               consultSubtype={intake.category === 'consult' && intake.subtype ? intake.subtype : undefined}
               className="border-0 shadow-none p-0"
             />
@@ -668,7 +646,6 @@ export function IntakeDetailClient({
           intakeStatus={intake.status}
           aiDrafts={aiDrafts}
           prescriptionSentAt={intake.prescription_sent_at || null}
-          prescriptionSentBy={intake.prescription_sent_by || null}
           prescriptionSentChannel={intake.prescription_sent_channel || null}
         />
       )}
@@ -696,13 +673,7 @@ export function IntakeDetailClient({
               )}
               {intake.reviewed_at && (
                 <p className="text-xs text-muted-foreground">
-                  Reviewed on {new Date(intake.reviewed_at).toLocaleString("en-AU", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  Reviewed on {formatDateTime(intake.reviewed_at)}
                 </p>
               )}
             </div>
@@ -759,7 +730,7 @@ export function IntakeDetailClient({
                         {formatIntakeStatus(prev.status)}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(prev.created_at).toLocaleDateString("en-AU")}
+                        {formatDate(prev.created_at)}
                       </span>
                     </div>
                   </Link>

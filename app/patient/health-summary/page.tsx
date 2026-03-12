@@ -18,7 +18,6 @@ export default async function HealthSummaryPage() {
 
   return (
     <HealthSummaryClient
-      profile={authUser.profile}
       summary={healthSummary}
     />
   )

@@ -357,7 +357,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       if (status === "approved" || status === "awaiting_script") {
         await saveDoctorNotesAction(intake.id, doctorNotes)
       }
-      const result = await updateStatusAction(intake.id, status, userId ?? "")
+      const result = await updateStatusAction(intake.id, status)
       if (result.success) {
         toast.success(status === "approved" ? "Case approved" : "Case updated")
         setTimeout(closeAndRefresh, 800)
@@ -629,7 +629,6 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
               {Object.keys(answers).length > 0 && (
                 <ClinicalSummary
                   answers={answers}
-                  serviceType={service?.type}
                   consultSubtype={
                     intake.category === "consult" && intake.subtype ? intake.subtype : undefined
                   }

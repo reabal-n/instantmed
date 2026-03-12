@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { formatRelative } from "@/lib/format"
+import { PatientErrorAlert } from "@/components/patient/error-alert"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import type { RealtimeChannel } from "@supabase/supabase-js"
@@ -192,14 +193,7 @@ export function NotificationsClient({ notifications: initialNotifications, patie
       </div>
 
       {/* Fetch Error */}
-      {fetchError && (
-        <div className="rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-800 dark:text-red-300">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{fetchError}</span>
-          </div>
-        </div>
-      )}
+      {fetchError && <PatientErrorAlert error={fetchError} />}
 
       {/* Filters */}
       <div className="flex gap-2">

@@ -1,6 +1,8 @@
 import { getEmailOutboxList, getDistinctEmailTypes, getEmailOutboxStats } from "@/lib/data/email-outbox"
 import { EmailOutboxClient } from "./email-outbox-client"
 
+export const metadata = { title: "Email Outbox" }
+
 export const dynamic = "force-dynamic"
 
 interface PageProps {

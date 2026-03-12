@@ -38,6 +38,8 @@ async function getPatients(page: number) {
   }
 }
 
+export const metadata = { title: "Patients" }
+
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 

@@ -11,16 +11,14 @@ import {
   XCircle,
   Plus,
   Filter,
-  Calendar,
-  ChevronRight,
   RefreshCw,
 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import { formatIntakeStatus } from "@/lib/format-intake"
+import { EmptyState } from "@/components/ui/empty-state"
+import { RequestCard } from "@/components/patient/request-card"
+import { StatGrid } from "@/components/patient/stat-grid"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
@@ -37,8 +35,6 @@ interface IntakesClientProps {
 }
 
 // Use shared status config — single source of truth
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
-import { formatDate } from "@/lib/format"
 
 export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
   const router = useRouter()
@@ -191,84 +187,74 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
       
       {/* Stats — only show when patient has enough requests for the overview to be useful */}
       {intakes.length >= 5 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <p className="text-lg font-semibold">{intakes.length}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <p className="text-lg font-semibold text-blue-600">{upcomingIntakes.length}</p>
-              <p className="text-xs text-muted-foreground">Upcoming</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <p className="text-lg font-semibold text-emerald-600">{completedIntakes.length}</p>
-              <p className="text-xs text-muted-foreground">Completed</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <p className="text-lg font-semibold text-red-600">{declinedIntakes.length}</p>
-              <p className="text-xs text-muted-foreground">Declined</p>
-            </CardContent>
-          </Card>
-        </div>
+        <StatGrid
+          className="mb-6"
+          items={[
+            { value: intakes.length, label: "Total" },
+            { value: upcomingIntakes.length, label: "Upcoming", color: "text-blue-600" },
+            { value: completedIntakes.length, label: "Completed", color: "text-emerald-600" },
+            { value: declinedIntakes.length, label: "Declined", color: "text-red-600" },
+          ]}
+        />
       )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-6">
           <TabsTrigger value="all" className="flex-1">
-            <Filter className="w-3.5 h-3.5 hidden sm:block" />
+            <Filter className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
             All ({intakes.length})
           </TabsTrigger>
           <TabsTrigger value="upcoming" className="flex-1">
-            <Clock className="w-3.5 h-3.5 hidden sm:block" />
+            <Clock className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
             Upcoming{upcomingIntakes.length > 0 && ` (${upcomingIntakes.length})`}
           </TabsTrigger>
           <TabsTrigger value="history" className="flex-1">
-            <CheckCircle className="w-3.5 h-3.5 hidden sm:block" />
+            <CheckCircle className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
             History{completedIntakes.length > 0 && ` (${completedIntakes.length})`}
           </TabsTrigger>
           <TabsTrigger value="declined" className="flex-1">
-            <XCircle className="w-3.5 h-3.5 hidden sm:block" />
+            <XCircle className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
             Declined{declinedIntakes.length > 0 && ` (${declinedIntakes.length})`}
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value={activeTab} className="mt-0">
           {intakesToShow.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="font-medium mb-2">
-                  {activeTab === "all" ? "No requests yet" : `No ${activeTab} requests`}
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {activeTab === "all" 
-                    ? "Start by selecting a service to get your medical certificate or prescription."
-                    : activeTab === "upcoming"
-                    ? "You don't have any pending requests being reviewed."
-                    : activeTab === "history"
-                    ? "Your completed requests will appear here."
-                    : "No declined requests."}
-                </p>
-                {activeTab === "all" && (
-                  <Link href="/request">
-                    <Button>Get Started</Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={FileText}
+              title={activeTab === "all" ? "No requests yet" : `No ${activeTab} requests`}
+              description={
+                activeTab === "all" 
+                  ? "Start by selecting a service to get your medical certificate or prescription."
+                  : activeTab === "upcoming"
+                  ? "You don't have any pending requests being reviewed."
+                  : activeTab === "history"
+                  ? "Your completed requests will appear here."
+                  : "No declined requests."
+              }
+              action={activeTab === "all" ? { label: "Get Started", href: "/request" } : undefined}
+            />
           ) : (
-            <div className="space-y-3">
-              {intakesToShow.map((intake) => (
-                <IntakeCard key={intake.id} intake={intake} />
-              ))}
+            <div className="space-y-3" aria-live="polite">
+              {intakesToShow.map((intake) => {
+                const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
+                const serviceName = serviceData?.name || serviceData?.short_name || "Request"
+                const isPrescription = serviceData?.type === "common_scripts" || intake.category === "prescription"
+                return (
+                  <RequestCard
+                    key={intake.id}
+                    href={`/patient/intakes/${intake.id}`}
+                    title={serviceName}
+                    date={intake.created_at}
+                    refId={intake.id.slice(0, 8).toUpperCase()}
+                    status={intake.status}
+                    icon={isPrescription ? Pill : FileText}
+                    iconClassName={isPrescription ? "w-5 h-5 text-blue-600 dark:text-blue-400" : "w-5 h-5 text-primary"}
+                    iconContainerClassName={isPrescription ? "bg-blue-50 dark:bg-blue-950/40" : "bg-primary/10"}
+                  />
+                )
+              })}
               
               {/* Server-side Pagination */}
               {pagination && totalPages > 1 && (
@@ -302,54 +288,3 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   )
 }
 
-function IntakeCard({ intake }: { intake: IntakeWithPatient }) {
-  const config = INTAKE_STATUS[intake.status as IntakeStatus] || INTAKE_STATUS.pending
-  const StatusIcon = config.icon
-  
-  // Handle service being array or object
-  const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
-  const serviceName = serviceData?.name || serviceData?.short_name || "Request"
-  const isPrescription = serviceData?.type === "common_scripts" || intake.category === "prescription"
-  
-  return (
-    <Link href={`/patient/intakes/${intake.id}`}>
-      <Card className="hover:border-primary hover:shadow-md transition-all cursor-pointer group">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1">
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                isPrescription ? "bg-blue-50 dark:bg-blue-950/40" : "bg-primary/10"
-              )}>
-                {isPrescription ? (
-                  <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                ) : (
-                  <FileText className="w-6 h-6 text-primary" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground truncate">
-                  {serviceName}
-                </h3>
-                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(intake.created_at)}
-                  </span>
-                  <span>Ref: {intake.id.slice(0, 8).toUpperCase()}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge className={cn("flex items-center gap-1", config.color)}>
-                <StatusIcon className="w-3.5 h-3.5" />
-                {formatIntakeStatus(intake.status)}
-              </Badge>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  )
-}

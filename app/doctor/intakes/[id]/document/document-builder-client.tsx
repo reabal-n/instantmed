@@ -167,7 +167,7 @@ export function DocumentBuilderClient({
           setActionMessage({ type: "success", text: "Certificate approved and sent to patient." })
         }
         if (timeoutRef.current) clearTimeout(timeoutRef.current)
-        timeoutRef.current = setTimeout(() => router.push("/doctor/queue"), 2000)
+        timeoutRef.current = setTimeout(() => router.push("/doctor/dashboard"), 2000)
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to approve" })
       }

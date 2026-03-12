@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 
 interface IntakeStatusListenerProps {
   intakeId: string
-  patientId: string
   currentStatus: string
 }
 
@@ -44,7 +43,7 @@ const statusMessages: Record<string, { title: string; description: string; type:
   },
 }
 
-export function IntakeStatusListener({ intakeId, patientId, currentStatus }: IntakeStatusListenerProps) {
+export function IntakeStatusListener({ intakeId, currentStatus }: IntakeStatusListenerProps) {
   const router = useRouter()
   const lastStatusRef = useRef(currentStatus)
 
@@ -90,7 +89,7 @@ export function IntakeStatusListener({ intakeId, patientId, currentStatus }: Int
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [intakeId, patientId, router])
+  }, [intakeId, router])
 
   // This component doesn't render anything visible
   return null

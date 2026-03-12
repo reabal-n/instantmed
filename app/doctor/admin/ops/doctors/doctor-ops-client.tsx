@@ -107,10 +107,11 @@ export function DoctorOpsClient({
   }
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <TableHead>
+    <TableHead scope="col">
       <button
         className="flex items-center font-medium hover:text-foreground transition-colors"
         onClick={() => handleSort(field)}
+        aria-label={`Sort by ${typeof children === "string" ? children : field.replace(/_/g, " ")}`}
       >
         {children}
         <SortIcon field={field} />

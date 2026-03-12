@@ -171,7 +171,6 @@ export function WhatHappensNext({
           <IntakeStatusTracker
             intakeId={intakeId}
             initialStatus={initialStatus}
-            isPriority={isPriority}
             onStatusChange={setCurrentStatus}
           />
         </motion.div>

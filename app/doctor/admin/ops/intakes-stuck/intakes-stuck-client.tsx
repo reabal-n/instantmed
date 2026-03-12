@@ -341,13 +341,13 @@ export function IntakesStuckClient({
           <Table data-testid="stuck-intakes-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Reference</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead scope="col">Reference</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Reason</TableHead>
+                <TableHead scope="col">Age</TableHead>
+                <TableHead scope="col">Service</TableHead>
+                <TableHead scope="col">Patient</TableHead>
+                <TableHead scope="col" className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

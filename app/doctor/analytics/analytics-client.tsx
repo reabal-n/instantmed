@@ -148,14 +148,6 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
     fill: type === "med_certs" ? "#3b82f6" : type === "repeat_rx" ? "#10b981" : type === "consults" ? "#f59e0b" : "#8b5cf6",
   }))
 
-  const _statusData = Object.entries(analytics.statusCounts)
-    .filter(([status]) => ["paid", "approved", "declined", "in_review"].includes(status))
-    .map(([status, count]) => ({
-      name: formatStatus(status),
-      count,
-      fill: status === "approved" ? "#10b981" : status === "declined" ? "#ef4444" : status === "paid" ? "#3b82f6" : "#f59e0b",
-    }))
-
   return (
     <div className="space-y-6">
       {/* Header with date range selector */}

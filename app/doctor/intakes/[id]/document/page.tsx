@@ -5,6 +5,8 @@ import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake, getAIDraf
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { DocumentBuilderClient } from "./document-builder-client"
 
+export const metadata = { title: "Certificate Builder" }
+
 export const dynamic = "force-dynamic"
 
 export default async function IntakeDocumentBuilderPage({

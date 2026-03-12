@@ -141,12 +141,11 @@ export function EmailVerificationGate({
  * Inline verification banner for use in intake detail pages
  */
 interface VerificationBannerProps {
-  email: string
   onResend: () => Promise<{ success: boolean; error?: string }>
   className?: string
 }
 
-export function EmailVerificationBanner({ email: _email, onResend, className }: VerificationBannerProps) {
+export function EmailVerificationBanner({ onResend, className }: VerificationBannerProps) {
   const [isPending, startTransition] = useTransition()
   const [sent, setSent] = useState(false)
 

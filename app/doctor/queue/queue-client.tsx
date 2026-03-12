@@ -54,6 +54,7 @@ import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
 import { toast } from "sonner"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
+import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
@@ -231,7 +232,7 @@ export function QueueClient({
       const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx"
         ? "awaiting_script"
         : "approved"
-      const result = await updateStatusAction(intakeId, newStatus, doctorId)
+      const result = await updateStatusAction(intakeId, newStatus)
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
         if (serviceType === "common_scripts" || serviceType === "repeat_rx") {
@@ -425,13 +426,11 @@ export function QueueClient({
       {/* Queue List */}
       <div className="space-y-2" aria-labelledby={listId}>
         {filteredIntakes.length === 0 ? (
-          <Card className="py-12">
-            <CardContent className="text-center text-muted-foreground">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-emerald-500" />
-              <p className="font-medium">Queue is clear!</p>
-              <p className="text-sm">No pending cases at the moment.</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={CheckCircle}
+            title="Queue is clear!"
+            description="No requests pending review. New requests will appear here automatically."
+          />
         ) : (
           filteredIntakes.map((intake) => {
             const isExpanded = expandedId === intake.id
@@ -579,7 +578,7 @@ export function QueueClient({
             onChange={(page) => {
               const params = new URLSearchParams(window.location.search)
               params.set("page", String(page))
-              router.push(`/doctor/queue?${params.toString()}`)
+              router.push(`/doctor/dashboard?${params.toString()}`)
             }}
             showControls
             size="sm"

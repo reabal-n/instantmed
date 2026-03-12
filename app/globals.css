@@ -1604,6 +1604,17 @@ body {
   transform: translateX(100%) rotate(0deg);
 }
 
+:is(.dark) .card-shine::before {
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.04) 35%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.04) 65%,
+    transparent 80%
+  );
+}
+
 /* Glow pulse for important elements */
 .glow-pulse {
   animation: glow-pulse 2s ease-in-out infinite;
@@ -1767,8 +1778,8 @@ body {
 }
 
 .hover-lift:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 48px rgba(10, 15, 28, 0.12), 0 8px 16px rgba(10, 15, 28, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(10, 15, 28, 0.08), 0 4px 8px rgba(10, 15, 28, 0.04);
 }
 
 /* Interactive pill buttons */

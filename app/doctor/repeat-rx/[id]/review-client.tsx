@@ -19,6 +19,7 @@ import {
   FileText,
 } from "lucide-react"
 import { toast } from "sonner"
+import { formatDate } from "@/lib/format"
 
 // ============================================================================
 // TYPES
@@ -260,7 +261,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                   <StatusBadge status={request.status} />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  #{request.id.slice(0, 8)} &middot; {new Date(request.created_at).toLocaleDateString()}
+                  #{request.id.slice(0, 8)} &middot; {formatDate(request.created_at)}
                 </p>
               </div>
             </div>
@@ -284,7 +285,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                   <DataRow label="Name" value={patient.full_name} copyable />
                   <DataRow
                     label="DOB"
-                    value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : null}
+                    value={patient.date_of_birth ? formatDate(patient.date_of_birth) : null}
                     copyable
                   />
                   <DataRow label="Medicare" value={
@@ -318,7 +319,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                   onClick={async () => {
                     const lines = [
                       patient.full_name,
-                      patient.date_of_birth ? `DOB: ${new Date(patient.date_of_birth).toLocaleDateString()}` : null,
+                      patient.date_of_birth ? `DOB: ${formatDate(patient.date_of_birth)}` : null,
                       patient.medicare_number ? `Medicare: ${patient.medicare_number}${patient.medicare_irn ? ` / ${patient.medicare_irn}` : ""}` : null,
                       patient.ihi_number ? `IHI: ${patient.ihi_number}` : null,
                       patient.address,

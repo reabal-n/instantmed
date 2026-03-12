@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,11 +11,12 @@ import {
   Download,
   Receipt,
   Calendar,
-  ExternalLink,
+  ChevronRight,
   FolderOpen,
-  ArrowLeft,
-  AlertCircle,
 } from "lucide-react"
+import { formatDate } from "@/lib/format"
+import { EmptyState } from "@/components/ui/empty-state"
+import { PatientErrorAlert } from "@/components/patient/error-alert"
 
 interface Certificate {
   id: string
@@ -54,61 +56,44 @@ function formatCurrency(cents: number): string {
 export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const { certificates, receipts } = documents
   const totalDocs = certificates.length + receipts.length
+  const [activeTab, setActiveTab] = useState("certificates")
 
   return (
       <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/patient">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-            </Button>
+          <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">My Documents</h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1">
                 {totalDocs} document{totalDocs !== 1 ? "s" : ""} available
               </p>
             </div>
           </div>
 
           {/* Error State */}
-          {error && (
-            <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 mb-6">
-              <CardContent className="flex items-center gap-3 py-4">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-              </CardContent>
-            </Card>
-          )}
+          {error && <PatientErrorAlert error={error} className="mb-6" />}
 
           {totalDocs === 0 && !error ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No documents yet</h3>
-                <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
-                  Once you complete a request and it&apos;s approved, your documents will appear here.
-                </p>
-                <Button asChild>
-                  <Link href="/request">Start a request</Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={FolderOpen}
+              title="No documents yet"
+              description="Once you complete a request and it's approved, your documents will appear here."
+              action={{ label: "Start a request", href: "/request" }}
+            />
           ) : (
-            <Tabs defaultValue="certificates" className="space-y-4">
-              <TabsList className="w-full">
-                <TabsTrigger value="certificates" className="flex-1 gap-2">
-                  <FileText className="h-4 w-4" />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full mb-6">
+                <TabsTrigger value="certificates" className="flex-1">
+                  <FileText className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
                   Certificates ({certificates.length})
                 </TabsTrigger>
-                <TabsTrigger value="receipts" className="flex-1 gap-2">
-                  <Receipt className="h-4 w-4" />
+                <TabsTrigger value="receipts" className="flex-1">
+                  <Receipt className="w-3.5 h-3.5 hidden sm:block" aria-hidden="true" />
                   Receipts ({receipts.length})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="certificates" className="space-y-3">
+              <TabsContent value="certificates" className="mt-0 space-y-3">
                 {certificates.length === 0 ? (
                   <Card>
                     <CardContent className="py-8 text-center text-muted-foreground">
@@ -117,7 +102,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                   </Card>
                 ) : (
                   certificates.map((cert) => (
-                    <Card key={cert.id}>
+                    <Card key={cert.id} className="hover:border-primary/50 hover:shadow-sm transition-all">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
@@ -127,11 +112,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                             <p className="font-medium">{cert.serviceName}</p>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Calendar className="h-3 w-3" />
-                              {new Date(cert.generatedAt).toLocaleDateString("en-AU", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
+                              {formatDate(cert.generatedAt)}
                             </div>
                           </div>
                         </div>
@@ -151,7 +132,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                 )}
               </TabsContent>
 
-              <TabsContent value="receipts" className="space-y-3">
+              <TabsContent value="receipts" className="mt-0 space-y-3">
                 {receipts.length === 0 ? (
                   <Card>
                     <CardContent className="py-8 text-center text-muted-foreground">
@@ -160,7 +141,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                   </Card>
                 ) : (
                   receipts.map((receipt) => (
-                    <Card key={receipt.id}>
+                    <Card key={receipt.id} className="hover:border-primary/50 hover:shadow-sm transition-all">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
@@ -172,25 +153,17 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                               <span>{receipt.amount ? formatCurrency(receipt.amount) : "-"}</span>
                               <span>•</span>
                               <span>
-                                {new Date(receipt.paidAt).toLocaleDateString("en-AU", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
+                                {formatDate(receipt.paidAt)}
                               </span>
                             </div>
                           </div>
                         </div>
                         {receipt.stripeSessionId && (
                           <Button variant="outline" size="sm" asChild>
-                            <a
-                              href={`/patient/intakes/${receipt.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
+                            <Link href={`/patient/intakes/${receipt.id}`}>
+                              <ChevronRight className="h-4 w-4 mr-2" />
                               View
-                            </a>
+                            </Link>
                           </Button>
                         )}
                       </CardContent>

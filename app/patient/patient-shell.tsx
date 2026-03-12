@@ -49,11 +49,11 @@ function PatientShellContent({ children }: { children: ReactNode }) {
                 // Close panel first, then soft-navigate (no full page reload)
                 closePanel()
                 if (service === 'medical-certificate') {
-                  router.push('/medical-certificate/request')
+                  router.push('/request?service=med-cert')
                 } else if (service === 'prescription') {
-                  router.push('/prescriptions')
+                  router.push('/request?service=prescription')
                 } else if (service === 'consultation') {
-                  router.push('/consult/request')
+                  router.push('/request?service=consult')
                 }
               }}
             />
@@ -69,7 +69,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
   return (
     <>
       {/* Session timeout warning removed - Clerk handles session refresh automatically */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 md:pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 lg:pb-8">
         {children}
       </div>
       <MobileNav />

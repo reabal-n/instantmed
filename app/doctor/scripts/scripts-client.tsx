@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { ClipboardList, Send, CheckCircle2, Clock, Filter, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
+import { formatDateTime } from "@/lib/format"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
 
 interface ScriptsClientProps {
@@ -155,15 +157,11 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
       {/* Task list */}
       <div className="space-y-3">
         {filteredTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 py-16 text-center">
-            <CheckCircle2 className="mb-3 h-10 w-10 text-emerald-400" />
-            <p className="font-medium text-foreground">All caught up!</p>
-            <p className="text-sm text-muted-foreground">
-              {filter === "all"
-                ? "No script tasks at the moment"
-                : `No ${STATUS_CONFIG[filter].label.toLowerCase()} tasks`}
-            </p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            title="All caught up!"
+            description="No pending script tasks right now."
+          />
         ) : (
           filteredTasks.map((task) => {
             const config = STATUS_CONFIG[task.status]
@@ -188,13 +186,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                       <p className="text-xs text-muted-foreground">{task.patient_email}</p>
                     )}
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Created {new Date(task.created_at).toLocaleDateString("en-AU", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      Created {formatDateTime(task.created_at)}
                     </p>
                   </div>
                 </div>

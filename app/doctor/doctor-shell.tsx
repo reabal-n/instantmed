@@ -29,7 +29,7 @@ export function DoctorShell({ children }: DoctorShellProps) {
       {/* One-time hint about keyboard shortcuts */}
       <ShortcutDiscoveryHint />
       {/* Real-time intake notifications */}
-      {userId && <IntakeNotificationListener doctorId={userId} />}
+      {userId && <IntakeNotificationListener />}
       {children}
     </PanelProvider>
   )

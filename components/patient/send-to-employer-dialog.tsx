@@ -26,14 +26,12 @@ import { sendEmployerEmail } from "@/app/actions/send-employer-email"
 
 interface SendToEmployerDialogProps {
   intakeId: string
-  patientName: string
   trigger?: React.ReactNode
   onSuccess?: () => void
 }
 
 export function SendToEmployerDialog({
   intakeId,
-  patientName: _patientName,
   trigger,
   onSuccess,
 }: SendToEmployerDialogProps) {

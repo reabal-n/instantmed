@@ -60,7 +60,7 @@ export default async function PrescriptionsPage() {
   // Fetch from prescriptions table for active prescriptions (limit for performance)
   const { data: activePrescriptions, error: prescriptionsError } = await supabase
     .from("prescriptions")
-    .select("id, medication_name, dosage, issued_date, renewal_date, status")
+    .select("id, medication_name, dosage_instructions, issued_date, expiry_date, status")
     .eq("patient_id", patientId)
     .order("issued_date", { ascending: false })
     .limit(50)

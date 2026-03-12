@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Pagination } from "@/components/uix"
 import {
   ArrowLeft,
@@ -30,6 +31,8 @@ import {
   Filter,
 } from "lucide-react"
 import Link from "next/link"
+import { formatDateTime } from "@/lib/format"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 
 interface AuditEvent {
   id: string
@@ -154,29 +157,12 @@ export function AuditLogsClient({
 
   const getStatusBadge = (status: string | null) => {
     if (!status) return null
-    const colors: Record<string, string> = {
-      approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
-      declined: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
-      paid: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
-      pending_info: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
-      completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
-    }
+    const config = INTAKE_STATUS[status as IntakeStatus]
     return (
-      <Badge className={colors[status] || "bg-muted text-muted-foreground"}>
-        {status.replace(/_/g, " ")}
+      <Badge className={config?.color ?? "bg-muted text-muted-foreground"}>
+        {config?.label ?? status.replace(/_/g, " ")}
       </Badge>
     )
-  }
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })
   }
 
   return (
@@ -415,13 +401,11 @@ export function AuditLogsClient({
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Activity className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p>No audit events found</p>
-              {hasActiveFilters && (
-                <p className="text-sm mt-2">Try adjusting your search filters</p>
-              )}
-            </div>
+            <EmptyState
+              icon={Activity}
+              title="No audit events found"
+              description="Audit events will appear here as actions are taken."
+            />
           )}
 
           {/* Pagination */}

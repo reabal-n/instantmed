@@ -31,7 +31,6 @@ interface EmailLog {
 
 interface PatientCommunicationHistoryProps {
   emails: EmailLog[]
-  patientName?: string
 }
 
 const emailTypeLabels: Record<string, string> = {
@@ -62,7 +61,6 @@ function getEmailTypeLabel(type: string): string {
 
 export function PatientCommunicationHistory({ 
   emails, 
-  patientName: _patientName 
 }: PatientCommunicationHistoryProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
@@ -149,8 +147,17 @@ export function PatientCommunicationHistory({
             className="border border-border/50 rounded-xl p-4 hover:bg-muted/50 transition-colors"
           >
             <div 
+              role="button"
+              tabIndex={0}
+              aria-expanded={expandedId === email.id}
               className="flex items-start justify-between cursor-pointer"
               onClick={() => setExpandedId(expandedId === email.id ? null : email.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setExpandedId(expandedId === email.id ? null : email.id)
+                }
+              }}
             >
               <div className="flex items-start gap-3">
                 {getStatusIcon(email)}
@@ -169,7 +176,7 @@ export function PatientCommunicationHistory({
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" aria-label={expandedId === email.id ? "Collapse details" : "Expand details"}>
                 {expandedId === email.id ? (
                   <ChevronUp className="h-4 w-4" />
                 ) : (

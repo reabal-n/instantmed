@@ -144,7 +144,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/doctor/queue">
+          <Link href="/doctor/dashboard">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -332,7 +332,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
       {/* Save Button */}
       <div className="flex justify-end gap-3">
         <Button variant="outline" asChild>
-          <Link href="/doctor/queue">Cancel</Link>
+          <Link href="/doctor/dashboard">Cancel</Link>
         </Button>
         <Button
           onClick={handleSave}

@@ -2,6 +2,8 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import { AdminDashboardClient } from "./admin-dashboard-client"
 
+export const metadata = { title: "Admin Dashboard" }
+
 export const dynamic = "force-dynamic"
 
 export default async function AdminDashboardPage() {

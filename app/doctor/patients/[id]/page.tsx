@@ -30,67 +30,66 @@ async function getPatientWithHistory(patientId: string) {
     return null
   }
 
-  // Get patient's intake history
-  const { data: intakes, error: intakesError } = await supabase
-    .from("intakes")
-    .select(`
-      id,
-      status,
-      category,
-      subtype,
-      created_at,
-      paid_at,
-      reviewed_at,
-      reviewed_by,
-      payment_status,
-      service:services(name, short_name, type)
-    `)
-    .eq("patient_id", patientId)
-    .order("created_at", { ascending: false })
-    .limit(50)
+  const [intakesResult, certsResult, emailResult, notesResult] = await Promise.all([
+    supabase
+      .from("intakes")
+      .select(`
+        id,
+        status,
+        category,
+        subtype,
+        created_at,
+        paid_at,
+        reviewed_at,
+        reviewed_by,
+        payment_status,
+        service:services(name, short_name, type)
+      `)
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+
+    supabase
+      .from("issued_certificates")
+      .select("id", { count: "exact", head: true })
+      .eq("patient_id", patientId),
+
+    supabase
+      .from("email_outbox")
+      .select(`
+        id,
+        email_type,
+        to_email,
+        subject,
+        status,
+        delivery_status,
+        created_at,
+        sent_at,
+        intake_id
+      `)
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+
+    supabase
+      .from("patient_notes")
+      .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false }),
+  ])
+
+  const { data: intakes, error: intakesError } = intakesResult
+  const { count: certificatesCount } = certsResult
+  const { data: emailLogs, error: emailError } = emailResult
+  const { data: patientNotes, error: notesError } = notesResult
 
   if (intakesError) {
     logger.error("Error fetching intakes", { patientId }, intakesError)
   }
-
-  // Get issued certificates count
-  const { count: certificatesCount } = await supabase
-    .from("issued_certificates")
-    .select("id", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-
-  // Get email communication history
-  const { data: emailLogs, error: emailError } = await supabase
-    .from("email_outbox")
-    .select(`
-      id,
-      email_type,
-      to_email,
-      subject,
-      status,
-      delivery_status,
-      created_at,
-      sent_at,
-      intake_id
-    `)
-    .eq("patient_id", patientId)
-    .order("created_at", { ascending: false })
-    .limit(20)
-
   if (emailError) {
     logger.error("Error fetching email logs", { patientId }, emailError)
   }
-
-  // Get patient notes/flags
-  const { data: patientNotes, error: notesError } = await supabase
-    .from("patient_notes")
-    .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
-    .eq("patient_id", patientId)
-    .order("created_at", { ascending: false })
-
   if (notesError && !["42P01", "42703"].includes(notesError.code)) {
-    // Suppress table-not-found (42P01) and undefined-column (42703) errors —
-    // patient_notes is non-critical and may have schema drift between migrations
     logger.error("Error fetching patient notes", { patientId }, notesError)
   }
 
@@ -112,6 +111,8 @@ async function getPatientWithHistory(patientId: string) {
     }
   }
 }
+
+export const metadata = { title: "Patient Detail" }
 
 export const dynamic = "force-dynamic"
 

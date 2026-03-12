@@ -13,7 +13,7 @@ import {
   CreditCard,
   ExternalLink,
 } from "lucide-react"
-import { Button } from "@/components/uix"
+import { Button } from "@/components/ui/button"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from 
 import { capture } from "@/lib/analytics/capture"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import { formatDate, formatRelative } from "@/lib/format"
+import { needsRenewalSoon, getDaysUntilExpiry } from "@/lib/prescriptions"
 
 /**
  * Panel-Based Patient Dashboard
@@ -40,7 +41,7 @@ interface Intake {
   status: string
   created_at: string
   updated_at: string
-  service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string }
+  service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
 }
 
 interface Prescription {
@@ -50,20 +51,6 @@ interface Prescription {
   issued_date: string
   expiry_date: string
   status: "active" | "expired"
-}
-
-// Check if prescription needs renewal soon (within 14 days)
-function needsRenewalSoon(renewalDate: string): boolean {
-  const renewal = new Date(renewalDate)
-  const today = new Date()
-  const daysUntilRenewal = Math.ceil((renewal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  return daysUntilRenewal <= 14 && daysUntilRenewal > 0
-}
-
-function getDaysUntilRenewal(renewalDate: string): number {
-  const renewal = new Date(renewalDate)
-  const today = new Date()
-  return Math.ceil((renewal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 interface PatientDashboardProps {
@@ -276,10 +263,10 @@ export function PanelDashboard({
                 <div>
                   <p className="font-medium text-foreground">{rx.medication_name}</p>
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    Renews in {getDaysUntilRenewal(rx.expiry_date)} days
+                    Renews in {getDaysUntilExpiry(rx.expiry_date)} days
                   </p>
                 </div>
-                <Link href="/request?service=repeat-prescription">
+                <Link href="/request?service=repeat-script">
                   <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
                     <Pill className="w-4 h-4 mr-1" />
                     Renew now
@@ -297,7 +284,7 @@ export function PanelDashboard({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">Active Prescriptions</h2>
             {prescriptions.filter((p) => p.status === "active").length > 3 && (
-              <Link href="/patient/documents" className="text-sm text-primary hover:underline">
+              <Link href="/patient/prescriptions" className="text-sm text-primary hover:underline">
                 View all
               </Link>
             )}
@@ -327,7 +314,7 @@ export function PanelDashboard({
                         </span>
                       </div>
                     </div>
-                    <Link href="/request?service=repeat-prescription">
+                    <Link href="/request?service=repeat-script">
                       <Button variant="outline" size="sm" className="magnetic-button">
                         <Pill className="w-4 h-4 mr-2" />
                         Request renewal
@@ -369,26 +356,29 @@ function IntakeCard({
     return "Request"
   }
 
+  const serviceName = getServiceName()
+
   return (
     <button
       onClick={onClick}
+      aria-label={`View ${serviceName} — ${config.label}`}
       className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-md transition-all text-left group hover-lift card-shine"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
           <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
             intake.service?.type === "common_scripts" ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/10"
           )}>
             {intake.service?.type === "common_scripts" ? (
-              <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <Pill className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
             ) : (
-              <FileText className="w-6 h-6 text-primary" />
+              <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground mb-1">
-              {getServiceName()}
+              {serviceName}
             </h3>
             <p className="text-sm text-muted-foreground">
               {formatDate(intake.created_at)}

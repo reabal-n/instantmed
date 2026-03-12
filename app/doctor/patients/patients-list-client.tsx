@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { UserCard } from "@/components/uix"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import { formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 
 interface PatientsListClientProps {
@@ -68,108 +70,117 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
+        <Card
+          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
-            <Users className="h-4 w-4 text-primary" />
-          </div>
-          <div className="mt-2 text-lg font-semibold text-foreground">{totalPatients}</div>
-        </div>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{totalPatients}</div>
+          </CardContent>
+        </Card>
 
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
+        <Card
+          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Onboarded</span>
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div className="mt-2 text-lg font-semibold text-foreground">
-            {patients.filter((p) => p.onboarding_completed).length}
-          </div>
-        </div>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Onboarded</span>
+              <CheckCircle className="h-4 w-4 text-emerald-500" />
+            </div>
+            <div className="mt-2 text-lg font-semibold text-foreground">
+              {patients.filter((p) => p.onboarding_completed).length}
+            </div>
+          </CardContent>
+        </Card>
 
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
+        <Card
+          className="rounded-2xl hover-lift animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
-            <XCircle className="h-4 w-4 text-dawn-500" />
-          </div>
-          <div className="mt-2 text-lg font-semibold text-foreground">
-            {patients.filter((p) => !p.onboarding_completed).length}
-          </div>
-        </div>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
+              <XCircle className="h-4 w-4 text-dawn-500" />
+            </div>
+            <div className="mt-2 text-lg font-semibold text-foreground">
+              {patients.filter((p) => !p.onboarding_completed).length}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
-      <div
-        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+      <Card
+        className="rounded-2xl animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
       >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex-1 max-w-md">
-            <Input
-              placeholder="Search by name, suburb, or phone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              startContent={<Search className="h-4 w-4 text-muted-foreground" />}
-            />
+        <CardContent className="p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex-1 max-w-md">
+              <Input
+                placeholder="Search by name, suburb, or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Select value={stateFilter} onValueChange={setStateFilter}>
+                <SelectTrigger className="w-[120px] rounded-xl bg-card/50 border-border/40">
+                  <SelectValue placeholder="State" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All States</SelectItem>
+                  {states.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
+                <SelectTrigger className="w-[150px] rounded-xl bg-card/50 border-border/40">
+                  <SelectValue placeholder="Onboarding" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="complete">Onboarded</SelectItem>
+                  <SelectItem value="incomplete">Incomplete</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <Select value={stateFilter} onValueChange={setStateFilter}>
-              <SelectTrigger className="w-[120px] rounded-xl bg-card/50 border-border/40">
-                <SelectValue placeholder="State" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                {states.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
-              <SelectTrigger className="w-[150px] rounded-xl bg-card/50 border-border/40">
-                <SelectValue placeholder="Onboarding" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="complete">Onboarded</SelectItem>
-                <SelectItem value="incomplete">Incomplete</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="mt-4 text-sm text-muted-foreground">
+            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
           </div>
-        </div>
-
-        <div className="mt-4 text-sm text-muted-foreground">
-          Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Table */}
-      <div
-        className="glass-card rounded-2xl overflow-hidden animate-fade-in-up opacity-0"
+      <Card
+        className="rounded-2xl overflow-hidden animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
       >
+        <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-card/30 hover:bg-card/30">
-                <TableHead>Patient</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Medicare</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead scope="col">Patient</TableHead>
+                <TableHead scope="col">Contact</TableHead>
+                <TableHead scope="col">Location</TableHead>
+                <TableHead scope="col">Medicare</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Joined</TableHead>
+                <TableHead scope="col" className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -239,11 +250,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                       <TableCell>
                         <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          {new Date(patient.created_at).toLocaleDateString("en-AU", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatDate(patient.created_at)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -267,7 +274,8 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             </TableBody>
           </Table>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Pagination */}
       {totalPages > 1 && (

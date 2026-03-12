@@ -8,7 +8,6 @@ import {
   flagForFollowup,
   markAsReviewed,
   updateScriptSent,
-  createPatientNote,
 } from "@/lib/data/intakes"
 import { requireRole } from "@/lib/auth"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
@@ -27,7 +26,6 @@ function isValidUUID(id: string): boolean {
 export async function updateStatusAction(
   intakeId: string,
   status: IntakeStatus,
-  _doctorId: string,
 ): Promise<{ success: boolean; error?: string; code?: string }> {
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
@@ -91,7 +89,6 @@ export async function updateStatusAction(
     }
 
     revalidatePath("/doctor/dashboard")
-    revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
 
     return { success: true }
@@ -166,7 +163,6 @@ export async function declineIntakeAction(
   }
 
   revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
 
@@ -245,29 +241,8 @@ export async function markScriptSentAction(
   }
 
   revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
-
-  return { success: true }
-}
-
-export async function addPatientNoteAction(
-  patientId: string,
-  content: string,
-  options?: {
-    noteType?: string
-  }
-): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireRole(["doctor", "admin"])
-  if (!profile) {
-    return { success: false, error: "Unauthorized" }
-  }
-
-  const note = await createPatientNote(patientId, profile.id, content, options)
-  if (!note) {
-    return { success: false, error: "Failed to create note" }
-  }
 
   return { success: true }
 }
@@ -555,7 +530,6 @@ export async function issueRefundAction(
     }
 
     revalidatePath("/doctor/dashboard")
-    revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/patient/intakes/${intakeId}`)
 

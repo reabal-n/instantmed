@@ -7,8 +7,7 @@ import {
   Pill, 
   Stethoscope, 
   Clock, 
-  CheckCircle, 
-  AlertCircle,
+  CheckCircle,
   ChevronRight,
   Download,
   Calendar,
@@ -20,26 +19,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { formatDate } from "@/lib/format"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import type { HealthSummary, RecentRequest, MedicalDocument, PrescriptionRecord } from "@/lib/data/health-summary"
 
 interface HealthSummaryClientProps {
-  profile: {
-    id: string
-    first_name?: string | null
-    last_name?: string | null
-    email?: string | null
-  }
   summary: HealthSummary
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  approved: { label: "Approved", color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", icon: CheckCircle },
-  paid: { label: "Under Review", color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300", icon: Clock },
-  in_review: { label: "Under Review", color: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300", icon: Clock },
-  pending: { label: "Pending", color: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300", icon: Clock },
-  declined: { label: "Declined", color: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300", icon: AlertCircle },
-  pending_payment: { label: "Awaiting Payment", color: "bg-muted text-muted-foreground", icon: Clock },
+function resolveStatusConfig(status: string) {
+  return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -82,7 +71,7 @@ function StatCard({
 }
 
 function RequestRow({ request }: { request: RecentRequest }) {
-  const statusConfig = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending
+  const statusConfig = resolveStatusConfig(request.status)
   const CategoryIcon = CATEGORY_ICONS[request.category || ""] || FileText
   const StatusIcon = statusConfig.icon
   
@@ -98,11 +87,7 @@ function RequestRow({ request }: { request: RecentRequest }) {
         <div>
           <p className="font-medium text-sm">{request.service?.name || "Request"}</p>
           <p className="text-xs text-muted-foreground">
-            {new Date(request.created_at).toLocaleDateString("en-AU", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })}
+            {formatDate(request.created_at)}
           </p>
         </div>
       </div>
@@ -117,16 +102,12 @@ function RequestRow({ request }: { request: RecentRequest }) {
   )
 }
 
+function formatDateOrDash(dateStr?: string): string {
+  if (!dateStr) return "—"
+  return formatDate(dateStr)
+}
+
 function MedCertCard({ cert }: { cert: MedicalDocument }) {
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "—"
-    return new Date(dateStr).toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    })
-  }
-  
   return (
     <Card>
       <CardContent className="p-4">
@@ -138,7 +119,7 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
             <div>
               <p className="font-medium text-sm">Medical Certificate</p>
               <p className="text-xs text-muted-foreground">
-                {formatDate(cert.start_date)} – {formatDate(cert.end_date)}
+                {formatDateOrDash(cert.start_date)} – {formatDateOrDash(cert.end_date)}
               </p>
             </div>
           </div>
@@ -161,7 +142,7 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
 }
 
 function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }) {
-  const statusConfig = STATUS_CONFIG[prescription.status] || STATUS_CONFIG.pending
+  const statusConfig = resolveStatusConfig(prescription.status)
   
   return (
     <Card>
@@ -176,11 +157,7 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
                 {prescription.medication_name || "Prescription Request"}
               </p>
               <p className="text-xs text-muted-foreground">
-                {new Date(prescription.created_at).toLocaleDateString("en-AU", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric"
-                })}
+                {formatDate(prescription.created_at)}
               </p>
             </div>
           </div>
@@ -193,7 +170,7 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
   )
 }
 
-export function HealthSummaryClient({ profile: _profile, summary }: HealthSummaryClientProps) {
+export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
   
   const memberSinceDate = new Date(summary.memberSince).toLocaleDateString("en-AU", {
@@ -204,26 +181,21 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <Activity className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Health Summary</h1>
-            <p className="text-muted-foreground text-sm">
-              Your complete medical history with InstantMed
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            <span>Member since {memberSinceDate}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Shield className="w-4 h-4" />
-            <span>Data secured & encrypted</span>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Health Summary</h1>
+          <p className="text-muted-foreground mt-1">
+            Your complete medical history with InstantMed
+          </p>
+          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              Member since {memberSinceDate}
+            </span>
+            <span className="flex items-center gap-1">
+              <Shield className="w-4 h-4" />
+              Data secured &amp; encrypted
+            </span>
           </div>
         </div>
       </div>

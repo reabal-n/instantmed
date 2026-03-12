@@ -317,7 +317,6 @@ export function IntakeDetailClient({
       {/* Real-time status listener */}
       <IntakeStatusListener 
         intakeId={intake.id} 
-        patientId={intake.patient_id} 
         currentStatus={intake.status} 
       />
 
@@ -489,7 +488,6 @@ export function IntakeDetailClient({
             <IntakeStatusTracker
               intakeId={intake.id}
               initialStatus={intake.status as IntakeStatus}
-              isPriority={intake.is_priority}
               onStatusChange={handleStatusChange}
             />
           )}
@@ -555,7 +553,6 @@ export function IntakeDetailClient({
                         {intake.service?.type === "med_certs" && (
                           <SendToEmployerDialog
                             intakeId={intake.id}
-                            patientName={(intake.patient as { full_name?: string })?.full_name || "Patient"}
                             trigger={
                               <Button variant="outline" size="sm" className="gap-2">
                                 <Mail className="h-4 w-4" />

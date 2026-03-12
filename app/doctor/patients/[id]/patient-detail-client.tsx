@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { useState, useTransition } from "react"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { formatIntakeStatus } from "@/lib/format-intake"
+import { formatDate, formatDateTime, formatDateLong } from "@/lib/format"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import { PatientCommunicationHistory } from "@/components/doctor/patient-communication-history"
 import type { Profile } from "@/types/db"
 
@@ -110,40 +112,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
   const age = calculateAge(patient.date_of_birth)
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-      case "completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30"
-      case "declined":
-        return "bg-destructive/10 text-destructive border-destructive/20"
-      case "pending_info":
-        return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30"
-      case "awaiting_script":
-        return "bg-dawn-100 text-dawn-800 border-dawn-200 dark:bg-dawn-500/20 dark:text-dawn-300 dark:border-dawn-500/30"
-      case "paid":
-      case "in_review":
-        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
-      default:
-        return "bg-muted text-muted-foreground"
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    })
-  }
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
   }
 
   return (
@@ -224,11 +193,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                   </div>
                   <p className="font-medium">
                     {patient.date_of_birth
-                      ? new Date(patient.date_of_birth).toLocaleDateString("en-AU", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
+                      ? formatDateLong(patient.date_of_birth)
                       : "Not provided"}
                   </p>
                 </div>
@@ -413,7 +378,6 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
           error_message: null,
           metadata: null,
         }))}
-        patientName={patient.full_name}
       />
     </div>
   )

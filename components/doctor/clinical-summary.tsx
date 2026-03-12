@@ -35,7 +35,6 @@ function formatFieldLabel(key: string): string {
 
 interface ClinicalSummaryProps {
   answers: Record<string, unknown>
-  serviceType?: string
   consultSubtype?: string
   className?: string
 }
@@ -205,7 +204,7 @@ function getFieldIcon(key: string) {
   return <Activity className="h-4 w-4" />
 }
 
-export function ClinicalSummary({ answers, serviceType: _serviceType, consultSubtype, className }: ClinicalSummaryProps) {
+export function ClinicalSummary({ answers, consultSubtype, className }: ClinicalSummaryProps) {
   // Extract and categorize fields
   const redFlagFields: [string, unknown][] = []
   const yellowFlagFields: [string, unknown][] = []

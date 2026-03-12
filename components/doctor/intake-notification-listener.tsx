@@ -5,13 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-interface IntakeNotificationListenerProps {
-  doctorId: string
-}
-
-export function IntakeNotificationListener({
-  doctorId,
-}: IntakeNotificationListenerProps) {
+export function IntakeNotificationListener() {
   const router = useRouter()
   // Track notified intake IDs to prevent duplicates across all handlers
   const notifiedIdsRef = useRef<Set<string>>(new Set())
@@ -103,7 +97,7 @@ export function IntakeNotificationListener({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [doctorId, router])
+  }, [router])
 
   return null
 }

@@ -31,7 +31,6 @@ interface RepeatPrescriptionChecklistProps {
   intakeStatus: string
   aiDrafts: AIDraft[]
   prescriptionSentAt: string | null
-  prescriptionSentBy: string | null
   prescriptionSentChannel: string | null
   doctorName?: string
 }
@@ -41,7 +40,6 @@ export function RepeatPrescriptionChecklist({
   intakeStatus,
   aiDrafts,
   prescriptionSentAt,
-  prescriptionSentBy: _prescriptionSentBy,
   prescriptionSentChannel,
   doctorName,
 }: RepeatPrescriptionChecklistProps) {

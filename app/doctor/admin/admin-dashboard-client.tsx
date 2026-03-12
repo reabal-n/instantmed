@@ -20,6 +20,8 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react"
+import { formatDate } from "@/lib/format"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import type { IntakeWithPatient } from "@/types/db"
 
 // Format functions (inline to avoid server-only import)
@@ -83,16 +85,7 @@ export function AdminDashboardClient({
   }, [allIntakes, searchQuery, statusFilter, serviceFilter])
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      paid: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300",
-      in_review: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300",
-      approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300",
-      declined: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300",
-      completed: "bg-muted text-foreground",
-      awaiting_script: "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300",
-      pending_info: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
-    }
-    return variants[status] || "bg-muted text-foreground"
+    return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-foreground"
   }
 
 
@@ -226,11 +219,11 @@ export function AdminDashboardClient({
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead scope="col">Patient</TableHead>
+                  <TableHead scope="col">Service</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col">Date</TableHead>
+                  <TableHead scope="col" className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,10 +251,7 @@ export function AdminDashboardClient({
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {new Date(intake.created_at).toLocaleDateString("en-AU", {
-                              day: "numeric",
-                              month: "short",
-                            })}
+                            {formatDate(intake.created_at)}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">

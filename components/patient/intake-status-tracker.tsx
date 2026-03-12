@@ -19,7 +19,6 @@ import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 interface IntakeStatusTrackerProps {
   intakeId: string
   initialStatus: IntakeStatus
-  isPriority?: boolean
   onStatusChange?: (newStatus: IntakeStatus) => void
   className?: string
 }
@@ -111,7 +110,6 @@ function getStatusIndex(status: IntakeStatus): number {
 export function IntakeStatusTracker({
   intakeId,
   initialStatus,
-  isPriority: _isPriority = false,
   onStatusChange,
   className,
 }: IntakeStatusTrackerProps) {

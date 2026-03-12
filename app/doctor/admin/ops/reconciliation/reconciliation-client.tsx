@@ -307,14 +307,14 @@ export function ReconciliationClient({
           <Table data-testid="reconciliation-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Reference</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Delivery</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead>Error</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead scope="col">Reference</TableHead>
+                <TableHead scope="col">Category</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Delivery</TableHead>
+                <TableHead scope="col">Age</TableHead>
+                <TableHead scope="col">Patient</TableHead>
+                <TableHead scope="col">Error</TableHead>
+                <TableHead scope="col" className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

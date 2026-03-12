@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { formatDateTime } from "@/lib/format"
 import type { EmailOutboxRow } from "@/lib/data/email-outbox"
 
 // ============================================================================
@@ -71,17 +72,6 @@ interface EmailOutboxClientProps {
 // ============================================================================
 // HELPERS
 // ============================================================================
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleString("en-AU", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
 
 function truncateEmail(email: string, maxLength = 30): string {
   if (email.length <= maxLength) return email
@@ -317,11 +307,11 @@ function DetailModal({
           <div className="flex flex-wrap gap-4 items-center">
             <StatusBadge status={row.status} />
             <span className="text-sm text-muted-foreground">
-              {formatDate(row.created_at)}
+              {formatDateTime(row.created_at)}
             </span>
             {row.sent_at && (
               <span className="text-sm text-muted-foreground">
-                Sent: {formatDate(row.sent_at)}
+                Sent: {formatDateTime(row.sent_at)}
               </span>
             )}
             {row.retry_count !== undefined && row.retry_count > 0 && (
@@ -588,14 +578,14 @@ export function EmailOutboxClient({
           <Table data-testid="email-outbox-table">
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>Created</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>To</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Intake</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Error</TableHead>
+                <TableHead scope="col">Created</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Type</TableHead>
+                <TableHead scope="col">To</TableHead>
+                <TableHead scope="col">Subject</TableHead>
+                <TableHead scope="col">Intake</TableHead>
+                <TableHead scope="col">Provider</TableHead>
+                <TableHead scope="col">Error</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className={isPending ? "opacity-50" : ""}>
@@ -613,7 +603,7 @@ export function EmailOutboxClient({
                     className="cursor-pointer"
                   >
                     <TableCell className="whitespace-nowrap">
-                      {formatDate(row.created_at)}
+                      {formatDateTime(row.created_at)}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={row.status} />

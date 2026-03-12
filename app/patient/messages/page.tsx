@@ -1,6 +1,12 @@
+import type { Metadata } from "next"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { MessagesClient } from "./messages-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+export const metadata: Metadata = {
+  title: "Messages",
+  description: "Communicate with your doctor about your requests.",
+}
 
 export const dynamic = "force-dynamic"
 
@@ -78,7 +84,6 @@ export default async function PatientMessagesPage() {
       messages={messages || []}
       messagesByIntake={messagesByIntake}
       unreadCount={unreadCount || 0}
-      patientId={patientId}
       error={fetchError}
     />
   )

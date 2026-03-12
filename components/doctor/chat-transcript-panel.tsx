@@ -71,7 +71,7 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto hover:bg-transparent">
+              <Button variant="ghost" className="p-0 h-auto hover:bg-transparent" aria-expanded={isExpanded}>
                 <CardTitle className="flex items-center gap-2 text-base cursor-pointer">
                   <MessageSquare className="h-5 w-5 text-muted-foreground" />
                   AI Chat Transcript

@@ -1,6 +1,12 @@
+import type { Metadata } from "next"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { DocumentsClient } from "./documents-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+export const metadata: Metadata = {
+  title: "My Documents",
+  description: "View and download your medical certificates and receipts.",
+}
 
 export const dynamic = "force-dynamic"
 

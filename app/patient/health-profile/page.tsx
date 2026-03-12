@@ -1,6 +1,12 @@
+import type { Metadata } from "next"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getHealthProfile } from "@/lib/data/health-profile"
 import { HealthProfileClient } from "./health-profile-client"
+
+export const metadata: Metadata = {
+  title: "Health Profile",
+  description: "Manage your allergies, conditions, medications, and emergency contacts.",
+}
 
 export const dynamic = "force-dynamic"
 

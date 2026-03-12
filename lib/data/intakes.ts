@@ -1504,3 +1504,71 @@ export async function getIntakeDocuments(intakeId: string): Promise<Array<{
 
   return data || []
 }
+
+// ============================================
+// PATIENT DASHBOARD DATA
+// ============================================
+
+interface DashboardIntake {
+  id: string
+  status: string
+  created_at: string
+  updated_at: string
+  service_id: string
+  service: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
+}
+
+interface DashboardPrescription {
+  id: string
+  medication_name: string
+  dosage_instructions: string
+  issued_date: string
+  expiry_date: string
+  status: "active" | "expired"
+}
+
+export async function getPatientDashboardData(patientId: string): Promise<{
+  intakes: DashboardIntake[]
+  prescriptions: DashboardPrescription[]
+  error: string | null
+}> {
+  const supabase = createServiceRoleClient()
+
+  const [intakesResult, prescriptionsResult] = await Promise.all([
+    supabase
+      .from("intakes")
+      .select(`id, status, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+
+    supabase
+      .from("prescriptions")
+      .select("id, medication_name, dosage_instructions, issued_date, expiry_date, status")
+      .eq("patient_id", patientId)
+      .order("issued_date", { ascending: false })
+      .limit(10),
+  ])
+
+  if (intakesResult.error) {
+    logger.error("Failed to fetch dashboard intakes", {}, toError(intakesResult.error))
+  }
+  if (prescriptionsResult.error) {
+    logger.error("Failed to fetch dashboard prescriptions", {}, toError(prescriptionsResult.error))
+  }
+
+  const fetchError = intakesResult.error || prescriptionsResult.error
+    ? "Unable to load some data. Please refresh the page or try again later."
+    : null
+
+  const intakes = (intakesResult.data || []).map(row => ({
+    ...row,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  })) as DashboardIntake[]
+
+  return {
+    intakes,
+    prescriptions: (prescriptionsResult.data || []) as DashboardPrescription[],
+    error: fetchError,
+  }
+}

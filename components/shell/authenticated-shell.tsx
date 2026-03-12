@@ -48,7 +48,7 @@ export function AuthenticatedShell({
         {/* Main Content Area - Offset by rail width */}
         <main 
           className={cn(
-            "ml-60 transition-all duration-300",
+            "ml-0 lg:ml-60 transition-all duration-300",
             className
           )}
         >
