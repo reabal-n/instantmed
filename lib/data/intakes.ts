@@ -293,14 +293,28 @@ export async function getAllIntakesByStatus(
 /**
  * Get doctor queue - paid intakes ready for review
  * Supports pagination for scalability at high volume.
+ * When doctorId is provided and that doctor has doctor_available=false, returns empty queue
+ * so paused doctors do not see new intakes.
  */
 export async function getDoctorQueue(
-  options?: { page?: number; pageSize?: number }
+  options?: { page?: number; pageSize?: number; doctorId?: string }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
+
+  // If doctor is paused (doctor_available=false), return empty queue
+  if (options?.doctorId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("doctor_available")
+      .eq("id", options.doctorId)
+      .single()
+    if (profile?.doctor_available === false) {
+      return { data: [], total: 0, page, pageSize }
+    }
+  }
 
   // Get total count first
   const { count, error: countError } = await supabase

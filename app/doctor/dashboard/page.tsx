@@ -29,7 +29,7 @@ export default async function DoctorDashboardPage({
 
   // Fetch data in parallel — graceful degradation via allSettled
   const results = await Promise.allSettled([
-    getDoctorQueue({ page, pageSize }),
+    getDoctorQueue({ page, pageSize, doctorId: profile.id }),
     getIntakeMonitoringStats(),
     getSlaBreachIntakes(),
     getDoctorIdentity(profile.id),

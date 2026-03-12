@@ -135,6 +135,34 @@ export function trackIntakeFunnelStep(event: {
 }
 
 /**
+ * Track when a request is blocked by operational controls (business hours, capacity)
+ */
+export function trackOperationalBlock(event: {
+  blockType: "business_hours" | "capacity_limit"
+  source?: "request_page" | "checkout"
+  userId?: string
+  sessionId?: string
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    const client = getPostHogClient()
+    const distinctId = event.userId || event.sessionId || "anonymous"
+
+    client.capture({
+      distinctId,
+      event: "operational_block",
+      properties: {
+        block_type: event.blockType,
+        source: event.source ?? "request_page",
+        ...event.metadata,
+      },
+    })
+  } catch {
+    // Non-blocking
+  }
+}
+
+/**
  * Track business metric events for alerting and dashboards
  */
 export function trackBusinessMetric(event: {

@@ -96,6 +96,8 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 
 **Key files:** `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `app/api/stripe/webhook/route.ts`, `app/actions/generate-drafts.ts`, `lib/stripe/price-mapping.ts`.
 
+**Pre-checkout blocks** (enforced at `/request` and in `createIntakeAndCheckoutAction`): maintenance mode, business hours (`isOutsideBusinessHours`), capacity limit (`isAtCapacity`), disabled services. PostHog `operational_block` events track business-hours and capacity-limit blocks for analytics.
+
 ### Idempotency & Duplicate Protection
 
 | Layer | Mechanism |
@@ -240,7 +242,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `/doctor/repeat-rx/[id]` | Repeat prescription review | Intake + patient join |
 | `/doctor/settings/identity` | Doctor identity config | Doctor profile |
 
-**Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh.
+**Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh. Paused doctors (`profiles.doctor_available = false`) receive an empty queue — `getDoctorQueue({ doctorId })` filters them out so they do not see new intakes.
 
 **Intake review flow:**
 1. Doctor opens case from queue
@@ -295,7 +297,9 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Access:** `admin` role only (set via `profiles.role = 'admin'` in Supabase).
 
-Admin capabilities span the `/admin` route group and include: operations dashboard, analytics, compliance audit logs, feature flag management, finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
+Admin capabilities span the `/admin` route group and include: operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
+
+**Operational controls** (`/admin/features`): Business hours (configurable open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min.
 
 Role assignment methods: SQL update on `profiles` table (production), `/api/admin/make-doctor` endpoint (dev/preview only, blocked in production), or Clerk dashboard metadata sync.
 
@@ -348,7 +352,7 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 |--------|--------|---------------|
 | **Admin** (4) | `/api/admin/*` | `approve`, `decline`, `make-doctor` (dev only), `webhook-dlq` |
 | **AI** (5) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `form-validation`, `review-summary`, `symptom-suggestions` |
-| **Cron** (10) | `/api/cron/*` | `abandoned-checkouts`, `release-stale-claims`, `expire-certificates`, `process-email-retries`, `stale-queue`, `health-check`, `dlq-monitor`, `cleanup-orphaned-storage`, `emergency-flags`, `retry-drafts` |
+| **Cron** (11) | `/api/cron/*` | `abandoned-checkouts`, `release-stale-claims`, `expire-certificates`, `process-email-retries`, `stale-queue`, `health-check`, `dlq-monitor`, `cleanup-orphaned-storage`, `emergency-flags`, `retry-drafts`, `scheduled-maintenance` |
 | **Doctor** (9) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `drafts/[intakeId]`, `monitoring-stats`, `personal-stats`, `script-sent`, `export`, `log-view-duration` |
 | **Patient** (10) | `/api/patient/*` | `documents/[id]/download`, `get-invoices`, `download-invoice`, `messages` (GET/POST), `profile` (PATCH), `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (3) | `/api/med-cert/*` | `preview` (GET), `render` (POST), `submit` (POST) |

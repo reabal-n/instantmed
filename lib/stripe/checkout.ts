@@ -13,7 +13,7 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
+import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 import { completeTranscript } from "@/lib/chat/audit-trail"
 import {
@@ -127,6 +127,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     // Business hours
     const outsideHours = await isOutsideBusinessHours()
     if (outsideHours.closed) {
+      trackOperationalBlock({ blockType: "business_hours", source: "checkout", userId: input.patientId })
       return {
         success: false,
         error: `We're outside our operating hours. We'll be back at ${outsideHours.nextOpen ?? "8am"} AEST.`,
@@ -135,6 +136,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     // Capacity limit
     if (await isAtCapacity()) {
+      trackOperationalBlock({ blockType: "capacity_limit", source: "checkout", userId: input.patientId })
       return {
         success: false,
         error: "We're experiencing high demand today. Please try again tomorrow.",

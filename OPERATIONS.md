@@ -34,6 +34,17 @@
 3. If connection pool exhausted: scale up Supabase compute (Project Settings > Database), kill long-running queries
 4. If Supabase is down: check https://status.supabase.com
 
+### Operational Controls (Business Hours / Capacity / Maintenance)
+
+**Symptoms:** Patients report "We're closed" or "High demand" when trying to request; maintenance banner shows unexpectedly.
+
+1. Check `/admin/features` → Operational Controls: business hours, capacity limit, urgent notice, scheduled maintenance
+2. PostHog: filter by `operational_block` event to see how often business hours or capacity blocks occur
+3. Business hours: verify `business_hours_open`/`close` and `business_hours_timezone` (default Australia/Sydney)
+4. Capacity: `count_intakes_today_sydney` RPC; if at limit, either raise `capacity_limit_max` or wait for next day
+5. Scheduled maintenance: cron runs every 5 min; if window passed but banner still on, manually set `maintenance_mode` = false in feature_flags
+6. Doctor availability: paused doctors (`doctor_available = false`) see empty queue; toggle at `/doctor/settings/identity`
+
 ### Security Incident
 
 > Classification levels: SECURITY.md → Security Incident Classification
@@ -229,6 +240,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly | Send recovery emails for abandoned checkout sessions |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
+| Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
 | Expire Certificates | `/api/cron/expire-certificates` | Daily (1 AM) | Mark certificates past their `end_date` as expired |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |

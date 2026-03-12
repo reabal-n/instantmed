@@ -5,6 +5,7 @@ import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { isOutsideBusinessHours, isAtCapacity } from "@/lib/operational-config"
+import { trackOperationalBlock } from "@/lib/posthog-server"
 import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
 // Prevent static generation for dynamic auth
@@ -72,6 +73,7 @@ export default async function RequestPage({
 
   // Outside business hours
   if (outsideHours.closed) {
+    trackOperationalBlock({ blockType: "business_hours", source: "request_page" })
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md mx-auto text-center space-y-6">
@@ -103,6 +105,7 @@ export default async function RequestPage({
 
   // At capacity
   if (atCapacity) {
+    trackOperationalBlock({ blockType: "capacity_limit", source: "request_page" })
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md mx-auto text-center space-y-6">
