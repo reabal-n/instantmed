@@ -21,7 +21,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 import { logStatusChange } from "@/lib/data/intake-events"
 import { logTriageDeclined } from "@/lib/audit/compliance-audit"
-import { sendRequestDeclinedEmailNew } from "@/lib/email/senders"
+import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 
 const logger = createLogger("decline-intake")
@@ -238,7 +238,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     if (patient?.email) {
       try {
-        await sendRequestDeclinedEmailNew({
+        await sendRequestDeclinedEmail({
           to: patient.email,
           patientName: patient.full_name || "there",
           patientId: patient.id,

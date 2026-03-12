@@ -176,34 +176,51 @@ export async function exportPatientData(): Promise<ExportDataResult> {
 
     // Send notification email (GDPR best practice)
     if (profile.email) {
-      await sendViaResend({
-        to: profile.email,
-        subject: "Your data export is ready",
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #111;">Data Export Notification</h2>
-            <p>Hi ${profile.full_name || "there"},</p>
-            <p>Your personal data export was successfully generated on ${new Date().toLocaleDateString("en-AU", { dateStyle: "long" })} at ${new Date().toLocaleTimeString("en-AU", { timeStyle: "short" })}.</p>
-            <p>The export includes:</p>
-            <ul>
-              <li>Your profile information</li>
-              <li>${exportData.requests.length} request${exportData.requests.length !== 1 ? "s" : ""}</li>
-              <li>${exportData.documents.length} document${exportData.documents.length !== 1 ? "s" : ""}</li>
-              <li>${exportData.notifications.length} notification${exportData.notifications.length !== 1 ? "s" : ""}</li>
-            </ul>
-            <p style="color: #666; font-size: 14px;">If you did not request this export, please contact us immediately at ${CONTACT_EMAIL}</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #999; font-size: 12px;">InstantMed Australia Pty Ltd</p>
-          </body>
-          </html>
-        `,
-        tags: [{ name: "type", value: "data_export_notification" }],
-      }).catch((err) => {
-        // Don't fail the export if email fails
+      let emailResult: { success: boolean; id?: string; error?: string } = { success: false }
+      try {
+        emailResult = await sendViaResend({
+          to: profile.email,
+          subject: "Your data export is ready",
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #111;">Data Export Notification</h2>
+              <p>Hi ${profile.full_name || "there"},</p>
+              <p>Your personal data export was successfully generated on ${new Date().toLocaleDateString("en-AU", { dateStyle: "long" })} at ${new Date().toLocaleTimeString("en-AU", { timeStyle: "short" })}.</p>
+              <p>The export includes:</p>
+              <ul>
+                <li>Your profile information</li>
+                <li>${exportData.requests.length} request${exportData.requests.length !== 1 ? "s" : ""}</li>
+                <li>${exportData.documents.length} document${exportData.documents.length !== 1 ? "s" : ""}</li>
+                <li>${exportData.notifications.length} notification${exportData.notifications.length !== 1 ? "s" : ""}</li>
+              </ul>
+              <p style="color: #666; font-size: 14px;">If you did not request this export, please contact us immediately at ${CONTACT_EMAIL}</p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+              <p style="color: #999; font-size: 12px;">InstantMed Australia Pty Ltd</p>
+            </body>
+            </html>
+          `,
+          tags: [{ name: "type", value: "data_export_notification" }],
+        })
+      } catch (err) {
         logger.warn("Failed to send data export notification email", { error: err })
-      })
+      }
+
+      // Log to email_outbox for audit trail
+      try {
+        await supabase.from("email_outbox").insert({
+          email_type: "data_export_notification",
+          to_email: profile.email,
+          patient_id: profile.id,
+          subject: "Your data export is ready",
+          status: emailResult.success ? "sent" : "failed",
+          provider_message_id: emailResult.id,
+          sent_at: emailResult.success ? new Date().toISOString() : null,
+          error_message: emailResult.error,
+          metadata: {},
+        })
+      } catch { /* non-blocking */ }
     }
 
     return { success: true, data: exportData }

@@ -86,12 +86,26 @@ export function RequestReceivedEmail({
       </div>
 
       {isGuest && (
-        <Text muted small style={{ textAlign: "center" as const }}>
-          <a href={`${appUrl}/auth/complete-account?intake_id=${requestId}`} style={{ color: colors.accent, fontWeight: 500 }}>
-            Create your account
-          </a>{" "}
-          to track your request and download your certificate when it&apos;s ready.
-        </Text>
+        <Box>
+          <Heading as="h3">Create your account</Heading>
+          <Text>Set up a free account to get the most out of InstantMed:</Text>
+          <List
+            items={[
+              "Track your request status in real-time",
+              "Download your certificate instantly when ready",
+              "Access your medical history",
+              "Request future certificates faster",
+            ]}
+          />
+          <div style={{ textAlign: "center" }}>
+            <Button href={`${appUrl}/auth/complete-account?intake_id=${requestId}`}>
+              Create Your Account
+            </Button>
+          </div>
+          <Text muted small style={{ textAlign: "center" as const }}>
+            Don&apos;t worry — your certificate will also be emailed to you when it&apos;s ready, even if you don&apos;t create an account.
+          </Text>
+        </Box>
       )}
 
       <Text muted small>

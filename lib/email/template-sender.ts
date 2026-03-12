@@ -4,17 +4,13 @@
  */
 
 import "server-only"
-import { createClient } from "@supabase/supabase-js"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendViaResend, sendCriticalEmail } from "./resend"
 import { createLogger } from "../observability/logger"
 import { env } from "../env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 const log = createLogger("template-sender")
-
-function getServiceClient() {
-  return createClient(env.supabaseUrl, env.supabaseServiceRoleKey)
-}
 
 // ============================================================================
 // TYPES
@@ -59,7 +55,7 @@ interface SendResult {
  * Get an active email template by slug
  */
 async function getTemplate(slug: string): Promise<TemplateEmail | null> {
-  const supabase = getServiceClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("email_templates")
@@ -121,7 +117,7 @@ async function logEmailSend(params: {
   resendId?: string
   error?: string
 }): Promise<void> {
-  const supabase = getServiceClient()
+  const supabase = createServiceRoleClient()
 
   try {
     await supabase.from("email_outbox").insert({
@@ -372,8 +368,7 @@ export async function sendGuestCompleteAccountEmail(params: {
   intakeId: string
   patientId?: string
 }): Promise<SendResult> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const completeAccountUrl = `${appUrl}/auth/complete-account?intake_id=${params.intakeId}`
+  const completeAccountUrl = `${env.appUrl}/auth/complete-account?intake_id=${params.intakeId}`
   
   return sendTemplateEmail({
     to: params.to,

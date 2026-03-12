@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendRequestDeclinedEmailNew } from "@/lib/email/senders"
+import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { toError } from "@/lib/errors"
@@ -125,7 +125,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         })
 
         // Email notification via canonical sendEmail system
-        await sendRequestDeclinedEmailNew({
+        await sendRequestDeclinedEmail({
           to: patientEmail,
           patientName,
           patientId,
