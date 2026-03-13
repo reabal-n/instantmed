@@ -209,5 +209,6 @@ export async function updateMedicareAction(
   }
 
   revalidatePath("/patient")
+  revalidatePath("/patient/settings")
   return { success: true }
 }

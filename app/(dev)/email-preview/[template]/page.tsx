@@ -54,7 +54,7 @@ const templates: Record<string, {
   },
   "med-cert-patient": {
     name: "Medical Certificate (Patient)",
-    subject: "Your medical certificate is ready",
+    subject: "Your medical certificate is ready 🎉",
     render: () => (
       <MedCertPatientEmail
         patientName={mockData.patientName}

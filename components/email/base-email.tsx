@@ -61,6 +61,7 @@ const colors = {
   errorText: "#991B1B",     // Red-800
 }
 
+// Source Sans 3 (brand) — many email clients block web fonts, so fallbacks are critical
 const fontFamily = "'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
 interface BaseEmailProps {
@@ -84,6 +85,11 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
           rel="stylesheet"
         />
         <title>InstantMed</title>
+        <style>{`
+          body, td, p, h1, h2, h3, a, span, div, li {
+            font-family: ${fontFamily} !important;
+          }
+        `}</style>
       </head>
       <body
         style={{

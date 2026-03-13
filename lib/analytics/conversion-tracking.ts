@@ -76,7 +76,7 @@ export async function setEnhancedConversionsData(params: {
   firstName?: string
   lastName?: string
 }) {
-  if (typeof window === 'undefined' || !window.gtag) return
+  if (typeof window === 'undefined') return
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userData: Record<string, any> = {}
@@ -106,7 +106,12 @@ export async function setEnhancedConversionsData(params: {
   }
 
   if (Object.keys(userData).length > 0) {
-    window.gtag('set', 'user_data', userData)
+    if (window.gtag) {
+      window.gtag('set', 'user_data', userData)
+    } else {
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push(['set', 'user_data', userData])
+    }
   }
 }
 
@@ -157,48 +162,66 @@ export function updateConsent(granted: {
 
 /**
  * Fire a Google Ads conversion event
+ * Uses dataLayer.push when gtag not yet loaded (e.g. lazyOnload) so events are queued
  */
 export function trackConversion(event: ConversionEvent, data?: ConversionData) {
-  if (typeof window === 'undefined' || !window.gtag) {
-    return
-  }
+  if (typeof window === 'undefined') return
 
   const conversionId = CONVERSION_IDS[event]
 
   // Use micro-conversion value if no explicit value provided
   const value = data?.value ?? MICRO_CONVERSION_VALUES[event] ?? undefined
 
-  window.gtag('event', 'conversion', {
+  const conversionPayload = {
     send_to: conversionId,
     value,
     currency: data?.currency || 'AUD',
     transaction_id: data?.transaction_id,
-  })
+  }
 
-  // Also send to GA4 for unified reporting
-  window.gtag('event', event.toLowerCase(), {
-    event_category: 'conversion',
-    event_label: data?.service,
-    value,
-    currency: data?.currency || 'AUD',
-    transaction_id: data?.transaction_id,
-    items: data?.items,
-  })
+  const fireEvent = (fn: (...args: unknown[]) => void) => {
+    fn('event', 'conversion', conversionPayload)
+    fn('event', event.toLowerCase(), {
+      event_category: 'conversion',
+      event_label: data?.service,
+      value,
+      currency: data?.currency || 'AUD',
+      transaction_id: data?.transaction_id,
+      items: data?.items,
+    })
+  }
+
+  if (window.gtag) {
+    fireEvent(window.gtag)
+  } else {
+    // Queue for when gtag loads (dataLayer processes in order)
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(['event', 'conversion', conversionPayload])
+    window.dataLayer.push(['event', event.toLowerCase(), {
+      event_category: 'conversion',
+      event_label: data?.service,
+      value,
+      currency: data?.currency || 'AUD',
+      transaction_id: data?.transaction_id,
+      items: data?.items,
+    }])
+  }
 }
 
 /**
  * Track purchase completion (main conversion)
+ * Sets Enhanced Conversions user data (hashed email) before firing conversion
  */
-export function trackPurchase(params: {
+export async function trackPurchase(params: {
   transactionId: string
   value: number
   service: string
   serviceName: string
   email?: string
 }) {
-  // Set enhanced conversions data if email provided
+  // Set enhanced conversions data before conversion (for better attribution)
   if (params.email) {
-    setEnhancedConversionsData({ email: params.email })
+    await setEnhancedConversionsData({ email: params.email })
   }
 
   trackConversion('PURCHASE', {

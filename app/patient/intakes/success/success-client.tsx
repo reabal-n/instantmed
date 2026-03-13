@@ -9,7 +9,7 @@ import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { Button } from "@/components/ui/button"
-import { trackConversion } from "@/lib/analytics/conversion-tracking"
+import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 
 const RESEND_COOLDOWN_SECONDS = 60
 
@@ -17,6 +17,7 @@ interface SuccessClientProps {
   intakeId?: string
   initialStatus?: string
   serviceName?: string
+  amountCents?: number
   isPriority?: boolean
   patientEmail?: string
   queuePosition?: number | null
@@ -26,6 +27,7 @@ export function SuccessClient({
   intakeId,
   initialStatus,
   serviceName,
+  amountCents,
   isPriority = false,
   patientEmail,
   queuePosition: initialQueuePosition,
@@ -171,18 +173,20 @@ export function SuccessClient({
   useEffect(() => {
     if (!intakeId || purchaseTrackedRef.current) return
 
-    // Fire conversion immediately on success page load.
-    // Stripe only redirects here after successful payment, so we don't need
-    // to wait for the webhook to update the intake status.
-    // The previous approach (waiting for status === "paid") never worked because
-    // client-side Supabase has no auth session and RLS blocks the status query.
-    trackConversion("PURCHASE", {
-      transaction_id: intakeId,
-      currency: "AUD",
-      service: serviceName,
-    })
     purchaseTrackedRef.current = true
-  }, [intakeId, serviceName])
+
+    // Fire conversion immediately on success page load.
+    // Stripe only redirects here after successful payment.
+    // trackPurchase includes Enhanced Conversions (hashed email) and value.
+    const valueDollars = amountCents != null ? amountCents / 100 : 1
+    void trackPurchase({
+      transactionId: intakeId,
+      value: valueDollars,
+      service: serviceName || "unknown",
+      serviceName: serviceName || "Request",
+      email: patientEmail,
+    })
+  }, [intakeId, serviceName, amountCents, patientEmail])
 
   // Show loading state while verifying payment
   if (isVerifying) {

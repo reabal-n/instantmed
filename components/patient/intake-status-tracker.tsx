@@ -142,6 +142,17 @@ export function IntakeStatusTracker({
       })
   }, [intakeId, supabase])
 
+  // If Realtime never connects (e.g. intakes not in publication), stop showing "Connecting"
+  // after 8s and rely on polling fallback
+  useEffect(() => {
+    if (!isConnecting) return
+    const t = setTimeout(() => {
+      setIsConnecting(false)
+      setIsDisconnected(true)
+    }, 8000)
+    return () => clearTimeout(t)
+  }, [isConnecting])
+
   // Subscribe to realtime status updates with reconnection logic
   useEffect(() => {
     let reconnectTimeout: NodeJS.Timeout | null = null
@@ -202,6 +213,38 @@ export function IntakeStatusTracker({
       supabase.removeChannel(channel)
     }
   }, [intakeId, onStatusChange, retryCount, supabase])
+
+  // Polling fallback: when Realtime is connecting or disconnected, poll every 30s
+  // so status still updates if WebSockets are blocked or Realtime is unavailable
+  useEffect(() => {
+    if (!isConnecting && !isDisconnected) return
+
+    const poll = async () => {
+      const { data } = await supabase
+        .from("intakes")
+        .select("status")
+        .eq("id", intakeId)
+        .single()
+
+      if (data?.status) {
+        setStatus(prev => {
+          if (prev === data.status) return prev
+          const newStatus = data.status as IntakeStatus
+          setTimestamps(t => {
+            const next = new Map(t)
+            if (!next.has(newStatus)) next.set(newStatus, new Date().toISOString())
+            return next
+          })
+          onStatusChange?.(newStatus)
+          return newStatus
+        })
+      }
+    }
+
+    const interval = setInterval(poll, 30000)
+    poll() // initial poll
+    return () => clearInterval(interval)
+  }, [intakeId, isConnecting, isDisconnected, onStatusChange, supabase])
 
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES

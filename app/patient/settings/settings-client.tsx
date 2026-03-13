@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AUSTRALIAN_STATES, CONTACT_EMAIL } from "@/lib/constants"
+import { AUSTRALIAN_STATES } from "@/lib/constants"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -39,8 +39,11 @@ import type { Profile } from "@/types/db"
 import { toast } from "sonner"
 import { changePassword, deleteAccount } from "@/app/actions/account"
 import { exportPatientData } from "@/app/actions/export-data"
+import { updateMedicareAction } from "@/app/actions/profile-todo"
 import { AvatarPicker } from "@/components/ui/avatar-picker"
 import { updateEmailPreferences, type EmailPreferences } from "@/app/actions/email-preferences"
+import { MedicareCapture } from "@/components/intake/medicare-capture"
+import { formatMedicareNumber } from "@/lib/validation/medicare"
 
 interface PatientSettingsClientProps {
   profile: Profile
@@ -57,7 +60,25 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [isSavingEmailPrefs, setIsSavingEmailPrefs] = useState(false)
-  
+  const [isSavingMedicare, setIsSavingMedicare] = useState(false)
+
+  // Convert ISO date (YYYY-MM-DD) to MM/YY for form display
+  const expiryToMmYy = (iso: string | null) => {
+    if (!iso) return ""
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return ""
+    const month = String(d.getMonth() + 1).padStart(2, "0")
+    const year = String(d.getFullYear()).slice(-2)
+    return `${month}/${year}`
+  }
+
+  const [medicareForm, setMedicareForm] = useState({
+    number: profile.medicare_number ? formatMedicareNumber(profile.medicare_number.replace(/\s/g, "")) : "",
+    irn: profile.medicare_irn as number | null,
+    expiry: expiryToMmYy(profile.medicare_expiry),
+  })
+  const [consentMyhr, setConsentMyhr] = useState(profile.consent_myhr ?? false)
+
   const [emailPrefs, setEmailPrefs] = useState({
     marketing_emails: emailPreferences?.marketing_emails ?? true,
     abandoned_checkout_emails: emailPreferences?.abandoned_checkout_emails ?? true,
@@ -94,6 +115,40 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
       toast.error("Failed to update profile")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSaveMedicare = async () => {
+    const rawNumber = medicareForm.number.replace(/\s/g, "")
+    const hasNumber = rawNumber.length === 10
+
+    // Convert MM/YY to YYYY-MM-01
+    let expiryIso: string | null = null
+    if (medicareForm.expiry.length === 5) {
+      const [mm, yy] = medicareForm.expiry.split("/")
+      if (mm && yy) {
+        expiryIso = `20${yy}-${mm}-01`
+      }
+    }
+
+    setIsSavingMedicare(true)
+    try {
+      const result = await updateMedicareAction(profile.id, {
+        medicareNumber: hasNumber ? rawNumber : null,
+        medicareIrn: medicareForm.irn,
+        medicareExpiry: expiryIso,
+        consentMyhr,
+      })
+      if (result.success) {
+        toast.success("Medicare details saved")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to save Medicare details")
+      }
+    } catch {
+      toast.error("Failed to save Medicare details")
+    } finally {
+      setIsSavingMedicare(false)
     }
   }
 
@@ -181,11 +236,6 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
     } finally {
       setIsDeletingAccount(false)
     }
-  }
-
-  const maskMedicare = (medicare: string | null) => {
-    if (!medicare) return "Not provided"
-    return `${medicare.slice(0, 4)} •••• ••••`
   }
 
   return (
@@ -376,55 +426,44 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
           <div className="glass-card rounded-2xl p-6 space-y-6">
             <div>
               <h3 className="font-medium text-foreground mb-4">Medicare Details</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-6">
                 Your Medicare information is stored securely and used for prescription and referral services.
               </p>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
-                  <Label className="text-xs text-muted-foreground">Medicare Number</Label>
-                  <p className="font-mono text-foreground mt-1">{maskMedicare(profile.medicare_number)}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
-                  <Label className="text-xs text-muted-foreground">IRN</Label>
-                  <p className="font-mono text-foreground mt-1">{profile.medicare_irn || "Not provided"}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
-                  <Label className="text-xs text-muted-foreground">Expiry</Label>
-                  <p className="font-mono text-foreground mt-1">
-                    {profile.medicare_expiry
-                      ? new Date(profile.medicare_expiry).toLocaleDateString("en-AU", { month: "2-digit", year: "numeric" })
-                      : "Not provided"}
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
-                  <Label className="text-xs text-muted-foreground">My Health Record</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    {profile.consent_myhr ? (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        <span className="text-foreground">Opted in</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Not opted in</span>
-                      </>
-                    )}
+              <div className="space-y-6">
+                <MedicareCapture
+                  value={medicareForm}
+                  onChange={setMedicareForm}
+                />
+
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                  <div>
+                    <p className="font-medium text-foreground">My Health Record</p>
+                    <p className="text-sm text-muted-foreground">Opt in to share with My Health Record when relevant</p>
                   </div>
+                  <Switch
+                    checked={consentMyhr}
+                    onCheckedChange={setConsentMyhr}
+                    aria-label="My Health Record consent"
+                  />
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground mt-4">
-                To update your Medicare details, please{" "}
-                <a 
-                  href={`mailto:${CONTACT_EMAIL}?subject=Medicare%20Details%20Update`}
-                  className="text-primary hover:underline font-medium"
-                >
-                  contact our support team
-                </a>
-                .
-              </p>
+              <div className="flex justify-end mt-6">
+                <Button onClick={handleSaveMedicare} disabled={isSavingMedicare} className="rounded-xl">
+                  {isSavingMedicare ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Medicare Details
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>

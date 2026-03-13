@@ -27,7 +27,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   {
     slug: "med_cert_patient",
     name: "Medical Certificate - Patient",
-    subject: "Your medical certificate is ready",
+    subject: "Your medical certificate is ready 🎉",
     htmlTemplate: `
 <!DOCTYPE html>
 <html>

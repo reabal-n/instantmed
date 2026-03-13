@@ -23,7 +23,7 @@ export interface VerificationCodeEmailProps {
 }
 
 export const verificationCodeSubject = (code: string) =>
-  `${code} — your InstantMed verification code`
+  `${code} — your InstantMed verification code ✨`
 
 export function VerificationCodeEmail({
   code,
@@ -33,10 +33,13 @@ export function VerificationCodeEmail({
 }: VerificationCodeEmailProps) {
   return (
     <BaseEmail
-      previewText={`Your InstantMed verification code is ${code} 🔒`}
+      previewText={`Your InstantMed verification code is ${code} ✨`}
       appUrl={appUrl}
     >
-      <Text>Here's your verification code — enter it where prompted to continue:</Text>
+      <Text>
+        Here&apos;s your verification code ✨ — enter it where prompted to
+        continue:
+      </Text>
 
       {/* Code block */}
       <div
@@ -65,7 +68,8 @@ export function VerificationCodeEmail({
       </div>
 
       <Text muted small>
-        This code expires in 10 minutes. Don't share it with anyone.
+        This code expires in 10 minutes. Keep it to yourself — we won&apos;t
+        ask for it by email or phone.
       </Text>
 
       {/* Didn't request this */}
@@ -81,7 +85,7 @@ export function VerificationCodeEmail({
       )}
 
       <Text muted small>
-        Questions? Reply to this email or visit our{" "}
+        Questions? Just reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500, textDecoration: "none" }}>
           help centre
         </a>

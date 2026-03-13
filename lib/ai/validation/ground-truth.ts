@@ -46,11 +46,11 @@ const FORBIDDEN_DIAGNOSIS_TERMS = [
   "pe",
 ]
 
-// Forbidden medication terms - AI must not suggest medications
+// Forbidden medication terms - AI must not recommend specific medications.
+// Excludes "prescription" and "medication" - those appear in legitimate clinical
+// documentation (e.g. "repeat prescription", "no current medications").
 const FORBIDDEN_MEDICATION_TERMS = [
   "prescribe",
-  "prescription",
-  "medication",
   "paracetamol",
   "ibuprofen",
   "aspirin",
@@ -85,12 +85,38 @@ export interface GroundTruthError {
 
 interface IntakeAnswers {
   startDate?: string
+  start_date?: string
   endDate?: string
+  end_date?: string
   durationDays?: number
+  duration_requested?: number
+  duration_days?: number
   symptoms?: string[]
   symptom_list?: string[]
   certificateType?: string
+  certificate_type?: string
   [key: string]: unknown
+}
+
+/** Normalize intake answers to canonical keys (supports both camelCase and snake_case) */
+function normalizeIntakeAnswers(a: IntakeAnswers): {
+  startDate?: string
+  endDate?: string
+  durationDays?: number
+  certificateType?: string
+} {
+  const start = a.startDate ?? a.start_date
+  const end = a.endDate ?? a.end_date
+  const dur = a.durationDays ?? a.duration_requested ?? a.duration_days
+  const certType = a.certificateType ?? a.certificate_type
+  const durationDays =
+    typeof dur === "number" ? dur : typeof dur === "string" ? parseInt(dur, 10) : undefined
+  return {
+    startDate: typeof start === "string" ? start : undefined,
+    endDate: typeof end === "string" ? end : undefined,
+    durationDays: Number.isFinite(durationDays) ? durationDays! : undefined,
+    certificateType: typeof certType === "string" ? certType : undefined,
+  }
 }
 
 /**
@@ -101,35 +127,36 @@ export function validateMedCertAgainstIntake(
   intakeAnswers: IntakeAnswers
 ): GroundTruthValidationResult {
   const errors: GroundTruthError[] = []
+  const n = normalizeIntakeAnswers(intakeAnswers)
 
   // 1. Validate dates match intake
-  if (intakeAnswers.startDate && aiOutput.startDate !== intakeAnswers.startDate) {
+  if (n.startDate && aiOutput.startDate !== n.startDate) {
     errors.push({
       code: "DATE_MISMATCH_START",
       message: "AI output start date does not match intake",
       field: "startDate",
-      expected: intakeAnswers.startDate,
+      expected: n.startDate,
       actual: aiOutput.startDate,
     })
   }
 
-  if (intakeAnswers.endDate && aiOutput.endDate !== intakeAnswers.endDate) {
+  if (n.endDate && aiOutput.endDate !== n.endDate) {
     errors.push({
       code: "DATE_MISMATCH_END",
       message: "AI output end date does not match intake",
       field: "endDate",
-      expected: intakeAnswers.endDate,
+      expected: n.endDate,
       actual: aiOutput.endDate,
     })
   }
 
   // 2. Validate duration matches
-  if (intakeAnswers.durationDays && aiOutput.durationDays !== intakeAnswers.durationDays) {
+  if (n.durationDays != null && aiOutput.durationDays !== n.durationDays) {
     errors.push({
       code: "DURATION_MISMATCH",
       message: "AI output duration does not match intake",
       field: "durationDays",
-      expected: intakeAnswers.durationDays,
+      expected: n.durationDays,
       actual: aiOutput.durationDays,
     })
   }
@@ -165,8 +192,8 @@ export function validateMedCertAgainstIntake(
   }
 
   // 5. Validate certificate type matches
-  if (intakeAnswers.certificateType) {
-    const normalizedIntakeType = normalizeCertType(intakeAnswers.certificateType)
+  if (n.certificateType) {
+    const normalizedIntakeType = normalizeCertType(n.certificateType)
     if (normalizedIntakeType && aiOutput.certificateType !== normalizedIntakeType) {
       errors.push({
         code: "CERT_TYPE_MISMATCH",

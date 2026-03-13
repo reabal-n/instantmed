@@ -953,7 +953,7 @@ export async function POST(request: Request) {
 
             const React = await import("react")
             const { sendEmail } = await import("@/lib/email/send-email")
-            const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
+            const { PaymentConfirmedEmail, paymentConfirmedSubject } = await import("@/components/email/templates/payment-confirmed")
 
             const serviceName = asyncEmailSessionMetadata?.service_slug
               ?.replace(/-/g, " ")
@@ -964,7 +964,7 @@ export async function POST(request: Request) {
             await sendEmail({
               to: patientProfile.email,
               toName: patientProfile.full_name || "Patient",
-              subject: `Payment confirmed for your ${serviceName}`,
+              subject: paymentConfirmedSubject(serviceName, amountFormatted),
               template: React.createElement(PaymentConfirmedEmail, {
                 patientName: patientProfile.full_name || "there",
                 requestType: serviceName,

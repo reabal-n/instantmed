@@ -28,7 +28,7 @@ export interface RequestReceivedEmailProps {
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `Your ${requestType} request has been received`
+  return `Your ${requestType} request has been received ✨`
 }
 
 export function RequestReceivedEmail({
@@ -43,12 +43,12 @@ export function RequestReceivedEmail({
 
   return (
     <BaseEmail
-      previewText={`All sorted — your ${requestType} request is with a doctor now 👍`}
+      previewText={`All sorted — your ${requestType} request is with a doctor now ✨`}
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
-        headline="You're all set"
+        headline="You're all set ✨"
         subtitle={`${requestType} — ${amount}`}
         variant="info"
       />
@@ -58,7 +58,8 @@ export function RequestReceivedEmail({
       <Text>
         Payment confirmed — your <strong>{requestType}</strong> request is
         now with a doctor for review. Most requests are wrapped up within a
-        couple of hours, and we'll email you the moment there's an update.
+        couple of hours, and we&apos;ll email you the moment there&apos;s an
+        update.
       </Text>
 
       <Box>
@@ -76,7 +77,7 @@ export function RequestReceivedEmail({
         <List
           items={[
             "A doctor reviews your request (typically 1–2 hours)",
-            "You'll get an email as soon as a decision is made",
+            "You&apos;ll get an email as soon as a decision is made",
             "If anything else is needed, the doctor will reach out directly",
           ]}
         />

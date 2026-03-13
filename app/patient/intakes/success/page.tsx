@@ -22,6 +22,7 @@ export default async function PaymentSuccessPage({
   // Fetch initial status and intake details server-side
   let initialStatus: string | undefined
   let serviceName: string | undefined
+  let amountCents: number | undefined
   let isPriority = false
   let patientEmail: string | undefined
   let queuePosition: number | null = null
@@ -41,6 +42,7 @@ export default async function PaymentSuccessPage({
         status,
         is_priority,
         patient_id,
+        amount_cents,
         service:services(name, short_name)
       `)
       .eq("id", intakeId)
@@ -58,6 +60,7 @@ export default async function PaymentSuccessPage({
 
     initialStatus = data?.status
     isPriority = data?.is_priority || false
+    amountCents = data?.amount_cents ?? undefined
     const serviceData = data?.service as { name?: string; short_name?: string } | null
     serviceName = serviceData?.short_name || serviceData?.name || undefined
   }
@@ -73,6 +76,7 @@ export default async function PaymentSuccessPage({
           intakeId={intakeId}
           initialStatus={initialStatus}
           serviceName={serviceName}
+          amountCents={amountCents}
           isPriority={isPriority}
           patientEmail={patientEmail}
           queuePosition={queuePosition}
