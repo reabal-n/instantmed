@@ -10,7 +10,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { logger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { formatDateLong, formatShortDate } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 /**
  * Fetch the draft data for certificate preview before approval.
@@ -391,9 +391,7 @@ export async function generatePreviewPdfAction(
 
     const certificateRef = generateCertificateRef(previewData.certificateType)
 
-    const patientDob = previewData.patientDob
-      ? formatShortDate(previewData.patientDob)
-      : undefined
+    const patientDob = formatShortDateSafe(previewData.patientDob)
 
     const result = await renderTemplatePdf({
       certificateType: previewData.certificateType,

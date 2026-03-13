@@ -947,33 +947,42 @@ function formatIntakeContext(
   parts.push(`Request Date: ${new Date().toISOString().split("T")[0]}`)
   parts.push(`Service Type: ${serviceType}`)
 
-  // Common fields across all service types
-  if (answers.symptoms && Array.isArray(answers.symptoms)) {
-    const sanitizedSymptoms = answers.symptoms.map(s => sanitizeAnswerValue(s, intakeId))
+  // Common fields across all service types (support both camelCase and snake_case)
+  const symptoms = answers.symptoms ?? answers.symptom_list
+  if (symptoms && Array.isArray(symptoms)) {
+    const sanitizedSymptoms = symptoms.map(s => sanitizeAnswerValue(s, intakeId))
     parts.push(`Symptoms: ${sanitizedSymptoms.join(", ")}`)
   }
 
-  if (answers.otherSymptomDetails) {
-    parts.push(`Additional Symptoms: ${sanitizeAnswerValue(answers.otherSymptomDetails, intakeId)}`)
+  if (answers.otherSymptomDetails || answers.other_symptom_details || answers.symptom_details) {
+    const detail = answers.otherSymptomDetails || answers.other_symptom_details || answers.symptom_details
+    parts.push(`Additional Symptoms: ${sanitizeAnswerValue(detail, intakeId)}`)
   }
 
   if (answers.reason) {
     parts.push(`Reason: ${sanitizeAnswerValue(answers.reason, intakeId)}`)
   }
 
+  // Symptom duration (med certs and consults — supports both camelCase and snake_case)
+  const symptomDuration = answers.symptomDuration || answers.symptom_duration
+  if (symptomDuration) {
+    const label = String(symptomDuration).replace(/_/g, "-")
+    parts.push(`Symptom Duration: ${label}`)
+  }
+
   // Service-specific fields (use draftCategory for comparisons)
   if (draftCategory === "med_cert") {
-    if (answers.certificateType) {
-      parts.push(`Certificate Type: ${sanitizeAnswerValue(answers.certificateType, intakeId)}`)
+    if (answers.certificateType || answers.certificate_type) {
+      parts.push(`Certificate Type: ${sanitizeAnswerValue(answers.certificateType || answers.certificate_type, intakeId)}`)
     }
-    if (answers.startDate) {
-      parts.push(`Start Date: ${answers.startDate}`)
+    if (answers.startDate || answers.start_date) {
+      parts.push(`Start Date: ${answers.startDate || answers.start_date}`)
     }
-    if (answers.endDate) {
-      parts.push(`End Date: ${answers.endDate}`)
+    if (answers.endDate || answers.end_date) {
+      parts.push(`End Date: ${answers.endDate || answers.end_date}`)
     }
-    if (answers.durationDays) {
-      parts.push(`Duration: ${answers.durationDays} day(s)`)
+    if (answers.durationDays || answers.duration_requested) {
+      parts.push(`Duration: ${answers.durationDays || answers.duration_requested} day(s)`)
     } else if (answers.duration) {
       parts.push(`Duration: ${sanitizeAnswerValue(answers.duration, intakeId)}`)
     }

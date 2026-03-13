@@ -27,7 +27,7 @@ import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
-import { formatDateLong, formatShortDate } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 interface ApproveCertResult {
   success: boolean
@@ -298,7 +298,7 @@ export async function approveAndSendCert(
     const pdfResult = await renderTemplatePdf({
       certificateType,
       patientName: patient.full_name,
-      patientDateOfBirth: patientDob ? formatShortDate(patientDob) : undefined,
+      patientDateOfBirth: formatShortDateSafe(patientDob),
       consultationDate: formatDateLong(generatedAt.split("T")[0]!),
       startDate: formatDateLong(reviewData.startDate),
       endDate: formatDateLong(reviewData.endDate),

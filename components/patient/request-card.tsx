@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Calendar, ChevronRight, type LucideIcon } from "lucide-react"
+import { Calendar, ChevronRight, Download, type LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -29,11 +29,12 @@ export function RequestCard({
 }: RequestCardProps) {
   const config = INTAKE_STATUS[status as IntakeStatus] || INTAKE_STATUS.pending
   const StatusIcon = config.icon
+  const isReady = status === "approved" || status === "completed"
 
   return (
     <Link href={href}>
       <Card className="hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer group">
-        <CardContent className="p-4">
+        <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <div className={cn(
@@ -56,6 +57,12 @@ export function RequestCard({
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {isReady && (
+                <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                  Ready
+                </span>
+              )}
               <Badge className={cn("flex items-center gap-1", config.color)}>
                 <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
                 {config.label}

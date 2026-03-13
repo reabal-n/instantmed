@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   FileText,
   Pill,
@@ -12,6 +13,7 @@ import {
   AlertTriangle,
   CreditCard,
   ExternalLink,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePanel, DrawerPanel } from "@/components/panels"
@@ -76,6 +78,7 @@ export function PanelDashboard({
   profileData,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
+  const router = useRouter()
   const firstName = fullName.split(" ")[0]
 
   const handleOpenProfileDrawer = (type: TodoDrawerType) => {
@@ -122,7 +125,12 @@ export function PanelDashboard({
   }, [intakes.length, pendingIntakes.length, stalePaymentIntakes.length, activeRxCount])
 
   const handleViewIntake = (intake: Intake) => {
-    // Track intake view
+    // Approved/completed: go straight to page for quick download access
+    if (["approved", "completed"].includes(intake.status)) {
+      router.push(`/patient/intakes/${intake.id}`)
+      return
+    }
+    // Pending: open drawer for status and next steps
     capture("intake_detail_opened", {
       intake_id: intake.id,
       status: intake.status,
@@ -140,7 +148,7 @@ export function PanelDashboard({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Welcome Section */}
       <div>
         <h1 className="text-2xl font-semibold text-foreground mb-2">
@@ -153,11 +161,32 @@ export function PanelDashboard({
         </p>
       </div>
 
-      {/* Profile Completion Todos */}
+      {/* First-time banner — single pending request being reviewed */}
+      {pendingIntakes.length === 1 && intakes.length === 1 && (
+        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-3">
+          <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-foreground">Your request is being reviewed</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              A doctor will look at it shortly. Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Completion Todos — hide for med-cert-only users with required fields complete */}
       {profileData && (
         <ProfileTodoCard
           profileData={profileData}
           onOpenDrawer={handleOpenProfileDrawer}
+          hideWhenMedCertOnlyComplete={
+            intakes.length > 0 &&
+            prescriptions.length === 0 &&
+            intakes.every((i) => {
+              const s = Array.isArray(i.service) ? i.service[0] : i.service
+              return (s as { type?: string } | null)?.type === "med_certs"
+            })
+          }
         />
       )}
 
@@ -207,6 +236,48 @@ export function PanelDashboard({
         </section>
       )}
 
+      {/* Documents ready — quick access for approved/completed */}
+      {(() => {
+        const readyIntakes = intakes.filter((i) => ["approved", "completed"].includes(i.status))
+        if (readyIntakes.length === 0) return null
+        return (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Documents ready</h2>
+              <Link href="/patient/documents" className="text-sm text-primary hover:underline">
+                View all
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {readyIntakes.slice(0, 3).map((intake) => {
+                const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
+                const serviceName = serviceData?.name || serviceData?.short_name || "Document"
+                return (
+                  <Link
+                    key={intake.id}
+                    href={`/patient/intakes/${intake.id}`}
+                    className="flex items-center justify-between p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                        <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{serviceName}</p>
+                        <p className="text-sm text-muted-foreground">Ref: {intake.id.slice(0, 8).toUpperCase()}</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
+                      Download
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })()}
+
       {/* Recent Requests */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -235,6 +306,8 @@ export function PanelDashboard({
               "Medical certificates can be issued for past or future dates",
               "Repeat prescriptions are usually approved same-day",
               "Your documents are stored securely and can be downloaded anytime",
+              "Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST)",
+              "You'll receive an email when your document is ready",
             ]}
           />
         ) : (
@@ -347,6 +420,7 @@ function IntakeCard({
 }) {
   const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
+  const isReady = ["approved", "completed"].includes(intake.status)
 
   const getServiceName = () => {
     if (intake.service?.name) return intake.service.name
@@ -390,6 +464,9 @@ function IntakeCard({
             <Icon className="w-4 h-4" />
             {config.label}
           </div>
+          <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
+            {isReady ? "View & download" : "View"}
+          </span>
           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>

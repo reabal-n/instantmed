@@ -3,7 +3,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { formatDateLong, formatShortDate } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const certificateType = certTypeMap[draftData.certificate_type || "work"] || "work"
 
     const patientDobRaw = draftData.patient_dob ?? draft.dob
-    const patientDob = patientDobRaw ? formatShortDate(String(patientDobRaw)) : undefined
+    const patientDob = formatShortDateSafe(patientDobRaw != null ? String(patientDobRaw) : null)
 
     const certificateRef = generateCertificateRef(certificateType)
     const today = new Date().toISOString().split("T")[0]!

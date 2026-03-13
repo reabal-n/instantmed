@@ -12,7 +12,7 @@ import { env } from "@/lib/env"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { createElement } from "react"
-import { formatDateLong, formatShortDate } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 const log = createLogger("approve-direct")
 
@@ -106,7 +106,7 @@ export async function approveMedCertDirect({
     const pdfResult = await renderTemplatePdf({
       certificateType,
       patientName: patient.full_name,
-      patientDateOfBirth: patient.date_of_birth ? formatShortDate(patient.date_of_birth) : undefined,
+      patientDateOfBirth: formatShortDateSafe(patient.date_of_birth),
       consultationDate: formatDateLong(consultDate),
       startDate: formatDateLong(startDate),
       endDate: formatDateLong(endDate),

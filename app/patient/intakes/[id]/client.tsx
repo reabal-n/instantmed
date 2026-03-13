@@ -45,17 +45,6 @@ interface IntakeDetailClientProps {
 }
 
 /**
- * Format a field label from snake_case/camelCase to Title Case
- */
-function formatFieldLabel(key: string): string {
-  return key
-    .replace(/_/g, " ")
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim()
-}
-
-/**
  * Format field value for display
  */
 function formatFieldValue(value: unknown): string | null {
@@ -77,111 +66,53 @@ function SubmittedAnswers({
   answers: Record<string, unknown>
   serviceType: string
 }) {
-  // Fields to hide from patient view (internal/sensitive/duplicate)
-  const hiddenFields = new Set([
-    // Patient identity (already shown in header)
-    "patient_id",
-    "patient_email",
-    "patient_name",
-    "patient_phone",
-    "patient_dob",
-    "medicare_number",
-    "medicare_irn",
-    "medicare_ref",
-    // Consent & legal (already agreed during intake)
-    "telehealth_consent_given",
-    "telehealth_limitations_acknowledged",
-    "accuracy_confirmed",
-    "terms_agreed",
-    "consent_timestamp",
-    "safety_consent",
-    "safety_acknowledged",
-    "privacy_consent",
-    // Internal tracking / metadata
-    "attribution",
-    "_form_start_time",
-    "idempotency_key",
-    "form_completed",
-    "form_version",
-    "intake_type",
-    "flow_type",
-    "referral_code",
-    "referral_source",
-    // Service routing (internal)
-    "service_id",
-    "service_slug",
-    // Medication codes (internal, not useful to patient)
-    "medication_search_used",
-    "medication_selected",
-    "selected_pbs_code",
-    "amt_code",
-    "pbs_code",
-    // Duplicate/internal fields that overlap with curated display
-    "cert_type",
-    "date_from",
-    "date_to",
-    "reason",
-    "reason_summary",
-    "duration_days",
-    "emergency_symptoms",
-    // Internal assessment fields
-    "has_been_seen_before",
-    "seen_gp_recently",
-    "is_existing_patient",
-    "gp_visit_question",
-  ])
-
-  // Field display order and grouping
+  // Field display order — curated list only (no "remaining fields" to avoid duplicates/irrelevant info)
   const medCertFields = [
-    { key: "certificate_type", label: "Certificate Type" },
-    { key: "duration", label: "Duration (days)" },
-    { key: "start_date", label: "Start Date" },
-    { key: "symptoms", label: "Symptoms" },
-    { key: "symptom_details", label: "Symptom Details" },
-    { key: "symptom_duration", label: "Symptom Duration" },
-    { key: "employer_name", label: "Employer Name" },
+    { keys: ["certificate_type", "cert_type"], label: "Certificate Type" },
+    { keys: ["duration", "duration_days", "duration_requested"], label: "Duration (days)" },
+    { keys: ["start_date", "specific_date_from"], label: "Start Date" },
+    { keys: ["symptoms"], label: "Symptoms" },
+    { keys: ["symptom_details", "other_symptom_details"], label: "Symptom Details" },
+    { keys: ["symptom_duration"], label: "Symptom Duration" },
+    { keys: ["employer_name"], label: "Employer Name" },
   ]
 
   const scriptFields = [
-    { key: "medication_name", label: "Medication" },
-    { key: "medication_display", label: "Medication Details" },
-    { key: "medication_dosage", label: "Dosage" },
-    { key: "last_prescribed", label: "Last Prescribed" },
-    { key: "pharmacy_preference", label: "Preferred Pharmacy" },
-    { key: "is_repeat", label: "Repeat Prescription" },
+    { keys: ["medication_name", "medication_display"], label: "Medication" },
+    { keys: ["medication_dosage", "dosage"], label: "Dosage" },
+    { keys: ["last_prescribed"], label: "Last Prescribed" },
+    { keys: ["pharmacy_preference"], label: "Preferred Pharmacy" },
+    { keys: ["is_repeat"], label: "Repeat Prescription" },
   ]
 
   const consultFields = [
-    { key: "consult_reason", label: "Reason for Consultation" },
+    { keys: ["consult_reason", "primary_concern", "concern"], label: "Reason for Consultation" },
   ]
 
   // Determine which fields to show based on service type
-  const isMedCert = serviceType.toLowerCase().includes("cert") || answers.certificate_type
+  const isMedCert = serviceType.toLowerCase().includes("cert") || answers.certificate_type || answers.cert_type
   const isScript = serviceType.toLowerCase().includes("script") || serviceType.toLowerCase().includes("prescription") || answers.medication_name
   const isConsult = serviceType.toLowerCase().includes("consult") || answers.consult_reason
 
   const displayFields = isMedCert ? medCertFields : isScript ? scriptFields : isConsult ? consultFields : []
 
-  // Get ordered fields first, then any remaining fields
+  // Build entries from curated fields only (no "remaining" — avoids duplicates and irrelevant consent/terms)
   const orderedEntries: Array<{ key: string; label: string; value: string }> = []
 
   for (const field of displayFields) {
-    const value = answers[field.key]
-    const formatted = formatFieldValue(value)
-    if (formatted) {
-      orderedEntries.push({ key: field.key, label: field.label, value: formatted })
+    const keys = "keys" in field ? field.keys : [field.key]
+    let value: unknown
+    for (const k of keys) {
+      value = (answers as Record<string, unknown>)[k]
+      if (value !== undefined && value !== null) break
     }
-  }
-
-  // Add any remaining fields not in the ordered list
-  for (const [key, value] of Object.entries(answers)) {
-    if (hiddenFields.has(key)) continue
-    if (displayFields.some((f) => f.key === key)) continue
-    // Skip internal-looking fields by pattern
-    if (key.startsWith("_") || key.endsWith("_id") || key.includes("stripe") || key.includes("checkout")) continue
     const formatted = formatFieldValue(value)
     if (formatted) {
-      orderedEntries.push({ key, label: formatFieldLabel(key), value: formatted })
+      // Human-readable symptom duration (e.g. 1_2_days → 1-2 days)
+      const displayValue = field.label === "Symptom Duration" && typeof formatted === "string"
+        ? formatted.replace(/_/g, "-").replace(/-days?$/i, " days")
+        : formatted
+      orderedEntries.push({ key: keys[0], label: field.label, value: displayValue })
     }
   }
 
@@ -192,9 +123,9 @@ function SubmittedAnswers({
   }
 
   return (
-    <div className="rounded-lg border bg-muted/30 divide-y divide-border">
+    <div className="rounded-xl border border-border/50 bg-muted/30 divide-y divide-border overflow-hidden">
       {orderedEntries.map(({ key, label, value }) => (
-        <div key={key} className="flex flex-col sm:flex-row sm:justify-between px-4 py-2.5 text-sm gap-0.5">
+        <div key={key} className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-4 text-sm gap-1">
           <span className="text-muted-foreground">{label}</span>
           <span className="font-medium sm:text-right sm:max-w-[60%]">{value}</span>
         </div>
@@ -223,8 +154,8 @@ function TimelineEntry({
   color?: string
 }) {
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <Icon className={`h-4 w-4 ${color}`} />
+    <div className="flex items-center gap-3 py-2 text-sm">
+      <Icon className={`h-4 w-4 shrink-0 ${color}`} />
       <span className="text-muted-foreground">{label}:</span>
       <span>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</span>
     </div>
@@ -609,10 +540,10 @@ export function IntakeDetailClient({
             </div>
           )}
 
-          {/* Submitted Answers - Show what the patient submitted */}
+          {/* Submitted Answers - Curated summary only (no consent/terms) */}
           {intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers && (
-            <div className="pt-4 border-t">
-              <h3 className="text-base font-medium mb-3">Your Submitted Information</h3>
+            <div className="pt-6 border-t">
+              <h3 className="text-base font-medium mb-4">Your Submitted Information</h3>
               <SubmittedAnswers
                 answers={intake.answers[0].answers}
                 serviceType={service?.short_name || service?.name || ""}
@@ -621,9 +552,9 @@ export function IntakeDetailClient({
           )}
 
           {/* Timeline */}
-          <div>
-            <h3 className="text-base font-medium mb-3">Timeline</h3>
-            <div className="space-y-3">
+          <div className="pt-2">
+            <h3 className="text-base font-medium mb-4">Timeline</h3>
+            <div className="space-y-4">
               <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
               {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-emerald-500" />}
               {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-emerald-500" />}

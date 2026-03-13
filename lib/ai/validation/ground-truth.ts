@@ -88,6 +88,7 @@ interface IntakeAnswers {
   endDate?: string
   durationDays?: number
   symptoms?: string[]
+  symptom_list?: string[]
   certificateType?: string
   [key: string]: unknown
 }
@@ -253,8 +254,9 @@ export function validateClinicalNoteAgainstIntake(
   }
 
   // 3. Validate that presenting complaint references intake symptoms
-  if (intakeAnswers.symptoms && intakeAnswers.symptoms.length > 0) {
-    const hasSymptomReference = intakeAnswers.symptoms.some(symptom =>
+  const symptoms = intakeAnswers.symptoms ?? intakeAnswers.symptom_list
+  if (symptoms && Array.isArray(symptoms) && symptoms.length > 0) {
+    const hasSymptomReference = symptoms.some((symptom: string) =>
       aiOutput.presentingComplaint.toLowerCase().includes(symptom.toLowerCase()) ||
       aiOutput.historyOfPresentIllness.toLowerCase().includes(symptom.toLowerCase())
     )
@@ -265,7 +267,7 @@ export function validateClinicalNoteAgainstIntake(
         code: "SYMPTOMS_NOT_REFERENCED",
         message: "AI output does not reference any intake symptoms",
         field: "presentingComplaint",
-        expected: intakeAnswers.symptoms,
+        expected: symptoms,
       })
     }
   }

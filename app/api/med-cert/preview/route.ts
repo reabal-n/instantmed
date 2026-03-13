@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { formatDateLong, formatShortDate } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const certificateType = certTypeMap[draftData.certificate_type || "work"] || "work"
 
     const patientDobRaw = draftData.patient_dob ?? draft.dob
-    const patientDob = patientDobRaw ? formatShortDate(String(patientDobRaw)) : undefined
+    const patientDob = formatShortDateSafe(patientDobRaw != null ? String(patientDobRaw) : null)
 
     // Generate a preview certificate ref
     const certificateRef = generateCertificateRef(certificateType)

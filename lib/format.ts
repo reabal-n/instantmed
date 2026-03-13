@@ -44,6 +44,17 @@ export function formatShortDate(date: string | Date): string {
   })
 }
 
+/**
+ * Safe format for DOB — returns undefined if date is invalid.
+ * Use when the source may be malformed (avoids "Invalid Date" on PDFs).
+ */
+export function formatShortDateSafe(date: string | Date | null | undefined): string | undefined {
+  if (date == null || date === "") return undefined
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return undefined
+  return formatShortDate(d)
+}
+
 /** "3 hours ago" */
 export function formatRelative(date: string | Date): string {
   return formatDistanceToNow(new Date(date), { addSuffix: true })

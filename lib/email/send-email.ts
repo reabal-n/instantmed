@@ -1388,7 +1388,7 @@ async function generateAndUploadPdfForCertificate(
       return { success: false, error: "Certificate missing required date fields" }
     }
 
-    const { formatDateLong, formatShortDate } = await import("@/lib/format")
+    const { formatDateLong, formatShortDate, formatShortDateSafe } = await import("@/lib/format")
 
     const certificateType = cert.certificate_type as "work" | "study" | "carer"
 
@@ -1402,7 +1402,7 @@ async function generateAndUploadPdfForCertificate(
 
     // Generate PDF using template renderer (same pipeline as approve-cert.ts)
     const { renderTemplatePdf } = await import("@/lib/pdf/template-renderer")
-    const patientDob = cert.patient_dob ? formatShortDate(cert.patient_dob) : undefined
+    const patientDob = formatShortDateSafe(cert.patient_dob)
     const result = await renderTemplatePdf({
       certificateType,
       patientName: cert.patient_name,

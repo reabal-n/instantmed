@@ -469,8 +469,14 @@ export function IntakeDetailClient({
               setDoctorNotes(formatted)
               setIsAiPrefilled(true)
               toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
+            } else {
+              toast.error("AI draft could not be formatted. Please try again.")
             }
+          } else {
+            toast.error("AI draft could not be generated. Please try again or add your notes manually.")
           }
+        } else {
+          toast.error("Failed to load draft. Please refresh and try again.")
         }
         router.refresh()
       } else {

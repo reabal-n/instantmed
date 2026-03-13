@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { getCertificateByRef } from "@/lib/data/issued-certificates"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { formatDateLong } from "@/lib/format"
 
 interface Props {
   params: Promise<{ certificate_ref: string }>
@@ -29,14 +30,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: "Verify the authenticity of a medical certificate issued by InstantMed.",
     robots: { index: false, follow: false },
   }
-}
-
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
 }
 
 function formatCertificateType(type: string | null): string {
@@ -61,8 +54,8 @@ function maskName(fullName: string | null): string {
 export default async function VerifyCertificateRefPage({ params }: Props) {
   const { certificate_ref } = await params
 
-  // Validate format: IM-TYPE-YYYYMMDD-NNNNN
-  const refPattern = /^IM-(WORK|STUDY|CARER)-\d{8}-\d{5}$/
+  // Validate format: IM-TYPE-YYYYMMDD-NNNNNNNN (8-digit suffix)
+  const refPattern = /^IM-(WORK|STUDY|CARER)-\d{8}-\d{8}$/
   if (!refPattern.test(certificate_ref.toUpperCase())) {
     notFound()
   }
@@ -135,14 +128,14 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">Issued:</span>
-                      <span className="font-medium text-foreground">{formatDate(cert.issue_date)}</span>
+                      <span className="font-medium text-foreground">{formatDateLong(cert.issue_date)}</span>
                     </div>
                     {cert.start_date && cert.end_date && (
                       <div className="flex items-center gap-3">
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Valid period:</span>
                         <span className="font-medium text-foreground">
-                          {formatDate(cert.start_date)} — {formatDate(cert.end_date)}
+                          {formatDateLong(cert.start_date)} — {formatDateLong(cert.end_date)}
                         </span>
                       </div>
                     )}

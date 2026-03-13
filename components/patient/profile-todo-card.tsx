@@ -30,6 +30,8 @@ export type TodoDrawerType = "phone" | "address" | "medicare"
 interface ProfileTodoCardProps {
   profileData: ProfileData
   onOpenDrawer: (type: TodoDrawerType) => void
+  /** When true, hide entirely if all required fields (phone, address) are complete — for med-cert-only users who don't need Medicare */
+  hideWhenMedCertOnlyComplete?: boolean
 }
 
 interface TodoItem {
@@ -76,7 +78,7 @@ function getTodoItems(profile: ProfileData): TodoItem[] {
   ]
 }
 
-export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardProps) {
+export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnlyComplete }: ProfileTodoCardProps) {
   const prefersReducedMotion = useReducedMotion()
   const items = getTodoItems(profileData)
   const completedCount = items.filter((i) => i.isComplete).length
@@ -90,6 +92,11 @@ export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardPr
     return null
   }
 
+  // Hide for med-cert-only users when phone + address are complete (Medicare not needed)
+  if (hideWhenMedCertOnlyComplete && allRequiredDone) {
+    return null
+  }
+
   // Show condensed view when all required are done but medicare pending
   const isCondensed = allRequiredDone && !allDone
 
@@ -100,7 +107,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer }: ProfileTodoCardPr
         animate={{ opacity: 1, y: 0 }}
         exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8, height: 0, marginBottom: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
-        className="rounded-xl border border-border bg-gradient-to-br from-background to-muted/30 overflow-hidden"
+        className="rounded-xl border border-border bg-linear-to-br from-background to-muted/30 overflow-hidden"
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-4">

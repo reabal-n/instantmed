@@ -185,8 +185,8 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
         </div>
       </div>
       
-      {/* Stats — only show when patient has enough requests for the overview to be useful */}
-      {intakes.length >= 5 && (
+      {/* Stats — show when patient has at least one request */}
+      {intakes.length >= 1 && (
         <StatGrid
           className="mb-6"
           items={[
@@ -234,6 +234,16 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                   : "No declined requests."
               }
               action={activeTab === "all" ? { label: "Get Started", href: "/request" } : undefined}
+              secondaryAction={activeTab === "all" ? { label: "Learn how it works", href: "/how-it-works" } : undefined}
+              tips={
+                activeTab === "all"
+                  ? [
+                      "Medical certificates can be issued for past or future dates",
+                      "Most requests are reviewed within 30 minutes (8am–10pm AEST)",
+                      "You'll receive an email when your document is ready",
+                    ]
+                  : undefined
+              }
             />
           ) : (
             <div className="space-y-3" aria-live="polite">

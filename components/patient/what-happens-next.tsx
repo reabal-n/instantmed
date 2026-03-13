@@ -3,12 +3,9 @@
 import { useState, useEffect } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import {
-  Mail,
-  FileText,
   ChevronDown,
   HelpCircle,
   CheckCircle2,
-  User,
   Users,
   Share2,
 } from "lucide-react"
@@ -22,40 +19,6 @@ import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
 // Stable options object — defined at module level to prevent new reference on each render
 const CONFETTI_OPTIONS = { particleCount: 40 }
-
-// Service-specific messaging for the success page
-const SERVICE_MESSAGING: Record<string, { deliveryTitle: string; deliveryDescription: string; documentTitle: string; documentDescription: string }> = {
-  "medical certificate": {
-    deliveryTitle: "Certificate via email",
-    deliveryDescription: "Your certificate will be emailed as a PDF once approved",
-    documentTitle: "Download anytime",
-    documentDescription: "Your certificate is always available in your dashboard",
-  },
-  "prescription": {
-    deliveryTitle: "eScript via SMS & email",
-    deliveryDescription: "Your eScript will be sent to your mobile and email once approved",
-    documentTitle: "Use at any pharmacy",
-    documentDescription: "Present your eScript token at any Australian pharmacy",
-  },
-  "repeat prescription": {
-    deliveryTitle: "eScript via SMS & email",
-    deliveryDescription: "Your eScript will be sent to your mobile and email once approved",
-    documentTitle: "Use at any pharmacy",
-    documentDescription: "Present your eScript token at any Australian pharmacy",
-  },
-  "consultation": {
-    deliveryTitle: "Doctor follow-up",
-    deliveryDescription: "Your doctor will contact you to discuss next steps",
-    documentTitle: "Notes in your dashboard",
-    documentDescription: "Consultation notes and any prescriptions will appear in your dashboard",
-  },
-}
-
-function getServiceMessaging(serviceName?: string) {
-  if (!serviceName) return null
-  const key = serviceName.toLowerCase()
-  return SERVICE_MESSAGING[key] || null
-}
 
 interface WhatHappensNextProps {
   intakeId: string
@@ -177,39 +140,6 @@ export function WhatHappensNext({
             intakeId={intakeId}
             initialStatus={initialStatus}
             onStatusChange={setCurrentStatus}
-          />
-        </motion.div>
-
-        {/* Key info cards */}
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
-          className="grid gap-3"
-        >
-          <InfoCard
-            icon={<User className="h-4 w-4" />}
-            title="Doctor review in progress"
-            description={isPriority 
-              ? "Priority review — within 15 minutes" 
-              : "Most requests reviewed within 45 minutes"
-            }
-            highlight={isPriority}
-          />
-          
-          <InfoCard
-            icon={<Mail className="h-4 w-4" />}
-            title={getServiceMessaging(serviceName)?.deliveryTitle || "We'll email you"}
-            description={patientEmail
-              ? `Updates sent to ${patientEmail}`
-              : getServiceMessaging(serviceName)?.deliveryDescription || "You'll get an email when your document is ready"
-            }
-          />
-
-          <InfoCard
-            icon={<FileText className="h-4 w-4" />}
-            title={getServiceMessaging(serviceName)?.documentTitle || "Download anytime"}
-            description={getServiceMessaging(serviceName)?.documentDescription || "Your documents are always available in your dashboard"}
           />
         </motion.div>
 
@@ -359,40 +289,5 @@ export function WhatHappensNext({
         </motion.p>
       </div>
     </>
-  )
-}
-
-interface InfoCardProps {
-  icon: React.ReactNode
-  title: string
-  description: string
-  highlight?: boolean
-}
-
-function InfoCard({ icon, title, description, highlight }: InfoCardProps) {
-  return (
-    <div
-      className={cn(
-        "flex items-start gap-3 p-4 rounded-xl border",
-        highlight
-          ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
-          : "bg-muted/30 border-border/50"
-      )}
-    >
-      <div
-        className={cn(
-          "shrink-0 h-8 w-8 rounded-xl flex items-center justify-center",
-          highlight
-            ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400"
-            : "bg-primary/10 text-primary"
-        )}
-      >
-        {icon}
-      </div>
-      <div>
-        <p className="font-medium text-sm">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-      </div>
-    </div>
   )
 }
