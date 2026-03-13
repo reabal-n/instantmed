@@ -5,33 +5,18 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, MapPin, Shield, Star, CheckCircle2, Zap } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import {
+  medCertIntentConfigs,
+  isMedCertIntentSlug,
+  MED_CERT_INTENT_SLUGS,
+} from "@/lib/marketing/med-cert-intent-config"
+import { MedCertIntentPage } from "@/components/marketing/med-cert-intent-page"
+import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 
-// Prevent static generation for dynamic rendering
 export const dynamic = "force-dynamic"
 
 // ============================================
-// SUBTYPE DATA (work, uni, carer) - redirect to main request
-// ============================================
-
-const validSubtypes = ["work", "uni", "carer"]
-
-const subtypeInfo: Record<string, { title: string; description: string }> = {
-  work: {
-    title: "Work Certificate",
-    description: "Medical certificate for sick leave from work",
-  },
-  uni: {
-    title: "Uni/School Certificate",
-    description: "Medical certificate for special consideration",
-  },
-  carer: {
-    title: "Carer's Leave Certificate",
-    description: "Medical certificate for caring responsibilities",
-  },
-}
-
-// ============================================
-// SUBURB DATA (SEO pages)
+// SUBURB DATA (SEO pages) — location-based
 // ============================================
 
 const suburbs: Record<
@@ -133,10 +118,6 @@ const suburbs: Record<
   },
 }
 
-// ============================================
-// PAGE PROPS
-// ============================================
-
 interface PageProps {
   params: Promise<{ slug: string }>
 }
@@ -148,21 +129,42 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
 
-  // Check if it&apos;s a subtype page
-  if (validSubtypes.includes(slug)) {
-    const info = subtypeInfo[slug]
+  // Redirect legacy "uni" to "university"
+  if (slug === "uni") {
+    return {}
+  }
+
+  // Intent pages
+  if (isMedCertIntentSlug(slug)) {
+    const config = medCertIntentConfigs[slug]
+    const baseUrl = "https://instantmed.com.au"
     return {
-      title: `${info.title} Online | InstantMed Australia`,
-      description: info.description,
+      title: config.metadata.title,
+      description: config.metadata.description,
+      keywords: config.metadata.keywords,
+      openGraph: {
+        title: config.metadata.title,
+        description: config.metadata.description,
+        type: "website",
+        url: `${baseUrl}/medical-certificate/${slug}`,
+        locale: "en_AU",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: config.metadata.title,
+        description: config.metadata.description,
+      },
+      alternates: {
+        canonical: `${baseUrl}/medical-certificate/${slug}`,
+      },
     }
   }
 
-  // Check if it&apos;s a suburb SEO page
+  // Suburb pages
   const data = suburbs[slug]
   if (data) {
     const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
     const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Australian doctors, 15-minute turnaround. Valid for all employers.`
-
     return {
       title,
       description,
@@ -191,9 +193,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // ============================================
 
 export async function generateStaticParams() {
-  const subtypeParams = validSubtypes.map((slug) => ({ slug }))
+  const intentParams = MED_CERT_INTENT_SLUGS.map((slug) => ({ slug }))
   const suburbParams = Object.keys(suburbs).map((slug) => ({ slug }))
-  return [...subtypeParams, ...suburbParams]
+  return [...intentParams, ...suburbParams]
 }
 
 // ============================================
@@ -203,9 +205,32 @@ export async function generateStaticParams() {
 export default async function MedCertSlugPage({ params }: PageProps) {
   const { slug } = await params
 
-  // =========== SUBTYPE PAGES - redirect to main request page ===========
-  if (validSubtypes.includes(slug)) {
-    redirect(`/medical-certificate/request?type=${slug}`)
+  // Redirect legacy slugs to canonical intent pages
+  if (slug === "uni") redirect("/medical-certificate/university")
+  if (slug === "carers") redirect("/medical-certificate/carer")
+
+  // =========== INTENT PAGES (work, study, carer, sick-leave, university, school, return-to-work) ===========
+  if (isMedCertIntentSlug(slug)) {
+    const config = medCertIntentConfigs[slug]
+    const baseUrl = "https://instantmed.com.au"
+    return (
+      <>
+        <BreadcrumbSchema
+          items={[
+            { name: "Home", url: baseUrl },
+            { name: "Medical Certificate", url: `${baseUrl}/medical-certificate` },
+            { name: config.h1.replace(/\.$/, ""), url: `${baseUrl}/medical-certificate/${slug}` },
+          ]}
+        />
+        <MedicalServiceSchema
+          name={config.metadata.title.split("|")[0]?.trim() ?? config.h1}
+          description={config.metadata.description}
+          price="19.95"
+        />
+        <FAQSchema faqs={config.faqs} />
+        <MedCertIntentPage config={config} />
+      </>
+    )
   }
 
   // =========== SUBURB SEO PAGES ===========
@@ -241,13 +266,12 @@ export default async function MedCertSlugPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }}
       />
       <div className="flex min-h-screen flex-col bg-foreground text-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1">
-          {/* Hero */}
           <section className="relative px-4 py-16 md:py-24 overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-blue-500/5" />
             <div className="relative mx-auto max-w-4xl text-center">
@@ -263,8 +287,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               </h1>
 
               <p className="text-lg text-background/70 mb-8 max-w-2xl mx-auto">
-                Get a valid medical certificate from AHPRA-registered doctors. No waiting rooms,
-                no appointments. Reviewed in ~15 minutes.
+                Get a valid medical certificate from AHPRA-registered doctors. No waiting rooms, no
+                appointments. Reviewed in ~15 minutes.
               </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -282,7 +306,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <Link href="/medical-certificate/request">
+              <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -293,7 +317,6 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Testimonial */}
           {data.testimonial && (
             <section className="px-4 py-12 bg-white/5">
               <div className="mx-auto max-w-2xl text-center">
@@ -312,15 +335,26 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* How it works */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-12">How it works</h2>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { step: "1", title: "Tell us what you need", desc: "Answer a few quick questions about your symptoms" },
-                  { step: "2", title: "Doctor reviews", desc: "An Australian GP reviews your request" },
-                  { step: "3", title: "Get your certificate", desc: "Receive your PDF certificate via email" },
+                  {
+                    step: "1",
+                    title: "Tell us what you need",
+                    desc: "Answer a few quick questions about your symptoms",
+                  },
+                  {
+                    step: "2",
+                    title: "Doctor reviews",
+                    desc: "An Australian GP reviews your request",
+                  },
+                  {
+                    step: "3",
+                    title: "Get your certificate",
+                    desc: "Receive your PDF certificate via email",
+                  },
                 ].map((item) => (
                   <div key={item.step} className="text-center">
                     <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
@@ -334,14 +368,13 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* CTA */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
               <p className="text-background/60 mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>
-              <Link href="/medical-certificate/request">
+              <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -350,7 +383,6 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Other locations */}
           <section className="px-4 py-8 border-t border-border/10">
             <div className="mx-auto max-w-3xl">
               <p className="text-sm text-background/60 text-center">
@@ -360,7 +392,10 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   .slice(0, 6)
                   .map(([key, s], i, arr) => (
                     <span key={key}>
-                      <Link href={`/medical-certificate/${key}`} className="text-primary hover:underline">
+                      <Link
+                        href={`/medical-certificate/${key}`}
+                        className="text-primary hover:underline"
+                      >
                         {s.name}
                       </Link>
                       {i < arr.length - 1 && " • "}

@@ -219,12 +219,12 @@ InstantMed represents **clarity emerging, not speed or disruption**. Calm author
 
 ### Voice
 
-Professional but natural. Plainspoken and confident, with dry wit for relatability. Never stiff, never slangy. The goal is a balance — more polished than a text message, more human than a corporate brochure. If copy feels clever, edgy, salesy, or performative — rewrite.
+Professional but natural. Plainspoken and confident, with dry wit for relatability — this is what sets us apart from sterile clinical telehealth. Never stiff, never slangy. The goal is a balance — more polished than a text message, more human than a corporate brochure. If copy feels clever, edgy, salesy, or performative — rewrite.
 
 - **Clear & plainspoken**: Everyday language, short sentences, minimal jargon. Say "fill in a form" not "complete your intake assessment"
 - **Confident & expert**: State facts plainly, no hype, no hedging ("we aim to", "we try to"). No urgency language ("now", "fast", "instant")
 - **Professional but approachable**: Friendly and direct, not overly casual. "A doctor reviews your request" not "Your boss won't bat an eye"
-- **Dry wit**: Optional, max one subtle line per section. Should feel natural, not forced. Remove if it draws attention to itself
+- **Dry wit & relatability**: Use dry wit deliberately — it differentiates us from sterile clinical telehealth. One subtle line per section minimum. Should feel natural, not forced. Remove only if it draws attention to itself. Relatability makes us human; sterile copy makes us forgettable.
 
 **Voice test:** Would this sound reasonable coming from a calm, experienced GP explaining their service to a patient? If it sounds like marketing copy or a Reddit post — rewrite.
 

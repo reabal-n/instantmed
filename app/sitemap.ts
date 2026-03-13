@@ -43,11 +43,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/womens-health",
     "/hair-loss",
     "/performance-anxiety",
-    "/medical-certificates",
-    "/medical-certificates/work",
-    "/medical-certificates/study",
-    "/medical-certificates/carers",
-    "/medical-certificates/employer-acceptance",
+    // Canonical medical certificate pages only (no redirect URLs)
+    "/medical-certificate/work",
+    "/medical-certificate/study",
+    "/medical-certificate/carer",
+    "/medical-certificate/sick-leave",
+    "/medical-certificate/university",
+    "/medical-certificate/school",
+    "/medical-certificate/return-to-work",
+    "/medical-certificate/employer-acceptance",
   ]
 
   // ============================================
@@ -184,6 +188,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
+  // Medical certificate location pages (/medical-certificate/[suburb])
+  const medCertLocationSlugs = [
+    "sydney",
+    "parramatta",
+    "melbourne",
+    "brisbane",
+    "perth",
+    "adelaide",
+    "gold-coast",
+    "canberra",
+    "hobart",
+    "darwin",
+  ]
+  const medCertLocationRoutes = medCertLocationSlugs.map((slug) => ({
+    url: `${baseUrl}/medical-certificate/${slug}`,
+    lastModified: BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }))
+
   const conditionRoutes = conditionSlugs.map((slug) => ({
     url: `${baseUrl}/conditions/${slug}`,
     lastModified: BUILD_DATE,
@@ -230,6 +254,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...staticRoutes,
     ...serviceRoutes,
     ...locationRoutes,
+    ...medCertLocationRoutes,
     ...conditionRoutes,
     ...symptomRoutes,
     ...guideRoutes,

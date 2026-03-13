@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@/components/ui/button'
-import { 
-  ArrowRight, 
-  Check, 
-  Shield, 
+import {
+  ArrowRight,
+  Check,
+  Shield,
   BadgeCheck,
   FileCheck,
   Building2,
@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
+const baseUrl = 'https://instantmed.com.au'
+
 export const metadata: Metadata = {
   title: "Are Online Medical Certificates Valid? | Employer Acceptance",
   description: "Yes, online medical certificates from AHPRA-registered doctors are legally valid and accepted by all Australian employers. Learn what makes a certificate legitimate.",
@@ -22,9 +24,10 @@ export const metadata: Metadata = {
     title: "Are Online Medical Certificates Valid? | InstantMed",
     description: "Online medical certificates from registered doctors are legally valid for Australian employers.",
     type: 'website',
+    url: `${baseUrl}/medical-certificate/employer-acceptance`,
   },
   alternates: {
-    canonical: 'https://instantmed.com.au/medical-certificates/employer-acceptance',
+    canonical: `${baseUrl}/medical-certificate/employer-acceptance`,
   },
 }
 
@@ -54,12 +57,12 @@ const faqs = [
 export default function EmployerAcceptancePage() {
   return (
     <>
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
-          { name: 'Home', url: 'https://instantmed.com.au' },
-          { name: 'Medical Certificates', url: 'https://instantmed.com.au/medical-certificates' },
-          { name: 'Employer Acceptance', url: 'https://instantmed.com.au/medical-certificates/employer-acceptance' }
-        ]} 
+          { name: 'Home', url: baseUrl },
+          { name: 'Medical Certificate', url: `${baseUrl}/medical-certificate` },
+          { name: 'Employer Acceptance', url: `${baseUrl}/medical-certificate/employer-acceptance` }
+        ]}
       />
       <FAQSchema faqs={faqs} />
 
@@ -79,7 +82,7 @@ export default function EmployerAcceptancePage() {
                 Yes, your employer will accept this
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Online medical certificates from AHPRA-registered doctors are legally valid 
+                Online medical certificates from AHPRA-registered doctors are legally valid
                 and accepted by all Australian employers. Here&apos;s why.
               </p>
             </div>
@@ -158,13 +161,13 @@ export default function EmployerAcceptancePage() {
                   <Scale className="h-6 w-6 text-emerald-600 shrink-0 mt-1" />
                   <div className="space-y-4">
                     <p className="text-sm">
-                      Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave. 
-                      Employers may request evidence of illness, but must accept &quot;reasonable evidence&quot; such as a 
+                      Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave.
+                      Employers may request evidence of illness, but must accept &quot;reasonable evidence&quot; such as a
                       medical certificate from a registered health practitioner.
                     </p>
                     <p className="text-sm">
-                      A certificate from an AHPRA-registered doctor — whether issued in-person or via telehealth — 
-                      meets this standard. The <strong>Medical Board of Australia</strong> recognises telehealth as a 
+                      A certificate from an AHPRA-registered doctor — whether issued in-person or via telehealth —
+                      meets this standard. The <strong>Medical Board of Australia</strong> recognises telehealth as a
                       legitimate mode of healthcare delivery.
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -229,7 +232,7 @@ export default function EmployerAcceptancePage() {
                 <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Point to the doctor&apos;s credentials</h3>
                   <p className="text-sm text-muted-foreground">
-                    The certificate includes the doctor&apos;s AHPRA registration number. Anyone can verify this is a real, 
+                    The certificate includes the doctor&apos;s AHPRA registration number. Anyone can verify this is a real,
                     registered doctor by searching the AHPRA register at ahpra.gov.au.
                   </p>
                 </div>
@@ -237,7 +240,7 @@ export default function EmployerAcceptancePage() {
                 <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Telehealth is recognised healthcare</h3>
                   <p className="text-sm text-muted-foreground">
-                    The Medical Board of Australia and Medicare both recognise telehealth consultations. 
+                    The Medical Board of Australia and Medicare both recognise telehealth consultations.
                     Certificates from telehealth are no less valid than those from in-person visits.
                   </p>
                 </div>
@@ -245,7 +248,7 @@ export default function EmployerAcceptancePage() {
                 <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Check workplace policy timing</h3>
                   <p className="text-sm text-muted-foreground">
-                    If an employer has specific requirements about medical certificates, they must communicate 
+                    If an employer has specific requirements about medical certificates, they must communicate
                     these in advance — not after you&apos;ve submitted evidence.
                   </p>
                 </div>
@@ -294,15 +297,15 @@ export default function EmployerAcceptancePage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificates/work" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/work" className="text-emerald-600 hover:underline">
                   Certificates for work
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates/study" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/study" className="text-emerald-600 hover:underline">
                   Certificates for study
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate" className="text-emerald-600 hover:underline">
                   All certificate types
                 </Link>
               </p>

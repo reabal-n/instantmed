@@ -23,6 +23,7 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",          // API routes
           "/auth/",         // Auth flow (sign-in, callback)
           "/medications/",  // Compliance - no drug names indexed
+          "/_next/",        // Next.js build output (JS/CSS chunks)
           "/*?*",           // Parameterized URLs
           "/search",        // Internal search
           "/*/search",      // Category search pages

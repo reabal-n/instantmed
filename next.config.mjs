@@ -124,6 +124,23 @@ const nextConfig = {
         destination: "/admin/performance",
         permanent: true
       },
+      // Malformed URL — redirect /& (broken links, typos) to homepage
+      {
+        source: "/&",
+        destination: "/",
+        permanent: true
+      },
+      // Referrals — no dedicated pages; pathology/imaging referrals via general consult
+      {
+        source: "/referrals/pathology-imaging",
+        destination: "/general-consult",
+        permanent: true
+      },
+      {
+        source: "/referrals/:path*",
+        destination: "/general-consult",
+        permanent: true
+      },
       // Missing route redirects — prevent external 404s
       {
         source: "/erectile-dysfunction",
