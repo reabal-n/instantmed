@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
-import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas"
+import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas-loader"
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
 import { OrganizationSchema } from "@/components/seo/healthcare-schema"

@@ -1,5 +1,6 @@
 'use client'
 
+import type React from "react"
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
@@ -12,7 +13,9 @@ import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
 import { MagneticButton } from '@/components/ui/magnetic-button'
 
-export function Hero() {
+const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
+
+export function Hero({ children }: { children?: React.ReactNode }) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -45,10 +48,12 @@ export function Hero() {
               />
             </motion.h1>
 
-            {/* Single subtext line — plain p for LCP (no JS delay) */}
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
-              Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Most people are sorted within the hour.
-            </p>
+            {/* LCP slot — server-rendered when passed as children, else fallback */}
+            {children ?? (
+              <p className={LCP_CLASSES}>
+                Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Most people are sorted within the hour.
+              </p>
+            )}
 
             {/* Price anchor above CTAs */}
             <motion.div
