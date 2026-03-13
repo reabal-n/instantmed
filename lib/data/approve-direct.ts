@@ -131,7 +131,7 @@ export async function approveMedCertDirect({
     const pdfFileName = `${intakeId}-${certificateRef}.pdf`
     const storagePath = `certificates/${pdfFileName}`
     const { error: uploadError } = await supabase.storage
-      .from("certificates")
+      .from("documents")
       .upload(storagePath, pdfResult.buffer, { contentType: "application/pdf", upsert: true })
 
     if (uploadError) {
@@ -190,7 +190,7 @@ export async function approveMedCertDirect({
     // Send email to patient
     const appUrl = env.appUrl
     const { data: signedUrlData } = await supabase.storage
-      .from("certificates")
+      .from("documents")
       .createSignedUrl(storagePath, 7 * 24 * 60 * 60)
 
     const downloadUrl = signedUrlData?.signedUrl || undefined
