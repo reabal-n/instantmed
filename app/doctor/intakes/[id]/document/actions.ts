@@ -10,6 +10,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { logger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { formatDateLong, formatShortDate } from "@/lib/format"
 
 /**
  * Fetch the draft data for certificate preview before approval.
@@ -375,6 +376,7 @@ export async function approveWithPreviewDataAction(
 export async function generatePreviewPdfAction(
   previewData: {
     patientName: string
+    patientDob?: string | null
     certificateType: "work" | "study" | "carer"
     startDate: string
     endDate: string
@@ -387,25 +389,19 @@ export async function generatePreviewPdfAction(
       return { success: false, error: "Unauthorized" }
     }
 
-    const formatDisplayDate = (dateStr: string) => {
-      const d = new Date(dateStr + "T00:00:00")
-      if (isNaN(d.getTime())) return dateStr
-      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
-    }
-    const formatShortDate = (dateStr: string) => {
-      const d = new Date(dateStr + "T00:00:00")
-      if (isNaN(d.getTime())) return dateStr
-      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
-    }
-
     const certificateRef = generateCertificateRef(previewData.certificateType)
+
+    const patientDob = previewData.patientDob
+      ? formatShortDate(previewData.patientDob)
+      : undefined
 
     const result = await renderTemplatePdf({
       certificateType: previewData.certificateType,
       patientName: previewData.patientName,
-      consultationDate: formatDisplayDate(previewData.consultDate),
-      startDate: formatDisplayDate(previewData.startDate),
-      endDate: formatDisplayDate(previewData.endDate),
+      patientDateOfBirth: patientDob,
+      consultationDate: formatDateLong(previewData.consultDate),
+      startDate: formatDateLong(previewData.startDate),
+      endDate: formatDateLong(previewData.endDate),
       certificateRef,
       issueDate: formatShortDate(previewData.consultDate),
     })

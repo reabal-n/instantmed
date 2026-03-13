@@ -12,7 +12,8 @@ import { renderTemplatePdf, type TemplatePdfInput } from "@/lib/pdf/template-ren
 const CERT_TYPES = ["work", "study", "carer"] as const
 
 const TEST_INPUT: Omit<TemplatePdfInput, "certificateType" | "certificateRef"> = {
-  patientName: "Sarah Jane Thompson",
+  patientName: "sarah jane thompson",
+  patientDateOfBirth: "15/05/1990",
   consultationDate: "19 February 2026",
   startDate: "19 February 2026",
   endDate: "21 February 2026",

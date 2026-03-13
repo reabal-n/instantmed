@@ -39,6 +39,7 @@ function ty(topY: number): number {
 export interface TemplatePdfInput {
   certificateType: "work" | "study" | "carer"
   patientName: string
+  patientDateOfBirth?: string | null // formatted DD/MM/YYYY for display after name
   consultationDate: string // formatted display string e.g. "18 February 2026"
   startDate: string        // formatted display string
   endDate: string          // formatted display string
@@ -102,6 +103,33 @@ const LAYOUT = {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers: name capitalisation, DOB formatting
+// ---------------------------------------------------------------------------
+
+/**
+ * Title-case patient name for professional display.
+ * Handles: "tina chawner" -> "Tina Chawner", "mary-jane" -> "Mary-Jane", "o'brien" -> "O'Brien"
+ */
+function toTitleCase(name: string): string {
+  const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "")
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return ""
+      if (word.includes("-")) {
+        return word.split("-").map(cap).join("-")
+      }
+      if (word.includes("'")) {
+        return word.split("'").map(cap).join("'")
+      }
+      return cap(word)
+    })
+    .filter(Boolean)
+    .join(" ")
+}
+
+// ---------------------------------------------------------------------------
 // Body text generators — single string per paragraph, auto-wrapped at render
 // ---------------------------------------------------------------------------
 
@@ -115,14 +143,18 @@ function getDatePhrase(input: TemplatePdfInput): string {
 }
 
 function getBodyText(input: TemplatePdfInput): string {
+  const displayName = toTitleCase(input.patientName)
+  const nameWithDob = input.patientDateOfBirth
+    ? `${displayName} (DOB: ${input.patientDateOfBirth})`
+    : displayName
   const datePart = getDatePhrase(input)
   switch (input.certificateType) {
     case "work":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties ${datePart}.`
     case "study":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend classes, sit examinations, or complete academic assessments ${datePart}.`
+      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend classes, sit examinations, or complete academic assessments ${datePart}.`
     case "carer":
-      return `This is to certify that ${input.patientName} has been reviewed and assessed on ${input.consultationDate}. They are required to provide full-time care for a dependent family member who is currently unwell and are therefore unable to attend work or fulfil their usual duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. They are required to provide full-time care for a dependent family member who is currently unwell and are therefore unable to attend work or fulfil their usual duties ${datePart}.`
   }
 }
 

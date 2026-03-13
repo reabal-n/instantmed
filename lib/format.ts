@@ -35,6 +35,15 @@ export function formatDateLong(date: string | Date): string {
   })
 }
 
+/** "12/03/2026" — DD/MM/YYYY for certificates, DOB, issue date */
+export function formatShortDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString("en-AU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
 /** "3 hours ago" */
 export function formatRelative(date: string | Date): string {
   return formatDistanceToNow(new Date(date), { addSuffix: true })

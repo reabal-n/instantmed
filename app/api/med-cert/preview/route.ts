@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { formatDateLong, formatShortDate } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -40,8 +41,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate required fields
-    if (!draftData.patient_full_name) {
+    const draft = draftData as unknown as Record<string, unknown>
+    const patientNameRaw = draftData.patient_full_name ?? draft.patient_name
+    const patientName = typeof patientNameRaw === "string" && patientNameRaw.trim()
+      ? patientNameRaw.trim()
+      : null
+    if (!patientName) {
       return NextResponse.json(
         { success: false, error: "Patient name is required" },
         { status: 400 }
@@ -62,17 +67,8 @@ export async function POST(request: NextRequest) {
     }
     const certificateType = certTypeMap[draftData.certificate_type || "work"] || "work"
 
-    // Format dates for display
-    const formatDisplayDate = (dateStr: string) => {
-      const d = new Date(dateStr)
-      if (isNaN(d.getTime())) return dateStr
-      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
-    }
-    const formatShortDate = (dateStr: string) => {
-      const d = new Date(dateStr)
-      if (isNaN(d.getTime())) return dateStr
-      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
-    }
+    const patientDobRaw = draftData.patient_dob ?? draft.dob
+    const patientDob = patientDobRaw ? formatShortDate(String(patientDobRaw)) : undefined
 
     // Generate a preview certificate ref
     const certificateRef = generateCertificateRef(certificateType)
@@ -81,10 +77,11 @@ export async function POST(request: NextRequest) {
     // Render using template renderer (same pipeline as approve-cert.ts)
     const result = await renderTemplatePdf({
       certificateType,
-      patientName: draftData.patient_full_name,
-      consultationDate: formatDisplayDate(today),
-      startDate: formatDisplayDate(draftData.date_from),
-      endDate: formatDisplayDate(draftData.date_to),
+      patientName,
+      patientDateOfBirth: patientDob,
+      consultationDate: formatDateLong(today),
+      startDate: formatDateLong(draftData.date_from),
+      endDate: formatDateLong(draftData.date_to),
       certificateRef,
       issueDate: formatShortDate(today),
     })

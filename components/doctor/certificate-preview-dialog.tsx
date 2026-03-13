@@ -106,6 +106,7 @@ export function CertificatePreviewDialog({
     try {
       const result = await generatePreviewPdfAction({
         patientName: editedData.patientName,
+        patientDob: editedData.patientDob,
         certificateType: editedData.certificateType,
         startDate: editedData.startDate,
         endDate: editedData.endDate,

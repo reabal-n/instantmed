@@ -12,6 +12,7 @@ import { env } from "@/lib/env"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { createElement } from "react"
+import { formatDateLong, formatShortDate } from "@/lib/format"
 
 const log = createLogger("approve-direct")
 
@@ -30,16 +31,6 @@ interface DirectApproveResult {
   success: boolean
   error?: string
   certificateId?: string
-}
-
-function formatDateForPdf(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
-}
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
 /**
@@ -115,11 +106,12 @@ export async function approveMedCertDirect({
     const pdfResult = await renderTemplatePdf({
       certificateType,
       patientName: patient.full_name,
-      consultationDate: formatDateForPdf(consultDate),
-      startDate: formatDateForPdf(startDate),
-      endDate: formatDateForPdf(endDate),
+      patientDateOfBirth: patient.date_of_birth ? formatShortDate(patient.date_of_birth) : undefined,
+      consultationDate: formatDateLong(consultDate),
+      startDate: formatDateLong(startDate),
+      endDate: formatDateLong(endDate),
       certificateRef,
-      issueDate: formatDateShort(generatedAt),
+      issueDate: formatShortDate(generatedAt),
     })
 
     if (!pdfResult.success || !pdfResult.buffer) {

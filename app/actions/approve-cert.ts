@@ -27,6 +27,7 @@ import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
+import { formatDateLong, formatShortDate } from "@/lib/format"
 
 interface ApproveCertResult {
   success: boolean
@@ -294,22 +295,13 @@ export async function approveAndSendCert(
       return { success: false, error: "Doctor identity not found" }
     }
 
-    // Format display dates for template (e.g. "18 February 2026")
-    const formatDisplayDate = (dateStr: string) => {
-      const d = new Date(dateStr)
-      return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
-    }
-    const formatShortDate = (dateStr: string) => {
-      const d = new Date(dateStr)
-      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" })
-    }
-
     const pdfResult = await renderTemplatePdf({
       certificateType,
       patientName: patient.full_name,
-      consultationDate: formatDisplayDate(generatedAt.split("T")[0]!),
-      startDate: formatDisplayDate(reviewData.startDate),
-      endDate: formatDisplayDate(reviewData.endDate),
+      patientDateOfBirth: patientDob ? formatShortDate(patientDob) : undefined,
+      consultationDate: formatDateLong(generatedAt.split("T")[0]!),
+      startDate: formatDateLong(reviewData.startDate),
+      endDate: formatDateLong(reviewData.endDate),
       certificateRef,
       issueDate: formatShortDate(generatedAt.split("T")[0]!),
     })
