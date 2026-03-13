@@ -55,9 +55,9 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  // Session Replay — reduced for PageSpeed (lower TBT)
+  replaysSessionSampleRate: 0.01,
+  replaysOnErrorSampleRate: 0.5,
 
   // Filter out common non-actionable errors
   ignoreErrors: [
@@ -128,6 +128,7 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       capture_pageleave: true,
       capture_exceptions: true,
       autocapture: true,
+      disable_session_recording: true,  // Saves ~88 KiB + main-thread time (PageSpeed)
       debug: process.env.NODE_ENV === "development",
     });
   }).catch(() => {

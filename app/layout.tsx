@@ -131,12 +131,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <head>
-          {/* Preconnect to critical third-party origins */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://api.dicebear.com" />
-          {/* Clerk preconnect: use production domain, not hardcoded dev instance */}
-          <link rel="preconnect" href="https://accounts.instantmed.com.au" />
+          {/* Preconnect to critical third-party origins — Clerk and Sentry (LCP savings) */}
+          <link rel="preconnect" href="https://clerk.instantmed.com.au" />
+          <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
@@ -159,12 +156,12 @@ export default function RootLayout({
             `}
           </Script>
 
-          {/* Google tag (gtag.js) */}
+          {/* Google tag (gtag.js) — lazyOnload to reduce main-thread blocking */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="google-gtag" strategy="afterInteractive">
+          <Script id="google-gtag" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

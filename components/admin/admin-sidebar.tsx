@@ -198,7 +198,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
           {renderNavSection("Configuration", configNavItems)}
 
           <div className="mx-3 border-t border-border/30" />
-          <Collapsible defaultOpen={isInSection(analyticsNavItems, pathname)}>
+          <Collapsible defaultOpen={!!isInSection(analyticsNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -228,7 +228,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
             </CollapsibleContent>
           </Collapsible>
 
-          <Collapsible defaultOpen={isInSection(systemNavItems, pathname)}>
+          <Collapsible defaultOpen={!!isInSection(systemNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -393,7 +393,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
             {configNavItems.map(renderMobileLink)}
           </div>
           <div className="border-t border-border/30" />
-          <Collapsible defaultOpen={isInSection(analyticsNavItems, pathname)}>
+          <Collapsible defaultOpen={!!isInSection(analyticsNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">Analytics</span>
               <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
@@ -402,7 +402,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
               <div className="mt-1 space-y-0.5 pl-1">{analyticsNavItems.map(renderMobileLink)}</div>
             </CollapsibleContent>
           </Collapsible>
-          <Collapsible defaultOpen={isInSection(systemNavItems, pathname)}>
+          <Collapsible defaultOpen={!!isInSection(systemNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">System</span>
               <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />

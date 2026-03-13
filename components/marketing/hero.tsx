@@ -45,15 +45,10 @@ export function Hero() {
               />
             </motion.h1>
 
-            {/* Single subtext line */}
-            <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
+            {/* Single subtext line — plain p for LCP (no JS delay) */}
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
               Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Most people are sorted within the hour.
-            </motion.p>
+            </p>
 
             {/* Price anchor above CTAs */}
             <motion.div

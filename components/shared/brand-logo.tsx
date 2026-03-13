@@ -46,6 +46,7 @@ export function BrandLogo({
           height={textHeight}
           className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
           priority
+          quality={65}
         />
       )}
     </span>

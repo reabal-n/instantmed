@@ -106,9 +106,9 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
               <span className="text-sm font-medium text-primary">Simple and straightforward</span>
             </div>
             
-            <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
+            <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
               Healthcare on your schedule
-            </h3>
+            </h2>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
               Trusted by Australians across the country. Most requests reviewed within an hour.
             </p>
