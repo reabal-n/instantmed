@@ -34,9 +34,9 @@ export const intentPages: IntentPage[] = [
     type: 'intent',
     title: 'Same Day Medical Certificate Online | Get It Within Hours | InstantMed',
     description: 'Need a medical certificate today? Get one within 1-24 hours from Australian doctors. Valid for employers and universities. From $19.95.',
-    h1: 'Same Day Medical Certificate — Fast & Valid',
+    h1: 'Same Day Medical Certificate — Reviewed & Valid',
     content: {
-      intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors can issue valid medical certificates within hours, delivered straight to your email. No appointments, no waiting rooms.',
+      intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors can issue valid medical certificates within hours, delivered straight to your email. Submit from home — no waiting rooms.',
       uniqueBlocks: [
         {
           id: 'how-fast',
@@ -128,8 +128,8 @@ export const intentPages: IntentPage[] = [
     slug: 'uti-treatment-online',
     type: 'intent',
     title: 'UTI Treatment Online Australia | Same Day Antibiotics | InstantMed',
-    description: 'Burning when you pee? Get UTI treatment online from Australian doctors. Same-day antibiotic prescription if appropriate. From $29.95.',
-    h1: 'UTI Treatment Online — Fast Relief When You Need It',
+    description: 'Burning when you pee? Get UTI treatment online from Australian doctors. Same-day antibiotic treatment if appropriate. From $29.95.',
+    h1: 'UTI Treatment Online — Relief When You Need It',
     content: {
       intro: 'Urinary tract infections are uncomfortable, urgent, and need quick treatment. Our Australian doctors can assess your symptoms online and prescribe antibiotics if appropriate, with your e-script sent to your phone within hours.',
       uniqueBlocks: [
@@ -213,10 +213,10 @@ export const intentPages: IntentPage[] = [
     slug: 'after-hours-doctor',
     type: 'intent',
     title: 'After Hours Doctor Online | Evenings & Weekends | InstantMed',
-    description: 'Need a doctor after hours? Get medical certificates and prescriptions evenings and weekends. Australian doctors available 7 days, 7am-10pm.',
+    description: 'Need a doctor after hours? Get medical certificates and medication renewals evenings and weekends. Australian doctors available 7 days, 7am-10pm.',
     h1: 'After Hours Doctor — Available When You Need Us',
     content: {
-      intro: 'Sick on the weekend or after work? Our Australian doctors are available 7 days a week, 7am-10pm AEST. Get medical certificates, repeat prescriptions, and consultations outside traditional clinic hours.',
+      intro: 'Sick on the weekend or after work? Our Australian doctors are available 7 days a week, 7am-10pm AEST. Get medical certificates, medication renewals, and consultations outside traditional clinic hours.',
       uniqueBlocks: [
         {
           id: 'availability',
@@ -231,7 +231,7 @@ export const intentPages: IntentPage[] = [
             'Repeat prescriptions when your regular GP is closed',
             'UTI treatment on weekends',
             'Cold/flu certificates for shift workers',
-            'Urgent prescription refills',
+            'Urgent medication refills',
           ],
         },
         {
@@ -259,7 +259,7 @@ export const intentPages: IntentPage[] = [
         },
         {
           question: 'Is it more expensive after hours?',
-          answer: 'No — our pricing is the same regardless of when you submit your request. Medical certificates are $19.95, prescriptions are $29.95, and consultations are $49.95.',
+          answer: 'No — our pricing is the same regardless of when you submit your request. Medical certificates are $19.95, medication renewals are $29.95, and consultations are $49.95.',
         },
         {
           question: 'What if I have an emergency after hours?',
@@ -295,11 +295,11 @@ export const intentPages: IntentPage[] = [
   {
     slug: 'repeat-prescription-online',
     type: 'intent',
-    title: 'Repeat Prescription Online Australia | Renew Script Fast | InstantMed',
-    description: 'Need a repeat prescription? Get your script renewed online from Australian doctors. Same medication, no appointment needed. From $29.95.',
-    h1: 'Repeat Prescription Online — Quick & Easy Renewal',
+    title: 'Repeat Medication Online Australia | Renew with a Doctor Review | InstantMed',
+    description: 'Need repeat medication? Get your medication renewed online from Australian doctors. Same medication, reviewed by a doctor. From $29.95.',
+    h1: 'Repeat Medication Online — Simple Doctor-Reviewed Renewal',
     content: {
-      intro: 'Running low on your regular medication? Get your repeat prescription online without visiting a clinic. Our Australian doctors can renew scripts for ongoing medications you\'re already taking.',
+      intro: 'Running low on your regular medication? Get your repeat medication renewed online from home. Our Australian doctors can review and renew ongoing medications you\'re already taking.',
       uniqueBlocks: [
         {
           id: 'what-we-can-renew',
@@ -316,7 +316,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'what-we-need',
           type: 'text',
-          content: 'To renew your prescription, we need to know: what medication you\'re taking (name and dose), how long you\'ve been on it, when you last saw a doctor about it, and if you\'ve had any problems or side effects. If your condition is stable and you\'re due for a routine repeat, we can usually help.',
+          content: 'To renew your medication, we need to know: what medication you\'re taking (name and dose), how long you\'ve been on it, when you last saw a doctor about it, and if you\'ve had any problems or side effects. If your condition is stable and you\'re due for a routine repeat, we can usually help.',
         },
         {
           id: 'when-see-gp',
@@ -346,8 +346,8 @@ export const intentPages: IntentPage[] = [
           answer: 'Not necessarily, but it helps if you know the exact medication name, strength, and your current dosing schedule. Having a photo of your current medication is useful.',
         },
         {
-          question: 'How long does a repeat prescription take?',
-          answer: 'Most repeat prescriptions are reviewed within 1-3 hours. Priority review is available for urgent needs. Your e-script is sent via SMS.',
+          question: 'How long does a repeat medication request take?',
+          answer: 'Most repeat medication requests are reviewed within 1-3 hours. Priority review is available for urgent needs. Your e-script is sent via SMS.',
         },
       ],
     },
@@ -372,7 +372,7 @@ export const intentPages: IntentPage[] = [
       serviceType: 'prescription',
     },
     conversion: {
-      primaryCTA: 'Renew Prescription',
+      primaryCTA: 'Renew Medication',
       ctaUrl: '/prescriptions?type=repeat',
     },
   },
@@ -465,8 +465,8 @@ export const intentPages: IntentPage[] = [
     slug: 'emergency-contraception-online',
     type: 'intent',
     title: 'Emergency Contraception Online Australia | Plan B | InstantMed',
-    description: 'Need emergency contraception (morning after pill)? Get it prescribed online fast. Australian doctors. E-script within hours.',
-    h1: 'Emergency Contraception — Fast Online Access',
+    description: 'Need emergency contraception (morning after pill)? Get it prescribed online from Australian doctors. E-script within hours.',
+    h1: 'Emergency Contraception — Same-Day Online Access',
     content: {
       intro: 'Emergency contraception (the "morning after pill") can prevent pregnancy after unprotected sex or contraceptive failure. Time is critical — it\'s most effective when taken as soon as possible.',
       uniqueBlocks: [

@@ -100,16 +100,16 @@ export const seoArticles: Article[] = [
       { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
     ],
     seo: {
-      title: 'Online Prescription Australia | Get eScripts from Doctors | InstantMed',
-      description: 'Get a prescription online in Australia from AHPRA-registered doctors. eScripts sent to your phone. Safe, legal telehealth prescribing.',
+      title: 'Online Medication Australia | Doctor-Reviewed Requests | InstantMed',
+      description: 'Get medication online in Australia from AHPRA-registered doctors. eScripts sent to your phone. Safe, legal telehealth service.',
       keywords: ['online prescription australia', 'get prescription online', 'telehealth prescription', 'escript online', 'online doctor prescription', 'prescription without appointment']
     }
   },
   {
     slug: 'repeat-prescription-online',
-    title: 'How to Get a Repeat Prescription Online (No Appointment)',
-    subtitle: 'Running low on medication? Get your repeat prescription without the wait.',
-    excerpt: 'Out of repeats and can\'t get a GP appointment? Learn how to get a repeat prescription online through telehealth — quickly and without the usual appointment delays.',
+    title: 'How to Get Repeat Medication Online',
+    subtitle: 'Running low on medication? Renew with a doctor review from home.',
+    excerpt: 'Out of repeats and can\'t get a GP appointment? Learn how to renew your medication online through telehealth — reviewed within hours, from home.',
     category: 'medications',
     tags: ['prescription', 'telehealth', 'online-doctor', 'escript', 'medication'],
     publishedAt: '2026-01-20',
@@ -122,14 +122,14 @@ export const seoArticles: Article[] = [
     content: [
       { type: 'paragraph', content: 'When your prescription repeats run out and your GP is booked for weeks, telehealth offers a practical solution. For medications you\'re already taking, an online doctor can review your history and issue a new prescription — often the same day, without an appointment booking.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Telehealth doctors can issue repeat prescriptions for ongoing medications', 'No appointment booking needed — submit your request when it suits you', 'eScripts are sent to your phone, ready to use at any pharmacy'] },
+      { type: 'list', content: '', items: ['Telehealth doctors can issue repeat prescriptions for ongoing medications', 'Submit your request when it suits you — from home, on your schedule', 'eScripts are sent to your phone, ready to use at any pharmacy'] },
       { type: 'heading', content: 'When Can You Get a Repeat Prescription Online?', level: 2 },
       { type: 'paragraph', content: 'Online repeat prescriptions work best for stable, ongoing medications that you\'ve been taking without issues. Common examples include blood pressure medication, cholesterol treatment, thyroid medication, contraceptives, asthma preventers, and some mental health medications.' },
       { type: 'heading', content: 'The Process', level: 2 },
       { type: 'list', content: '', items: ['Provide details of your current medication (name, strength, dose)', 'Share relevant medical history', 'A doctor reviews your request', 'If appropriate, an eScript is sent to your phone', 'Collect your medication from any pharmacy'] },
       { type: 'callout', variant: 'tip', content: 'Have your current medication packaging handy when making your request. It helps to provide exact details of what you\'re taking.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
-      { type: 'paragraph', content: 'InstantMed\'s prescription service is designed for exactly this situation — when you need a repeat but can\'t access your usual GP. Submit your request online, a doctor reviews it, and if appropriate, your eScript arrives via SMS. No appointment booking, no waiting room.' },
+      { type: 'paragraph', content: 'InstantMed\'s prescription service is designed for exactly this situation — when you need a repeat but can\'t access your usual GP. Submit your request online, a doctor reviews it, and if appropriate, your eScript arrives via SMS — all from home.' },
       { type: 'heading', content: 'When to See Your Regular GP', level: 2 },
       { type: 'list', content: '', items: ['See your GP periodically for medication reviews', 'If you\'re experiencing side effects or changes', 'When your condition needs reassessment', 'For controlled or restricted medications', 'If blood tests or monitoring are due'] },
       { type: 'callout', variant: 'info', content: 'Most medications benefit from periodic review with a doctor who knows your full history. Use telehealth repeats when you need them, but maintain your regular GP relationship.' }
@@ -146,15 +146,15 @@ export const seoArticles: Article[] = [
       { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
     ],
     seo: {
-      title: 'Repeat Prescription Online | No Appointment Needed | InstantMed',
-      description: 'Get a repeat prescription online without an appointment. AHPRA-registered doctors, eScripts to your phone. Fast and convenient when your GP is booked out.',
+      title: 'Repeat Medication Online | Doctor-Reviewed | InstantMed',
+      description: 'Get repeat medication online from AHPRA-registered doctors. eScripts to your phone. Reviewed within hours when your GP is booked out.',
       keywords: ['repeat prescription online', 'online repeat prescription', 'prescription renewal online', 'get repeat script online', 'repeat prescription without appointment', 'online prescription refill australia']
     }
   },
   {
     slug: 'same-day-medical-certificate',
     title: 'Same-Day Medical Certificates: How It Works',
-    subtitle: 'Need a medical certificate today? Here\'s how to get one fast.',
+    subtitle: 'Need a medical certificate today? Here\'s how to get one within hours.',
     excerpt: 'Woke up sick and need a medical certificate for work today? Learn how same-day medical certificates work through telehealth and what to expect.',
     category: 'medical-certificates',
     tags: ['medical-certificate', 'telehealth', 'online-doctor', 'work', 'sick-leave'],
@@ -194,7 +194,7 @@ export const seoArticles: Article[] = [
       { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
     ],
     seo: {
-      title: 'Same-Day Medical Certificate | Get One Fast | InstantMed',
+      title: 'Same-Day Medical Certificate | Reviewed Within Hours | InstantMed',
       description: 'Need a medical certificate today? Get a same-day certificate from AHPRA-registered doctors. Most reviewed within an hour. Valid for work and study.',
       keywords: ['same day medical certificate', 'medical certificate today', 'urgent medical certificate', 'fast medical certificate online', 'quick medical certificate', 'instant medical certificate']
     }

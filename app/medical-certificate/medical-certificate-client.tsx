@@ -169,7 +169,7 @@ const HEADLINE_VARIATIONS = [
 // Rotating subheadline variations
 const SUBHEADLINE_VARIATIONS = [
   "Valid for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. Usually sorted in under an hour.",
-  "Skip the waiting room. A real Australian GP reviews your request and you're done.",
+  "A real Australian GP reviews your request — from your phone, on your time.",
   "Feeling rough? Fill out a quick form from bed. Doctor-reviewed, typically under an hour.",
 ]
 

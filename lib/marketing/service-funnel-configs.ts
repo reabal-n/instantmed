@@ -231,7 +231,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     badge: 'Prescribed by Australian GPs',
     headline: 'Repeat medication.',
     headlineRotatingWords: ['Reviewed by Australian GPs.', 'Sent to your phone.', 'Any pharmacy, same day.'],
-    subheadline: `For medications you already take. A doctor reviews your request and sends straight to your phone. No appointment needed.`,
+    subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone.`,
     reassurances: [
       'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
@@ -260,7 +260,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'Check',
         title: 'Common medications',
-        description: 'Blood pressure, cholesterol, contraceptives, asthma inhalers, reflux medications, and other routine prescriptions.',
+        description: 'Blood pressure, cholesterol, contraceptives, asthma inhalers, reflux medications, and other routine medications.',
         type: 'positive',
       },
       {
@@ -401,7 +401,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
         rating: 5,
       },
       {
-        text: 'So convenient for my regular contraceptive prescription. The doctor asked good questions and I felt confident in the process.',
+        text: 'So convenient for renewing my regular contraceptive. The doctor asked good questions and I felt confident in the process.',
         author: 'Jessica W.',
         location: 'Adelaide',
         rating: 5,
@@ -417,7 +417,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   
   faq: {
     title: 'Common questions',
-    subtitle: 'Everything you need to know about renewing your prescription.',
+    subtitle: 'Everything you need to know about renewing your medication.',
     items: [
       {
         question: 'What medications can you prescribe?',
@@ -462,16 +462,16 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Australian GP consultations',
     headline: 'See a doctor today.',
-    headlineRotatingWords: ['No waiting rooms.', 'Prescriptions if needed.', 'From your phone.'],
-    subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Prescriptions may be issued by your doctor if clinically appropriate.`,
+    headlineRotatingWords: ['No waiting rooms.', 'Medication if needed.', 'From your phone.'],
+    subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
     reassurances: [
-      'AHPRA-registered doctors · Prescriptions & referrals if needed · Full refund if we can\'t help',
+      'AHPRA-registered doctors · Medication & referrals if needed · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
     ],
     ctaText: `Start your consult — ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
     highlightBadge: {
-      text: 'Prescriptions if clinically appropriate',
+      text: 'Medication if clinically appropriate',
       glow: true,
     },
   },
@@ -605,7 +605,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     features: [
       'Full clinical assessment by an AHPRA-registered GP',
       'Phone or video consultation',
-      'Prescriptions if clinically appropriate',
+      'Medication if clinically appropriate',
       'Referral letters if needed',
       'Follow-up messaging with your doctor',
       'Written summary of your consultation',
@@ -645,7 +645,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     subtitle: 'Real reviews from Australians who\'ve used our service',
     reviews: [
       {
-        text: 'Had a weird rash I was worried about. The doctor called, asked me to send photos, and diagnosed it quickly. Got a prescription and it cleared up.',
+        text: 'Had a weird rash I was worried about. The doctor called, asked me to send photos, and diagnosed it quickly. Got my medication sorted and it cleared up.',
         author: 'Michael T.',
         location: 'Perth',
         rating: 5,

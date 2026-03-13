@@ -7,11 +7,11 @@ import { getFeatureFlags } from '@/lib/feature-flags'
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: 'Online Repeat Prescriptions | Same-Day Scripts',
-  description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments needed.',
+  title: 'Online Repeat Medication | Same-Day Doctor Review',
+  description: 'Renew your regular medications online. Australian doctors review your request and send your medication to any pharmacy. Submit from home.',
   openGraph: {
-    title: 'Online Repeat Prescriptions | InstantMed',
-    description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy.',
+    title: 'Online Repeat Medication | InstantMed',
+    description: 'Renew your regular medications online. Australian doctors review your request and send your medication to any pharmacy.',
     type: 'website',
   },
 }

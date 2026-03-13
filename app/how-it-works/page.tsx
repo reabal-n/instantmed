@@ -5,7 +5,7 @@ export const revalidate = 86400 // 24h ISR for marketing page
 
 export const metadata: Metadata = {
   title: 'How It Works',
-  description: 'See how InstantMed works — submit your request, a doctor reviews it, and get your medical certificate or prescription delivered digitally.',
+  description: 'See how InstantMed works — submit your request, a doctor reviews it, and get your medical certificate or medication delivered digitally.',
   alternates: {
     canonical: 'https://instantmed.com.au/how-it-works',
   },

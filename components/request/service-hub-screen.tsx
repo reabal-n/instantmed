@@ -55,7 +55,7 @@ const CONSULT_SUBTYPES = [
     id: 'general',
     label: 'General consultation',
     icon: Stethoscope,
-    bullets: ['New prescriptions', 'General health concerns', 'Referrals & specialist letters'],
+    bullets: ['New medication', 'General health concerns', 'Referrals & specialist letters'],
     callBadge: 'Sometimes requires a call',
     callVariant: 'secondary' as const,
     price: PRICING_DISPLAY.CONSULT,
@@ -291,7 +291,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           <ServiceCard
             icon={Stethoscope}
             title="Doctor consultation"
-            description="New prescriptions, referrals, or health concerns"
+            description="New medication, referrals, or health concerns"
             badge={{ text: "Usually requires a call", variant: "secondary" }}
             price={PRICING_DISPLAY.CONSULT}
             pricePrefix="From"
