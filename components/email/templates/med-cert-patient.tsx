@@ -40,12 +40,12 @@ export function MedCertPatientEmail({
 
   return (
     <BaseEmail
-      previewText="Your medical certificate is ready to download 🎉"
+      previewText="Your medical certificate is ready to download"
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
-        headline="Your certificate is ready 🎉"
+        headline="Your certificate is ready"
         subtitle="Medical Certificate"
         variant="success"
       />
@@ -53,7 +53,7 @@ export function MedCertPatientEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Good news 🎉 — a doctor has reviewed and approved your{" "}
+        Good news — a doctor has reviewed and approved your{" "}
         <strong>Medical Certificate</strong>. You can download it right
         away using the button below.
       </Text>

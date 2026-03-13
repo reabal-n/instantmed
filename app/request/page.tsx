@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getCurrentUser, getUserProfile } from "@/lib/auth"
+import { decryptProfilePhi } from "@/lib/data/profiles"
 import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
@@ -201,6 +202,20 @@ export default async function RequestPage({
     }
   }
 
+  let profileDateOfBirth: string | null = null
+  if (profile) {
+    try {
+      const decrypted = decryptProfilePhi(profile as unknown as Record<string, unknown>)
+      const dob = decrypted.date_of_birth
+      profileDateOfBirth = dob
+        ? (typeof dob === "string" ? dob : dob instanceof Date ? dob.toISOString().split("T")[0] : null)
+        : null
+    } catch {
+      profileDateOfBirth = null
+    }
+  }
+  const hasCompleteIdentity = !!profile && !!profileDateOfBirth
+
   return (
     <RequestFlow
       initialService={initialService}
@@ -209,9 +224,11 @@ export default async function RequestPage({
       initialMedication={params.medication}
       isAuthenticated={!!user}
       hasProfile={!!profile}
+      hasCompleteIdentity={hasCompleteIdentity}
       hasMedicare={!!profile?.medicare_number}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
+      profileDateOfBirth={profileDateOfBirth ?? undefined}
     />
   )
 }

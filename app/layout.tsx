@@ -157,12 +157,12 @@ export default function RootLayout({
             `}
           </Script>
 
-          {/* Google tag (gtag.js) — lazyOnload to reduce main-thread blocking */}
+          {/* Google tag (gtag.js) — afterInteractive so tag fires for verification */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-            strategy="lazyOnload"
+            strategy="afterInteractive"
           />
-          <Script id="google-gtag" strategy="lazyOnload">
+          <Script id="google-gtag" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

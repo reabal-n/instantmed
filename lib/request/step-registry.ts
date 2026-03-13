@@ -69,6 +69,8 @@ export interface StepDefinition {
 export interface StepContext {
   isAuthenticated: boolean
   hasProfile: boolean
+  /** True when profile has complete identity (incl. date_of_birth) — details step can be skipped */
+  hasCompleteIdentity?: boolean
   hasMedicare: boolean
   serviceType: UnifiedServiceType
   answers: Record<string, unknown>
@@ -99,7 +101,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
       required: true,
     },
     {
@@ -150,7 +152,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
       required: true,
     },
     {
@@ -196,7 +198,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
       required: true,
     },
     {
@@ -237,7 +239,7 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
     shortLabel: 'Details',
     componentPath: 'patient-details-step',
     validateFn: 'validateDetailsStep',
-    canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
+    canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
     required: true,
   },
   {
@@ -343,6 +345,27 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
     },
     ...CONSULT_COMMON_TAIL,
   ],
+}
+
+/**
+ * Get step definition by id from the registry (before filtering).
+ * Used when navigating to a skipped step for editing (e.g. Edit Your Details).
+ */
+export function getStepDefinitionById(
+  serviceType: UnifiedServiceType,
+  stepId: UnifiedStepId,
+  context?: StepContext
+): StepDefinition | null {
+  let steps: StepDefinition[]
+  if (serviceType === 'consult' && context) {
+    const subtype = context.answers.consultSubtype as ConsultSubtype | undefined
+    steps = subtype && CONSULT_SUBTYPE_STEPS[subtype]
+      ? CONSULT_SUBTYPE_STEPS[subtype]
+      : CONSULT_COMMON_TAIL
+  } else {
+    steps = STEP_REGISTRY[serviceType] ?? []
+  }
+  return steps.find((s) => s.id === stepId) ?? null
 }
 
 /**

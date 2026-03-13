@@ -216,7 +216,7 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://img.clerk.com https://*.clerk.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com",
-      `connect-src 'self'${isDev ? ' ws://localhost:* http://localhost:*' : ''} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au https://pagead2.googlesyndication.com`,
+      `connect-src 'self'${isDev ? ' ws://localhost:* http://localhost:*' : ''} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au https://pagead2.googlesyndication.com`,
       "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au",
       "object-src 'none'",
       "base-uri 'self'",

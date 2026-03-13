@@ -33,13 +33,10 @@ export function VerificationCodeEmail({
 }: VerificationCodeEmailProps) {
   return (
     <BaseEmail
-      previewText={`Your InstantMed verification code is ${code} ✨`}
+      previewText={`Your InstantMed verification code is ${code}`}
       appUrl={appUrl}
     >
-      <Text>
-        Here&apos;s your verification code ✨ — enter it where prompted to
-        continue:
-      </Text>
+      <Text>Here&apos;s your verification code — enter it where prompted to continue:</Text>
 
       {/* Code block */}
       <div

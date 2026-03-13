@@ -36,6 +36,8 @@
 - Service categories: "Repeat Scripts" → "Repeat medication"
 - Service funnel configs: "script" → "medication" where promotional
 - Footer links: "Prescriptions" → "Repeat medication" (or keep as service name with compliant framing)
+- **Navbar (shared):** "Repeat Scripts" → "Repeat Medication", "New prescriptions & dose changes" → "New medication & dose changes" — affects landing pages including `/medical-certificate/*`
+- **Shared Footer:** "Prescriptions" → "Repeat Medication"
 
 ---
 
@@ -80,6 +82,8 @@
 | `app/faq/faq-page-client.tsx` | Remove emojis from FAQ answers |
 | `app/contact/contact-client.tsx` | Remove emojis from success/helper text |
 | `components/seo/healthcare-schema.tsx` | MedicalServiceSchema for prescriptions: update description if needed |
+| `components/shared/navbar.tsx` | "Repeat Scripts" → "Repeat Medication", "New prescriptions & dose changes" → "New medication & dose changes" |
+| `components/shared/footer.tsx` | "Prescriptions" → "Repeat Medication" |
 
 ---
 

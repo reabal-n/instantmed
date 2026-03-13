@@ -17,7 +17,7 @@ export interface PaymentConfirmedEmailProps {
 }
 
 export function paymentConfirmedSubject(requestType: string, amount: string) {
-  return `Payment confirmed — ${amount} for your ${requestType} ✨`
+  return `Payment confirmed — ${amount} for your ${requestType} ✅`
 }
 
 export function PaymentConfirmedEmail({
@@ -30,8 +30,8 @@ export function PaymentConfirmedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Payment confirmed — ${amount} for your ${requestType} ✨`} appUrl={appUrl}>
-      <StatusBanner title="Payment confirmed ✨" variant="success" />
+    <BaseEmail previewText={`Payment confirmed — ${amount} for your ${requestType}`} appUrl={appUrl}>
+      <StatusBanner title="Payment confirmed" variant="success" />
 
       <Text>Hi {firstName},</Text>
       <Text>

@@ -32,6 +32,7 @@ import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { ConnectionBanner } from "./connection-banner"
 import {
   getStepsForService,
+  getStepDefinitionById,
   type UnifiedServiceType,
   type UnifiedStepId,
   type StepContext,
@@ -109,11 +110,15 @@ interface RequestFlowProps {
   initialMedication?: string
   isAuthenticated: boolean
   hasProfile: boolean
+  /** Profile has complete identity (incl. date_of_birth) — details step can be skipped */
+  hasCompleteIdentity?: boolean
   hasMedicare: boolean
   /** User email for pre-filling */
   userEmail?: string
   /** User name for pre-filling */
   userName?: string
+  /** Profile date of birth for pre-filling (decrypted) */
+  profileDateOfBirth?: string
   /** Health profile data for pre-filling medical history steps */
   healthProfile?: HealthProfilePrefill | null
 }
@@ -354,9 +359,11 @@ export function RequestFlow({
   initialMedication,
   isAuthenticated,
   hasProfile,
+  hasCompleteIdentity,
   hasMedicare,
   userEmail,
   userName,
+  profileDateOfBirth,
   healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
@@ -425,7 +432,10 @@ export function RequestFlow({
         lastName: lastParts.join(' ') || '',
       })
     }
-  }, [userEmail, userName, answers.email, setIdentity])
+    if (profileDateOfBirth) {
+      setIdentity({ dob: profileDateOfBirth })
+    }
+  }, [userEmail, userName, profileDateOfBirth, answers.email, setIdentity])
 
   // Pre-fill medical history from health profile
   useEffect(() => {
@@ -518,10 +528,11 @@ export function RequestFlow({
   const stepContext: StepContext = useMemo(() => ({
     isAuthenticated,
     hasProfile,
+    hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
     hasMedicare,
     serviceType: effectiveService || 'med-cert',
     answers,
-  }), [isAuthenticated, hasProfile, hasMedicare, effectiveService, answers])
+  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, effectiveService, answers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {
@@ -543,23 +554,27 @@ export function RequestFlow({
   // Find current step index - default to first step if current step not found
   const currentStepIndex = useMemo(() => {
     const index = activeSteps.findIndex(s => s.id === currentStepId)
-    // If step not found in this flow, default to first step
     return index >= 0 ? index : 0
   }, [activeSteps, currentStepId])
 
+  // When currentStepId is not in activeSteps, check if it's a skipped step we can render for editing
+  // (e.g. user clicked "Edit" on Your Details when details was skipped)
+  const editModeStep = useMemo(() => {
+    if (activeSteps.some(s => s.id === currentStepId)) return null
+    return getStepDefinitionById(effectiveService || 'med-cert', currentStepId as UnifiedStepId, stepContext)
+  }, [activeSteps, currentStepId, effectiveService, stepContext])
+
   // Sync store's currentStepId when it doesn't exist in the active steps list.
-  // This happens when consultSubtype changes (e.g., from general to ED) and the
-  // persisted currentStepId (e.g., "consult-reason") isn't in the new subtype's
-  // step sequence. Without this sync, nextStep() silently fails because
-  // getNextStepId can't find the step in the list.
+  // Exception: when editModeStep exists, user explicitly navigated to edit a skipped step — don't redirect
   useEffect(() => {
+    if (editModeStep) return
     if (activeSteps.length > 0 && !activeSteps.some(s => s.id === currentStepId)) {
       goToStep(activeSteps[0].id as UnifiedStepId)
     }
-  }, [activeSteps, currentStepId, goToStep])
+  }, [activeSteps, currentStepId, goToStep, editModeStep])
 
-  // Get current step definition (safe now since we default to 0)
-  const currentStep = activeSteps.length > 0 ? activeSteps[currentStepIndex] : null
+  // Get current step definition — use editModeStep when editing a skipped step
+  const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)
 
   // Track step views in PostHog
   useEffect(() => {

@@ -43,8 +43,8 @@ interface NavbarProps {
 
 const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; icon: typeof FileText }> = [
   { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificates", description: "Work, uni & carer's leave", icon: FileText },
-  { serviceId: "scripts", title: "Repeat Scripts", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
-  { serviceId: "consult", title: "General Consult", href: "/general-consult", description: "New prescriptions & dose changes", icon: Stethoscope },
+  { serviceId: "scripts", title: "Repeat Medication", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
+  { serviceId: "consult", title: "General Consult", href: "/general-consult", description: "New medication & dose changes", icon: Stethoscope },
 ]
 
 

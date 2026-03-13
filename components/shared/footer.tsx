@@ -49,7 +49,7 @@ export function Footer() {
                   Medical Certificates
                 </Link>
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=prescription">
-                  Prescriptions
+                  Repeat Medication
                 </Link>
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=consult">
                   General Consult

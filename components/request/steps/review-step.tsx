@@ -112,7 +112,7 @@ function ReviewSection({
 }
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
-  const { answers, firstName, lastName, email, phone, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
+  const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
   const posthog = usePostHog()
 
   // Track review step views
@@ -506,11 +506,13 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   }
 
   // Patient details
+  const dobDisplay = dob ? new Date(dob).toLocaleDateString('en-AU') : ''
   sections.push({
     title: 'Your Details',
     items: [
       { label: 'Name', value: `${firstName} ${lastName}`.trim() },
       { label: 'Email', value: email },
+      { label: 'Date of birth', value: dobDisplay || '—' },
       { label: 'Phone', value: phone || 'Not provided' },
     ],
     stepId: 'details',

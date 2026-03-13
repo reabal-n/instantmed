@@ -28,7 +28,7 @@ export interface RequestReceivedEmailProps {
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `Your ${requestType} request has been received ✨`
+  return `Your ${requestType} request has been received`
 }
 
 export function RequestReceivedEmail({
@@ -43,12 +43,12 @@ export function RequestReceivedEmail({
 
   return (
     <BaseEmail
-      previewText={`All sorted — your ${requestType} request is with a doctor now ✨`}
+      previewText={`All sorted — your ${requestType} request is with a doctor now`}
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
-        headline="You're all set ✨"
+        headline="You're all set 👍"
         subtitle={`${requestType} — ${amount}`}
         variant="info"
       />
@@ -67,7 +67,7 @@ export function RequestReceivedEmail({
           <tbody>
             <DetailRow label="Reference" value={requestId.slice(0, 8).toUpperCase()} />
             <DetailRow label="Amount paid" value={amount} />
-            <DetailRow label="Status" value="🩺 In review" />
+            <DetailRow label="Status" value="In review" />
           </tbody>
         </table>
       </Box>

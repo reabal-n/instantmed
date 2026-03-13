@@ -35,7 +35,7 @@ const colors = {
   textMuted: "#A8A29E",     // Stone-400 — footer, fine print
 
   // Borders
-  border: "#E7E5E4",        // Stone-200
+  border: "#E5E5E5",        // Softer for premium feel
   borderLight: "#F5F5F4",   // Stone-100
   divider: "#E7E5E4",       // Stone-200 — section dividers
 
@@ -76,8 +76,8 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
         {/* Source Sans 3 — matches the website font */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
@@ -88,6 +88,20 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <style>{`
           body, td, p, h1, h2, h3, a, span, div, li {
             font-family: ${fontFamily} !important;
+          }
+          @media (prefers-color-scheme: dark) {
+            body { background-color: #0f0f0f !important; }
+            .email-card, .email-card td {
+              background-color: #1a1a1a !important;
+              border-color: #333 !important;
+              box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
+            }
+            .email-content { background-color: #1a1a1a !important; }
+            .email-footer { background-color: #0f0f0f !important; border-top-color: #333 !important; }
+            .email-card, .email-card p, .email-card td, .email-card li, .email-card h1, .email-card h2, .email-card h3, .email-card span {
+              color: #e5e5e5 !important;
+            }
+            .email-card a { color: #5DB8C9 !important; }
           }
         `}</style>
       </head>
@@ -101,6 +115,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
           backgroundColor: colors.background,
           WebkitTextSizeAdjust: "100%",
         }}
+        data-x-apple-data-detectors="false"
       >
         {previewText && (
           <div
@@ -131,13 +146,15 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                   role="presentation"
                   cellPadding="0"
                   cellSpacing="0"
+                  className="email-card"
                   style={{
-                    maxWidth: "520px",
+                    maxWidth: "480px",
                     margin: "0 auto",
                     backgroundColor: colors.cardBg,
-                    borderRadius: "12px",
+                    borderRadius: "16px",
                     overflow: "hidden",
                     border: `1px solid ${colors.border}`,
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
                   }}
                 >
                   <tbody>
@@ -145,7 +162,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                     <tr>
                       <td
                         style={{
-                          padding: "32px 40px 0 40px",
+                          padding: "40px 40px 24px 40px",
                           textAlign: "center",
                         }}
                       >
@@ -159,7 +176,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`${appUrl}/branding/logo.png`}
-                            alt="InstantMed"
+                            alt="InstantMed — Australian telehealth"
                             width="90"
                             height="auto"
                             style={{
@@ -176,14 +193,20 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
 
                     {/* Subtle divider */}
                     <tr>
-                      <td style={{ padding: "20px 40px 0 40px" }}>
+                      <td style={{ padding: "0 40px" }}>
                         <div style={{ borderTop: `1px solid ${colors.borderLight}` }} />
                       </td>
                     </tr>
 
                     {/* Content */}
                     <tr>
-                      <td style={{ padding: "28px 40px 36px 40px" }}>
+                      <td
+                        className="email-content"
+                        style={{
+                          padding: "32px 40px 40px 40px",
+                          backgroundColor: colors.cardBg,
+                        }}
+                      >
                         {children}
                       </td>
                     </tr>
@@ -191,8 +214,9 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                     {/* Footer */}
                     <tr>
                       <td
+                        className="email-footer"
                         style={{
-                          padding: "24px 40px",
+                          padding: "32px 40px",
                           borderTop: `1px solid ${colors.borderLight}`,
                           backgroundColor: colors.surfaceWarm,
                         }}
@@ -203,31 +227,31 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                               <td style={{ textAlign: "center" as const }}>
                                 <p
                                   style={{
-                                    margin: "0 0 10px 0",
+                                    margin: "0 0 16px 0",
                                     fontSize: "12px",
-                                    color: colors.textMuted,
+                                    color: colors.textSecondary,
                                     lineHeight: "1.8",
                                   }}
                                 >
-                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Privacy
                                   </a>
-                                  <span style={{ margin: "0 6px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/terms`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>·</span>
+                                  <a href={`${appUrl}/terms`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Terms
                                   </a>
-                                  <span style={{ margin: "0 6px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/contact`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>·</span>
+                                  <a href={`${appUrl}/contact`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Contact
                                   </a>
-                                  <span style={{ margin: "0 6px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textMuted, textDecoration: "none" }}>
+                                  <span style={{ margin: "0 8px", color: colors.border }}>·</span>
+                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Preferences
                                   </a>
                                 </p>
                                 <p
                                   style={{
-                                    margin: "0 0 6px 0",
+                                    margin: "0 0 8px 0",
                                     fontSize: "12px",
                                     color: colors.textSecondary,
                                   }}
@@ -270,9 +294,9 @@ interface HeadingProps {
 
 export function Heading({ children, as = "h1" }: HeadingProps) {
   const sizes = {
-    h1: { fontSize: "22px", marginBottom: "16px", letterSpacing: "-0.4px" },
-    h2: { fontSize: "17px", marginBottom: "12px", letterSpacing: "-0.2px" },
-    h3: { fontSize: "14px", marginBottom: "10px", letterSpacing: "0px" },
+    h1: { fontSize: "24px", marginBottom: "16px", letterSpacing: "-0.5px" },
+    h2: { fontSize: "18px", marginBottom: "12px", letterSpacing: "-0.3px" },
+    h3: { fontSize: "15px", marginBottom: "10px", letterSpacing: "-0.1px" },
   }
   const Tag = as
   return (
@@ -282,7 +306,7 @@ export function Heading({ children, as = "h1" }: HeadingProps) {
         fontSize: sizes[as].fontSize,
         fontWeight: "600",
         color: colors.text,
-        lineHeight: "1.35",
+        lineHeight: "1.5",
         letterSpacing: sizes[as].letterSpacing,
       }}
     >
@@ -305,7 +329,7 @@ export function Text({ children, muted, small, style }: TextProps) {
         margin: "0 0 16px 0",
         fontSize: small ? "13px" : "15px",
         color: muted ? colors.textMuted : colors.textBody,
-        lineHeight: "1.7",
+        lineHeight: "1.6",
         ...style,
       }}
     >
@@ -331,12 +355,13 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
               href={href}
               style={{
                 display: "inline-block",
-                padding: isPrimary ? "14px 32px" : "12px 28px",
+                padding: isPrimary ? "16px 36px" : "14px 32px",
                 fontSize: "15px",
                 fontWeight: "600",
                 textDecoration: "none",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 letterSpacing: "0.01em",
+                boxShadow: isPrimary ? "0 2px 8px rgba(13,148,136,0.25)" : "none",
                 ...(isPrimary
                   ? {
                       backgroundColor: colors.accent,
@@ -377,9 +402,9 @@ export function Box({ children, variant = "default" }: BoxProps) {
       style={{
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
-        borderRadius: "8px",
-        padding: "16px 20px",
-        margin: "20px 0",
+        borderRadius: "10px",
+        padding: "20px 24px",
+        margin: "24px 0",
       }}
     >
       {children}
@@ -404,8 +429,8 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
       style={{
         backgroundColor: c.bg,
         border: `1px solid ${c.border}`,
-        borderRadius: "8px",
-        padding: "14px 20px",
+        borderRadius: "10px",
+        padding: "16px 24px",
         marginBottom: "24px",
         display: "flex",
       }}
@@ -471,9 +496,9 @@ export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
       style={{
         backgroundColor: colors.surfaceSubtle,
         border: `1px solid ${colors.border}`,
-        borderRadius: "8px",
-        padding: "20px 24px",
-        margin: "20px 0",
+        borderRadius: "10px",
+        padding: "24px 28px",
+        margin: "24px 0",
         textAlign: "center" as const,
       }}
     >
@@ -513,14 +538,15 @@ export function List({ items }: ListProps) {
     <ul
       style={{
         margin: "0",
-        paddingLeft: "18px",
+        paddingLeft: "20px",
         color: colors.textBody,
         fontSize: "14px",
         lineHeight: "1.8",
+        listStyleType: "disc",
       }}
     >
       {items.map((item, i) => (
-        <li key={i} style={{ marginBottom: i < items.length - 1 ? "4px" : 0, paddingLeft: "2px" }}>
+        <li key={i} style={{ marginBottom: i < items.length - 1 ? "8px" : 0, paddingLeft: "4px" }}>
           {item}
         </li>
       ))}
@@ -531,7 +557,7 @@ export function List({ items }: ListProps) {
 // Horizontal rule/divider component
 export function Divider() {
   return (
-    <div style={{ borderTop: `1px solid ${colors.borderLight}`, margin: "24px 0" }} />
+    <div style={{ borderTop: `1px solid ${colors.borderLight}`, margin: "32px 0" }} />
   )
 }
 
@@ -546,12 +572,12 @@ interface DetailRowProps {
 export function DetailRow({ label, value, mono, bold }: DetailRowProps) {
   return (
     <tr>
-      <td style={{ padding: "10px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}` }}>
+      <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}` }}>
         {label}
       </td>
       <td
         style={{
-          padding: "10px 0",
+          padding: "12px 0",
           fontSize: mono ? "13px" : "14px",
           fontWeight: bold ? 600 : 400,
           fontFamily: mono ? "'SF Mono', 'Fira Code', Consolas, monospace" : "inherit",
@@ -584,32 +610,32 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
   }
   const s = variantStyles[variant]
   return (
-    <div style={{ textAlign: "center" as const, padding: "8px 0 24px" }}>
+    <div style={{ textAlign: "center" as const, padding: "8px 0 32px" }}>
       <div
         style={{
           display: "inline-block",
-          width: "48px",
-          height: "48px",
+          width: "56px",
+          height: "56px",
           borderRadius: "50%",
           backgroundColor: s.bg,
           border: `1px solid ${s.border}`,
-          lineHeight: "48px",
+          lineHeight: "56px",
           textAlign: "center" as const,
-          fontSize: "20px",
+          fontSize: "24px",
           color: s.iconColor,
-          marginBottom: "14px",
+          marginBottom: "16px",
         }}
       >
         {icon}
       </div>
       <h1
         style={{
-          margin: subtitle ? "0 0 4px 0" : "0",
-          fontSize: "22px",
+          margin: subtitle ? "0 0 6px 0" : "0",
+          fontSize: "24px",
           fontWeight: "700",
           color: colors.text,
-          letterSpacing: "-0.3px",
-          lineHeight: "1.3",
+          letterSpacing: "-0.5px",
+          lineHeight: "1.4",
         }}
       >
         {headline}
