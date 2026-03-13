@@ -5,7 +5,6 @@ import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
-import { createClient } from "@/lib/supabase/client"
 import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
@@ -94,12 +93,8 @@ export function SuccessClient({
 
     const checkStatus = async () => {
       try {
-        const supabase = createClient()
-        const { data } = await supabase
-          .from("intakes")
-          .select("status")
-          .eq("id", intakeId)
-          .single()
+        const res = await fetch(`/api/patient/intake-status?id=${intakeId}`)
+        const data = res.ok ? await res.json() : null
 
         if (data?.status && data.status !== "pending_payment") {
           setStatus(data.status)
@@ -174,15 +169,20 @@ export function SuccessClient({
   }, [intakeId, initialStatus, posthog, serviceName])
 
   useEffect(() => {
-    if (!intakeId || status !== "paid" || purchaseTrackedRef.current) return
+    if (!intakeId || purchaseTrackedRef.current) return
 
+    // Fire conversion immediately on success page load.
+    // Stripe only redirects here after successful payment, so we don't need
+    // to wait for the webhook to update the intake status.
+    // The previous approach (waiting for status === "paid") never worked because
+    // client-side Supabase has no auth session and RLS blocks the status query.
     trackConversion("PURCHASE", {
       transaction_id: intakeId,
       currency: "AUD",
       service: serviceName,
     })
     purchaseTrackedRef.current = true
-  }, [intakeId, serviceName, status])
+  }, [intakeId, serviceName])
 
   // Show loading state while verifying payment
   if (isVerifying) {
