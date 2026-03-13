@@ -90,79 +90,79 @@ export function AdminDashboardClient({
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Admin Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <p className="text-sm text-muted-foreground mt-1">
           Complete overview of all intakes • Dr. {doctorName}
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <div>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-                <p className="text-xl font-bold tabular-nums">{stats.total}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.total}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <Clock className="h-4 w-4 text-blue-500" />
-              <div>
+              <Clock className="h-5 w-5 text-blue-500 shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
-                <p className="text-xl font-bold tabular-nums">{stats.in_queue}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.in_queue}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <CheckCircle className="h-4 w-4 text-emerald-500" />
-              <div>
+              <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Approved</p>
-                <p className="text-xl font-bold tabular-nums">{stats.approved}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.approved}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <XCircle className="h-4 w-4 text-red-500" />
-              <div>
+              <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Declined</p>
-                <p className="text-xl font-bold tabular-nums">{stats.declined}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.declined}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <Send className="h-4 w-4 text-dawn-500" />
-              <div>
+              <Send className="h-5 w-5 text-dawn-500 shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Scripts Pending</p>
-                <p className="text-xl font-bold tabular-nums">{stats.scripts_pending}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.scripts_pending}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <TrendingUp className="h-4 w-4 text-dawn-500" />
-              <div>
+              <TrendingUp className="h-5 w-5 text-dawn-500 shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Needs Info</p>
-                <p className="text-xl font-bold tabular-nums">{stats.pending_info}</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.pending_info}</p>
               </div>
             </div>
           </CardContent>
@@ -171,14 +171,14 @@ export function AdminDashboardClient({
 
       {/* Filters */}
       <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="text-base flex items-center gap-2">
+        <CardHeader className="px-6 py-5">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Users className="h-4 w-4" />
             All Intakes ({filteredIntakes.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-3">
-          <div className="flex flex-wrap gap-3 mb-3">
+        <CardContent className="px-6 pb-6 pt-1">
+          <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search by name, suburb, or ID..."

@@ -107,7 +107,7 @@ interface IntakeReviewPanelProps {
 
 export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPanelProps) {
   const router = useRouter()
-  const { userId } = useAuth()
+  useAuth()
   const { closePanel } = usePanel()
   const [isPending, startTransition] = useTransition()
   const [data, setData] = useState<ReviewData | null>(null)

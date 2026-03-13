@@ -53,8 +53,8 @@ export function WhatHappensNext({
   intakeId,
   initialStatus,
   serviceName,
-  patientEmail,
-  isPriority = false,
+  patientEmail: _patientEmail,
+  isPriority: _isPriority = false,
   showConfetti = false,
   initialQueuePosition,
 }: WhatHappensNextProps) {

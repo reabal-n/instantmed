@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { StepErrorBoundary } from "@/components/request/step-error-boundary"
 import { useFlowStore, useFlowService } from "@/lib/flow"

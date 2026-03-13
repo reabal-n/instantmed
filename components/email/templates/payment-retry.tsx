@@ -5,8 +5,6 @@ import {
   Button,
   Box,
 } from "../base-email"
-import { COMPANY_NAME, ABN } from "@/lib/constants"
-
 export interface PaymentRetryEmailProps {
   patientName: string
   requestType: string

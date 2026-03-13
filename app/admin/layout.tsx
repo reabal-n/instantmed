@@ -25,7 +25,7 @@ export default async function AdminLayout({
         userName={authUser.profile.full_name}
         userRole={authUser.profile.role === "admin" ? "Admin" : "Doctor"}
       />
-      <main className="flex-1 min-w-0 py-6 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           {children}
         </div>

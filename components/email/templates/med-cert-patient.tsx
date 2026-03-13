@@ -33,7 +33,7 @@ export function MedCertPatientEmail({
   downloadUrl,
   dashboardUrl,
   verificationCode,
-  certType = "work",
+  certType: _certType = "work",
   appUrl = "https://instantmed.com.au",
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]

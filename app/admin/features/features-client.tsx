@@ -32,7 +32,6 @@ import {
   X,
   Wrench,
   Clock,
-  Users,
   Megaphone,
   Calendar,
 } from "lucide-react"
@@ -182,7 +181,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -205,7 +204,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Warning */}
       <Card className="border-amber-200 bg-amber-50/50">
-        <CardContent className="pt-6">
+        <CardContent className="p-6">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
             <div>
@@ -221,7 +220,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Maintenance Mode - Global Kill Switch */}
       <Card className={flags.maintenance_mode ? "border-red-300 bg-red-50/50" : ""}>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Wrench className="h-4 w-4" />
             Maintenance Mode
@@ -233,8 +232,8 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
             Close the entire intake form. Patients will see a maintenance message and cannot submit or pay.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg border">
+        <CardContent className="space-y-5 px-6 pb-6">
+          <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${flags.maintenance_mode ? "bg-red-100" : "bg-muted"}`}>
                 <Wrench className={`h-5 w-5 ${flags.maintenance_mode ? "text-red-600" : "text-muted-foreground"}`} />
@@ -290,7 +289,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Service Kill Switches */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Service Controls
@@ -299,9 +298,9 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
             Quickly disable services during incidents or maintenance
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 px-6 pb-6">
           {/* Medical Certificates */}
-          <div className="flex items-center justify-between p-4 rounded-lg border">
+          <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100">
                 <FileText className="h-5 w-5 text-blue-600" />
@@ -326,7 +325,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
           </div>
 
           {/* Repeat Prescriptions */}
-          <div className="flex items-center justify-between p-4 rounded-lg border">
+          <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-100">
                 <Pill className="h-5 w-5 text-green-600" />
@@ -351,7 +350,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
           </div>
 
           {/* Consults */}
-          <div className="flex items-center justify-between p-4 rounded-lg border">
+          <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100">
                 <Stethoscope className="h-5 w-5 text-blue-600" />
@@ -379,7 +378,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Operational Config */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Operational Controls
@@ -388,9 +387,9 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
             Business hours, capacity limits, urgent notices, and scheduled maintenance
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-6 pb-6">
           {/* Business Hours */}
-          <div className="space-y-3 p-4 rounded-lg border">
+          <div className="space-y-3 p-5 rounded-lg border">
             <p className="font-medium">Business Hours</p>
             <div className="flex flex-wrap items-center gap-4">
               <Switch
@@ -439,7 +438,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
           </div>
 
           {/* Capacity Limit */}
-          <div className="space-y-3 p-4 rounded-lg border">
+          <div className="space-y-3 p-5 rounded-lg border">
             <p className="font-medium">Capacity Limit</p>
             <div className="flex flex-wrap items-center gap-4">
               <Switch
@@ -471,7 +470,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
           </div>
 
           {/* Urgent Notice */}
-          <div className="space-y-3 p-4 rounded-lg border">
+          <div className="space-y-3 p-5 rounded-lg border">
             <p className="font-medium flex items-center gap-2">
               <Megaphone className="h-4 w-4" />
               Urgent Notice
@@ -511,7 +510,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
           </div>
 
           {/* Scheduled Maintenance */}
-          <div className="space-y-3 p-4 rounded-lg border">
+          <div className="space-y-3 p-5 rounded-lg border">
             <p className="font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Scheduled Maintenance
@@ -575,7 +574,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Blocked Medication Terms */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Pill className="h-4 w-4" />
             Blocked Medication Terms
@@ -628,7 +627,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
 
       {/* Safety Screening Symptoms */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Safety Screening Symptoms
@@ -637,7 +636,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
             Emergency symptoms shown in safety screening. Patients who select these are directed to call 000.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <div className="flex gap-2 mb-4">
             <Input
               placeholder="Add safety symptom"
@@ -677,13 +676,13 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
       {/* Feature Flag Audit Log */}
       {auditLogs.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="px-6 pt-6">
             <CardTitle className="text-base">Recent changes</CardTitle>
             <CardDescription>
               Who changed what and when
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {auditLogs.map((log) => (
                 <div

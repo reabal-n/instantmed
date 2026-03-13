@@ -95,19 +95,6 @@ function formatServiceType(type: string): string {
   return labels[type] || type
 }
 
-function formatStatus(status: string): string {
-  const labels: Record<string, string> = {
-    pending_payment: "Awaiting Payment",
-    paid: "In Queue",
-    in_review: "Under Review",
-    approved: "Approved",
-    declined: "Declined",
-    completed: "Completed",
-    pending_info: "Needs Info",
-  }
-  return labels[status] || status
-}
-
 function formatMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes}m`
   const hours = Math.floor(minutes / 60)
@@ -149,12 +136,12 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
   }))
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header with date range selector */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-1">
             Performance overview for Dr. {doctorName}
           </p>
         </div>
@@ -185,18 +172,18 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       </div>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Today's Intakes */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-500/20">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-500/20 shrink-0">
                 <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Today</p>
-                <p className="text-xl font-semibold">{analytics.todayIntakes}</p>
-                <p className="text-xs text-muted-foreground">{analytics.todayApproved} approved</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Today</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.todayIntakes}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{analytics.todayApproved} approved</p>
               </div>
             </div>
           </CardContent>
@@ -204,15 +191,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Pending Queue */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-500/20">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20 shrink-0">
                 <Clock className="h-5 w-5 text-dawn-600 dark:text-dawn-400" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">In Queue</p>
-                <p className="text-xl font-semibold">{analytics.pendingInQueue}</p>
-                <p className="text-xs text-muted-foreground">awaiting review</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.pendingInQueue}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">awaiting review</p>
               </div>
             </div>
           </CardContent>
@@ -220,15 +207,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Response Time */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-dawn-100 dark:bg-dawn-500/20">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-dawn-100 dark:bg-dawn-500/20 shrink-0">
                 <Activity className="h-5 w-5 text-dawn-600 dark:text-dawn-400" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Avg Response</p>
-                <p className="text-xl font-semibold">{formatMinutes(analytics.avgResponseMinutes)}</p>
-                <p className="text-xs text-muted-foreground">turnaround time</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Response</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(analytics.avgResponseMinutes)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">turnaround time</p>
               </div>
             </div>
           </CardContent>
@@ -236,15 +223,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Approval Rate */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 shrink-0">
                 <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Approval Rate</p>
-                <p className="text-xl font-semibold">{analytics.approvalRate}%</p>
-                <p className="text-xs text-muted-foreground">{analytics.statusCounts.approved || 0} approved</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Rate</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.approvalRate}%</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{analytics.statusCounts.approved || 0} approved</p>
               </div>
             </div>
           </CardContent>
@@ -254,39 +241,39 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       {/* Revenue Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="rounded-xl bg-linear-to-br from-emerald-50 to-white border-emerald-200 dark:from-emerald-950/30 dark:to-background dark:border-emerald-800">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Today&apos;s Revenue</p>
-                <p className="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">${analytics.todayRevenue.toFixed(0)}</p>
+                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Today&apos;s Revenue</p>
+                <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300 mt-0.5">${analytics.todayRevenue.toFixed(0)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-emerald-400 dark:text-emerald-500" />
+              <DollarSign className="h-8 w-8 text-emerald-400 dark:text-emerald-500 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-xl bg-linear-to-br from-blue-50 to-white border-blue-200 dark:from-blue-950/30 dark:to-background dark:border-blue-800">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">This Week</p>
-                <p className="text-2xl font-semibold text-blue-700 dark:text-blue-300">${analytics.thisWeekRevenue.toFixed(0)}</p>
-                <TrendBadge value={analytics.revenueTrend} suffix="%" />
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">This Week</p>
+                <p className="text-2xl font-bold tabular-nums text-blue-700 dark:text-blue-300 mt-0.5">${analytics.thisWeekRevenue.toFixed(0)}</p>
+                <div className="mt-1"><TrendBadge value={analytics.revenueTrend} suffix="%" /></div>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-400 dark:text-blue-500" />
+              <TrendingUp className="h-8 w-8 text-blue-400 dark:text-blue-500 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-xl bg-linear-to-br from-dawn-50 to-white border-dawn-200 dark:from-dawn-950/30 dark:to-background dark:border-dawn-800">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-dawn-600 dark:text-dawn-400 font-medium">All Time</p>
-                <p className="text-2xl font-semibold text-dawn-700 dark:text-dawn-300">${analytics.totalRevenue.toFixed(0)}</p>
-                <p className="text-xs text-dawn-500 dark:text-dawn-400">{analytics.totalIntakes} total intakes</p>
+                <p className="text-xs font-medium text-dawn-600 dark:text-dawn-400 uppercase tracking-wider">All Time</p>
+                <p className="text-2xl font-bold tabular-nums text-dawn-700 dark:text-dawn-300 mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
+                <p className="text-xs text-dawn-500 dark:text-dawn-400 mt-0.5">{analytics.totalIntakes} total intakes</p>
               </div>
-              <Users className="h-8 w-8 text-dawn-400 dark:text-dawn-500" />
+              <Users className="h-8 w-8 text-dawn-400 dark:text-dawn-500 shrink-0" />
             </div>
           </CardContent>
         </Card>

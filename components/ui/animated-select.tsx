@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { motion, AnimatePresence, MotionConfig } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { ChevronDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 

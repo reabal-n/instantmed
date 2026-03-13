@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import type React from "react"
-import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_LEGAL } from "@/lib/constants"

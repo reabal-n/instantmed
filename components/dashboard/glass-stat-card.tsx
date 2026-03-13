@@ -70,10 +70,10 @@ export function GlassStatCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1 min-w-0 flex-1">
-          <p className="text-sm font-medium text-muted-foreground truncate">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
             {label}
           </p>
-          <p className="text-2xl font-semibold tracking-tight text-foreground">
+          <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground mt-0.5">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
           {trend && (

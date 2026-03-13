@@ -230,29 +230,29 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
 
             {/* Today's Activity */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Today Submitted</p>
-                <p className="text-2xl font-bold">{queueHealth.todaySubmissions}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Submitted</p>
+                <p className="text-2xl font-bold tabular-nums">{queueHealth.todaySubmissions}</p>
               </div>
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Today Approved</p>
-                <p className="text-2xl font-bold text-emerald-600">{queueHealth.approvedToday}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Approved</p>
+                <p className="text-2xl font-bold tabular-nums text-emerald-600">{queueHealth.approvedToday}</p>
               </div>
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Today Declined</p>
-                <p className="text-2xl font-bold text-red-600">{queueHealth.declinedToday}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Declined</p>
+                <p className="text-2xl font-bold tabular-nums text-red-600">{queueHealth.declinedToday}</p>
               </div>
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Avg Review</p>
-                <p className="text-2xl font-bold">{formatMinutes(queueHealth.avgReviewTimeMinutes)}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Avg Review</p>
+                <p className="text-2xl font-bold tabular-nums">{formatMinutes(queueHealth.avgReviewTimeMinutes)}</p>
               </div>
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Scripts Pending</p>
-                <p className="text-2xl font-bold text-amber-600">{overview.scriptsPending}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Scripts Pending</p>
+                <p className="text-2xl font-bold tabular-nums text-amber-600">{overview.scriptsPending}</p>
               </div>
-              <div className="dashboard-card rounded-xl p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Today Revenue</p>
-                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(revenue.today)}</p>
+              <div className="dashboard-card rounded-xl p-5 text-center">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Revenue</p>
+                <p className="text-2xl font-bold tabular-nums text-emerald-600">{formatCurrency(revenue.today)}</p>
               </div>
             </div>
 

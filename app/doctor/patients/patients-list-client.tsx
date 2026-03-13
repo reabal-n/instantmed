@@ -61,44 +61,44 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Patient Directory</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">View and manage all registered patients</p>
+        <p className="text-sm text-muted-foreground mt-1">View and manage all registered patients</p>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Total Patients</span>
-              <Users className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Patients</span>
+              <Users className="h-5 w-5 text-primary shrink-0" />
             </div>
-            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">{totalPatients}</div>
+            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">{totalPatients}</div>
           </CardContent>
         </Card>
 
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Onboarded</span>
-              <CheckCircle className="h-4 w-4 text-emerald-500" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Onboarded</span>
+              <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
             </div>
-            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">
+            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">
               {patients.filter((p) => p.onboarding_completed).length}
             </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
-              <XCircle className="h-4 w-4 text-dawn-500" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Incomplete</span>
+              <XCircle className="h-5 w-5 text-dawn-500 shrink-0" />
             </div>
-            <div className="mt-1 text-xl font-bold tabular-nums text-foreground">
+            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">
               {patients.filter((p) => !p.onboarding_completed).length}
             </div>
           </CardContent>
@@ -107,8 +107,8 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
       {/* Filters */}
       <Card className="rounded-xl border-border/50">
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <CardContent className="p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex-1 max-w-md">
               <Input
                 placeholder="Search by name, suburb, or phone..."
@@ -146,7 +146,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             </div>
           </div>
 
-          <div className="mt-3 text-sm text-muted-foreground">
+          <div className="mt-4 text-sm text-muted-foreground">
             Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
           </div>
         </CardContent>
@@ -154,7 +154,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
       {/* Table */}
       <Card className="rounded-xl border-border/50 overflow-hidden">
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -170,7 +170,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
             </TableHeader>
             <TableBody>
               {filteredPatients.length > 0 ? (
-                filteredPatients.map((patient, index) => {
+                filteredPatients.map((patient) => {
                   const age = calculateAge(patient.date_of_birth)
 
                   return (

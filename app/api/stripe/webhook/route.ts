@@ -71,6 +71,11 @@ async function legacyClaimEvent(
     requestId,
     sessionId,
   })
+  Sentry.captureMessage("Legacy Stripe webhook dedup path triggered", {
+    level: "warning",
+    tags: { source: "stripe-webhook", legacy_dedup: "true" },
+    extra: { eventId, eventType, requestId, sessionId },
+  })
 
   // Check if already processed
   const { data: existing } = await supabase

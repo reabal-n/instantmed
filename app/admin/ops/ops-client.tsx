@@ -113,14 +113,14 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="dashboard-card rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className={cn("p-2.5 rounded-lg", webhooks.failedCount > 0 ? "bg-red-50" : "bg-emerald-50")}>
+          <div className="dashboard-card rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-red-50" : "bg-emerald-50")}>
                 <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-red-600" : "text-emerald-600")} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Failed Webhooks</p>
-                <p className={cn("text-2xl font-semibold tracking-tight", webhooks.failedCount > 0 && "text-red-600")}>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Failed Webhooks</p>
+                <p className={cn("text-2xl font-bold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-red-600")}>
                   {webhooks.failedCount}
                 </p>
               </div>
@@ -132,15 +132,15 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className={cn("p-2.5 rounded-lg", emails.failed > 0 ? "bg-amber-50" : "bg-emerald-50")}>
+          <div className="dashboard-card rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", emails.failed > 0 ? "bg-amber-50" : "bg-emerald-50")}>
                 <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-amber-600" : "text-emerald-600")} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Email Success</p>
-                <p className="text-2xl font-semibold tracking-tight">{emails.successRate}%</p>
-                <p className="text-xs text-muted-foreground">{emails.total} sent today</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email Success</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{emails.successRate}%</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{emails.total} sent today</p>
               </div>
             </div>
             {emails.failed > 0 && (
@@ -150,14 +150,14 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className={cn("p-2.5 rounded-lg", staleIntakes > 0 ? "bg-amber-50" : "bg-emerald-50")}>
+          <div className="dashboard-card rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", staleIntakes > 0 ? "bg-amber-50" : "bg-emerald-50")}>
                 <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-amber-600" : "text-emerald-600")} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Stale Intakes</p>
-                <p className={cn("text-2xl font-semibold tracking-tight", staleIntakes > 0 && "text-amber-600")}>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stale Intakes</p>
+                <p className={cn("text-2xl font-bold tabular-nums mt-0.5", staleIntakes > 0 && "text-amber-600")}>
                   {staleIntakes}
                 </p>
                 <p className="text-xs text-muted-foreground">Awaiting 2h+</p>
@@ -170,14 +170,14 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-blue-50">
+          <div className="dashboard-card rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-blue-50 shrink-0">
                 <ScrollText className="h-5 w-5 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Audit Logs (24h)</p>
-                <p className="text-2xl font-semibold tracking-tight">{auditVolume.toLocaleString()}</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Audit Logs (24h)</p>
+                <p className="text-2xl font-bold tabular-nums mt-0.5">{auditVolume.toLocaleString()}</p>
               </div>
             </div>
             <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>

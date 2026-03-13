@@ -38,7 +38,7 @@ interface TelegramNotifyOptions {
   appUrl?: string
 }
 
-interface MedCertNotifyOptions extends TelegramNotifyOptions {
+interface _MedCertNotifyOptions extends TelegramNotifyOptions {
   certType?: string
   duration?: string
   startDate?: string
@@ -146,7 +146,7 @@ async function sendMedCertNotification(
         summary = "\n" + parts.join("\n")
       }
     }
-  } catch (err) {
+  } catch (_err) {
     log.warn("Failed to fetch intake answers for Telegram summary", { intakeId: opts.intakeId })
   }
 

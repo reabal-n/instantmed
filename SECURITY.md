@@ -53,7 +53,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `document_drafts` | `edited_content` | `edited_content_enc` | Migration only | ⏳ Column created, app-layer TBD |
 | `issued_certificates` | `patient_name` | `patient_name_enc` | `lib/data/issued-certificates.ts` | ✅ Dual-write + decrypt-on-read |
 
-**Known gap:** `atomicApproveCertificate()` PostgreSQL RPC writes `patient_name` directly in SQL. Adding `patient_name_enc` to the RPC requires a separate DB migration.
+**RPC:** `atomicApproveCertificate()` (migration `20260311014239`) writes both `patient_name` and `patient_name_enc` via `p_patient_name_enc` parameter. App layer uses `prepareCertificatePatientNameWrite()` before calling the RPC.
 
 ### Dual-Write Pattern
 
@@ -184,14 +184,21 @@ CSP violations reported to Sentry via `report-uri`.
 
 ## Rate Limiting
 
-**Backend:** Upstash Redis (production). Fallback: in-memory `Map` (100 actions/hour) if Redis unavailable. Implementation: `lib/security/rate-limit.ts`.
+**Two systems:**
 
-| Endpoint Category | Limit | Window |
-|-------------------|-------|--------|
-| Authentication | 10 requests | 15 minutes |
-| API (general) | 60 requests | 1 minute |
-| Sensitive operations | 5 requests | 1 minute |
-| AI endpoints | 20 requests | 1 minute |
+1. **General API** (`lib/rate-limit/redis.ts`): Upstash Redis. Fallback: **fail-open** (allow request) when Redis unavailable — intentional for serverless (in-memory Maps don't persist across invocations).
+
+2. **Doctor actions** (`lib/security/rate-limit.ts`): DB-backed sliding window. Fallback: in-memory `Map` with **half limits** when DB unavailable (per-instance, not shared).
+
+| Endpoint Category | Limit | Window | Module |
+|-------------------|-------|--------|--------|
+| Standard API | 100 requests | 1 minute | redis |
+| Authentication | 10 requests | 1 minute | redis |
+| Sensitive operations | 20 requests | 1 hour | redis |
+| AI endpoints | 20 requests | 1 hour | redis |
+| Doctor approval | 20 requests | 1 hour | security/rate-limit |
+| Doctor decline | 100 requests | 1 hour | security/rate-limit |
+| Certificate issue | 30 requests | 1 hour | security/rate-limit |
 
 Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
 

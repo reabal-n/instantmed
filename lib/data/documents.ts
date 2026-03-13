@@ -1,13 +1,10 @@
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import type { DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
 import {
   prepareDocumentDraftDataWrite,
   readDocumentDraftData,
 } from "@/lib/security/phi-field-wrappers"
-
-const logger = createLogger("documents")
 
 /**
  * Get today's date in AEST (YYYY-MM-DD).

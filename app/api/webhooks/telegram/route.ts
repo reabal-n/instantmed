@@ -142,8 +142,6 @@ export async function POST(req: Request) {
     })()
     const medicalReason = (answers.symptoms as string) || (answers.reason as string) || (answers.medical_reason as string) || "Unwell — unfit for usual duties"
 
-    const { approveAndSendCert } = await import("@/app/actions/approve-cert")
-
     // Temporarily set auth context for the server action
     // Since this is a webhook (no browser session), we call the underlying function directly
     const { approveMedCertDirect } = await import("@/lib/data/approve-direct")

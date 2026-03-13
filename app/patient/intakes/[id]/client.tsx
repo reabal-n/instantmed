@@ -94,13 +94,14 @@ function SubmittedAnswers({
   const isScript = serviceType.toLowerCase().includes("script") || serviceType.toLowerCase().includes("prescription") || answers.medication_name
   const isConsult = serviceType.toLowerCase().includes("consult") || answers.consult_reason
 
-  const displayFields = isMedCert ? medCertFields : isScript ? scriptFields : isConsult ? consultFields : []
+  type DisplayField = { keys: string[]; label: string }
+  const displayFields: DisplayField[] = isMedCert ? medCertFields : isScript ? scriptFields : isConsult ? consultFields : []
 
   // Build entries from curated fields only (no "remaining" — avoids duplicates and irrelevant consent/terms)
   const orderedEntries: Array<{ key: string; label: string; value: string }> = []
 
   for (const field of displayFields) {
-    const keys = "keys" in field ? field.keys : [field.key]
+    const keys = field.keys
     let value: unknown
     for (const k of keys) {
       value = (answers as Record<string, unknown>)[k]

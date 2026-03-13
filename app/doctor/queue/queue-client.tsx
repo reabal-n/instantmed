@@ -62,7 +62,7 @@ import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 
 export function QueueClient({
   intakes: initialIntakes,
-  doctorId,
+  doctorId: _doctorId,
   identityComplete = true,
   pagination,
 }: QueueClientProps) {
@@ -384,7 +384,7 @@ export function QueueClient({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Stale Data Warning */}
       {isStale && (
         <div
@@ -453,7 +453,7 @@ export function QueueClient({
               >
                 {/* Collapsed row */}
                 <CardHeader
-                  className="cursor-pointer hover:bg-muted/50 transition-colors py-2.5 px-3"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors py-4 px-5"
                   onClick={() => {
                     if (!isExpanded) {
                       capture("doctor_case_opened", {
@@ -532,7 +532,7 @@ export function QueueClient({
 
                 {/* Expanded — just link + actions, detailed review on the detail page */}
                 {isExpanded && (
-                  <CardContent className="pt-0 pb-3 px-3 space-y-2">
+                  <CardContent className="pt-0 pb-4 px-5 space-y-2">
                     <button
                       type="button"
                       onClick={() => openReviewPanel(intake.id)}

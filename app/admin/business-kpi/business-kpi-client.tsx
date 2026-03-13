@@ -124,12 +124,12 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
     : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
 
   return (
-    <div className="space-y-6 p-6">
+      <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Business KPI Dashboard</h1>
-          <p className="text-muted-foreground">Real-time telehealth launch metrics from Supabase</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Business KPI Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Real-time telehealth launch metrics from Supabase</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           {isRefreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -139,7 +139,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
       {/* Launch Readiness Scorecard */}
       <Card className={`border-2 ${readinessBg}`}>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4 px-6 pt-6">
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
             Launch Readiness
@@ -149,8 +149,8 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
           </CardTitle>
           <CardDescription>System health aggregation across 7 key indicators</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <CardContent className="px-6 pb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {Object.entries(data.launchReadiness.checks).map(([key, passed]) => (
               <div key={key} className="flex items-center gap-2 text-sm">
                 {passed ? (
@@ -168,14 +168,14 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
       </Card>
 
       {/* Primary KPIs - 4 columns */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {/* Revenue */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Revenue (30d)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{formatCurrency(data.revenue.thisMonth)}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               {data.revenue.weeklyTrend >= 0 ? (
@@ -196,11 +196,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Med Certs */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Med Certs Issued</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{data.certs.thisWeek}</div>
             <p className="text-xs text-muted-foreground mt-1">This week</p>
             <p className="text-xs text-muted-foreground">Today: {data.certs.today}</p>
@@ -209,11 +209,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Avg SLA */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Avg Payment to Delivery</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{formatMinutes(data.sla.avgMinutes)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.sla.breaches > 0 ? (
@@ -228,11 +228,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Doctor Utilization */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Doctor Utilization</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{data.doctors.utilizationRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.doctors.active} active doctor{data.doctors.active !== 1 ? "s" : ""}
@@ -243,14 +243,14 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
       </div>
 
       {/* Secondary KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {/* Email Delivery */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Email Delivery Rate</CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{data.email.deliveryRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.email.sentThisWeek} sent this week
@@ -263,11 +263,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Conversion Rate */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Intake → Payment Rate</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{data.funnel.conversionRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.funnel.paid} paid of {data.funnel.started} started (30d)
@@ -277,11 +277,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Refund Rate */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-5 pt-5">
             <CardTitle className="text-sm font-medium">Refund Rate</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             <div className="text-2xl font-bold">{data.refunds.rate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {formatCurrency(data.refunds.totalMonth)} refunded this month
@@ -294,13 +294,13 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Revenue Trend */}
         <Card>
-          <CardHeader>
+          <CardHeader className="px-6 pt-6">
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Daily Revenue (30 days)
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <div className="space-y-1">
               {data.revenue.daily.map((day) => {
                 const maxRevenue = Math.max(...data.revenue.daily.map(d => d.revenue), 1)
@@ -327,14 +327,14 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
         {/* Conversion Funnel */}
         <Card>
-          <CardHeader>
+          <CardHeader className="px-6 pt-6">
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
               Conversion Funnel (30 days)
             </CardTitle>
             <CardDescription>From page views to approved certificates</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <div className="space-y-4">
               {[
                 { step: "Page Views / Sessions", value: data.funnel.pageViews },
@@ -374,14 +374,14 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
 
       {/* Top Referral Sources */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
             Top Referral Sources (30 days)
           </CardTitle>
           <CardDescription>Where your paid intakes are coming from</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           {data.referrals.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">No UTM-tagged traffic recorded yet</p>
           ) : (
