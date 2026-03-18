@@ -9,8 +9,8 @@ import {
   AlertTriangle,
   Stethoscope,
   FileText,
-  Users,
-  Zap
+  Zap,
+  MapPin,
 } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -18,158 +18,166 @@ import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
+import {
+  getConditionLocationCombo,
+  getAllConditionLocationComboSlugs,
+} from "@/lib/seo/data/condition-location-combos"
 
-const conditions = conditionsData
+const CITY_DISPLAY_NAMES: Record<string, string> = {
+  sydney: "Sydney",
+  melbourne: "Melbourne",
+  brisbane: "Brisbane",
+  "gold-coast": "Gold Coast",
+}
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; city: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const condition = conditions[slug]
-  if (!condition) return {}
+  const { slug, city } = await params
+  const condition = conditionsData[slug]
+  const combo = getConditionLocationCombo(slug, city)
+  const cityName = CITY_DISPLAY_NAMES[city] ?? city
 
-  const title = `${condition.name} | Online Doctor Assessment | InstantMed`
-  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Fast, confidential telehealth.`
+  if (!condition || !combo) return {}
+
+  const title = `${condition.name} in ${cityName} | Medical Certificate Online | InstantMed`
+  const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment. From $19.95.`
 
   return {
     title,
     description,
     keywords: [
-      `${condition.name.toLowerCase()} medical certificate`,
-      `${condition.name.toLowerCase()} doctor online`,
-      `${condition.name.toLowerCase()} telehealth`,
-      `${condition.name.toLowerCase()} treatment`,
-      `${condition.name.toLowerCase()} symptoms`,
+      `${condition.name.toLowerCase()} ${cityName.toLowerCase()}`,
+      `medical certificate ${cityName.toLowerCase()}`,
+      `${condition.name.toLowerCase()} certificate online`,
     ],
     openGraph: {
-      title: `${condition.name} - Online Doctor Assessment | InstantMed`,
-      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Australian doctors available now.`,
-      url: `https://instantmed.com.au/conditions/${slug}`,
+      title: `${condition.name} in ${cityName} | InstantMed`,
+      description: `Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment.`,
+      url: `https://instantmed.com.au/conditions/${slug}/${city}`,
     },
     alternates: {
-      canonical: `https://instantmed.com.au/conditions/${slug}`,
+      canonical: `https://instantmed.com.au/conditions/${slug}/${city}`,
     },
   }
 }
 
 export async function generateStaticParams() {
-  return Object.keys(conditions).map((slug) => ({ slug }))
+  return getAllConditionLocationComboSlugs().map(({ slug, city }) => ({
+    slug,
+    city,
+  }))
 }
 
-export default async function ConditionPage({ params }: PageProps) {
-  const { slug } = await params
-  const condition = conditions[slug]
+export default async function ConditionLocationPage({ params }: PageProps) {
+  const { slug, city } = await params
+  const condition = conditionsData[slug]
+  const combo = getConditionLocationCombo(slug, city)
+  const cityName = CITY_DISPLAY_NAMES[city] ?? city
 
-  if (!condition) {
+  if (!condition || !combo) {
     notFound()
   }
 
-  // Transform FAQs for schema
-  const faqSchemaData = condition.commonQuestions.map(faq => ({
+  // Merge condition FAQs with local FAQs (local first for relevance)
+  const allFaqs = [...combo.localFaqs, ...condition.commonQuestions]
+  const faqSchemaData = allFaqs.map((faq) => ({
     question: faq.q,
-    answer: faq.a
+    answer: faq.a,
   }))
+
+  const baseUrl = "https://instantmed.com.au"
 
   return (
     <>
-      {/* SEO Structured Data */}
       <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Conditions", url: "https://instantmed.com.au/conditions" },
-          { name: condition.name, url: `https://instantmed.com.au/conditions/${slug}` }
-        ]} 
+          { name: "Home", url: baseUrl },
+          { name: "Conditions", url: `${baseUrl}/conditions` },
+          { name: condition.name, url: `${baseUrl}/conditions/${slug}` },
+          { name: cityName, url: `${baseUrl}/conditions/${slug}/${city}` },
+        ]}
       />
 
-      <div className="flex min-h-screen flex-col bg-gradient-to-b from-muted/50 to-white dark:from-background dark:to-background">
+      <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
-          {/* Breadcrumbs */}
           <div className="px-4 pt-6">
             <div className="mx-auto max-w-4xl">
               <PageBreadcrumbs
                 links={[
                   { label: "Conditions", href: "/conditions" },
-                  { label: condition.name }
+                  { label: condition.name, href: `/conditions/${slug}` },
+                  { label: cityName },
                 ]}
                 showHome
               />
             </div>
           </div>
 
-          {/* Hero Section */}
+          {/* Hero with local angle */}
           <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
-            {/* Background decoration */}
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
-              {/* Trust indicators */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-6">
+                <MapPin className="h-4 w-4" />
+                {condition.name} in {cityName}
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight">
+                {condition.name} in {cityName}
+              </h1>
+
+              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                {combo.localIntro}
+              </p>
+
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                   <Shield className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">AHPRA Registered Doctors</span>
+                  <span className="text-sm font-medium">AHPRA Registered</span>
                 </div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                   <Clock className="w-4 h-4 text-emerald-600" />
-                  <span className="text-sm font-medium">Avg. {condition.stats.avgTime} response</span>
+                  <span className="text-sm font-medium">~{condition.stats.avgTime} response</span>
                 </div>
               </div>
 
-              {/* Main heading */}
-              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
-                {condition.name}
-              </h1>
-
-              <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-8 leading-relaxed">
-                {condition.description}
-              </p>
-
-              {/* Primary CTA */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-                <Button asChild size="lg" className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-primary/25"
+                >
                   <Link href={condition.ctaHref}>
                     {condition.ctaText}
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <p className="text-sm text-muted-foreground">
-                  From $19.95 · No appointment needed
-                </p>
-              </div>
-
-              {/* Social proof */}
-              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span>AHPRA-registered doctors</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-emerald-600" />
-                  <span>Response in ~{condition.stats.avgTime}</span>
-                </div>
+                <p className="text-sm text-muted-foreground">From $19.95 · No appointment needed</p>
               </div>
             </div>
           </section>
 
-          {/* Symptoms Section */}
+          {/* Symptoms */}
           <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
               </h2>
-
               <div className="grid sm:grid-cols-2 gap-4">
                 {condition.symptoms.map((symptom, i) => (
-                  <div 
+                  <div
                     key={i}
-                    className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
+                    className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -181,15 +189,13 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Can We Help Section */}
+          {/* Can We Help */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 How We Can Help
               </h2>
-
               <div className="grid md:grid-cols-2 gap-6">
-                {/* What we can help with */}
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" />
@@ -197,15 +203,16 @@ export default async function ConditionPage({ params }: PageProps) {
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.yes.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300">
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300"
+                      >
                         <CheckCircle2 className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-
-                {/* What needs in-person care */}
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
                   <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
@@ -213,7 +220,10 @@ export default async function ConditionPage({ params }: PageProps) {
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.no.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-amber-700 dark:text-amber-300"
+                      >
                         <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -224,11 +234,10 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* When to Seek Help */}
+          {/* When to Seek / Emergency */}
           <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
-                {/* When to see a doctor */}
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-primary" />
@@ -245,8 +254,6 @@ export default async function ConditionPage({ params }: PageProps) {
                     ))}
                   </ul>
                 </div>
-
-                {/* Emergency warning */}
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -255,7 +262,10 @@ export default async function ConditionPage({ params }: PageProps) {
                   <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
                     <ul className="space-y-3">
                       {condition.whenEmergency.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-red-700 dark:text-red-300">
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-red-700 dark:text-red-300"
+                        >
                           <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                           <span>{item}</span>
                         </li>
@@ -272,18 +282,17 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* FAQ Section */}
+          {/* FAQ */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-                Common Questions About {condition.name}
+                Common Questions About {condition.name} in {cityName}
               </h2>
-
               <div className="space-y-4">
-                {condition.commonQuestions.map((faq, i) => (
-                  <div 
+                {allFaqs.map((faq, i) => (
+                  <div
                     key={i}
-                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl p-6"
+                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.a}</p>
@@ -293,26 +302,28 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Final CTA Section */}
-          <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">
+          {/* Final CTA */}
+          <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold text-foreground mb-4">
-                Ready to get help?
+                Ready to get help in {cityName}?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Our Australian-registered doctors are available now. Most consultations completed within an hour.
+                Our Australian-registered doctors are available now. Most consultations completed
+                within an hour.
               </p>
-
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" className="h-14 px-10 text-base font-semibold rounded-full shadow-lg shadow-primary/25">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 px-10 text-base font-semibold rounded-full shadow-lg shadow-primary/25"
+                >
                   <Link href={condition.ctaHref}>
                     {condition.ctaText}
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
               </div>
-
-              {/* Trust signals */}
               <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-primary" />

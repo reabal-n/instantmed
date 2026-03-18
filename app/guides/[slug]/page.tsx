@@ -277,7 +277,298 @@ const guides: Record<string, {
       href: "/request",
       subtext: "Australian doctors · Fast response · From $19.95"
     }
-  }
+  },
+  "medical-certificate-centrelink": {
+    title: "How to Get a Medical Certificate for Centrelink",
+    slug: "medical-certificate-centrelink",
+    description: "Need a medical certificate for Centrelink or a government agency? Learn what's required, how to get one, and what doctors can certify.",
+    lastUpdated: "January 2025",
+    readTime: "5 min read",
+    intro: "Centrelink and other government agencies sometimes require medical certificates to support claims for payments, exemptions, or participation requirements. This guide explains what you need and how to get a certificate that meets government requirements.",
+    steps: [
+      {
+        title: "Check what Centrelink requires",
+        content: "Centrelink's requirements vary depending on your situation — JobSeeker participation requirements, Disability Support Pension, Carer Payment, or other claims. The certificate may need to specify your condition, how it affects your capacity, and the period it applies to. Check your Centrelink correspondence or the Services Australia website for specific requirements.",
+        tips: ["Requirements differ by payment type", "Some forms need a specific format", "Centrelink may have their own certificate template"]
+      },
+      {
+        title: "See a doctor who can assess your condition",
+        content: "You need a registered Australian doctor who has assessed your condition. For some Centrelink requirements, a telehealth doctor can provide a certificate if they've reviewed your situation. For ongoing conditions or complex claims, Centrelink may prefer or require a doctor who knows your history.",
+        tips: ["Telehealth may be suitable for straightforward certificates", "Complex claims may need your regular GP", "The doctor must have assessed you — they can't certify conditions they haven't reviewed"]
+      },
+      {
+        title: "Provide the certificate to Centrelink",
+        content: "Centrelink accepts certificates via their app, online services, or in person. Upload a clear copy or photo of the certificate. Keep the original for your records. Submit before any deadlines — late certificates can affect your payments.",
+        tips: ["Use the Centrelink app for quick upload", "Keep a copy for your records", "Note any reference numbers Centrelink provides"]
+      }
+    ],
+    importantNotes: [
+      "Centrelink requirements can change — always check current requirements",
+      "Certificates must be from a doctor who has assessed you",
+      "Backdating has limits — doctors can only certify what they've assessed",
+      "For DSP or complex claims, Centrelink may request additional evidence"
+    ],
+    faqs: [
+      { q: "Can I get a Centrelink medical certificate online?", a: "Yes, for many situations. If a telehealth doctor can assess your condition and provide an appropriate certificate, it will be valid. Some complex claims may need in-person assessment." },
+      { q: "What if Centrelink rejects my certificate?", a: "Centrelink may reject certificates that don't meet their requirements (e.g. wrong format, missing information). Check their feedback and get a new certificate if needed. Your doctor can help ensure it meets requirements." },
+      { q: "How long is a Centrelink medical certificate valid?", a: "It depends on your situation. Some certificates cover a specific period (e.g. 2 weeks). For ongoing conditions, Centrelink may accept certificates covering longer periods. Check your specific requirements." }
+    ],
+    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: "From $19.95 · Australian doctors" }
+  },
+  "when-to-use-telehealth": {
+    title: "When to Use Telehealth vs See a Doctor In Person",
+    slug: "when-to-use-telehealth",
+    description: "Not sure if telehealth is right for your situation? Learn when online consultations work well and when you need to see a doctor in person.",
+    lastUpdated: "January 2025",
+    readTime: "6 min read",
+    intro: "Telehealth has expanded healthcare access, but it's not right for every situation. Understanding when to use telehealth versus when to see a doctor in person helps you get the right care efficiently.",
+    steps: [
+      {
+        title: "Telehealth works well for",
+        content: "Medical certificates, repeat prescriptions for stable conditions, straightforward UTIs, cold and flu advice, mental health support, skin conditions (with photos), travel health advice, and simple referrals. These don't typically require physical examination.",
+        tips: ["Convenience and speed are key benefits", "Good when you know what you need", "Saves time and travel"]
+      },
+      {
+        title: "You need in-person care when",
+        content: "You have symptoms that need physical examination (e.g. abdominal pain, ear pain, breathing difficulties), you need blood tests or procedures, you're starting a new medication that requires monitoring, you have an emergency, or you need a comprehensive health check. A telehealth doctor will tell you if you need to be seen in person.",
+        tips: ["When in doubt, telehealth can triage", "Ear and abdominal issues often need examination", "Emergencies always need 000 or ED"]
+      },
+      {
+        title: "The grey areas",
+        content: "Some situations could go either way. A telehealth doctor can assess and decide. For example, a rash might be assessable via photos, or it might need in-person examination. Chest pain could be anxiety (telehealth OK for follow-up) or something serious (needs emergency care). When there's uncertainty, a good telehealth service will err on the side of caution.",
+        tips: ["Telehealth can be a useful first step", "Doctors will refer when needed", "Don't use telehealth for clear emergencies"]
+      }
+    ],
+    importantNotes: [
+      "Never use telehealth for emergencies — call 000",
+      "Telehealth doctors will tell you if you need in-person care",
+      "You can use both — telehealth for convenience, GP for ongoing care",
+      "When unsure, start with telehealth — they'll guide you"
+    ],
+    faqs: [
+      { q: "Can a telehealth doctor refuse to help?", a: "Yes. If they think you need in-person care, they'll explain why and may decline to treat. This is good clinical practice — they're protecting your safety." },
+      { q: "What if I start with telehealth and need more?", a: "The doctor will advise. You might need a referral, to see your GP, or to go to emergency. Telehealth is often a useful first step that can save you an unnecessary trip." },
+      { q: "Is telehealth good for children?", a: "Some conditions yes, some no. Children under 12 often need in-person assessment. Check with the telehealth service — many have age restrictions for safety." }
+    ],
+    cta: { text: "Try telehealth", href: "/request", subtext: "Australian doctors · See if we can help" }
+  },
+  "how-to-get-repeat-prescription-online": {
+    title: "How to Get a Repeat Prescription Online in Australia",
+    slug: "how-to-get-repeat-prescription-online",
+    description: "Need a repeat prescription but can't get to your GP? Learn how to get prescriptions renewed online in Australia.",
+    lastUpdated: "March 2026",
+    readTime: "5 min read",
+    intro: "Repeat prescriptions for stable conditions can often be renewed via telehealth. If you're running low on medication and can't get a GP appointment, online services may be able to help — as long as your condition is suitable for remote assessment.",
+    steps: [
+      {
+        title: "Check if your medication can be prescribed online",
+        content: "Many common medications can be prescribed via telehealth: blood pressure meds, cholesterol drugs, contraceptives, asthma preventers, and some antibiotics. Schedule 8 drugs (opioids, stimulants) cannot be prescribed online. Some medications need recent blood tests or in-person review.",
+        tips: ["Most S4 medications can be prescribed online", "Schedule 8 always requires in-person", "Check the telehealth service's medication list"]
+      },
+      {
+        title: "Gather your information",
+        content: "You'll need to provide your current medication name, dose, how long you've been taking it, and who prescribed it. For some medications, recent blood pressure readings or other monitoring may be required. Have your Medicare card ready if the service bulk bills.",
+        tips: ["Know your exact medication and dose", "Have your last prescription or pharmacy record", "Some services need a brief health questionnaire"]
+      },
+      {
+        title: "Request your prescription",
+        content: "Complete the online form or consultation. The doctor will review your history and, if appropriate, issue an eScript. You'll receive a QR code or token via SMS to take to any pharmacy. The pharmacy dispenses your medication — same as a paper script.",
+        tips: ["eScripts work at any Australian pharmacy", "No need to collect a paper script", "Keep the SMS until you've collected your medication"]
+      }
+    ],
+    importantNotes: [
+      "Not all medications can be prescribed online — check first",
+      "You may need to see your regular GP for some repeats",
+      "eScripts are legally equivalent to paper prescriptions",
+      "Schedule 8 drugs require in-person assessment"
+    ],
+    faqs: [
+      { q: "Can I get any repeat prescription online?", a: "No. Schedule 8 drugs, some psychiatric medications, and medications requiring monitoring typically need in-person review. Common S4 medications are often available." },
+      { q: "How do eScripts work?", a: "You receive a QR code or token via SMS. Take it to any pharmacy — they scan it and dispense your medication. No paper needed." },
+      { q: "Will my regular GP know?", a: "Only if you or the telehealth service shares the information. For continuity, consider asking for a summary to be sent to your GP." }
+    ],
+    cta: { text: "Request a repeat prescription", href: "/prescriptions", subtext: "From $29.95 · eScript to your phone" }
+  },
+  "medical-certificate-for-carers-leave": {
+    title: "How to Get a Medical Certificate for Carer's Leave",
+    slug: "medical-certificate-for-carers-leave",
+    description: "Need to document carer's leave for work? Learn how to get a medical certificate when caring for a sick family member.",
+    lastUpdated: "March 2026",
+    readTime: "4 min read",
+    intro: "Carer's leave allows you to take time off to care for a sick family member or dependant. Some employers require a medical certificate to approve it. This guide explains how to get one and what it should include.",
+    steps: [
+      {
+        title: "Understand carer's leave entitlements",
+        content: "Under the Fair Work Act, you're entitled to carer's leave (from your personal/carer's leave balance) when you need to care for an immediate family or household member who is ill. This is separate from your own sick leave.",
+        tips: ["Usually 10 days per year for full-time employees", "Covers children, spouse, parents, household members", "Same leave balance as personal sick leave"]
+      },
+      {
+        title: "Get a certificate if your employer requires one",
+        content: "A carer's leave certificate documents that the person you were caring for needed care — not that you were sick. You describe the situation (e.g. your child had gastro) and the doctor issues a certificate. Telehealth can assess and issue without you leaving the person you're caring for.",
+        tips: ["Certificate states the person needed care", "Doesn't disclose their diagnosis unless necessary", "Can often be done via telehealth"]
+      },
+      {
+        title: "Submit to your employer",
+        content: "Forward the certificate to HR or your manager. Carer's leave is a protected entitlement — your employer cannot unreasonably refuse it when properly documented.",
+        tips: ["Submit promptly", "Keep a copy for your records", "Check your workplace policy for any specific requirements"]
+      }
+    ],
+    importantNotes: [
+      "Carer's leave is a legal entitlement",
+      "The certificate documents the care recipient's need, not your illness",
+      "Telehealth is useful when you can't leave the person you're caring for"
+    ],
+    faqs: [
+      { q: "Can I get a carer's leave certificate online?", a: "Yes. You describe who needed care and their situation. The doctor assesses and can issue a certificate. Useful when you can't leave to see a GP." },
+      { q: "What if my child is the one who's sick?", a: "Same process. You complete the form on their behalf. The certificate documents that they needed care, supporting your carer's leave." },
+      { q: "Do I need to say what was wrong with them?", a: "The certificate typically states that the person needed care. Specific diagnosis may or may not be included — the doctor will include what's appropriate." }
+    ],
+    cta: { text: "Get a carer's leave certificate", href: "/medical-certificate/carer", subtext: "From $19.95 · No need to leave home" }
+  },
+  "telehealth-first-time-guide": {
+    title: "Telehealth First Time: A Complete Guide for Australians",
+    slug: "telehealth-first-time-guide",
+    description: "Never used telehealth before? This guide walks you through your first online doctor consultation step by step.",
+    lastUpdated: "March 2026",
+    readTime: "5 min read",
+    intro: "Telehealth — seeing a doctor online — has become common in Australia. If you haven't tried it yet, this guide explains what to expect, how to prepare, and what you can get from your first consultation.",
+    steps: [
+      {
+        title: "Choose a telehealth service",
+        content: "Look for services with AHPRA-registered doctors, clear pricing, and good reviews. Check what they offer — medical certificates, prescriptions, or general consultations. Some specialise; others offer a range of services.",
+        tips: ["Verify doctors are AHPRA-registered", "Check operating hours", "Understand the fees before you start"]
+      },
+      {
+        title: "Prepare for your consultation",
+        content: "Have your Medicare card (if applicable), a list of your symptoms or what you need, current medications, and any relevant history. Find a quiet, private space. Ensure your device has charge and internet.",
+        tips: ["Write down your symptoms beforehand", "Have your pharmacy details if you need a script", "Be in a place where you can speak or type freely"]
+      },
+      {
+        title: "Complete the consultation",
+        content: "Many services use a questionnaire rather than video. You describe your situation, and the doctor reviews it. They may ask follow-up questions or request a brief call. The process typically takes 15-60 minutes from submission to outcome.",
+        tips: ["Be honest and thorough", "Answer follow-up questions promptly", "You may get a prescription, certificate, or advice to see someone in person"]
+      }
+    ],
+    importantNotes: [
+      "Not all conditions can be assessed online — the doctor will advise",
+      "Telehealth is legally equivalent to in-person for appropriate conditions",
+      "Your privacy is protected by the same laws as in-person care"
+    ],
+    faqs: [
+      { q: "Do I need a video call?", a: "Not always. Many services use questionnaires with optional phone follow-up. Check the service's process." },
+      { q: "What if the doctor can't help online?", a: "They'll advise you to see a GP in person. You typically won't be charged the full fee if they can't assist." },
+      { q: "Is my information secure?", a: "Reputable services use encrypted systems and comply with Australian privacy law. Your information isn't shared with employers or insurers." }
+    ],
+    cta: { text: "Try your first telehealth consultation", href: "/request", subtext: "Australian doctors · From $19.95" }
+  },
+  "how-to-claim-medicare-rebate-telehealth": {
+    title: "How to Claim a Medicare Rebate for Telehealth",
+    slug: "how-to-claim-medicare-rebate-telehealth",
+    description: "Can you claim Medicare for telehealth? Learn how rebates work for online doctor consultations in Australia.",
+    lastUpdated: "March 2026",
+    readTime: "4 min read",
+    intro: "Medicare rebates for telehealth depend on the service and your situation. Bulk-billed telehealth is free; private services may allow you to claim a rebate. This guide explains how it works.",
+    steps: [
+      {
+        title: "Understand bulk billing vs private",
+        content: "Bulk-billed telehealth means the provider claims Medicare directly — you pay nothing. Private telehealth services charge a fee; some allow you to claim a rebate (you pay upfront, then get a partial refund from Medicare).",
+        tips: ["Bulk billing = no out-of-pocket", "Private = pay then claim", "Rebate amount depends on the consultation type"]
+      },
+      {
+        title: "Check if you can claim",
+        content: "To claim a Medicare rebate, you need a valid Medicare card and the consultation must meet Medicare's requirements. Some telehealth services don't offer rebates — they're private only. Check before you book.",
+        tips: ["You need a Medicare card", "Not all services offer rebates", "The service will advise if you can claim"]
+      },
+      {
+        title: "Submit your claim",
+        content: "If the service doesn't process claims directly, you'll receive an invoice. Use the Medicare app or visit a Medicare office to claim. You'll need the invoice with the provider number and item numbers.",
+        tips: ["Medicare app is the easiest way to claim", "Keep your invoice", "Rebates typically arrive within a few days"]
+      }
+    ],
+    importantNotes: [
+      "Bulk billing availability has decreased — many services are private",
+      "Private doesn't mean you can't claim — check with the service",
+      "Rebate amounts are set by Medicare, not the provider"
+    ],
+    faqs: [
+      { q: "How much can I claim back?", a: "It depends on the consultation type. Standard GP consultations have a set rebate (around $40-50). The service can advise the item number and expected rebate." },
+      { q: "Can I claim for medical certificates?", a: "If the service bulk bills or allows claims, yes. The consultation is the same whether you get a certificate or not." },
+      { q: "What if I don't have Medicare?", a: "You'll pay the full private fee. Some visitors and new residents may not yet have Medicare — check your eligibility." }
+    ],
+    cta: { text: "See our pricing", href: "/pricing", subtext: "Transparent fees · No surprises" }
+  },
+  "medical-certificate-employer-requirements": {
+    title: "What Employers Can and Can't Ask For in a Medical Certificate",
+    slug: "medical-certificate-employer-requirements",
+    description: "Understanding your rights: what employers can request in a medical certificate and what they cannot demand.",
+    lastUpdated: "March 2026",
+    readTime: "5 min read",
+    intro: "Employers can request evidence when you take sick leave, but there are limits. This guide explains what they can ask for, what you're required to provide, and your privacy rights.",
+    steps: [
+      {
+        title: "What employers can request",
+        content: "Under the Fair Work Act, employers can request evidence that you were unfit for work. A medical certificate from a registered practitioner is sufficient. It typically needs to state the dates you were unfit — it does NOT need to disclose your diagnosis.",
+        tips: ["Certificate confirms unfitness", "Dates are usually required", "Diagnosis is private"]
+      },
+      {
+        title: "What employers cannot demand",
+        content: "Employers cannot demand to know your specific diagnosis, require you to see a particular doctor, or ask for more than reasonable evidence. They cannot require a certificate for every single day of absence if you have one covering the period.",
+        tips: ["Your diagnosis is private", "You choose your doctor", "One certificate can cover multiple days"]
+      },
+      {
+        title: "If you feel your rights are being violated",
+        content: "If you believe your employer is unreasonably demanding private medical information or refusing your valid certificate, you can contact the Fair Work Ombudsman for advice. Your union (if you have one) can also help.",
+        tips: ["Fair Work provides free advice", "Document any unreasonable requests", "Keep copies of your certificates"]
+      }
+    ],
+    importantNotes: [
+      "A medical certificate confirms unfitness — it doesn't need diagnosis details",
+      "Employers must accept valid certificates from registered doctors",
+      "You have a right to medical privacy"
+    ],
+    faqs: [
+      { q: "Can my employer reject my medical certificate?", a: "Generally no, if it's from a registered doctor and covers the relevant dates. They can't reject it because it's from telehealth." },
+      { q: "Do I have to tell my employer why I'm sick?", a: "No. You only need to provide a certificate stating you were unfit. The certificate doesn't need to specify your condition." },
+      { q: "Can they ask for a certificate from day one?", a: "Employers can have policies requiring certificates from the first day. Check your employment contract or workplace policy." }
+    ],
+    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: "From $19.95 · Valid for all employers" }
+  },
+  "escript-vs-paper-prescription": {
+    title: "eScript vs Paper Prescription: What's the Difference?",
+    slug: "escript-vs-paper-prescription",
+    description: "eScripts are replacing paper prescriptions in Australia. Learn how they work and why they're often more convenient.",
+    lastUpdated: "March 2026",
+    readTime: "4 min read",
+    intro: "Electronic prescriptions (eScripts) have become the standard in Australia. Instead of a paper script, you receive a QR code or token on your phone. Here's how they compare to the old paper system.",
+    steps: [
+      {
+        title: "How eScripts work",
+        content: "When a doctor prescribes medication, they can send an eScript to your phone via SMS or through an app. You get a QR code or token. Take it to any pharmacy — they scan it and dispense your medication. No paper to lose or forget.",
+        tips: ["Works at any pharmacy in Australia", "Can be resent if you lose it", "Repeats can be in the same token"]
+      },
+      {
+        title: "Advantages over paper",
+        content: "eScripts can't be lost or damaged. You can have them resent. They work with telehealth — no need to collect a paper script. Repeats can be included in one token. They're accepted everywhere.",
+        tips: ["No lost prescriptions", "Perfect for telehealth", "Same legal standing as paper"]
+      },
+      {
+        title: "When you might still get paper",
+        content: "Some older systems or specific situations may still use paper. But for most Australians, eScripts are the norm. If you prefer paper, ask your doctor — but eScripts are usually more convenient.",
+        tips: ["Most scripts are now electronic", "Paper is still valid if issued", "Pharmacies accept both"]
+      }
+    ],
+    importantNotes: [
+      "eScripts are legally equivalent to paper prescriptions",
+      "All Australian pharmacies can dispense from eScripts",
+      "You don't need a smartphone — the token can be printed"
+    ],
+    faqs: [
+      { q: "Do all pharmacies accept eScripts?", a: "Yes. eScripts are the standard. Any pharmacy can scan the QR code or enter the token." },
+      { q: "What if I lose my eScript?", a: "Contact your doctor or the service that issued it. They can resend it. One advantage of eScripts — they're digital and resendable." },
+      { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked in." }
+    ],
+    cta: { text: "Get an eScript", href: "/prescriptions", subtext: "Prescriptions sent to your phone" }
+  },
 }
 
 interface PageProps {

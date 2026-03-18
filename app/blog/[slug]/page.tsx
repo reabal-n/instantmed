@@ -119,23 +119,38 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
   // Check new article system first
   const article = getArticleBySlug(slug)
   if (article) {
+    const ogImage = article.heroImage.startsWith("http")
+      ? article.heroImage
+      : `${baseUrl}${article.heroImage.startsWith("/") ? "" : "/"}${article.heroImage}`
     return {
       title: article.seo.title,
       description: article.seo.description,
       keywords: article.seo.keywords,
+      robots: { index: true, follow: true },
       openGraph: {
         title: article.title,
         description: article.excerpt,
         type: "article",
+        url: `${baseUrl}/blog/${slug}`,
         publishedTime: article.publishedAt,
         modifiedTime: article.updatedAt,
         authors: [article.author.name],
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: article.heroImageAlt || article.title,
+          },
+        ],
       },
       alternates: {
-        canonical: `https://instantmed.com.au/blog/${slug}`,
+        canonical: `${baseUrl}/blog/${slug}`,
       },
     }
   }
@@ -144,15 +159,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = legacyPosts[slug]
   if (!post) return {}
 
+  const legacyOgImage = post.image.startsWith("http")
+    ? post.image
+    : `${baseUrl}${post.image.startsWith("/") ? "" : "/"}${post.image}`
+
   return {
     title: `${post.title} | InstantMed Blog`,
     description: post.excerpt,
+    robots: { index: true, follow: true },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
+      url: `${baseUrl}/blog/${slug}`,
       publishedTime: post.date,
       authors: [post.author],
+      images: [
+        {
+          url: legacyOgImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    alternates: {
+      canonical: `${baseUrl}/blog/${slug}`,
     },
   }
 }
@@ -189,6 +221,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       'online-prescription-australia',
       'repeat-prescription-online',
       'same-day-medical-certificate',
+      'same-day-medical-certificate-fast',
       'sick-leave-certificate-online-australia',
       'repeat-prescription-online-australia',
       'online-doctor-certificate-for-work',

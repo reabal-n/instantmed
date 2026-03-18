@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next"
 import { allArticles } from "@/lib/blog/articles"
+import { getAllIntentSlugs } from "@/lib/seo/intents"
+import { getAllConditionSlugs } from "@/lib/seo/data/conditions"
+import { getAllConditionLocationComboSlugs } from "@/lib/seo/data/condition-location-combos"
+import { getAllGuideSlugs } from "@/lib/seo/data/guides"
+import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons"
 
 // Build-time date for consistent lastModified values
 // This is set once at build time, not on every request
@@ -27,6 +32,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/trust",
     "/blog",
     "/locations",
+    // Hub pages for SEO category discovery
+    "/guides",
+    "/compare",
+    "/conditions",
+    "/symptoms",
+    "/for",
+    "/intent",
   ]
 
   // ============================================
@@ -52,6 +64,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/medical-certificate/school",
     "/medical-certificate/return-to-work",
     "/medical-certificate/employer-acceptance",
+    "/medical-certificate/centrelink",
+    "/medical-certificate/jury-duty",
   ]
 
   // ============================================
@@ -67,11 +81,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "wollongong",
     "wagga-wagga",
     "albury-wodonga",
+    "central-coast",
+    "penrith",
+    "port-macquarie",
+    "coffs-harbour",
+    "orange",
+    "dubbo",
     // VIC
     "melbourne",
     "geelong",
     "ballarat",
     "bendigo",
+    "mildura",
+    "shepparton",
     // QLD
     "brisbane",
     "gold-coast",
@@ -82,17 +104,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "mackay",
     "rockhampton",
     "hervey-bay",
+    "ipswich",
+    "gladstone",
+    "bundaberg",
     // WA
     "perth",
     "fremantle",
     "bunbury",
     // SA
     "adelaide",
+    "mount-gambier",
+    "port-augusta",
     // TAS
     "hobart",
     "launceston",
     // NT
     "darwin",
+    "alice-springs",
     // ACT
     "canberra",
   ]
@@ -101,16 +129,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // CONDITION PAGES (Priority 0.7)
   // Health condition landing pages for SEO
   // ============================================
-  const conditionSlugs = [
-    "cold-and-flu",
-    "gastro",
-    "back-pain",
-    "migraine",
-    "anxiety",
-    "uti",
-    "skin-rash",
-    "insomnia",
-  ]
+  const conditionSlugs = getAllConditionSlugs()
 
   // ============================================
   // SYMPTOM PAGES (Priority 0.7)
@@ -122,27 +141,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "fatigue",
     "cough",
     "fever",
+    "burning-when-urinating",
+    "hair-thinning",
+    "chest-pain",
+    "frequent-urination",
+    "nausea",
+    "dizziness",
+    "runny-nose",
+    "body-aches",
+    "shortness-of-breath",
+    "stomach-pain",
+    "neck-pain",
+    "bloating",
+    "earache",
+    "itching",
   ]
 
   // ============================================
   // GUIDE PAGES (Priority 0.7)
   // How-to guides for high-intent traffic
   // ============================================
-  const guideSlugs = [
-    "how-to-get-medical-certificate-for-work",
-    "how-to-get-sick-note-for-uni",
-    "telehealth-guide-australia",
-  ]
+  const guideSlugs = getAllGuideSlugs()
 
   // ============================================
   // COMPARISON PAGES (Priority 0.7)
   // Telehealth vs alternatives comparisons
   // ============================================
-  const comparisonSlugs = [
-    "telehealth-vs-gp",
-    "online-medical-certificate-options",
-    "waiting-room-vs-telehealth",
-  ]
+  const comparisonSlugs = getAllComparisonSlugs()
 
   // ============================================
   // BLOG POSTS (Priority 0.6)
@@ -161,7 +186,57 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // AUDIENCE SEGMENT PAGES (Priority 0.6)
   // "/for/[audience]" pages targeting specific user groups
   // ============================================
-  const audiencePages = ["students", "tradies", "corporate", "shift-workers"]
+  const audiencePages = [
+    "students",
+    "tradies",
+    "corporate",
+    "shift-workers",
+    "nurses",
+    "teachers",
+    "hospitality",
+    "retail",
+    "office-workers",
+    "parents",
+    "remote-workers",
+    "gig-workers",
+  ]
+
+  // ============================================
+  // INTENT PAGES (Priority 0.7)
+  // High-intent search queries (same-day-medical-certificate, uti-treatment-online, etc.)
+  // ============================================
+  const intentSlugs = getAllIntentSlugs()
+
+  // ============================================
+  // MEDICATION PAGES (Priority 0.6)
+  // Educational medication information
+  // ============================================
+  const medicationSlugs = [
+    "amoxicillin",
+    "metformin",
+    "sildenafil",
+    "trimethoprim",
+    "doxycycline",
+    "sertraline",
+    "pantoprazole",
+    "omeprazole",
+    "azithromycin",
+    "citalopram",
+    "escitalopram",
+    "fluoxetine",
+    "loratadine",
+    "cetirizine",
+    "salbutamol",
+    "prednisolone",
+    "naproxen",
+    "diclofenac",
+    "famotidine",
+    "amoxicillin-clavulanate",
+    "cephalexin",
+    "gabapentin",
+    "propranolol",
+    "oral-contraceptive",
+  ]
 
   // ============================================
   // BUILD ROUTES
@@ -250,6 +325,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
+  const intentRoutes = intentSlugs.map((slug) => ({
+    url: `${baseUrl}/intent/${slug}`,
+    lastModified: BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }))
+
+  const medicationRoutes = medicationSlugs.map((slug) => ({
+    url: `${baseUrl}/medications/${slug}`,
+    lastModified: BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }))
+
+  // Condition + location combo pages (e.g. /conditions/cold-and-flu/sydney)
+  const conditionLocationCombos = getAllConditionLocationComboSlugs()
+  const conditionLocationRoutes = conditionLocationCombos.map(({ slug, city }) => ({
+    url: `${baseUrl}/conditions/${slug}/${city}`,
+    lastModified: BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.65,
+  }))
+
   return [
     ...staticRoutes,
     ...serviceRoutes,
@@ -261,5 +359,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...comparisonRoutes,
     ...blogRoutes,
     ...audienceRoutes,
+    ...intentRoutes,
+    ...medicationRoutes,
+    ...conditionLocationRoutes,
   ]
 }

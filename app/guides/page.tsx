@@ -5,6 +5,7 @@ import { ArrowRight, Clock, BookOpen } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { getGuideIndex } from "@/lib/seo/data/guides"
 
 export const metadata: Metadata = {
   title: "Healthcare Guides | How-To Articles",
@@ -15,31 +16,9 @@ export const metadata: Metadata = {
   },
 }
 
-const guides = [
-  {
-    slug: "how-to-get-medical-certificate-for-work",
-    title: "How to Get a Medical Certificate for Work",
-    description: "A complete guide to getting a valid medical certificate for work in Australia. Learn your options, what employers accept, and the fastest ways to get one.",
-    readTime: "6 min read",
-    category: "Medical Certificates"
-  },
-  {
-    slug: "how-to-get-sick-note-for-uni",
-    title: "How to Get a Sick Note for University",
-    description: "Need a medical certificate for a missed exam, assignment extension, or university absence? Here's how to get one quickly.",
-    readTime: "5 min read",
-    category: "Medical Certificates"
-  },
-  {
-    slug: "telehealth-guide-australia",
-    title: "Complete Guide to Telehealth in Australia",
-    description: "Everything you need to know about telehealth — what it is, how it works, what can be treated, and how to choose a service.",
-    readTime: "8 min read",
-    category: "Telehealth"
-  },
-]
-
 export default function GuidesIndexPage() {
+  const guides = getGuideIndex()
+
   return (
     <>
       <BreadcrumbSchema 

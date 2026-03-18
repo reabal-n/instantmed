@@ -118,7 +118,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Medical Certificate Now',
-      ctaUrl: '/medical-certificate/new',
+      ctaUrl: '/request?service=med-cert',
       secondaryCTA: 'Learn More About Our Service',
       secondaryCTAUrl: '/medical-certificate',
     },
@@ -288,7 +288,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Started',
-      ctaUrl: '/start',
+      ctaUrl: '/request',
     },
   },
 
@@ -373,7 +373,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Renew Medication',
-      ctaUrl: '/prescriptions?type=repeat',
+      ctaUrl: '/prescriptions',
     },
   },
 
@@ -457,7 +457,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Work Certificate',
-      ctaUrl: '/medical-certificate/new',
+      ctaUrl: '/request?service=med-cert',
     },
   },
 
@@ -539,7 +539,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Emergency Contraception',
-      ctaUrl: '/prescriptions?condition=emergency-contraception&priority=true',
+      ctaUrl: '/request?service=consult',
     },
   },
 
@@ -622,7 +622,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Hair Loss Treatment',
-      ctaUrl: '/prescriptions',
+      ctaUrl: '/request?service=consult',
     },
   },
 
@@ -704,7 +704,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Flu Certificate',
-      ctaUrl: '/medical-certificate/new?reason=flu',
+      ctaUrl: '/request?service=med-cert&condition=cold-flu',
     },
   },
 ]

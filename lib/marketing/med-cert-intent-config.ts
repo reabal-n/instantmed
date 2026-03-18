@@ -11,6 +11,8 @@ export const MED_CERT_INTENT_SLUGS = [
   "university",
   "school",
   "return-to-work",
+  "centrelink",
+  "jury-duty",
 ] as const
 
 export type MedCertIntentSlug = (typeof MED_CERT_INTENT_SLUGS)[number]
@@ -431,6 +433,112 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         question: "Will my employer accept it?",
         answer:
           "Our certificates are issued by AHPRA-registered doctors. Employer policies vary — some accept telehealth certificates, others may have specific requirements or require in-person assessment for certain roles. Check with your employer.",
+      },
+    ],
+  },
+
+  centrelink: {
+    slug: "centrelink",
+    h1: "Medical certificate for Centrelink.",
+    heroSubheadline:
+      "Centrelink requires medical evidence for certain claims. A doctor reviews your request — typically sorted in under an hour. From $19.95.",
+    explainerTitle: "When Centrelink needs medical evidence",
+    explainerSubtitle: "Centrelink may require a medical certificate for sickness allowance, disability support, or other claims.",
+    explainerParagraphs: [
+      "If you're applying for Centrelink payments that require medical evidence — such as Sickness Allowance, Disability Support Pension, or exemptions from mutual obligations — you may need a medical certificate. Our certificates are issued by AHPRA-registered doctors and include the standard details Centrelink expects.",
+      "Check Centrelink's requirements for your specific claim. Some claims need a different form (e.g. SU684). We can issue a standard medical certificate that documents your unfitness for work or study — for Centrelink-specific forms, you may need to see a GP in person.",
+    ],
+    recognitionTitle: "Commonly used for Centrelink claims",
+    recognitionSubtitle:
+      "Standard medical certificates are accepted for many Centrelink purposes. For claims requiring specific Centrelink forms (e.g. SU684), check with Centrelink or your GP.",
+    recognitionBadges: [
+      { label: "Sickness Allowance", sub: "Medical evidence" },
+      { label: "Mutual obligation exemptions", sub: "When unfit" },
+      { label: "AHPRA doctors", sub: "Legally valid" },
+    ],
+    ctaTitle: "Documentation when you need it",
+    ctaSubtitle:
+      "Quick form, doctor review. Certificate to your inbox — usually within the hour.",
+    ctaButtonText: "Get your certificate",
+    metadata: {
+      title: "Medical Certificate for Centrelink | Sickness Allowance $19.95",
+      description:
+        "Medical certificate for Centrelink claims. AHPRA-registered doctors review your request. From $19.95. Commonly used for Sickness Allowance and mutual obligation exemptions.",
+      keywords: [
+        "medical certificate for centrelink",
+        "centrelink medical certificate",
+        "sickness allowance medical certificate",
+        "centrelink sick certificate australia",
+      ],
+    },
+    faqs: [
+      {
+        question: "Will Centrelink accept an online medical certificate?",
+        answer:
+          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted for Centrelink purposes. Some claims require specific Centrelink forms (e.g. SU684) — check Centrelink's requirements for your claim.",
+      },
+      {
+        question: "What if Centrelink needs a specific form?",
+        answer:
+          "Some Centrelink claims require their own forms (e.g. SU684 for medical evidence). We can issue a standard medical certificate; for Centrelink-specific forms, you may need to see a GP in person.",
+      },
+      {
+        question: "How quickly can I get it?",
+        answer:
+          "Most requests are reviewed within 30–60 minutes during operating hours. Plan ahead for Centrelink deadlines — submit your claim as soon as you have the certificate.",
+      },
+    ],
+  },
+
+  "jury-duty": {
+    slug: "jury-duty",
+    h1: "Medical certificate for jury duty exemption.",
+    heroSubheadline:
+      "Unable to serve on jury duty? A doctor reviews your request — typically sorted in under an hour. From $19.95.",
+    explainerTitle: "When you need to be excused from jury duty",
+    explainerSubtitle: "If you're unable to serve due to illness or other medical reasons, you may need a medical certificate.",
+    explainerParagraphs: [
+      "If you've been summoned for jury duty but are unable to serve due to illness, caring responsibilities, or medical reasons, you may need to provide a medical certificate. Our certificates are issued by AHPRA-registered doctors and document your unfitness to serve.",
+      "Each court has its own process — check your jury summons for instructions. You typically need to submit your exemption request and supporting documentation before the summons date. We can issue a certificate that documents your situation.",
+    ],
+    recognitionTitle: "Commonly accepted by courts",
+    recognitionSubtitle:
+      "Certificates meet the requirements of most Australian courts for jury duty exemption. Court processes vary — check your summons for instructions.",
+    recognitionBadges: [
+      { label: "State & federal courts", sub: "NSW, VIC, QLD & more" },
+      { label: "AHPRA doctors", sub: "Legally valid" },
+      { label: "Illness or caring", sub: "Medical exemption" },
+    ],
+    ctaTitle: "Documentation for jury duty exemption",
+    ctaSubtitle:
+      "Quick form, doctor review. Certificate to your inbox — usually within the hour.",
+    ctaButtonText: "Get your certificate",
+    metadata: {
+      title: "Medical Certificate for Jury Duty Exemption | $19.95",
+      description:
+        "Medical certificate for jury duty exemption. AHPRA-registered doctors review your request. From $19.95. Commonly accepted by Australian courts.",
+      keywords: [
+        "medical certificate jury duty",
+        "jury duty exemption medical certificate",
+        "excused from jury duty medical certificate",
+        "jury duty sick certificate australia",
+      ],
+    },
+    faqs: [
+      {
+        question: "Will the court accept an online medical certificate?",
+        answer:
+          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted by Australian courts for jury duty exemption. Court processes vary — check your jury summons for instructions.",
+      },
+      {
+        question: "When do I need to submit the certificate?",
+        answer:
+          "Check your jury summons — it will specify the deadline and process for exemption requests. Submit your certificate and exemption request before the summons date.",
+      },
+      {
+        question: "What if I need to care for someone else?",
+        answer:
+          "Carer's leave certificates can also support jury duty exemption when you need to care for a sick family member. Select carer's leave when completing the form.",
       },
     ],
   },

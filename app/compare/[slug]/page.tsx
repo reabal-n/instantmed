@@ -208,7 +208,72 @@ const comparisons: Record<string, {
         a: "We recommend having a regular GP for ongoing care, chronic conditions, and comprehensive health management. Telehealth is best for convenience and acute issues, not as a replacement for regular preventive care."
       }
     ]
-  }
+  },
+  "bulk-billing-vs-private-telehealth": {
+    title: "Bulk Billing vs Private Telehealth: Which Is Better?",
+    slug: "bulk-billing-vs-private-telehealth",
+    description: "Compare bulk-billed telehealth with private telehealth services. Understand the trade-offs between cost, wait times, and service quality.",
+    competitor: { name: "Bulk-Billed Telehealth", type: "alternative" },
+    heroText: "Bulk-billed telehealth is free with Medicare, but private telehealth often offers faster service and more flexibility. Here's how they compare.",
+    comparisonTable: [
+      { feature: "Out-of-pocket cost", instantmed: "From $19.95", competitor: "Free (with Medicare)", winner: "competitor" },
+      { feature: "Wait time for appointment", instantmed: "Usually under 1 hour", competitor: "Often days to weeks", winner: "instantmed" },
+      { feature: "Available 7 days", instantmed: true, competitor: "Varies — limited", winner: "instantmed" },
+      { feature: "Extended hours", instantmed: "7am-10pm AEST", competitor: "Often business hours only", winner: "instantmed" },
+      { feature: "Medical certificates", instantmed: true, competitor: "Yes", winner: "tie" },
+      { feature: "Prescription services", instantmed: true, competitor: "Yes", winner: "tie" },
+      { feature: "Doctor messaging", instantmed: true, competitor: "Rare", winner: "instantmed" },
+      { feature: "Medicare rebate", instantmed: "No — private service", competitor: "Bulk billed", winner: "competitor" },
+    ],
+    whenInstantMedBetter: [
+      "You need care quickly and can't wait days",
+      "You need a certificate or script outside business hours",
+      "You value convenience and speed over cost",
+      "Bulk-billing services are fully booked",
+    ],
+    whenCompetitorBetter: [
+      "Cost is your primary concern",
+      "You can wait days for an appointment",
+      "You're eligible for bulk billing and have time",
+    ],
+    verdict: "Choose bulk billing if cost matters most and you can wait. Choose private telehealth if speed and convenience matter. Many Australians use both — bulk billing when they can wait, private when they need something fast.",
+    faqs: [
+      { q: "Is private telehealth worth it when bulk billing exists?", a: "It depends on your situation. If you need a certificate today and bulk-billing has a 2-week wait, paying $20 can be worth it. If you have time and cost matters, bulk billing is the better choice." },
+      { q: "Can I claim Medicare for private telehealth?", a: "Some private telehealth services may allow you to claim a rebate. Check with the provider. InstantMed is a private service with transparent upfront pricing." },
+      { q: "Why is bulk-billed telehealth so hard to get?", a: "Demand exceeds supply. Many bulk-billing services are fully booked. Government funding for bulk billing has also been under pressure." },
+    ],
+  },
+  "e-prescriptions-vs-paper": {
+    title: "e-Prescriptions vs Paper Prescriptions: What's the Difference?",
+    slug: "e-prescriptions-vs-paper",
+    description: "e-Prescriptions (eScripts) are replacing paper prescriptions in Australia. Learn how they work, where to use them, and how they compare.",
+    competitor: { name: "Paper Prescriptions", type: "alternative" },
+    heroText: "e-Prescriptions have become the standard in Australia. Here's how they compare to the old paper system and what you need to know.",
+    comparisonTable: [
+      { feature: "Format", instantmed: "QR code or token via SMS", competitor: "Physical paper", winner: "tie" },
+      { feature: "Can lose it", instantmed: "No — resendable", competitor: "Yes", winner: "instantmed" },
+      { feature: "Use at any pharmacy", instantmed: true, competitor: true, winner: "tie" },
+      { feature: "Need to collect", instantmed: "No — digital", competitor: "Yes — from doctor", winner: "instantmed" },
+      { feature: "Repeat prescriptions", instantmed: "Token can include repeats", competitor: "Separate paper for each", winner: "instantmed" },
+      { feature: "PBS eligible", instantmed: true, competitor: true, winner: "tie" },
+      { feature: "Works with telehealth", instantmed: "Designed for it", competitor: "Requires mail or pickup", winner: "instantmed" },
+    ],
+    whenInstantMedBetter: [
+      "You're using telehealth — eScripts are the standard",
+      "You want to avoid losing a prescription",
+      "You need repeats — one token can include them",
+    ],
+    whenCompetitorBetter: [
+      "Your pharmacy doesn't support eScripts (rare)",
+      "You prefer to hold a physical copy",
+    ],
+    verdict: "e-Prescriptions are the modern standard in Australia. They're more convenient, can't be lost, and work seamlessly with telehealth. Paper prescriptions are still valid but less common. Most pharmacies accept eScripts.",
+    faqs: [
+      { q: "Do all pharmacies accept eScripts?", a: "Yes. eScripts are now the standard across Australia. Any pharmacy can scan the QR code or enter the token." },
+      { q: "What if I lose my eScript?", a: "Contact your doctor or the service that issued it. They can resend it. One advantage of eScripts — they're digital and resendable." },
+      { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked in to one pharmacy." },
+    ],
+  },
 }
 
 interface PageProps {

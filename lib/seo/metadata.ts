@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 const SITE_NAME = "InstantMed"
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 const DEFAULT_DESCRIPTION = `An asynchronous telehealth platform for Australians to get medical certificates (${PRICING_DISPLAY.MED_CERT}), repeat prescriptions (${PRICING_DISPLAY.REPEAT_SCRIPT}), and new consultations (${PRICING_DISPLAY.CONSULT}) online. AHPRA-registered doctors review requests asynchronously (no video calls). Mobile-optimized, Medicare-friendly, with built-in safety features and secure payment processing.`
 
 interface PageMetadataOptions {

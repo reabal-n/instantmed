@@ -1158,7 +1158,7 @@ export const highIntentKeywordArticles: Article[] = [
 
   // 7. "same day medical certificate"
   {
-    slug: 'same-day-medical-certificate',
+    slug: 'same-day-medical-certificate-fast',
     title: 'Same Day Medical Certificate: How to Get One Fast',
     subtitle: 'Your options for getting a medical certificate quickly when you need it today.',
     excerpt: 'Need a medical certificate today? Learn the fastest ways to get a same-day medical certificate in Australia, including online options that deliver in under an hour.',

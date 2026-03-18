@@ -1,0 +1,306 @@
+import { Navbar } from "@/components/shared/navbar"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Shield, Zap, Clock, Star } from "lucide-react"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import type { Metadata } from "next"
+import { getAudiencePageConfig, getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
+import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+interface PageProps {
+  params: Promise<{ audience: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { audience } = await params
+  const config = getAudiencePageConfig(audience)
+  if (!config) return {}
+
+  const baseUrl = "https://instantmed.com.au"
+  return {
+    title: config.metadata.title,
+    description: config.metadata.description,
+    keywords: config.metadata.keywords,
+    openGraph: {
+      title: `${config.h1} | InstantMed`,
+      description: config.metadata.description,
+      url: `${baseUrl}/for/${config.slug}`,
+    },
+    alternates: {
+      canonical: `${baseUrl}/for/${config.slug}`,
+    },
+  }
+}
+
+export async function generateStaticParams() {
+  return getAllAudiencePageSlugs().map((audience) => ({ audience }))
+}
+
+export default async function AudiencePage({ params }: PageProps) {
+  const { audience } = await params
+  const config = getAudiencePageConfig(audience)
+
+  if (!config) {
+    notFound()
+  }
+
+  const Icon = config.icon
+  const baseUrl = "https://instantmed.com.au"
+
+  const faqSchemaData = config.faqs.map((faq) => ({
+    question: faq.q,
+    answer: faq.a,
+  }))
+
+  return (
+    <>
+      <FAQSchema faqs={faqSchemaData} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: baseUrl },
+          { name: "For", url: `${baseUrl}/for` },
+          { name: config.h1, url: `${baseUrl}/for/${config.slug}` },
+        ]}
+      />
+
+      <div className="flex min-h-screen flex-col">
+        <Navbar variant="marketing" />
+
+        <main className="flex-1 pt-20">
+          {/* Hero */}
+          <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-3xl mx-auto text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4 interactive-pill cursor-default">
+                    <Icon className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                      {config.badgeLabel}
+                    </span>
+                  </div>
+
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                    {config.h1}
+                  </h1>
+                  <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
+                    {config.heroSubtext}
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-6">{config.heroTagline}</p>
+
+                  <Link href="/request?service=med-cert">
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-background text-sm px-6"
+                    >
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                      <Clock className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                      <Zap className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                      <Shield className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-medium text-muted-foreground">All employers</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Why Choose */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
+                  Why {config.badgeLabel.replace("For ", "").toLowerCase()} choose InstantMed
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {config.whyChoose.map((item) => (
+                    <div
+                      key={item.title}
+                      className="glass-card rounded-xl p-4"
+                    >
+                      <h3 className="text-sm font-semibold mb-1.5">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonials */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
+                  What people say
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {config.testimonials.map((item) => (
+                    <div
+                      key={item.name}
+                      className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50"
+                    >
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
+                        ))}
+                      </div>
+                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
+                      <p className="text-xs text-muted-foreground">
+                        — {item.name}, {item.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
+                  How it works
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    {
+                      step: "1",
+                      title: "Quick questionnaire",
+                      desc: "Tell us why you need a certificate. Takes 2 minutes.",
+                      time: "2 min",
+                    },
+                    {
+                      step: "2",
+                      title: "Doctor reviews",
+                      desc: "An AHPRA-registered GP assesses your request.",
+                      time: "~15 min",
+                    },
+                    {
+                      step: "3",
+                      title: "Certificate delivered",
+                      desc: "Secure PDF sent to your email. Forward to your manager.",
+                      time: "Instant",
+                    },
+                  ].map((item) => (
+                    <div key={item.step} className="glass-card rounded-xl text-center p-4">
+                      <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+                        <span className="font-bold text-lg text-primary-foreground">{item.step}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
+                      <span className="inline-block text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {item.time}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* FAQs */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
+                  Quick answers
+                </h2>
+                <div className="space-y-3 max-w-2xl mx-auto">
+                  {config.faqs.map((faq, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50"
+                    >
+                      <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
+                      <p className="text-xs text-muted-foreground">{faq.a}</p>
+                    </div>
+                  ))}
+                  <div className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <h3 className="text-sm font-semibold mb-1.5">What does it cost?</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from
+                      $29.95.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-xl mx-auto text-center">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-primary/5">
+                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    No appointments. No waiting rooms. Just results.
+                  </p>
+                  <Link href="/request?service=med-cert">
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-12 px-8"
+                    >
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    From $19.95 • 8am-10pm, 7 days
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Related */}
+          <section className="px-4 py-8 border-t">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm text-muted-foreground">
+                <Link href="/for/students" className="text-primary hover:underline">
+                  Students
+                </Link>
+                {" • "}
+                <Link href="/for/tradies" className="text-primary hover:underline">
+                  Tradies
+                </Link>
+                {" • "}
+                <Link href="/for/corporate" className="text-primary hover:underline">
+                  Corporate
+                </Link>
+                {" • "}
+                <Link href="/for/shift-workers" className="text-primary hover:underline">
+                  Shift Workers
+                </Link>
+                {" • "}
+                <Link href="/medical-certificate" className="text-primary hover:underline">
+                  Medical Certificate
+                </Link>
+              </p>
+            </div>
+          </section>
+
+          <LiveWaitTime variant="strip" services={["med-cert"]} />
+          <StatsStrip className="bg-muted/20 border-y border-border/30" />
+          <MediaMentions variant="strip" className="bg-muted/30" />
+        </main>
+
+        <MarketingFooter />
+      </div>
+    </>
+  )
+}
