@@ -147,7 +147,7 @@ export function DashboardSidebar({
 
         {/* Main Navigation */}
         <nav className="flex flex-col gap-0.5 px-3">
-          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Navigation</p>
+          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Navigation</p>
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
             const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
@@ -229,7 +229,7 @@ export function DashboardSidebar({
 
         {/* User Profile */}
         <div className="px-4 mt-auto">
-          <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/50 transition-colors cursor-default">
+          <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold">
               {initials}
             </div>

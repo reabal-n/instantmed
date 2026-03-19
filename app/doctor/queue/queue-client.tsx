@@ -411,7 +411,7 @@ export function QueueClient({
 
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" data-testid="queue-header">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
           {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
         </h2>
         <div className="flex items-center gap-2">
@@ -419,7 +419,7 @@ export function QueueClient({
             placeholder="Search patients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-56 h-8 text-sm"
+            className="w-full sm:w-56 h-9 text-sm"
             startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
           />
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.refresh()}>
@@ -429,7 +429,7 @@ export function QueueClient({
       </div>
 
       {/* Queue List */}
-      <div className="space-y-2" aria-labelledby={listId}>
+      <div className="space-y-3" aria-labelledby={listId}>
         {filteredIntakes.length === 0 ? (
           <EmptyState
             icon={CheckCircle}
@@ -444,11 +444,11 @@ export function QueueClient({
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
             return (
-              <Card
+                <Card
                 key={intake.id}
                 className={cn(
-                  "rounded-xl border-border/50 transition-all duration-200",
-                  isExpanded && "ring-2 ring-primary/20"
+                  "rounded-xl border-border transition-all duration-200",
+                  isExpanded && "ring-2 ring-primary/30"
                 )}
               >
                 {/* Collapsed row */}

@@ -177,7 +177,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
           className
         )}
       >
-        <div className="flex items-center justify-around px-2 py-1">
+        <div className="flex items-center justify-around px-2 py-2">
           {items.map((item) => {
             const Icon = item.icon
             const isMore = item.href === "__more__"
