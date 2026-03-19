@@ -53,8 +53,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {trustBadges.map((badge, index) => {
             const content = (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/70 dark:bg-white/[0.06] border border-dawn-200/40 dark:border-border/50 hover:border-dawn-300/50 dark:hover:border-accent-teal/20 hover:shadow-lg hover:shadow-dawn-200/20 dark:hover:shadow-none hover:-translate-y-0.5 transition-all duration-300 h-full backdrop-blur-sm">
-                <div className={cn('relative w-10 h-10 rounded-lg bg-dawn-50/80 dark:bg-white/10 flex items-center justify-center shadow-sm shadow-dawn-100/30 dark:shadow-none group-hover:shadow-md group-hover:shadow-dawn-200/20 dark:group-hover:shadow-none transition-all duration-300', badge.color)}>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/70 dark:bg-white/[0.08] border border-dawn-200/40 dark:border-white/[0.12] hover:border-dawn-300/50 dark:hover:border-accent-teal/30 hover:shadow-lg hover:shadow-dawn-200/20 dark:hover:shadow-none hover:-translate-y-0.5 transition-all duration-300 h-full backdrop-blur-sm">
+                <div className={cn('relative w-10 h-10 rounded-lg bg-dawn-50/80 dark:bg-white/[0.12] flex items-center justify-center shadow-sm shadow-dawn-100/30 dark:shadow-none group-hover:shadow-md group-hover:shadow-dawn-200/20 dark:group-hover:shadow-none transition-all duration-300', badge.color)}>
                   <badge.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">

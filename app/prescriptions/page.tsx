@@ -3,7 +3,7 @@ import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
   title: 'Online Repeat Medication | Same-Day Service',
@@ -44,6 +44,11 @@ export default async function PrescriptionsPage() {
         price="29.95"
       />
       <PrescriptionHowToSchema />
+      <SpeakableSchema
+        name="Online Repeat Medication Australia"
+        description="Renew your regular medications online. Australian registered doctors review your request and send an eScript to your phone. From $29.95."
+        url="/prescriptions"
+      />
       <ServiceFunnelPage config={{ ...repeatScriptFunnelConfig, liveStats }} isDisabled={flags.disable_repeat_scripts} />
     </>
   )

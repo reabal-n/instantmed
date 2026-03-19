@@ -1,0 +1,75 @@
+# InstantMed — Australian Telehealth Platform
+
+> InstantMed is an Australian telehealth platform where patients can request medical certificates, prescriptions, and doctor consultations online. All requests are reviewed by AHPRA-registered Australian doctors.
+
+## What InstantMed Does
+
+InstantMed provides three core telehealth services to Australian residents (18+):
+
+1. **Medical Certificates** — Online medical certificates for work, study, or carer's leave. Reviewed by a registered doctor, typically within 1–2 hours. Valid for Australian employers and educational institutions. From $19.95.
+
+2. **Prescriptions** — Repeat prescription requests for existing medications. A doctor reviews your history and, if appropriate, issues an electronic prescription (eScript) sent to your phone. From $29.95.
+
+3. **Doctor Consultations** — Text-based consultations for general health, weight management, hair loss, women's health, and more. No video call required. From $39.95.
+
+## Key Facts
+
+- **Location:** Australia-wide (telehealth, no physical clinics)
+- **Registered entity:** InstantMed Pty Ltd (ABN 64 694 559 334)
+- **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
+- **Doctors:** AHPRA-registered Australian general practitioners
+- **Hours:** 8am–10pm AEST, 7 days a week
+- **Turnaround:** Most requests reviewed within 1–2 hours
+- **Payment:** Secure online payment (credit/debit card)
+- **Refund policy:** Full refund if a doctor cannot approve your request
+- **Medicare:** Optional for medical certificates, required for prescriptions
+
+## How It Works
+
+1. Choose your service (medical certificate, prescription, or consultation)
+2. Fill in a short health questionnaire (2–3 minutes)
+3. Pay securely online
+4. A doctor reviews your request (typically within 1–2 hours)
+5. Receive your certificate (PDF) or eScript (SMS) digitally
+
+## Services & Pricing
+
+| Service | Price |
+|---------|-------|
+| Medical certificate (1 day) | $19.95 |
+| Medical certificate (2 days) | $29.95 |
+| Medical certificate (3 days) | $39.95 |
+| Repeat prescription | $29.95 |
+| New prescription | $49.95 |
+| General consultation | $49.95 |
+| Weight loss consultation | $79.95 |
+| Women's health consultation | $59.95 |
+| Hair loss consultation | $39.95 |
+| ED consultation | $39.95 |
+
+## Contact
+
+- Website: https://instantmed.com.au
+- Email: support@instantmed.com.au
+- Phone: 0450 722 549
+- Complaints: complaints@instantmed.com.au (14-day response)
+
+## Important Pages
+
+- Homepage: https://instantmed.com.au
+- Medical certificates: https://instantmed.com.au/medical-certificate
+- Prescriptions: https://instantmed.com.au/prescriptions
+- How it works: https://instantmed.com.au/how-it-works
+- Pricing: https://instantmed.com.au/pricing
+- FAQ: https://instantmed.com.au/faq
+- About: https://instantmed.com.au/about
+- Trust & safety: https://instantmed.com.au/trust
+- Reviews: https://instantmed.com.au/reviews
+- Blog: https://instantmed.com.au/blog
+- Privacy policy: https://instantmed.com.au/privacy
+- Terms of service: https://instantmed.com.au/terms
+- Contact: https://instantmed.com.au/contact
+
+## Full Content
+
+For detailed information about all services, conditions, guides, and locations, see: https://instantmed.com.au/llms-full.txt

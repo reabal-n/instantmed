@@ -98,10 +98,14 @@ export const metadata: Metadata = {
   },
   verification: {
     // Google Search Console verification code
-    // Get it from: https://search.google.com/search-console
-    // Property Settings → Ownership verification → HTML tag method
-    // Copy the content value from the meta tag
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
+    // Bing Webmaster Tools verification code
+    // Get it from: https://www.bing.com/webmasters → Add your site → HTML meta tag
+    other: {
+      ...(process.env.NEXT_PUBLIC_BING_VERIFICATION && {
+        "msvalidate.01": process.env.NEXT_PUBLIC_BING_VERIFICATION,
+      }),
+    },
   },
   generator: "Next.js",
 }

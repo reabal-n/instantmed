@@ -13,7 +13,7 @@ import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
-import { FAQSchema } from '@/components/seo/healthcare-schema'
+import { FAQSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getFeatureFlags } from '@/lib/feature-flags'
@@ -84,8 +84,13 @@ export default async function HomePage() {
   return (
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
-      {/* SEO Structured Data - FAQ Schema for rich snippets */}
+      {/* SEO Structured Data */}
       <FAQSchema faqs={faqSchemaData} />
+      <SpeakableSchema
+        name="InstantMed - Online Doctor Australia"
+        description="Get medical certificates, repeat medication and doctor consults online from $19.95. AHPRA-registered Australian doctors. Most requests reviewed within 1-2 hours."
+        url="/"
+      />
 
       {/* Client component for hash navigation */}
       <HashScrollHandler />

@@ -1,0 +1,167 @@
+# InstantMed — Full Service Reference
+
+> This file provides comprehensive information about InstantMed's telehealth services for AI systems and large language models.
+
+## About InstantMed
+
+InstantMed is an Australian telehealth platform. Patients request medical certificates, prescriptions, and consultations online. An AHPRA-registered doctor reviews each request asynchronously, approves or declines, and delivers documents digitally.
+
+InstantMed Pty Ltd (ABN 64 694 559 334) is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
+
+## Medical Certificates
+
+InstantMed provides online medical certificates for Australian residents aged 18 and over. These certificates are reviewed and issued by AHPRA-registered general practitioners and are valid for:
+
+- Employer sick leave (casual, part-time, and full-time)
+- University and TAFE absences
+- School absences (for adult students)
+- Carer's leave
+- Return-to-work clearance
+- Centrelink requirements
+- Jury duty exemption
+
+### Medical Certificate Process
+
+1. Select the number of days you need (1, 2, or 3 days)
+2. Describe your symptoms and reason for the certificate
+3. Provide your personal details (name, date of birth, address)
+4. Pay online ($19.95 for 1 day, $29.95 for 2 days, $39.95 for 3 days)
+5. A doctor reviews your request, usually within 1–2 hours
+6. If approved, your certificate is emailed as a PDF
+
+### Medical Certificate FAQs
+
+**Are online medical certificates valid for work?**
+Yes. Medical certificates issued by AHPRA-registered doctors via telehealth are legally valid under Australian law. Fair Work Australia recognises telehealth consultations as legitimate medical appointments.
+
+**Can I get a backdated certificate?**
+No. Medical certificates cannot be backdated. The certificate covers dates from when you submit your request.
+
+**What if my request isn't approved?**
+You receive a full refund. No certificate, no charge.
+
+**Do I need Medicare for a medical certificate?**
+No. Medicare is optional for medical certificates.
+
+**What conditions can I get a certificate for?**
+Common conditions include cold and flu, gastroenteritis, migraine, back pain, mental health days, respiratory infections, period pain, and general unwellness. Conditions requiring physical examination should be seen in person.
+
+## Prescriptions
+
+InstantMed offers online prescription services for existing medications (repeat prescriptions) and some new prescriptions where clinically appropriate.
+
+### Prescription Process
+
+1. Enter the medication you need (searched against the PBS database)
+2. Answer clinical questions about your health history
+3. Provide your details including Medicare number (required for eScripts)
+4. Pay online ($29.95 for repeats, $49.95 for new prescriptions)
+5. A doctor reviews your request and medical history
+6. If approved, your eScript QR code is sent via SMS
+
+### Prescription Limitations
+
+- Schedule 8 controlled substances (opioids, stimulants) CANNOT be prescribed via telehealth
+- Benzodiazepines are not available
+- Some medications require in-person assessment
+- You must have an established history with repeat medications
+- The doctor may contact you for additional information
+
+### How eScripts Work
+
+An electronic prescription (eScript) is a QR code sent to your mobile phone via SMS. Take it to any pharmacy in Australia to have your medication dispensed. eScripts are the standard in Australia and are accepted at all pharmacies.
+
+## Doctor Consultations
+
+InstantMed offers text-based doctor consultations. No video call is required — most requests are handled asynchronously.
+
+### Consultation Types
+
+- **General consultation** ($49.95) — General health concerns, follow-up care
+- **Weight management** ($79.95) — Weight loss assessment and treatment plans
+- **Women's health** ($59.95) — Contraception, menstrual issues, menopause
+- **Hair loss** ($39.95) — Male and female pattern hair loss
+- **ED consultation** ($39.95) — Erectile dysfunction assessment
+- **Performance anxiety** — Situational anxiety assessment
+
+### Consultation Process
+
+1. Select your consultation type
+2. Complete a detailed health questionnaire
+3. A doctor reviews your information and may ask follow-up questions
+4. Treatment plan or prescription provided if clinically appropriate
+
+## Common Conditions We Help With
+
+InstantMed can help with many common health conditions that don't require physical examination:
+
+- Cold and flu
+- Gastroenteritis (stomach bug)
+- Migraine and headache
+- Back pain
+- Urinary tract infections (UTIs)
+- Skin conditions (acne, eczema, dermatitis)
+- Allergies and hay fever
+- Respiratory infections
+- Mental health (anxiety, stress, depression)
+- Period pain and menstrual issues
+- Acid reflux and GERD
+- Sinusitis
+- Conjunctivitis (pink eye)
+- Insomnia
+
+## Who Can Use InstantMed
+
+- Australian residents aged 18 and over
+- People with a valid Australian address
+- Medicare card holders (required for prescriptions, optional for medical certificates)
+- Both Australian citizens and eligible visa holders
+
+## Safety and Trust
+
+- All doctors are AHPRA-registered Australian general practitioners
+- Clinical protocols aligned with RACGP standards
+- Medical Director oversight for all clinical decisions
+- Encrypted patient data (AES-256-GCM)
+- Compliant with Australian Privacy Principles (APP 1-13)
+- Full complaints process via complaints@instantmed.com.au (14-day SLA)
+- Patients can escalate to AHPRA if dissatisfied with complaint resolution
+
+## When to See a Doctor In Person
+
+InstantMed is not suitable for:
+- Medical emergencies (call 000)
+- Chest pain or difficulty breathing
+- Severe injuries requiring physical examination
+- Conditions requiring blood tests or imaging
+- Children under 18 (without parental consent)
+- Mental health crises (call Lifeline 13 11 14 or Beyond Blue 1300 22 4636)
+
+## Locations Served
+
+InstantMed serves all of Australia via telehealth, including:
+
+**NSW:** Sydney, Parramatta, Newcastle, Wollongong, Central Coast, Penrith, Bondi Beach, Coffs Harbour, Port Macquarie, Orange, Dubbo, Wagga Wagga, Albury-Wodonga
+
+**VIC:** Melbourne, Geelong, Ballarat, Bendigo, Mildura, Shepparton
+
+**QLD:** Brisbane, Gold Coast, Sunshine Coast, Cairns, Townsville, Toowoomba, Mackay, Rockhampton, Hervey Bay, Ipswich, Gladstone, Bundaberg
+
+**WA:** Perth, Fremantle, Bunbury
+
+**SA:** Adelaide, Mount Gambier, Port Augusta
+
+**TAS:** Hobart, Launceston
+
+**NT:** Darwin, Alice Springs
+
+**ACT:** Canberra
+
+## Contact Information
+
+- Website: https://instantmed.com.au
+- Support email: support@instantmed.com.au
+- Phone: 0450 722 549
+- Complaints: complaints@instantmed.com.au
+- Privacy: privacy@instantmed.com.au
+- Hours: 8am–10pm AEST, 7 days a week
