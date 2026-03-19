@@ -97,7 +97,7 @@ export function DrawerPanel({
         aria-label={title || 'Details panel'}
       >
         {/* Header - sticky */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-6 py-5 flex items-center justify-between">
           {title && (
             <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           )}

@@ -532,7 +532,7 @@ export function QueueClient({
 
                 {/* Expanded — just link + actions, detailed review on the detail page */}
                 {isExpanded && (
-                  <CardContent className="pt-0 pb-4 px-5 space-y-2">
+                  <CardContent className="pt-0 pb-5 px-5 space-y-3">
                     <button
                       type="button"
                       onClick={() => openReviewPanel(intake.id)}
@@ -542,7 +542,7 @@ export function QueueClient({
                       Review case
                     </button>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                    <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t">
                       <Button
                         onClick={() => handleApprove(intake.id, service?.type)}
                         disabled={isPending || !identityComplete}
@@ -584,7 +584,7 @@ export function QueueClient({
 
       {/* Pagination */}
       {pagination && totalPages > 1 && (
-        <div className="flex items-center justify-between py-4 px-2 border-t">
+        <div className="flex items-center justify-between py-5 px-2 border-t">
           <div className="text-sm text-muted-foreground">
             {(currentPage - 1) * pagination.pageSize + 1} – {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}
           </div>
@@ -615,9 +615,9 @@ export function QueueClient({
               Select a reason. The patient will be notified by email.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="text-sm font-medium mb-2 block">Reason</label>
+              <label className="text-sm font-medium mb-2.5 block">Reason</label>
               <Select value={declineReasonCode} onValueChange={handleDeclineTemplateChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a reason..." />

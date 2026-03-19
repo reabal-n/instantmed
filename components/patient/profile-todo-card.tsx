@@ -110,7 +110,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
         className="rounded-xl border border-border bg-linear-to-br from-background to-muted/30 overflow-hidden"
       >
         {/* Header */}
-        <div className="px-5 pt-5 pb-4">
+        <div className="px-5 pt-5 pb-5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-base font-semibold text-foreground">
               {isCondensed ? "One more thing" : "Complete your profile"}
@@ -132,7 +132,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
         </div>
 
         {/* Todo items */}
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-4">
           {items.map((item) => {
             // In condensed mode, only show incomplete items
             if (isCondensed && item.isComplete) return null
@@ -159,10 +159,10 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
                 {/* Item icon */}
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                    "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
                     item.isComplete
                       ? "bg-emerald-50 dark:bg-emerald-950/30"
-                      : "bg-primary/5",
+                      : "bg-primary/8",
                   )}
                 >
                   <Icon

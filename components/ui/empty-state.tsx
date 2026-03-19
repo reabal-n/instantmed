@@ -53,20 +53,20 @@ export function EmptyState({
       initial={prefersReducedMotion ? false : "initial"}
       animate="animate"
       variants={fadeIn}
-      className={cn("text-center py-12 px-4 max-w-2xl mx-auto", className)}
+      className={cn("text-center py-16 px-4 max-w-2xl mx-auto", className)}
     >
       {/* Illustration or Icon */}
       <motion.div
         initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
-        className="mb-6"
+        className="mb-8"
       >
         {illustration ? (
           <div className="w-32 h-32 mx-auto">{illustration}</div>
         ) : (
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center shadow-lg">
-            <Icon className="w-10 h-10 text-primary" />
+          <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg">
+            <Icon className="w-11 h-11 text-primary" />
           </div>
         )}
       </motion.div>
@@ -77,7 +77,7 @@ export function EmptyState({
         animate="animate"
         variants={slideUp}
         transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
-        className="text-2xl font-semibold mb-2 text-foreground"
+        className="text-2xl font-semibold mb-3 text-foreground"
       >
         {title}
       </motion.h3>
@@ -88,7 +88,7 @@ export function EmptyState({
         animate="animate"
         variants={slideUp}
         transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
-        className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed"
+        className="text-muted-foreground text-base mb-10 max-w-md mx-auto leading-relaxed"
       >
         {description}
       </motion.p>
@@ -100,7 +100,7 @@ export function EmptyState({
           animate="animate"
           variants={slideUp}
           transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
-          className="flex flex-col sm:flex-row gap-3 justify-center mb-8"
+          className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
         >
           {action && (
             <>
@@ -146,13 +146,13 @@ export function EmptyState({
           animate="animate"
           variants={slideUp}
           transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
-          className="mt-8 p-4 bg-muted/50 rounded-xl border border-border/50"
+          className="mt-10 p-5 bg-muted/40 rounded-xl border border-border/50"
         >
-          <div className="flex items-center gap-2 mb-3 justify-center">
+          <div className="flex items-center gap-2 mb-4 justify-center">
             <Lightbulb className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">Tips</span>
           </div>
-          <ul className="text-left space-y-2 text-sm text-muted-foreground">
+          <ul className="text-left space-y-2.5 text-sm text-muted-foreground">
             {tips.map((tip, index) => (
               <li key={index} className="flex items-start gap-2">
                 <Sparkles className="w-3 h-3 mt-0.5 text-primary shrink-0" />
