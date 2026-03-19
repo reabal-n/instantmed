@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useRef, type ReactNode } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
+import { trackAIReferral } from "@/lib/analytics/ai-referral"
 
 /**
  * PostHog Page View Tracker
@@ -15,6 +16,7 @@ function PostHogPageView() {
   const searchParams = useSearchParams()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const posthogRef = useRef<any>(null)
+  const aiReferralTracked = useRef(false)
 
   useEffect(() => {
     import("posthog-js").then(({ default: posthog }) => {
@@ -30,6 +32,12 @@ function PostHogPageView() {
         url = url + "?" + searchParams.toString()
       }
       posthog.capture("$pageview", { $current_url: url })
+
+      // Track AI referral once per session (first pageview only)
+      if (!aiReferralTracked.current) {
+        aiReferralTracked.current = true
+        trackAIReferral()
+      }
     }
   }, [pathname, searchParams])
 

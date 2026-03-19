@@ -28,6 +28,33 @@ export default function robots(): MetadataRoute.Robots {
           "/*/search",      // Category search pages
         ],
       },
+      // Explicitly allow AI crawlers to index public content
+      // These bots power ChatGPT, Perplexity, Gemini, etc.
+      {
+        userAgent: "GPTBot",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        userAgent: "ChatGPT-User",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        userAgent: "PerplexityBot",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        userAgent: "Google-Extended",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        userAgent: "anthropic-ai",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   }
