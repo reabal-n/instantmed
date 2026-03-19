@@ -547,6 +547,51 @@ body {
     border-radius: var(--radius-sm);
   }
   
+  /* ================================
+     FOCUS VISIBLE IMPROVEMENTS
+     Consistent, accessible focus rings
+     ================================ */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  
+  /* Remove default focus outline since we use focus-visible */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  /* Enhanced focus for interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Skip link styles */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 9999;
+    padding: 1rem;
+    background: var(--background);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: top 0.2s ease;
+  }
+  
+  .skip-link:focus {
+    top: 1rem;
+    left: 1rem;
+  }
+  
   /* Progress bars */
   .progress {
     border-radius: var(--radius-full);
@@ -899,6 +944,48 @@ body {
   }
   100% {
     background-position: 200%;
+  }
+}
+
+/* ================================
+   SKELETON TO CONTENT TRANSITIONS
+   Smooth fade-in when content loads
+   ================================ */
+@keyframes content-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-loaded {
+  animation: content-fade-in 0.3s ease-out forwards;
+}
+
+/* Staggered fade-in for lists */
+.stagger-fade-in > * {
+  opacity: 0;
+  animation: content-fade-in 0.3s ease-out forwards;
+}
+
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade-in > *:nth-child(n+6) { animation-delay: 250ms; }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .content-loaded,
+  .stagger-fade-in > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
