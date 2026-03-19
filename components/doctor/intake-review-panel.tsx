@@ -488,11 +488,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         width={720}
         onClose={handlePanelClose}
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-36 w-full" />
+          <Skeleton className="h-52 w-full" />
+          <Skeleton className="h-36 w-full" />
         </div>
       </SheetPanel>
     )
@@ -520,7 +520,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         width={720}
         onClose={handlePanelClose}
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Top bar: status + open full page */}
           <div className="flex items-center justify-between">
             <Badge className={getStatusColor(intake.status)}>
@@ -545,14 +545,14 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Patient Info (compact) */}
           <Card>
-            <CardHeader className="py-3 px-4">
+            <CardHeader className="py-4 px-5">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4" />
                 Patient
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+            <CardContent className="px-5 py-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
                   <p className="font-medium">{intake.patient.full_name}</p>
@@ -605,13 +605,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Request Info + Clinical Summary */}
           <Card>
-            <CardHeader className="py-3 px-4">
+            <CardHeader className="py-4 px-5">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
                 {service?.name || formatServiceType(service?.type || "")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3 space-y-3">
+            <CardContent className="px-5 py-4 space-y-4">
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
@@ -655,13 +655,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
           {/* Safety Flags */}
           {hasRedFlags && (
             <Card className="border-destructive/50 bg-destructive/5">
-              <CardHeader className="py-3 px-4">
+              <CardHeader className="py-4 px-5">
                 <CardTitle className="text-destructive flex items-center gap-2 text-sm">
                   <XCircle className="h-4 w-4" />
                   Safety Flags Detected
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-4 py-3 space-y-3">
+              <CardContent className="px-5 py-4 space-y-4">
                 <div className="text-sm space-y-1">
                   {redFlagDetails.map((detail, i) => (
                     <p key={i} className="text-destructive-foreground">
@@ -688,7 +688,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
           {/* Clinical Notes */}
           <Card>
-            <CardHeader className="py-3 px-4">
+            <CardHeader className="py-4 px-5">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
                 {["approved", "completed", "awaiting_script"].includes(intake.status)
@@ -701,7 +701,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3 space-y-3">
+            <CardContent className="px-5 py-4 space-y-4">
               {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
                 <div className="space-y-2">
                   {intake.doctor_notes ? (

@@ -148,13 +148,13 @@ export function PanelDashboard({
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-semibold text-foreground mb-2">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
           Welcome back, {firstName}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-base">
           {pendingIntakes.length > 0
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
             : "All caught up — nothing needs your attention. 👍"}
@@ -163,7 +163,7 @@ export function PanelDashboard({
 
       {/* First-time banner — single pending request being reviewed */}
       {pendingIntakes.length === 1 && intakes.length === 1 && (
-        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-3">
+        <div className="p-5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-4">
           <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div>
             <p className="font-medium text-foreground">Your request is being reviewed</p>
@@ -242,13 +242,13 @@ export function PanelDashboard({
         if (readyIntakes.length === 0) return null
         return (
           <section>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-semibold text-foreground">Documents ready</h2>
               <Link href="/patient/documents" className="text-sm text-primary hover:underline">
                 View all
               </Link>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {readyIntakes.slice(0, 3).map((intake) => {
                 const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
                 const serviceName = serviceData?.name || serviceData?.short_name || "Document"
@@ -256,7 +256,7 @@ export function PanelDashboard({
                   <Link
                     key={intake.id}
                     href={`/patient/intakes/${intake.id}`}
-                    className="flex items-center justify-between p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group"
+                    className="flex items-center justify-between p-5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
@@ -280,7 +280,7 @@ export function PanelDashboard({
 
       {/* Recent Requests */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-semibold text-foreground">Recent Requests</h2>
           {intakes.length > 5 && (
             <Link href="/patient/intakes" className="text-sm text-primary hover:underline">
@@ -311,7 +311,7 @@ export function PanelDashboard({
             ]}
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {intakes.slice(0, 5).map((intake) => (
               <IntakeCard
                 key={intake.id}
@@ -354,7 +354,7 @@ export function PanelDashboard({
       {/* Active Prescriptions */}
       {prescriptions.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-semibold text-foreground">Active Prescriptions</h2>
             {prescriptions.filter((p) => p.status === "active").length > 3 && (
               <Link href="/patient/prescriptions" className="text-sm text-primary hover:underline">
@@ -363,14 +363,14 @@ export function PanelDashboard({
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {prescriptions
               .filter((p) => p.status === "active")
               .slice(0, 3)
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="dashboard-card rounded-xl p-4 hover:border-primary/50 transition-all"
+                  className="dashboard-card rounded-xl p-5 hover:border-primary/50 transition-all"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -436,14 +436,14 @@ function IntakeCard({
     <button
       onClick={onClick}
       aria-label={`View ${serviceName} — ${config.label}`}
-      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-md transition-all text-left group hover-lift card-shine"
+      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary/60 hover:shadow-lg transition-all text-left group hover-lift"
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <div className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-            intake.service?.type === "common_scripts" ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/10"
-          )}>
+          <div className="flex items-center gap-4 flex-1">
+            <div className={cn(
+              "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
+              intake.service?.type === "common_scripts" ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/10"
+            )}>
             {intake.service?.type === "common_scripts" ? (
               <Pill className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
             ) : (

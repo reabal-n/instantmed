@@ -28,22 +28,22 @@ export function AdminPageHeader({
 }: AdminPageHeaderProps) {
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {backLink && (
           <Link
             href={backLink.href}
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-1"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
           >
-            <ChevronRight className="h-3 w-3 mr-1 rotate-180" />
+            <ChevronRight className="h-3.5 w-3.5 mr-1.5 rotate-180" />
             {backLink.label}
           </Link>
         )}
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{title}</h1>
         {description && (
-          <p className="text-muted-foreground">{description}</p>
+          <p className="text-muted-foreground text-base mt-1">{description}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-3">{actions}</div>}
     </div>
   )
 }
@@ -116,20 +116,20 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center py-12 px-4 text-center",
+        "flex flex-col items-center justify-center py-16 px-4 text-center",
         className
       )}
     >
       {icon && (
-        <div className="mb-4 text-muted-foreground/50">{icon}</div>
+        <div className="mb-5 text-muted-foreground/50">{icon}</div>
       )}
       <h3 className="text-lg font-medium text-foreground">{title}</h3>
       {description && (
-        <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+        <p className="mt-2 text-sm text-muted-foreground max-w-sm">
           {description}
         </p>
       )}
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }
@@ -276,12 +276,12 @@ export function StatsCard({
   className,
 }: StatsCardProps) {
   return (
-    <div className={cn("rounded-xl border bg-card p-5", className)}>
+    <div className={cn("rounded-xl border bg-card p-6", className)}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
         {icon && <div className="text-muted-foreground">{icon}</div>}
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
+      <div className="mt-3 flex items-baseline gap-2">
         <p className="text-2xl font-semibold">{value}</p>
         {trend && (
           <span
@@ -295,7 +295,7 @@ export function StatsCard({
         )}
       </div>
       {description && (
-        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        <p className="mt-1.5 text-xs text-muted-foreground">{description}</p>
       )}
     </div>
   )

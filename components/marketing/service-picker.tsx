@@ -91,7 +91,7 @@ export function ServicePicker() {
   const { isServiceDisabled } = useServiceAvailability()
 
   return (
-    <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
+    <section id="pricing" className="relative py-16 lg:py-20 scroll-mt-20">
       {/* Warm background accent */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-[50%] left-[-100px] w-[500px] h-[400px] bg-[#F0B4A0]/[0.06] dark:bg-[#F0B4A0]/[0.02] rounded-full blur-3xl" />
@@ -100,7 +100,7 @@ export function ServicePicker() {
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          className="text-center mb-8"
+          className="text-center mb-12"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -149,7 +149,7 @@ export function ServicePicker() {
 
         {/* Service Cards Grid */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -194,13 +194,13 @@ export function ServicePicker() {
                       disabled && "opacity-60",
                       !disabled && [
                         "hover:shadow-lg hover:shadow-dawn-300/25 hover:border-dawn-300/50 dark:hover:shadow-[0_4px_20px_rgba(93,184,201,0.08)] dark:hover:border-accent-teal/25",
-                        service.popular && "ring-1 ring-dawn-300/30 dark:ring-accent-teal/20 shadow-md shadow-dawn-200/25 dark:shadow-none",
+                        service.popular && "ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-md shadow-dawn-200/25 dark:shadow-none bg-primary/[0.02] dark:bg-primary/[0.05]",
                       ]
                     )}>
                       {/* Gradient accent bar */}
-                      <div className={cn("h-1 w-full bg-gradient-to-r", colors.gradient)} />
+                      <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
                       
-                      <div className="p-3 pb-2.5 flex-1 flex flex-col">
+                      <div className="p-4 pb-3 flex-1 flex flex-col">
                         {/* Icon with animated background */}
                         <motion.div 
                           className="relative w-9 h-9 rounded-lg flex items-center justify-center mb-2 overflow-hidden icon-spin-hover"
@@ -266,7 +266,7 @@ export function ServicePicker() {
                       
                       <Separator className="opacity-50" />
                       
-                      <div className="flex items-center justify-between px-3 py-2.5 shrink-0">
+                      <div className="flex items-center justify-between px-4 py-3 shrink-0">
                         {/* Price */}
                         <div className="flex flex-col">
                           <span className="text-base font-semibold text-foreground">
@@ -294,7 +294,7 @@ export function ServicePicker() {
                       
                       {/* #5: Testimonial for popular card */}
                       {service.popular && 'testimonial' in service && service.testimonial && (
-                        <div className="px-3 pb-2 pt-1 border-t border-border/30">
+                        <div className="px-4 pb-3 pt-2 border-t border-border/30">
                           <div className="flex items-center gap-2 text-xs">
                             <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
                             <span className="text-muted-foreground italic">
@@ -309,7 +309,7 @@ export function ServicePicker() {
                       
                       {/* Disclaimer for General Consult */}
                       {service.id === 'consult' && (
-                        <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground text-center px-3 pb-3">
+                        <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground text-center px-4 pb-4">
                           For non-urgent concerns only — if it&apos;s an emergency, call 000.
                         </p>
                       )}

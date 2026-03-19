@@ -33,12 +33,12 @@ export function RequestCard({
 
   return (
     <Link href={href}>
-      <Card className="hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer group">
-        <CardContent className="p-5">
+      <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+        <CardContent className="p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
                 iconContainerClassName,
               )}>
                 <Icon className={iconClassName} aria-hidden="true" />

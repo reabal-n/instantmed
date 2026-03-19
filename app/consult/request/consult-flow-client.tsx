@@ -110,10 +110,10 @@ function GoogleIcon({ className }: { className?: string }) {
 // Step header component with emoji support
 function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) {
   return (
-    <div className="text-center mb-4">
-      {emoji && <div className="text-4xl mb-2 animate-float-gentle">{emoji}</div>}
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+    <div className="text-center mb-6">
+      {emoji && <div className="text-4xl mb-3 animate-float-gentle">{emoji}</div>}
+      <h2 className="text-xl sm:text-2xl font-semibold">{title}</h2>
+      {subtitle && <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>}
     </div>
   )
 }
@@ -122,27 +122,27 @@ function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: stri
 function SafetyKnockout() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="max-w-md w-full text-center space-y-6">
-        <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
-          <AlertTriangle className="w-8 h-8 text-red-600" />
+      <div className="max-w-md w-full text-center space-y-8">
+        <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+          <AlertTriangle className="w-10 h-10 text-red-600" />
         </div>
-        <h1 className="text-2xl font-bold text-red-900">Please Seek Immediate Help</h1>
-        <p className="text-red-700">
+        <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Please Seek Immediate Help</h1>
+        <p className="text-red-700 text-base">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-card/70 backdrop-blur-xl rounded-2xl p-6 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-4">
+        <div className="bg-card/70 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
           <p className="font-medium">If this is a medical emergency:</p>
-          <Button asChild variant="destructive" className="w-full">
+          <Button asChild variant="destructive" className="w-full h-12">
             <a href="tel:000">Call 000</a>
           </Button>
           <p className="text-sm text-muted-foreground">or go to your nearest emergency department</p>
           <hr className="border-red-100" />
           <p className="font-medium">For mental health crisis support:</p>
-          <Button asChild variant="outline" className="w-full border-red-300 text-red-700 hover:bg-red-50">
+          <Button asChild variant="outline" className="w-full h-12 border-red-300 text-red-700 hover:bg-red-50">
             <a href="tel:131114">Lifeline: 13 11 14</a>
           </Button>
         </div>
-        <Button asChild variant="ghost">
+        <Button asChild variant="ghost" className="mt-4">
           <Link href="/">Return to home</Link>
         </Button>
       </div>
@@ -484,7 +484,7 @@ export function ConsultFlowClient({
       </header>
 
       {/* Progress */}
-      <div className="max-w-lg mx-auto px-4 pt-4 pb-4">
+      <div className="max-w-lg mx-auto px-4 pt-5 pb-5">
         <SessionProgress 
           currentStep={getProgressIndex()} 
           totalSteps={PROGRESS_STAGES.length}
@@ -493,7 +493,7 @@ export function ConsultFlowClient({
       </div>
 
       {/* Content */}
-      <main className="max-w-lg mx-auto px-4 pb-32">
+      <main className="max-w-lg mx-auto px-4 pb-36">
         <div
           className={`transition-all duration-150 ${
             isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
@@ -501,7 +501,7 @@ export function ConsultFlowClient({
         >
           {/* Step: Reason */}
           {step === "reason" && (
-            <div className="space-y-4 animate-step-enter">
+            <div className="space-y-5 animate-step-enter">
               <StepHeader
                 emoji="🩺"
                 title="What brings you in today?"
@@ -516,7 +516,7 @@ export function ConsultFlowClient({
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {CONSULT_REASONS.map((reason) => (
                   <button
                     key={reason.id}
@@ -524,7 +524,7 @@ export function ConsultFlowClient({
                       setConsultReason(reason.id)
                       setTimeout(goNext, 150)
                     }}
-                    className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
+                    className={`w-full p-5 rounded-2xl border-2 text-left transition-all duration-300 ${
                       consultReason === reason.id
                         ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
                         : "bg-card/70 backdrop-blur-xl border-border/40 hover:border-primary/40 hover:bg-card/85 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
@@ -539,7 +539,7 @@ export function ConsultFlowClient({
 
           {/* Step: Details */}
           {step === "details" && (
-            <div className="space-y-4 animate-step-enter">
+            <div className="space-y-5 animate-step-enter">
               <StepHeader
                 emoji="✍️"
                 title="Tell us more"

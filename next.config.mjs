@@ -40,6 +40,8 @@ const nextConfig = {
   images: {
     // Enable Next.js Image Optimization
     unoptimized: false,
+    // Configure allowed image quality values (required in Next.js 16+)
+    qualities: [25, 50, 65, 75, 85, 100],
     remotePatterns: [{
       protocol: "https",
       hostname: "**.supabase.co"

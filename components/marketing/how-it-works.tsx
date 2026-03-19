@@ -33,16 +33,16 @@ export function HowItWorks() {
   const animate = !prefersReducedMotion
 
   return (
-    <section id="how-it-works" className="relative py-14 lg:py-18 scroll-mt-20">
+    <section id="how-it-works" className="relative py-16 lg:py-20 scroll-mt-20">
       {/* Warm section background */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-dawn-50/40 via-transparent to-transparent dark:from-dawn-950/10 dark:via-transparent" />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
+          <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16">
           {/* Steps — clean vertical list */}
           <div className="flex-1">
             {/* Section Header */}
             <motion.div
-              className="mb-8"
+              className="mb-10"
               initial={animate ? { opacity: 0, y: 20 } : false}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
@@ -96,7 +96,7 @@ export function HowItWorks() {
 
             {/* CTA */}
             <motion.div
-              className="mt-6"
+              className="mt-8"
               initial={animate ? { opacity: 0, y: 10 } : false}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}

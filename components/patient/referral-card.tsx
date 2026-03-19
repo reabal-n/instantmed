@@ -56,18 +56,18 @@ export function ReferralCard({ patientId }: { patientId: string }) {
   const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}?ref=${stats.referralCode}`
 
   return (
-    <div className="rounded-xl border bg-linear-to-br from-primary/5 to-primary/10 p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-xl border bg-linear-to-br from-primary/5 to-primary/10 p-5">
+      <div className="flex items-center gap-2.5 mb-4">
         <Gift className="w-5 h-5 text-primary" />
         <h3 className="font-semibold text-foreground">Give $5, Get $5</h3>
       </div>
 
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-5">
         Share your link with friends. When they complete their first request, you both get $5 credit.
       </p>
 
       {/* Referral link */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-5">
         <Input readOnly value={referralLink} className="text-sm bg-background/50" />
         <Button variant="outline" size="icon" onClick={copyLink} className="shrink-0 bg-transparent" aria-label="Copy referral link">
           {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
@@ -75,20 +75,20 @@ export function ReferralCard({ patientId }: { patientId: string }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-background/50 p-3">
-          <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-            <DollarSign className="w-3.5 h-3.5" />
-            <span className="text-xs">Credit balance</span>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl bg-background/60 p-4">
+          <div className="flex items-center gap-1.5 text-muted-foreground mb-1.5">
+            <DollarSign className="w-4 h-4" />
+            <span className="text-xs font-medium">Credit balance</span>
           </div>
-          <p className="text-lg font-semibold text-foreground">${(stats.creditBalance / 100).toFixed(2)}</p>
+          <p className="text-xl font-semibold text-foreground">${(stats.creditBalance / 100).toFixed(2)}</p>
         </div>
-        <div className="rounded-xl bg-background/50 p-3">
-          <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-            <Users className="w-3.5 h-3.5" />
-            <span className="text-xs">Friends referred</span>
+        <div className="rounded-xl bg-background/60 p-4">
+          <div className="flex items-center gap-1.5 text-muted-foreground mb-1.5">
+            <Users className="w-4 h-4" />
+            <span className="text-xs font-medium">Friends referred</span>
           </div>
-          <p className="text-lg font-semibold text-foreground">{stats.completedReferrals}</p>
+          <p className="text-xl font-semibold text-foreground">{stats.completedReferrals}</p>
         </div>
       </div>
     </div>

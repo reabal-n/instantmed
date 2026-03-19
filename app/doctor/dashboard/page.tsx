@@ -68,15 +68,15 @@ export default async function DoctorDashboardPage({
   if (!doctorIdentity?.ahpra_number) missingFields.push("AHPRA Registration Number")
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>
         </div>
-        <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-muted-foreground bg-muted/50 rounded border border-border/50">
-          <span className="text-foreground/70">⌘</span>?
+        <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-muted-foreground/70 bg-muted/40 rounded border border-border/40">
+          <span className="text-foreground/60">⌘</span>?
         </kbd>
       </div>
 

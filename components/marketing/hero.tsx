@@ -36,7 +36,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Headline */}
             <motion.h1
-              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-6 leading-[1.15]"
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-8 leading-[1.15]"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
@@ -44,7 +44,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <RotatingText
                 texts={heroRotatingTexts}
                 interval={3500}
-                className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold"
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold"
               />
             </motion.h1>
 
@@ -57,7 +57,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Price anchor above CTAs */}
             <motion.div
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-6"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
@@ -72,7 +72,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* CTAs */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}

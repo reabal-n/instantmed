@@ -96,8 +96,8 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
   }
 
   const renderNavSection = (title: string, items: NavItem[]) => (
-    <div className="space-y-0.5">
-      <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+    <div className="space-y-1">
+      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
         {title}
       </p>
       {items.map((item) => {
@@ -107,7 +107,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
             key={item.href}
             href={item.href}
             className={cn(
-              "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              "group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
               active
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -150,16 +150,16 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
     <aside className="hidden lg:flex w-[260px] shrink-0 flex-col" aria-label="Admin sidebar">
       <div className="sticky top-6 flex flex-col gap-1 pb-6">
         {/* Brand */}
-        <div className="px-4 py-4 mb-2">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <div className="px-4 py-5 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <span className="text-sm font-bold tracking-tight">IM</span>
             </div>
             <div>
               <span className="text-base font-semibold tracking-tight text-foreground">
                 InstantMed
               </span>
-              <p className="text-xs text-muted-foreground leading-none mt-0.5">Admin</p>
+              <p className="text-xs text-muted-foreground leading-none mt-1">Admin</p>
             </div>
           </div>
         </div>
@@ -264,13 +264,13 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
 
         {/* User Profile */}
         <div className="px-4 mt-auto">
-          <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/50 transition-colors cursor-default">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold">
+          <div className="flex items-center gap-3 px-2 py-3 rounded-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate leading-tight">{userName}</p>
-              <p className="text-xs text-muted-foreground leading-tight">{userRole}</p>
+              <p className="text-xs text-muted-foreground leading-tight mt-0.5">{userRole}</p>
             </div>
           </div>
         </div>

@@ -13,7 +13,7 @@ import { SectionHeader } from "./section-header";
 import type { SectionProps } from "./types";
 import { scrollRevealConfig } from "@/components/ui/motion";
 
-const MotionAccordionItem = motion(AccordionItem);
+const MotionAccordionItem = motion.create(AccordionItem);
 
 interface AccordionEntry {
   question: string;
