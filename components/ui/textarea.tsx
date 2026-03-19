@@ -49,7 +49,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className={cn("w-full", className)}>
         {label && (
-          <label className="block text-sm font-medium text-foreground/80 mb-1.5">
+          <label className="block text-sm font-medium text-foreground/90 mb-2">
             {label}
           </label>
         )}

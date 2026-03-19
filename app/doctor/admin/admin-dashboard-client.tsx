@@ -90,19 +90,19 @@ export function AdminDashboardClient({
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Admin Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-sans">Admin Dashboard</h1>
+        <p className="text-base text-muted-foreground mt-2">
           Complete overview of all intakes • Dr. {doctorName}
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
               <div className="min-w-0">
@@ -171,14 +171,14 @@ export function AdminDashboardClient({
 
       {/* Filters */}
       <Card className="rounded-xl border-border/50">
-        <CardHeader className="px-6 py-5">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Users className="h-4 w-4" />
+        <CardHeader className="px-6 py-6">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2.5">
+            <Users className="h-5 w-5" />
             All Intakes ({filteredIntakes.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-1">
-          <div className="flex flex-wrap gap-4 mb-4">
+        <CardContent className="px-6 pb-6 pt-0">
+          <div className="flex flex-wrap gap-4 mb-5">
             <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search by name, suburb, or ID..."

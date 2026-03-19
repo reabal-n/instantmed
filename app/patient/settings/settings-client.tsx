@@ -239,11 +239,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Header */}
       <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Manage your profile and preferences</p>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Settings</h1>
+        <p className="mt-2 text-base text-muted-foreground">Manage your profile and preferences</p>
       </div>
 
       <Tabs
@@ -274,8 +274,8 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="mt-6">
-          <div className="space-y-6">
+        <TabsContent value="profile" className="mt-8">
+          <div className="space-y-8">
             {/* Avatar Picker */}
             <AvatarPicker
               selectedAvatarId={1}
@@ -286,10 +286,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
             />
 
             {/* Personal Information */}
-            <div className="glass-card rounded-2xl p-6 space-y-6">
+            <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
               <div>
-                <h3 className="font-medium text-foreground mb-4">Personal Information</h3>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <h3 className="font-medium text-foreground mb-5">Personal Information</h3>
+                <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="full_name">Full Name</Label>
                     <Input
@@ -346,14 +346,14 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
           </div>
         </TabsContent>
 
-        <TabsContent value="address" className="mt-6">
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+        <TabsContent value="address" className="mt-8">
+          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
             <div>
-              <h3 className="font-medium text-foreground mb-4">Home Address</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h3 className="font-medium text-foreground mb-5">Home Address</h3>
+              <p className="text-sm text-muted-foreground mb-5">
                 This address is used for sending physical documents if required.
               </p>
-              <div className="grid gap-4">
+              <div className="grid gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="street">Street Address</Label>
                   <Input
@@ -363,7 +363,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                     className="rounded-xl bg-card/50 dark:bg-card/30"
                   />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="suburb">Suburb</Label>
                     <Input
@@ -422,10 +422,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
           </div>
         </TabsContent>
 
-        <TabsContent value="medicare" className="mt-6">
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+        <TabsContent value="medicare" className="mt-8">
+          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
             <div>
-              <h3 className="font-medium text-foreground mb-4">Medicare Details</h3>
+              <h3 className="font-medium text-foreground mb-5">Medicare Details</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 Your Medicare information is stored securely and used for prescription and referral services.
               </p>
@@ -436,10 +436,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   onChange={setMedicareForm}
                 />
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">My Health Record</p>
-                    <p className="text-sm text-muted-foreground">Opt in to share with My Health Record when relevant</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">Opt in to share with My Health Record when relevant</p>
                   </div>
                   <Switch
                     checked={consentMyhr}
@@ -468,11 +468,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
           </div>
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6">
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+        <TabsContent value="notifications" className="mt-8">
+          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
             {/* Email Subscription Preferences */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2.5 mb-5">
                 <Mail className="w-5 h-5 text-muted-foreground" />
                 <h3 className="font-medium text-foreground">Email Subscriptions</h3>
               </div>
@@ -481,10 +481,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Marketing emails</p>
-                    <p className="text-sm text-muted-foreground">Occasional updates about new services and features</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">Occasional updates about new services and features</p>
                   </div>
                   <Switch 
                     checked={emailPrefs.marketing_emails}
@@ -493,10 +493,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Checkout reminders</p>
-                    <p className="text-sm text-muted-foreground">Reminders if you have an incomplete request</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">Reminders if you have an incomplete request</p>
                   </div>
                   <Switch 
                     checked={emailPrefs.abandoned_checkout_emails}
@@ -505,10 +505,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Transactional emails</p>
-                    <p className="text-sm text-muted-foreground">Updates about your requests, certificates, and account</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">Updates about your requests, certificates, and account</p>
                   </div>
                   <Switch 
                     checked={true}
