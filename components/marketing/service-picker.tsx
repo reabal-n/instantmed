@@ -11,6 +11,15 @@ import { Button } from '@/components/ui/button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
 import { SpotlightReveal } from '@/components/ui/glowing-effect'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
+import { CertificateMockup } from '@/components/marketing/mockups/certificate'
+import { EScriptMockup } from '@/components/marketing/mockups/escript'
+import { ConsultMockup } from '@/components/marketing/mockups/consult'
+
+const mockupMap: Record<string, React.ComponentType> = {
+  'med-cert': CertificateMockup,
+  'scripts': EScriptMockup,
+  'consult': ConsultMockup,
+}
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -183,23 +192,32 @@ export function ServicePicker() {
                       </div>
                     )}
                     
-                    {/* Clean card - Glass style with gradient accent */}
+                    {/* Clean card - dub-style depth */}
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
-                      "bg-white/70 dark:bg-white/[0.08]",
-                      "border border-dawn-200/40 dark:border-white/15",
-                      "backdrop-blur-xl",
-                      "shadow-sm shadow-dawn-200/20 dark:shadow-none",
+                      "bg-white dark:bg-card",
+                      "border border-border/50 dark:border-white/15",
+                      "shadow-lg shadow-primary/[0.06] dark:shadow-none",
                       "transition-all duration-300",
                       disabled && "opacity-60",
                       !disabled && [
-                        "hover:shadow-lg hover:shadow-dawn-300/25 hover:border-dawn-300/50 dark:hover:shadow-[0_4px_20px_rgba(93,184,201,0.08)] dark:hover:border-accent-teal/25",
-                        service.popular && "ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-md shadow-dawn-200/25 dark:shadow-none bg-primary/[0.02] dark:bg-primary/[0.05]",
+                        "hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1",
+                        service.popular && "ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-xl shadow-primary/[0.08] dark:shadow-none",
                       ]
                     )}>
                       {/* Gradient accent bar */}
                       <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
-                      
+
+                      {/* Product mockup */}
+                      {(() => {
+                        const Mockup = mockupMap[service.id]
+                        return Mockup ? (
+                          <div className="group-hover:scale-[1.02] transition-transform duration-300">
+                            <Mockup />
+                          </div>
+                        ) : null
+                      })()}
+
                       <div className="p-4 pb-3 flex-1 flex flex-col">
                         {/* Icon with animated background */}
                         <motion.div 
@@ -250,10 +268,17 @@ export function ServicePicker() {
                             <Clock className="h-3 w-3" />
                             {meta.time}
                           </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <PhoneOff className="h-3 w-3 shrink-0" />
-                            {meta.callNote}
-                          </span>
+                          {meta.callNote === 'No call needed' ? (
+                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                              <PhoneOff className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                              {meta.callNote}
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                              <PhoneOff className="h-3 w-3 shrink-0" />
+                              {meta.callNote}
+                            </span>
+                          )}
                         </div>
                         
                         {/* Medicare note - only for prescriptions */}
