@@ -129,7 +129,7 @@ export function TotalPatientsCounter({
       viewport={{ once: true }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
       className={cn(
-        'rounded-2xl border border-border dark:border-white/10 bg-card dark:bg-white/5 p-6 text-center',
+        'rounded-2xl border border-border dark:border-white/10 bg-white dark:bg-card p-6 text-center',
         className
       )}
     >
@@ -181,7 +181,7 @@ export function StatsStrip({
   return (
     <motion.div
       className={cn(
-        'flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-6 backdrop-blur-sm',
+        'flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-6',
         className
       )}
       initial={prefersReducedMotion ? false : { opacity: 0 }}

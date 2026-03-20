@@ -6,29 +6,34 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { DottedGrid } from "@/components/marketing/dotted-grid"
 
 const trustBadges = [
   {
     name: "AHPRA-registered doctors",
     icon: BadgeCheck,
     color: "text-emerald-600 dark:text-emerald-400",
+    iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
     href: "https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
   },
   {
     name: "RACGP-aligned protocols",
     icon: BookOpen,
     color: "text-blue-600 dark:text-blue-400",
+    iconBg: "bg-blue-50 dark:bg-blue-500/10",
     href: "https://www.racgp.org.au/running-a-practice/practice-standards"
   },
   {
     name: "Medical Director oversight",
     icon: UserCheck,
-    color: "text-blue-600 dark:text-blue-400"
+    color: "text-blue-600 dark:text-blue-400",
+    iconBg: "bg-blue-50 dark:bg-blue-500/10"
   },
   {
     name: "TGA-compliant ePrescribing",
     icon: FileCheck,
-    color: "text-amber-600 dark:text-amber-400"
+    color: "text-amber-600 dark:text-amber-400",
+    iconBg: "bg-amber-50 dark:bg-amber-500/10"
   },
 ]
 
@@ -41,8 +46,9 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
   const animate = !prefersReducedMotion
 
   return (
-    <section className={cn("py-12 lg:py-16", className)}>
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <section className={cn("py-20 lg:py-24 relative", className)}>
+      <DottedGrid />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Trust badges grid */}
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10"
@@ -53,8 +59,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         >
           {trustBadges.map((badge, index) => {
             const content = (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/70 dark:bg-white/[0.08] border border-dawn-200/40 dark:border-white/[0.12] hover:border-dawn-300/50 dark:hover:border-accent-teal/30 hover:shadow-lg hover:shadow-dawn-200/20 dark:hover:shadow-none hover:-translate-y-0.5 transition-all duration-300 h-full backdrop-blur-sm">
-                <div className={cn('relative w-10 h-10 rounded-lg bg-dawn-50/80 dark:bg-white/[0.12] flex items-center justify-center shadow-sm shadow-dawn-100/30 dark:shadow-none group-hover:shadow-md group-hover:shadow-dawn-200/20 dark:group-hover:shadow-none transition-all duration-300', badge.color)}>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 shadow-md shadow-primary/[0.06] hover:shadow-lg hover:shadow-primary/[0.1] hover:-translate-y-1 transition-all duration-300 h-full">
+                <div className={cn('relative w-10 h-10 rounded-lg flex items-center justify-center', badge.iconBg, badge.color)}>
                   <badge.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -65,7 +71,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
                 </div>
               </div>
             )
-            
+
             return (
               <motion.div
                 key={badge.name}
@@ -89,56 +95,49 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
 
         {/* CTA Section */}
         <motion.div
-          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-primary/3 dark:from-primary/10 dark:via-card/50 dark:to-primary/8 border border-primary/10 dark:border-primary/20 p-8 lg:p-10 text-center overflow-hidden"
+          className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-10 lg:p-14 text-center"
           initial={animate ? { opacity: 0, y: 20 } : false}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {/* Background decoration — warm morning spectrum */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.06),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(240,180,160,0.08),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(253,230,138,0.06),transparent_60%)]" />
-          
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Simple and straightforward</span>
-            </div>
-            
-            <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
-              Healthcare on your schedule
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Trusted by Australians across the country. Most requests reviewed within an hour.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                asChild
-                size="lg"
-                className="px-8 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
-              >
-                <Link href="/request">Start a request</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="px-8 active:scale-[0.98]"
-              >
-                <Link href="/pricing">View pricing</Link>
-              </Button>
-            </div>
-            
-            <p className="text-xs text-muted-foreground mt-4">
-              <Shield className="w-3.5 h-3.5 inline mr-1" />
-              Full refund if we can&apos;t help
-            </p>
-            <p className="text-xs text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
-              Operating since 2025 · ABN 64 694 559 334
-            </p>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <CheckCircle2 className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Simple and straightforward</span>
           </div>
+
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-3 tracking-tight">
+            Healthcare on your schedule
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-lg mx-auto leading-relaxed">
+            Trusted by Australians across the country. Most requests reviewed within an hour.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="px-8 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
+            >
+              <Link href="/request">Start a request</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="px-8 active:scale-[0.98]"
+            >
+              <Link href="/pricing">View pricing</Link>
+            </Button>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            <Shield className="w-3.5 h-3.5 inline mr-1" />
+            Full refund if we can&apos;t help
+          </p>
+          <p className="text-xs text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
+            Operating since 2025 · ABN 64 694 559 334
+          </p>
         </motion.div>
       </div>
     </section>

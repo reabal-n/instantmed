@@ -2,13 +2,12 @@
 
 import type React from "react"
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { Spotlight } from '@/components/ui/glowing-effect'
 import { motion, useReducedMotion } from 'framer-motion'
+import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
 import { MagneticButton } from '@/components/ui/magnetic-button'
@@ -36,7 +35,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Headline */}
             <motion.h1
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-8 leading-[1.15]"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-8 leading-[1.15]"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
@@ -44,7 +43,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <RotatingText
                 texts={heroRotatingTexts}
                 interval={3500}
-                className="text-2xl sm:text-3xl lg:text-4xl font-bold"
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold"
               />
             </motion.h1>
 
@@ -120,31 +119,10 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             </motion.div>
           </div>
 
-          {/* Hero image — desktop */}
-          <motion.div
-            className="hidden lg:block relative shrink-0 mt-0"
-            initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Spotlight
-              color="oklch(0.65 0.12 210 / 0.12)"
-              size={250}
-              className="rounded-3xl"
-            >
-              <div className="relative w-72 xl:w-80 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl shadow-sky-900/10 dark:shadow-sky-400/10">
-                <Image
-                  src="/images/home-1.jpeg"
-                  alt="Woman requesting a medical certificate from her phone in bed"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(min-width: 1024px) 320px, 0px"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-dawn-900/10 to-transparent" />
-              </div>
-            </Spotlight>
-          </motion.div>
+          {/* Hero product mockup — desktop */}
+          <div className="hidden lg:block relative shrink-0 mt-0">
+            <HeroProductMockup />
+          </div>
         </div>
       </div>
     </section>

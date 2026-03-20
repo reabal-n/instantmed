@@ -43,7 +43,7 @@ export function SectionHeader({
     >
       {pill && (
         <motion.span
-          className="inline-block rounded-full bg-dawn-100/60 px-4 py-1.5 text-xs font-medium tracking-wider text-dawn-700 dark:bg-accent-teal/15 dark:text-accent-teal uppercase mb-4"
+          className="inline-block rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 px-4 py-1.5 text-xs font-medium tracking-wider text-foreground/60 dark:text-foreground/50 uppercase mb-4"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           animate={
             prefersReducedMotion
@@ -63,14 +63,14 @@ export function SectionHeader({
         as={titleAs}
         highlightWords={highlightWords}
         className={cn(
-          "text-3xl font-semibold tracking-tight text-foreground sm:text-4xl",
+          "text-3xl font-bold tracking-tight text-foreground sm:text-4xl",
           align === "center" && "justify-center"
         )}
       />
 
       {subtitle && (
         <motion.p
-          className="mt-4 text-lg text-muted-foreground"
+          className="mt-4 text-lg text-muted-foreground leading-relaxed"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           animate={
             prefersReducedMotion

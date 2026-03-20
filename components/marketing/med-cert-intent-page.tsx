@@ -205,7 +205,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
                     <motion.div
-                      className="absolute bottom-4 left-4 bg-card/90 dark:bg-white/10 backdrop-blur-xl rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                      className="absolute bottom-4 left-4 bg-white dark:bg-card shadow-md rounded-xl px-3 py-2 border border-border/50 dark:border-white/15"
                       initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.9 }}
@@ -274,7 +274,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 {trustBadges.map((badge) => (
                   <div
                     key={badge.name}
-                    className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all"
+                    className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-border hover:shadow-md transition-all"
                   >
                     <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
                       <badge.icon className="w-5 h-5" />
@@ -390,7 +390,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       return (
                         <div
                           key={item.label}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/50"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none"
                         >
                           <Icon className="w-5 h-5 text-primary shrink-0" />
                           <div className="text-left">

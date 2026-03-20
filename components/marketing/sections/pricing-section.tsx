@@ -168,7 +168,7 @@ function ComparisonTable() {
       className="mt-12"
     >
       <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
-      <div className="overflow-x-auto rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-lg dark:shadow-none">
+      <div className="overflow-x-auto rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-lg dark:shadow-none">
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-border/50">

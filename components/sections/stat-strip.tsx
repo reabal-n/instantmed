@@ -54,7 +54,7 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
       id={id}
       ref={ref}
       className={cn(
-        "py-12 px-4 border-y border-dawn-200/30 dark:border-border/50 bg-gradient-to-r from-dawn-50/40 via-sky-50/30 to-dawn-50/40 dark:from-muted/30 dark:via-background dark:to-muted/30",
+        "py-12 px-4 border-y border-border/30 dark:border-border/50 bg-muted/20 dark:bg-muted/10",
         className
       )}
     >

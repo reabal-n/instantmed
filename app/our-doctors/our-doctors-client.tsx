@@ -154,7 +154,7 @@ export default function OurDoctorsClient({ doctors }: OurDoctorsClientProps) {
               {doctors.map((doctor) => (
                 <div
                   key={doctor.id}
-                  className="rounded-2xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-6 text-center"
+                  className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6 text-center"
                   itemScope
                   itemType="https://schema.org/Physician"
                 >

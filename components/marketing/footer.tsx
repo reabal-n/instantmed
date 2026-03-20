@@ -57,7 +57,7 @@ export function MarketingFooter() {
   return (
     <footer className="my-8 px-4 max-w-5xl mx-auto">
       {/* Main card with tape decorations */}
-      <div className="relative bg-white/70 dark:bg-white/[0.06] rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-dawn-200/40 dark:border-border/50 shadow-sm shadow-dawn-200/15 dark:shadow-none backdrop-blur-sm">
+      <div className="relative bg-white dark:bg-card rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
         {/* Tape decorations */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />

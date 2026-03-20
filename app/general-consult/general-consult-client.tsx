@@ -242,20 +242,20 @@ export default function GeneralConsultPage() {
 
             {/* Stats bar with price justification */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+              <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
                 <p className="text-xs text-muted-foreground">Flat fee</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
               </div>
-              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+              <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
                 <p className="text-xs text-muted-foreground">Doctor response</p>
               </div>
-              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+              <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
                 <p className="text-xs text-muted-foreground">A week</p>
               </div>
-              <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+              <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">$0</div>
                 <p className="text-xs text-muted-foreground">If we can&apos;t help</p>
               </div>
@@ -272,7 +272,7 @@ export default function GeneralConsultPage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
@@ -280,12 +280,12 @@ export default function GeneralConsultPage() {
               {trustBadges.map((badge, index) => (
                 <motion.div
                   key={badge.name}
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.1 }}
                 >
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-border hover:shadow-sm transition-all">
                     <div className={cn("w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm", badge.color)}>
                       <badge.icon className="w-5 h-5" />
                     </div>
@@ -311,7 +311,7 @@ export default function GeneralConsultPage() {
             {/* Section Header */}
             <motion.div
               className="text-center mb-10"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
@@ -327,7 +327,7 @@ export default function GeneralConsultPage() {
             {/* Trust signals */}
             <motion.div
               className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1 }}
@@ -345,7 +345,7 @@ export default function GeneralConsultPage() {
               {CONSULT_TYPES.map((consult, index) => (
                 <motion.div
                   key={consult.id}
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: index * 0.1 }}
@@ -353,7 +353,7 @@ export default function GeneralConsultPage() {
                   <Link href={isDisabled ? "/contact" : consult.href} className="group block h-full">
                       <div className={cn(
                         "relative h-full rounded-2xl overflow-hidden flex flex-col",
-                        "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
+                        "bg-white dark:bg-card",
                         "border border-border/20 dark:border-white/10",
                         "shadow-lg shadow-black/5 dark:shadow-black/20",
                         "hover:shadow-xl transition-all duration-300",
@@ -423,7 +423,7 @@ export default function GeneralConsultPage() {
             {/* Guarantee badge */}
             <motion.div
               className="mt-8 flex justify-center"
-              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.3 }}
@@ -441,7 +441,7 @@ export default function GeneralConsultPage() {
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="text-center mb-8"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
@@ -458,12 +458,12 @@ export default function GeneralConsultPage() {
               {COMMON_CONCERNS.map((concern, index) => (
                 <motion.div
                   key={concern.title}
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.05 }}
                 >
-                  <div className="p-4 rounded-xl bg-card/50 border border-border/50">
+                  <div className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <h3 className="font-semibold text-foreground text-sm mb-1">{concern.title}</h3>
                     <p className="text-xs text-muted-foreground">{concern.examples}</p>
                   </div>

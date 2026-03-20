@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import {
@@ -26,6 +27,7 @@ import {
   SectionHeader,
 } from "@/components/sections";
 import { scrollRevealConfig } from "@/components/ui/motion";
+import { TrustLogos } from "@/components/marketing/trust-badges";
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 
 /* ------------------------------------------------------------------ */
@@ -204,7 +206,7 @@ function TreatmentOptions() {
         {treatments.map((treatment, i) => (
           <motion.div
             key={treatment.id}
-            className="rounded-2xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors"
+            className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
             animate={
               prefersReducedMotion
@@ -324,6 +326,27 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
               </Button>
             </div>
           </CenteredHero>
+
+          {/* Trust logos */}
+          <div className="px-4 pb-8">
+            <div className="mx-auto max-w-5xl">
+              <TrustLogos />
+            </div>
+          </div>
+
+          {/* Hero image */}
+          <section className="px-4 pb-12">
+            <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.06] dark:shadow-none">
+              <Image
+                src="/images/consult-1.jpeg"
+                alt="Patient completing an online consultation from their phone"
+                width={800}
+                height={450}
+                className="w-full h-auto object-cover"
+                priority
+              />
+            </div>
+          </section>
 
           <TreatmentOptions />
 

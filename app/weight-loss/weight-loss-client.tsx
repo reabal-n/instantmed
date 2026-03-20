@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
@@ -170,29 +171,43 @@ export function WeightLossClient() {
 
             {/* Trust badges */}
             <div className="flex flex-wrap justify-center gap-3 text-xs">
-              <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+              <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Zap className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium text-muted-foreground">Reviewed within hours</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+              <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Activity className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium text-muted-foreground">Ongoing support</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+              <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Shield className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium text-muted-foreground">AHPRA doctors</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+              <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Lock className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium text-muted-foreground">Private & secure</span>
               </div>
             </div>
           </CenteredHero>
 
+          {/* Hero image */}
+          <section className="px-4 pb-12">
+            <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.06] dark:shadow-none">
+              <Image
+                src="/images/consult-2.jpeg"
+                alt="Patient using their phone for a medical consultation"
+                width={800}
+                height={450}
+                className="w-full h-auto object-cover"
+                priority
+              />
+            </div>
+          </section>
+
           {/* Treatment Options */}
           <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="rounded-3xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
+              <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
@@ -204,7 +219,7 @@ export function WeightLossClient() {
                   {treatments.map((treatment) => (
                     <div
                       key={treatment.id}
-                      className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all"
+                      className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.08] transition-all duration-300"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -272,7 +287,7 @@ export function WeightLossClient() {
           {/* Eligibility */}
           <section className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="rounded-3xl border border-border/50 bg-card/60 dark:bg-white/5 backdrop-blur-sm p-4 lg:p-6 relative overflow-hidden">
+              <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Who Can Use This Service?</h2>
                   <p className="text-sm text-muted-foreground">
@@ -281,7 +296,7 @@ export function WeightLossClient() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                  <div className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
                         <CheckCircle2 className="h-4 w-4 text-success" />
@@ -298,7 +313,7 @@ export function WeightLossClient() {
                     </ul>
                   </div>
 
-                  <div className="bg-card/60 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                  <div className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                         <Shield className="h-4 w-4 text-muted-foreground" />

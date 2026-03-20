@@ -372,8 +372,8 @@ export function ServiceFunnelPage({ config, isDisabled }: ServiceFunnelPageProps
       />
 
       {/* Stats + Media Mentions */}
-      <StatsStrip className="bg-card/30 dark:bg-white/[0.02] backdrop-blur-xs border-y border-border/30" />
-      <MediaMentions variant="strip" className="bg-card/20 dark:bg-white/[0.01] backdrop-blur-xs" />
+      <StatsStrip className="bg-muted/20 dark:bg-muted/10 border-y border-border/30" />
+      <MediaMentions variant="strip" className="bg-muted/10 dark:bg-muted/5" />
 
       {/* Section 8: FAQ */}
       {config.faq && (
@@ -502,12 +502,11 @@ function HeroSection({ config, colors, isDisabled }: { config: ServiceFunnelConf
               {config.hero.highlightBadge && (
                 <div className={cn(
                   'relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all',
-                  'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                  colors.light, colors.text, colors.border
                 )}>
-                  <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", colors.text.replace('text-', 'bg-'))} />
+                    <span className={cn("relative inline-flex rounded-full h-2 w-2", colors.text.replace('text-', 'bg-'))} />
                   </span>
                   <span className="relative">{config.hero.highlightBadge.text}</span>
                 </div>
@@ -569,7 +568,7 @@ function HeroSection({ config, colors, isDisabled }: { config: ServiceFunnelConf
 
                 {/* Floating trust badge */}
                 <motion.div
-                  className="absolute -bottom-4 -left-6 bg-card/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50 dark:border-white/10"
+                  className="absolute -bottom-4 -left-6 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-primary/[0.08] dark:shadow-none border border-border/50 dark:border-white/15"
                   initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
@@ -596,10 +595,10 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-20 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -617,19 +616,19 @@ function WhoItsForSection({ config, colors }: { config: ServiceFunnelConfig; col
             const Icon = iconMap[card.icon] || HelpCircle
             const isPositive = card.type === 'positive'
             const isNegative = card.type === 'negative'
-            
+
             return (
               <motion.div
                 key={i}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className={cn(
-                  'rounded-2xl p-6 border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5',
-                  isPositive && 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 hover:shadow-emerald-200/30 dark:hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700',
-                  isNegative && 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800 hover:shadow-rose-200/30 dark:hover:shadow-rose-500/10 hover:border-rose-300 dark:hover:border-rose-700',
-                  !isPositive && !isNegative && 'bg-card border-border hover:shadow-dawn-200/30 dark:hover:shadow-accent-teal/10 hover:border-primary/20 dark:hover:border-accent-teal/20'
+                  'rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
+                  isPositive && 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 hover:shadow-primary/[0.06] hover:border-emerald-300 dark:hover:border-emerald-700',
+                  isNegative && 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800 hover:shadow-primary/[0.06] hover:border-rose-300 dark:hover:border-rose-700',
+                  !isPositive && !isNegative && 'bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] hover:shadow-primary/[0.1] hover:border-primary/20'
                 )}
               >
                 <div className={cn(
@@ -662,10 +661,10 @@ function SpecializedServicesSection({ config, colors }: { config: ServiceFunnelC
   if (!config.specializedServices) return null
 
   return (
-    <section className="py-16 lg:py-20">
+    <section className="py-20 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -684,14 +683,14 @@ function SpecializedServicesSection({ config, colors }: { config: ServiceFunnelC
             return (
               <motion.div
                 key={i}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
               >
                 <Link
                   href={service.href}
-                  className="block h-full rounded-2xl p-6 bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30 transition-all group"
+                  className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.1] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 group"
                 >
                   <div className="flex items-start gap-4">
                     <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', colors.light)}>
@@ -724,10 +723,10 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section id="how-it-works" className="py-16 lg:py-20">
+    <section id="how-it-works" className="py-20 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -746,7 +745,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
             return (
               <motion.div
                 key={step.number}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -756,8 +755,8 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
                 {i < config.howItWorks.steps.length - 1 && (
                   <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-border" />
                 )}
-                
-                <div className="relative bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-border/50 dark:border-white/10 hover:shadow-lg hover:shadow-dawn-200/25 dark:hover:shadow-accent-teal/[0.06] hover:border-primary/20 dark:hover:border-accent-teal/20 hover:-translate-y-0.5 transition-all duration-200 text-center">
+
+                <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.1] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 text-center">
                   {/* Step number */}
                   <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold', colors.button)}>
                     {step.number}
@@ -784,7 +783,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
         </div>
 
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mt-12"
@@ -792,7 +791,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
           <Button
             asChild
             size="lg"
-            className={cn('px-8 h-12 font-semibold text-white', colors.button)}
+            className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
           >
             <Link href={config.hero.ctaHref}>
               {config.hero.ctaText}
@@ -809,10 +808,10 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-20 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -831,11 +830,11 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
             return (
               <motion.div
                 key={i}
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex gap-4 p-5 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 hover:shadow-md hover:shadow-dawn-200/20 dark:hover:shadow-accent-teal/[0.04] hover:border-primary/15 dark:hover:border-accent-teal/15 transition-all duration-200"
+                className="flex gap-4 p-5 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:shadow-md hover:shadow-primary/[0.08] hover:border-primary/15 hover:-translate-y-0.5 transition-all duration-300"
               >
                 <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', colors.light)}>
                   <Icon className={cn('w-5 h-5', colors.text)} />
@@ -857,10 +856,10 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-16 lg:py-20 bg-card/40 dark:bg-white/[0.02] backdrop-blur-xs">
+    <section className="py-20 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -876,11 +875,11 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
             return (
               <motion.div
                 key={i}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="text-center p-6 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
+                className="text-center p-6 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.1] transition-all duration-300"
               >
                 <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
                   <Icon className={cn('w-6 h-6', colors.text)} />
@@ -902,19 +901,19 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
   if (!config.faq) return null
 
   return (
-    <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
+    <section id="faq" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           className="text-center mb-10"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground/80">FAQ</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6">
+            <CheckCircle2 className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
+            <span className="text-sm font-medium text-foreground/60 dark:text-foreground/50">FAQ</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
@@ -926,7 +925,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
         </motion.div>
 
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -941,7 +940,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
               <AccordionItem
                 key={index.toString()}
                 value={index.toString()}
-                className="rounded-xl bg-card/70 dark:bg-white/5 backdrop-blur-sm border border-border/60 shadow-sm hover:border-primary/20 dark:hover:border-accent-teal/20 hover:shadow-md hover:shadow-dawn-200/20 dark:hover:shadow-accent-teal/[0.04] transition-all duration-200 px-5"
+                className="rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 px-5"
               >
                 <AccordionTrigger className="text-foreground py-5">
                   <span className="font-medium text-foreground text-left">{item.question}</span>
@@ -957,7 +956,7 @@ function FaqSection({ config }: { config: ServiceFunnelConfig }) {
         {/* Contact support */}
         <motion.div
           className="mt-10 text-center"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
@@ -979,10 +978,10 @@ function FinalCtaSection({ config, colors, isDisabled }: { config: ServiceFunnel
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className={cn('py-16 lg:py-20 bg-linear-to-br', colors.gradient)}>
+    <section className={cn('py-20 lg:py-24 bg-linear-to-br', colors.gradient)}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
@@ -995,7 +994,8 @@ function FinalCtaSection({ config, colors, isDisabled }: { config: ServiceFunnel
           <Button
             asChild
             size="lg"
-            className="bg-white dark:bg-white text-foreground dark:text-foreground hover:bg-white/90 dark:hover:bg-white/90 px-10 h-14 text-lg font-semibold shadow-lg"
+            variant="secondary"
+            className="px-10 h-14 text-lg font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
             <Link href={isDisabled ? "/contact" : config.hero.ctaHref}>
               {isDisabled ? "Contact us" : config.finalCta.ctaText}

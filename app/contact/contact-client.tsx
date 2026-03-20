@@ -14,7 +14,6 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
-import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
 import { scrollRevealConfig } from "@/components/ui/motion"
 import {
   Mail,
@@ -87,7 +86,7 @@ export function ContactClient() {
         <Navbar variant="marketing" />
         <main className="flex-1 flex items-center justify-center px-4 py-20">
           <div className="mx-auto max-w-lg text-center">
-            <PerspectiveTiltCard className="p-10" variant="gradient">
+            <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-10">
               <motion.div
                 initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -113,7 +112,7 @@ export function ContactClient() {
                   </Link>
                 </Button>
               </motion.div>
-            </PerspectiveTiltCard>
+            </div>
           </div>
         </main>
         <MarketingFooter />
@@ -198,7 +197,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <PerspectiveTiltCard className="p-6" variant="glass">
+      <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
           Contact Information
         </h3>
@@ -251,7 +250,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
             </div>
           </div>
         </address>
-      </PerspectiveTiltCard>
+      </div>
     </motion.div>
   )
 }
@@ -274,7 +273,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <PerspectiveTiltCard className="p-6" variant="glass">
+      <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
         <HelpCircle className="h-8 w-8 text-primary mb-3" aria-hidden="true" />
         <h3 className="font-semibold mb-2">Looking for quick answers?</h3>
         <p className="text-sm text-muted-foreground mb-4">
@@ -286,7 +285,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
             <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
-      </PerspectiveTiltCard>
+      </div>
     </motion.div>
   )
 }
@@ -324,7 +323,7 @@ function ContactFormCard({
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <PerspectiveTiltCard className="p-8" variant="solid" maxRotation={3}>
+      <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-8">
         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
           <Send className="h-5 w-5 text-primary" aria-hidden="true" />
           Send us a message
@@ -434,7 +433,7 @@ function ContactFormCard({
             )}
           </Button>
         </form>
-      </PerspectiveTiltCard>
+      </div>
     </motion.div>
   )
 }
