@@ -77,12 +77,12 @@ export function AccordionSection({
                 {group.category}
               </motion.h3>
             )}
-            <Accordion type="single" collapsible className="space-y-2">
+            <Accordion type="single" collapsible className="space-y-3">
               {group.items.map((item, ii) => (
                 <MotionAccordionItem
                   key={item.question}
                   value={`${gi}-${ii}`}
-                  className="rounded-xl border border-dawn-200/40 dark:border-border/50 bg-white/70 dark:bg-white/[0.06] backdrop-blur-sm px-5 transition-colors hover:bg-dawn-50/50 dark:hover:bg-white/[0.08]"
+                  className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-all hover:shadow-sm hover:shadow-primary/[0.04]"
                   initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
                   animate={
                     prefersReducedMotion
@@ -96,7 +96,7 @@ export function AccordionSection({
                     delay: gi * 0.1 + ii * 0.05,
                   }}
                 >
-                  <AccordionTrigger className="text-sm font-medium text-foreground">
+                  <AccordionTrigger className="text-sm font-semibold text-foreground">
                     {item.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
