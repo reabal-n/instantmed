@@ -14,7 +14,6 @@ const FORBIDDEN_DIAGNOSIS_TERMS = [
   "covid-19",
   "coronavirus",
   "influenza",
-  "flu",
   "pneumonia",
   "bronchitis",
   "strep",
@@ -32,8 +31,6 @@ const FORBIDDEN_DIAGNOSIS_TERMS = [
   "sepsis",
   "septicemia",
   "tuberculosis",
-  "hiv",
-  "aids",
   "hepatitis",
   "cirrhosis",
   "kidney failure",
@@ -42,8 +39,16 @@ const FORBIDDEN_DIAGNOSIS_TERMS = [
   "cardiac arrest",
   "pulmonary embolism",
   "deep vein thrombosis",
+]
+
+// Short abbreviations that need word-boundary matching to avoid false positives
+// (e.g. "pe" matching "experience", "flu" matching "influence")
+const FORBIDDEN_DIAGNOSIS_ABBREVIATIONS = [
   "dvt",
   "pe",
+  "hiv",
+  "aids",
+  "flu",
 ]
 
 // Forbidden medication terms - AI must not recommend specific medications.
@@ -162,26 +167,26 @@ export function validateMedCertAgainstIntake(
   }
 
   // 3. Check for forbidden diagnosis terms
-  const allText = [
+  const allMedCertText = [
     aiOutput.certificateStatement,
     aiOutput.symptomsSummary,
     aiOutput.clinicalNotes,
-  ].join(" ").toLowerCase()
+  ].join(" ")
 
-  for (const term of FORBIDDEN_DIAGNOSIS_TERMS) {
-    if (allText.includes(term.toLowerCase())) {
-      errors.push({
-        code: "FORBIDDEN_DIAGNOSIS",
-        message: `AI output contains forbidden diagnosis term: "${term}"`,
-        field: "certificateStatement",
-        actual: term,
-      })
-    }
+  const diagnosisMatch = containsForbiddenDiagnosisTerm(allMedCertText)
+  if (diagnosisMatch) {
+    errors.push({
+      code: "FORBIDDEN_DIAGNOSIS",
+      message: `AI output contains forbidden diagnosis term: "${diagnosisMatch.term}"`,
+      field: "certificateStatement",
+      actual: diagnosisMatch.term,
+    })
   }
 
   // 4. Check for forbidden medication terms
+  const allMedCertTextLower = allMedCertText.toLowerCase()
   for (const term of FORBIDDEN_MEDICATION_TERMS) {
-    if (allText.includes(term.toLowerCase())) {
+    if (allMedCertTextLower.includes(term.toLowerCase())) {
       errors.push({
         code: "FORBIDDEN_MEDICATION",
         message: `AI output contains forbidden medication term: "${term}"`,
@@ -255,22 +260,23 @@ export function validateClinicalNoteAgainstIntake(
     aiOutput.historyOfPresentIllness,
     aiOutput.relevantInformation,
     aiOutput.certificateDetails,
-  ].join(" ").toLowerCase()
+  ].join(" ")
 
-  for (const term of FORBIDDEN_DIAGNOSIS_TERMS) {
-    if (allText.includes(term.toLowerCase())) {
-      errors.push({
-        code: "FORBIDDEN_DIAGNOSIS",
-        message: `AI output contains forbidden diagnosis term: "${term}"`,
-        field: "presentingComplaint",
-        actual: term,
-      })
-    }
+  const diagnosisMatch = containsForbiddenDiagnosisTerm(allText)
+  if (diagnosisMatch) {
+    errors.push({
+      code: "FORBIDDEN_DIAGNOSIS",
+      message: `AI output contains forbidden diagnosis term: "${diagnosisMatch.term}"`,
+      field: "presentingComplaint",
+      actual: diagnosisMatch.term,
+    })
   }
+
+  const allTextLower = allText.toLowerCase()
 
   // 2. Check for forbidden medication terms
   for (const term of FORBIDDEN_MEDICATION_TERMS) {
-    if (allText.includes(term.toLowerCase())) {
+    if (allTextLower.includes(term.toLowerCase())) {
       errors.push({
         code: "FORBIDDEN_MEDICATION",
         message: `AI output contains forbidden medication term: "${term}"`,
@@ -319,4 +325,29 @@ function normalizeCertType(type: string): "work" | "study" | "carer" | null {
 /**
  * Exported constants for testing
  */
+/**
+ * Check if text contains a forbidden term.
+ * Uses word-boundary regex for short abbreviations to avoid false positives.
+ */
+function containsForbiddenDiagnosisTerm(text: string): { found: boolean; term: string } | null {
+  const lower = text.toLowerCase()
+
+  // Exact substring match for full terms (safe — multi-word or long enough)
+  for (const term of FORBIDDEN_DIAGNOSIS_TERMS) {
+    if (lower.includes(term.toLowerCase())) {
+      return { found: true, term }
+    }
+  }
+
+  // Word-boundary match for short abbreviations
+  for (const abbr of FORBIDDEN_DIAGNOSIS_ABBREVIATIONS) {
+    const regex = new RegExp(`\\b${abbr}\\b`, "i")
+    if (regex.test(text)) {
+      return { found: true, term: abbr }
+    }
+  }
+
+  return null
+}
+
 export { FORBIDDEN_DIAGNOSIS_TERMS, FORBIDDEN_MEDICATION_TERMS }

@@ -491,8 +491,11 @@ export async function auth(): Promise<{ userId: string | null; redirectToSignIn:
  * Returns the user ID and profile, or null if not authenticated.
  */
 export async function getApiAuth(): Promise<{ userId: string; profile: Profile } | null> {
-  const { userId } = await clerkAuth()
-  
+  // Check for E2E test auth first (non-production only)
+  const e2eAuth = await getE2EAuthUser()
+  const clerkResult = await clerkAuth()
+  const userId = e2eAuth?.clerkUserId || clerkResult.userId
+
   if (!userId) {
     return null
   }
