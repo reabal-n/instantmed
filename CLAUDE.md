@@ -138,7 +138,7 @@ types/                # Shared TypeScript types
 - **Loading states**: `TableSkeleton`, `CardSkeleton`, `FormSkeleton` from `@/components/ui/skeletons`
 - **Toasts**: `toast` from `sonner` (success, error, promise variants)
 - **Error handling**: `ErrorBoundary`, `ErrorRecovery` from `@/components/ui/`
-- **Glass morphism**: `GlassCard`, `GlassButton`, `GlassInput` from `@/components/ui/`
+- **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See DESIGN_SYSTEM.md §5
 
 ## Environment
 
@@ -195,7 +195,14 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | `/contact` | Contact form → support@instantmed.com.au |
 | `/terms` | Terms of Service (Feb 2026) |
 | `/privacy` | Privacy Policy (Feb 2026) |
-| `/health/*` | 50+ programmatic SEO pages (conditions, certificates, resources) |
+| `/conditions/[slug]` | Health condition pages (cold-and-flu, back-pain, etc.) |
+| `/symptoms/[slug]` | Symptom pages |
+| `/guides/[slug]` | How-to health guides |
+| `/compare/[slug]` | Service comparison pages |
+| `/medications/[slug]` | Medication information |
+| `/intent/[slug]` | High-intent search query landing pages |
+| `/for/[audience]` | Audience segment pages (students, parents, etc.) |
+| `/locations/[city]` | Location-based pages |
 
 ### AI Configuration
 
@@ -243,15 +250,15 @@ Prevents Google Ads disapproval and AHPRA scrutiny.
 
 ### Visual Rules
 
-**Color:** Morning spectrum — soft sky blue, pale ivory, soft peach, warm apricot, gentle champagne. Low saturation. **Semantic:** Primary `#3B82F6` (blue), Destructive `#F87171` (coral), Success `#22C55E` (green). **Prohibited:** purple/violet, neon, dark blues, pure black/white backgrounds. See ARCHITECTURE.md for full hex token table.
+**Surfaces:** Solid depth, not glass. Cards use `bg-white dark:bg-card` with sky-toned shadows (`shadow-primary/[0.06]`). No `backdrop-blur` on content surfaces — only on functional overlays (sticky CTAs, mobile menus). Page backgrounds use warm ivory (`#F8F7F4`), cards use pure white for contrast.
 
-**Dark mode:** Supported via `darkMode: "class"` (default: light, `next-themes` provider). SkyToggle in navbar animates sun→moon. Dark palette is "Quiet Night Sky" — deep navy `#0B1120` background, teal primary `#5DB8C9`, muted warm accents. 1,295 `dark:` classes across 198 files. `BrandLogo` supports dark invert. Morning theme by day, night sky by dark — same brand, different time of day.
+**Color:** Morning spectrum — soft sky blue, pale ivory, soft peach, warm apricot, gentle champagne. Low saturation. **Semantic:** Primary `#3B82F6` (blue), Destructive `#F87171` (coral), Success `#22C55E` (green). **Prohibited:** purple/violet, neon, dark blues, pure black page backgrounds.
+
+**Dark mode:** Full site support via `darkMode: "class"` (default: light, `next-themes` provider). SkyToggle in navbar animates sun→moon. Dark palette is "Quiet Night Sky" — deep navy `#0B1120` background, teal primary `#5DB8C9`, muted warm accents. Cards: `dark:bg-card dark:border-white/15 dark:shadow-none`. `BrandLogo` supports dark invert. Morning theme by day, night sky by dark — same brand, different time of day.
 
 **Typography:** Source Sans 3 (sans) for all text — headings, body, UI. JetBrains Mono for code only. No serif, no decorative, no novelty fonts.
 
-**Glass:** Frosted, not glossy. Shadows sky-toned, never black. See ARCHITECTURE.md for 4-level hierarchy.
-
-**Motion:** 200-500ms, `ease-out`. No bounce, no elastic overshoot, max scale 1.02x.
+**Motion:** 200-500ms, `ease-out`. No bounce, no elastic overshoot, max scale 1.02x. Reduced motion: `initial={{}}` (empty object), never `initial={false}`.
 
 **Shapes:** Rounded corners only (squircle preferred). No sharp or aggressive geometry.
 
