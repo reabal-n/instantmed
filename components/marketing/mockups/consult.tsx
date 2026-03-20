@@ -1,5 +1,3 @@
-"use client"
-
 import { Stethoscope } from "lucide-react"
 
 export function ConsultMockup() {
@@ -13,7 +11,7 @@ export function ConsultMockup() {
             <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-card" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold text-foreground leading-tight">Dr. Sarah</p>
+            <p className="text-[10px] font-semibold text-foreground leading-tight">Your GP</p>
             <p className="text-[8px] text-emerald-500">Online</p>
           </div>
         </div>
@@ -40,7 +38,7 @@ export function ConsultMockup() {
       </div>
 
       {/* Floating badge */}
-      <div className="absolute -bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
+      <div className="absolute bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
         <Stethoscope className="w-3 h-3 text-primary" />
         GP reviewed
       </div>

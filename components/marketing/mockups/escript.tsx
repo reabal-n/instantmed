@@ -1,8 +1,7 @@
-"use client"
-
+import React from "react"
 import { Pill } from "lucide-react"
 
-function QRCode() {
+const QRCode = React.memo(function QRCode() {
   return (
     <svg viewBox="0 0 64 64" className="w-14 h-14" fill="currentColor">
       {/* Top-left position pattern */}
@@ -46,7 +45,7 @@ function QRCode() {
       ))}
     </svg>
   )
-}
+})
 
 export function EScriptMockup() {
   return (
@@ -78,7 +77,7 @@ export function EScriptMockup() {
       </div>
 
       {/* Floating badge */}
-      <div className="absolute -bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
+      <div className="absolute bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
         <Pill className="w-3 h-3 text-emerald-500" />
         Works with any chemist
       </div>

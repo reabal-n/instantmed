@@ -41,12 +41,12 @@ function StepTwoMockup() {
       <div className="flex items-center gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://api.dicebear.com/7.x/notionists/svg?seed=DrSarah"
+          src="https://api.dicebear.com/7.x/notionists/svg?seed=DrReview"
           alt=""
           className="w-7 h-7 rounded-full bg-muted/30"
         />
         <div>
-          <p className="text-[10px] font-semibold text-foreground leading-tight">Dr. Sarah</p>
+          <p className="text-[10px] font-semibold text-foreground leading-tight">Your GP</p>
           <p className="text-[8px] text-emerald-500">Reviewing</p>
         </div>
       </div>

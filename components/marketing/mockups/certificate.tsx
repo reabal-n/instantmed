@@ -1,5 +1,3 @@
-"use client"
-
 import { Mail } from "lucide-react"
 
 export function CertificateMockup() {
@@ -59,7 +57,7 @@ export function CertificateMockup() {
       </div>
 
       {/* Floating badge */}
-      <div className="absolute -bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
+      <div className="absolute bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
         <Mail className="w-3 h-3 text-primary" />
         Delivered to your inbox
       </div>

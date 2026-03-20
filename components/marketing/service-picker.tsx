@@ -116,12 +116,12 @@ export function ServicePicker() {
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-dawn-100/60 border border-dawn-200/40 dark:bg-accent-teal/15 dark:border-accent-teal/20 mb-6 interactive-pill cursor-default"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6 cursor-default"
             whileHover={prefersReducedMotion ? undefined : { y: -2 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <SparklesPremium className="w-4 h-4 text-dawn-700 dark:text-accent-teal" />
-            <span className="text-xs font-medium text-foreground/80 dark:text-foreground">Pick what you need</span>
+            <SparklesPremium className="w-4 h-4 text-foreground/40 dark:text-foreground/50" />
+            <span className="text-xs font-medium text-foreground/60 dark:text-foreground/50">Pick what you need</span>
           </motion.div>
           
           <div className="mb-4">
@@ -170,7 +170,8 @@ export function ServicePicker() {
             const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
             const displayPrice = service.priceFrom
             const disabled = isServiceDisabled(service.id as ServiceId)
-            
+            const ServiceMockup = mockupMap[service.id]
+
             const cardContent = (
                   <SpotlightReveal color={colors.accent} size={350} borderRadius="0.75rem" className="h-full">
                   <div className="relative h-full">
@@ -209,14 +210,11 @@ export function ServicePicker() {
                       <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
 
                       {/* Product mockup — fixed height for equal cards */}
-                      {(() => {
-                        const Mockup = mockupMap[service.id]
-                        return Mockup ? (
-                          <div className="h-[220px] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300 flex items-center justify-center">
-                            <Mockup />
-                          </div>
-                        ) : null
-                      })()}
+                      {ServiceMockup && (
+                        <div className="h-[220px] overflow-hidden group-hover:-translate-y-0.5 transition-transform duration-300 flex items-center justify-center">
+                          <ServiceMockup />
+                        </div>
+                      )}
 
                       <div className="p-4 pb-3 flex-1 flex flex-col">
                         {/* Icon with animated background */}
