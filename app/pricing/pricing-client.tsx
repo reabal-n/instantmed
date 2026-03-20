@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
-import { GlowCard } from "@/components/ui/spotlight-card"
+// GlowCard replaced with solid cards for dub.co depth consistency
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
 import { Check, Star, ArrowRight, Shield, Clock, Zap } from "lucide-react"
@@ -116,21 +116,14 @@ export function PricingClient() {
           <div className="mx-auto max-w-3xl">
             <div className="grid md:grid-cols-2 gap-6">
               {services.map((service, idx) => (
-                <GlowCard
+                <div
                   key={service.name}
-                  glowColor={
-                    service.color === "#2563EB" ? "blue" : "purple"
-                  }
-                  customSize={true}
                   className={cn(
-                    "rounded-2xl p-5 lg:p-6 relative",
+                    "rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 relative hover:-translate-y-1 transition-all duration-300",
                     service.popular
-                      ? "ring-2 ring-primary shadow-lg"
-                      : "shadow-md"
+                      ? "ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15]"
+                      : "shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08]"
                   )}
-                  style={{
-                    animationDelay: `${0.1 + idx * 0.1}s`,
-                  }}
                 >
                   {service.popular && (
                     <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-lg font-medium text-xs">
@@ -202,7 +195,7 @@ export function PricingClient() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                </GlowCard>
+                </div>
               ))}
             </div>
 
