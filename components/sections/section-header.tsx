@@ -63,14 +63,14 @@ export function SectionHeader({
         as={titleAs}
         highlightWords={highlightWords}
         className={cn(
-          "text-3xl font-semibold tracking-tight text-foreground sm:text-4xl",
+          "text-3xl font-bold tracking-tight text-foreground sm:text-4xl",
           align === "center" && "justify-center"
         )}
       />
 
       {subtitle && (
         <motion.p
-          className="mt-4 text-lg text-muted-foreground"
+          className="mt-4 text-lg text-muted-foreground leading-relaxed"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           animate={
             prefersReducedMotion

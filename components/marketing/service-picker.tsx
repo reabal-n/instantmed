@@ -100,7 +100,7 @@ export function ServicePicker() {
   const { isServiceDisabled } = useServiceAvailability()
 
   return (
-    <section id="pricing" className="relative py-16 lg:py-20 scroll-mt-20">
+    <section id="pricing" className="relative py-20 lg:py-24 scroll-mt-20">
       {/* Warm background accent */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-[50%] left-[-100px] w-[500px] h-[400px] bg-[#F0B4A0]/[0.06] dark:bg-[#F0B4A0]/[0.02] rounded-full blur-3xl" />

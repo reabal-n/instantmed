@@ -35,7 +35,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Headline */}
             <motion.h1
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-8 leading-[1.15]"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-8 leading-[1.15]"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
@@ -43,7 +43,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <RotatingText
                 texts={heroRotatingTexts}
                 interval={3500}
-                className="text-2xl sm:text-3xl lg:text-4xl font-bold"
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold"
               />
             </motion.h1>
 

@@ -46,7 +46,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
   const animate = !prefersReducedMotion
 
   return (
-    <section className={cn("py-16 lg:py-20 relative", className)}>
+    <section className={cn("py-20 lg:py-24 relative", className)}>
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Trust badges grid */}
