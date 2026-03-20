@@ -10,7 +10,7 @@ export function DottedGrid({ className }: DottedGridProps) {
   return (
     <div
       className={cn(
-        "absolute inset-0 -z-10",
+        "absolute inset-0 -z-10 dark:opacity-40",
         className
       )}
       style={{
