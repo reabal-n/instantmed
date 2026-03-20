@@ -426,7 +426,7 @@ function SingleDraftCard({
 
   return (
     <Card className={isAlreadyDecided ? "opacity-75" : ""}>
-      <CardHeader className="pb-3">
+      <CardHeader className="py-4 px-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-blue-500" />
@@ -437,7 +437,7 @@ function SingleDraftCard({
           </div>
           {getStatusBadge(draft)}
         </div>
-        <CardDescription className="flex items-center gap-4 text-xs">
+        <CardDescription className="flex items-center gap-4 text-xs mt-1.5">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Generated {hoursOld > 0 ? `${hoursOld}h ago` : "just now"}
@@ -451,7 +451,7 @@ function SingleDraftCard({
           <span className="text-muted-foreground">Model: {draft.model}</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-5 py-4 space-y-4">
         {actionMessage && (
           <div className={`p-2 rounded text-sm ${
             actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"
@@ -539,7 +539,7 @@ function SingleDraftCard({
         )}
 
         {canApprove && !isEditing && (
-          <div className="flex flex-wrap gap-2 pt-2 border-t">
+          <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
             <Button
               size="sm"
               className="bg-emerald-600 hover:bg-emerald-700"
@@ -642,13 +642,13 @@ export function DraftReviewPanel({
   if (!drafts || drafts.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="py-4 px-5">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <Bot className="h-5 w-5" />
             AI Drafts
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5 py-4">
           <p className="text-sm text-muted-foreground mb-4">
             No AI drafts available for this case.
           </p>
@@ -668,7 +668,7 @@ export function DraftReviewPanel({
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card className={!isExpanded ? "border-blue-200 bg-blue-50/30 dark:border-blue-500/20 dark:bg-blue-500/5" : ""}>
-        <CardHeader className="pb-2">
+        <CardHeader className="py-4 px-5">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="p-0 h-auto hover:bg-transparent">
@@ -691,7 +691,7 @@ export function DraftReviewPanel({
             )}
           </div>
           {!isExpanded && (
-            <CardDescription className="text-xs mt-1">
+            <CardDescription className="text-xs mt-1.5">
               <AlertTriangle className="h-3 w-3 inline mr-1 text-amber-500" />
               Review patient intake answers first to avoid cognitive anchoring
             </CardDescription>
@@ -699,7 +699,7 @@ export function DraftReviewPanel({
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="pt-2 space-y-4">
+          <CardContent className="px-5 py-4 space-y-4">
             {regenerateMessage && (
               <div className={`p-2 rounded text-sm ${
                 regenerateMessage.includes("success") ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"

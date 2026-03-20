@@ -130,7 +130,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pb-4">
         {/* Primary Metrics */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCell

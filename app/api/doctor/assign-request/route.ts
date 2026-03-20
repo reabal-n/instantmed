@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -9,28 +9,24 @@ const log = createLogger("assign-intake")
 
 export async function POST(request: NextRequest) {
   let userId: string | null = null
-  
+
   try {
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
-    const supabase = createServiceRoleClient()
-    const { userId: clerkUserId } = await auth()
-    userId = clerkUserId ?? null
-
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("clerk_user_id", userId)
-      .single()
+    const { profile } = authResult
+    userId = authResult.userId
 
-    if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
+    if (profile.role !== "doctor" && profile.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
+
+    const supabase = createServiceRoleClient()
 
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError

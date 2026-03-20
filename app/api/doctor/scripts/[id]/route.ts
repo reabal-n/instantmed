@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getApiAuth } from "@/lib/auth"
 import { updateScriptTaskStatus, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -22,20 +21,15 @@ export async function PATCH(
     if (csrfError) return csrfError
 
     const { id } = await params
-    const { userId } = await auth()
+    const authResult = await getApiAuth()
 
-    if (!userId) {
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = createServiceRoleClient()
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, role")
-      .eq("clerk_user_id", userId)
-      .single()
+    const { profile } = authResult
 
-    if (!profile || !["doctor", "admin"].includes(profile.role)) {
+    if (!["doctor", "admin"].includes(profile.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

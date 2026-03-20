@@ -43,6 +43,13 @@ import {
   Loader2,
   ExternalLink,
   Mail,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading2,
+  Minus,
+  Undo2,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
@@ -51,7 +58,6 @@ import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { regenerateDrafts } from "@/app/actions/draft-approval"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import { usePanel } from "@/components/panels/panel-provider"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
@@ -98,6 +104,61 @@ interface ReviewData {
   aiDrafts: AIDraft[]
   nextIntakeId: string | null
   draftId: string | null
+}
+
+/** Insert formatting at cursor position in a textarea */
+function insertFormatting(
+  textarea: HTMLTextAreaElement,
+  type: "bold" | "italic" | "h2" | "bullet" | "numbered" | "divider",
+  setValue: (v: string) => void,
+  setSaved: (v: boolean) => void,
+) {
+  const { selectionStart: start, selectionEnd: end, value } = textarea
+  const selected = value.substring(start, end)
+  let insert = ""
+  let cursorOffset = 0
+
+  switch (type) {
+    case "bold":
+      insert = selected ? `**${selected}**` : "**bold**"
+      cursorOffset = selected ? insert.length : 2
+      break
+    case "italic":
+      insert = selected ? `_${selected}_` : "_italic_"
+      cursorOffset = selected ? insert.length : 1
+      break
+    case "h2":
+      insert = selected ? `\n## ${selected}` : "\n## Heading"
+      cursorOffset = insert.length
+      break
+    case "bullet":
+      insert = selected
+        ? selected.split("\n").map(l => `• ${l}`).join("\n")
+        : "• "
+      cursorOffset = insert.length
+      break
+    case "numbered":
+      insert = selected
+        ? selected.split("\n").map((l, i) => `${i + 1}. ${l}`).join("\n")
+        : "1. "
+      cursorOffset = insert.length
+      break
+    case "divider":
+      insert = "\n---\n"
+      cursorOffset = insert.length
+      break
+  }
+
+  const newValue = value.substring(0, start) + insert + value.substring(end)
+  setValue(newValue)
+  setSaved(false)
+
+  // Restore cursor position after React re-render
+  requestAnimationFrame(() => {
+    textarea.focus()
+    const pos = start + cursorOffset
+    textarea.setSelectionRange(pos, pos)
+  })
 }
 
 interface IntakeReviewPanelProps {
@@ -631,26 +692,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                   consultSubtype={
                     intake.category === "consult" && intake.subtype ? intake.subtype : undefined
                   }
-                  className="border-0 shadow-none p-0"
+                  inline
                 />
               )}
             </CardContent>
           </Card>
-
-          {/* AI Drafts (excludes clinical_note — shown in notes textarea above) */}
-          {(() => {
-            const nonNoteDrafts = (data?.aiDrafts || []).filter((d) => d.type !== "clinical_note")
-            return nonNoteDrafts.length > 0 ? (
-              <DraftReviewPanel
-                drafts={nonNoteDrafts}
-                intakeId={intake.id}
-                onDraftApproved={() => {
-                  /* stays in panel — no router.refresh needed */
-                }}
-                onDraftRejected={() => {}}
-              />
-            ) : null
-          })()}
 
           {/* Safety Flags */}
           {hasRedFlags && (
@@ -686,14 +732,14 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
             </Card>
           )}
 
-          {/* Clinical Notes */}
+          {/* Clinical Notes (consolidated — AI draft pre-fills, validation inline) */}
           <Card>
             <CardHeader className="py-4 px-5">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
                 {["approved", "completed", "awaiting_script"].includes(intake.status)
                   ? "Approved Clinical Note"
-                  : "Clinical Notes (Private)"}
+                  : "Clinical Notes"}
                 {isAiPrefilled && !["approved", "completed", "awaiting_script"].includes(intake.status) && (
                   <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
                     AI Draft
@@ -705,7 +751,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
               {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
                 <div className="space-y-2">
                   {intake.doctor_notes ? (
-                    <div className="p-3 bg-card rounded-lg border border-border/50 text-sm whitespace-pre-wrap">
+                    <div className="p-3 bg-muted/30 rounded-lg text-sm whitespace-pre-wrap">
                       {intake.doctor_notes}
                     </div>
                   ) : (
@@ -725,41 +771,140 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       <span className="text-sm">Generating draft...</span>
                     </div>
                   ) : (
-                    <Textarea
-                      ref={notesRef}
-                      placeholder="Add your clinical notes here... (⌘+N to focus)"
-                      value={doctorNotes}
-                      onChange={(e) => {
-                        setDoctorNotes(e.target.value)
-                        setNoteSaved(false)
-                      }}
-                      disabled={isPending || isRegenerating}
-                      className="min-h-[140px] text-sm"
-                    />
+                    <div className="rounded-lg border border-border/60 bg-background overflow-hidden focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors">
+                      {/* Formatting Toolbar */}
+                      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border/40 bg-muted/30">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "bold", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Bold"
+                        >
+                          <Bold className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "italic", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Italic"
+                        >
+                          <Italic className="h-3.5 w-3.5" />
+                        </Button>
+                        <div className="w-px h-4 bg-border/60 mx-1" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "h2", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Heading"
+                        >
+                          <Heading2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "bullet", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Bullet list"
+                        >
+                          <List className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "numbered", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Numbered list"
+                        >
+                          <ListOrdered className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => notesRef.current && insertFormatting(notesRef.current, "divider", setDoctorNotes, setNoteSaved)}
+                          disabled={isPending || isRegenerating}
+                          title="Divider"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                        <div className="w-px h-4 bg-border/60 mx-1" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setDoctorNotes("")
+                            setNoteSaved(false)
+                            notesRef.current?.focus()
+                          }}
+                          disabled={isPending || isRegenerating || !doctorNotes}
+                          title="Clear"
+                        >
+                          <Undo2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      {/* Editor Area */}
+                      <Textarea
+                        ref={notesRef}
+                        placeholder="Add your clinical notes here... (⌘+N to focus)"
+                        value={doctorNotes}
+                        onChange={(e) => {
+                          setDoctorNotes(e.target.value)
+                          setNoteSaved(false)
+                        }}
+                        disabled={isPending || isRegenerating}
+                        className="min-h-[180px] text-sm border-0 rounded-none focus-visible:ring-0 resize-y"
+                      />
+                    </div>
                   )}
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
-                      <Save className="h-3.5 w-3.5 mr-1.5" />
-                      Save Notes
-                    </Button>
-                    <Button
-                      onClick={handleGenerateOrRegenerateNote}
-                      disabled={isPending || isRegenerating}
-                      variant={hasClinicalDraft ? "ghost" : "outline"}
-                      size="sm"
-                    >
-                      {isRegenerating ? (
-                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                      ) : (
-                        <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  {/* Actions row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
+                        <Save className="h-3.5 w-3.5 mr-1.5" />
+                        Save Notes
+                      </Button>
+                      <Button
+                        onClick={handleGenerateOrRegenerateNote}
+                        disabled={isPending || isRegenerating}
+                        variant={hasClinicalDraft ? "ghost" : "outline"}
+                        size="sm"
+                      >
+                        {isRegenerating ? (
+                          <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        {isRegenerating
+                          ? "Generating..."
+                          : hasClinicalDraft
+                            ? "Regenerate AI draft"
+                            : "Generate AI draft"}
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
+                      {doctorNotes && (
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {doctorNotes.length} chars
+                        </span>
                       )}
-                      {isRegenerating
-                        ? "Generating..."
-                        : hasClinicalDraft
-                          ? "Regenerate AI draft"
-                          : "Generate AI draft"}
-                    </Button>
-                    {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
+                    </div>
                   </div>
                 </>
               )}
@@ -767,7 +912,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
           </Card>
 
           {/* Action Buttons (sticky bottom) */}
-          <div className="sticky bottom-0 bg-background border-t border-border -mx-6 px-6 py-3 -mb-4 flex flex-wrap gap-2">
+          <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1 flex flex-wrap gap-2">
             {/* Med cert: preview then approve */}
             {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
               <Button

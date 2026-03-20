@@ -68,7 +68,7 @@ export default async function DoctorDashboardPage({
   if (!doctorIdentity?.ahpra_number) missingFields.push("AHPRA Registration Number")
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Page Header */}
       <div className="flex items-start justify-between gap-4">
         <div>

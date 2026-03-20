@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"
@@ -22,23 +22,19 @@ export async function POST(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
-    const { userId } = await auth()
-    clerkUserId = userId
-
-    if (!clerkUserId) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = createServiceRoleClient()
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, role")
-      .eq("clerk_user_id", clerkUserId)
-      .single()
+    const { userId, profile } = authResult
+    clerkUserId = userId
 
-    if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
+    if (profile.role !== "doctor" && profile.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
+
+    const supabase = createServiceRoleClient()
 
     const { intake_id, action, notes, doctor_id } = await request.json()
 

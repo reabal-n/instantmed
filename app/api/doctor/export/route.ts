@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -27,19 +27,18 @@ interface _IntakeRow {
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const authResult = await getApiAuth()
+    if (!authResult) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-    if (!userId) {
+    const { userId, profile } = authResult
+
+    if (profile.role !== "doctor" && profile.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const supabase = createServiceRoleClient()
-
-    const { data: profile } = await supabase.from("profiles").select("role").eq("clerk_user_id", userId).single()
-
-    if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     // Rate limit exports to prevent data scraping
     const rateLimitResponse = await applyRateLimit(request, "sensitive", userId)

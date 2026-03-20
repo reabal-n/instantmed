@@ -37,6 +37,8 @@ interface ClinicalSummaryProps {
   answers: Record<string, unknown>
   consultSubtype?: string
   className?: string
+  /** When true, renders without Card wrapper (for embedding inside another card) */
+  inline?: boolean
 }
 
 // Field mapping for common intake fields
@@ -204,7 +206,7 @@ function getFieldIcon(key: string) {
   return <Activity className="h-4 w-4" />
 }
 
-export function ClinicalSummary({ answers, consultSubtype, className }: ClinicalSummaryProps) {
+export function ClinicalSummary({ answers, consultSubtype, className, inline }: ClinicalSummaryProps) {
   // Extract and categorize fields
   const redFlagFields: [string, unknown][] = []
   const yellowFlagFields: [string, unknown][] = []
@@ -320,15 +322,8 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
   const requiresCall = answers.requires_call === true || answers.requires_call === "true"
   const callCompleted = answers.call_completed === true || answers.call_completed === "true"
 
-  return (
-    <Card className={cn("rounded-xl border-border/50", className)}>
-      <CardHeader className="py-3 px-4">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Heart className="h-4 w-4 text-primary" />
-          Clinical Summary
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 py-3 space-y-3">
+  const content = (
+    <div className={cn("space-y-4", inline ? className : undefined)}>
         {/* Red Flags - Critical, requires immediate attention */}
         {redFlagFields.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
@@ -402,7 +397,7 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
 
         {/* Consult Subtype-Specific Assessment Section */}
         {subtypeConfig && subtypeFields.length > 0 && (
-          <div className="border border-border/50 rounded-xl p-3 space-y-3">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 font-semibold text-sm">
               <FileText className="h-4 w-4 text-primary" />
               {subtypeConfig.label}
@@ -415,7 +410,7 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
                     key={key} 
                     className={cn(
                       "flex items-start gap-2 p-3 rounded-lg text-sm",
-                      isHighlighted ? "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" : "bg-card border border-border/30"
+                      isHighlighted ? "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" : "bg-muted/30"
                     )}
                   >
                     <div className="flex-1 min-w-0">
@@ -443,9 +438,9 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
         {primaryFields.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {primaryFields.map(([key, value]) => (
-              <div 
-                key={key} 
-                className="flex items-start gap-2 p-3 bg-card border border-border/30 rounded-lg"
+              <div
+                key={key}
+                className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg"
               >
                 <div className="text-muted-foreground mt-0.5">
                   {getFieldIcon(key)}
@@ -493,6 +488,21 @@ export function ClinicalSummary({ answers, consultSubtype, className }: Clinical
             No intake data available
           </p>
         )}
+    </div>
+  )
+
+  if (inline) return content
+
+  return (
+    <Card className={cn("rounded-xl border-border/50", className)}>
+      <CardHeader className="py-4 px-5">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Heart className="h-4 w-4 text-primary" />
+          Clinical Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-5 py-4">
+        {content}
       </CardContent>
     </Card>
   )

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { auth } from "@clerk/nextjs/server"
+import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -31,10 +31,12 @@ export async function GET(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const { userId } = await auth()
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { userId } = authResult
 
     const supabase = createServiceRoleClient()
     const { data: profile, error } = await supabase
