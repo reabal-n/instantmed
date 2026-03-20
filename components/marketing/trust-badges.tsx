@@ -109,7 +109,7 @@ export function TrustBadges({
       {badges.map((badge, i) => (
         <div
           key={i}
-          className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
+          className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
         >
           {/* Subtle glow behind icon on hover */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/10 blur-xl transition-all duration-500" />
@@ -215,17 +215,28 @@ export function AHPRABadge({ className }: { className?: string }) {
  * Partner/Trust logos strip (eRx, etc.)
  */
 export function TrustLogos({ className }: { className?: string }) {
+  const logos = [
+    { src: "/logos/AHPRA.svg", alt: "AHPRA — Australian Health Practitioner Regulation Agency", width: 100 },
+    { src: "/logos/TGA.svg", alt: "TGA — Therapeutic Goods Administration", width: 80 },
+    { src: "/logos/medicare.svg", alt: "Medicare Australia", width: 90 },
+  ]
+
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
-      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/80 dark:bg-white/5 border border-border/50">
-        <Image
-          src="/branding/eRx-logo.png"
-          alt="eRx Script Exchange"
-          width={100}
-          height={40}
-          className="h-8 w-auto object-contain"
-        />
-      </div>
+      {logos.map((logo) => (
+        <div
+          key={logo.alt}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none"
+        >
+          <Image
+            src={logo.src}
+            alt={logo.alt}
+            width={logo.width}
+            height={40}
+            className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+          />
+        </div>
+      ))}
     </div>
   )
 }

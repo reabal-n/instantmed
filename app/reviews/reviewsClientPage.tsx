@@ -7,7 +7,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { LogoBadgeStrip, CTABanner } from "@/components/sections"
-import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
+
 import { useState } from "react"
 import {
   PLATFORM_STATS,
@@ -77,10 +77,9 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
       {/* Reviews grid with GridStagger */}
       <div className="grid gap-6 sm:grid-cols-2">
         {filteredReviews.map((review) => (
-          <PerspectiveTiltCard
+          <div
             key={review.id}
-            variant="glass"
-            className="dashboard-card hover-lift"
+            className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-0.5">
@@ -123,7 +122,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 {review.service}
               </span>
             </div>
-          </PerspectiveTiltCard>
+          </div>
         ))}
       </div>
 
@@ -154,7 +153,7 @@ export function ReviewsClientPageComponent() {
           subtitle="Real feedback from real Australians. No cherry-picking — just honest experiences."
         >
           {/* Rating summary card */}
-          <PerspectiveTiltCard variant="glass" className="dashboard-card inline-block">
+          <div className="inline-block rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none px-6 py-4">
             <div className="flex items-center gap-6">
               <div className="text-center">
                 <p className="text-4xl font-bold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
@@ -174,7 +173,7 @@ export function ReviewsClientPageComponent() {
                 <p className="text-sm text-muted-foreground">satisfaction</p>
               </div>
             </div>
-          </PerspectiveTiltCard>
+          </div>
         </CenteredHero>
 
         {/* Trust Badges → LogoBadgeStrip */}
@@ -203,10 +202,9 @@ export function ReviewsClientPageComponent() {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {featuredReviews.slice(0, 6).map((review) => (
-                <PerspectiveTiltCard
+                <div
                   key={review.id}
-                  variant="solid"
-                  className="rounded-xl p-5 border-primary/20 dark:border-primary/30"
+                  className="rounded-xl p-5 border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
                 >
                   <div className="flex gap-0.5 mb-3">
                     {Array.from({ length: 5 }).map((_, j) => (
@@ -234,7 +232,7 @@ export function ReviewsClientPageComponent() {
                       <p className="text-xs text-muted-foreground">{review.location}</p>
                     </div>
                   </div>
-                </PerspectiveTiltCard>
+                </div>
               ))}
             </div>
           </div>
