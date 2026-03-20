@@ -1,141 +1,214 @@
 'use client'
 
-import Image from 'next/image'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Clock, CheckCircle2, Mail, FileText, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import Link from 'next/link'
+import { FloatingCard } from '@/components/marketing/floating-card'
+import { DottedGrid } from '@/components/marketing/dotted-grid'
+
+function StepOneMockup() {
+  return (
+    <div className="p-4 space-y-3">
+      {/* Form field being filled */}
+      <div>
+        <p className="text-[10px] font-medium text-muted-foreground mb-1">What&apos;s going on?</p>
+        <div className="h-8 rounded-lg bg-muted/40 dark:bg-muted/20 border border-border/50 px-2.5 flex items-center">
+          <span className="text-xs text-foreground/70">Cold and flu symptoms</span>
+          <span className="ml-0.5 w-px h-3.5 bg-primary animate-[blink_1s_ease-in-out_infinite]" />
+        </div>
+      </div>
+      <div>
+        <p className="text-[10px] font-medium text-muted-foreground mb-1">How long?</p>
+        <div className="h-8 rounded-lg bg-muted/40 dark:bg-muted/20 border border-border/50 px-2.5 flex items-center">
+          <span className="text-xs text-foreground/70">Since yesterday</span>
+        </div>
+      </div>
+      {/* Badge */}
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Clock className="w-3 h-3 text-primary" />
+        ~2 min
+      </div>
+    </div>
+  )
+}
+
+function StepTwoMockup() {
+  return (
+    <div className="p-4 space-y-3">
+      {/* Doctor header */}
+      <div className="flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://api.dicebear.com/7.x/notionists/svg?seed=DrSarah"
+          alt=""
+          className="w-7 h-7 rounded-full bg-muted/30"
+        />
+        <div>
+          <p className="text-[10px] font-semibold text-foreground leading-tight">Dr. Sarah</p>
+          <p className="text-[8px] text-emerald-500">Reviewing</p>
+        </div>
+      </div>
+      {/* Checklist */}
+      <div className="space-y-1.5">
+        {["Identity verified", "Clinical assessment", "Certificate approved"].map((item) => (
+          <div key={item} className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+            <span className="text-[10px] text-foreground">{item}</span>
+          </div>
+        ))}
+      </div>
+      {/* Status badge */}
+      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+        <CheckCircle2 className="w-3 h-3" />
+        Approved
+      </div>
+    </div>
+  )
+}
+
+function StepThreeMockup() {
+  return (
+    <div className="p-4 space-y-3">
+      {/* Email notification */}
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Mail className="w-3.5 h-3.5 text-primary" />
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold text-foreground leading-tight">Your medical certificate is ready</p>
+          <p className="text-[8px] text-muted-foreground">InstantMed · Just now</p>
+        </div>
+      </div>
+      {/* Attachment */}
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 dark:bg-muted/10 border border-border/30">
+        <FileText className="w-4 h-4 text-primary shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-foreground truncate">MedCert_2026.pdf</p>
+          <p className="text-[8px] text-muted-foreground">42 KB</p>
+        </div>
+      </div>
+      {/* Download button */}
+      <div className="h-7 rounded-lg bg-primary flex items-center justify-center gap-1 shadow-sm shadow-primary/25">
+        <Download className="w-3 h-3 text-white" />
+        <span className="text-[10px] font-semibold text-white">Download</span>
+      </div>
+    </div>
+  )
+}
+
+const directions: Array<"left" | "up" | "right"> = ["left", "up", "right"]
+
+export function HowItWorks() {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
+  const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
+  const stepBadges = ["~2 min", "~30 min", "Same day"]
+
+  return (
+    <section id="how-it-works" className="relative py-16 lg:py-20 scroll-mt-20">
+      <DottedGrid />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
+        {/* Section Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={animate ? { opacity: 0, y: 20 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
+            How it works
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            No appointments. No phone calls. Just good medicine, from your couch.
+          </p>
+        </motion.div>
+
+        {/* Timeline — horizontal on desktop, vertical on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 relative">
+          {/* Desktop timeline connector */}
+          <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t-2 border-dashed border-primary/20" />
+
+          {steps.map((step, index) => {
+            const Mockup = stepMockups[index]
+            return (
+              <div key={step.number} className="relative">
+                {/* Step number */}
+                <div className="text-center mb-4">
+                  <span className="text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none">
+                    {step.number}
+                  </span>
+                </div>
+
+                {/* Floating card with mockup */}
+                <FloatingCard
+                  delay={index * 0.15}
+                  direction={directions[index]}
+                >
+                  <Mockup />
+                </FloatingCard>
+
+                {/* Step text */}
+                <div className="text-center mt-4">
+                  <h3 className="text-base font-semibold text-foreground mb-1">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
+                    {step.description}
+                  </p>
+                  <span className="inline-block mt-2 text-[10px] text-primary font-medium bg-primary/5 px-2 py-0.5 rounded-full">
+                    {stepBadges[index]}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* CTA */}
+        <motion.div
+          className="mt-12 text-center"
+          initial={animate ? { opacity: 0, y: 10 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button
+            asChild
+            variant="default"
+            size="lg"
+            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
+          >
+            <Link href="/request">
+              Start a request <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2.5">
+            Most people are sorted in under an hour
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
 
 const steps = [
   {
     number: "1",
     title: "Tell us what\u2019s going on",
     description: "Quick form, takes about 2 minutes. No account needed to start.",
-    time: "2 min",
   },
   {
     number: "2",
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor reviews your request and makes a clinical decision. Same standards as in-person.",
-    time: "~30 min",
+    description: "AHPRA-registered doctor reviews your request. Same standards as in-person.",
   },
   {
     number: "3",
     title: "Sorted",
     description: "Certificate to your inbox, medication to your phone. All sorted.",
-    time: "Same day",
   },
 ]
-
-export function HowItWorks() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
-  return (
-    <section id="how-it-works" className="relative py-16 lg:py-20 scroll-mt-20">
-      {/* Warm section background */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-dawn-50/40 via-transparent to-transparent dark:from-dawn-950/10 dark:via-transparent" />
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16">
-          {/* Steps — clean vertical list */}
-          <div className="flex-1">
-            {/* Section Header */}
-            <motion.div
-              className="mb-10"
-              initial={animate ? { opacity: 0, y: 20 } : false}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
-                How it works
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                No appointments. No phone calls. Just good medicine, from your couch.
-              </p>
-            </motion.div>
-
-            <div className="space-y-0">
-              {steps.map((step, index) => (
-                <motion.div
-                  key={step.number}
-                  initial={animate ? { opacity: 0, x: -10 } : false}
-                  whileInView={animate ? { opacity: 1, x: 0 } : undefined}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="relative flex items-start gap-4 py-5 px-4 -mx-4 rounded-xl hover:bg-white/40 dark:hover:bg-white/[0.03] transition-colors duration-300"
-                >
-                  {/* Number + connector */}
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shadow-md shadow-primary/30 dark:shadow-primary/20 ring-2 ring-primary/10">
-                      {step.number}
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div className="w-px h-full bg-border absolute top-12 left-4" />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 pb-1">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-base font-semibold text-foreground">
-                        {step.title}
-                      </h3>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
-                        {step.time}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {step.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <motion.div
-              className="mt-8"
-              initial={animate ? { opacity: 0, y: 10 } : false}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-            >
-              <Button
-                asChild
-                variant="default"
-                size="lg"
-                className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
-              >
-                <Link href="/request">
-                  Start a request <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2.5">
-                Most people are sorted in under an hour
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Image — laptop + certificate + coffee */}
-          <motion.div
-            className="hidden lg:block shrink-0 w-72 xl:w-80 aspect-square rounded-2xl overflow-hidden shadow-lg dark:shadow-none"
-            initial={animate ? { opacity: 0, x: 20 } : false}
-            whileInView={animate ? { opacity: 1, x: 0 } : undefined}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Image
-              src="/images/home-2.jpeg"
-              alt="Laptop showing InstantMed chat, phone, and medical certificate on desk"
-              width={400}
-              height={400}
-              className="object-cover w-full h-full"
-            />
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
