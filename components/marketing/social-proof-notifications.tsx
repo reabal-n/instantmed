@@ -238,7 +238,7 @@ export function SocialProofNotifications({
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: prefersReducedMotion ? 0.15 : 0.3, ease: 'easeOut' }}
-            className="relative max-w-sm bg-card dark:bg-white/10 border border-border/50 dark:border-white/10 rounded-xl shadow-lg dark:shadow-2xl dark:shadow-black/40 overflow-hidden backdrop-blur-xl"
+            className="relative max-w-sm bg-white dark:bg-card border border-border/50 dark:border-white/15 rounded-xl shadow-lg shadow-primary/[0.06] dark:shadow-none overflow-hidden"
           >
             {/* Progress bar */}
             {!prefersReducedMotion && (
@@ -453,7 +453,7 @@ export function RecentActivityList({ service, count = 3, className }: RecentActi
           initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : 0.3 }}
-          className="flex items-center gap-3 p-3 rounded-lg bg-card/50 dark:bg-white/[0.03] border border-border/50 dark:border-white/10"
+          className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none border border-border/50 dark:border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />

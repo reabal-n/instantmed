@@ -50,7 +50,7 @@ export function FullBleedHero({
         <div className="mx-auto max-w-3xl text-center">
           {pill && (
             <motion.span
-              className="inline-block rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-sm px-4 py-1.5 text-xs font-medium tracking-wider text-foreground uppercase mb-6 border border-white/30"
+              className="inline-block rounded-full bg-muted/50 dark:bg-white/[0.06] px-4 py-1.5 text-xs font-medium tracking-wider text-foreground uppercase mb-6 border border-border/50"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}

@@ -208,15 +208,15 @@ export function PricingClient() {
 
             {/* Trust badges */}
             <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Shield className="w-3.5 h-3.5 text-primary" />
                 <span>AHPRA registered doctors</span>
               </div>
-              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 <span>Same-day response</span>
               </div>
-              <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Zap className="w-3.5 h-3.5 text-success" />
                 <span className="text-success font-medium">
                   100% refund guarantee
