@@ -284,6 +284,7 @@ Prevents Google Ads disapproval and AHPRA scrutiny.
 - **E2E routes blocked in prod**: Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview
 - **Supabase migrations**: 150+. Use `supabase db push`. May need `supabase migration repair` for drift
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
+- **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
 
 ---
 
