@@ -25,11 +25,11 @@ export function CenteredHero({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section className={cn("relative py-20 px-4 lg:py-28 bg-gradient-to-b from-dawn-50/30 via-transparent to-transparent dark:from-muted/20", className)}>
+    <section className={cn("relative py-20 px-4 lg:py-28", className)}>
       <div className="mx-auto max-w-3xl text-center">
         {pill && (
           <motion.span
-            className="inline-block rounded-full bg-dawn-100/60 px-4 py-1.5 text-xs font-medium tracking-wider text-dawn-700 dark:bg-accent-teal/15 dark:text-accent-teal uppercase mb-6"
+            className="inline-block rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 px-4 py-1.5 text-xs font-medium tracking-wider text-foreground/60 dark:text-foreground/50 uppercase mb-6"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}

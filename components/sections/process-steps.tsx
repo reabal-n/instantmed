@@ -4,6 +4,7 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
+import { DottedGrid } from "@/components/marketing/dotted-grid";
 import type { SectionProps, ProcessStep } from "./types";
 import { scrollRevealConfig } from "@/components/ui/motion";
 
@@ -32,7 +33,8 @@ export function ProcessSteps({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id={id} className={cn("py-20 px-4 bg-gradient-to-br from-sky-50/30 via-transparent to-dawn-50/20 dark:from-muted/20 dark:via-transparent dark:to-accent-teal/[0.04]", className)}>
+    <section id={id} className={cn("relative py-20 lg:py-24 px-4", className)}>
+      <DottedGrid />
       <SectionHeader
         pill={pill}
         title={title}
@@ -45,7 +47,7 @@ export function ProcessSteps({
         <div className="hidden sm:grid sm:grid-cols-3 sm:gap-0 relative">
           {/* Connecting line */}
           <motion.div
-            className="absolute top-5 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-dawn-200 via-sky-200 to-dawn-200 dark:from-accent-teal/20 dark:via-accent-teal/10 dark:to-accent-teal/20"
+            className="absolute top-5 left-[16.67%] right-[16.67%] h-0.5 bg-border"
             initial={prefersReducedMotion ? {} : { scaleX: 0 }}
             animate={
               prefersReducedMotion
@@ -76,7 +78,7 @@ export function ProcessSteps({
                 ease: [0.25, 0.1, 0.25, 1],
               }}
             >
-              <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full border-2 border-dawn-300 bg-dawn-50 dark:border-accent-teal/30 dark:bg-accent-teal/15 text-dawn-700 dark:text-accent-teal font-semibold text-sm z-10 relative">
+              <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-white dark:bg-card text-foreground font-semibold text-sm z-10 relative shadow-sm">
                 {step.number}
               </div>
               <h3 className="text-sm font-semibold text-foreground mb-1">
@@ -93,7 +95,7 @@ export function ProcessSteps({
         <div className="sm:hidden space-y-6 relative">
           {/* Vertical connecting line */}
           <motion.div
-            className="absolute left-4 top-8 bottom-8 w-0.5 -translate-x-1/2 bg-gradient-to-b from-dawn-200 via-sky-200 to-dawn-200 dark:from-accent-teal/20 dark:via-accent-teal/10 dark:to-accent-teal/20"
+            className="absolute left-4 top-8 bottom-8 w-0.5 -translate-x-1/2 bg-border"
             initial={prefersReducedMotion ? {} : { scaleY: 0 }}
             animate={prefersReducedMotion ? {} : isInView ? { scaleY: 1 } : undefined}
             style={{ transformOrigin: "top" }}
@@ -116,7 +118,7 @@ export function ProcessSteps({
                 delay: i * 0.1,
               }}
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-dawn-300 bg-dawn-50 dark:border-accent-teal/30 dark:bg-accent-teal/15 text-dawn-700 dark:text-accent-teal font-semibold text-xs">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-border bg-white dark:bg-card text-foreground font-semibold text-xs shadow-sm">
                 {step.number}
               </div>
               <div>

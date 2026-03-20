@@ -3,8 +3,8 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
-import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
 import { SectionHeader } from "./section-header";
+import { DottedGrid } from "@/components/marketing/dotted-grid";
 import type { SectionProps, FeatureItem } from "./types";
 import { scrollRevealConfig } from "@/components/ui/motion";
 
@@ -41,7 +41,8 @@ export function FeatureGrid({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id={id} className={cn("py-20 px-4", className)}>
+    <section id={id} className={cn("relative py-20 lg:py-24 px-4", className)}>
+      <DottedGrid />
       <SectionHeader
         pill={pill}
         title={title}
@@ -70,8 +71,8 @@ export function FeatureGrid({
               ease: [0.25, 0.1, 0.25, 1],
             }}
           >
-            <PerspectiveTiltCard variant="glass" className="h-full">
-              <div className="mb-4 inline-flex rounded-xl bg-dawn-100/50 p-3 text-dawn-700 dark:bg-accent-teal/15 dark:text-accent-teal">
+            <div className="h-full rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.1] transition-all duration-300">
+              <div className="mb-4 inline-flex rounded-xl bg-primary/5 p-3 text-primary">
                 {feature.icon}
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -80,7 +81,7 @@ export function FeatureGrid({
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
-            </PerspectiveTiltCard>
+            </div>
           </motion.div>
         ))}
       </div>
