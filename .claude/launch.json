@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
-      "port": 3000
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed/.worktrees/homepage-redesign && PLAYWRIGHT=1 pnpm dev"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }
