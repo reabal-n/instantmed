@@ -4,7 +4,7 @@
     {
       "name": "dev",
       "runtimeExecutable": "/bin/sh",
-      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed/.worktrees/homepage-redesign && PLAYWRIGHT=1 pnpm dev"],
+      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed && PLAYWRIGHT=1 pnpm dev"],
       "port": 3000,
       "autoPort": true
     }

@@ -233,6 +233,7 @@ export function TrustLogos({ className }: { className?: string }) {
             alt={logo.alt}
             width={logo.width}
             height={40}
+            unoptimized
             className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
           />
         </div>
