@@ -208,11 +208,11 @@ export function ServicePicker() {
                       {/* Gradient accent bar */}
                       <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
 
-                      {/* Product mockup */}
+                      {/* Product mockup — fixed height for equal cards */}
                       {(() => {
                         const Mockup = mockupMap[service.id]
                         return Mockup ? (
-                          <div className="group-hover:scale-[1.02] transition-transform duration-300">
+                          <div className="h-[220px] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300 flex items-center justify-center">
                             <Mockup />
                           </div>
                         ) : null
@@ -244,11 +244,6 @@ export function ServicePicker() {
                         <h3 className="text-base font-semibold text-foreground mb-0.5 group-hover:text-primary transition-colors duration-300">
                           {service.title}
                         </h3>
-                        
-                        {/* Description */}
-                        <p className="text-xs text-muted-foreground leading-tight mb-2">
-                          {service.description}
-                        </p>
                         
                         {/* Benefits list */}
                         {service.benefits && (
