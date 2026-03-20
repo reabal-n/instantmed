@@ -1028,7 +1028,7 @@ export default async function SymptomPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Breadcrumbs */}
-          <div className="px-4 pt-6 bg-card/80 dark:bg-white/5">
+          <div className="px-4 pt-6 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
               <PageBreadcrumbs
                 links={[
@@ -1041,7 +1041,7 @@ export default async function SymptomPage({ params }: PageProps) {
           </div>
 
           {/* Hero Section */}
-          <section className="relative px-4 py-8 sm:py-12 bg-card/80 dark:bg-white/5 border-b border-border dark:border-border">
+          <section className="relative px-4 py-8 sm:py-12 bg-white dark:bg-card border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -1086,7 +1086,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 {symptom.possibleCauses.map((cause, i) => (
                   <div 
                     key={i}
-                    className="bg-card/80 dark:bg-white/5 rounded-2xl border border-border dark:border-border p-6"
+                    className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border p-6"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="font-semibold text-lg text-foreground">{cause.name}</h3>
@@ -1095,7 +1095,7 @@ export default async function SymptomPage({ params }: PageProps) {
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
                           : cause.likelihood === 'less-common'
                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                          : 'bg-card/60 text-foreground dark:bg-white/10 dark:text-muted-foreground'
+                          : 'bg-white text-foreground dark:bg-white/[0.06] dark:text-muted-foreground'
                       }`}>
                         {cause.likelihood === 'common' ? 'Common' : cause.likelihood === 'less-common' ? 'Less common' : 'Rare'}
                       </span>
@@ -1107,7 +1107,7 @@ export default async function SymptomPage({ params }: PageProps) {
                         {cause.whenToSuspect.map((sign, j) => (
                           <span 
                             key={j}
-                            className="text-sm px-3 py-1 bg-card/60 dark:bg-white/10 rounded-full text-muted-foreground"
+                            className="text-sm px-3 py-1 bg-white dark:bg-white/[0.06] rounded-full text-muted-foreground"
                           >
                             {sign}
                           </span>
@@ -1128,7 +1128,7 @@ export default async function SymptomPage({ params }: PageProps) {
           </section>
 
           {/* Self-Care Advice */}
-          <section className="px-4 py-16 bg-card/80 dark:bg-white/5">
+          <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8">
                 Self-Care Tips for {symptom.name}
@@ -1136,9 +1136,9 @@ export default async function SymptomPage({ params }: PageProps) {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 {symptom.selfCareAdvice.map((tip, i) => (
-                  <div 
+                  <div
                     key={i}
-                    className="flex items-start gap-3 p-4 bg-card/60 dark:bg-white/5 rounded-xl"
+                    className="flex items-start gap-3 p-4 bg-white dark:bg-card rounded-xl"
                   >
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                     <span className="text-foreground">{tip}</span>
@@ -1202,7 +1202,7 @@ export default async function SymptomPage({ params }: PageProps) {
           </section>
 
           {/* FAQ Section */}
-          <section className="px-4 py-16 bg-card/80 dark:bg-white/5">
+          <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
@@ -1212,7 +1212,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 {symptom.faqs.map((faq, i) => (
                   <div 
                     key={i}
-                    className="bg-card/60 dark:bg-white/5 rounded-xl p-6"
+                    className="bg-white dark:bg-card rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>

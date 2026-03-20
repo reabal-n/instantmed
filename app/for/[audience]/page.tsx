@@ -71,7 +71,7 @@ export default async function AudiencePage({ params }: PageProps) {
           {/* Hero */}
           <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4 interactive-pill cursor-default">
                     <Icon className="w-3.5 h-3.5 text-primary" />
@@ -99,15 +99,15 @@ export default async function AudiencePage({ params }: PageProps) {
                   </Link>
 
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                       <Clock className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">All employers</span>
                     </div>
@@ -120,7 +120,7 @@ export default async function AudiencePage({ params }: PageProps) {
           {/* Why Choose */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
                   Why {config.badgeLabel.replace("For ", "").toLowerCase()} choose InstantMed
                 </h2>
@@ -128,7 +128,7 @@ export default async function AudiencePage({ params }: PageProps) {
                   {config.whyChoose.map((item) => (
                     <div
                       key={item.title}
-                      className="glass-card rounded-xl p-4"
+                      className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-4"
                     >
                       <h3 className="text-sm font-semibold mb-1.5">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -142,7 +142,7 @@ export default async function AudiencePage({ params }: PageProps) {
           {/* Testimonials */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
                   What people say
                 </h2>
@@ -150,7 +150,7 @@ export default async function AudiencePage({ params }: PageProps) {
                   {config.testimonials.map((item) => (
                     <div
                       key={item.name}
-                      className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50"
+                      className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15"
                     >
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
@@ -171,7 +171,7 @@ export default async function AudiencePage({ params }: PageProps) {
           {/* How It Works */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
                   How it works
                 </h2>
@@ -196,7 +196,7 @@ export default async function AudiencePage({ params }: PageProps) {
                       time: "Instant",
                     },
                   ].map((item) => (
-                    <div key={item.step} className="glass-card rounded-xl text-center p-4">
+                    <div key={item.step} className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl text-center p-4">
                       <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
                         <span className="font-bold text-lg text-primary-foreground">{item.step}</span>
                       </div>
@@ -215,7 +215,7 @@ export default async function AudiencePage({ params }: PageProps) {
           {/* FAQs */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
                   Quick answers
                 </h2>
@@ -223,13 +223,13 @@ export default async function AudiencePage({ params }: PageProps) {
                   {config.faqs.map((faq, i) => (
                     <div
                       key={i}
-                      className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50"
+                      className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15"
                     >
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
                   ))}
-                  <div className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                  <div className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15">
                     <h3 className="text-sm font-semibold mb-1.5">What does it cost?</h3>
                     <p className="text-xs text-muted-foreground">
                       Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from
@@ -245,7 +245,7 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-primary/5">
+                <div className="bg-primary/5 dark:bg-card border border-primary/20 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-6 lg:p-8 relative overflow-hidden">
                   <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     No appointments. No waiting rooms. Just results.

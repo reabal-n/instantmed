@@ -417,7 +417,7 @@ export default async function MedicationPage({ params }: PageProps) {
           <section className="px-4 py-12 bg-mesh">
             <div className="mx-auto max-w-3xl grid gap-6 sm:grid-cols-2">
               {/* Uses */}
-              <div className="glass-card rounded-xl p-5">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="h-5 w-5 text-[#00E2B5]" />
                   <h2 className="font-semibold">Common Uses</h2>
@@ -430,7 +430,7 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               {/* Dosages */}
-              <div className="glass-card rounded-xl p-5">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Clock className="h-5 w-5 text-[#06B6D4]" />
                   <h2 className="font-semibold">Typical Dosages</h2>
@@ -443,7 +443,7 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               {/* Side Effects */}
-              <div className="glass-card rounded-xl p-5">
+              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Pill className="h-5 w-5 text-[#8B5CF6]" />
                   <h2 className="font-semibold">Possible Side Effects</h2>
@@ -456,7 +456,7 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               {/* Warnings */}
-              <div className="glass-card rounded-xl p-5 border-amber-200 bg-amber-50/50">
+              <div className="bg-amber-50/50 dark:bg-card border border-amber-200 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="h-5 w-5 text-dawn-600" />
                   <h2 className="font-semibold text-amber-800">Important Warnings</h2>

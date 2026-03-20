@@ -698,7 +698,7 @@ export default async function GuidePage({ params }: PageProps) {
                           {step.content}
                         </p>
                         {step.tips && (
-                          <div className="bg-card/60 dark:bg-white/5 rounded-xl p-4 border border-border/40 dark:border-white/10">
+                          <div className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                             <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                               <Info className="w-4 h-4 text-primary" />
                               Tips
@@ -742,14 +742,14 @@ export default async function GuidePage({ params }: PageProps) {
           </section>
 
           {/* FAQ */}
-          <section className="px-4 py-12 bg-card/60 dark:bg-white/5">
+          <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
                 {guide.faqs.map((faq, i) => (
-                  <div key={i} className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-border/50 dark:border-white/10">
+                  <div key={i} className="bg-white dark:bg-card rounded-xl p-6 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none">
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>

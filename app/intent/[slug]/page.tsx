@@ -133,11 +133,11 @@ export default async function IntentPage({ params }: PageProps) {
 
             <div className="mx-auto max-w-4xl">
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <Shield className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">AHPRA Registered Doctors</span>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <Clock className="w-4 h-4 text-emerald-600" />
                   <span className="text-sm font-medium">Usually under 1 hour</span>
                 </div>
@@ -174,7 +174,7 @@ export default async function IntentPage({ params }: PageProps) {
           </section>
 
           {/* Content blocks */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 What You Need to Know
@@ -184,7 +184,7 @@ export default async function IntentPage({ params }: PageProps) {
                 {page.content.uniqueBlocks.map((block) => (
                   <div
                     key={block.id}
-                    className="p-6 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
+                    className="p-6 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15"
                   >
                     {renderContentBlock(block)}
                   </div>
@@ -204,7 +204,7 @@ export default async function IntentPage({ params }: PageProps) {
                 {(page.structured.faqs || []).map((faq, i) => (
                   <div
                     key={i}
-                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl p-6"
+                    className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
@@ -239,7 +239,7 @@ export default async function IntentPage({ params }: PageProps) {
                       <Link
                         key={`${link.type}-${link.slug}`}
                         href={href}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border hover:border-primary transition-colors text-sm font-medium"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none border border-border hover:border-primary transition-colors text-sm font-medium"
                       >
                         <FileText className="w-4 h-4 text-primary" />
                         {link.title}

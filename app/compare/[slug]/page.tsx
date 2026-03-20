@@ -338,7 +338,7 @@ export default async function ComparisonPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Breadcrumbs */}
-          <div className="px-4 pt-6 bg-card/80 dark:bg-white/5">
+          <div className="px-4 pt-6 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
               <PageBreadcrumbs
                 links={[
@@ -351,7 +351,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           </div>
 
           {/* Hero */}
-          <section className="px-4 py-8 sm:py-12 bg-card/80 dark:bg-white/5 border-b border-border dark:border-border">
+          <section className="px-4 py-8 sm:py-12 bg-white dark:bg-card border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
                 {comparison.title}
@@ -369,9 +369,9 @@ export default async function ComparisonPage({ params }: PageProps) {
                 Head-to-Head Comparison
               </h2>
 
-              <div className="bg-card/80 dark:bg-white/5 rounded-2xl border border-border dark:border-border overflow-hidden">
+              <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 {/* Header */}
-                <div className="grid grid-cols-3 bg-card/60 dark:bg-white/5 p-4 border-b border-border dark:border-border">
+                <div className="grid grid-cols-3 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border">
                   <div className="font-medium text-muted-foreground">Feature</div>
                   <div className="font-semibold text-primary text-center">InstantMed</div>
                   <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
@@ -417,11 +417,11 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* When to Choose Each */}
-          <section className="px-4 py-12 bg-card/80 dark:bg-white/5">
+          <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Choose InstantMed */}
-                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6">
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary" />
                     Choose InstantMed When
@@ -443,7 +443,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 </div>
 
                 {/* Choose Competitor */}
-                <div className="bg-card/60 dark:bg-white/10 border border-border dark:border-border rounded-2xl p-6">
+                <div className="bg-white dark:bg-card border border-border dark:border-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-muted-foreground" />
                     Choose {comparison.competitor.name} When
@@ -464,7 +464,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Verdict */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-4">
                   The Bottom Line
                 </h2>
@@ -476,14 +476,14 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* FAQ */}
-          <section className="px-4 py-12 bg-card/80 dark:bg-white/5">
+          <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
                 {comparison.faqs.map((faq, i) => (
-                  <div key={i} className="bg-card/60 dark:bg-white/5 rounded-xl p-6">
+                  <div key={i} className="bg-white dark:bg-card rounded-xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>

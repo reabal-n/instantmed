@@ -159,7 +159,7 @@ export default async function ConditionPage({ params }: PageProps) {
           </section>
 
           {/* Symptoms Section */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
@@ -169,7 +169,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 {condition.symptoms.map((symptom, i) => (
                   <div 
                     key={i}
-                    className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10"
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -190,7 +190,7 @@ export default async function ConditionPage({ params }: PageProps) {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {/* What we can help with */}
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6">
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" />
                     What we can help with
@@ -206,7 +206,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 </div>
 
                 {/* What needs in-person care */}
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     What needs in-person care
@@ -225,7 +225,7 @@ export default async function ConditionPage({ params }: PageProps) {
           </section>
 
           {/* When to Seek Help */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* When to see a doctor */}
@@ -252,7 +252,7 @@ export default async function ConditionPage({ params }: PageProps) {
                     <AlertTriangle className="w-5 h-5 text-red-500" />
                     Seek emergency care if
                   </h2>
-                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <ul className="space-y-3">
                       {condition.whenEmergency.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-red-700 dark:text-red-300">
@@ -283,7 +283,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 {condition.commonQuestions.map((faq, i) => (
                   <div 
                     key={i}
-                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl p-6"
+                    className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.a}</p>
