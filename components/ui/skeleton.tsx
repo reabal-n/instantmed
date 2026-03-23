@@ -282,6 +282,9 @@ function SkeletonPillSelector({ count = 4 }: { count?: number }) {
   )
 }
 
+/** Alias for SkeletonForm — matches unified-skeleton API */
+const FormSkeleton = SkeletonForm
+
 export {
   Skeleton,
   SkeletonCard,
@@ -294,6 +297,7 @@ export {
   SkeletonOnboarding,
   SkeletonInput,
   SkeletonPillSelector,
+  FormSkeleton,
   // Spinners
   Spinner,
   SpinnerWithText,

@@ -17,7 +17,7 @@ import {
   Pencil,
   Stethoscope,
 } from "lucide-react"
-import { ButtonSpinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 import { createOrGetProfile } from "@/app/actions/create-profile"

@@ -19,7 +19,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { DataSecurityStrip, OnboardingTrustFooter } from "@/components/checkout/trust-badges"
-import { ButtonSpinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/skeleton"
 import { completeOnboardingAction } from "./actions"
 import type { AustralianState } from "@/types/db"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"

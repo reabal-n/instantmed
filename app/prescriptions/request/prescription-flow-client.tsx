@@ -39,7 +39,7 @@ import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
-import { ButtonSpinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/skeleton"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("prescription-flow-client")
 

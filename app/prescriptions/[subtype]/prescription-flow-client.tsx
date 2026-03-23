@@ -20,7 +20,7 @@ import {
   CreditCard,
   User,
 } from "lucide-react"
-import { ButtonSpinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
