@@ -19,17 +19,23 @@
 
 import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff, AlertTriangle } from "lucide-react"
+import { ArrowLeft, X } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
 import { motion, AnimatePresence, useMotionValue, useReducedMotion, type PanInfo } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SkeletonForm } from "@/components/ui/skeleton"
 import { StepRouter } from "./step-router"
 import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { ConnectionBanner } from "./connection-banner"
+import { ProgressBar } from "@/components/request/progress-bar"
+import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
+import { TimeRemaining } from "@/components/request/time-remaining"
+import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
+import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
+import { SafetyBlockDialog } from "@/components/request/safety-block-dialog"
+import { ExitConfirmDialog } from "@/components/request/exit-confirm-dialog"
 import {
   getStepsForService,
   getStepDefinitionById,
@@ -73,26 +79,6 @@ const SAFETY_PRE_CHECK_STEPS = new Set([
   'consult-reason',    // General consult: after describing concern
 ])
 
-// Estimated time per step type (in seconds)
-const STEP_TIME_ESTIMATES: Record<string, number> = {
-  'certificate': 30,
-  'symptoms': 45,
-  'medication': 60,
-  'medication-history': 45,
-  'medical-history': 60,
-  'consult-reason': 45,
-  'ed-assessment': 60,
-  'ed-safety': 30,
-  'hair-loss-assessment': 60,
-  'womens-health-type': 20,
-  'womens-health-assessment': 60,
-  'weight-loss-assessment': 90,
-  'weight-loss-call-scheduling': 30,
-  'details': 90,
-  'review': 30,
-  'checkout': 60,
-}
-
 interface HealthProfilePrefill {
   allergies?: string[]
   conditions?: string[]
@@ -123,233 +109,10 @@ interface RequestFlowProps {
   healthProfile?: HealthProfilePrefill | null
 }
 
-function ProgressBar({
-  steps,
-  currentIndex,
-  onStepClick,
-}: {
-  steps: { id: string; shortLabel: string }[]
-  currentIndex: number
-  onStepClick: (stepId: string, index: number) => void
-}) {
-  const prefersReducedMotion = useReducedMotion()
-
-  return (
-    <div className="w-full flex gap-1.5" role="navigation" aria-label="Request progress">
-      {steps.map((step, i) => {
-        const isCompleted = i < currentIndex
-        const isCurrent = i === currentIndex
-        const isClickable = i <= currentIndex
-        
-        return (
-          <button
-            key={step.id}
-            type="button"
-            onClick={() => isClickable && onStepClick(step.id, i)}
-            disabled={!isClickable}
-            className={`flex-1 group min-h-[44px] sm:min-h-0 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
-            aria-current={isCurrent ? 'step' : undefined}
-            aria-label={`${step.shortLabel}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
-          >
-            {/* Progress bar segment -- taller on mobile for better touch targets */}
-            <div className="relative">
-              <div 
-                className={`h-2 sm:h-1.5 rounded-full transition-all duration-300 ${
-                  i <= currentIndex ? "bg-primary" : "bg-muted"
-                } ${isClickable && !isCurrent ? "group-hover:bg-primary/70" : ""}`} 
-              />
-              {/* Checkmark for completed steps -- hidden on mobile, dot indicator instead */}
-              {isCompleted && (
-                <>
-                  {/* Mobile: small dot */}
-                  <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary sm:hidden"
-                  />
-                  {/* Desktop: checkmark */}
-                  <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary items-center justify-center hidden sm:flex"
-                  >
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
-                  </motion.div>
-                </>
-              )}
-            </div>
-            {/* Label - hidden on mobile, visible on sm+ */}
-            <span 
-              className={`text-xs mt-1.5 text-center font-medium transition-colors truncate hidden sm:block ${
-                i <= currentIndex ? "text-foreground" : "text-muted-foreground"
-              } ${isClickable && !isCurrent ? "group-hover:text-primary" : ""}`}
-            >
-              {step.shortLabel}
-            </span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// Auto-save indicator component
-function AutoSaveIndicator({
-  lastSavedAt,
-  hasUnsavedChanges
-}: {
-  lastSavedAt: string | null
-  hasUnsavedChanges: boolean
-}) {
-  const prefersReducedMotion = useReducedMotion()
-  const [showSaved, setShowSaved] = useState(false)
-  
-  useEffect(() => {
-    if (lastSavedAt) {
-      setShowSaved(true)
-      const timer = setTimeout(() => setShowSaved(false), 2000)
-      return () => clearTimeout(timer)
-    }
-  }, [lastSavedAt])
-  
-  if (!lastSavedAt && !hasUnsavedChanges) return null
-  
-  return (
-    <AnimatePresence mode="wait">
-      {hasUnsavedChanges ? (
-        <motion.div
-          key="unsaved"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground"
-        >
-          <CloudOff className="w-3 h-3" />
-          <span>Unsaved</span>
-        </motion.div>
-      ) : showSaved ? (
-        <motion.div
-          key="saved"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex items-center gap-1.5 text-xs text-emerald-600"
-        >
-          <Cloud className="w-3 h-3" />
-          <span>Saved</span>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  )
-}
-
-// Time remaining indicator
-function TimeRemaining({ 
-  steps, 
-  currentIndex 
-}: { 
-  steps: { id: string }[]
-  currentIndex: number 
-}) {
-  const remainingTime = useMemo(() => {
-    const remainingSteps = steps.slice(currentIndex)
-    const totalSeconds = remainingSteps.reduce((acc, step) => {
-      return acc + (STEP_TIME_ESTIMATES[step.id] || 30)
-    }, 0)
-    const minutes = Math.ceil(totalSeconds / 60)
-    return minutes
-  }, [steps, currentIndex])
-  
-  if (remainingTime <= 0) return null
-  
-  return (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Clock className="w-3 h-3" />
-      <span>~{remainingTime} min left</span>
-    </div>
-  )
-}
-
 // Skeleton loading component for step transitions
 // Uses shared SkeletonForm for consistency
 function StepSkeleton() {
   return <SkeletonForm />
-}
-
-// Draft restoration banner
-function DraftRestorationBanner({ 
-  onRestore, 
-  onDiscard,
-  serviceName,
-}: { 
-  onRestore: () => void
-  onDiscard: () => void 
-  serviceName: string
-}) {
-  return (
-    <Alert className="mb-4 border-primary/20 bg-primary/5">
-      <RotateCcw className="w-4 h-4" />
-      <AlertDescription className="flex items-center justify-between gap-4">
-        <span className="text-sm">
-          You have an unfinished {serviceName} request. Continue where you left off?
-        </span>
-        <div className="flex gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={onDiscard}>
-            Start fresh
-          </Button>
-          <Button size="sm" onClick={onRestore}>
-            Continue
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  )
-}
-
-// Consult subtype mismatch banner - shown when URL subtype differs from draft
-function SubtypeMismatchBanner({ 
-  draftSubtype,
-  urlSubtype,
-  onResumeDraft, 
-  onStartFresh,
-}: { 
-  draftSubtype: string
-  urlSubtype: string
-  onResumeDraft: () => void
-  onStartFresh: () => void 
-}) {
-  // Import labels for display
-  const subtypeLabels: Record<string, string> = {
-    general: 'General consultation',
-    new_medication: 'General consultation', // legacy backward compat
-    ed: 'Erectile dysfunction',
-    hair_loss: 'Hair loss treatment',
-    womens_health: "Women's health",
-    weight_loss: 'Weight management',
-  }
-  
-  const draftLabel = subtypeLabels[draftSubtype] || draftSubtype
-  const urlLabel = subtypeLabels[urlSubtype] || urlSubtype
-  
-  return (
-    <Alert className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
-      <AlertTriangle className="w-4 h-4 text-amber-600" />
-      <AlertDescription className="flex flex-col gap-3">
-        <span className="text-sm text-amber-700 dark:text-amber-300">
-          You have an unfinished <strong>{draftLabel}</strong> consult. 
-          You selected <strong>{urlLabel}</strong>.
-        </span>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={onStartFresh}>
-            Start {urlLabel}
-          </Button>
-          <Button size="sm" onClick={onResumeDraft}>
-            Resume {draftLabel}
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  )
 }
 
 export function RequestFlow({
@@ -899,121 +662,25 @@ export function RequestFlow({
       <ConnectionBanner />
 
       {/* Exit confirmation dialog */}
-      <AnimatePresence>
-        {showExitConfirm && (
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => setShowExitConfirm(false)}
-          >
-            <motion.div
-              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-background rounded-xl p-6 max-w-sm w-full shadow-xl"
-            >
-              <h3 className="font-semibold text-lg mb-2">Leave this request?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your progress has been saved as a draft. You can continue later.
-              </p>
-              <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setShowExitConfirm(false)}
-                >
-                  Keep editing
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  className="flex-1"
-                  onClick={confirmExit}
-                >
-                  Leave
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onClose={() => setShowExitConfirm(false)}
+        onConfirmExit={confirmExit}
+      />
 
       {/* Safety pre-check block dialog */}
-      <AnimatePresence>
-        {safetyBlock && (
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl"
-            >
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">
-                    {safetyBlock.patientTitle}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {safetyBlock.patientMessage}
-                  </p>
-                </div>
-              </div>
-              {safetyBlock.outcome === 'REQUIRES_CALL' ? (
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      setSafetyBlock(null)
-                      router.push('/')
-                    }}
-                  >
-                    Return home
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setSafetyBlock(null)
-                      router.push('/contact')
-                    }}
-                  >
-                    Contact us
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setSafetyBlock(null)}
-                  >
-                    Go back
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setSafetyBlock(null)
-                      router.push('/')
-                    }}
-                  >
-                    Return home
-                  </Button>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SafetyBlockDialog
+        safetyBlock={safetyBlock}
+        onDismiss={() => setSafetyBlock(null)}
+        onReturnHome={() => {
+          setSafetyBlock(null)
+          router.push('/')
+        }}
+        onContactUs={() => {
+          setSafetyBlock(null)
+          router.push('/contact')
+        }}
+      />
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
