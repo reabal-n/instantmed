@@ -157,7 +157,7 @@ export interface MedicareStepProps {
 }
 
 export interface SignupStepProps {
-  goTo: (step: string) => void
+  goTo: (step: "medicare") => void
   onAuthComplete: (userId: string, profileId: string) => void
 }
 
@@ -167,7 +167,7 @@ export interface ReviewStepProps {
   otherCondition: string
   rxType: "repeat" | "new" | null
   duration: string | null
-  goTo: (step: string) => void
+  goTo: (step: "medication" | "condition") => void
 }
 
 export interface PaymentStepProps {
