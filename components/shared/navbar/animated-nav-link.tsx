@@ -54,6 +54,7 @@ export function AnimatedNavLink({ href, children, gradient, icon, isActive, onCl
         <Link
           href={href}
           onClick={onClick}
+          aria-current={isActive ? "page" : undefined}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",
             isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -94,6 +95,7 @@ export function AnimatedNavLink({ href, children, gradient, icon, isActive, onCl
         <Link
           href={href}
           onClick={onClick}
+          aria-current={isActive ? "page" : undefined}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",
             isActive
@@ -114,6 +116,7 @@ export function AnimatedNavLink({ href, children, gradient, icon, isActive, onCl
         <Link
           href={href}
           onClick={onClick}
+          aria-current={isActive ? "page" : undefined}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-foreground"
         >
           {icon}

@@ -1,15 +1,13 @@
 'use client'
 /* eslint-disable no-console -- Flow state management needs console for debugging */
 
-import { useState, useEffect } from 'react'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { FlowState, FlowActions, FlowStepId } from './types'
 import type { IdentityData as _IdentityData, ConsentRecord as _ConsentRecord } from './types'
 import type { SyncStatus } from './draft/types'
 import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
-import { validateIHI } from '@/lib/validation/ihi'
-import { validateMedicareNumber } from '@/lib/validation/medicare'
+import { validateAllRequiredFields as validateFields } from './store-validators'
 
 // Placeholder values for SSR - will be replaced on client hydration
 const SSR_SESSION_ID = 'ssr_placeholder'
@@ -88,19 +86,15 @@ function createInitialState(): ExtendedFlowState {
 }
 
 // 5-step order per refined intake spec
-const STEP_ORDER: FlowStepId[] = ['service', 'safety', 'questions', 'details', 'checkout']
+export const STEP_ORDER: FlowStepId[] = ['service', 'safety', 'questions', 'details', 'checkout']
 
 // Debounce timer
 let saveTimer: NodeJS.Timeout | null = null
 const SAVE_DEBOUNCE_MS = 1500
 const _MAX_RETRY_COUNT = 3
 
-// Validation result type
-export interface ValidationResult {
-  isValid: boolean
-  missingFields: string[]
-  errors: Record<string, string>
-}
+// Re-export validation types for backwards compatibility
+export { type ValidationResult } from './store-validators'
 
 // Extended actions for sync
 interface ExtendedFlowActions extends FlowActions {
