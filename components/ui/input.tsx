@@ -41,6 +41,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const inputId = id || (label ? `input-${label.toLowerCase().replace(/\s+/g, "-")}` : undefined)
+    const errorId = isInvalid && errorMessage ? `${inputId ?? "input"}-error` : undefined
 
     return (
       <div className={cn("w-full", className)}>
@@ -76,6 +77,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             aria-invalid={isInvalid || undefined}
+            aria-describedby={errorId}
             className={cn(
               "flex-1 bg-transparent px-3 py-2",
               "text-foreground placeholder:text-muted-foreground/60",
@@ -95,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {isInvalid && errorMessage && (
-          <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+          <p id={errorId} className="mt-1.5 text-xs text-red-600 dark:text-red-400">
             {errorMessage}
           </p>
         )}

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
-import { ButtonSpinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/skeleton"
 import {
   Check,
   ChevronRight,

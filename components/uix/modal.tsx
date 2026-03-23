@@ -66,7 +66,7 @@ function Modal({
             "fixed left-1/2 top-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2",
             sizeClasses[size] || sizeClasses.md,
             // Surface
-            "bg-background/95 backdrop-blur-xl border border-default-100 shadow-2xl",
+            "bg-background/95 backdrop-blur-xl border border-border shadow-2xl",
             // Shape
             "rounded-2xl",
             // Animation
@@ -94,7 +94,7 @@ function ModalHeader({
     <div
       className={cn(
         "flex flex-col space-y-1.5 p-6",
-        "border-b border-default-100",
+        "border-b border-border",
         className
       )}
       {...props}
@@ -124,7 +124,7 @@ function ModalFooter({
     <div
       className={cn(
         "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6",
-        "border-t border-default-100",
+        "border-t border-border",
         className
       )}
       {...props}
