@@ -1,5 +1,6 @@
 import { validateMedicareNumber } from '@/lib/validation/medicare'
 import { validateIHI } from '@/lib/validation/ihi'
+import type { IdentityData } from './types'
 
 export interface ValidationResult {
   isValid: boolean
@@ -10,20 +11,7 @@ export interface ValidationResult {
 interface ValidatableState {
   serviceSlug: string | null
   answers: Record<string, unknown>
-  identityData: {
-    firstName?: string
-    lastName?: string
-    email?: string
-    phone?: string
-    dateOfBirth?: string
-    addressLine1?: string
-    suburb?: string
-    state?: string
-    postcode?: string
-    medicareNumber?: string
-    ihi?: string
-    [key: string]: unknown
-  } | null
+  identityData: IdentityData | null
   consentsGiven: Array<{ type: string }>
 }
 
