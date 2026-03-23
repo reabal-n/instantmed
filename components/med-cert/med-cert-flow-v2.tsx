@@ -11,6 +11,7 @@ import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type {
   MedCertStep,
   CertificateType,
+  CarerRelationship,
   SymptomId,
   MedCertIntakeData,
 } from "@/types/med-cert"
@@ -401,7 +402,7 @@ export function MedCertFlowV2({
               otherSymptomDetails={formData.otherSymptomDetails}
               onSymptomToggle={handleSymptomToggle}
               onCarerNameChange={(name) => setFormData(prev => ({ ...prev, carerPersonName: name }))}
-              onCarerRelationshipChange={(rel) => setFormData(prev => ({ ...prev, carerRelationship: rel }))}
+              onCarerRelationshipChange={(rel) => setFormData(prev => ({ ...prev, carerRelationship: rel as CarerRelationship }))}
               onOtherDetailsChange={(details) => setFormData(prev => ({ ...prev, otherSymptomDetails: details }))}
             />
           )}
