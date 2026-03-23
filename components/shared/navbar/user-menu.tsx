@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useUser, useClerk, UserButton } from "@clerk/nextjs"
+import { useUser, UserButton } from "@clerk/nextjs"
 import {
   LogOut,
   User,
@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   ClipboardList,
   Settings,
-  Stethoscope,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import {
