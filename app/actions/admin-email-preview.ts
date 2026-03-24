@@ -25,10 +25,10 @@ export async function sendAdminTestEmailAction(
   testEmail: string,
   customData?: Record<string, string>
 ): Promise<AdminEmailPreviewResult> {
-  // Auth check - admin only
+  // Auth check - admin only (doctors can preview but not send test emails)
   const authResult = await getApiAuth()
   if (!authResult || authResult.profile.role !== "admin") {
-    return { success: false, error: "Unauthorized" }
+    return { success: false, error: "Unauthorized — only admins can send test emails" }
   }
 
   // Validate email
@@ -87,7 +87,7 @@ export async function getAdminEmailTemplatesAction(): Promise<{
 }> {
   // Auth check - admin only
   const authResult = await getApiAuth()
-  if (!authResult || authResult.profile.role !== "admin") {
+  if (!authResult || authResult.profile.role !== "admin" && authResult.profile.role !== "doctor") {
     return { success: false, error: "Unauthorized" }
   }
 
@@ -117,7 +117,7 @@ export async function getAdminTemplateSampleDataAction(
 }> {
   // Auth check - admin only
   const authResult = await getApiAuth()
-  if (!authResult || authResult.profile.role !== "admin") {
+  if (!authResult || authResult.profile.role !== "admin" && authResult.profile.role !== "doctor") {
     return { success: false, error: "Unauthorized" }
   }
 
@@ -145,7 +145,7 @@ export async function previewAdminEmailTemplateAction(
 }> {
   // Auth check - admin only
   const authResult = await getApiAuth()
-  if (!authResult || authResult.profile.role !== "admin") {
+  if (!authResult || authResult.profile.role !== "admin" && authResult.profile.role !== "doctor") {
     return { success: false, error: "Unauthorized" }
   }
 

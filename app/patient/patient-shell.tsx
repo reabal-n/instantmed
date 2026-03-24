@@ -6,6 +6,7 @@ import { AuthenticatedShell } from '@/components/shell'
 import { usePanel, SessionPanel } from '@/components/panels'
 import { ServiceSelector } from '@/components/patient/service-selector'
 import { MobileNav } from '@/components/ui/mobile-nav'
+import { PWAInstallPrompt } from '@/components/shared/pwa-install-prompt'
 
 /**
  * PatientShell - Wraps all patient pages with panel-based interface
@@ -73,6 +74,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
         {children}
       </div>
       <MobileNav />
+      <PWAInstallPrompt />
     </>
   )
 }

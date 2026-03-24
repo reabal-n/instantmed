@@ -348,6 +348,8 @@ export async function getDoctorQueue(
       risk_score,
       requires_live_consult,
       ai_draft_status,
+      ai_approved,
+      ai_approved_at,
       patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state),
       service:services!service_id (id, name, short_name, type, slug)
     `)
@@ -374,6 +376,54 @@ export async function getDoctorQueue(
     page,
     pageSize,
   }
+}
+
+/**
+ * Get AI-approved intakes for doctor batch review.
+ * Returns approved intakes where ai_approved=true, ordered by most recent.
+ */
+export async function getAIApprovedIntakes(
+  options?: { limit?: number }
+): Promise<IntakeWithPatient[]> {
+  const supabase = createServiceRoleClient()
+  const limit = options?.limit ?? 20
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      service_id,
+      category,
+      subtype,
+      status,
+      payment_status,
+      is_priority,
+      sla_deadline,
+      created_at,
+      updated_at,
+      ai_approved,
+      ai_approved_at,
+      ai_approval_reason,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth),
+      service:services!service_id (id, name, short_name, type, slug)
+    `)
+    .eq("ai_approved", true)
+    .in("status", ["approved", "completed"])
+    .order("ai_approved_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    logger.error("Error fetching AI-approved intakes", {}, toError(error))
+    return []
+  }
+
+  const unwrapped = (data || []).map(row => ({
+    ...row,
+    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  }))
+  return unwrapped.filter((r) => r.patient !== null) as unknown as IntakeWithPatient[]
 }
 
 /**

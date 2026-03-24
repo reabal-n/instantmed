@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/shared/navbar";
 import { MarketingFooter } from "@/components/marketing";
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 import { CenteredHero } from "@/components/heroes";
 import { CTABanner } from "@/components/sections";
 import { allArticles } from "@/lib/blog/articles";
@@ -42,6 +43,7 @@ export default function BlogPage() {
         ]}
       />
 
+      <MarketingPageShell>
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
 
@@ -72,6 +74,7 @@ export default function BlogPage() {
 
         <MarketingFooter />
       </div>
+      </MarketingPageShell>
     </>
   );
 }
