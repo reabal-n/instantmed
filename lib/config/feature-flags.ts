@@ -49,6 +49,9 @@ export const flags = {
   // e.g., "weight_loss,mens_health"
   DISABLE_CONSULT_SUBTYPES: process.env.DISABLE_CONSULT_SUBTYPES || "",
   
+  // AI auto-approval
+  ENABLE_AI_AUTO_APPROVE: process.env.ENABLE_AI_AUTO_APPROVE === "true",
+
   // Ops kill switches (from previous implementations)
   DISABLE_INTAKE_EVENTS: process.env.DISABLE_INTAKE_EVENTS === "true",
   DISABLE_STUCK_INTAKE_SENTRY: process.env.DISABLE_STUCK_INTAKE_SENTRY === "true",
@@ -253,5 +256,6 @@ export function getFlagStatus(): Record<string, boolean | string> {
     DISABLE_EMPLOYER_EMAIL: flags.DISABLE_EMPLOYER_EMAIL,
     FORCE_CALL_REQUIRED: flags.FORCE_CALL_REQUIRED,
     DISABLE_CONSULT_SUBTYPES: flags.DISABLE_CONSULT_SUBTYPES || "(none)",
+    ENABLE_AI_AUTO_APPROVE: flags.ENABLE_AI_AUTO_APPROVE,
   }
 }

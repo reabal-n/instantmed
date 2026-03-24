@@ -42,6 +42,7 @@ import {
 } from "lucide-react"
 import { updateStatusAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
+import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { MessageSquare } from "lucide-react"
 import {
   Select,
@@ -65,6 +66,7 @@ export function QueueClient({
   doctorId: _doctorId,
   identityComplete = true,
   pagination,
+  aiApprovedIntakes = [],
 }: QueueClientProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
@@ -92,12 +94,42 @@ export function QueueClient({
   const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
+  const [revokeDialog, setRevokeDialog] = useState<string | null>(null)
+  const [revokeReason, setRevokeReason] = useState("")
   const [declineTemplatesLoaded, setDeclineTemplatesLoaded] = useState(false)
   const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
   const lastSyncTimeRef = useRef<Date>(new Date())
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
+  const [, setTick] = useState(0) // Forces re-render for live wait time ticking
   const listId = useId()
+
+  // Tick every 30s to update wait time displays live
+  useEffect(() => {
+    const tickInterval = setInterval(() => {
+      setTick((t) => t + 1)
+    }, 30000)
+    return () => clearInterval(tickInterval)
+  }, [])
+
+  // Play a subtle notification sound when a new intake arrives
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+      const oscillator = audioCtx.createOscillator()
+      const gainNode = audioCtx.createGain()
+      oscillator.connect(gainNode)
+      gainNode.connect(audioCtx.destination)
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime) // A5
+      oscillator.frequency.setValueAtTime(1175, audioCtx.currentTime + 0.1) // D6
+      gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3)
+      oscillator.start(audioCtx.currentTime)
+      oscillator.stop(audioCtx.currentTime + 0.3)
+    } catch {
+      // Audio not available — silent fallback
+    }
+  }, [])
 
   // Real-time subscription — client-side state updates (no router.refresh on INSERT)
   useEffect(() => {
@@ -134,6 +166,7 @@ export function QueueClient({
             const serviceData = newRow.service as { short_name?: string } | undefined
             const serviceName = serviceData?.short_name || "New request"
             const patientName = newRow.patient?.full_name
+            playNotificationSound()
             toast.info(
               patientName
                 ? `${serviceName} from ${patientName}`
@@ -169,7 +202,7 @@ export function QueueClient({
       clearInterval(staleCheckInterval)
       clearInterval(softRefreshInterval)
     }
-  }, [router])
+  }, [router, playNotificationSound])
 
   const calculateWaitTime = (createdAt: string) => {
     const created = new Date(createdAt)
@@ -411,9 +444,21 @@ export function QueueClient({
 
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" data-testid="queue-header">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
-          {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground font-sans" id={listId} data-testid="queue-heading">
+            {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting
+          </h2>
+          {/* Live connection indicator */}
+          {!isStale && !isReconnecting && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+              </span>
+              Live
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Input
             placeholder="Search patients..."
@@ -497,6 +542,12 @@ export function QueueClient({
                           <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
                             <Sparkles className="w-3 h-3 mr-1" />
                             AI ready
+                          </Badge>
+                        )}
+                        {intake.ai_approved && (
+                          <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            AI approved
                           </Badge>
                         )}
                       </div>
@@ -601,6 +652,129 @@ export function QueueClient({
           />
         </div>
       )}
+
+      {/* AI-Approved Review Section */}
+      {aiApprovedIntakes.length > 0 && (
+        <Card className="border-violet-200/50 dark:border-violet-500/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <h3 className="text-sm font-semibold text-foreground">AI-Approved Certificates ({aiApprovedIntakes.length})</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">Auto-approved by AI. Review and revoke if needed.</p>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-2">
+            {aiApprovedIntakes.map((intake) => {
+              const aiService = intake.service as { short_name?: string; type?: string } | undefined
+              return (
+                <div
+                  key={intake.id}
+                  className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => openReviewPanel(intake.id)}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <UserCard
+                      name={intake.patient.full_name}
+                      size="sm"
+                      className="shrink-0"
+                    />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-xs">
+                        {aiService?.short_name || "Med Cert"}
+                      </Badge>
+                      <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        AI approved
+                      </Badge>
+                      {intake.ai_approved_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(intake.ai_approved_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openReviewPanel(intake.id)
+                      }}
+                    >
+                      Review
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-destructive hover:text-destructive shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setRevokeDialog(intake.id)
+                      }}
+                    >
+                      Revoke
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Revoke AI Approval Dialog */}
+      <Dialog open={!!revokeDialog} onOpenChange={() => {
+        setRevokeDialog(null)
+        setRevokeReason("")
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revoke AI-Approved Certificate</DialogTitle>
+            <DialogDescription>
+              This will invalidate the certificate and move the request back to the review queue. The patient will be notified.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Reason for revocation</label>
+              <Textarea
+                value={revokeReason}
+                onChange={(e) => setRevokeReason(e.target.value)}
+                placeholder="Explain why this certificate should be revoked..."
+                className="min-h-[80px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setRevokeDialog(null); setRevokeReason("") }}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={revokeReason.trim().length < 5 || isPending}
+              onClick={() => {
+                if (!revokeDialog) return
+                startTransition(async () => {
+                  const result = await revokeAIApproval(revokeDialog, revokeReason.trim())
+                  if (result.success) {
+                    toast.success("Certificate revoked. Request moved back to queue.")
+                    setRevokeDialog(null)
+                    setRevokeReason("")
+                    router.refresh()
+                  } else {
+                    toast.error(result.error || "Failed to revoke certificate")
+                  }
+                })
+              }}
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Revoke Certificate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Decline Dialog */}
       <Dialog open={!!declineDialog} onOpenChange={() => {

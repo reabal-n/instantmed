@@ -708,24 +708,46 @@ export async function POST(request: Request) {
         }
       }
 
-      // STEP 6: Generate AI drafts (fire-and-forget, non-blocking)
-      // This generates clinical note + med cert drafts for doctor review
-      // Wrap with timeout to prevent hanging promises from AI draft generation
-      const AI_DRAFT_TIMEOUT_MS = 30000 // 30 seconds
+      // STEP 6: Generate AI drafts + attempt auto-approval (non-blocking)
+      // This generates clinical note + med cert drafts, then attempts auto-approval
+      // for eligible med certs. If auto-approval fails, intake stays in doctor queue.
+      // NOTE: This is fire-and-forget — the webhook returns 200 immediately.
+      // On Vercel, floating promises may be killed after the response is sent.
+      // We use waitUntil() to keep the function alive for background work.
+      const AI_DRAFT_TIMEOUT_MS = 45000 // 45 seconds (draft gen + auto-approval)
       const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
-        setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 30s" }), AI_DRAFT_TIMEOUT_MS)
+        setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 45s" }), AI_DRAFT_TIMEOUT_MS)
       })
-      
-      Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
-        .then((result) => {
-          if (result.success) {
+
+      // Fire-and-forget: webhook returns 200 immediately, this runs in background.
+      // The existing release-stale-claims cron (every 5 min) handles cleanup if Vercel kills this early.
+      void Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
+        .then(async (result) => {
+          if (result.success && !('skipped' in result && result.skipped)) {
             log.info("AI drafts generated", {
               intakeId,
-              skipped: 'skipped' in result ? result.skipped : undefined,
               clinicalNote: 'clinicalNote' in result ? result.clinicalNote?.status : undefined,
               medCert: 'medCert' in result ? result.medCert?.status : undefined,
             })
-          } else {
+
+            // Attempt auto-approval for med certs (non-blocking to webhook)
+            try {
+              const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
+              const autoResult = await attemptAutoApproval(intakeId)
+              log.info("Auto-approval attempted", {
+                intakeId,
+                autoApproved: autoResult.autoApproved,
+                reason: autoResult.reason,
+                certificateId: autoResult.certificateId,
+              })
+            } catch (autoErr) {
+              // Never fail — auto-approval failure just means doctor reviews manually
+              log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {
+                intakeId,
+                error: autoErr instanceof Error ? autoErr.message : String(autoErr),
+              })
+            }
+          } else if (!result.success) {
             log.warn("AI draft generation failed, queueing for retry", {
               intakeId,
               error: result.error,

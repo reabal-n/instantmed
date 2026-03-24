@@ -136,6 +136,10 @@ export interface Intake {
   prescription_sent_channel: string | null
   // AI draft status
   ai_draft_status: string | null
+  // AI auto-approval
+  ai_approved: boolean
+  ai_approved_at: string | null
+  ai_approval_reason: string | null
   // Client info
   client_ip: string | null
   client_user_agent: string | null

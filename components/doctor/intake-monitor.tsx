@@ -14,6 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   Users,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +29,9 @@ export interface IntakeMonitorStats {
   oldestInQueueMinutes: number | null
   slaBreached?: number
   slaApproaching?: number
+  // AI auto-approval metrics
+  aiApprovedToday?: number
+  aiRevokedToday?: number
 }
 
 interface IntakeMonitorProps {
@@ -206,6 +210,19 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               </span>
             )}
           </div>
+
+          {(stats.aiApprovedToday != null && stats.aiApprovedToday > 0) && (
+            <>
+              <div className="h-3.5 w-px bg-border/60" />
+              <div className="flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+                <span className="text-xs text-muted-foreground">
+                  {stats.aiApprovedToday} AI
+                  {stats.aiRevokedToday ? ` · ${stats.aiRevokedToday} revoked` : ""}
+                </span>
+              </div>
+            </>
+          )}
 
           {stats.queueSize === 0 && (
             <>
