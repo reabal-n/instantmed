@@ -12,6 +12,7 @@ import { requireRoleOrNull } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
+import { createNotification } from "@/lib/notifications/service"
 import { revalidatePath } from "next/cache"
 import * as Sentry from "@sentry/nextjs"
 
@@ -42,7 +43,7 @@ export async function revokeAIApproval(
     // 2. Verify intake has ai_approved = true
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, status, ai_approved")
+      .select("id, status, ai_approved, patient_id")
       .eq("id", intakeId)
       .single()
 
@@ -94,7 +95,19 @@ export async function revokeAIApproval(
       },
     })
 
-    // 6. Sentry alert for monitoring
+    // 6. Notify patient that their certificate is under review
+    if (intake.patient_id) {
+      await createNotification({
+        userId: intake.patient_id,
+        type: "document_ready",
+        title: "Certificate under review",
+        message: "A doctor is reviewing your medical certificate. We'll update you shortly with the outcome.",
+        actionUrl: `/patient/intakes/${intakeId}`,
+        metadata: { intakeId, revoked: true },
+      })
+    }
+
+    // 7. Sentry alert for monitoring
     Sentry.captureMessage("AI-approved certificate revoked by doctor", {
       level: "warning",
       tags: {

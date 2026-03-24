@@ -5,7 +5,7 @@
  * Evaluates eligibility, builds review data, and executes the
  * full approval pipeline (PDF → storage → email) without doctor intervention.
  *
- * Safety: feature-flagged, logged to ai_audit_log, doctor batch review.
+ * Safety: feature-flagged, rate-limited, logged to ai_audit_log, doctor batch review.
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -50,7 +50,6 @@ function buildReviewDataFromAnswers(
 
   // Determine start date
   let startDate = (answers.start_date as string) || today
-  // Validate date format
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
     startDate = today
   }
@@ -112,6 +111,29 @@ async function logAutoApprovalAudit(
   }
 }
 
+/**
+ * Release the system auto-approval claim on an intake.
+ * Called on every failure path after the claim is acquired.
+ */
+async function releaseSystemClaim(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("intakes")
+      .update({ claimed_by: null, claimed_at: null })
+      .eq("id", intakeId)
+      .eq("claimed_by", "system-auto-approve")
+
+    if (error) {
+      log.warn("Failed to release system claim", { intakeId, error: error.message })
+    }
+  } catch (err) {
+    log.warn("Exception releasing system claim", { intakeId, error: err })
+  }
+}
+
 // ============================================================================
 // MAIN PIPELINE
 // ============================================================================
@@ -144,6 +166,21 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
     return { success: true, autoApproved: false, reason: "Rate limit exceeded" }
+  }
+
+  // 1c. Daily cap check (max 50 auto-approvals per day)
+  const dailyRateLimitResult = await checkRateLimit("system-auto-approve-daily", {
+    windowMs: 24 * 60 * 60 * 1000,
+    maxRequests: 50,
+    action: "auto_approve_daily",
+  })
+  if (!dailyRateLimitResult.allowed) {
+    log.warn("Auto-approval daily cap hit", { intakeId })
+    Sentry.captureMessage("Auto-approval daily cap exceeded (50/day)", {
+      level: "warning",
+      tags: { subsystem: "auto-approval", intake_id: intakeId },
+    })
+    return { success: true, autoApproved: false, reason: "Daily cap exceeded" }
   }
 
   const supabase = createServiceRoleClient()
@@ -185,7 +222,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: true, autoApproved: false, reason: `Intake status is ${intake.status}, not paid` }
     }
 
-    // 3b. Atomic claim: set claimed_by='system' only if status is still 'paid' and unclaimed
+    // 3b. Atomic claim: set claimed_by='system-auto-approve' only if status is still 'paid' and unclaimed
     // This prevents racing with a doctor who may claim the intake concurrently
     const { data: claimRows, error: claimError } = await supabase
       .from("intakes")
@@ -202,6 +239,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       log.info("Auto-approval: could not claim intake (likely claimed by doctor)", { intakeId })
       return { success: true, autoApproved: false, reason: "Intake already claimed by doctor" }
     }
+
+    // === FROM HERE: claim is held. Every failure path MUST release it. ===
 
     // 4. Extract answers
     const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
@@ -241,11 +280,11 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         reason: eligibility.reason,
         flags: eligibility.disqualifyingFlags,
       })
+      await releaseSystemClaim(supabase, intakeId)
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }
 
-    // 7. Get platform doctor (first available with credentials)
-    // Use the earliest-registered doctor with valid credentials (deterministic)
+    // 7. Get platform doctor (earliest-registered with valid credentials)
     const { data: doctor, error: doctorError } = await supabase
       .from("profiles")
       .select("id, full_name, provider_number, ahpra_number")
@@ -262,6 +301,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         level: "error",
         tags: { subsystem: "auto-approval", intake_id: intakeId },
       })
+      await releaseSystemClaim(supabase, intakeId)
       return { success: false, autoApproved: false, reason: "No doctor available", error: "No doctor with credentials found" }
     }
 
@@ -269,6 +309,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const reviewData = buildReviewDataFromAnswers(answersData, doctor.full_name)
     if (!reviewData) {
       log.warn("Auto-approval: could not build review data from answers", { intakeId })
+      await releaseSystemClaim(supabase, intakeId)
       return { success: false, autoApproved: false, reason: "Could not build review data", error: "Missing answer data" }
     }
 
@@ -292,6 +333,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const durationMs = Date.now() - startTime
 
     if (approvalResult.success) {
+      // Claim is consumed by the successful approval (status transitions to "approved")
+      // No need to release — the intake is no longer in a claimable state
       log.info("Auto-approval: certificate issued", {
         intakeId,
         certificateId: approvalResult.certificateId,
@@ -299,7 +342,6 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         emailSent: approvalResult.emailSent,
       })
 
-      // Log success to audit
       await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued", {
         certificate_id: approvalResult.certificateId,
         doctor_id: doctor.id,
@@ -315,11 +357,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       }
     }
 
+    // Approval failed — release claim so doctor can review
     log.warn("Auto-approval: approval pipeline failed", {
       intakeId,
       error: approvalResult.error,
       durationMs,
     })
+    await releaseSystemClaim(supabase, intakeId)
 
     return {
       success: false,
@@ -335,6 +379,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     Sentry.captureException(error, {
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
+
+    // Release claim on unexpected errors
+    await releaseSystemClaim(supabase, intakeId)
 
     return {
       success: false,

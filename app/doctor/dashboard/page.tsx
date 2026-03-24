@@ -1,5 +1,5 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes } from "@/lib/data/intakes"
+import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { QueueClient } from "../queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
@@ -34,6 +34,7 @@ export default async function DoctorDashboardPage({
     getSlaBreachIntakes(),
     getDoctorIdentity(profile.id),
     getAIApprovedIntakes({ limit: 20 }),
+    getAutoApprovalMetrics(),
   ])
 
   const queueResult = results[0].status === "fulfilled"
@@ -51,11 +52,14 @@ export default async function DoctorDashboardPage({
   const aiApprovedIntakes = results[4].status === "fulfilled"
     ? results[4].value
     : []
+  const autoApprovalMetrics = results[5].status === "fulfilled"
+    ? results[5].value
+    : null
 
   // Log failures for monitoring
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      const names = ["queue", "monitoring", "sla", "identity", "ai-approved"]
+      const names = ["queue", "monitoring", "sla", "identity", "ai-approved", "ai-metrics"]
       log.error(`Failed to fetch ${names[index]} data`, { profileId: profile.id }, result.reason)
     }
   })
@@ -64,6 +68,8 @@ export default async function DoctorDashboardPage({
     ...monitoringStats,
     slaBreached: slaData.breached,
     slaApproaching: slaData.approaching,
+    aiApprovedToday: autoApprovalMetrics?.todayApproved,
+    aiRevokedToday: autoApprovalMetrics?.todayRevoked,
   }
 
   const identityComplete = isDoctorIdentityComplete(doctorIdentity)

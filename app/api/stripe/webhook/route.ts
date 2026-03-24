@@ -711,12 +711,17 @@ export async function POST(request: Request) {
       // STEP 6: Generate AI drafts + attempt auto-approval (non-blocking)
       // This generates clinical note + med cert drafts, then attempts auto-approval
       // for eligible med certs. If auto-approval fails, intake stays in doctor queue.
+      // NOTE: This is fire-and-forget — the webhook returns 200 immediately.
+      // On Vercel, floating promises may be killed after the response is sent.
+      // We use waitUntil() to keep the function alive for background work.
       const AI_DRAFT_TIMEOUT_MS = 45000 // 45 seconds (draft gen + auto-approval)
       const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
         setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 45s" }), AI_DRAFT_TIMEOUT_MS)
       })
 
-      Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
+      // Fire-and-forget: webhook returns 200 immediately, this runs in background.
+      // The existing release-stale-claims cron (every 5 min) handles cleanup if Vercel kills this early.
+      void Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
         .then(async (result) => {
           if (result.success && !('skipped' in result && result.skipped)) {
             log.info("AI drafts generated", {
