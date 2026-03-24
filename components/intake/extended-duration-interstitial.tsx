@@ -18,7 +18,7 @@ import {
   ArrowRight, 
   CheckCircle,
   Info
-} from "lucide-react"
+} from "@/lib/icons"
 
 interface ExtendedDurationInterstitialProps {
   /** Data from the current intake to preserve */

@@ -7,7 +7,7 @@
  * ~80 lines - well under 200 line limit.
  */
 
-import { CheckCircle, Clock, Mail } from "lucide-react"
+import { CheckCircle, Clock, Mail } from "@/lib/icons"
 import { StepHeader } from "../shared"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"

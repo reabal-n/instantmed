@@ -59,10 +59,38 @@ export function TestimonialsColumnsWrapper({
           </p>
         </motion.div>
 
-        <div className="flex justify-center gap-4 mt-8 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[420px] overflow-hidden">
+        {/* Desktop: vertical scrolling columns */}
+        <div className="hidden md:flex justify-center gap-4 mt-8 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[420px] overflow-hidden">
           <TestimonialsColumn testimonials={firstColumn} duration={15} />
-          <TestimonialsColumn testimonials={secondColumn} className="hidden md:block" duration={19} />
+          <TestimonialsColumn testimonials={secondColumn} duration={19} />
           <TestimonialsColumn testimonials={thirdColumn} className="hidden lg:block" duration={17} />
+        </div>
+
+        {/* Mobile: horizontal swipe carousel */}
+        <div
+          role="region"
+          aria-label="Patient testimonials"
+          className="md:hidden mt-8 -mx-4 px-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory flex gap-4 pb-4 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]"
+        >
+          {testimonials.map((testimonial, i) => (
+            <div
+              key={i}
+              className="snap-center shrink-0 w-[280px] p-5 rounded-2xl border border-border/30 dark:border-border/50 shadow-md shadow-primary/[0.05] dark:shadow-none bg-white dark:bg-card"
+            >
+              <div className="text-muted-foreground dark:text-foreground/70 leading-relaxed text-sm">
+                {testimonial.text}
+              </div>
+              <div className="flex items-center gap-2 mt-4">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+                  {testimonial.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="font-medium tracking-tight leading-4 truncate text-sm">{testimonial.name}</div>
+                  <div className="leading-4 opacity-60 dark:opacity-75 tracking-tight text-xs truncate">{testimonial.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

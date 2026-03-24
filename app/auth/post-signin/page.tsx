@@ -5,7 +5,7 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { PostSignInAuthWaiter } from "./auth-waiter"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "@/lib/icons"
 
 function AuthWaiterFallback() {
   return (

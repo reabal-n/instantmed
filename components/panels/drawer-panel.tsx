@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { X } from 'lucide-react'
+import { X } from '@/lib/icons'
 import { usePanel } from './panel-provider'
 import { drawerVariants, backdropVariants } from '@/lib/motion/panel-variants'
 import { cn } from '@/lib/utils'

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { useState } from "react"
-import { MessageCircle } from "lucide-react"
+import { MessageCircle } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 

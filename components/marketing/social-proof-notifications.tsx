@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { CheckCircle2, MapPin, Clock, X } from 'lucide-react'
+import { CheckCircle2, MapPin, Clock, X } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 // Australian cities with population weights for realistic distribution

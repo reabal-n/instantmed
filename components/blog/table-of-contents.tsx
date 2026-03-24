@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
-import { List } from 'lucide-react'
+import { List } from '@/lib/icons'
 import type { ArticleSection } from '@/lib/blog/types'
 
 interface TableOfContentsProps {

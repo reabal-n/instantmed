@@ -17,7 +17,7 @@ import {
   CreditCard, 
   Shield, 
   AlertTriangle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { DataSecurityStrip, OnboardingTrustFooter } from "@/components/checkout/trust-badges"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { completeOnboardingAction } from "./actions"

@@ -13,7 +13,7 @@ import {
   Clock,
   Shield,
   ExternalLink,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { FlowContent } from '../flow-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -392,7 +392,7 @@ export function SafetyCheckStep({
             className="text-center py-8"
           >
             <div className="w-20 h-20 rounded-full bg-emerald-100 mx-auto flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" weight="fill" />
             </div>
 
             <h2 className="text-2xl font-bold text-foreground mt-6">

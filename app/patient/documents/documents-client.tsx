@@ -13,7 +13,7 @@ import {
   Calendar,
   ChevronRight,
   FolderOpen,
-} from "lucide-react"
+} from "@/lib/icons"
 import { formatDate } from "@/lib/format"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PatientErrorAlert } from "@/components/patient/error-alert"

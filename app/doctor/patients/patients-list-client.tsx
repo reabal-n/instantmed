@@ -10,7 +10,7 @@ import { UserCard } from "@/components/uix"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight, ChevronLeft } from "@/lib/icons"
 import { formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 

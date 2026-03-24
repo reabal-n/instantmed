@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertTriangle, Pill, Clock, FileText } from "lucide-react"
+import { ArrowRight, AlertTriangle, Pill, Clock, FileText } from "@/lib/icons"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -388,7 +388,7 @@ export default async function MedicationPage({ params }: PageProps) {
 
               <div className="flex items-start gap-4 mb-6">
                 <div className="h-14 w-14 rounded-xl bg-[#00E2B5]/10 flex items-center justify-center shrink-0">
-                  <Pill className="h-7 w-7 text-[#00E2B5]" />
+                  <Pill className="h-7 w-7 text-[#00E2B5] icon-premium" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
@@ -419,7 +419,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Uses */}
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-5 w-5 text-[#00E2B5]" />
+                  <FileText className="h-5 w-5 text-[#00E2B5] icon-premium" />
                   <h2 className="font-semibold">Common Uses</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -432,7 +432,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Dosages */}
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-5 w-5 text-[#06B6D4]" />
+                  <Clock className="h-5 w-5 text-[#06B6D4] icon-premium" />
                   <h2 className="font-semibold">Typical Dosages</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -445,7 +445,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Side Effects */}
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Pill className="h-5 w-5 text-[#8B5CF6]" />
+                  <Pill className="h-5 w-5 text-[#8B5CF6] icon-premium" />
                   <h2 className="font-semibold">Possible Side Effects</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -458,7 +458,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Warnings */}
               <div className="bg-amber-50/50 dark:bg-card border border-amber-200 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-5 w-5 text-dawn-600" />
+                  <AlertTriangle className="h-5 w-5 text-dawn-600 icon-premium" />
                   <h2 className="font-semibold text-amber-800">Important Warnings</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-amber-700">

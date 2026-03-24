@@ -23,14 +23,15 @@ import {
   Menu,
   X,
   Plus,
-} from "lucide-react"
+} from "@/lib/icons"
+import type { IconWeight } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 
 interface NavItem {
   href: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; weight?: IconWeight }>
   badge?: boolean
 }
 
@@ -82,7 +83,7 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
         <item.icon className={cn(
           "w-[18px] h-[18px]",
           isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-        )} />
+        )} weight="light" />
         {item.label}
       </span>
       {badgeCount !== undefined && badgeCount > 0 && (
@@ -339,7 +340,7 @@ export function MobileDashboardNav({
                     <item.icon className={cn(
                       "w-[18px] h-[18px]",
                       isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                    )} />
+                    )} weight="light" />
                     {item.label}
                   </span>
                   {badgeCount !== undefined && badgeCount > 0 && (

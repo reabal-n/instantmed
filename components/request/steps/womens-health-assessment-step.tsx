@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Sparkles, AlertCircle, XCircle } from "lucide-react"
+import { Sparkles, AlertCircle, XCircle } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

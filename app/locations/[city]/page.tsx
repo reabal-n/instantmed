@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, HelpCircle } from "lucide-react"
+import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, HelpCircle } from "@/lib/icons"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -683,7 +683,7 @@ export default async function CityPage({ params }: PageProps) {
               <div className="mx-auto max-w-2xl text-center">
                 <div className="flex justify-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-dawn-400 text-dawn-400" />
+                    <Star key={i} className="h-5 w-5 text-dawn-400" weight="fill" />
                   ))}
                 </div>
                 <blockquote className="text-lg mb-4">&quot;{cityData.localTestimonial.quote}&quot;</blockquote>

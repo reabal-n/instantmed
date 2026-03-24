@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Filter, Eye, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Filter, Eye, Clock, ChevronLeft, ChevronRight, X } from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { SearchAutocomplete } from '@/components/blog/search-autocomplete'
 import type { Article, ArticleCategory } from '@/lib/blog/types'
@@ -200,14 +200,38 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {article.excerpt}
                   </p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{article.readingTime} min</span>
+                  <div className="flex items-center justify-between">
+                    {/* Author */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                        {article.author?.image ? (
+                          <Image
+                            src={article.author.image}
+                            alt={article.author.name}
+                            width={20}
+                            height={20}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <span className="text-[10px] font-bold text-primary">
+                            {article.author?.name?.charAt(0) || "D"}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                        {article.author?.name || "InstantMed"}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{formatViewCount(article.viewCount)} views</span>
+                    {/* Meta */}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{article.readingTime} min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        <span>{formatViewCount(article.viewCount)} views</span>
+                      </div>
                     </div>
                   </div>
                 </div>

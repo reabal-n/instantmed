@@ -10,7 +10,7 @@ import {
   Pill,
   User,
   Sparkles,
-} from "lucide-react"
+} from "@/lib/icons"
 
 export interface ConsultationType {
   id: string

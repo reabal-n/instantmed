@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
-import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from 'lucide-react'
+import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from '@/lib/icons'
 import { PaymentMethodIcons, StripeBadge } from '@/components/checkout/trust-badges'
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE, COMPANY_ADDRESS_SHORT, ABN } from '@/lib/constants'
 

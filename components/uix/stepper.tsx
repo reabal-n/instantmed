@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Progress } from "@/components/ui/progress"
-import { Check } from "lucide-react"
+import { Check } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 /**

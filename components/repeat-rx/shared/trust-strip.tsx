@@ -5,7 +5,7 @@
  * Shows trust indicators (AHPRA, encryption, privacy)
  */
 
-import { BadgeCheck, Lock, Shield } from "lucide-react"
+import { BadgeCheck, Lock, Shield } from "@/lib/icons"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
 

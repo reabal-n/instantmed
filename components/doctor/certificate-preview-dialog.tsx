@@ -24,7 +24,7 @@ import {
   Stethoscope,
   Edit3,
   Eye,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { generatePreviewPdfAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { toast } from "sonner"

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
-import { User } from "lucide-react"
+import { User } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export interface AvatarProps extends React.ComponentProps<typeof AvatarPrimitive.Root> {

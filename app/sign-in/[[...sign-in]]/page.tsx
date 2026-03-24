@@ -3,7 +3,7 @@
 import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, Clock, CheckCircle } from 'lucide-react'
+import { Shield, Clock, CheckCircle } from '@/lib/icons'
 
 export const dynamic = "force-dynamic"
 

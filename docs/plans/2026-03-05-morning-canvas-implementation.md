@@ -857,7 +857,7 @@ Side-by-side comparison with check/x marks, staggered row reveals. For service l
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import type { SectionProps, ComparisonItem } from "./types";
@@ -1638,7 +1638,7 @@ git commit -m "feat(sections): add ImageTextSplit with ClipPathImage reveal"
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import type { SectionProps, ChecklistItem } from "./types";
@@ -1910,7 +1910,7 @@ Full-width gradient band. Adapts pattern from existing `components/marketing/cta
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { scrollRevealConfig } from "@/components/ui/motion";
 import type { SectionProps } from "./types";

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, AlertCircle, ShieldCheck, CalendarDays, Clock } from "lucide-react"
+import { Heart, AlertCircle, ShieldCheck, CalendarDays, Clock } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"

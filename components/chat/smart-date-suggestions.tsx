@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Calendar } from "lucide-react"
+import { Calendar } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface SmartDateSuggestionsProps {

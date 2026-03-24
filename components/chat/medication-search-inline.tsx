@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Search, Pill, Loader2 } from "lucide-react"
+import { Search, Pill, Loader2 } from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 

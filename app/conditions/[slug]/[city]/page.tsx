@@ -11,7 +11,7 @@ import {
   FileText,
   Zap,
   MapPin,
-} from "lucide-react"
+} from "@/lib/icons"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -142,11 +142,11 @@ export default async function ConditionLocationPage({ params }: PageProps) {
 
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                  <Shield className="w-4 h-4 text-primary" />
+                  <Shield className="w-4 h-4 text-primary icon-premium" />
                   <span className="text-sm font-medium">AHPRA Registered</span>
                 </div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <Clock className="w-4 h-4 text-emerald-600 icon-premium" />
                   <span className="text-sm font-medium">~{condition.stats.avgTime} response</span>
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                     className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                      <CheckCircle2 className="w-4 h-4 text-primary icon-premium" />
                     </div>
                     <span className="text-foreground">{symptom}</span>
                   </div>
@@ -198,7 +198,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" />
+                    <CheckCircle2 className="w-5 h-5 icon-premium" />
                     What we can help with
                   </h3>
                   <ul className="space-y-3">
@@ -215,7 +215,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                 </div>
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
                   <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
+                    <AlertTriangle className="w-5 h-5 icon-premium" />
                     What needs in-person care
                   </h3>
                   <ul className="space-y-3">
@@ -240,7 +240,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-primary" />
+                    <Stethoscope className="w-5 h-5 text-primary icon-premium" />
                     When to see a doctor
                   </h2>
                   <ul className="space-y-3">
@@ -256,7 +256,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <AlertTriangle className="w-5 h-5 text-red-500 icon-premium" />
                     Seek emergency care if
                   </h2>
                   <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
@@ -326,15 +326,15 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               </div>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" />
+                  <Shield className="w-4 h-4 text-primary icon-premium" />
                   <span>AHPRA registered</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" />
+                  <FileText className="w-4 h-4 text-primary icon-premium" />
                   <span>Valid certificates</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" />
+                  <Clock className="w-4 h-4 text-primary icon-premium" />
                   <span>~{condition.stats.avgTime} response</span>
                 </div>
               </div>

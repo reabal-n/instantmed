@@ -111,7 +111,7 @@ types/                # Shared TypeScript types
 - Tailwind utility classes + `cn()` from `lib/utils` for conditional classes
 - shadcn/ui + Radix primitives for all form elements
 - CVA (class-variance-authority) for component style variants
-- lucide-react exclusively for icons
+- Phosphor Icons (`@phosphor-icons/react`) exclusively for icons — import from `@/lib/icons` barrel file (maps lucide names → phosphor). Default weight: **duotone** (set globally via `IconProvider`). Weight overrides: `weight="fill"` for status (check/x), `weight="bold"` for CTA arrows, `weight="light"` for dense admin nav. Premium CSS: `icon-glow`, `icon-hover`, `icon-premium`, `icon-pulse`, `icon-spin`. Size tokens: `iconSize.xs` through `iconSize["3xl"]` from `@/lib/icons`. ESLint blocks direct `@phosphor-icons/react` imports — add missing icons to `lib/icons.ts`
 - Framer Motion via `motion` — always respect `useReducedMotion()`
 - DiceBear notionists for avatars (`https://api.dicebear.com/7.x/notionists/svg?seed=...`)
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield } from "lucide-react"
+import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
@@ -81,19 +81,19 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
+                    <Star key={i} className="h-4 w-4 text-amber-500" weight="fill" />
                   ))}
                 </div>
                 <span className="text-muted-foreground">4.9/5 rating</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Shield className="h-4 w-4 text-primary" />
+                <Shield className="h-4 w-4 text-primary icon-glow" />
                 <span>AHPRA registered</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-primary" />
+                <Clock className="h-4 w-4 text-primary icon-glow" />
                 <span>45 min average</span>
               </div>
             </div>
@@ -141,7 +141,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                               background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
                             }}
                           >
-                            <service.icon className="h-6 w-6 text-white" />
+                            <service.icon className="h-6 w-6 text-white icon-hover" />
                           </div>
                           
                           {/* Time badge */}

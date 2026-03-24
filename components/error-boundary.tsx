@@ -1,7 +1,7 @@
 "use client"
 
 import React, { ReactNode } from "react"
-import { AlertCircle, RefreshCw } from "lucide-react"
+import { AlertCircle, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import * as Sentry from "@sentry/nextjs"
 

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, ChevronDown, ChevronUp } from "lucide-react"
+import { FileText, ChevronDown, ChevronUp } from "@/lib/icons"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 

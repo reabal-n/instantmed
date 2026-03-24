@@ -18,7 +18,7 @@ import {
   FileSignature,
   Pause,
   Play,
-} from "lucide-react"
+} from "@/lib/icons"
 import { Switch } from "@/components/ui/switch"
 import {
   saveDoctorIdentityAction,

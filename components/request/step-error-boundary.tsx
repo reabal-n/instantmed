@@ -7,7 +7,7 @@
  */
 
 import { Component, type ReactNode } from "react"
-import { AlertTriangle, RefreshCw, Home } from "lucide-react"
+import { AlertTriangle, RefreshCw, Home } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 

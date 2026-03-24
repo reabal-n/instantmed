@@ -25,7 +25,7 @@ import {
   Activity,
   CheckCircle2,
   Scale,
-} from "lucide-react"
+} from "@/lib/icons"
 
 const treatments = [
   {

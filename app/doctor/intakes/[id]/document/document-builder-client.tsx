@@ -21,7 +21,7 @@ import {
   Heart,
   AlertTriangle,
   Brain,
-} from "lucide-react"
+} from "@/lib/icons"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
 import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
 

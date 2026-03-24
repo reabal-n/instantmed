@@ -30,7 +30,7 @@ import {
   BadgeCheck,
   Phone,
   Save,
-} from "lucide-react"
+} from "@/lib/icons"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { useUser } from "@clerk/nextjs"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"

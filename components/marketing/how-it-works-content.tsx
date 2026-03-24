@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { CenteredHero } from "@/components/heroes"
 import { Timeline, FeatureGrid, CTABanner } from "@/components/sections"
 import {
@@ -9,7 +10,7 @@ import {
   Shield,
   CreditCard,
   Send,
-} from "lucide-react"
+} from "@/lib/icons"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -33,25 +34,25 @@ const processSteps = [
 
 const features = [
   {
-    icon: <Clock className="h-6 w-6" />,
+    icon: <Clock className="h-6 w-6 icon-premium" />,
     title: "Fast turnaround",
     description:
       "Most requests reviewed within hours. If we can't help, you get a full refund.",
   },
   {
-    icon: <Shield className="h-6 w-6" />,
+    icon: <Shield className="h-6 w-6 icon-premium" />,
     title: "AHPRA registered",
     description:
       "All our doctors are registered with AHPRA. We checked.",
   },
   {
-    icon: <CreditCard className="h-6 w-6" />,
+    icon: <CreditCard className="h-6 w-6 icon-premium" />,
     title: "No subscriptions",
     description:
       "Pay per consult. No monthly fees, no hidden charges, no surprises.",
   },
   {
-    icon: <Send className="h-6 w-6" />,
+    icon: <Send className="h-6 w-6 icon-premium" />,
     title: "Digital delivery",
     description:
       "Everything sent via email or SMS. No app to download, nothing to print.",
@@ -62,6 +63,7 @@ const features = [
 
 export function HowItWorksContent() {
   return (
+    <MarketingPageShell>
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
@@ -106,5 +108,6 @@ export function HowItWorksContent() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

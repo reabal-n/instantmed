@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Scale, AlertCircle, AlertTriangle, Syringe, Pill } from "lucide-react"
+import { Scale, AlertCircle, AlertTriangle, Syringe, Pill } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

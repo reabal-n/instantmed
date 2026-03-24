@@ -669,48 +669,7 @@ export function AnimatedIcon({ type, className = "", size = 56 }: AnimatedIconPr
   )
 }
 
-export function MedCertIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="4" y="2" width="16" height="20" rx="2" />
-      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="9" y1="7" x2="15" y2="7" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-export function PillIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path
-        d="M10.5 3.5a7 7 0 0 1 9.9 9.9l-6.4 6.4a7 7 0 0 1-9.9-9.9l6.4-6.4z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <line x1="7.5" y1="16.5" x2="16.5" y2="7.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-export function ReferralIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v4m0 12v4M2 12h4m12 0h4" strokeLinecap="round" />
-      <path
-        d="M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
-export function ImagingIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="12" cy="12" r="4" />
-      <path d="M3 9h3m12 0h3M12 3v3m0 12v3" strokeLinecap="round" />
-    </svg>
-  )
-}
+export { FileText as MedCertIcon } from "@/lib/icons"
+export { Pill as PillIcon } from "@/lib/icons"
+export { Stethoscope as ReferralIcon } from "@/lib/icons"
+export { Target as ImagingIcon } from "@/lib/icons"

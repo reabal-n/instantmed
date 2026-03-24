@@ -9,7 +9,7 @@
  * - Privacy reassurance
  */
 
-import { HelpCircle } from "lucide-react"
+import { HelpCircle } from "@/lib/icons"
 import {
   Tooltip,
   TooltipContent,

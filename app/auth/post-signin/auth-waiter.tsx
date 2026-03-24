@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "@/lib/icons"
 
 /**
  * Client-side auth waiter for post-signin.

@@ -39,7 +39,7 @@ import {
   Clock,
   Shield,
   GitCompare,
-} from "lucide-react"
+} from "@/lib/icons"
 import { computeLineDiff, formatContentForDiff, isDiffTooLarge, type DiffLine } from "@/lib/utils/text-diff"
 import { approveDraft, rejectDraft, regenerateDrafts, checkDraftStaleness } from "@/app/actions/draft-approval"
 import type { AIDraft } from "@/app/actions/draft-approval"

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
-import { Loader2, Lock, Shield } from "lucide-react"
+import { Loader2, Lock, Shield } from "@/lib/icons"
 
 interface PaymentSkeletonProps {
   className?: string

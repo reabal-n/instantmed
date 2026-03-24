@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
+import { IconProvider } from "@/components/providers/icon-provider"
 import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas-loader"
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
@@ -135,11 +136,13 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <head>
-          {/* Preconnect to critical third-party origins — Clerk and Sentry (LCP savings) */}
+          {/* Preconnect to critical third-party origins — LCP savings */}
           <link rel="preconnect" href="https://clerk.instantmed.com.au" />
           <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
+          <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL || "https://supabase.co"} />
+          <link rel="dns-prefetch" href="https://us.i.posthog.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
           {/* Google Consent Mode v2 - must load BEFORE gtag */}
@@ -181,6 +184,7 @@ export default function RootLayout({
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogLoader>
+          <IconProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>
                 <MeshGradientCanvas />
@@ -201,6 +205,7 @@ export default function RootLayout({
                 <CookieBanner />
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
+          </IconProvider>
           </PostHogLoader>
         </body>
       </html>

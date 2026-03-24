@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react"
 import Link from "next/link"
-import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown } from "lucide-react"
+import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createLogger } from "@/lib/observability/logger"

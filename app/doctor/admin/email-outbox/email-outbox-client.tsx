@@ -20,7 +20,7 @@ import {
   ArrowLeft,
   RefreshCw,
   Loader2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { retryOutboxEmail } from "@/app/actions/email-retry"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

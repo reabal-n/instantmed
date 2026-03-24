@@ -34,7 +34,7 @@ import {
   EyeOff,
   Download,
   Mail,
-} from "lucide-react"
+} from "@/lib/icons"
 import type { Profile } from "@/types/db"
 import { toast } from "sonner"
 import { changePassword, deleteAccount } from "@/app/actions/account"

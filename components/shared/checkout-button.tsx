@@ -8,7 +8,7 @@
  */
 
 import { forwardRef } from "react"
-import { ArrowRight, Lock } from "lucide-react"
+import { ArrowRight, Lock } from "@/lib/icons"
 import { DotsSpinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -105,7 +105,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
                     {price}
                   </span>
                 )}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" weight="bold" />
               </>
             )}
           </div>
@@ -142,7 +142,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
                 {price}
               </span>
             )}
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="w-5 h-5 ml-2" weight="bold" />
           </>
         )}
       </Button>

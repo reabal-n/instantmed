@@ -9,7 +9,7 @@ import {
   X,
   Zap,
   Building2,
-} from "lucide-react"
+} from "@/lib/icons"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"

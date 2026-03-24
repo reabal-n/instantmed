@@ -1,25 +1,29 @@
 import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'
 import { cn } from '@/lib/utils'
 import {
   Hero,
   ServicePicker,
-  HowItWorks,
   MarketingFooter,
   LiveWaitTime,
-  StatsStrip,
+  SectionDivider,
 } from '@/components/marketing'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
-import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { CTABanner } from '@/components/sections'
-import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
+
+// Below-fold: dynamic imports for better initial load
+const HowItWorks = dynamic(() => import('@/components/marketing/how-it-works').then(m => ({ default: m.HowItWorks })))
+const PatientReviews = dynamic(() => import('@/components/marketing/patient-reviews').then(m => ({ default: m.PatientReviews })))
+const StatsStrip = dynamic(() => import('@/components/marketing/total-patients-counter').then(m => ({ default: m.StatsStrip })))
+const AccordionSection = dynamic(() => import('@/components/sections/accordion-section').then(m => ({ default: m.AccordionSection })))
+const CTABanner = dynamic(() => import('@/components/sections').then(m => ({ default: m.CTABanner })))
 
 export const revalidate = 3600
 
@@ -58,9 +62,34 @@ export const metadata: Metadata = {
   },
 }
 
-// Loading skeleton for below-the-fold sections
-function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
-  return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl")} />
+// Loading skeletons for below-the-fold sections — match actual section shapes
+function SectionSkeleton({ height = 'h-96', variant = 'default' }: { height?: string; variant?: 'default' | 'steps' | 'reviews' | 'stats' }) {
+  if (variant === 'steps') {
+    return (
+      <div className="py-20 px-4 max-w-5xl mx-auto space-y-8 animate-pulse">
+        <div className="h-8 w-48 bg-muted/30 rounded-lg mx-auto" />
+        <div className="h-4 w-72 bg-muted/20 rounded mx-auto" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-64 bg-muted/20 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+  if (variant === 'reviews') {
+    return (
+      <div className="py-12 px-4 max-w-5xl mx-auto space-y-6 animate-pulse">
+        <div className="h-8 w-56 bg-muted/30 rounded-lg mx-auto" />
+        <div className="flex gap-4 justify-center">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-48 w-72 bg-muted/20 rounded-2xl hidden md:block first:block" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+  return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl mx-4")} />
 }
 
 // Transform FAQ items into AccordionSection groups format
@@ -127,16 +156,25 @@ export default async function HomePage() {
         {/* Trust badges - compact strip */}
         <TrustBadgeSlider />
 
+        {/* Divider: trust → services */}
+        <SectionDivider variant="wave" />
+
         {/* Core services - what we offer */}
         <ServicePicker />
 
+        {/* Divider: services → how-it-works */}
+        <SectionDivider variant="curve" />
+
         {/* How it works - 3 steps */}
-        <Suspense fallback={<SectionSkeleton />}>
+        <Suspense fallback={<SectionSkeleton variant="steps" />}>
           <HowItWorks />
         </Suspense>
 
+        {/* Divider: how-it-works → reviews */}
+        <SectionDivider variant="wave" flip />
+
         {/* Patient reviews - authentic social proof */}
-        <Suspense fallback={<SectionSkeleton height="h-64" />}>
+        <Suspense fallback={<SectionSkeleton variant="reviews" />}>
           <PatientReviews />
         </Suspense>
 

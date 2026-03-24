@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { VerifyClient } from "./verify-client"
-import { Shield, Lock, Building2, ExternalLink } from "lucide-react"
+import { Shield, Lock, Building2, ExternalLink } from "@/lib/icons"
 import { Badge } from "@/components/ui/badge"
 
 export const metadata: Metadata = {

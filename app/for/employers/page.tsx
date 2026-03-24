@@ -16,7 +16,7 @@ import {
   Mail,
   MapPin,
   Eye,
-} from "lucide-react"
+} from "@/lib/icons"
 import { SampleCertificate } from "@/components/marketing/sample-certificate"
 import { CONTACT_EMAIL } from "@/lib/constants"
 

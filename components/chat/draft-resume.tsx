@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Clock, ArrowRight, X } from "lucide-react"
+import { Clock, ArrowRight, X } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { DraftIntake, getDraftSummary, clearDraft } from "@/lib/chat/draft-intake"
 

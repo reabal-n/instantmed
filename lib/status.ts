@@ -11,7 +11,7 @@ import {
   ShieldAlert,
   RotateCcw,
   type LucideIcon,
-} from "lucide-react"
+} from "@/lib/icons"
 
 export type IntakeStatus =
   | "approved"

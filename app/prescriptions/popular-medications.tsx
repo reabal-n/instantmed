@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight } from "@/lib/icons"
 import { getPopularMedications, CATEGORY_LABELS, CATEGORY_ICONS, type Medication } from "@/lib/data/medications"
 
 // Helper function to get medication price

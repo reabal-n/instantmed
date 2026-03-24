@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight, ChevronDown, AlertCircle } from 'lucide-react'
+import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight, ChevronDown, AlertCircle } from '@/lib/icons'
 import { FlowContent } from '../flow-content'
 import { useFlowStore, useFlowService, serviceCategories } from '@/lib/flow'
 import { cn } from '@/lib/utils'

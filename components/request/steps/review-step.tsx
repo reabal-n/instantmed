@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react"
-import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, Edit2, Shield, Clock, RefreshCw, ChevronDown, ChevronUp } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Bell, X, CheckCheck, FileText, CreditCard, Pill, AlertCircle } from "lucide-react"
+import { Bell, X, CheckCheck, FileText, CreditCard, Pill, AlertCircle } from "@/lib/icons"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useNotifications, type Notification } from "@/lib/hooks/use-notifications"
 import { cn } from "@/lib/utils"
@@ -42,6 +43,20 @@ export function NotificationBell() {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const prevUnreadCount = useRef(unreadCount)
+  const [shouldShake, setShouldShake] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+
+  // Shake bell when new notifications arrive
+  useEffect(() => {
+    if (unreadCount > prevUnreadCount.current && !prefersReducedMotion) {
+      setShouldShake(true)
+      const timer = setTimeout(() => setShouldShake(false), 600)
+      prevUnreadCount.current = unreadCount
+      return () => clearTimeout(timer)
+    }
+    prevUnreadCount.current = unreadCount
+  }, [unreadCount, prefersReducedMotion])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -79,12 +94,28 @@ export function NotificationBell() {
         className="relative p-2 rounded-full hover:bg-muted transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
       >
-        <Bell className="h-5 w-5 text-muted-foreground" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-medium flex items-center justify-center animate-in zoom-in duration-200">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
+        <motion.div
+          animate={shouldShake ? {
+            rotate: [0, -12, 12, -8, 8, -4, 0],
+          } : { rotate: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          <Bell className={cn("h-5 w-5 text-muted-foreground", unreadCount > 0 && "icon-pulse text-primary")} />
+        </motion.div>
+        <AnimatePresence>
+          {unreadCount > 0 && (
+            <motion.span
+              key={unreadCount}
+              initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-medium flex items-center justify-center"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
 
       {isOpen && (

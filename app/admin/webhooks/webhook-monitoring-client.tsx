@@ -23,7 +23,7 @@ import {
   RotateCcw,
   Trash2,
   Webhook,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { ScrollShadow } from "@/components/uix"
 

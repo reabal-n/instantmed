@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Link from "next/link"
+import { z } from "zod"
 import { motion, useReducedMotion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
 import { scrollRevealConfig } from "@/components/ui/motion"
@@ -26,7 +28,7 @@ import {
   HelpCircle,
   FileText,
   AlertCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS } from "@/lib/constants"
@@ -82,6 +84,7 @@ export function ContactClient() {
 
   if (isSubmitted) {
     return (
+      <MarketingPageShell>
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
         <main className="flex-1 flex items-center justify-center px-4 py-20">
@@ -97,7 +100,7 @@ export function ContactClient() {
                   role="img"
                   aria-label="Success"
                 >
-                  <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
+                  <CheckCircle2 className="h-10 w-10 text-primary-foreground" weight="fill" aria-hidden="true" />
                 </div>
                 <h1 className="text-2xl font-bold mb-3">
                   Message sent!
@@ -117,10 +120,12 @@ export function ContactClient() {
         </main>
         <MarketingFooter />
       </div>
+      </MarketingPageShell>
     )
   }
 
   return (
+    <MarketingPageShell>
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
@@ -176,6 +181,7 @@ export function ContactClient() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }
 
@@ -294,6 +300,15 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
 /* Contact Form Card                                                   */
 /* ------------------------------------------------------------------ */
 
+const contactFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").regex(/^[\p{L}\s'-]+$/u, "Please enter a valid name"),
+  email: z.string().email("Please enter a valid email address"),
+  subject: z.string().min(3, "Subject must be at least 3 characters"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+})
+
+type FieldErrors = Partial<Record<keyof z.infer<typeof contactFormSchema>, string>>
+
 function ContactFormCard({
   selectedReason,
   setSelectedReason,
@@ -314,6 +329,32 @@ function ContactFormCard({
     once: scrollRevealConfig.once,
     amount: scrollRevealConfig.threshold,
   })
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [touched, setTouched] = useState<Set<string>>(new Set())
+
+  const validateField = useCallback((name: string, value: string) => {
+    const result = contactFormSchema.shape[name as keyof typeof contactFormSchema.shape]?.safeParse(value)
+    if (result && !result.success) {
+      setFieldErrors((prev) => ({ ...prev, [name]: result.error.issues[0]?.message }))
+    } else {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next[name as keyof FieldErrors]
+        return next
+      })
+    }
+  }, [])
+
+  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setTouched((prev) => new Set(prev).add(name))
+    if (value.trim()) validateField(name, value)
+  }, [validateField])
+
+  const handleFieldChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    if (touched.has(name)) validateField(name, value)
+  }, [touched, validateField])
 
   return (
     <motion.div
@@ -366,8 +407,15 @@ function ContactFormCard({
                 placeholder="John Smith"
                 required
                 autoComplete="name"
-                className="h-12"
+                className={cn("h-12", touched.has("name") && fieldErrors.name && "border-destructive focus-visible:ring-destructive/30")}
+                onBlur={handleBlur}
+                onChange={handleFieldChange}
+                aria-invalid={!!fieldErrors.name}
+                aria-describedby={fieldErrors.name ? "name-error" : undefined}
               />
+              {touched.has("name") && fieldErrors.name && (
+                <p id="name-error" className="text-xs text-destructive" role="alert">{fieldErrors.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -378,8 +426,15 @@ function ContactFormCard({
                 placeholder="john@example.com"
                 required
                 autoComplete="email"
-                className="h-12"
+                className={cn("h-12", touched.has("email") && fieldErrors.email && "border-destructive focus-visible:ring-destructive/30")}
+                onBlur={handleBlur}
+                onChange={handleFieldChange}
+                aria-invalid={!!fieldErrors.email}
+                aria-describedby={fieldErrors.email ? "email-error" : undefined}
               />
+              {touched.has("email") && fieldErrors.email && (
+                <p id="email-error" className="text-xs text-destructive" role="alert">{fieldErrors.email}</p>
+              )}
             </div>
           </div>
 
@@ -390,8 +445,15 @@ function ContactFormCard({
               name="subject"
               placeholder="How can we help?"
               required
-              className="h-12"
+              className={cn("h-12", touched.has("subject") && fieldErrors.subject && "border-destructive focus-visible:ring-destructive/30")}
+              onBlur={handleBlur}
+              onChange={handleFieldChange}
+              aria-invalid={!!fieldErrors.subject}
+              aria-describedby={fieldErrors.subject ? "subject-error" : undefined}
             />
+            {touched.has("subject") && fieldErrors.subject && (
+              <p id="subject-error" className="text-xs text-destructive" role="alert">{fieldErrors.subject}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -402,8 +464,15 @@ function ContactFormCard({
               placeholder="Tell us more about your inquiry..."
               minRows={5}
               required
-              className="resize-none"
+              className={cn("resize-none", touched.has("message") && fieldErrors.message && "border-destructive focus-visible:ring-destructive/30")}
+              onBlur={handleBlur}
+              onChange={handleFieldChange}
+              aria-invalid={!!fieldErrors.message}
+              aria-describedby={fieldErrors.message ? "message-error" : undefined}
             />
+            {touched.has("message") && fieldErrors.message && (
+              <p id="message-error" className="text-xs text-destructive" role="alert">{fieldErrors.message}</p>
+            )}
           </div>
 
           {submitError && (

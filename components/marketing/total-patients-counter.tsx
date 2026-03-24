@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { Users, TrendingUp, CheckCircle2 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
 import { usePatientCount, SOCIAL_PROOF } from '@/lib/social-proof'

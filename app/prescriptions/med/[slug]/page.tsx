@@ -5,7 +5,7 @@ import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getMedicationBySlug, CATEGORY_LABELS } from "@/lib/data/medications"
-import { ArrowRight, Pill, AlertTriangle, CheckCircle, Clock, Shield } from "lucide-react"
+import { ArrowRight, Pill, AlertTriangle, CheckCircle, Clock, Shield } from "@/lib/icons"
 import type { Metadata } from "next"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

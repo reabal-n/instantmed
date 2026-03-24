@@ -9,7 +9,7 @@
 
 import * as React from "react"
 import { useState, useTransition } from "react"
-import { Mail, Building2, User, MessageSquare, Send, AlertCircle, CheckCircle } from "lucide-react"
+import { Mail, Building2, User, MessageSquare, Send, AlertCircle, CheckCircle } from "@/lib/icons"
 import {
   Dialog,
   DialogContent,

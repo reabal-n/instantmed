@@ -1,6 +1,6 @@
 'use client'
 
-import { FileText, Pill, MessageSquare } from 'lucide-react'
+import { FileText, Pill, MessageSquare } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { PerspectiveTiltCard } from '@/components/ui/morning/perspective-tilt-card'
 

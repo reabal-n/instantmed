@@ -1,5 +1,5 @@
 import React from "react"
-import { Pill } from "lucide-react"
+import { Pill } from "@/lib/icons"
 
 const QRCode = React.memo(function QRCode() {
   return (

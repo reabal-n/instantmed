@@ -50,7 +50,7 @@ import {
   Heading2,
   Minus,
   Undo2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"

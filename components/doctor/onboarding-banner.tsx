@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CheckCircle2, Circle, AlertTriangle, ArrowRight, X } from "lucide-react"
+import { CheckCircle2, Circle, AlertTriangle, ArrowRight, X } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 
 interface OnboardingStep {

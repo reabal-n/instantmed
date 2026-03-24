@@ -32,7 +32,7 @@ import {
   Search,
   Trash2,
   Loader2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import {
   createContentBlockAction,

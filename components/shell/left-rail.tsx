@@ -17,7 +17,7 @@ import {
   Bell,
   MessageSquare,
   ExternalLink,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { cn } from '@/lib/utils'

@@ -16,7 +16,7 @@ import {
   ChevronRight,
   FileCheck,
   Stethoscope,
-} from 'lucide-react'
+} from '@/lib/icons'
 import type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from '@/lib/seo/pages'
 
 type PageUnion = ConditionPage | CertificatePage | BenefitPage | ResourcePage

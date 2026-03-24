@@ -9,7 +9,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
-import { RefreshCw, Check } from "lucide-react"
+import { RefreshCw, Check } from "@/lib/icons"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
 import { TrustStrip } from "../shared/trust-strip"
 

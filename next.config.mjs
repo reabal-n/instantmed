@@ -21,6 +21,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '1mb',
     },
+    optimizePackageImports: ['@phosphor-icons/react'],
   },
   // Note: webpack config only applies when running `next dev` without --turbopack.
   // Turbopack ignores this block entirely. The config is guarded to suppress the

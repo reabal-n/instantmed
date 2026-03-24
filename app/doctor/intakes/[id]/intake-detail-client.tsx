@@ -42,7 +42,7 @@ import {
   Loader2,
   Send,
   Mail,
-} from "lucide-react"
+} from "@/lib/icons"
 import { regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"

@@ -15,7 +15,7 @@ import {
   Stethoscope,
   MessageCircle,
   Building2,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {

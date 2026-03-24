@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckCircle2, Info, XCircle, AlertTriangle } from "lucide-react"
+import { CheckCircle2, Info, XCircle, AlertTriangle } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {

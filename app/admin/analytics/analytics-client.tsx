@@ -20,7 +20,7 @@ import {
   Send,
   AlertTriangle,
   Zap,
-} from "lucide-react"
+} from "@/lib/icons"
 import {
   LazyLineChart as LineChart,
   LazyBarChart as BarChart,

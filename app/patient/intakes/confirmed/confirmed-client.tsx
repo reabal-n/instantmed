@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { Check, Mail, Clock, ArrowRight } from "lucide-react"
+import { Check, Mail, Clock, ArrowRight } from "@/lib/icons"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"

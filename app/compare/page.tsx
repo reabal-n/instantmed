@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Scale, Zap, Building2, Globe } from "lucide-react"
+import { ArrowRight, Scale, Zap, Building2, Globe } from "@/lib/icons"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"

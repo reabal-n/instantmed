@@ -19,7 +19,7 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { renderTestEmailAction } from "@/app/actions/render-test-email"
 

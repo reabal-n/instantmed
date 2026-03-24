@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, Check, RefreshCw, AlertCircle } from 'lucide-react'
+import { ArrowRight, Check, RefreshCw, AlertCircle } from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -119,7 +119,7 @@ export function PricingSection({
           >
             <Link href={ctaHref}>
               {ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" weight="bold" />
             </Link>
           </Button>
           <p className="mt-3 text-xs text-muted-foreground">

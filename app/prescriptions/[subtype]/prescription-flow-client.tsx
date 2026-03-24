@@ -19,7 +19,7 @@ import {
   ClipboardList,
   CreditCard,
   User,
-} from "lucide-react"
+} from "@/lib/icons"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"

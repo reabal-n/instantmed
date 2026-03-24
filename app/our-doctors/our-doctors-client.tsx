@@ -19,7 +19,7 @@ import {
   HeartPulse,
   Briefcase,
   BadgeCheck,
-} from "lucide-react"
+} from "@/lib/icons"
 
 /* ────────────────────────────── Types ────────────────────────────── */
 

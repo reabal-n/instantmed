@@ -17,7 +17,7 @@ import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle, Bug, Server, Monitor, CheckCircle } from "lucide-react"
+import { AlertTriangle, Bug, Server, Monitor, CheckCircle } from "@/lib/icons"
 
 // Only allow in development
 const isDev = process.env.NODE_ENV === "development"

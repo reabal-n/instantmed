@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "@/lib/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"

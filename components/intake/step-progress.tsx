@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, Sparkles } from "lucide-react"
+import { Check, Sparkles } from "@/lib/icons"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 

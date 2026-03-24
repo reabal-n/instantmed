@@ -3,7 +3,7 @@
 import { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft } from "@/lib/icons"
 
 export interface DashboardHeaderProps {
   title: string

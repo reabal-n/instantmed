@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Shield, Star, CheckCircle2, Zap } from "lucide-react"
+import { ArrowRight, MapPin, Shield, Star, CheckCircle2, Zap } from "@/lib/icons"
 import Link from "next/link"
 import type { Metadata } from "next"
 import {
@@ -322,7 +322,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               <div className="mx-auto max-w-2xl text-center">
                 <div className="flex justify-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-5 w-5 text-yellow-400" weight="fill" />
                   ))}
                 </div>
                 <blockquote className="text-lg text-background/80 mb-4">

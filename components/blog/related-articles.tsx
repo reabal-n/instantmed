@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BadgeCheck } from 'lucide-react'
+import { ArrowRight, BadgeCheck } from '@/lib/icons'
 import type { Article } from '@/lib/blog/types'
 
 interface RelatedArticlesProps {

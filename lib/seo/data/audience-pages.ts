@@ -3,7 +3,7 @@
  * Used by app/for/[audience]/page.tsx for nurses, teachers, hospitality, etc.
  */
 
-import type { LucideIcon } from "lucide-react"
+import type { LucideIcon } from "@/lib/icons"
 import {
   Stethoscope,
   GraduationCap,
@@ -13,7 +13,7 @@ import {
   Users,
   Laptop,
   Car,
-} from "lucide-react"
+} from "@/lib/icons"
 
 export interface AudiencePageConfig {
   slug: string

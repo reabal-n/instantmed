@@ -12,7 +12,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
+} from "@/lib/icons"
 
 interface EmailLog {
   id: string

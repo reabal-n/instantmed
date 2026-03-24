@@ -77,7 +77,30 @@ const eslintConfig = [
       ],
       // Allow lexical declarations in case blocks (common React pattern)
       "no-case-declarations": "off",
+      // Block direct @phosphor-icons/react imports — use @/lib/icons barrel instead
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "lucide-react",
+              message: "lucide-react has been removed. Import from '@/lib/icons' instead.",
+            },
+            {
+              name: "@phosphor-icons/react",
+              message: "Import from '@/lib/icons' instead of '@phosphor-icons/react' directly. Add missing icons to lib/icons.ts if needed.",
+            },
+          ],
+        },
+      ],
     }
+  },
+  // Allow direct phosphor imports only in the barrel file and icon provider
+  {
+    files: ["lib/icons.ts", "components/providers/icon-provider.tsx"],
+    rules: {
+      "no-restricted-imports": "off",
+    },
   },
 ];
 

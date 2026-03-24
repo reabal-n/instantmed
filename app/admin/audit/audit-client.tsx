@@ -39,7 +39,7 @@ import {
   User,
   Bot,
   Webhook,
-} from "lucide-react"
+} from "@/lib/icons"
 import { getAuditLogsAction } from "@/app/actions/admin-config"
 import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
 import { getAuditEventTypes, formatEventType, formatActorType } from "@/lib/data/types/audit-logs"

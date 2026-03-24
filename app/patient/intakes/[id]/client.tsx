@@ -20,7 +20,7 @@ import {
   Mail,
   HelpCircle,
   Ban,
-} from "lucide-react"
+} from "@/lib/icons"
 import { formatIntakeStatus } from "@/lib/format-intake"
 import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
 import { COPY } from "@/lib/microcopy/universal"

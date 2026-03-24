@@ -23,7 +23,7 @@ import {
   Image as ImageIcon,
   CheckCircle,
   Loader2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
 import {

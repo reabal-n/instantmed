@@ -19,7 +19,7 @@ import {
   Send,
   Users,
   TrendingUp,
-} from "lucide-react"
+} from "@/lib/icons"
 import { formatDate } from "@/lib/format"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import type { IntakeWithPatient } from "@/types/db"

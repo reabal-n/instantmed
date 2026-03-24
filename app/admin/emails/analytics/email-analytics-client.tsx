@@ -22,7 +22,7 @@ import {
   XCircle,
   Clock,
   Send,
-} from "lucide-react"
+} from "@/lib/icons"
 import {
   LazyBarChart as BarChart,
   Bar,

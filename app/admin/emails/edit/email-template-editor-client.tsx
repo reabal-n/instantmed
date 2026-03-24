@@ -31,7 +31,7 @@ import {
   Monitor,
   AlertTriangle,
   CheckCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import Link from "next/link"
 import {

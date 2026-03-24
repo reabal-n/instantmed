@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { Briefcase, GraduationCap, Heart, Shield } from "lucide-react"
+import { Briefcase, GraduationCap, Heart, Shield } from "@/lib/icons"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"

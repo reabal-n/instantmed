@@ -4,7 +4,7 @@ import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { DayPicker } from "react-day-picker"
 import { format, parse, startOfDay, isBefore, isAfter } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export interface DatePickerFieldProps {

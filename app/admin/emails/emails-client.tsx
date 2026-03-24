@@ -33,7 +33,7 @@ import {
   Smartphone,
   Monitor,
   SendHorizonal,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import {
   updateEmailTemplateAction,

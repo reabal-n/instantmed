@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
-import { Loader2, Shield, CheckCircle } from "lucide-react"
+import { Loader2, Shield, CheckCircle } from "@/lib/icons"
 import { logger } from "@/lib/observability/logger"
 
 function GoogleIcon({ className }: { className?: string }) {

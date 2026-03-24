@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
 // GlowCard replaced with solid cards for dub.co depth consistency
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
-import { Check, Star, ArrowRight, Shield, Clock, Zap } from "lucide-react"
+import { Check, Star, ArrowRight, Shield, Clock, Zap } from "@/lib/icons"
 import { PRICING } from "@/lib/constants"
 
 /* ────────────────────────────── Data ────────────────────────────── */
@@ -94,6 +95,7 @@ const pricingFaqs = [
 
 export function PricingClient() {
   return (
+    <MarketingPageShell>
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
@@ -127,7 +129,7 @@ export function PricingClient() {
                 >
                   {service.popular && (
                     <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-lg font-medium text-xs">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      <Star className="w-3 h-3 mr-1" weight="fill" />
                       Most Popular
                     </Badge>
                   )}
@@ -249,5 +251,6 @@ export function PricingClient() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

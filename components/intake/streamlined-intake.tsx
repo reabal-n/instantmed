@@ -20,7 +20,7 @@ import {
   Shield,
   Sparkles,
   Info,
-} from "lucide-react"
+} from "@/lib/icons"
 import { PRICING } from "@/lib/constants"
 
 // Animation variants

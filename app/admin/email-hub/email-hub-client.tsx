@@ -24,7 +24,7 @@ import {
   Database,
   Activity,
   Loader2,
-} from "lucide-react"
+} from "@/lib/icons"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 
 // Email type display names

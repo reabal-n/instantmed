@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, FileText, Tag, X } from 'lucide-react'
+import { Search, FileText, Tag, X } from '@/lib/icons'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { Article } from '@/lib/blog/types'

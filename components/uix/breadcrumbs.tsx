@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRight, Home, MoreHorizontal } from "lucide-react"
+import { ChevronRight, Home, MoreHorizontal } from "@/lib/icons"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 

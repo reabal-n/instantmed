@@ -21,7 +21,7 @@ import {
   CheckCircle2,
   Clock,
   User
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { markRepeatScriptSentAction } from "@/app/actions/repeat-prescription"
 import type { AIDraft } from "@/app/actions/draft-approval"

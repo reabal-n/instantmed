@@ -14,7 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   Users,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export interface IntakeMonitorStats {

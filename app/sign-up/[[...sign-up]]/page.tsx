@@ -3,7 +3,7 @@
 import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, Clock, CheckCircle, Star } from 'lucide-react'
+import { Shield, Clock, CheckCircle, Star } from '@/lib/icons'
 
 export const dynamic = "force-dynamic"
 
@@ -159,7 +159,7 @@ export default function SignUpPage() {
               <div>
                 <div className="flex items-center gap-1 text-amber-500">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3 h-3 fill-current" />
+                    <Star key={i} className="w-3 h-3" weight="fill" />
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">AHPRA-registered doctors · Operating since 2025</p>

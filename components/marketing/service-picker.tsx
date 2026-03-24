@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star, AlertCircle } from 'lucide-react'
+import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star, AlertCircle } from '@/lib/icons'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
@@ -149,7 +149,7 @@ export function ServicePicker() {
                 viewport={{ once: true }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.3 + index * 0.08 }}
               >
-                <signal.icon className="w-3.5 h-3.5 text-primary" />
+                <signal.icon className="w-3.5 h-3.5 text-primary icon-glow" />
                 <span>{signal.text}</span>
               </motion.div>
             ))}
@@ -314,7 +314,7 @@ export function ServicePicker() {
                       {service.popular && 'testimonial' in service && service.testimonial && (
                         <div className="px-4 pb-3 pt-2 border-t border-border/30">
                           <div className="flex items-center gap-2 text-xs">
-                            <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                            <Star className="w-3 h-3 text-amber-500 shrink-0" weight="fill" />
                             <span className="text-muted-foreground italic">
                               &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
                             </span>
@@ -337,7 +337,12 @@ export function ServicePicker() {
             )
 
             return (
-              <motion.div key={service.id} variants={itemVariants}>
+              <motion.div
+                key={service.id}
+                variants={itemVariants}
+                whileTap={disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
                 {disabled ? (
                   <div className="group block h-full cursor-default" aria-disabled="true">
                     {cardContent}

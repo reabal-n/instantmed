@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { XCircle, ArrowLeft, CreditCard, ShieldCheck, Clock, RefreshCw } from "lucide-react"
+import { XCircle, ArrowLeft, CreditCard, ShieldCheck, Clock, RefreshCw } from "@/lib/icons"
 import { CancelledPageTracker } from "./tracker"
 import { CONTACT_EMAIL } from "@/lib/constants"
 

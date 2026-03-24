@@ -34,7 +34,7 @@ import {
   Clock,
   Megaphone,
   Calendar,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"

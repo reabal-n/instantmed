@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { AlertTriangle, RefreshCw } from "lucide-react"
+import { AlertTriangle, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import * as Sentry from "@sentry/nextjs"
 

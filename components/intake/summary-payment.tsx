@@ -2,7 +2,7 @@
 
 import type * as React from "react"
 import { useState } from "react"
-import { Edit2, Lock, Loader2 } from "lucide-react"
+import { Edit2, Lock, Loader2 } from "@/lib/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { ConfettiButton } from "@/components/ui/confetti"
 import {

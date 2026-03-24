@@ -11,7 +11,7 @@ import {
   EyeOff,
   Pill,
   PhoneOff,
-} from "lucide-react";
+} from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/shared/navbar";

@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { IdentitySettingsClient } from "./identity-settings-client"
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "@/lib/icons"
 
 export const dynamic = "force-dynamic"
 

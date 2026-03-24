@@ -3,7 +3,7 @@
 import React from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { CircleCheck } from "lucide-react"
+import { CircleCheck } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface UnifiedProgressIndicatorProps {

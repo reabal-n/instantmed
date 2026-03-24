@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, X, Pill, AlertCircle, Phone } from "lucide-react"
+import { Search, X, Pill, AlertCircle, Phone } from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"

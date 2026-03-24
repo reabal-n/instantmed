@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff } from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"

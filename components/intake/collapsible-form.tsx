@@ -2,7 +2,7 @@
 
 import type * as React from "react"
 import { useState, useCallback, useMemo } from "react"
-import { ChevronDown, Check, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { ChevronDown, Check, AlertTriangle, CheckCircle2 } from "@/lib/icons"
 import { Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"

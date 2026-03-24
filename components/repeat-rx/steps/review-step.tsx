@@ -7,7 +7,7 @@
  * ~120 lines - well under 200 line limit.
  */
 
-import { Edit2 } from "lucide-react"
+import { Edit2 } from "@/lib/icons"
 import { StepHeader } from "../shared"
 import { Button } from "@/components/ui/button"
 import type { SelectedPBSProduct } from "@/components/shared/medication-search"

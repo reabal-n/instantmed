@@ -14,7 +14,7 @@ import {
   Clock,
   CheckCheck,
   Inbox,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/format"

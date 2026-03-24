@@ -1,6 +1,6 @@
 "use client"
 
-import { Clock } from "lucide-react"
+import { Clock } from "@/lib/icons"
 
 /**
  * Draft Recovery Banner Component

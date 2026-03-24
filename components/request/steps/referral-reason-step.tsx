@@ -5,7 +5,7 @@
  * Referrals are not yet available in the unified flow
  */
 
-import { FileText, Bell, ArrowLeft } from "lucide-react"
+import { FileText, Bell, ArrowLeft } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"

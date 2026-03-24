@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 

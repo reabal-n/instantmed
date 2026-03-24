@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   AlertCircle,
   LogOut,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'

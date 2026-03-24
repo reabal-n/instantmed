@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence, MotionConfig } from "framer-motion"
-import { ChevronDown, Check } from "lucide-react"
+import { ChevronDown, Check } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 // Custom hook for click outside detection

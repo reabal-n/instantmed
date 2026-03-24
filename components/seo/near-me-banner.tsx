@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { MapPin, ArrowRight } from "lucide-react"
+import { MapPin, ArrowRight } from "@/lib/icons"
 import Link from "next/link"
 
 // Map IANA timezone to Australian state and primary city

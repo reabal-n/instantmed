@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Calendar, ChevronRight, Download, type LucideIcon } from "lucide-react"
+import { Calendar, ChevronRight, Download, type LucideIcon } from "@/lib/icons"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"

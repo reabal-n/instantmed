@@ -7,7 +7,7 @@ import {
   MapPin,
   ShieldCheck,
   AlertTriangle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/uix"
 import { Switch } from "@/components/ui/switch"

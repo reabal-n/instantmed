@@ -21,7 +21,7 @@ import {
   Users,
   Award,
   Zap,
-} from "lucide-react"
+} from "@/lib/icons"
 import {
   LazyBarChart as BarChart,
   Bar,

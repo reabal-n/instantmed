@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   Users,
   Share2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

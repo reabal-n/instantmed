@@ -6,7 +6,7 @@
 
 **Architecture:** Same section structure, new visual execution. 7 new components (mockups + utilities), 6 existing components modified. All mockups are purely visual (CSS/SVG/HTML), no backend changes.
 
-**Tech Stack:** React 19, Tailwind v4, Framer Motion, lucide-react, cn() utility. No new dependencies.
+**Tech Stack:** React 19, Tailwind v4, Framer Motion, @phosphor-icons/react (via @/lib/icons barrel), cn() utility. No new dependencies.
 
 **Design Doc:** `docs/plans/2026-03-20-homepage-redesign.md`
 

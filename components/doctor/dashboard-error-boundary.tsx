@@ -1,7 +1,7 @@
 "use client"
 
 import { Component, ReactNode } from "react"
-import { AlertTriangle, RefreshCw } from "lucide-react"
+import { AlertTriangle, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { logger } from "@/lib/observability/logger"

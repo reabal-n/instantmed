@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, Clock, CheckCircle2, Mail, FileText, Download } from 'lucide-react'
+import { ArrowRight, Clock, CheckCircle2, Mail, FileText, Download } from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'

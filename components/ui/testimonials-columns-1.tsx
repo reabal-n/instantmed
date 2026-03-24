@@ -2,7 +2,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Avatar } from "@/components/ui/avatar";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck } from "@/lib/icons";
 
 function getInitials(name: string) {
   const cleaned = name.replace(/\s+/g, " ").trim();

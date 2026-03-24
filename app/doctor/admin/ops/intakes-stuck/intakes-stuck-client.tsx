@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { RefreshCcw, ExternalLink, AlertTriangle, Clock, Mail, CheckCircle2, ArrowLeft } from "lucide-react"
+import { RefreshCcw, ExternalLink, AlertTriangle, Clock, Mail, CheckCircle2, ArrowLeft } from "@/lib/icons"
 import type { StuckIntake, StuckCounts, StuckReason } from "@/lib/data/intake-ops"
 
 // ============================================================================

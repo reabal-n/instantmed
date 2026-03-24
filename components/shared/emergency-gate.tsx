@@ -14,7 +14,7 @@
  */
 
 import { useState } from "react"
-import { Phone, AlertTriangle, CheckCircle, ChevronDown } from "lucide-react"
+import { Phone, AlertTriangle, CheckCircle, ChevronDown } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface EmergencyGateProps {

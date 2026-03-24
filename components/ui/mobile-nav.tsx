@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield } from "lucide-react"
+import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield } from "@/lib/icons"
+import type { IconWeight } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; weight?: IconWeight }>
   href: string
   badge?: number
 }
@@ -157,7 +158,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                         : "text-muted-foreground hover:bg-muted/50"
                     )}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5" weight="light" />
                     <span className="text-sm">{item.label}</span>
                   </button>
                 )
@@ -213,7 +214,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                 )}
               >
                 <div className="relative">
-                  <Icon className={cn("w-5 h-5", isActive && "animate-scale-in")} />
+                  <Icon className={cn("w-5 h-5", isActive && "animate-scale-in")} weight="light" />
                   {item.badge && item.badge > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                       {item.badge > 9 ? "9+" : item.badge}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Image from 'next/image'
-import { TrendingUp, Eye, Clock } from 'lucide-react'
+import { TrendingUp, Eye, Clock } from '@/lib/icons'
 import type { Article } from '@/lib/blog/types'
 
 interface PopularArticlesProps {

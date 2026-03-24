@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { AlertTriangle, ArrowRight } from "lucide-react"
+import { AlertTriangle, ArrowRight } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 
 interface IdentityIncompleteBannerProps {

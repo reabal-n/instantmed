@@ -1,7 +1,8 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Shield, Clock, Lock, UserCheck, Award, CheckCircle2 } from "lucide-react"
+import { Shield, Clock, Lock, UserCheck, Award, CheckCircle2 } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 /**
@@ -19,22 +20,22 @@ interface TrustBadge {
 
 const TRUST_BADGES: TrustBadge[] = [
   {
-    icon: <UserCheck className="w-5 h-5" />,
+    icon: <UserCheck className="w-5 h-5 icon-premium" />,
     title: "AHPRA-Registered Doctors",
     description: "All our doctors are registered with the Australian Health Practitioner Regulation Agency",
   },
   {
-    icon: <Clock className="w-5 h-5" />,
+    icon: <Clock className="w-5 h-5 icon-premium" />,
     title: "Reviewed Within an Hour",
     description: "Most requests are reviewed by a doctor within 60 minutes during business hours",
   },
   {
-    icon: <Lock className="w-5 h-5" />,
+    icon: <Lock className="w-5 h-5 icon-premium" />,
     title: "Your Data is Encrypted",
     description: "256-bit encryption keeps your personal and medical information private",
   },
   {
-    icon: <Shield className="w-5 h-5" />,
+    icon: <Shield className="w-5 h-5 icon-premium" />,
     title: "No Certificate, No Charge",
     description: "If we can't help, you get a full refund",
   },
@@ -179,15 +180,15 @@ export function SecurityFooter({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-4 py-4 border-t border-border/50", className)}>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 icon-glow" />
         <span>256-bit SSL Encryption</span>
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 icon-glow" />
         <span>PCI-DSS Compliant</span>
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 icon-glow" />
         <span>Stripe Secure Payments</span>
       </div>
     </div>
@@ -203,7 +204,7 @@ export function AHPRABadge({ className }: { className?: string }) {
       "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300",
       className
     )}>
-      <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400 icon-glow" />
       <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
         AHPRA Verified
       </span>
@@ -270,7 +271,44 @@ export function PaymentLogos({ className }: { className?: string }) {
 }
 
 /**
- * Stats bar showing key metrics
+ * Animated counter that counts up when element scrolls into view
+ */
+function AnimatedCounter({ value, suffix = "", duration = 1500 }: { value: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0)
+  const [hasAnimated, setHasAnimated] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (!ref.current || hasAnimated) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasAnimated(true)
+          const startTime = performance.now()
+          const animate = (now: number) => {
+            const elapsed = now - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - progress, 3)
+            setCount(Math.round(eased * value))
+            if (progress < 1) requestAnimationFrame(animate)
+          }
+          requestAnimationFrame(animate)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [value, duration, hasAnimated])
+
+  return <span ref={ref}>{count}{suffix}</span>
+}
+
+/**
+ * Stats bar showing key metrics with animated counters
  */
 export function StatsBar({ className }: { className?: string }) {
   const stats = [
@@ -280,13 +318,37 @@ export function StatsBar({ className }: { className?: string }) {
     { value: "8am–10pm", label: "7 days a week" },
   ]
 
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    if (!ref.current) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect() } },
+      { threshold: 0.3 }
+    )
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className={cn(
-      "grid grid-cols-2 md:grid-cols-4 gap-4 py-6 px-4 rounded-2xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/10",
-      className
-    )}>
+    <div
+      ref={ref}
+      className={cn(
+        "grid grid-cols-2 md:grid-cols-4 gap-4 py-6 px-4 rounded-2xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/10",
+        className
+      )}
+    >
       {stats.map((stat, i) => (
-        <div key={i} className="text-center">
+        <div
+          key={i}
+          className="text-center"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateY(0)" : "translateY(12px)",
+            transition: `opacity 0.4s ease ${i * 0.1}s, transform 0.4s ease ${i * 0.1}s`,
+          }}
+        >
           <div className="text-2xl font-bold text-primary">{stat.value}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
         </div>

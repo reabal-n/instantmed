@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Search, Loader2, Check, X } from "lucide-react"
+import { Search, Loader2, Check, X } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 /**

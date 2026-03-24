@@ -12,7 +12,7 @@ import {
   ArrowRight,
   RefreshCw,
   Plus,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { FlowContent } from '../flow-content'
 import { MedicationSearch, type MedicationSelection } from '../medication-search'
 import { Button } from '@/components/ui/button'

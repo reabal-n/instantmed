@@ -1,8 +1,11 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import Link from "next/link"
+import { Search, X } from "@/lib/icons"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { CenteredHero } from "@/components/heroes"
 import { AccordionSection, CTABanner } from "@/components/sections"
@@ -124,18 +127,41 @@ const faqCategories = [
 /* ────────────────────────────── Component ────────────────────────────── */
 
 export default function FAQPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+
   // Flat list for schema.org structured data
   const allFaqs = faqCategories.flatMap((cat) =>
     cat.faqs.map((f) => ({ question: f.q, answer: f.a })),
   )
 
-  // Map to AccordionSection groups format
-  const accordionGroups = faqCategories.map((cat) => ({
-    category: cat.title,
-    items: cat.faqs.map((f) => ({ question: f.q, answer: f.a })),
-  }))
+  // Filter FAQ categories based on search query
+  const filteredGroups = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) {
+      return faqCategories.map((cat) => ({
+        category: cat.title,
+        items: cat.faqs.map((f) => ({ question: f.q, answer: f.a })),
+      }))
+    }
+
+    return faqCategories
+      .map((cat) => ({
+        category: cat.title,
+        items: cat.faqs
+          .filter(
+            (f) =>
+              f.q.toLowerCase().includes(query) ||
+              f.a.toLowerCase().includes(query),
+          )
+          .map((f) => ({ question: f.q, answer: f.a })),
+      }))
+      .filter((group) => group.items.length > 0)
+  }, [searchQuery])
+
+  const totalResults = filteredGroups.reduce((sum, g) => sum + g.items.length, 0)
 
   return (
+    <MarketingPageShell>
     <div className="flex min-h-screen flex-col">
       <FAQSchema faqs={allFaqs} />
       <Navbar variant="marketing" />
@@ -147,25 +173,66 @@ export default function FAQPage() {
           title="Got questions? We've got answers."
           highlightWords={["answers"]}
           subtitle="Everything you need to know about InstantMed."
+          className="py-12 lg:py-16"
         >
-          <p className="text-sm text-muted-foreground">
-            Can&apos;t find your answer?{" "}
-            <Link
-              href="/contact"
-              className="text-primary hover:underline font-medium"
-            >
-              Get in touch
-            </Link>
-          </p>
+          {/* Search input */}
+          <div className="relative max-w-md mx-auto mt-2">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search FAQs..."
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all shadow-sm shadow-primary/[0.04]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-muted transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="text-xs text-muted-foreground mt-3">
+              {totalResults} result{totalResults !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+            </p>
+          )}
+          {!searchQuery && (
+            <p className="text-sm text-muted-foreground mt-4">
+              Can&apos;t find your answer?{" "}
+              <Link
+                href="/contact"
+                className="text-primary hover:underline font-medium"
+              >
+                Get in touch
+              </Link>
+            </p>
+          )}
         </CenteredHero>
 
         {/* FAQ Sections — 5 categories with accordion */}
-        <AccordionSection
-          title="Frequently Asked Questions"
-          subtitle="Browse by category to find the answer you're looking for."
-          highlightWords={["Questions"]}
-          groups={accordionGroups}
-        />
+        {filteredGroups.length > 0 ? (
+          <AccordionSection
+            title={searchQuery ? `Results` : "Frequently Asked Questions"}
+            subtitle={searchQuery ? undefined : "Browse by category to find the answer you're looking for."}
+            highlightWords={searchQuery ? undefined : ["Questions"]}
+            groups={filteredGroups}
+            className="py-10 lg:py-14"
+          />
+        ) : (
+          <div className="py-16 text-center">
+            <p className="text-muted-foreground mb-2">No FAQs match your search.</p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              Clear search
+            </button>
+          </div>
+        )}
 
         {/* CTA */}
         <CTABanner
@@ -178,5 +245,6 @@ export default function FAQPage() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }

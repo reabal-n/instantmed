@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Pencil,
   Stethoscope,
-} from "lucide-react"
+} from "@/lib/icons"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"

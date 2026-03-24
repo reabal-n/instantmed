@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ChevronDown, ChevronUp, AlertTriangle, Check, ArrowRight, Loader2, Shield } from 'lucide-react'
+import { ChevronDown, ChevronUp, AlertTriangle, Check, ArrowRight, Loader2, Shield } from '@/lib/icons'
 import { FieldRenderer } from '../field-renderer'
 import { useFlowStore, useFlowAnswers } from '@/lib/flow'
 import type { FlowConfig, QuestionGroup, FieldConfig } from '@/lib/flow'

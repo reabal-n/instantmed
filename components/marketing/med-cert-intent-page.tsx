@@ -22,7 +22,7 @@ import {
   Shield,
   Smartphone,
   Users,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { AccordionSection, CTABanner, ProcessSteps } from '@/components/sections'
 import { TrustLogos } from '@/components/marketing/trust-badges'
 import { LiveWaitTime, StatsStrip } from '@/components/marketing'

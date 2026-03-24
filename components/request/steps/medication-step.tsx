@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { Info, Plus, X, ShieldAlert } from "lucide-react"
+import { Info, Plus, X, ShieldAlert } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"

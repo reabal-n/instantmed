@@ -1,6 +1,6 @@
 "use client"
 import { useState, useCallback } from "react"
-import { Check, AlertCircle, Clock, Sparkles } from "lucide-react"
+import { Check, AlertCircle, Clock, Sparkles } from "@/lib/icons"
 import { Input } from "@/components/uix"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"

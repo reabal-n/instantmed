@@ -7,7 +7,7 @@
  * ~80 lines - well under 200 line limit.
  */
 
-import { Check } from "lucide-react"
+import { Check } from "@/lib/icons"
 import { StepHeader } from "../shared"
 import { cn } from "@/lib/utils"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"

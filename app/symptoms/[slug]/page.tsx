@@ -10,7 +10,7 @@ import {
   Stethoscope,
   ThermometerSun,
   Activity
-} from "lucide-react"
+} from "@/lib/icons"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -1045,7 +1045,7 @@ export default async function SymptomPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <ThermometerSun className="w-7 h-7 text-primary" />
+                  <ThermometerSun className="w-7 h-7 text-primary icon-premium" />
                 </div>
                 <div>
                   <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
@@ -1140,7 +1140,7 @@ export default async function SymptomPage({ params }: PageProps) {
                     key={i}
                     className="flex items-start gap-3 p-4 bg-white dark:bg-card rounded-xl"
                   >
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 icon-premium" />
                     <span className="text-foreground">{tip}</span>
                   </div>
                 ))}
@@ -1155,7 +1155,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 {/* See a doctor */}
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-primary" />
+                    <Stethoscope className="w-5 h-5 text-primary icon-premium" />
                     See a Doctor If
                   </h2>
                   <div className="space-y-3">
@@ -1178,7 +1178,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 {/* Emergency signs */}
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <AlertTriangle className="w-5 h-5 text-red-500 icon-premium" />
                     Seek Emergency Care If
                   </h2>
                   <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-5">
@@ -1241,11 +1241,11 @@ export default async function SymptomPage({ params }: PageProps) {
 
               <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" />
+                  <Shield className="w-4 h-4 text-primary icon-premium" />
                   <span>AHPRA registered doctors</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" />
+                  <Clock className="w-4 h-4 text-primary icon-premium" />
                   <span>Response in ~45 mins</span>
                 </div>
               </div>

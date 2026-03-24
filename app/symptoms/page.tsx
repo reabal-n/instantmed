@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, AlertTriangle } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "@/lib/icons";
 import { Navbar } from "@/components/shared/navbar";
 import { MarketingFooter } from "@/components/marketing";
 import { CenteredHero } from "@/components/heroes";

@@ -17,7 +17,7 @@ import {
   Copy,
   Check,
   FileText,
-} from "lucide-react"
+} from "@/lib/icons"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/format"
 

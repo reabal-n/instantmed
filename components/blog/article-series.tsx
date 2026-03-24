@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Check } from 'lucide-react'
+import { BookOpen, ChevronRight, Check } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { Article, ArticleSeries } from '@/lib/blog/types'
 

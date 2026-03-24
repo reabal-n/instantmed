@@ -1,6 +1,6 @@
 "use client"
 
-import { Shield, Lock, CheckCircle2, FileText, Server } from "lucide-react"
+import { Shield, Lock, CheckCircle2, FileText, Server } from "@/lib/icons"
 
 const securityCerts = [
   {

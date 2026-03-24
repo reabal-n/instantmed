@@ -14,7 +14,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { EmergencyGate } from "@/components/shared/emergency-gate"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, ArrowRight } from "lucide-react"
+import { CheckCircle, ArrowRight } from "@/lib/icons"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 

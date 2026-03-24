@@ -13,7 +13,7 @@ import {
   WifiOff,
   LogIn,
   Mail,
-} from "lucide-react"
+} from "@/lib/icons"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 // Detect error type for better messaging

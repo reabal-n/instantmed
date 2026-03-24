@@ -3,7 +3,7 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { scrollRevealConfig } from "@/components/ui/motion";
 import { FloatingCard } from "@/components/marketing/floating-card";
@@ -64,7 +64,7 @@ export function CTABanner({
             className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
           >
             {ctaText}
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4" weight="bold" />
           </Link>
           {secondaryText && secondaryHref && (
             <Link

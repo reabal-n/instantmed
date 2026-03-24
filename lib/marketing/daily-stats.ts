@@ -19,8 +19,8 @@ export function getDailyStats(offset = 0): {
 } {
   const seed = dateSeed() + offset
   return {
-    reviewedToday: 8 + Math.floor(hash(seed) * 13), // 8–20
-    avgReviewTime: 19 + Math.floor(hash(seed + 1) * 24), // 19–42 min
+    reviewedToday: 12 + Math.floor(hash(seed) * 16), // 12–27
+    avgReviewTime: 8 + Math.floor(hash(seed + 1) * 15), // 8–22 min
     rating: (4.8 + hash(seed + 2) * 0.1) as number, // 4.8–4.9
   }
 }

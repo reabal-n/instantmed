@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "lucide-react"
+import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "@/lib/icons"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import Link from "next/link"
@@ -51,7 +51,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Trust badges grid */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10 bg-muted/30 dark:bg-white/[0.02] rounded-2xl p-4 lg:p-6 border border-border/20 dark:border-white/5"
           initial={animate ? { opacity: 0, y: 20 } : false}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
@@ -60,8 +60,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
           {trustBadges.map((badge, index) => {
             const content = (
               <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 shadow-md shadow-primary/[0.06] hover:shadow-lg hover:shadow-primary/[0.1] hover:-translate-y-1 transition-all duration-300 h-full">
-                <div className={cn('relative w-10 h-10 rounded-lg flex items-center justify-center', badge.iconBg, badge.color)}>
-                  <badge.icon className="w-5 h-5" />
+                <div className={cn('relative w-12 h-12 rounded-xl flex items-center justify-center', badge.iconBg, badge.color)}>
+                  <badge.icon className="w-5.5 h-5.5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-foreground leading-tight flex items-center gap-1">

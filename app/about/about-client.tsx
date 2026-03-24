@@ -13,7 +13,7 @@ import {
   MapPin,
   BookOpen,
   ClipboardCheck,
-} from "lucide-react"
+} from "@/lib/icons"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { MediaMentions } from "@/components/marketing/media-mentions"

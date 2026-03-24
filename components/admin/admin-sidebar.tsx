@@ -31,7 +31,8 @@ import {
   Mailbox,
   Menu,
   X,
-} from "lucide-react"
+} from "@/lib/icons"
+import type { IconWeight } from "@/lib/icons"
 
 interface AdminSidebarProps {
   userName: string
@@ -42,7 +43,7 @@ interface AdminSidebarProps {
 interface NavItem {
   href: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; weight?: IconWeight }>
   badge?: number
 }
 
@@ -117,7 +118,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
               <item.icon className={cn(
                 "w-[18px] h-[18px]",
                 active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-              )} />
+              )} weight="light" />
               {item.label}
             </span>
             {item.badge !== undefined && item.badge > 0 && (
@@ -179,7 +180,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
               <LayoutDashboard className={cn(
                 "w-[18px] h-[18px]",
                 pathname === "/admin" ? "text-primary" : "text-muted-foreground"
-              )} />
+              )} weight="light" />
               Dashboard
             </span>
             {pendingCount > 0 && (
@@ -201,7 +202,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
           <Collapsible defaultOpen={!!isInSection(analyticsNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
+                <BarChart3 className="h-4 w-4" weight="light" />
                 Analytics
               </span>
               <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
@@ -219,7 +220,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
+                      <item.icon className="h-4 w-4 shrink-0" weight="light" />
                       {item.label}
                     </Link>
                   )
@@ -231,7 +232,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
           <Collapsible defaultOpen={!!isInSection(systemNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <span className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
+                <Settings className="h-4 w-4" weight="light" />
                 System
               </span>
               <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
@@ -249,7 +250,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
+                      <item.icon className="h-4 w-4 shrink-0" weight="light" />
                       {item.label}
                     </Link>
                   )
@@ -308,7 +309,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
         )}
       >
         <span className="flex items-center gap-2.5">
-          <item.icon className={cn("w-[18px] h-[18px]", active ? "text-primary" : "text-muted-foreground")} />
+          <item.icon className={cn("w-[18px] h-[18px]", active ? "text-primary" : "text-muted-foreground")} weight="light" />
           {item.label}
         </span>
         {active && <ChevronRight className="w-3.5 h-3.5 text-primary/50" />}
@@ -371,7 +372,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
             )}
           >
             <span className="flex items-center gap-2.5">
-              <LayoutDashboard className={cn("w-[18px] h-[18px]", pathname === "/admin" ? "text-primary" : "text-muted-foreground")} />
+              <LayoutDashboard className={cn("w-[18px] h-[18px]", pathname === "/admin" ? "text-primary" : "text-muted-foreground")} weight="light" />
               Dashboard
             </span>
             {pendingCount > 0 && (

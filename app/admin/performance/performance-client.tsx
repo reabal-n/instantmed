@@ -15,7 +15,7 @@ import {
   Minus,
   Server,
   Globe,
-} from "lucide-react"
+} from "@/lib/icons"
 
 interface WebVital {
   name: string

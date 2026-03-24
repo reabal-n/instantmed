@@ -1,6 +1,6 @@
 'use client'
 
-import { Shield, CheckCircle2, Lock, FileCheck, Stethoscope, Building2, GraduationCap, BookOpen } from 'lucide-react'
+import { Shield, CheckCircle2, Lock, FileCheck, Stethoscope, Building2, GraduationCap, BookOpen } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 interface ComplianceMarqueeProps {

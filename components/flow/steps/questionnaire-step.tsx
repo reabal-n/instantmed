@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight } from '@/lib/icons'
 import { FlowContent } from '../flow-content'
 import { FieldRenderer } from '../field-renderer'
 import { Button } from '@/components/ui/button'

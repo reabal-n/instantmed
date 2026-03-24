@@ -34,7 +34,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 
 interface ErrorMonitoringClientProps {
   sentryOrgSlug: string

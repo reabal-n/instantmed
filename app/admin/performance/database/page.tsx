@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { Database, Activity, Clock } from "lucide-react"
+import { Database, Activity, Clock } from "@/lib/icons"
 
 export const dynamic = "force-dynamic"
 

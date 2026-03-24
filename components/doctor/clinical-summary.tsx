@@ -19,7 +19,7 @@ import {
   FileText,
   Pill,
   Heart,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 /** Convert camelCase or snake_case keys into readable labels */

@@ -25,7 +25,7 @@ import {
   AlertCircle,
   Sparkles,
   HelpCircle,
-} from 'lucide-react'
+} from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -43,7 +43,7 @@ import { TestimonialsSection } from '@/components/marketing/sections/testimonial
 import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from '@/lib/icons'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { ImageTextSplit } from '@/components/sections'
 import { CONTACT_EMAIL } from '@/lib/constants'
@@ -544,6 +544,31 @@ function HeroSection({ config, colors, isDisabled }: { config: ServiceFunnelConf
             </motion.div>
           </div>
 
+          {/* Mobile-only compact mockup preview */}
+          {hasImages && (
+            <motion.div
+              className="lg:hidden mt-6 mx-auto max-w-xs"
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-primary/[0.08] aspect-[16/9]">
+                <Image
+                  src={config.hero.images!.primary}
+                  alt="Patient using InstantMed from home"
+                  fill
+                  className="object-cover"
+                  sizes="320px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-card/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-sm">
+                  <Shield className={cn("w-3.5 h-3.5", colors.text)} />
+                  <span className="text-xs font-semibold text-foreground">AHPRA Verified</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Hero Image — real photos, matching homepage treatment */}
           {hasImages && (
             <motion.div
@@ -795,7 +820,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
           >
             <Link href={config.hero.ctaHref}>
               {config.hero.ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" weight="bold" />
             </Link>
           </Button>
         </motion.div>
@@ -999,7 +1024,7 @@ function FinalCtaSection({ config, colors, isDisabled }: { config: ServiceFunnel
           >
             <Link href={isDisabled ? "/contact" : config.hero.ctaHref}>
               {isDisabled ? "Contact us" : config.finalCta.ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" weight="bold" />
             </Link>
           </Button>
           <p className="mt-4 text-white/80 text-sm font-medium">

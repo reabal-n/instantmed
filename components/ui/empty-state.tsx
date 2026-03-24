@@ -1,6 +1,6 @@
 "use client"
 
-import { LucideIcon, Plus, Lightbulb, Sparkles } from "lucide-react"
+import { LucideIcon, Plus, Lightbulb, Sparkles } from "@/lib/icons"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
 import { motion, useReducedMotion } from "framer-motion"
@@ -63,11 +63,21 @@ export function EmptyState({
         className="mb-8"
       >
         {illustration ? (
-          <div className="w-32 h-32 mx-auto">{illustration}</div>
+          <motion.div
+            className="w-32 h-32 mx-auto"
+            animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {illustration}
+          </motion.div>
         ) : (
-          <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg">
+          <motion.div
+            className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg"
+            animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
             <Icon className="w-11 h-11 text-primary" />
-          </div>
+          </motion.div>
         )}
       </motion.div>
 
@@ -103,7 +113,16 @@ export function EmptyState({
           className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
         >
           {action && (
-            <>
+            <motion.div
+              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{
+                delay: prefersReducedMotion ? 0 : 0.5,
+                type: "spring",
+                stiffness: 400,
+                damping: 20,
+              }}
+            >
               {action.href ? (
                 <Button asChild className="min-h-[44px] touch-target">
                   <Link href={action.href}>
@@ -117,7 +136,7 @@ export function EmptyState({
                   {action.label}
                 </Button>
               )}
-            </>
+            </motion.div>
           )}
           {secondaryAction && (
             <>
@@ -154,10 +173,20 @@ export function EmptyState({
           </div>
           <ul className="text-left space-y-2.5 text-sm text-muted-foreground">
             {tips.map((tip, index) => (
-              <li key={index} className="flex items-start gap-2">
+              <motion.li
+                key={index}
+                className="flex items-start gap-2"
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  delay: prefersReducedMotion ? 0 : 0.6 + index * 0.08,
+                  duration: 0.3,
+                  ease: [0.25, 0.1, 0.25, 1],
+                }}
+              >
                 <Sparkles className="w-3 h-3 mt-0.5 text-primary shrink-0" />
                 <span>{tip}</span>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </motion.div>

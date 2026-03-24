@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { RefreshCcw, ArrowUpDown, ArrowUp, ArrowDown, Users, ArrowLeft } from "lucide-react"
+import { RefreshCcw, ArrowUpDown, ArrowUp, ArrowDown, Users, ArrowLeft } from "@/lib/icons"
 import type { DoctorMetrics, DateRange, SortField, SortDirection } from "@/lib/data/doctor-ops"
 
 // ============================================================================

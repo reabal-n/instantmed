@@ -19,7 +19,7 @@
 
 import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff, AlertTriangle } from "lucide-react"
+import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff, AlertTriangle } from "@/lib/icons"
 import { usePostHog } from "posthog-js/react"
 import { motion, AnimatePresence, useMotionValue, useReducedMotion, type PanInfo } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -153,27 +153,55 @@ function ProgressBar({
           >
             {/* Progress bar segment -- taller on mobile for better touch targets */}
             <div className="relative">
-              <div 
-                className={`h-2 sm:h-1.5 rounded-full transition-all duration-300 ${
-                  i <= currentIndex ? "bg-primary" : "bg-muted"
-                } ${isClickable && !isCurrent ? "group-hover:bg-primary/70" : ""}`} 
-              />
+              <div className="h-2 sm:h-1.5 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${
+                    isClickable && !isCurrent ? "group-hover:brightness-90" : ""
+                  }`}
+                  initial={false}
+                  animate={{
+                    width: i < currentIndex ? "100%" : isCurrent ? "100%" : "0%",
+                    backgroundColor: i <= currentIndex ? "var(--color-primary)" : "transparent",
+                  }}
+                  transition={{
+                    width: { duration: prefersReducedMotion ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] },
+                    backgroundColor: { duration: prefersReducedMotion ? 0 : 0.3 },
+                  }}
+                />
+              </div>
               {/* Checkmark for completed steps -- hidden on mobile, dot indicator instead */}
               {isCompleted && (
                 <>
-                  {/* Mobile: small dot */}
+                  {/* Mobile: small dot with pop */}
                   <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
+                    transition={prefersReducedMotion ? {} : {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 15,
+                      mass: 0.5,
+                    }}
                     className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary sm:hidden"
                   />
-                  {/* Desktop: checkmark */}
+                  {/* Desktop: checkmark with spring burst */}
                   <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
+                    transition={prefersReducedMotion ? {} : {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 15,
+                      mass: 0.5,
+                    }}
                     className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary items-center justify-center hidden sm:flex"
                   >
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                    <motion.div
+                      initial={prefersReducedMotion ? {} : { pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                    >
+                      <Check className="w-2.5 h-2.5 text-primary-foreground" weight="bold" />
+                    </motion.div>
                   </motion.div>
                 </>
               )}
@@ -877,19 +905,20 @@ export function RequestFlow({
     )
   }
 
-  // Slide animation variants
+  // Slide animation variants with scale-down on exit for depth
   const slideVariants = {
     enter: (dir: number) => (prefersReducedMotion
       ? { opacity: 0 }
-      : { x: dir > 0 ? 300 : -300, opacity: 0 }
+      : { x: dir > 0 ? 200 : -200, opacity: 0, scale: 0.98 }
     ),
     center: {
       x: 0,
       opacity: 1,
+      scale: 1,
     },
     exit: (dir: number) => (prefersReducedMotion
       ? { opacity: 0 }
-      : { x: dir > 0 ? -300 : 300, opacity: 0 }
+      : { x: dir > 0 ? -100 : 100, opacity: 0, scale: 0.96 }
     ),
   }
 
@@ -1120,8 +1149,9 @@ export function RequestFlow({
               animate="center"
               exit="exit"
               transition={{
-                x: { duration: prefersReducedMotion ? 0 : 0.3, ease: [0, 0, 0.2, 1] },
+                x: { duration: prefersReducedMotion ? 0 : 0.3, ease: [0.32, 0, 0.24, 1] },
                 opacity: { duration: prefersReducedMotion ? 0 : 0.2 },
+                scale: { duration: prefersReducedMotion ? 0 : 0.3, ease: [0.32, 0, 0.24, 1] },
               }}
             >
               <StepRouter

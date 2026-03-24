@@ -11,7 +11,7 @@ import {
   RotateCcw,
   RefreshCw,
   AlertCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ChatProgress } from "./chat-progress"

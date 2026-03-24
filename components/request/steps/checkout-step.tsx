@@ -16,7 +16,7 @@ import { useState, useEffect } from "react"
 import { usePostHog } from "posthog-js/react"
 import { motion, useReducedMotion } from "framer-motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "@/lib/icons"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
@@ -323,11 +323,25 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </div>
       </motion.div>
 
-      {/* Error message */}
+      {/* Error message with retry */}
       {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <motion.div
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Alert variant="destructive">
+            <AlertDescription className="flex items-center justify-between gap-3">
+              <span>{error}</span>
+              <button
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="shrink-0 text-xs font-medium underline underline-offset-2 hover:no-underline"
+              >
+                Try again
+              </button>
+            </AlertDescription>
+          </Alert>
+        </motion.div>
       )}
 
       {/* Spacer for sticky CTA on mobile */}

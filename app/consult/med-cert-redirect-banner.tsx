@@ -1,6 +1,6 @@
 'use client'
 
-import { Info } from 'lucide-react'
+import { Info } from '@/lib/icons'
 
 /**
  * Contextual banner shown when users are redirected from the medical certificate flow

@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
-import { Check, Loader2 } from "lucide-react"
+import { Check, Loader2 } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
 

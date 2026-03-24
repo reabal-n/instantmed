@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react"
+import { Mail, Loader2, CheckCircle, ArrowLeft } from "@/lib/icons"
 import { requestPasswordReset } from "@/app/actions/account"
 import { toast } from "sonner"
 

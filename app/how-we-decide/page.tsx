@@ -8,7 +8,7 @@ import {
   MessageCircle,
   AlertCircle,
   UserCheck,
-} from "lucide-react"
+} from "@/lib/icons"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"

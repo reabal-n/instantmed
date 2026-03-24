@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { AlertTriangle, Phone, Heart, Shield, ArrowRight } from 'lucide-react'
+import { AlertTriangle, Phone, Heart, Shield, ArrowRight } from '@/lib/icons'
 import { FlowContent } from '../flow-content'
 import { IOSToggle } from '@/components/ui/ios-toggle'
 import { useFlowStore, useFlowAnswers, SAFETY_SCREENING_SYMPTOMS } from '@/lib/flow'

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } from "lucide-react"
+import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"

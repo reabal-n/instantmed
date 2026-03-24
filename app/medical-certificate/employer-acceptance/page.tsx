@@ -12,7 +12,7 @@ import {
   Building2,
   Scale,
   HelpCircle
-} from 'lucide-react'
+} from '@/lib/icons'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 const baseUrl = 'https://instantmed.com.au'

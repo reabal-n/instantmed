@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Gift, Copy, Check, Users, DollarSign } from "lucide-react"
+import { Gift, Copy, Check, Users, DollarSign } from "@/lib/icons"
 import { toast } from "sonner"
 
 interface ReferralStats {

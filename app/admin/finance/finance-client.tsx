@@ -13,7 +13,7 @@ import {
   ExternalLink,
   AlertTriangle,
   Shield,
-} from "lucide-react"
+} from "@/lib/icons"
 import {
   LazyPieChart as PieChart,
   LazyComposedChart as ComposedChart,

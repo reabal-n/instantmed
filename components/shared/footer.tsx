@@ -2,7 +2,7 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 import { FooterAuth } from "@/components/shared/footer-auth"
-import { Phone } from "lucide-react"
+import { Phone } from "@/lib/icons"
 import { CONTACT_PHONE, COMPANY_NAME, ABN } from "@/lib/constants"
 
 const TapeDecoration = () => (
@@ -40,11 +40,11 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col md:mx-4 md:flex-row gap-6 md:gap-16 items-start md:items-start">
+          <div className="flex flex-col md:mx-4 md:flex-row gap-0 md:gap-16 items-start md:items-start w-full md:w-auto">
             {/* Services column */}
-            <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
+            <nav className="flex flex-col gap-1 md:gap-4 w-full md:w-auto border-t border-border/30 md:border-0 pt-4 md:pt-0 mt-4 md:mt-0" aria-label="Services">
               <h4 className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</h4>
-              <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
+              <div className="flex flex-col md:flex-col gap-2 text-sm items-start">
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=med-cert">
                   Medical Certificates
                 </Link>
@@ -58,9 +58,9 @@ export function Footer() {
             </nav>
 
             {/* Company column */}
-            <nav className="flex flex-col gap-1 md:gap-4" aria-label="Company">
+            <nav className="flex flex-col gap-1 md:gap-4 w-full md:w-auto border-t border-border/30 md:border-0 pt-4 md:pt-0 mt-4 md:mt-0" aria-label="Company">
               <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Company</h4>
-              <div className="flex gap-2 flex-wrap md:flex-col text-sm items-start">
+              <div className="flex flex-col md:flex-col gap-2 text-sm items-start">
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-it-works">
                   How it Works
                 </Link>

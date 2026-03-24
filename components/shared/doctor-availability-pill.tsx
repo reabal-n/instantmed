@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
-import { Moon, Users } from 'lucide-react'
+import { Moon, Users } from '@/lib/icons'
 import { motion, useReducedMotion } from 'framer-motion'
 
 const OPEN_HOUR = 8

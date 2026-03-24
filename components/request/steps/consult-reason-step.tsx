@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from "react"
-import { Stethoscope, MessageSquare, Info } from "lucide-react"
+import { Stethoscope, MessageSquare, Info } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"

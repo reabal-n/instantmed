@@ -3,7 +3,7 @@
 import React from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Check } from "lucide-react"
+import { Check } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface EnhancedSelectionButtonProps {

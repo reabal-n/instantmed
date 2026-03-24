@@ -11,7 +11,7 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { History, AlertTriangle, Stethoscope, ArrowLeft } from "lucide-react"
+import { History, AlertTriangle, Stethoscope, ArrowLeft } from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"

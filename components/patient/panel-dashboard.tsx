@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -14,7 +14,8 @@ import {
   CreditCard,
   ExternalLink,
   Download,
-} from "lucide-react"
+} from "@/lib/icons"
+import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
@@ -102,6 +103,8 @@ export function PanelDashboard({
     })
   }
 
+  const prefersReducedMotion = useReducedMotion()
+
   const pendingIntakes = intakes.filter((r) => r.status === "paid" || r.status === "in_review" || r.status === "pending_info")
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
   const prescriptionsNeedingRenewal = prescriptions.filter((p) => p.status === "active" && needsRenewalSoon(p.expiry_date))
@@ -147,10 +150,27 @@ export function PanelDashboard({
     })
   }
 
+  // Staggered entrance animation for dashboard sections
+  const sectionVariants = {
+    hidden: prefersReducedMotion ? {} : { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0 },
+  }
+  const staggerContainer = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: prefersReducedMotion ? 0 : 0.08 },
+    },
+  }
+
   return (
-    <div className="space-y-12">
+    <motion.div
+      className="space-y-12"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Welcome Section */}
-      <div>
+      <motion.div variants={sectionVariants} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}>
         <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
           Welcome back, {firstName}
         </h1>
@@ -159,11 +179,11 @@ export function PanelDashboard({
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
             : "All caught up — nothing needs your attention. 👍"}
         </p>
-      </div>
+      </motion.div>
 
       {/* First-time banner — single pending request being reviewed */}
       {pendingIntakes.length === 1 && intakes.length === 1 && (
-        <div className="p-5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-4">
+        <motion.div variants={sectionVariants} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }} className="p-5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-4">
           <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div>
             <p className="font-medium text-foreground">Your request is being reviewed</p>
@@ -171,7 +191,7 @@ export function PanelDashboard({
               A doctor will look at it shortly. Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST).
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Profile Completion Todos — hide for med-cert-only users with required fields complete */}
@@ -279,7 +299,7 @@ export function PanelDashboard({
       })()}
 
       {/* Recent Requests */}
-      <section>
+      <motion.section variants={sectionVariants} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-semibold text-foreground">Recent Requests</h2>
           {intakes.length > 5 && (
@@ -312,16 +332,26 @@ export function PanelDashboard({
           />
         ) : (
           <div className="space-y-4">
-            {intakes.slice(0, 5).map((intake) => (
-              <IntakeCard
+            {intakes.slice(0, 5).map((intake, i) => (
+              <motion.div
                 key={intake.id}
-                intake={intake}
-                onClick={() => handleViewIntake(intake)}
-              />
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.35,
+                  delay: prefersReducedMotion ? 0 : 0.06 * i,
+                  ease: [0.25, 0.1, 0.25, 1],
+                }}
+              >
+                <IntakeCard
+                  intake={intake}
+                  onClick={() => handleViewIntake(intake)}
+                />
+              </motion.div>
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Prescription Renewal Reminders */}
       {prescriptionsNeedingRenewal.length > 0 && (
@@ -402,12 +432,12 @@ export function PanelDashboard({
 
       {/* Referral Section — only show after patient has completed at least one request */}
       {intakes.some(i => i.status === "approved" || i.status === "completed") && (
-        <section>
+        <motion.section variants={sectionVariants} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}>
           <ReferralCard patientId={patientId} />
-        </section>
+        </motion.section>
       )}
 
-    </div>
+    </motion.div>
   )
 }
 
@@ -460,7 +490,14 @@ function IntakeCard({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={cn("px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium", config.color)}>
+          <div className={cn(
+            "px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium relative",
+            config.color,
+          )}>
+            {/* Pulse ring for active statuses */}
+            {(intake.status === "paid" || intake.status === "in_review") && (
+              <span className="absolute inset-0 rounded-full animate-ping opacity-20 bg-current pointer-events-none" />
+            )}
             <Icon className="w-4 h-4" />
             {config.label}
           </div>

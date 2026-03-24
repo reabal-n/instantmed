@@ -9,7 +9,7 @@
  * Compliance: Ensures refund policy is visible at checkout, not just landing pages.
  */
 
-import { RefreshCw, Shield, CheckCircle } from "lucide-react"
+import { RefreshCw, Shield, CheckCircle } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 interface RefundGuaranteeBadgeProps {

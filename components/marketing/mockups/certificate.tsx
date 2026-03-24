@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react"
+import { Mail } from "@/lib/icons"
 
 export function CertificateMockup() {
   return (

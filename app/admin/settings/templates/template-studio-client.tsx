@@ -25,7 +25,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-} from "lucide-react"
+} from "@/lib/icons"
 import type {
   TemplateStudioData,
 } from "@/app/actions/template-studio"

@@ -21,7 +21,7 @@ import {
   BadgeCheck,
   ChevronRight,
   FileText,
-} from "lucide-react"
+} from "@/lib/icons"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { MED_CERT_COPY } from "@/lib/microcopy/med-cert-v2"
 import { SYMPTOM_OPTIONS, CARER_RELATIONSHIPS } from "@/types/med-cert"

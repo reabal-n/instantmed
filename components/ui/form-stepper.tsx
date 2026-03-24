@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
 

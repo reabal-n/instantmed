@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { WifiOff, RefreshCw } from "lucide-react"
+import { WifiOff, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 
 // Prevent static generation for dynamic auth

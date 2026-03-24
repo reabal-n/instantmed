@@ -11,7 +11,7 @@ import {
   XCircle,
   Loader2,
   MessageSquare,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
@@ -252,6 +252,27 @@ export function IntakeStatusTracker({
   const estimatedWait = getEstimatedWaitTime(intakeId)
   const showWaitTime = status === "paid" || status === "in_review"
 
+  // Countdown timer for estimated wait
+  const [elapsedMinutes, setElapsedMinutes] = useState(0)
+  useEffect(() => {
+    if (!showWaitTime) return
+    // Calculate elapsed from the first timestamp (paid)
+    const paidAt = timestamps.get("paid")
+    if (paidAt) {
+      const elapsed = Math.floor((Date.now() - new Date(paidAt).getTime()) / 60000)
+      setElapsedMinutes(elapsed)
+    }
+    const interval = setInterval(() => {
+      const paidTimestamp = timestamps.get("paid")
+      if (paidTimestamp) {
+        setElapsedMinutes(Math.floor((Date.now() - new Date(paidTimestamp).getTime()) / 60000))
+      }
+    }, 60000) // update every minute
+    return () => clearInterval(interval)
+  }, [showWaitTime, timestamps])
+
+  const remainingMinutes = Math.max(0, estimatedWait - elapsedMinutes)
+
   return (
     <div className={cn("rounded-2xl border bg-card p-5", className)}>
       {/* Header */}
@@ -300,34 +321,80 @@ export function IntakeStatusTracker({
         )}
       </AnimatePresence>
 
-      {/* Estimated wait time */}
+      {/* Estimated wait time with countdown */}
       {showWaitTime && (
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
         >
-          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Doctors typically review within {estimatedWait} minutes
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+              <Clock className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {remainingMinutes > 0
+                  ? `Estimated ~${remainingMinutes} min remaining`
+                  : "Should be reviewed any moment now"
+                }
+              </span>
+            </div>
+            {/* Mini progress ring */}
+            <svg className="h-8 w-8 -rotate-90" viewBox="0 0 32 32">
+              <circle
+                cx="16" cy="16" r="12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className="text-blue-200 dark:text-blue-800"
+              />
+              <motion.circle
+                cx="16" cy="16" r="12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                className="text-blue-600 dark:text-blue-400"
+                strokeDasharray={75.4}
+                initial={{ strokeDashoffset: 75.4 }}
+                animate={{
+                  strokeDashoffset: 75.4 * (1 - Math.min(1, elapsedMinutes / estimatedWait)),
+                }}
+                transition={{ duration: prefersReducedMotion ? 0 : 1, ease: "easeOut" }}
+              />
+            </svg>
           </div>
         </motion.div>
       )}
 
       {/* Progress steps */}
       <div className="relative">
-        {/* Progress line */}
+        {/* Background progress line */}
         <div className="absolute left-[15px] top-[24px] bottom-[24px] w-0.5 bg-muted" />
+        {/* Animated filled progress line */}
         <motion.div
-          className="absolute left-[15px] top-[24px] w-0.5 bg-primary"
-          initial={prefersReducedMotion ? false : { height: 0 }}
+          className="absolute left-[15px] top-[24px] w-0.5 bg-gradient-to-b from-primary to-primary/70 origin-top"
+          initial={prefersReducedMotion ? false : { scaleY: 0 }}
           animate={{
-            height: `${Math.max(0, Math.min(100, (currentIndex / (STATUS_STEPS.length - 1)) * 100))}%`,
+            scaleY: Math.max(0, Math.min(1, currentIndex / (STATUS_STEPS.length - 1))),
+            height: "calc(100% - 48px)",
           }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut" }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.7, ease: [0.32, 0, 0.24, 1] }}
         />
+        {/* Shimmer dot at the end of the progress line */}
+        {currentIndex > 0 && currentIndex < STATUS_STEPS.length - 1 && !isSpecialStatus && (
+          <motion.div
+            className="absolute left-[13px] w-1.5 h-1.5 rounded-full bg-primary z-10"
+            initial={false}
+            animate={{
+              top: `${24 + (currentIndex / (STATUS_STEPS.length - 1)) * (100 - 48)}%`,
+              opacity: [1, 0.4, 1],
+            }}
+            transition={{
+              top: { duration: prefersReducedMotion ? 0 : 0.7, ease: [0.32, 0, 0.24, 1] },
+              opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+            }}
+          />
+        )}
 
         {/* Steps */}
         <div className="space-y-4">
@@ -349,10 +416,18 @@ export function IntakeStatusTracker({
                   className={cn(
                     "relative z-10 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                     isComplete && "bg-primary border-primary text-primary-foreground",
-                    isActive && "bg-primary/10 border-primary text-primary animate-pulse",
+                    isActive && "bg-primary/10 border-primary text-primary",
                     isPending && "bg-muted border-muted-foreground/20 text-muted-foreground"
                   )}
                 >
+                  {/* Shimmer ring for active step */}
+                  {isActive && (
+                    <motion.span
+                      className="absolute inset-[-3px] rounded-full border-2 border-primary/40"
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
                   {isComplete ? (
                     <CheckCircle2 className="h-4 w-4" />
                   ) : isActive ? (

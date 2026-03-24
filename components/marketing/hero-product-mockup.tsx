@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, Clock, User } from "lucide-react"
+import { FileText, Clock, User } from "@/lib/icons"
 
 export function HeroProductMockup() {
   const prefersReducedMotion = useReducedMotion()

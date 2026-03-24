@@ -13,6 +13,18 @@ html {
   overflow-x: hidden;
 }
 
+/* Smooth dark mode transition — applied only to key surfaces */
+html body,
+html header,
+html footer,
+html main,
+html nav,
+html .bg-card,
+html .bg-background,
+html .bg-muted {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
+}
+
 body {
   overflow-x: hidden;
   scroll-behavior: smooth;
@@ -3445,6 +3457,88 @@ button:not(.no-micro):active:not(:disabled),
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ==========================================================================
+   PHOSPHOR ICON PREMIUM EFFECTS
+   Duotone icons with glow, hover, and transition effects.
+   Apply via utility classes: icon-glow, icon-hover, icon-premium
+   ========================================================================== */
+
+/* Native spinner — optimized for Phosphor SpinnerGap icon.
+   Smoother than generic animate-spin, uses steps for a mechanical feel. */
+@keyframes icon-spin {
+  to { transform: rotate(360deg); }
+}
+.icon-spin {
+  animation: icon-spin 0.75s linear infinite;
+}
+
+/* Subtle ambient glow — works best on primary/accent icons */
+.icon-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+  opacity: 0.95;
+}
+
+/* Hover lift + glow for interactive icons */
+.icon-hover {
+  transition: transform 0.2s ease-out, filter 0.2s ease-out, opacity 0.2s ease-out;
+  will-change: transform, filter;
+}
+.icon-hover:hover {
+  transform: translateY(-1px) scale(1.05);
+  filter: drop-shadow(0 0 8px currentColor);
+  opacity: 1;
+}
+
+/* Combined premium treatment — glow + hover + warm transition */
+.icon-premium {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 30%, transparent));
+  transition: transform 0.25s ease-out, filter 0.25s ease-out, opacity 0.25s ease-out;
+  will-change: transform, filter;
+}
+.icon-premium:hover {
+  transform: translateY(-1px) scale(1.05);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, currentColor 50%, transparent));
+}
+
+/* Soft pulse animation for status/attention icons */
+@keyframes icon-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 25%, transparent)); }
+  50% { filter: drop-shadow(0 0 12px color-mix(in srgb, currentColor 50%, transparent)); }
+}
+.icon-pulse {
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+/* Phosphor duotone secondary layer opacity — controls the "fill" layer */
+.icon-duotone-strong svg [opacity="0.2"] {
+  opacity: 0.35;
+}
+.icon-duotone-subtle svg [opacity="0.2"] {
+  opacity: 0.12;
+}
+
+/* Dark mode: boost glow visibility on dark backgrounds */
+:is(.dark) .icon-glow {
+  filter: drop-shadow(0 0 8px currentColor);
+  opacity: 1;
+}
+:is(.dark) .icon-premium {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 45%, transparent));
+}
+:is(.dark) .icon-premium:hover {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, currentColor 65%, transparent));
+}
+:is(.dark) .icon-hover:hover {
+  filter: drop-shadow(0 0 12px currentColor);
+}
+@keyframes icon-pulse-dark {
+  0%, 100% { filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 35%, transparent)); }
+  50% { filter: drop-shadow(0 0 16px color-mix(in srgb, currentColor 65%, transparent)); }
+}
+:is(.dark) .icon-pulse {
+  animation-name: icon-pulse-dark;
 }
 
 /* ==========================================================================

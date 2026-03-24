@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Sparkles, Check, AlertCircle } from "lucide-react"
+import { Sparkles, Check, AlertCircle } from "@/lib/icons"
 import { useDebounce } from "@/hooks/use-debounce"
 
 interface SmartSymptomInputProps {

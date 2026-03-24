@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Pill, ArrowRight, X } from "lucide-react"
+import { Search, Pill, ArrowRight, X } from "@/lib/icons"
 import { Input } from "@/components/ui/input"
 import { searchMedications, type Medication, CATEGORY_LABELS } from "@/lib/data/medications"
 

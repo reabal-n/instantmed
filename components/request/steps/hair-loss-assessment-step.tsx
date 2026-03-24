@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Scissors, AlertCircle, Pill, Droplets } from "lucide-react"
+import { Scissors, AlertCircle, Pill, Droplets } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"

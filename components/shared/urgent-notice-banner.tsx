@@ -1,7 +1,7 @@
 "use client"
 
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "@/lib/icons"
 
 export function UrgentNoticeBanner() {
   const { urgentNotice } = useServiceAvailability()

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import {
   UserCheck,
   Lock,
@@ -17,7 +18,7 @@ import {
   Fingerprint,
   ServerCog,
   Eye,
-} from "lucide-react"
+} from "@/lib/icons"
 import { usePatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
 import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import NumberFlow from "@number-flow/react"
@@ -97,6 +98,7 @@ export default function TrustPage() {
   const patientCount = usePatientCount()
 
   return (
+    <MarketingPageShell>
     <div className="min-h-screen">
       <Navbar variant="marketing" />
 
@@ -338,6 +340,7 @@ export default function TrustPage() {
 
       <MarketingFooter />
     </div>
+    </MarketingPageShell>
   )
 }
 

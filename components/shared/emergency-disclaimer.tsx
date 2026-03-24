@@ -1,4 +1,4 @@
-import { AlertTriangle, Phone, Heart } from "lucide-react"
+import { AlertTriangle, Phone, Heart } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 // =============================================================================

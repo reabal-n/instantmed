@@ -22,7 +22,7 @@ import {
   AlertTriangle,
   Search,
   X,
-} from "lucide-react"
+} from "@/lib/icons"
 
 // Animation variants
 const fadeSlide = {

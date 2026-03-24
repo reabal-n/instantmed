@@ -24,7 +24,7 @@ import {
   AlertTriangle,
   Loader2,
   Clock,
-} from "lucide-react"
+} from "@/lib/icons"
 import { getChatTranscriptForIntake, type GetTranscriptResult } from "@/app/actions/get-chat-transcript"
 
 interface ChatTranscriptPanelProps {

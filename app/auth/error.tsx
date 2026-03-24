@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, RefreshCw, LogIn, Home } from "lucide-react"
+import { AlertTriangle, RefreshCw, LogIn, Home } from "@/lib/icons"
 
 export default function AuthError({
   error,

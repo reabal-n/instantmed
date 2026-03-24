@@ -2,7 +2,7 @@
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import type { SectionProps, ChecklistItem } from "./types";

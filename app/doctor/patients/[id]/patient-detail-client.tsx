@@ -22,7 +22,7 @@ import {
   StickyNote,
   Plus,
   Loader2,
-} from "lucide-react"
+} from "@/lib/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { useState, useTransition } from "react"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"

@@ -21,7 +21,7 @@ import {
   Activity,
   Loader2,
   Shield,
-} from "lucide-react"
+} from "@/lib/icons"
 
 // ============================================================================
 // TYPES

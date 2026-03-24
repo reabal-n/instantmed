@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Clock, Calendar } from "lucide-react"
+import { ArrowLeft, User, Clock, Calendar } from "@/lib/icons"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"

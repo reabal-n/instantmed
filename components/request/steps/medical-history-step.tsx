@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback } from "react"
-import { HeartPulse } from "lucide-react"
+import { HeartPulse } from "@/lib/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"

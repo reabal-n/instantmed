@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ShieldAlert, AlertTriangle, XCircle } from "lucide-react"
+import { ShieldAlert, AlertTriangle, XCircle } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"

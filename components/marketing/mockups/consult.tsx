@@ -1,4 +1,4 @@
-import { Stethoscope } from "lucide-react"
+import { Stethoscope } from "@/lib/icons"
 
 export function ConsultMockup() {
   return (

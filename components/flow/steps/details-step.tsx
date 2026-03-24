@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle } from '@/lib/icons'
 import { ButtonSpinner, Spinner } from '@/components/ui/unified-skeleton'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'

@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   Circle,
   ChevronRight,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import type { AustralianState } from "@/types/db"
 

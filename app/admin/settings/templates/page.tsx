@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { TemplateStudioClient } from "./template-studio-client"
 import { loadTemplateStudioData } from "@/app/actions/template-studio"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "@/lib/icons"
 
 export const metadata = {
   title: "Template Studio | Admin",

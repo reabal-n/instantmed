@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { motion, useReducedMotion } from "framer-motion"
-import { Mail, AlertCircle, CheckCircle2, Loader2, RefreshCw } from "lucide-react"
+import { Mail, AlertCircle, CheckCircle2, Loader2, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"

@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "lucide-react"
+import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "@/lib/icons"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
@@ -100,7 +100,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 {/* Avatar - Unsplash photo or initials fallback */}
                 {review.image ? (
                   <div className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-primary/20">
-                    <Image src={review.image} alt={review.name} fill className="object-cover" />
+                    <Image src={review.image} alt={review.name} fill sizes="40px" className="object-cover" />
                   </div>
                 ) : (
                   <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(review.name)}`}>
@@ -208,7 +208,7 @@ export function ReviewsClientPageComponent() {
                 >
                   <div className="flex gap-0.5 mb-3">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="h-3.5 w-3.5 text-warning fill-warning" />
+                      <Star key={j} className="h-3.5 w-3.5 text-warning" weight="fill" />
                     ))}
                   </div>
                   <p className="text-sm text-foreground leading-relaxed mb-4">
@@ -217,7 +217,7 @@ export function ReviewsClientPageComponent() {
                   <div className="flex items-center gap-3">
                     {review.image ? (
                       <div className="relative h-9 w-9 rounded-full overflow-hidden ring-2 ring-primary/30">
-                        <Image src={review.image} alt={review.name} fill className="object-cover" />
+                        <Image src={review.image} alt={review.name} fill sizes="40px" className="object-cover" />
                       </div>
                     ) : (
                       <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-medium ${getAvatarColor(review.name)}`}>

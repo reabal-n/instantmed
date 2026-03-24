@@ -14,7 +14,7 @@ import {
   FileText,
   Lock,
   AlertTriangle,
-} from "lucide-react"
+} from "@/lib/icons"
 import { getCertificateByRef } from "@/lib/data/issued-certificates"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { formatDateLong } from "@/lib/format"
@@ -91,7 +91,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3 shrink-0">
-                    <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                    <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" weight="fill" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200">Certificate Verified</h3>
@@ -152,7 +152,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
                   <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
-                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
+                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" weight="fill" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Certificate Revoked</h3>
@@ -172,7 +172,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
                   <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
-                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
+                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" weight="fill" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Certificate Not Found</h3>

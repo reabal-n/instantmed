@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CreditCard, Users } from '@/lib/icons'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -84,21 +84,17 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 >
                   <Link href="/request?service=med-cert">
                     Get your medical certificate
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-4 w-4" weight="bold" />
                   </Link>
                 </Button>
               </MagneticButton>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 px-6 text-base active:scale-[0.98]"
+              <Link
+                href="/request?service=prescription"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group self-center sm:self-auto"
               >
-                <Link href="/request?service=prescription">
-                  Renew medication
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+                or renew medication
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
             </motion.div>
 
             {/* Trust signals */}
@@ -115,6 +111,10 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />
                 <span className="text-center lg:text-left">No account required &middot; Pay only if approved</span>
+              </p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 mt-1">
+                <Users className="h-3.5 w-3.5 text-primary/70 shrink-0" />
+                <span>2,000+ Australians helped</span>
               </p>
             </motion.div>
           </div>

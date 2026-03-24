@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Phone, AlertCircle, Calendar } from "lucide-react"
+import { Phone, AlertCircle, Calendar } from "@/lib/icons"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

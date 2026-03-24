@@ -35,7 +35,7 @@ import {
   Users,
   ChevronRight,
   Calendar,
-} from "lucide-react"
+} from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export interface PaginationInfo {

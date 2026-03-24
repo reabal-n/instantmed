@@ -8,7 +8,7 @@
  */
 
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { WifiOff, CloudOff, RefreshCw } from "lucide-react"
+import { WifiOff, CloudOff, RefreshCw } from "@/lib/icons"
 import { Button } from "@/components/ui/button"
 import { useConnectionStatus } from "@/hooks/use-connection-status"
 

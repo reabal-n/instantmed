@@ -4,16 +4,26 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { X, Clock } from "lucide-react"
+import { X, Clock } from "@/lib/icons"
 import { usePathname } from "next/navigation"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
   "/medical-certificate": { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" },
   "/prescriptions": { name: "Prescription", price: PRICING_DISPLAY.REPEAT_SCRIPT, href: "/prescriptions/new" },
+  "/general-consult": { name: "General Consult", price: PRICING_DISPLAY.CONSULT, href: "/request?service=consult" },
+  "/hair-loss": { name: "Hair Loss Treatment", price: PRICING_DISPLAY.HAIR_LOSS, href: "/request?service=consult&subtype=hair_loss" },
 }
 
 const DEFAULT_CONFIG = { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" }
+
+// Context-aware CTA text based on which section is visible
+const SECTION_CTA_MAP: Record<string, string> = {
+  pricing: "See pricing",
+  "how-it-works": "Get started",
+  testimonials: "Join them",
+  faq: "Still have questions?",
+}
 
 // Session limiting
 const SESSION_KEY = "sticky_cta_shown"
@@ -27,11 +37,15 @@ export function StickyCTABar() {
     return shown ? parseInt(shown, 10) >= MAX_SHOWS_PER_SESSION : false
   })
   const [isNearFooter, setIsNearFooter] = useState(false)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
   const pathname = usePathname()
   const prefersReducedMotion = useReducedMotion()
 
   // Get page-specific config
   const config = Object.entries(SERVICE_CONFIG).find(([path]) => pathname?.startsWith(path))?.[1] || DEFAULT_CONFIG
+
+  // Context-aware CTA label
+  const ctaLabel = (activeSection && SECTION_CTA_MAP[activeSection]) || "Start a request"
 
   const handleScroll = useCallback(() => {
     if (isDismissed) return
@@ -56,6 +70,27 @@ export function StickyCTABar() {
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isDismissed, handleScroll])
+
+  // Detect which section is currently in view for context-aware CTA
+  useEffect(() => {
+    const sectionIds = Object.keys(SECTION_CTA_MAP)
+    const observers: IntersectionObserver[] = []
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveSection(id)
+        },
+        { threshold: 0.3 }
+      )
+      observer.observe(el)
+      observers.push(observer)
+    })
+
+    return () => observers.forEach((o) => o.disconnect())
+  }, [pathname])
 
   // Don't show on request flows or patient/doctor portals
   if (!pathname || pathname.includes("/request") || pathname.startsWith("/patient") || pathname.startsWith("/doctor")) {
@@ -90,7 +125,7 @@ export function StickyCTABar() {
                 size="sm"
                 className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
               >
-                <Link href={config.href}>Start a request</Link>
+                <Link href={config.href}>{ctaLabel}</Link>
               </Button>
               <button
                 onClick={() => {
