@@ -109,6 +109,8 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.maintenance_scheduled_start = typeof row.value === "string" && row.value ? row.value : null
       } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_END) {
         flags.maintenance_scheduled_end = typeof row.value === "string" && row.value ? row.value : null
+      } else if (row.key === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED) {
+        flags.ai_auto_approve_enabled = row.value === true
       }
     }
 

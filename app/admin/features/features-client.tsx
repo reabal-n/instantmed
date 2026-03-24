@@ -708,6 +708,53 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
         </Card>
       )}
 
+      {/* AI Auto-Approve Toggle */}
+      <Card className={flags.ai_auto_approve_enabled ? "border-violet-300 bg-violet-50/30" : ""}>
+        <CardHeader className="px-6 pt-6">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Stethoscope className="h-4 w-4" />
+            AI Auto-Approve Med Certs
+            {flags.ai_auto_approve_enabled && (
+              <Badge className="ml-2 bg-violet-100 text-violet-700 border-violet-200">ACTIVE</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Automatically approve eligible medical certificates (1-3 day, no flags, no mental health/injury/chronic) within minutes of payment.
+            Doctor batch review still applies — all AI-approved certs appear in the review queue for oversight.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          <div className="flex items-center justify-between p-5 rounded-lg border">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${flags.ai_auto_approve_enabled ? "bg-violet-100" : "bg-muted"}`}>
+                <Stethoscope className={`h-5 w-5 ${flags.ai_auto_approve_enabled ? "text-violet-600" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="font-medium">Auto-Approval Status</p>
+                <p className="text-sm text-muted-foreground">
+                  {flags.ai_auto_approve_enabled
+                    ? "Eligible med certs are auto-approved and delivered instantly"
+                    : "All med certs require manual doctor review (default)"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {isSaving === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED && (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+              <Switch
+                checked={flags.ai_auto_approve_enabled}
+                onCheckedChange={() => executeToggle(FLAG_KEYS.AI_AUTO_APPROVE_ENABLED, flags.ai_auto_approve_enabled)}
+                disabled={isSaving === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Safety: rate-limited to 10/5min and 50/day. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and certs over 3 days.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Kill Switch Confirmation Dialog */}
       <AlertDialog open={!!pendingToggle} onOpenChange={(open) => !open && setPendingToggle(null)}>
         <AlertDialogContent>

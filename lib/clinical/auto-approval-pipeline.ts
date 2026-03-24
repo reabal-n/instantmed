@@ -10,7 +10,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { flags } from "@/lib/config/feature-flags"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { evaluateAutoApprovalEligibility, extractDurationDays } from "./auto-approval"
 import { executeCertApproval } from "@/lib/cert/execute-approval"
 import { checkRateLimit } from "@/lib/rate-limit/doctor"
@@ -148,8 +148,9 @@ async function releaseSystemClaim(
 export async function attemptAutoApproval(intakeId: string): Promise<AutoApprovalResult> {
   const startTime = Date.now()
 
-  // 1. Feature flag check
-  if (!flags.ENABLE_AI_AUTO_APPROVE) {
+  // 1. Feature flag check (DB-backed, togglable from admin dashboard)
+  const featureFlags = await getFeatureFlags()
+  if (!featureFlags.ai_auto_approve_enabled) {
     return { success: true, autoApproved: false, reason: "Feature disabled" }
   }
 

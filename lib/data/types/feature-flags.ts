@@ -36,6 +36,7 @@ export const FLAG_KEYS = {
   AB_TESTING_ENABLED: "ab_testing_enabled",
   SUPPORT_TICKETS_ENABLED: "support_tickets_enabled",
   CLINICAL_DECISION_SUPPORT_ENABLED: "clinical_decision_support_enabled",
+  AI_AUTO_APPROVE_ENABLED: "ai_auto_approve_enabled",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -71,6 +72,7 @@ export interface FeatureFlags {
   ab_testing_enabled: boolean
   support_tickets_enabled: boolean
   clinical_decision_support_enabled: boolean
+  ai_auto_approve_enabled: boolean
 }
 
 // ============================================================================
@@ -111,6 +113,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   ab_testing_enabled: false,
   support_tickets_enabled: false,
   clinical_decision_support_enabled: false,
+  ai_auto_approve_enabled: false,
 }
 
 // ============================================================================
@@ -221,6 +224,10 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     clinical_decision_support_enabled: {
       label: "Clinical Decision Support",
       description: "Enable clinical decision support alerts for doctors",
+    },
+    ai_auto_approve_enabled: {
+      label: "AI Auto-Approve Med Certs",
+      description: "Automatically approve eligible medical certificates (1-3 day, no flags) within minutes of payment. Doctor batch review still applies.",
     },
   }
   return info[key]
