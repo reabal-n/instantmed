@@ -97,3 +97,52 @@ export function getModelWithConfig(type: AIModelType) {
 export function isAIConfigured(): boolean {
   return !!(getAIApiKey() || process.env.VERCEL)
 }
+
+/**
+ * Sanitize prompt input by stripping potential PII patterns.
+ *
+ * Removes:
+ * - Medicare numbers (10-11 digit sequences)
+ * - Australian phone numbers (04xx xxx xxx, +61 format)
+ * - Email addresses
+ * - Date of birth patterns (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD)
+ *
+ * Returns the sanitized text with PII replaced by placeholder tokens.
+ */
+export function sanitizePromptInput(text: string): string {
+  let sanitized = text
+
+  // Strip email addresses (before other patterns to avoid partial matches)
+  sanitized = sanitized.replace(
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+    "[EMAIL_REDACTED]"
+  )
+
+  // Strip Australian phone numbers: +61XXXXXXXXX or 0X XXXX XXXX variants
+  sanitized = sanitized.replace(
+    /\+61\s?\d[\s-]?\d{4}[\s-]?\d{4}/g,
+    "[PHONE_REDACTED]"
+  )
+  sanitized = sanitized.replace(
+    /\b0[2-9][\s-]?\d{4}[\s-]?\d{4}\b/g,
+    "[PHONE_REDACTED]"
+  )
+
+  // Strip date of birth patterns: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+  sanitized = sanitized.replace(
+    /\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g,
+    "[DOB_REDACTED]"
+  )
+  sanitized = sanitized.replace(
+    /\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b/g,
+    "[DOB_REDACTED]"
+  )
+
+  // Strip Medicare numbers (10-11 digit sequences)
+  sanitized = sanitized.replace(
+    /\b\d{10,11}\b/g,
+    "[MEDICARE_REDACTED]"
+  )
+
+  return sanitized
+}

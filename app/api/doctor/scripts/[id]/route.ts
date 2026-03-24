@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { getApiAuth } from "@/lib/auth"
-import { updateScriptTaskStatus, ScriptTaskStatus } from "@/lib/data/script-tasks"
+import { updateScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+
+const updateScriptTaskSchema = z.object({
+  status: z.enum(["pending_send", "sent", "confirmed"]),
+  notes: z.string().optional(),
+})
 
 const log = createLogger("doctor-scripts-update")
 
@@ -34,11 +40,13 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { status, notes } = body as { status: ScriptTaskStatus; notes?: string }
+    const parsed = updateScriptTaskSchema.safeParse(body)
 
-    if (!status || !["pending_send", "sent", "confirmed"].includes(status)) {
+    if (!parsed.success) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
+
+    const { status, notes } = parsed.data
 
     const success = await updateScriptTaskStatus(id, status, notes)
 

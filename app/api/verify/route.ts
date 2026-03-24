@@ -15,6 +15,7 @@ import { Redis } from "@upstash/redis"
 import { getClientIdentifier } from "@/lib/rate-limit/redis"
 import { logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
+import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
 
 // ---- Inline rate limit types & helpers (self-contained for this public endpoint) ----
 
@@ -62,6 +63,22 @@ function createRateLimitHeaders(result: RateLimitResult): HeadersInit {
 }
 
 const logger = createLogger("verify-api")
+
+const ISSUED_CERT_SELECT_FIELDS = `
+  id,
+  certificate_number,
+  verification_code,
+  certificate_type,
+  status,
+  issue_date,
+  start_date,
+  end_date,
+  patient_name,
+  doctor_name,
+  doctor_nominals,
+  clinic_identity_snapshot,
+  certificate_ref
+` as const
 
 /**
  * Log verification attempts for security monitoring
@@ -164,7 +181,7 @@ export async function GET(request: Request) {
   }
 
   // Sanitize and normalize input
-  const code = rawCode.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "")
+  const code = normalizeVerificationCode(rawCode)
 
   // Validate code format - allow various formats
   // MC-YYYY-XXXXXXXX (certificate number), IM-TYPE-YYYYMMDD-NNNNN (certificate ref), or XXXXXXXX (verification code)
@@ -191,20 +208,7 @@ export async function GET(request: Request) {
     
     const { data: certByVerificationCode } = await supabase
       .from("issued_certificates")
-      .select(`
-        id,
-        certificate_number,
-        verification_code,
-        certificate_type,
-        status,
-        issue_date,
-        start_date,
-        end_date,
-        patient_name,
-        doctor_name,
-        doctor_nominals,
-        clinic_identity_snapshot
-      `)
+      .select(ISSUED_CERT_SELECT_FIELDS)
       .eq("verification_code", code)
       .maybeSingle()
     
@@ -214,21 +218,7 @@ export async function GET(request: Request) {
       // Try certificate_number if not found by verification_code
       const { data: certByCertNumber } = await supabase
         .from("issued_certificates")
-        .select(`
-          id,
-          certificate_number,
-          verification_code,
-          certificate_type,
-          status,
-          issue_date,
-          start_date,
-          end_date,
-          patient_name,
-          doctor_name,
-          doctor_nominals,
-          clinic_identity_snapshot,
-          certificate_ref
-        `)
+        .select(ISSUED_CERT_SELECT_FIELDS)
         .eq("certificate_number", code)
         .maybeSingle()
 
@@ -238,21 +228,7 @@ export async function GET(request: Request) {
         // Try certificate_ref (e.g. IM-WORK-20260218-04827)
         const { data: certByRef } = await supabase
           .from("issued_certificates")
-          .select(`
-            id,
-            certificate_number,
-            verification_code,
-            certificate_type,
-            status,
-            issue_date,
-            start_date,
-            end_date,
-            patient_name,
-            doctor_name,
-            doctor_nominals,
-            clinic_identity_snapshot,
-            certificate_ref
-          `)
+          .select(ISSUED_CERT_SELECT_FIELDS)
           .eq("certificate_ref", code)
           .maybeSingle()
 

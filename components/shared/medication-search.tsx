@@ -326,7 +326,8 @@ export function MedicationSearch({
                 index !== options.length - 1 && "border-b border-border/50"
               )}
               role="option"
-              aria-selected={highlightedIndex === index}
+              aria-selected={value?.pbs_code === option.pbs_code}
+              data-highlighted={highlightedIndex === index || undefined}
             >
               <p className="text-sm font-medium">{option.drug_name}</p>
               {option.strength && (

@@ -262,8 +262,7 @@ export function isHighRiskFirstTime(
 ): boolean {
   if (!isFirstPrescription) return false
   
-  const lowerName = medicationName.toLowerCase()
-  return HIGH_RISK_FIRST_TIME_CATEGORIES.some(cat => lowerName.includes(cat))
+  return HIGH_RISK_FIRST_TIME_CATEGORIES.some(cat => new RegExp(`\\b${cat}\\b`, 'i').test(medicationName))
 }
 
 // ============================================================================

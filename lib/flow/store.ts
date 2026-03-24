@@ -1,15 +1,13 @@
 'use client'
 /* eslint-disable no-console -- Flow state management needs console for debugging */
 
-import { useState, useEffect } from 'react'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { FlowState, FlowActions, FlowStepId } from './types'
 import type { IdentityData as _IdentityData, ConsentRecord as _ConsentRecord } from './types'
 import type { SyncStatus } from './draft/types'
 import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
-import { validateIHI } from '@/lib/validation/ihi'
-import { validateMedicareNumber } from '@/lib/validation/medicare'
+import { validateAllRequiredFields as validateFields, type ValidationResult } from './store-validators'
 
 // Placeholder values for SSR - will be replaced on client hydration
 const SSR_SESSION_ID = 'ssr_placeholder'
@@ -88,19 +86,14 @@ function createInitialState(): ExtendedFlowState {
 }
 
 // 5-step order per refined intake spec
-const STEP_ORDER: FlowStepId[] = ['service', 'safety', 'questions', 'details', 'checkout']
+export const STEP_ORDER: FlowStepId[] = ['service', 'safety', 'questions', 'details', 'checkout']
 
 // Debounce timer
 let saveTimer: NodeJS.Timeout | null = null
 const SAVE_DEBOUNCE_MS = 1500
 const _MAX_RETRY_COUNT = 3
 
-// Validation result type
-export interface ValidationResult {
-  isValid: boolean
-  missingFields: string[]
-  errors: Record<string, string>
-}
+// ValidationResult is imported above and re-exported at the bottom
 
 // Extended actions for sync
 interface ExtendedFlowActions extends FlowActions {
@@ -476,134 +469,7 @@ export const useFlowStore = create<FlowStore>()(
       // AGGREGATE VALIDATION
       // ============================================
 
-      validateAllRequiredFields: () => {
-        const state = get()
-        const missingFields: string[] = []
-        const errors: Record<string, string> = {}
-
-        // Must have a service selected
-        if (!state.serviceSlug) {
-          missingFields.push('serviceSlug')
-          errors['serviceSlug'] = 'Please select a service'
-        }
-
-        // Check safety confirmation (emergency_symptoms should be empty/none)
-        const emergencySymptoms = state.answers.emergency_symptoms as string[] | undefined
-        if (emergencySymptoms && emergencySymptoms.length > 0 && !emergencySymptoms.includes('none')) {
-          missingFields.push('emergency_symptoms')
-          errors['emergency_symptoms'] = 'Emergency symptoms detected - please seek immediate care'
-        }
-
-        // Determine if this is a prescription flow (requires Medicare/IHI for eScript)
-        const isPrescriptionFlow = state.serviceSlug && [
-          'prescription',
-          'repeat-script', 
-          'new-script',
-          'consult',
-          'gp-consult',
-        ].includes(state.serviceSlug)
-
-        // Check identity data for details step
-        const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth']
-        if (state.identityData) {
-          for (const field of identityFields) {
-            const value = state.identityData[field as keyof typeof state.identityData]
-            if (!value) {
-              missingFields.push(field)
-              errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`
-            }
-          }
-          
-          // For prescription flows: require address
-          if (isPrescriptionFlow) {
-            const addressFields = ['addressLine1', 'suburb', 'state', 'postcode']
-            for (const field of addressFields) {
-              const value = state.identityData[field as keyof typeof state.identityData]
-              if (!value) {
-                missingFields.push(field)
-                errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required for prescriptions`
-              }
-            }
-            
-            // For prescription flows: require valid Medicare OR valid IHI (for eScript issuance)
-            const medicareValue = state.identityData.medicareNumber ? String(state.identityData.medicareNumber) : ''
-            const ihiValue = state.identityData.ihi ? String(state.identityData.ihi) : ''
-            
-            const medicareValidation = medicareValue ? validateMedicareNumber(medicareValue) : { valid: false }
-            const ihiValidation = ihiValue ? validateIHI(ihiValue) : { valid: false }
-            
-            const hasMedicare = medicareValidation.valid
-            const hasIHI = ihiValidation.valid
-            
-            if (!hasMedicare && !hasIHI) {
-              missingFields.push('medicareOrIhi')
-              // Provide specific error if they entered something invalid
-              if (medicareValue && !medicareValidation.valid) {
-                errors['medicareOrIhi'] = medicareValidation.error || 'Invalid Medicare number'
-              } else if (ihiValue && !ihiValidation.valid) {
-                errors['medicareOrIhi'] = ihiValidation.error || 'Invalid IHI number'
-              } else {
-                errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
-              }
-            }
-          }
-        } else {
-          // Check if identity fields are in answers (for guest checkout)
-          for (const field of ['patient_name', 'patient_email', 'patient_phone', 'patient_dob']) {
-            if (!state.answers[field]) {
-              missingFields.push(field)
-              errors[field] = `${field.replace(/_/g, ' ')} is required`
-            }
-          }
-          
-          // For prescription flows in guest checkout: require address fields
-          if (isPrescriptionFlow) {
-            for (const field of ['patient_address', 'patient_suburb', 'patient_state', 'patient_postcode']) {
-              if (!state.answers[field]) {
-                missingFields.push(field)
-                errors[field] = `${field.replace(/patient_/g, '').replace(/_/g, ' ')} is required for prescriptions`
-              }
-            }
-            
-            // Require valid Medicare OR valid IHI
-            const medicareValue = state.answers.patient_medicare ? String(state.answers.patient_medicare) : ''
-            const ihiValue = state.answers.patient_ihi ? String(state.answers.patient_ihi) : ''
-            
-            const medicareValidation = medicareValue ? validateMedicareNumber(medicareValue) : { valid: false }
-            const ihiValidation = ihiValue ? validateIHI(ihiValue) : { valid: false }
-            
-            const hasMedicare = medicareValidation.valid
-            const hasIHI = ihiValidation.valid
-            
-            if (!hasMedicare && !hasIHI) {
-              missingFields.push('medicareOrIhi')
-              if (medicareValue && !medicareValidation.valid) {
-                errors['medicareOrIhi'] = medicareValidation.error || 'Invalid Medicare number'
-              } else if (ihiValue && !ihiValidation.valid) {
-                errors['medicareOrIhi'] = ihiValidation.error || 'Invalid IHI number'
-              } else {
-                errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
-              }
-            }
-          }
-        }
-
-        // Check consents
-        if (state.consentsGiven.length === 0) {
-          // Consents might be stored differently in some flows
-          const termsAgreed = state.answers.agreedToTerms || state.answers.terms_agreed
-          if (!termsAgreed) {
-            missingFields.push('consents')
-            errors['consents'] = 'Please agree to the terms and conditions'
-          }
-        }
-
-        return {
-          isValid: missingFields.length === 0,
-          missingFields,
-          errors,
-        }
-      },
+      validateAllRequiredFields: () => validateFields(get()),
 
       clearDraft: () => {
         // Clear localStorage
@@ -666,74 +532,20 @@ export const useFlowStore = create<FlowStore>()(
 )
 
 // ============================================
-// SELECTOR HOOKS
+// RE-EXPORTS (backwards compatibility)
 // ============================================
 
-export const useFlowStep = () => useFlowStore((s) => s.currentStepId)
-export const useFlowService = () => useFlowStore((s) => s.serviceSlug)
-export const useFlowAnswers = () => useFlowStore((s) => s.answers)
-export const useFlowIdentity = () => useFlowStore((s) => s.identityData)
-export const useFlowEligibility = () =>
-  useFlowStore((s) => ({
-    isEligible: s.isEligible,
-    failReason: s.eligibilityFailReason,
-  }))
-export const useFlowProgress = () =>
-  useFlowStore((s) => ({
-    currentStepId: s.currentStepId,
-    currentGroupIndex: s.currentGroupIndex,
-    stepIndex: STEP_ORDER.indexOf(s.currentStepId),
-    totalSteps: STEP_ORDER.length,
-  }))
-export const useFlowUI = () =>
-  useFlowStore((s) => ({
-    isLoading: s.isLoading,
-    isSaving: s.isSaving,
-    error: s.error,
-    lastSavedAt: s.lastSavedAt,
-  }))
-export const useFlowSync = () =>
-  useFlowStore((s) => ({
-    syncStatus: s.syncStatus,
-    pendingChanges: s.pendingChanges,
-    lastSyncError: s.lastSyncError,
-    localVersion: s.localVersion,
-    serverVersion: s.serverVersion,
-  }))
-export const useFlowDraft = () =>
-  useFlowStore((s) => ({
-    draftId: s.draftId,
-    sessionId: s.sessionId,
-    startedAt: s.startedAt,
-  }))
+export {
+  useFlowStep,
+  useFlowService,
+  useFlowAnswers,
+  useFlowIdentity,
+  useFlowEligibility,
+  useFlowProgress,
+  useFlowUI,
+  useFlowSync,
+  useFlowDraft,
+  useHydrateFlowStore,
+} from './store-selectors'
 
-// ============================================
-// HYDRATION
-// ============================================
-
-/**
- * Hook to hydrate the store on client mount
- * Call this in your app root or on pages that use the flow store
- */
-export function useHydrateFlowStore() {
-  const [hydrated, setHydrated] = useState(false)
-
-  useEffect(() => {
-    // Trigger Zustand's rehydration from localStorage
-    useFlowStore.persist.rehydrate()
-    
-    // Ensure we have valid session ID and timestamp after hydration
-    const state = useFlowStore.getState()
-    if (state.sessionId === SSR_SESSION_ID) {
-      useFlowStore.setState({ sessionId: generateSessionId() })
-    }
-    if (state.startedAt === SSR_TIMESTAMP) {
-      useFlowStore.setState({ startedAt: getTimestamp() })
-    }
-    
-     
-    setHydrated(true)
-  }, [])
-
-  return hydrated
-}
+export { type ValidationResult } from './store-validators'

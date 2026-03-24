@@ -17,6 +17,7 @@ import {
   Search,
 } from "lucide-react"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
 
 interface VerificationResult {
   valid: boolean
@@ -52,7 +53,7 @@ export function VerifyClient() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const cleanCode = code.trim().toUpperCase()
+    const cleanCode = normalizeVerificationCode(code)
     if (!cleanCode) return
 
     setIsLoading(true)

@@ -1,5 +1,6 @@
 "use server"
 
+import { z } from "zod"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRole } from "@/lib/auth"
 import { sendEmail } from "@/lib/email/send-email"
@@ -12,6 +13,12 @@ import {
   logCertificateEvent,
   incrementEmailRetry,
 } from "@/lib/data/issued-certificates"
+
+const patientDataSchema = z.object({
+  id: z.string(),
+  full_name: z.string(),
+  email: z.string().email(),
+})
 
 interface ResendCertificateResult {
   success: boolean
@@ -57,13 +64,16 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       return { success: false, error: "Certificate is not yet available - intake must be approved first" }
     }
 
-    // Get patient data
-    const patientData = intake.patient as { id: string; full_name: string; email: string } | { id: string; full_name: string; email: string }[] | null
-    const patient = Array.isArray(patientData) ? patientData[0] : patientData
-    
-    if (!patient?.email) {
-      return { success: false, error: "Patient email not found" }
+    // Get patient data with Zod validation
+    const rawPatient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
+    const patientResult = patientDataSchema.safeParse(rawPatient)
+
+    if (!patientResult.success) {
+      logger.warn("Resend certificate admin: invalid patient data", { intakeId, errors: patientResult.error.flatten() })
+      return { success: false, error: "Patient data is missing or invalid" }
     }
+
+    const patient = patientResult.data
 
     // Get the certificate for this intake (new issued_certificates table)
     const certificate = await getCertificateForIntake(intakeId)
