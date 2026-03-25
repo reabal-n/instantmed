@@ -42,7 +42,7 @@ export function BlurFade({
   return (
     <motion.div
       ref={ref}
-      initial={prefersReducedMotion ? false : "hidden"}
+      initial={prefersReducedMotion ? {} : "hidden"}
       animate={inView ? (isInView ? "visible" : "hidden") : "visible"}
       variants={variants}
       custom={{ yOffset, blur }}

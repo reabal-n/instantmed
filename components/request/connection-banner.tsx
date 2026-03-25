@@ -24,7 +24,7 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
     <AnimatePresence>
       {!isOnline && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className={className}
@@ -50,7 +50,7 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
       
       {isOnline && pendingCount > 0 && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className={className}

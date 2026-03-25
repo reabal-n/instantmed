@@ -63,7 +63,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
       <div className="space-y-6">
         {/* Emergency symptoms list */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-xl border-2 border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5 backdrop-blur-xl p-5"
         >
@@ -85,7 +85,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
             {symptoms.map((symptom: string, index: number) => (
               <motion.li
                 key={symptom}
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.05 }}
                 className="flex items-center gap-2.5 text-sm text-foreground"
@@ -99,7 +99,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
         {/* Safety confirmation toggle */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
           className={cn(
@@ -120,7 +120,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
           <AnimatePresence>
             {safetyConfirmed && (
               <motion.div
-                initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+                initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
@@ -136,7 +136,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
         {/* Emergency help link */}
         <motion.button
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
           onClick={handleEmergencyClick}
@@ -147,7 +147,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
         {/* Continue button */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.35 }}
           className="pt-2"
@@ -172,14 +172,14 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
       <AnimatePresence>
         {showEmergencyResources && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
             onClick={() => setShowEmergencyResources(false)}
           >
             <motion.div
-              initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}

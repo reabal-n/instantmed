@@ -129,7 +129,7 @@ const GradientBgMotion = React.forwardRef<HTMLDivElement, GradientBgMotionProps>
             : style
         }
         aria-hidden="true"
-        initial={prefersReducedMotion ? false : { opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 1, ease: 'easeOut' }}
         {...props}

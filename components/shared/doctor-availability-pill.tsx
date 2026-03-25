@@ -61,7 +61,7 @@ export function DoctorAvailabilityPill() {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
       className="flex justify-center"
@@ -83,7 +83,7 @@ export function DoctorAvailabilityPill() {
               <Users className="w-3 h-3" />
               <motion.span
                 key={visitors}
-                initial={prefersReducedMotion ? false : { opacity: 0.5, y: -2 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0.5, y: -2 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               >

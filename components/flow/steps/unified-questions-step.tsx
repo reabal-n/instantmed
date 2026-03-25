@@ -326,7 +326,7 @@ export function UnifiedQuestionsStep({
         <AnimatePresence>
           {isExpanded && (
             <motion.div
-              initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -392,7 +392,7 @@ export function UnifiedQuestionsStep({
         <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-emerald-500 rounded-full"
-            initial={prefersReducedMotion ? false : { width: 0 }}
+            initial={prefersReducedMotion ? {} : { width: 0 }}
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           />
@@ -453,7 +453,7 @@ export function UnifiedQuestionsStep({
         <AnimatePresence>
           {showValidationErrors && !isFormComplete && (
             <motion.p
-              initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="text-xs text-red-500 text-center mt-3"

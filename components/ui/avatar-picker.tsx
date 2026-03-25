@@ -356,7 +356,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
     <motion.div initial="initial" animate="animate" className="w-full">
       <div className="w-full max-w-md mx-auto overflow-hidden rounded-2xl bg-linear-to-b from-background to-muted/30 border border-border/20">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
           animate={{
             opacity: 1,
             height: "6rem",
@@ -393,7 +393,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
           <motion.div className="text-center mt-3" variants={pickerVariants.item}>
             <motion.h2
               className="text-lg font-semibold text-foreground"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.3 }}
             >
@@ -401,7 +401,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
             </motion.h2>
             <motion.p
               className="text-muted-foreground text-xs"
-              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
             >

@@ -207,7 +207,7 @@ export function StreamlinedIntake({
     <div ref={mainRef} className="w-full max-w-lg mx-auto px-4 py-6 sm:py-8">
       {/* Progress */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >

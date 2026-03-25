@@ -19,7 +19,7 @@ export function SmartDateSuggestions({ onSelect, context = 'certificate' }: Smar
   
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="flex flex-wrap gap-2 mt-2"
@@ -140,7 +140,7 @@ export function SmartDurationSuggestions({
   
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="flex flex-wrap gap-2 mt-2"

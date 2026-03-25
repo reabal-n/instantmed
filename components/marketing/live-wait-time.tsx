@@ -195,7 +195,7 @@ export function LiveWaitTime({
               {isOnline ? (
                 <motion.span
                   key={time}
-                  initial={prefersReducedMotion ? false : { opacity: 0.5, y: -2 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0.5, y: -2 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   className="font-medium text-foreground"
@@ -249,7 +249,7 @@ export function LiveWaitTime({
                       <>
                         <motion.span
                           key={time}
-                          initial={prefersReducedMotion ? false : { opacity: 0.5 }}
+                          initial={prefersReducedMotion ? {} : { opacity: 0.5 }}
                           animate={{ opacity: 1 }}
                           transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                           className="font-semibold text-foreground"
@@ -320,7 +320,7 @@ export function LiveWaitTime({
                   <>
                     <motion.span
                       key={time}
-                      initial={prefersReducedMotion ? false : { opacity: 0.5, scale: 0.95 }}
+                      initial={prefersReducedMotion ? {} : { opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                       className="text-lg font-bold text-foreground"

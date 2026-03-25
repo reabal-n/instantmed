@@ -94,12 +94,12 @@ export function WhatHappensNext({
       <div className="max-w-lg mx-auto space-y-6">
         {/* Success header */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
           <motion.div
-            initial={prefersReducedMotion ? false : { scale: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: prefersReducedMotion ? 0 : 0.2 }}
             className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500 flex items-center justify-center"
@@ -115,7 +115,7 @@ export function WhatHappensNext({
           
           {/* Reassurance badge */}
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
@@ -132,7 +132,7 @@ export function WhatHappensNext({
 
         {/* Live status tracker */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
         >
@@ -146,7 +146,7 @@ export function WhatHappensNext({
         {/* Queue position */}
         {queuePosition !== null && queuePosition > 0 && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.45 }}
           >
@@ -168,7 +168,7 @@ export function WhatHappensNext({
 
         {/* Referral prompt — highest-intent moment */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
         >
@@ -200,7 +200,7 @@ export function WhatHappensNext({
 
         {/* FAQ accordion */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.55 }}
         >
@@ -239,7 +239,7 @@ export function WhatHappensNext({
                     </button>
                     {expandedFaq === index && (
                       <motion.div
-                        initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+                        initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
                         className="px-4 pb-4"
@@ -256,7 +256,7 @@ export function WhatHappensNext({
 
         {/* Action buttons */}
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.65 }}
           className="space-y-3"
@@ -276,7 +276,7 @@ export function WhatHappensNext({
 
         {/* Support footer */}
         <motion.p
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.75 }}
           className="text-center text-xs text-muted-foreground"

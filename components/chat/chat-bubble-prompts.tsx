@@ -101,7 +101,7 @@ export function ChatBubblePrompts({ isOpen, onOpenChat }: ChatBubblePromptsProps
       <AnimatePresence>
         {showBubble && !isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 10, scale: 0.9 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -121,7 +121,7 @@ export function ChatBubblePrompts({ isOpen, onOpenChat }: ChatBubblePromptsProps
               <div className="flex-1">
                 <motion.p
                   key={bubbleIndex}
-                  initial={prefersReducedMotion ? false : { opacity: 0 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-sm font-medium"
                 >
@@ -167,7 +167,7 @@ export function ChatBubblePrompts({ isOpen, onOpenChat }: ChatBubblePromptsProps
         {showBubble && (
           <motion.span
             className="absolute inset-0 rounded-full bg-primary"
-            initial={prefersReducedMotion ? false : { opacity: 0.5, scale: 1 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0.5, scale: 1 }}
             animate={prefersReducedMotion ? undefined : { opacity: 0, scale: 1.02 }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />

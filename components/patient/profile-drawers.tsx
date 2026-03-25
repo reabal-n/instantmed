@@ -449,7 +449,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
 
       {expiryWarning && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
         >

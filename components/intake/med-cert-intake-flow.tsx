@@ -127,13 +127,13 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                   isCurrent && "bg-white dark:bg-white/10 border-primary ring-4 ring-primary/20",
                   isPending && "bg-card/60 dark:bg-white/5 border-border/50 dark:border-white/10"
                 )}
-                initial={prefersReducedMotion ? false : { scale: 0.8 }}
+                initial={prefersReducedMotion ? {} : { scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
                 transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
               >
                 {isCompleted && (
                   <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
                   >
@@ -143,7 +143,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                 {isCurrent && (
                   <motion.div
                     className="w-1.5 h-1.5 bg-primary rounded-full"
-                    initial={prefersReducedMotion ? false : { scale: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
                   />
@@ -157,7 +157,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
       {/* Step text indicator */}
       <motion.div
         key={currentStep}
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
         className="text-center"
@@ -257,7 +257,7 @@ export function MedCertIntakeFlow({
     >
       {/* Main container */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
         className={cn(
@@ -272,7 +272,7 @@ export function MedCertIntakeFlow({
         {/* Close (X) button */}
         {!hideCloseButton && onClose && (
           <motion.button
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
@@ -299,7 +299,7 @@ export function MedCertIntakeFlow({
         <AnimatePresence mode="wait">
           {!hideProgress && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -321,7 +321,7 @@ export function MedCertIntakeFlow({
               key={currentStep}
               custom={direction}
               variants={prefersReducedMotion ? undefined : stepVariants}
-              initial={prefersReducedMotion ? false : "enter"}
+              initial={prefersReducedMotion ? {} : "enter"}
               animate="center"
               exit={prefersReducedMotion ? undefined : "exit"}
               transition={prefersReducedMotion ? { duration: 0 } : {
@@ -339,7 +339,7 @@ export function MedCertIntakeFlow({
         <AnimatePresence mode="wait">
           {!hideNavigation && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -416,7 +416,7 @@ export function StepContent({ title, description, children, className }: StepCon
     <div className={cn("space-y-6", className)}>
       {/* Step header */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: prefersReducedMotion ? 0 : 0.1, duration: prefersReducedMotion ? 0 : 0.3 }}
         className="text-center sm:text-left"
@@ -433,7 +433,7 @@ export function StepContent({ title, description, children, className }: StepCon
 
       {/* Step content */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: prefersReducedMotion ? 0 : 0.15, duration: prefersReducedMotion ? 0 : 0.3 }}
       >

@@ -20,7 +20,7 @@ export function PurposeStep({ formData, errors, onUpdateField, onNext }: Purpose
     <motion.div
       key="purpose"
       variants={prefersReducedMotion ? undefined : fadeSlide}
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       exit={prefersReducedMotion ? undefined : "exit"}
       className="space-y-6"
@@ -65,7 +65,7 @@ export function PurposeStep({ formData, errors, onUpdateField, onNext }: Purpose
 
         {formData.certType === "carer" && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             className="p-4 rounded-2xl bg-dawn-50/80 dark:bg-dawn-500/20 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm"
           >

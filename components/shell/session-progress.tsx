@@ -65,7 +65,7 @@ export function SessionProgress({
         {/* Animated progress line */}
         <motion.div
           className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full z-0"
-          initial={prefersReducedMotion ? false : { width: '10%' }}
+          initial={prefersReducedMotion ? {} : { width: '10%' }}
           animate={{ width: `${Math.max(10, progress)}%` }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: 'easeOut' }}
         />

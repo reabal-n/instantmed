@@ -76,7 +76,7 @@ export function ExtendedDurationInterstitial({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={className}

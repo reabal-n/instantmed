@@ -124,7 +124,7 @@ export function TotalPatientsCounter({
   // Card variant (boxed display)
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
@@ -184,7 +184,7 @@ export function StatsStrip({
         'flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-6',
         className
       )}
-      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.5 }}

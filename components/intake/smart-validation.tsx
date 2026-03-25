@@ -111,7 +111,7 @@ export function SmartValidation({
   if (hasValidated && displayIssues.length === 0 && !isValidating) {
     return (
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className={cn(
@@ -160,7 +160,7 @@ export function SmartValidation({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={cn("space-y-3", className)}
@@ -227,7 +227,7 @@ export function SmartValidation({
       <AnimatePresence>
         {isExpanded && displayIssues.length > 0 && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : undefined}
@@ -236,7 +236,7 @@ export function SmartValidation({
             {displayIssues.map((issue, index) => (
               <motion.div
                 key={`${issue.field}-${index}`}
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.05 }}
                 className={cn(

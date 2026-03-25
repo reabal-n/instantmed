@@ -61,7 +61,7 @@ export function FormStepper({
             {/* Animated progress line */}
             <motion.div
               className="absolute top-4 left-4 h-0.5 bg-primary rounded-full"
-              initial={prefersReducedMotion ? false : { width: 0 }}
+              initial={prefersReducedMotion ? {} : { width: 0 }}
               animate={{ width: `calc(${progress}% - 16px)` }}
               transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
             />
@@ -91,7 +91,7 @@ export function FormStepper({
                       {isCompleted ? (
                         <motion.div
                           key="check"
-                          initial={prefersReducedMotion ? false : { scale: 0, rotate: -90 }}
+                          initial={prefersReducedMotion ? {} : { scale: 0, rotate: -90 }}
                           animate={{ scale: 1, rotate: 0 }}
                           exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0 }}
                           transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
@@ -101,7 +101,7 @@ export function FormStepper({
                       ) : (
                         <motion.span
                           key="number"
-                          initial={prefersReducedMotion ? false : { scale: 0 }}
+                          initial={prefersReducedMotion ? {} : { scale: 0 }}
                           animate={{ scale: 1 }}
                           exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0 }}
                           transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
@@ -139,7 +139,7 @@ export function FormStepper({
               <motion.div
                 className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
                 key={currentStep}
-                initial={prefersReducedMotion ? false : { scale: 0.8 }}
+                initial={prefersReducedMotion ? {} : { scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
               >
@@ -149,7 +149,7 @@ export function FormStepper({
                 <motion.span
                   key={currentStep}
                   className="text-sm font-medium text-foreground"
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -167,7 +167,7 @@ export function FormStepper({
           <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full relative"
-              initial={prefersReducedMotion ? false : { width: 0 }}
+              initial={prefersReducedMotion ? {} : { width: 0 }}
               animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               transition={prefersReducedMotion ? { duration: 0 } : spring.smooth}
             >
@@ -290,7 +290,7 @@ export function CompactStepper({
           
           {/* Animated progress overlay */}
           <motion.div
-            initial={prefersReducedMotion ? false : { width: '12px' }}
+            initial={prefersReducedMotion ? {} : { width: '12px' }}
             animate={{ width: calculateProgressWidth() }}
             className="absolute -left-[6px] top-1/2 -translate-y-1/2 h-2 bg-primary rounded-full"
             transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}

@@ -24,7 +24,7 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
   
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="bg-muted/50 border border-border rounded-lg overflow-hidden"
@@ -46,7 +46,7 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
       
       {isExpanded && (
         <motion.div
-          initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           exit={prefersReducedMotion ? undefined : { height: 0, opacity: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : undefined}

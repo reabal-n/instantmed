@@ -38,7 +38,7 @@ export function FloatingActionBar({
       {isVisible && (
         <motion.div
           variants={floatingBarVariants}
-          initial={prefersReducedMotion ? false : "hidden"}
+          initial={prefersReducedMotion ? {} : "hidden"}
           animate="visible"
           exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
           className={cn(

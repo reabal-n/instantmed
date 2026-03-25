@@ -242,7 +242,7 @@ export function SmartSymptomInput({
         <AnimatePresence>
           {showSuggestions && suggestions.length > 0 && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
               transition={prefersReducedMotion ? { duration: 0 } : undefined}
@@ -273,7 +273,7 @@ export function SmartSymptomInput({
       <AnimatePresence>
         {aiSuggestions.length > 0 && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : undefined}

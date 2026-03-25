@@ -220,7 +220,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center py-8"
         >
@@ -266,7 +266,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
@@ -387,7 +387,7 @@ export function SafetyCheckStep({
       return (
         <FlowContent title="" description="">
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-8"
           >
@@ -426,7 +426,7 @@ export function SafetyCheckStep({
     return (
       <FlowContent title="" description="">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
@@ -526,7 +526,7 @@ export function SafetyCheckStep({
   return (
     <FlowContent title="" description="">
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >

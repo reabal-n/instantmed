@@ -86,7 +86,7 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
             {DOCTOR_SHORTCUTS.map((shortcut, index) => (
               <motion.div
                 key={shortcut.label}
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.03 }}
                 className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors"
@@ -154,7 +154,7 @@ export function ShortcutDiscoveryHint() {
     <AnimatePresence>
       {!dismissed && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20, scale: 0.95 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.95 }}
           transition={prefersReducedMotion ? { duration: 0 } : undefined}

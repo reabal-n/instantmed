@@ -117,7 +117,7 @@ function AccordionSection({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -296,7 +296,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
           {/* Repeat prescription extra fields */}
           {data.prescriptionType === 'repeat' && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-4 grid gap-3 sm:grid-cols-2"
             >
@@ -506,7 +506,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
               data.sideEffects === 'moderate' ||
               data.sideEffects === 'severe') && (
               <motion.div
-                initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
               >
                 <Label className="text-sm font-medium text-foreground">
@@ -598,7 +598,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
 
             {data.pharmacyPreference === 'pharmacy' && (
               <motion.div
-                initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
               >
                 <Label className="text-sm text-muted-foreground">Pharmacy name & suburb</Label>

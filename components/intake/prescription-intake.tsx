@@ -275,7 +275,7 @@ export function PrescriptionIntake({
 
       {/* Progress */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >

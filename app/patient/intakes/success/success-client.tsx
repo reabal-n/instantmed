@@ -210,7 +210,7 @@ export function SuccessClient({
   if (pollingError) {
     return (
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="space-y-6"
@@ -218,7 +218,7 @@ export function SuccessClient({
         <div className="text-center space-y-4">
           <LottieAnimation name="error" size={80} loop={false} className="mx-auto" />
           <motion.div
-            initial={prefersReducedMotion ? false : { scale: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut", delay: 0.1 }}
             className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center"
@@ -288,14 +288,14 @@ export function SuccessClient({
   if (!intakeId) {
     return (
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="text-center space-y-4"
       >
         <LottieAnimation name="success" size={80} loop={false} className="mx-auto" />
         <motion.div
-          initial={prefersReducedMotion ? false : { scale: 0 }}
+          initial={prefersReducedMotion ? {} : { scale: 0 }}
           animate={{ scale: 1 }}
           transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: 0.1 }}
           className="w-16 h-16 mx-auto rounded-full bg-emerald-500 flex items-center justify-center"

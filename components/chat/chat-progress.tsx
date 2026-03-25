@@ -23,7 +23,7 @@ export function ChatProgress({ currentStep, totalSteps, labels }: ChatProgressPr
         return (
           <motion.div
             key={idx}
-            initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : { delay: idx * 0.05 }}
             className={cn(
@@ -52,7 +52,7 @@ export function ChatProgressBar({ currentStep, totalSteps }: { currentStep: numb
     <div className="h-0.5 bg-primary-foreground/20 w-full">
       <motion.div
         className="h-full bg-primary-foreground"
-        initial={prefersReducedMotion ? false : { width: 0 }}
+        initial={prefersReducedMotion ? {} : { width: 0 }}
         animate={{ width: `${progress * 100}%` }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut" }}
       />

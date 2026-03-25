@@ -210,7 +210,7 @@ export function LoadingOverlay({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: prefersReducedMotion ? 0 : undefined }}
@@ -224,7 +224,7 @@ export function LoadingOverlay({
       <PulseSpinner />
       {message && (
         <motion.p
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : undefined, delay: prefersReducedMotion ? 0 : 0.2 }}
           className="mt-4 text-sm font-medium text-muted-foreground"

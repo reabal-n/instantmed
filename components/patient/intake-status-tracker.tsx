@@ -283,7 +283,7 @@ export function IntakeStatusTracker({
       <AnimatePresence>
         {isSpecialStatus && specialStatus && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
             className={cn(
@@ -303,7 +303,7 @@ export function IntakeStatusTracker({
       {/* Estimated wait time */}
       {showWaitTime && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
         >
@@ -322,7 +322,7 @@ export function IntakeStatusTracker({
         <div className="absolute left-[15px] top-[24px] bottom-[24px] w-0.5 bg-muted" />
         <motion.div
           className="absolute left-[15px] top-[24px] w-0.5 bg-primary"
-          initial={prefersReducedMotion ? false : { height: 0 }}
+          initial={prefersReducedMotion ? {} : { height: 0 }}
           animate={{
             height: `${Math.max(0, Math.min(100, (currentIndex / (STATUS_STEPS.length - 1)) * 100))}%`,
           }}
@@ -340,7 +340,7 @@ export function IntakeStatusTracker({
               <motion.div
                 key={step.id}
                 className="flex items-start gap-4"
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}
               >

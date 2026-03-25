@@ -76,7 +76,7 @@ export function MedicationSearchInline({
   
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="w-full space-y-2"
@@ -103,7 +103,7 @@ export function MedicationSearchInline({
         <AnimatePresence>
           {isOpen && results.length > 0 && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
               transition={prefersReducedMotion ? { duration: 0 } : undefined}
@@ -133,7 +133,7 @@ export function MedicationSearchInline({
         
         {isOpen && query.length >= 2 && results.length === 0 && !isLoading && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : undefined}
             className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg p-3 text-center"

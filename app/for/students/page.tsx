@@ -62,7 +62,7 @@ export default function StudentsPage() {
           {/* Hero */}
           <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
                   <div className="mb-4"><SectionPill>For Uni & TAFE Students</SectionPill></div>
 
@@ -85,15 +85,15 @@ export default function StudentsPage() {
 
                   {/* Speed badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <GraduationCap className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">All unis accept</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-primary" />
                       <span className="font-medium text-muted-foreground">AHPRA doctors</span>
                     </div>
@@ -106,7 +106,7 @@ export default function StudentsPage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden border-primary/20 bg-primary/5 dark:bg-primary/5">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
@@ -130,7 +130,7 @@ export default function StudentsPage() {
           {/* Universities */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
                   <h2 className="text-xl sm:text-2xl font-bold mb-3">Accepted by all Australian universities</h2>
                   <p className="text-sm text-muted-foreground mb-6">
@@ -150,7 +150,7 @@ export default function StudentsPage() {
                       "QUT",
                       "All TAFEs",
                     ].map((uni) => (
-                      <span key={uni} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300">
+                      <span key={uni} className="px-2.5 py-1 bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary/20 rounded-full text-primary dark:text-primary">
                         {uni}
                       </span>
                     ))}
@@ -163,7 +163,7 @@ export default function StudentsPage() {
           {/* Use Cases */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">What you can use it for</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
@@ -183,7 +183,7 @@ export default function StudentsPage() {
                       desc: "So you can submit late without getting penalised",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="glass-card rounded-xl p-4 text-center">
+                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 text-center">
                       <item.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -197,7 +197,7 @@ export default function StudentsPage() {
           {/* Why Students Use This */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why students use InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
@@ -222,7 +222,7 @@ export default function StudentsPage() {
                       desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <item.icon className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -238,7 +238,7 @@ export default function StudentsPage() {
           {/* Testimonials */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What students say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
@@ -263,7 +263,7 @@ export default function StudentsPage() {
                       quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -283,7 +283,7 @@ export default function StudentsPage() {
           {/* FAQs */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">FAQ for students</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
@@ -308,7 +308,7 @@ export default function StudentsPage() {
                       a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
@@ -322,7 +322,7 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
+                <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-primary/5 dark:bg-primary/5">
                   <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Don&apos;t miss your special consideration deadline. Get sorted now.

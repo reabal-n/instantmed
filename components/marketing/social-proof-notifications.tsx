@@ -450,7 +450,7 @@ export function RecentActivityList({ service, count = 3, className }: RecentActi
       {activities.map((activity, index) => (
         <motion.div
           key={activity.id}
-          initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : 0.3 }}
           className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none border border-border/50 dark:border-white/10"

@@ -24,13 +24,13 @@ export function SafetyBlockDialog({
     <AnimatePresence>
       {safetyBlock && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
         >
           <motion.div
-            initial={prefersReducedMotion ? false : { scale: 0.95, opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl"

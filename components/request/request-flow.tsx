@@ -772,7 +772,7 @@ export function RequestFlow({
           {isTransitioning ? (
             <motion.div
               key="skeleton"
-              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >

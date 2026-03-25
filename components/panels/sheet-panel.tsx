@@ -76,7 +76,7 @@ export function SheetPanel({
       {/* Backdrop */}
       <motion.div
         variants={backdropVariants}
-        initial={prefersReducedMotion ? false : "hidden"}
+        initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -87,7 +87,7 @@ export function SheetPanel({
       {/* Sheet */}
       <motion.div
         variants={sheetVariants(side)}
-        initial={prefersReducedMotion ? false : "hidden"}
+        initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(

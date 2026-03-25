@@ -28,7 +28,7 @@ export function AutoSaveIndicator({ lastSavedAt, hasUnsavedChanges }: AutoSaveIn
       {hasUnsavedChanges ? (
         <motion.div
           key="unsaved"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="flex items-center gap-1.5 text-xs text-muted-foreground"
@@ -39,7 +39,7 @@ export function AutoSaveIndicator({ lastSavedAt, hasUnsavedChanges }: AutoSaveIn
       ) : showSaved ? (
         <motion.div
           key="saved"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="flex items-center gap-1.5 text-xs text-emerald-600"

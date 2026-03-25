@@ -41,13 +41,13 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                 <>
                   {/* Mobile: small dot */}
                   <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary sm:hidden"
                   />
                   {/* Desktop: checkmark */}
                   <motion.div
-                    initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary items-center justify-center hidden sm:flex"
                   >

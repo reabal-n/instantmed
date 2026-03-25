@@ -290,7 +290,7 @@ export function SymptomChecker({
   return (
     <>
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className={cn(

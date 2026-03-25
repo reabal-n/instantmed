@@ -142,7 +142,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
     <div className="space-y-6">
       {/* Stats Cards */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
@@ -197,7 +197,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
 
       {/* Invoices Table */}
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={{ opacity: 1 }}
         className="bg-card rounded-xl border overflow-hidden"
       >
@@ -246,7 +246,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                   {filteredInvoices.map((invoice) => (
                     <motion.tr
                       key={invoice.id}
-                      initial={prefersReducedMotion ? false : { opacity: 0 }}
+                      initial={prefersReducedMotion ? {} : { opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                       className="border-b hover:bg-muted/50 transition-colors"

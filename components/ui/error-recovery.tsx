@@ -118,7 +118,7 @@ export function ErrorBanner({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
       className={cn(
@@ -180,7 +180,7 @@ export function ErrorBanner({
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
-                    initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
                     className="overflow-hidden"
@@ -301,7 +301,7 @@ export function NetworkStatus() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -50 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -50 }}
         className={cn(

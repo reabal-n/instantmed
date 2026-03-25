@@ -326,7 +326,7 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
@@ -355,7 +355,7 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1 }}

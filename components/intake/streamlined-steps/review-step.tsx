@@ -39,7 +39,7 @@ export function ReviewStep({
     <motion.div
       key="review"
       variants={prefersReducedMotion ? undefined : fadeSlide}
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       exit={prefersReducedMotion ? undefined : "exit"}
       className="space-y-6"

@@ -76,7 +76,7 @@ export function ProgressiveSection({
         {isOpen && (
           <motion.div
             id={`progressive-section-${title}`}
-            initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
@@ -133,7 +133,7 @@ export function ProgressiveDisclosure({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}

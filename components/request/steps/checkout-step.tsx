@@ -373,13 +373,13 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       {showCheckmark && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
         >
           <motion.div
             className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
-            initial={prefersReducedMotion ? false : { scale: 0.5, opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
           >

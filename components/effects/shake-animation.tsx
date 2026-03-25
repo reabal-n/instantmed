@@ -96,7 +96,7 @@ export function AnimatedErrorMessage({
 
   return (
     <motion.p
-      initial={prefersReducedMotion ? false : { opacity: 0, y: -10, height: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10, height: 0 }}
       animate={{ opacity: 1, y: 0, height: "auto" }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, height: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}

@@ -83,7 +83,7 @@ export function FormSection({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : { ...spring.smooth, delay: index * 0.1 }}
     >
@@ -147,7 +147,7 @@ export function FormGroup({
           )}
           {warning && !error && (
             <motion.p
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-dawn-600 dark:text-dawn-400 flex items-center gap-1"
@@ -158,7 +158,7 @@ export function FormGroup({
           )}
           {error && (
             <motion.p
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-destructive flex items-center gap-1"

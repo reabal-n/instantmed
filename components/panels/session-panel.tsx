@@ -85,7 +85,7 @@ export function SessionPanel({
       {/* Backdrop - dimmed but not black */}
       <motion.div
         variants={backdropVariants}
-        initial={prefersReducedMotion ? false : "hidden"}
+        initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -96,7 +96,7 @@ export function SessionPanel({
       {/* Panel - softly floating */}
       <motion.div
         variants={sessionPanelVariants}
-        initial={prefersReducedMotion ? false : "hidden"}
+        initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(

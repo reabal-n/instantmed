@@ -66,7 +66,7 @@ export function DetailsStep({
     <motion.div
       key="details"
       variants={prefersReducedMotion ? undefined : fadeSlide}
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       exit={prefersReducedMotion ? undefined : "exit"}
       className="space-y-6"

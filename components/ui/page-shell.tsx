@@ -92,7 +92,7 @@ export function PageHeader({
   const prefersReducedMotion = useReducedMotion()
   const Wrapper = animate ? motion.div : 'div'
   const wrapperProps = animate
-    ? { variants: fadeUp, initial: prefersReducedMotion ? false as const : 'initial', animate: 'animate' }
+    ? { variants: fadeUp, initial: prefersReducedMotion ? {} : 'initial', animate: 'animate' }
     : {}
 
   return (
@@ -139,7 +139,7 @@ export function PageContent({
   return (
     <motion.div
       variants={stagger.container}
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       className={className}
     >

@@ -110,7 +110,7 @@ export function ServicePicker() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-12"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
@@ -144,7 +144,7 @@ export function ServicePicker() {
               <motion.div
                 key={signal.text}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.3 + index * 0.08 }}
@@ -358,7 +358,7 @@ export function ServicePicker() {
         {/* Simple note */}
         <motion.p
           className="text-center text-xs text-muted-foreground mt-8"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.3 }}

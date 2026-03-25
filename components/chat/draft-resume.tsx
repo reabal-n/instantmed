@@ -23,7 +23,7 @@ export function DraftResume({ draft, onResume, onStartNew }: DraftResumeProps) {
   
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="p-4 space-y-4"

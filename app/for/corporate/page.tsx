@@ -62,7 +62,7 @@ export default function CorporatePage() {
           {/* Hero */}
           <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
                   <div className="mb-4"><SectionPill>For Corporate Professionals</SectionPill></div>
 
@@ -85,15 +85,15 @@ export default function CorporatePage() {
 
                   {/* Trust badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">PDF to email</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-card px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="font-medium text-muted-foreground">HR-approved</span>
                     </div>
@@ -106,7 +106,7 @@ export default function CorporatePage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
@@ -130,7 +130,7 @@ export default function CorporatePage() {
           {/* Why Corporate Workers Use This */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why professionals choose InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
@@ -155,7 +155,7 @@ export default function CorporatePage() {
                       desc: "Clean PDF with doctor's name, provider number, and digital signature. Ready for HR systems.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <item.icon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -171,7 +171,7 @@ export default function CorporatePage() {
           {/* Common Scenarios */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Common scenarios we help with</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {[
@@ -182,7 +182,7 @@ export default function CorporatePage() {
                     { title: "Cold or flu", desc: "Don't want to spread it at the office" },
                     { title: "Carer's leave", desc: "Looking after a sick child or family member" },
                   ].map((item) => (
-                    <div key={item.title} className="glass-card rounded-xl p-4">
+                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4">
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
@@ -195,7 +195,7 @@ export default function CorporatePage() {
           {/* Testimonials */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What professionals say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
@@ -220,7 +220,7 @@ export default function CorporatePage() {
                       quote: "WFH with a cold. Got my cert in 10 minutes while still in my pyjamas.",
                     },
                   ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={item.name} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
@@ -240,7 +240,7 @@ export default function CorporatePage() {
           {/* Other Services */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Other services for busy professionals</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
@@ -249,7 +249,7 @@ export default function CorporatePage() {
                     { title: "Weight Management", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-management" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
-                      <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-all">
+                      <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 h-full hover:border-border transition-all">
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
                         <span className="text-xs text-muted-foreground font-medium">{item.price}</span>
@@ -264,7 +264,7 @@ export default function CorporatePage() {
           {/* FAQs */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">Questions HR might ask (answered)</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
@@ -289,7 +289,7 @@ export default function CorporatePage() {
                       a: "We provide carer's certificates for looking after sick family members. Same process, same 15-minute turnaround.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
+                    <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
                       <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
@@ -303,7 +303,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
+                <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-6 lg:p-8 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
                   <h2 className="text-2xl font-bold mb-3">Certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.

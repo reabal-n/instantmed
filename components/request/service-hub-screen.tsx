@@ -187,7 +187,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           {drafts.map((draft) => (
             <motion.div
               key={draft.serviceType}
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
@@ -226,7 +226,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         <AnimatePresence>
           {lastServiceType && drafts.length === 0 && (
             <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
             >
@@ -304,7 +304,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             <AnimatePresence>
               {showConsultSubtypes && (
                 <motion.div
-                  initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+                  initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
@@ -400,7 +400,7 @@ function ServiceCard({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.3, delay: prefersReducedMotion ? 0 : index * 0.1 }}
     >

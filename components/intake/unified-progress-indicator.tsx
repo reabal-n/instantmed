@@ -51,7 +51,7 @@ export function UnifiedProgressIndicator({
 
         {/* Animated progress overlay */}
         <motion.div
-          initial={prefersReducedMotion ? false : { width: "12px" }}
+          initial={prefersReducedMotion ? {} : { width: "12px" }}
           animate={{ width: `${progressWidth}px` }}
           className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
@@ -68,7 +68,7 @@ export function UnifiedProgressIndicator({
         >
           {!isExpanded && onBack && (
             <motion.button
-              initial={prefersReducedMotion ? false : { opacity: 0, width: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: "64px" }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
               onClick={onBack}
@@ -91,7 +91,7 @@ export function UnifiedProgressIndicator({
             <div className="flex items-center font-semibold justify-center gap-2 text-sm">
               {isLastStep && (
                 <motion.div
-                  initial={prefersReducedMotion ? false : { opacity: 0 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
                 >

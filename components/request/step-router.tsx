@@ -102,7 +102,7 @@ export function StepRouter({
         key={currentStepId}
         custom={direction}
         variants={variants}
-        initial={prefersReducedMotion ? false : "enter"}
+        initial={prefersReducedMotion ? {} : "enter"}
         animate="center"
         exit="exit"
         transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}

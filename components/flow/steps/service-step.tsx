@@ -182,7 +182,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
         <AnimatePresence>
           {showScope && (
             <motion.div
-              initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}

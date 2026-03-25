@@ -26,7 +26,7 @@ export function ChatIntake({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}

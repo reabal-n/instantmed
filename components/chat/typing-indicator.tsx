@@ -12,7 +12,7 @@ export function ChatTypingIndicator({ showStillThinking = false }: { showStillTh
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       className="flex justify-start"
@@ -38,7 +38,7 @@ export function ChatTypingIndicator({ showStillThinking = false }: { showStillTh
           </div>
           {showStillThinking && (
             <motion.span
-              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-xs text-muted-foreground ml-1"
             >

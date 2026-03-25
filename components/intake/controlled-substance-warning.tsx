@@ -14,7 +14,7 @@ export function ControlledSubstanceWarning({ onClose }: ControlledSubstanceWarni
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <motion.div
-        initial={prefersReducedMotion ? false : { scale: 0.9, opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="bg-white dark:bg-card rounded-2xl p-6 max-w-sm w-full space-y-4"
       >

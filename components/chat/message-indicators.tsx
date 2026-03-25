@@ -90,7 +90,7 @@ export function TypingIndicator({ isTyping, userName, className }: TypingIndicat
     <AnimatePresence>
       {isTyping && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
           className={cn("flex items-center gap-2 text-sm text-muted-foreground", className)}

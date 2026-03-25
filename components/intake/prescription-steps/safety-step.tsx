@@ -41,7 +41,7 @@ export function PrescriptionSafetyStep({
     <motion.div
       key="safety"
       variants={prefersReducedMotion ? undefined : fadeSlide}
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       exit={prefersReducedMotion ? undefined : "exit"}
       className="space-y-6"

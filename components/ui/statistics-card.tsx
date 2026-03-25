@@ -67,7 +67,7 @@ const Stats = ({
           {items.map((props, index) => (
             <motion.div
               key={index}
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: 0.3,
@@ -107,7 +107,7 @@ const BarChart = ({
     <div className="group relative h-full w-full">
       <div className="candy-bg relative h-full w-full overflow-hidden rounded-[24px] md:rounded-[40px]">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 100, height: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 100, height: 0 }}
           animate={{ opacity: 1, y: 0, height: `${value}%` }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
           className={cn(
@@ -122,13 +122,13 @@ const BarChart = ({
       </div>
 
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 100, height: 0 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 100, height: 0 }}
         animate={{ opacity: 1, y: 0, height: `${value}%` }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
         className="absolute bottom-0 w-full"
       >
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 100 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 100 }}
           animate={{ opacity: showToolTip ? 1 : 0, y: showToolTip ? 0 : 100 }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, type: "tween", ease: [0.22, 1, 0.36, 1], delay }}
           className={cn(

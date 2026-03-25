@@ -110,7 +110,7 @@ export function PremiumLoader({
         {showBranding && (
           <motion.span
             className="text-lg font-semibold text-foreground"
-            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.2 }}
           >
@@ -119,7 +119,7 @@ export function PremiumLoader({
         )}
         <motion.p
           className="text-sm text-muted-foreground flex items-center gap-1"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
         >

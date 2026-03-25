@@ -17,7 +17,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className={cn("space-y-6", className)}
@@ -103,7 +103,7 @@ export function PaymentRedirectOverlay() {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={prefersReducedMotion ? { duration: 0 } : undefined}
       className="fixed inset-0 z-50 flex items-center justify-center bg-card/95 dark:bg-white/10 backdrop-blur-sm"

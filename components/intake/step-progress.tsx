@@ -75,7 +75,7 @@ export function StepProgress({
         <div className="flex items-start gap-3 relative pb-4">
           {/* Animated progress overlay - behind dots */}
           <motion.div
-            initial={prefersReducedMotion ? false : { width: '12px' }}
+            initial={prefersReducedMotion ? {} : { width: '12px' }}
             animate={{
               width: calculateProgressWidth(),
             }}
@@ -237,7 +237,7 @@ export function StepProgress({
       {/* Final step encouragement */}
       {currentStep === totalSteps && (
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : undefined}
           className="flex justify-center mt-3"

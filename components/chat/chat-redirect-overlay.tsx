@@ -11,7 +11,7 @@ export function ChatRedirectOverlay() {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0 }}
       animate={{ opacity: 1 }}
       className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm"
     >

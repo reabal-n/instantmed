@@ -120,7 +120,7 @@ export function SelectCard({
         </div>
         {selected && (
           <motion.div
-            initial={prefersReducedMotion ? false : { scale: 0 }}
+            initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
           >
@@ -210,7 +210,7 @@ export function FormField({
       {children}
       {error && (
         <motion.p
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-xs text-destructive flex items-center gap-1"
         >

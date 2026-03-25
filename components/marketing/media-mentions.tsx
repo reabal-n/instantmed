@@ -82,7 +82,7 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
             {mediaLogos.map((media) => (
               <motion.div
                 key={media.name}
-                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -112,7 +112,7 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
             {mediaLogos.map((media, index) => (
               <motion.div
                 key={media.name}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : undefined }}

@@ -20,7 +20,7 @@ export function MessageBubble({ message, isLatest, isLoading, onRetry }: Message
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{
         duration: prefersReducedMotion ? 0 : 0.25,
@@ -63,7 +63,7 @@ export function MessageBubble({ message, isLatest, isLoading, onRetry }: Message
         {/* Quick reply buttons - only show on latest assistant message when not loading */}
         {!isUser && !isError && isLatest && !isLoading && quickReplies.length > 0 && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.1, duration: prefersReducedMotion ? 0 : 0.2 }}
             className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/30"
@@ -103,7 +103,7 @@ function QuickReplyButton({ reply, index }: { reply: QuickReply; index: number }
 
   return (
     <motion.button
-      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: prefersReducedMotion ? 0 : index * 0.03, duration: prefersReducedMotion ? 0 : 0.15 }}
       onClick={handleClick}

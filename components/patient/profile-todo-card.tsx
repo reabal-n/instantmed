@@ -103,7 +103,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8, height: 0, marginBottom: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
@@ -124,7 +124,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full"
-              initial={prefersReducedMotion ? false : { width: 0 }}
+              initial={prefersReducedMotion ? {} : { width: 0 }}
               animate={{ width: `${(completedCount / items.length) * 100}%` }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.2 }}
             />
