@@ -58,21 +58,11 @@ describe("Auto-Approval Pipeline Helpers", () => {
   })
 
   describe("Feature flag gating", () => {
-    it("returns early when feature flag is disabled", async () => {
-      // The pipeline checks flags.ENABLE_AI_AUTO_APPROVE which reads from process.env
-      // When not set, it defaults to false
-      const originalEnv = process.env.ENABLE_AI_AUTO_APPROVE
-      delete process.env.ENABLE_AI_AUTO_APPROVE
-
-      // We can't easily test the full pipeline without Supabase mocks,
-      // but we can verify the flag behavior via the config module
-      const { flags } = await import("@/lib/config/feature-flags")
-      expect(flags.ENABLE_AI_AUTO_APPROVE).toBe(false)
-
-      // Restore
-      if (originalEnv !== undefined) {
-        process.env.ENABLE_AI_AUTO_APPROVE = originalEnv
-      }
+    it("pipeline uses DB-backed feature flag (ai_auto_approve_enabled), not env var", async () => {
+      // The pipeline reads from getFeatureFlags() which queries the feature_flags DB table.
+      // DEFAULT_FLAGS has ai_auto_approve_enabled = false, so auto-approval is off by default.
+      const { DEFAULT_FLAGS } = await import("@/lib/data/types/feature-flags")
+      expect(DEFAULT_FLAGS.ai_auto_approve_enabled).toBe(false)
     })
   })
 

@@ -70,7 +70,9 @@ function buildReviewDataFromAnswers(
   }
 
   if (!medicalReason) {
-    medicalReason = "Medical condition as per telehealth consultation"
+    // No substantive symptom text — don't auto-approve with a generic placeholder.
+    // The eligibility engine should catch this (empty_symptom_text), but defense-in-depth.
+    return null
   }
 
   return {
@@ -187,18 +189,22 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   const supabase = createServiceRoleClient()
 
   try {
-    // 2. Fetch intake with service info and answers
+    // 2. Fetch intake with service info, answers, and patient DOB
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select(`
         id,
         status,
         subtype,
+        patient_id,
         service:services!service_id(
           id,
           slug,
           name,
           type
+        ),
+        patient:profiles!patient_id(
+          date_of_birth
         ),
         answers:intake_answers(
           answers
@@ -257,7 +263,11 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     const clinicalNoteDraft = drafts?.find(d => d.type === "clinical_note") || null
 
-    // 6. Evaluate eligibility
+    // 6. Extract patient info for age check
+    const patientRaw = intake.patient as unknown
+    const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { date_of_birth: string | null } | null
+
+    // 7. Evaluate eligibility
     const eligibility = evaluateAutoApprovalEligibility(
       { service_type: service.type, subtype: intake.subtype },
       answersData,
@@ -265,7 +275,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         clinicalNote: clinicalNoteDraft
           ? { status: clinicalNoteDraft.status, content: clinicalNoteDraft.content as Record<string, unknown> }
           : null,
-      }
+      },
+      patientInfo,
     )
 
     // Log eligibility decision regardless of outcome
@@ -285,7 +296,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }
 
-    // 7. Get platform doctor (earliest-registered with valid credentials)
+    // 8. Get platform doctor (earliest-registered with valid credentials)
     const { data: doctor, error: doctorError } = await supabase
       .from("profiles")
       .select("id, full_name, provider_number, ahpra_number")
@@ -306,7 +317,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: false, autoApproved: false, reason: "No doctor available", error: "No doctor with credentials found" }
     }
 
-    // 8. Build review data from answers
+    // 9. Build review data from answers
     const reviewData = buildReviewDataFromAnswers(answersData, doctor.full_name)
     if (!reviewData) {
       log.warn("Auto-approval: could not build review data from answers", { intakeId })
@@ -314,7 +325,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: false, autoApproved: false, reason: "Could not build review data", error: "Missing answer data" }
     }
 
-    // 9. Execute the approval pipeline
+    // 10. Execute the approval pipeline
     log.info("Auto-approval: executing approval pipeline", { intakeId, doctorId: doctor.id })
 
     const approvalResult = await executeCertApproval({
@@ -341,6 +352,23 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         certificateId: approvalResult.certificateId,
         durationMs,
         emailSent: approvalResult.emailSent,
+      })
+
+      // Structured Sentry event for monitoring dashboards
+      Sentry.captureMessage("AI auto-approval: certificate issued", {
+        level: "info",
+        tags: {
+          subsystem: "auto-approval",
+          intake_id: intakeId,
+          outcome: "approved",
+        },
+        extra: {
+          certificateId: approvalResult.certificateId,
+          doctorId: doctor.id,
+          durationMs,
+          emailSent: approvalResult.emailSent,
+        },
+        fingerprint: ["auto-approval", "success"],
       })
 
       await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued", {

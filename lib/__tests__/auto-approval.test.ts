@@ -123,11 +123,12 @@ describe("extractStartDate", () => {
 describe("evaluateAutoApprovalEligibility", () => {
   // ---- Happy path ----
 
-  it("approves clean 1-day cert", () => {
+  it("approves clean 1-day cert for adult patient", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ duration: "1" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -142,10 +143,10 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.eligible).toBe(true)
   })
 
-  it("approves when symptom text is empty (checkbox-only intake)", () => {
+  it("approves when patient info is not provided (backwards compat)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
-      makeAnswers({ symptomDetails: "", symptoms: [] }),
+      makeAnswers({ duration: "1" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
@@ -387,6 +388,108 @@ describe("evaluateAutoApprovalEligibility", () => {
     )
     expect(result.eligible).toBe(false)
     expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
+  })
+
+  // ---- Age check ----
+
+  it("rejects intake for minor (under 18)", () => {
+    const minorDob = new Date()
+    minorDob.setFullYear(minorDob.getFullYear() - 16)
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers(),
+      makeReadyDraft(),
+      { date_of_birth: minorDob.toISOString().split("T")[0]! },
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("patient_under_18")
+  })
+
+  it("allows 18-year-old patient", () => {
+    const eighteenDob = new Date()
+    eighteenDob.setFullYear(eighteenDob.getFullYear() - 18)
+    eighteenDob.setDate(eighteenDob.getDate() - 1) // just turned 18
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers(),
+      makeReadyDraft(),
+      { date_of_birth: eighteenDob.toISOString().split("T")[0]! },
+    )
+    expect(result.disqualifyingFlags).not.toContain("patient_under_18")
+  })
+
+  it("handles null patient DOB gracefully (no flag)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers(),
+      makeReadyDraft(),
+      { date_of_birth: null },
+    )
+    expect(result.disqualifyingFlags).not.toContain("patient_under_18")
+  })
+
+  // ---- Empty symptom text ----
+
+  it("rejects when symptom text is empty", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "", symptoms: [], symptomDuration: "", additional_info: "", reason_for_visit: "" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("empty_symptom_text")
+  })
+
+  it("rejects when symptom text is too short", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "ab", symptoms: [], symptomDuration: "", additional_info: "", reason_for_visit: "" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("empty_symptom_text")
+  })
+
+  // ---- Expanded keyword coverage ----
+
+  it("rejects intake with 'anxious' keyword", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Feeling very anxious and can't sleep" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+  })
+
+  it("rejects intake with 'selfharm' (no space)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "History of selfharm" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+  })
+
+  it("rejects intake with 'whiplash' keyword", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Neck pain from whiplash" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
+  })
+
+  it("rejects intake with 'endometriosis' keyword", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Endometriosis flare up" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("chronic"))).toBe(true)
   })
 
   // ---- Multiple flags ----

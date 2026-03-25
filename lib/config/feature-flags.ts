@@ -49,8 +49,9 @@ export const flags = {
   // e.g., "weight_loss,mens_health"
   DISABLE_CONSULT_SUBTYPES: process.env.DISABLE_CONSULT_SUBTYPES || "",
   
-  // AI auto-approval
-  ENABLE_AI_AUTO_APPROVE: process.env.ENABLE_AI_AUTO_APPROVE === "true",
+  // AI auto-approval: controlled via DB feature flag (ai_auto_approve_enabled)
+  // Toggle from /admin/features dashboard. Env var ENABLE_AI_AUTO_APPROVE is
+  // only used to seed the initial DB value; runtime reads come from getFeatureFlags().
 
   // Ops kill switches (from previous implementations)
   DISABLE_INTAKE_EVENTS: process.env.DISABLE_INTAKE_EVENTS === "true",
@@ -256,6 +257,5 @@ export function getFlagStatus(): Record<string, boolean | string> {
     DISABLE_EMPLOYER_EMAIL: flags.DISABLE_EMPLOYER_EMAIL,
     FORCE_CALL_REQUIRED: flags.FORCE_CALL_REQUIRED,
     DISABLE_CONSULT_SUBTYPES: flags.DISABLE_CONSULT_SUBTYPES || "(none)",
-    ENABLE_AI_AUTO_APPROVE: flags.ENABLE_AI_AUTO_APPROVE,
   }
 }

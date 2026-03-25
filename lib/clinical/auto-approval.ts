@@ -23,6 +23,10 @@ interface DraftInfo {
   content: Record<string, unknown>
 }
 
+interface PatientInfo {
+  date_of_birth: string | null
+}
+
 // ============================================================================
 // ADDITIONAL SAFETY KEYWORD LISTS
 // These catch conditions that are technically safe (no emergency/red flag)
@@ -30,13 +34,13 @@ interface DraftInfo {
 // ============================================================================
 
 const MENTAL_HEALTH_KEYWORDS = [
-  "anxiety", "depression", "depressed", "mental health", "stress leave",
-  "panic", "psychiatric", "ptsd", "bipolar", "psychosis", "eating disorder",
-  "burnout", "mental breakdown", "nervous breakdown",
+  "anxiety", "anxious", "depression", "depressed", "mental health", "stress leave",
+  "panic", "panic attack", "psychiatric", "ptsd", "bipolar", "psychosis", "eating disorder",
+  "burnout", "mental breakdown", "nervous breakdown", "ocd",
   // Defense-in-depth: also caught by checkEmergencySymptoms, but listed here
   // so they're caught even if the check order changes
-  "suicidal", "suicide", "self harm", "self-harm", "overdose",
-  "want to die", "kill myself", "hurting myself",
+  "suicidal", "suicide", "self harm", "self-harm", "selfharm", "overdose",
+  "want to die", "kill myself", "hurting myself", "harming myself",
 ]
 
 const INJURY_KEYWORDS = [
@@ -44,17 +48,20 @@ const INJURY_KEYWORDS = [
   "work cover", "workcover", "broken", "fracture", "fractured", "fall",
   "collision", "assault", "surgery", "surgical", "post-operative",
   "post-op", "wound", "laceration", "sprain", "concussion",
+  "whiplash", "dislocation", "dislocated", "burn", "stitches",
 ]
 
 const CHRONIC_CONDITION_KEYWORDS = [
-  "chronic", "ongoing condition", "flare up", "flare-up", "relapse",
+  "chronic", "ongoing condition", "flare up", "flare-up", "flareup", "relapse",
   "long-term", "long term", "recurring", "fibromyalgia", "crohn",
   "lupus", "multiple sclerosis", "ms flare", "rheumatoid",
+  "endometriosis", "celiac", "ibs", "irritable bowel",
 ]
 
 const PREGNANCY_KEYWORDS = [
   "pregnant", "pregnancy", "morning sickness", "miscarriage",
   "hyperemesis", "prenatal", "antenatal", "gestational",
+  "trimester", "maternity",
 ]
 
 // ============================================================================
@@ -160,27 +167,46 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
  *
  * Checks (ALL must pass):
  * 1. Service type is med_certs
- * 2. No emergency symptoms in text
- * 3. No red flag patterns in text
- * 4. No mental health keywords
- * 5. No injury keywords
- * 6. No chronic condition keywords
- * 7. No pregnancy keywords
- * 8. Duration is 1-3 days
- * 9. Start date not backdated > 1 day
- * 10. AI clinical note draft exists with status "ready"
- * 11. AI draft flags.requiresReview === false
+ * 2. Patient is 18+ (minors never auto-approved)
+ * 3. No emergency symptoms in text
+ * 4. No red flag patterns in text
+ * 5. No mental health keywords
+ * 6. No injury keywords
+ * 7. No chronic condition keywords
+ * 8. No pregnancy keywords
+ * 9. Duration is 1-3 days
+ * 10. Start date not backdated > 1 day
+ * 11. Symptom text is not empty (must have actual medical reason)
+ * 12. AI clinical note draft exists with status "ready"
+ * 13. AI draft flags.requiresReview === false
  */
 export function evaluateAutoApprovalEligibility(
   intake: { service_type: string; subtype: string | null },
   answers: Record<string, unknown> | null,
-  drafts: { clinicalNote: DraftInfo | null }
+  drafts: { clinicalNote: DraftInfo | null },
+  patient?: PatientInfo | null,
 ): AutoApprovalEligibility {
   const flags: string[] = []
 
   // 1. Service type check
   if (intake.service_type !== "med_certs") {
     return { eligible: false, reason: "Not a medical certificate service", disqualifyingFlags: ["wrong_service_type"] }
+  }
+
+  // 2. Age check — minors (under 18) always require doctor review
+  if (patient?.date_of_birth) {
+    const dob = new Date(patient.date_of_birth)
+    if (!isNaN(dob.getTime())) {
+      const today = new Date()
+      let age = today.getFullYear() - dob.getFullYear()
+      const monthDiff = today.getMonth() - dob.getMonth()
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--
+      }
+      if (age < 18) {
+        flags.push("patient_under_18")
+      }
+    }
   }
 
   // Extract symptom text for all keyword checks
@@ -246,13 +272,19 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // 10. AI draft exists and is ready
+  // 10. Symptom text must be substantive (not empty/generic)
+  // Auto-approved certs must have a real medical reason, not a placeholder
+  if (!symptomText || symptomText.trim().length < 5) {
+    flags.push("empty_symptom_text")
+  }
+
+  // 11. AI draft exists and is ready
   if (!drafts.clinicalNote) {
     flags.push("missing_clinical_note_draft")
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 11. AI draft doesn't require review
+    // 12. AI draft doesn't require review
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
       flags.push(`draft_requires_review: ${draftFlags.flagReason || "unspecified"}`)

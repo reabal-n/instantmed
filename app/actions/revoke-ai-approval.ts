@@ -99,7 +99,7 @@ export async function revokeAIApproval(
     if (intake.patient_id) {
       await createNotification({
         userId: intake.patient_id,
-        type: "document_ready",
+        type: "request_update",
         title: "Certificate under review",
         message: "A doctor is reviewing your medical certificate. We'll update you shortly with the outcome.",
         actionUrl: `/patient/intakes/${intakeId}`,
