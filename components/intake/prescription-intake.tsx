@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { cn } from "@/lib/utils"
 
 // Extracted components
 import { ProgressBar } from "@/components/intake/prescription-shared"

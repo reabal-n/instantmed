@@ -115,7 +115,7 @@ export function PricingClient() {
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <div className="grid md:grid-cols-2 gap-6">
-              {services.map((service, idx) => (
+              {services.map((service) => (
                 <div
                   key={service.name}
                   className={cn(

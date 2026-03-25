@@ -108,7 +108,6 @@ async function assertPageLoads(page: import("@playwright/test").Page, path: stri
   await page.goto(path)
   await waitForPageLoad(page)
 
-  const url = page.url()
   // Allow redirects (e.g. /admin/settings -> /admin/features)
   const has404 = await page.getByText(/404|not found|page not found/i).isVisible().catch(() => false)
   const hasError = await page.getByText(/error loading|failed to load|something went wrong/i).isVisible().catch(() => false)

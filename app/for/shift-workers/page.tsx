@@ -77,7 +77,7 @@ export default function ShiftWorkersPage() {
                   </p>
 
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm px-6">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm px-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -149,7 +149,7 @@ export default function ShiftWorkersPage() {
                     { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery" },
                     { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300">
                       <item.icon className="h-5 w-5 text-primary shrink-0" />
                       <div>
                         <h3 className="text-sm font-semibold">{item.title}</h3>
@@ -186,7 +186,7 @@ export default function ShiftWorkersPage() {
                       desc: "Hospitals, retail chains, agencies — they all accept our certificates. AHPRA-registered, legally valid.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4">
+                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300">
                       <h3 className="text-sm font-semibold mb-1.5">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
@@ -331,7 +331,7 @@ export default function ShiftWorkersPage() {
                     Works around your roster, not the other way around.
                   </p>
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm h-12 px-8">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

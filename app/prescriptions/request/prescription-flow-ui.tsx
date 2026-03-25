@@ -48,7 +48,7 @@ export function TrustStrip() {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
-            <Shield className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <Shield className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
             <span className="hidden sm:inline">Private</span>
           </div>
         </TooltipTrigger>

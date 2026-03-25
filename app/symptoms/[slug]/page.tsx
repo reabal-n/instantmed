@@ -1118,8 +1118,8 @@ export default async function SymptomPage({ params }: PageProps) {
                 ))}
               </div>
 
-              <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+              <div className="mt-8 p-4 bg-primary/5 dark:bg-primary/5 border border-primary/20 dark:border-primary/20 rounded-xl">
+                <p className="text-sm text-primary dark:text-primary">
                   <strong>Important:</strong> This information is for general guidance only and should not be used to self-diagnose. 
                   A doctor can properly assess your symptoms and provide appropriate advice.
                 </p>

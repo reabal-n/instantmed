@@ -23,7 +23,6 @@ import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
-import { ButtonSpinner } from "@/components/ui/skeleton"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { StepHeader, OptionTile, PillButton } from "./prescription-flow-ui"
@@ -648,7 +647,7 @@ export function ReviewStep({ selectedMedication, condition, otherCondition, rxTy
   )
 }
 
-export function PaymentStep({ error, isSubmitting, handleSubmit: _handleSubmit }: PaymentStepProps) {
+export function PaymentStep({ error, isSubmitting: _isSubmitting, handleSubmit: _handleSubmit }: PaymentStepProps) {
   return (
     <div className="space-y-4">
       <StepHeader title={RX_MICROCOPY.payment.heading} subtitle={RX_MICROCOPY.payment.subtitle} />

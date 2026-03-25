@@ -26,8 +26,6 @@ import {
   CreditCard,
   Shield,
   Save,
-  CheckCircle,
-  AlertCircle,
   Bell,
   Loader2,
   Eye,

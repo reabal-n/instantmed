@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { Check, Mail, Clock, ArrowRight } from "lucide-react"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -24,6 +25,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
 
   return (
     <Card className="p-8 text-center">
+      <LottieAnimation name="confetti" size={80} loop={false} className="mx-auto -mb-2" />
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-6">
         <Check className="w-8 h-8 text-emerald-500" />
       </div>

@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Stethoscope,
   FileText,
-  Zap,
   MapPin,
 } from "lucide-react"
 import Link from "next/link"

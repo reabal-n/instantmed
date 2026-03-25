@@ -77,7 +77,7 @@ export default function CorporatePage() {
                   </p>
 
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background text-sm px-6">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm px-6 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -155,7 +155,7 @@ export default function CorporatePage() {
                       desc: "Clean PDF with doctor's name, provider number, and digital signature. Ready for HR systems.",
                     },
                   ].map((item) => (
-                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50">
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/50 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300">
                       <item.icon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -182,7 +182,7 @@ export default function CorporatePage() {
                     { title: "Cold or flu", desc: "Don't want to spread it at the office" },
                     { title: "Carer's leave", desc: "Looking after a sick child or family member" },
                   ].map((item) => (
-                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4">
+                    <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300">
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
@@ -309,7 +309,7 @@ export default function CorporatePage() {
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>
                   <Link href="/request?service=med-cert">
-                    <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background text-sm h-12 px-8">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
