@@ -1,5 +1,5 @@
 import crypto from "crypto"
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
@@ -708,21 +708,14 @@ export async function POST(request: Request) {
         }
       }
 
-      // STEP 6: Generate AI drafts + attempt auto-approval (non-blocking)
-      // This generates clinical note + med cert drafts, then attempts auto-approval
-      // for eligible med certs. If auto-approval fails, intake stays in doctor queue.
-      // NOTE: This is fire-and-forget — the webhook returns 200 immediately.
-      // On Vercel, floating promises may be killed after the response is sent.
-      // We use waitUntil() to keep the function alive for background work.
-      const AI_DRAFT_TIMEOUT_MS = 45000 // 45 seconds (draft gen + auto-approval)
-      const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
-        setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 45s" }), AI_DRAFT_TIMEOUT_MS)
-      })
+      // STEP 6: Generate AI drafts + attempt auto-approval (background)
+      // Uses Next.js after() to keep the function alive after the response is sent.
+      // This ensures draft generation + auto-approval actually completes on Vercel.
+      // Fallback: retry-auto-approval cron (every 3 min) catches any that slip through.
+      after(async () => {
+        try {
+          const result = await generateDraftsForIntake(intakeId)
 
-      // Fire-and-forget: webhook returns 200 immediately, this runs in background.
-      // The existing release-stale-claims cron (every 5 min) handles cleanup if Vercel kills this early.
-      void Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
-        .then(async (result) => {
           if (result.success && !('skipped' in result && result.skipped)) {
             log.info("AI drafts generated", {
               intakeId,
@@ -730,7 +723,7 @@ export async function POST(request: Request) {
               medCert: 'medCert' in result ? result.medCert?.status : undefined,
             })
 
-            // Attempt auto-approval for med certs (non-blocking to webhook)
+            // Attempt auto-approval for med certs
             try {
               const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
               const autoResult = await attemptAutoApproval(intakeId)
@@ -752,29 +745,28 @@ export async function POST(request: Request) {
               intakeId,
               error: result.error,
             })
-            // Queue for retry
-            supabase.from("ai_draft_retry_queue").upsert({
+            await supabase.from("ai_draft_retry_queue").upsert({
               intake_id: intakeId,
               attempts: 1,
               last_error: result.error || "Unknown error",
-              next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(), // 2 min backoff
-            }, { onConflict: "intake_id" }).then(() => {
-              log.info("Queued draft for retry", { intakeId })
-            })
+              next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+            }, { onConflict: "intake_id" })
           }
-        })
-        .catch(async (err) => {
-          // Never fail the webhook due to draft generation errors
+        } catch (err) {
           log.error("AI draft generation error, queueing for retry", { intakeId }, err)
-          // Queue for retry
-          const { error } = await supabase.from("ai_draft_retry_queue").upsert({
-            intake_id: intakeId,
-            attempts: 1,
-            last_error: err instanceof Error ? err.message : String(err),
-            next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-          }, { onConflict: "intake_id" })
-          if (error) log.error("Failed to queue draft retry", { intakeId, error: error.message })
-        })
+          try {
+            const { error: upsertErr } = await supabase.from("ai_draft_retry_queue").upsert({
+              intake_id: intakeId,
+              attempts: 1,
+              last_error: err instanceof Error ? err.message : String(err),
+              next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+            }, { onConflict: "intake_id" })
+            if (upsertErr) log.error("Failed to queue draft retry", { intakeId, error: upsertErr.message })
+          } catch (queueErr) {
+            log.error("Failed to queue draft retry", { intakeId, error: queueErr instanceof Error ? queueErr.message : String(queueErr) })
+          }
+        }
+      })
 
       const duration = Date.now() - startTime
       log.info("Payment processed successfully", {

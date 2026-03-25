@@ -12,8 +12,11 @@ const logger = createLogger("cron-retry-auto-approval")
  *
  * Picks up med cert intakes that were paid but not auto-approved
  * (e.g. because the webhook timed out, draft gen was slow, or a transient error).
- * Runs every 3 minutes. Only processes intakes 3-30 minutes old to avoid
+ * Runs every 3 minutes. Only processes intakes 2-30 minutes old to avoid
  * racing with the webhook's own attempt.
+ *
+ * If AI drafts are missing (e.g. webhook was killed before generating them),
+ * this cron will generate them first, then attempt auto-approval.
  *
  * Required env: CRON_SECRET
  */
@@ -33,9 +36,8 @@ export async function GET(request: NextRequest) {
     // Find med cert intakes that are:
     // - status = 'paid' (not yet approved)
     // - unclaimed (no doctor or system has claimed them)
-    // - have AI drafts (document_drafts with is_ai_generated = true)
-    // - paid 3-30 minutes ago (avoid racing with webhook, don't pick up ancient ones)
-    const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString()
+    // - paid 2-30 minutes ago (avoid racing with webhook, don't pick up ancient ones)
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString()
     const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
 
     const { data: eligibleIntakes, error: fetchError } = await supabase
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest) {
       .eq("status", "paid")
       .is("claimed_by", null)
       .eq("ai_approved", false)
-      .lt("paid_at", threeMinAgo)
+      .lt("paid_at", twoMinAgo)
       .gt("paid_at", thirtyMinAgo)
       .order("paid_at", { ascending: true })
       .limit(5)
@@ -75,13 +77,37 @@ export async function GET(request: NextRequest) {
 
     // Dynamically import to avoid cold start cost when no work to do
     const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
+    const { generateDraftsForIntake } = await import("@/app/actions/generate-drafts")
 
     let approved = 0
     let skipped = 0
     let failed = 0
+    let draftsGenerated = 0
 
     for (const intake of medCertIntakes) {
       try {
+        // Check if AI drafts exist — if not, generate them first
+        const { data: existingDrafts } = await supabase
+          .from("document_drafts")
+          .select("id")
+          .eq("intake_id", intake.id)
+          .eq("is_ai_generated", true)
+          .limit(1)
+
+        if (!existingDrafts || existingDrafts.length === 0) {
+          logger.info("No AI drafts found, generating before auto-approval", { intakeId: intake.id })
+          const draftResult = await generateDraftsForIntake(intake.id)
+          if (!draftResult.success) {
+            logger.warn("Draft generation failed in retry cron", {
+              intakeId: intake.id,
+              error: draftResult.error,
+            })
+            failed++
+            continue
+          }
+          draftsGenerated++
+        }
+
         const result = await attemptAutoApproval(intake.id)
         if (result.autoApproved) {
           approved++
@@ -110,6 +136,7 @@ export async function GET(request: NextRequest) {
       approved,
       skipped,
       failed,
+      draftsGenerated,
     })
 
     return NextResponse.json({
@@ -117,6 +144,7 @@ export async function GET(request: NextRequest) {
       approved,
       skipped,
       failed,
+      draftsGenerated,
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
