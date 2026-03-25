@@ -78,7 +78,7 @@ export default function EmployersPage() {
         {/* Hero */}
         <section className="relative pt-32 pb-16 overflow-hidden bg-linear-to-b from-background to-blue-50/30 dark:to-blue-950/10">
           <div className="max-w-3xl mx-auto px-4 text-center">
-              <Badge className="mb-4 bg-blue-500/10 text-blue-700 dark:text-blue-400 border-0 px-4 py-1.5">
+              <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
                 <Building2 className="w-3.5 h-3.5 mr-1.5" />
                 For Employers & HR Teams
               </Badge>

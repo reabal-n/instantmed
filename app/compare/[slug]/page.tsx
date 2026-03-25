@@ -464,11 +464,11 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Verdict */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-4">
+              <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-8 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                <h2 className="text-xl font-bold text-foreground mb-4">
                   The Bottom Line
                 </h2>
-                <p className="text-blue-800 dark:text-blue-200 leading-relaxed">
+                <p className="text-foreground/80 dark:text-foreground/70 leading-relaxed">
                   {comparison.verdict}
                 </p>
               </div>

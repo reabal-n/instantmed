@@ -458,7 +458,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Warnings */}
               <div className="bg-amber-50/50 dark:bg-card border border-amber-200 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-5 w-5 text-dawn-600" />
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
                   <h2 className="font-semibold text-amber-800">Important Warnings</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-amber-700">

@@ -78,7 +78,7 @@ export default function CompareIndexPage() {
                   <Link
                     key={comparison.slug}
                     href={`/compare/${comparison.slug}`}
-                    className="group bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         {/* Content card */}
         <section className="pb-24 px-4">
           <div className="mx-auto max-w-3xl">
-            <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 shadow-sm p-8 sm:p-12 divide-y divide-border/40">
+            <div className="bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-8 sm:p-12 divide-y divide-border/40">
 
               <S n="1" title="Introduction">
                 <p>

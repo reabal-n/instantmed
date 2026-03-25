@@ -113,7 +113,7 @@ export function TrustBadges({
         >
           {/* Subtle glow behind icon on hover */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-primary/0 group-hover:bg-primary/10 blur-xl transition-all duration-500" />
-          <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3 group-hover:bg-primary/15 group-hover:scale-105 transition-all duration-300">
+          <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3 group-hover:bg-primary/15 group-hover:scale-[1.02] transition-all duration-300">
             {badge.icon}
           </div>
           <h4 className="font-medium text-foreground text-sm">{badge.title}</h4>

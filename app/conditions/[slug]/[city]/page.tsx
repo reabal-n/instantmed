@@ -176,7 +176,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                 {condition.symptoms.map((symptom, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-4 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50"
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-card rounded-xl border border-border/50 shadow-sm shadow-primary/[0.04]"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -291,7 +291,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                 {allFaqs.map((faq, i) => (
                   <div
                     key={i}
-                    className="bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 rounded-xl p-6"
+                    className="bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04] rounded-xl p-6"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.a}</p>

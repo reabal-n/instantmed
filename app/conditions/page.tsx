@@ -81,7 +81,7 @@ export default function ConditionsIndexPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 bg-card/80 dark:bg-white/5 border-b border-border/50 dark:border-white/10">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-4xl font-bold text-foreground mb-4">
                 Health Conditions We Can Help With
@@ -111,7 +111,7 @@ export default function ConditionsIndexPage() {
                   <Link
                     key={condition.slug}
                     href={`/conditions/${condition.slug}`}
-                    className="group bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
                   >
                     <h2 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {condition.name}

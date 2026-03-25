@@ -30,7 +30,7 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
             <span className="text-2xl">{category.emoji}</span>
             {category.title}
           </h2>
-          <div className="relative rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-xl overflow-hidden">
+          <div className="relative rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] overflow-hidden">
             <Accordion
               type="multiple"
               className="px-0"

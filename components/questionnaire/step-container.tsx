@@ -181,7 +181,7 @@ export function ChipOption({
       disabled={disabled}
       className={cn(
         "px-4 py-2.5 rounded-full border-2 font-medium text-sm transition-all duration-200",
-        "hover:scale-105 active:scale-95",
+        "hover:scale-[1.02]",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
           ? "border-primary bg-primary text-primary-foreground shadow-md"

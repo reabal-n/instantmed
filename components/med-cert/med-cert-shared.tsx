@@ -206,7 +206,7 @@ export function DurationChip({ selected, onClick, children }: DurationChipProps)
       onClick={onClick}
       className={cn(
         "px-5 py-3 rounded-full text-sm font-medium transition-all duration-200",
-        "hover:scale-105 active:scale-95",
+        "hover:scale-[1.02]",
         selected
           ? "bg-primary text-primary-foreground shadow-md"
           : "bg-muted hover:bg-muted/80 border border-border/40"
@@ -224,7 +224,7 @@ export function SymptomChip({ selected, onClick, emoji, label }: SymptomChipProp
       onClick={onClick}
       className={cn(
         "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
-        "hover:scale-105 active:scale-95",
+        "hover:scale-[1.02]",
         selected
           ? "bg-primary text-primary-foreground shadow-md"
           : "bg-muted hover:bg-muted/80 border border-border/40"

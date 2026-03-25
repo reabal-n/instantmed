@@ -57,7 +57,7 @@ export default function GuidesIndexPage() {
                   <Link
                     key={guide.slug}
                     href={`/guides/${guide.slug}`}
-                    className="group block bg-card/60 dark:bg-white/5 rounded-2xl border border-border/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group block bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
