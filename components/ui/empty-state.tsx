@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { motion, useReducedMotion } from "framer-motion"
 import { fadeIn, fadeUp as slideUp } from "@/lib/motion"
 import Link from "next/link"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 
 interface EmptyStateProps {
   icon: LucideIcon
@@ -65,9 +66,12 @@ export function EmptyState({
         {illustration ? (
           <div className="w-32 h-32 mx-auto">{illustration}</div>
         ) : (
-          <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg">
-            <Icon className="w-11 h-11 text-primary" />
-          </div>
+          <>
+            <LottieAnimation name="empty-state" size={100} loop={false} className="mx-auto" />
+            <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg">
+              <Icon className="w-11 h-11 text-primary" />
+            </div>
+          </>
         )}
       </motion.div>
 

@@ -102,7 +102,7 @@ export function Timeline({
   id,
 }: TimelineProps) {
   return (
-    <section id={id} className={cn("py-20 px-4", className)}>
+    <section id={id} className={cn("py-16 lg:py-24 px-4", className)}>
       <SectionHeader
         pill={pill}
         title={title}

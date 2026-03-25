@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
 import { StatStrip } from "@/components/sections/stat-strip";
 import type { StatItem } from "@/components/sections/types";
+import { SectionPill } from "@/components/ui/section-pill";
 
 interface StatsHeroProps {
   pill?: string;
@@ -32,14 +33,9 @@ export function StatsHero({
     <section className={cn("relative pt-20 lg:pt-28", className)}>
       <div className="mx-auto max-w-3xl text-center px-4">
         {pill && (
-          <motion.span
-            className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium tracking-wider text-primary uppercase mb-6"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {pill}
-          </motion.span>
+          <div className="mb-6">
+            <SectionPill>{pill}</SectionPill>
+          </div>
         )}
         <WordReveal
           text={title}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Clock, FileText, Loader2, MessageCircle, Phone, ArrowLeft, Zap, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 
 interface Intake {
   id: string
@@ -187,6 +188,9 @@ export function TrackingClient({
               </p>
             </div>
 
+            {(intake.status === "approved" || intake.status === "completed") && (
+              <LottieAnimation name="success" size={60} loop={false} className="mx-auto -mb-2" />
+            )}
             <Badge
               variant={
                 intake.status === "approved" || intake.status === "completed"

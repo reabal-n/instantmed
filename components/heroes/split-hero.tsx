@@ -5,6 +5,7 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
 import { ClipPathImage } from "@/components/ui/morning/clip-path-image";
+import { SectionPill } from "@/components/ui/section-pill";
 
 interface SplitHeroProps {
   pill?: string;
@@ -35,14 +36,9 @@ export function SplitHero({
         {/* Text */}
         <div className="flex-1 text-center lg:text-left">
           {pill && (
-            <motion.span
-              className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium tracking-wider text-primary uppercase mb-6"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {pill}
-            </motion.span>
+            <div className="mb-6">
+              <SectionPill>{pill}</SectionPill>
+            </div>
           )}
           <WordReveal
             text={title}

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import { cn } from "@/lib/utils"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 
 export interface DashboardEmptyProps {
   icon?: ReactNode
@@ -26,6 +27,7 @@ export function DashboardEmpty({
 }: DashboardEmptyProps) {
   return (
     <div className={cn("dashboard-empty", className)}>
+      <LottieAnimation name="empty-state" size={100} loop={false} className="mx-auto" />
       {icon && (
         <div className="mb-4 p-4 rounded-full bg-muted/50 text-muted-foreground">
           {icon}

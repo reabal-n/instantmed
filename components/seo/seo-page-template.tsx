@@ -10,6 +10,7 @@ import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
 import { Button } from '@/components/uix'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { SectionPill } from '@/components/ui/section-pill'
 import {
   AlertCircle,
   Check,
@@ -52,11 +53,14 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-block px-3 py-1 bg-primary/10 dark:bg-primary/20 rounded-full text-sm font-medium text-primary dark:text-primary mb-6">
-                {pageType === 'condition' && '🏥 Health Condition'}
-                {pageType === 'certificate' && '📄 Certificate Type'}
-                {pageType === 'benefit' && '✨ Why Choose Us'}
-                {pageType === 'resource' && '📚 Information & FAQ'}
+              <div className="mb-6">
+                <SectionPill>
+                  {pageType === 'condition' ? 'Health Condition'
+                   : pageType === 'certificate' ? 'Certificate Type'
+                   : pageType === 'benefit' ? 'Why Choose Us'
+                   : pageType === 'resource' ? 'Information & FAQ'
+                   : 'Health Info'}
+                </SectionPill>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
 import { scrollRevealConfig } from "@/components/ui/motion";
+import { SectionPill } from "@/components/ui/section-pill";
 
 interface SectionHeaderProps {
   pill?: string;
@@ -42,20 +43,9 @@ export function SectionHeader({
       )}
     >
       {pill && (
-        <motion.span
-          className="inline-block rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 px-4 py-1.5 text-xs font-medium tracking-wider text-foreground/60 dark:text-foreground/50 uppercase mb-4"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-          animate={
-            prefersReducedMotion
-              ? {}
-              : isInView
-                ? { opacity: 1, y: 0 }
-                : undefined
-          }
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          {pill}
-        </motion.span>
+        <div className="mb-4">
+          <SectionPill>{pill}</SectionPill>
+        </div>
       )}
 
       <WordReveal

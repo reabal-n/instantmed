@@ -144,6 +144,11 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 Container: `max-w-6xl mx-auto px-4 sm:px-6 lg:px-8` (standard) / `max-w-3xl` (content-focused)
 
+### Section Spacing Rhythm
+
+- **Major sections** (hero, testimonials, features, FAQ, CTA): `py-16 lg:py-24`
+- **Compact sections** (stats strip, trust badges, dividers): `py-12 lg:py-16`
+
 ---
 
 ## 4. Border Radius — Squircle-preferred
@@ -185,6 +190,14 @@ className="bg-white dark:bg-card border border-border/50 dark:border-white/15
 
 // Section background (subtle tinted region)
 className="bg-muted/50 dark:bg-white/[0.06]"
+```
+
+### Card Hover
+
+All marketing cards use a standard hover pattern:
+
+```
+hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300
 ```
 
 ### Dark Mode Card Pattern
@@ -305,6 +318,20 @@ Max ~40 chars. Examples:
 
 ## 9. Pills
 
+### Section Pills
+
+Use `SectionPill` from `@/components/ui/section-pill` for all decorative label pills above section headings. Text-only, no icons.
+
+```tsx
+<SectionPill>How It Works</SectionPill>
+```
+
+Style: `rounded-full border-border/60 bg-background text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04]`. Dark mode aware. Includes fade-up animation via Framer Motion.
+
+**Do not use for:** status badges, filter toggles, interactive pills, doctor availability indicators.
+
+### Pill Variants
+
 ```tsx
 // Neutral pill (default for trust badges, inline signals)
 className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
@@ -332,6 +359,17 @@ className="bg-primary hover:bg-primary/90 text-primary-foreground
            shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
            active:scale-[0.98] transition-all"
 
+### CTA Button Glow
+
+All primary marketing CTAs use a consistent shadow glow:
+
+```
+shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
+```
+
+Secondary CTAs on colored backgrounds: `shadow-lg hover:shadow-xl` (no color tint).
+
+```tsx
 // Secondary / Outline
 className="bg-foreground hover:bg-foreground/90 text-background"
 // or
@@ -429,7 +467,21 @@ initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}  // DO NOT USE
 
 ---
 
-## 12. Layout
+## 12. Lottie Animations
+
+Use `LottieAnimation` from `@/components/ui/lottie-animation` for empty states, success, error, and loading feedback.
+
+Available animations: `confetti`, `empty-state`, `error`, `loading-files`, `loading`, `notification`, `success`.
+
+```tsx
+<LottieAnimation name="empty-state" size={100} loop={false} />
+```
+
+Respects `useReducedMotion`. Lazy-loads `lottie-web`. Use `loop={false}` for one-time feedback (success, error), `loop={true}` for ongoing states (loading).
+
+---
+
+## 13. Layout
 
 ### Grids
 
@@ -459,7 +511,7 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 
 ---
 
-## 13. Trust Logos
+## 14. Trust Logos
 
 Three regulatory logos displayed on service and marketing pages:
 
@@ -474,7 +526,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 14. Voice & Copy Rules
+## 15. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|
@@ -485,7 +537,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 15. Do / Don't
+## 16. Do / Don't
 
 | Do | Don't |
 |----|-------|

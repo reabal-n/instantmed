@@ -18,7 +18,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
   if (!config.specializedServices) return null
 
   return (
-    <section className="py-20 lg:py-24">
+    <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -47,7 +47,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
               >
                 <Link
                   href={service.href}
-                  className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.1] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 group"
+                  className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 group"
                 >
                   <div className="flex items-start gap-4">
                     <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', colors.light)}>

@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Building2, Clock, Star, Briefcase, Mail, Lock } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Shield, Zap, Clock, Star, Briefcase, Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -63,10 +64,7 @@ export default function CorporatePage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted-foreground/10 border border-border mb-4 interactive-pill cursor-default">
-                    <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-foreground">For Corporate Professionals</span>
-                  </div>
+                  <div className="mb-4"><SectionPill>For Corporate Professionals</SectionPill></div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Medical Certificate Before HR Asks

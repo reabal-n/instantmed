@@ -1,8 +1,8 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { CheckCircle2 } from 'lucide-react'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { SectionPill } from '@/components/ui/section-pill'
 import { CONTACT_EMAIL } from '@/lib/constants'
 import type { ServiceFunnelConfig } from './funnel-types'
 
@@ -16,7 +16,7 @@ export function FaqSection({ config }: FaqSectionProps) {
   if (!config.faq) return null
 
   return (
-    <section id="faq" className="py-20 lg:py-24 scroll-mt-20">
+    <section id="faq" className="py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -26,10 +26,7 @@ export function FaqSection({ config }: FaqSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6">
-            <CheckCircle2 className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
-            <span className="text-sm font-medium text-foreground/60 dark:text-foreground/50">FAQ</span>
-          </div>
+          <SectionPill>FAQ</SectionPill>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {config.faq.title}
@@ -55,7 +52,7 @@ export function FaqSection({ config }: FaqSectionProps) {
               <AccordionItem
                 key={index.toString()}
                 value={index.toString()}
-                className="rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 px-5"
+                className="rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300 px-5"
               >
                 <AccordionTrigger className="text-foreground py-5">
                   <span className="font-medium text-foreground text-left">{item.question}</span>

@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOpen, FileText, Calendar } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -63,10 +64,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4 interactive-pill cursor-default">
-                    <GraduationCap className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-medium text-blue-700 dark:text-blue-400">For Uni & TAFE Students</span>
-                  </div>
+                  <div className="mb-4"><SectionPill>For Uni & TAFE Students</SectionPill></div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Medical Certificates for Special Consideration

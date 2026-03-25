@@ -161,7 +161,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       asChild
                       size="lg"
                       variant={isDisabled ? 'outline' : 'default'}
-                      className={cn(isDisabled ? '' : 'px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all')}
+                      className={cn(isDisabled ? '' : 'px-8 h-12 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all')}
                     >
                       <Link href={ctaHref}>
                         {isDisabled ? 'Contact us' : `${config.ctaButtonText} — $19.95`}

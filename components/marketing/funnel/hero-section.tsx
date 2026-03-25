@@ -114,7 +114,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                 <Button
                   asChild
                   size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]"
+                  className="px-8 h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                 >
                   <Link href={config.hero.ctaHref}>
                     {config.hero.ctaText}

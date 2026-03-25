@@ -36,7 +36,7 @@ export function CTABanner({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id={id} className={cn("py-20 px-4", className)}>
+    <section id={id} className={cn("py-16 lg:py-24 px-4", className)}>
       <motion.div
         ref={ref}
         className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-10 lg:p-16 text-center relative overflow-hidden"
@@ -61,7 +61,7 @@ export function CTABanner({
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href={ctaHref}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
           >
             {ctaText}
             <ArrowRight className="h-4 w-4" />

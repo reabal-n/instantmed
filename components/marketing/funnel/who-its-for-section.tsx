@@ -15,7 +15,7 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-20 lg:py-24">
+    <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}

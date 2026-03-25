@@ -33,7 +33,7 @@ export function ProcessSteps({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id={id} className={cn("relative py-20 lg:py-24 px-4", className)}>
+    <section id={id} className={cn("relative py-16 lg:py-24 px-4", className)}>
       <DottedGrid />
       <SectionHeader
         pill={pill}

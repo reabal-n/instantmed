@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react"
 import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
@@ -215,6 +216,7 @@ export function SuccessClient({
         className="space-y-6"
       >
         <div className="text-center space-y-4">
+          <LottieAnimation name="error" size={80} loop={false} className="mx-auto" />
           <motion.div
             initial={prefersReducedMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
@@ -291,6 +293,7 @@ export function SuccessClient({
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="text-center space-y-4"
       >
+        <LottieAnimation name="success" size={80} loop={false} className="mx-auto" />
         <motion.div
           initial={prefersReducedMotion ? false : { scale: 0 }}
           animate={{ scale: 1 }}

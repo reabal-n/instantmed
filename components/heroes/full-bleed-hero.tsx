@@ -5,6 +5,7 @@ import { type ReactNode } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
+import { SectionPill } from "@/components/ui/section-pill";
 
 interface FullBleedHeroProps {
   pill?: string;
@@ -49,14 +50,9 @@ export function FullBleedHero({
       <div className="relative py-28 px-4 lg:py-36">
         <div className="mx-auto max-w-3xl text-center">
           {pill && (
-            <motion.span
-              className="inline-block rounded-full bg-muted/50 dark:bg-white/[0.06] px-4 py-1.5 text-xs font-medium tracking-wider text-foreground uppercase mb-6 border border-border/50"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {pill}
-            </motion.span>
+            <div className="mb-6">
+              <SectionPill>{pill}</SectionPill>
+            </div>
           )}
           <WordReveal
             text={title}

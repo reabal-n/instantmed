@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 
 /**
  * Error Recovery Components
@@ -129,6 +130,9 @@ export function ErrorBanner({
       )}
     >
       <div className="flex items-start gap-3">
+        {errorType !== "validation" && (
+          <LottieAnimation name="error" size={32} loop={false} className="shrink-0 -mt-0.5" />
+        )}
         <div className={cn(
           "shrink-0 mt-0.5",
           errorType === "validation"
