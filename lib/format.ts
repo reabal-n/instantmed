@@ -64,3 +64,15 @@ export function formatRelative(date: string | Date): string {
 export function formatCurrency(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }
+
+/** Calculate age from date of birth string. Returns null if DOB is missing/invalid. */
+export function calculateAge(dob: string | null | undefined): number | null {
+  if (!dob) return null
+  const birthDate = new Date(dob)
+  if (isNaN(birthDate.getTime())) return null
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--
+  return age
+}

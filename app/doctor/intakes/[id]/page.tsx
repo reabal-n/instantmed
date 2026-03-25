@@ -5,6 +5,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
+import { calculateAge } from "@/lib/format"
 
 export const metadata = { title: "Review Intake" }
 
@@ -45,19 +46,6 @@ export default async function DoctorIntakeDetailPage({
       ? getOrCreateMedCertDraftForIntake(id)
       : Promise.resolve(null),
   ])
-
-  // Calculate patient age from DOB
-  const calculateAge = (dob: string | null): number | null => {
-    if (!dob) return null
-    const birthDate = new Date(dob)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
 
   // Mask Medicare number
   const maskMedicare = (medicare: string | null): string => {

@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useState, useTransition } from "react"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { formatIntakeStatus } from "@/lib/format-intake"
-import { formatDate, formatDateTime, formatDateLong } from "@/lib/format"
+import { formatDate, formatDateTime, formatDateLong, calculateAge } from "@/lib/format"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import { PatientCommunicationHistory } from "@/components/doctor/patient-communication-history"
 import type { Profile } from "@/types/db"
@@ -94,19 +94,6 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
         setShowNoteForm(false)
       }
     })
-  }
-
-  const calculateAge = (dob: string | null | undefined): number | null => {
-    if (!dob) return null
-    const birthDate = new Date(dob)
-    if (isNaN(birthDate.getTime())) return null
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
   }
 
   const age = calculateAge(patient.date_of_birth)

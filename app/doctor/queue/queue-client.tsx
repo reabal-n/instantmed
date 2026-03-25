@@ -39,6 +39,8 @@ import {
   ShieldAlert,
   Sparkles,
   Loader2,
+  Volume2,
+  VolumeOff,
 } from "lucide-react"
 import { updateStatusAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
@@ -53,12 +55,14 @@ import {
 } from "@/components/ui/select"
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
+import { calculateAge } from "@/lib/format"
 import { toast } from "sonner"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { capture } from "@/lib/analytics/capture"
 import { usePanel } from "@/components/panels/panel-provider"
+import { useDebounce } from "@/hooks/use-debounce"
 import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 
 export function QueueClient({
@@ -83,6 +87,7 @@ export function QueueClient({
   const currentPage = pagination?.page ?? 1
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearch = useDebounce(searchQuery, 200)
   const [isPending, startTransition] = useTransition()
   const [declineDialog, setDeclineDialog] = useState<string | null>(null)
   const [declineReasonCode, setDeclineReasonCode] = useState("")
@@ -102,6 +107,12 @@ export function QueueClient({
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
   const [, setTick] = useState(0) // Forces re-render for live wait time ticking
+  const [soundMuted, setSoundMuted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("instantmed:queue-sound-muted") === "true"
+    }
+    return false
+  })
   const listId = useId()
 
   // Tick every 30s to update wait time displays live
@@ -114,6 +125,7 @@ export function QueueClient({
 
   // Play a subtle notification sound when a new intake arrives
   const playNotificationSound = useCallback(() => {
+    if (soundMuted) return
     try {
       const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
       const oscillator = audioCtx.createOscillator()
@@ -129,7 +141,7 @@ export function QueueClient({
     } catch {
       // Audio not available — silent fallback
     }
-  }, [])
+  }, [soundMuted])
 
   // Real-time subscription — client-side state updates (no router.refresh on INSERT)
   useEffect(() => {
@@ -137,7 +149,7 @@ export function QueueClient({
     const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
       const now = new Date()
       const timeSinceSync = now.getTime() - lastSyncTimeRef.current.getTime()
-      if (timeSinceSync > 60000) {
+      if (timeSinceSync > 90000) {
         setIsStale(true)
       }
     }, 30000)
@@ -246,15 +258,7 @@ export function QueueClient({
     return hours > 0 ? `${hours}h ${diffMins % 60}m left` : `${diffMins}m left`
   }
 
-  const calculateAge = (dob: string | null): number | null => {
-    if (!dob) return null
-    const birthDate = new Date(dob)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--
-    return age
-  }
+
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === "med_certs") {
@@ -376,8 +380,8 @@ export function QueueClient({
   }, [intakes, hasRedFlags])
 
   const filteredIntakes = sortedIntakes.filter((r) => {
-    if (!searchQuery.trim()) return true
-    const query = searchQuery.toLowerCase()
+    if (!debouncedSearch.trim()) return true
+    const query = debouncedSearch.toLowerCase()
     const service = r.service as { name?: string; type?: string } | undefined
     return (
       r.patient.full_name.toLowerCase().includes(query) ||
@@ -389,17 +393,40 @@ export function QueueClient({
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
     if (requiresNote && !declineReasonNote.trim()) return
+    const declinedId = declineDialog
     startTransition(async () => {
-      const result = await declineIntakeAction(declineDialog, declineReasonCode, declineReasonNote || undefined)
+      const result = await declineIntakeAction(declinedId, declineReasonCode, declineReasonNote || undefined)
       if (result.success) {
         capture("doctor_decline_submitted", {
-          intake_id: declineDialog,
+          intake_id: declinedId,
           reason_code: declineReasonCode,
         })
-        setIntakes((prev) => prev.filter((r) => r.id !== declineDialog))
+        // Store declined intake for potential undo
+        const declinedIntake = intakes.find((r) => r.id === declinedId)
+        setIntakes((prev) => prev.filter((r) => r.id !== declinedId))
         setDeclineDialog(null)
         setDeclineReasonCode("")
         setDeclineReasonNote("")
+        toast.success("Case declined and patient notified", {
+          action: declinedIntake ? {
+            label: "Undo",
+            onClick: () => {
+              startTransition(async () => {
+                const undoResult = await updateStatusAction(declinedId, "paid")
+                if (undoResult.success) {
+                  setIntakes((prev) => [declinedIntake, ...prev])
+                  toast.success("Decline reversed — case restored to queue")
+                  router.refresh()
+                } else {
+                  toast.error(undoResult.error || "Failed to undo decline")
+                }
+              })
+            },
+          } : undefined,
+          duration: 8000,
+        })
+      } else {
+        toast.error(result.error || "Failed to decline")
       }
     })
   }
@@ -410,8 +437,11 @@ export function QueueClient({
       const result = await flagForFollowupAction(flagDialog, flagReason)
       if (result.success) {
         setIntakes((prev) => prev.map((r) => (r.id === flagDialog ? { ...r, flagged_for_followup: true } : r)))
+        toast.success("Flagged for follow-up")
         setFlagDialog(null)
         setFlagReason("")
+      } else {
+        toast.error(result.error || "Failed to flag case")
       }
     })
   }
@@ -467,6 +497,20 @@ export function QueueClient({
             className="w-full sm:w-56 h-9 text-sm"
             startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
           />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => {
+              const newMuted = !soundMuted
+              setSoundMuted(newMuted)
+              localStorage.setItem("instantmed:queue-sound-muted", String(newMuted))
+            }}
+            aria-label={soundMuted ? "Unmute notifications" : "Mute notifications"}
+            title={soundMuted ? "Unmute notifications" : "Mute notifications"}
+          >
+            {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+          </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.refresh()}>
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
@@ -633,27 +677,7 @@ export function QueueClient({
         )}
       </div>
 
-      {/* Pagination */}
-      {pagination && totalPages > 1 && (
-        <div className="flex items-center justify-between py-5 px-2 border-t">
-          <div className="text-sm text-muted-foreground">
-            {(currentPage - 1) * pagination.pageSize + 1} – {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}
-          </div>
-          <Pagination
-            total={totalPages}
-            page={currentPage}
-            onChange={(page) => {
-              const params = new URLSearchParams(window.location.search)
-              params.set("page", String(page))
-              router.push(`/doctor/dashboard?${params.toString()}`)
-            }}
-            showControls
-            size="sm"
-          />
-        </div>
-      )}
-
-      {/* AI-Approved Review Section */}
+      {/* AI-Approved Review Section — above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
         <Card className="border-violet-200/50 dark:border-violet-500/20">
           <CardHeader className="pb-3">
@@ -722,6 +746,26 @@ export function QueueClient({
             })}
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {pagination && totalPages > 1 && (
+        <div className="flex items-center justify-between py-5 px-2 border-t">
+          <div className="text-sm text-muted-foreground">
+            {(currentPage - 1) * pagination.pageSize + 1} – {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}
+          </div>
+          <Pagination
+            total={totalPages}
+            page={currentPage}
+            onChange={(page) => {
+              const params = new URLSearchParams(window.location.search)
+              params.set("page", String(page))
+              router.push(`/doctor/dashboard?${params.toString()}`)
+            }}
+            showControls
+            size="sm"
+          />
+        </div>
       )}
 
       {/* Revoke AI Approval Dialog */}

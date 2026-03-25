@@ -4,6 +4,7 @@ import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake, getAIDraftsForIntake } from "@/lib/data/documents"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { DocumentBuilderClient } from "./document-builder-client"
+import { calculateAge } from "@/lib/format"
 
 export const metadata = { title: "Certificate Builder" }
 
@@ -48,19 +49,6 @@ export default async function IntakeDocumentBuilderPage({
     getLatestDocumentForIntake(id),
     getAIDraftsForIntake(id),
   ])
-
-  // Calculate patient age
-  const calculateAge = (dob: string | null): number | null => {
-    if (!dob) return null
-    const birthDate = new Date(dob)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
 
   const patientAge = calculateAge(intake.patient.date_of_birth)
 

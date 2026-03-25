@@ -518,22 +518,22 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     stepId: 'details',
   })
 
+  // Filter out the standalone "Request Type" section — redundant since the flow header already shows the service
+  const displaySections = sections.filter(s => s.title !== 'Request Type')
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-          <Check className="w-6 h-6 text-primary" />
-        </div>
+    <div className="space-y-3">
+      {/* Compact header */}
+      <div className="text-center mb-2">
         <h2 className="text-lg font-semibold">Review your request</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Please check the details below before proceeding to payment
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Check the details below, then continue to payment
         </p>
       </div>
 
       {/* Review sections */}
-      <div className="space-y-4">
-        {sections.map((section, i) => (
+      <div className="space-y-3">
+        {displaySections.map((section, i) => (
           <ReviewSection
             key={i}
             title={section.title}
@@ -543,42 +543,29 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         ))}
       </div>
 
-      {/* Reassurance badges — frosted glass */}
-      <div className="grid grid-cols-3 gap-2 py-2">
-        {[
-          { icon: Shield, color: 'text-primary', label: 'Real Australian doctor' },
-          { icon: Clock, color: 'text-primary', label: 'Issued within ~30 min' },
-          { icon: RefreshCw, color: 'text-primary', label: 'Full refund if we can\'t help' },
-        ].map((badge) => (
-          <div
-            key={badge.label}
-            className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-card/50 dark:bg-white/5 border border-border/60 dark:border-white/10 backdrop-blur-sm"
-          >
-            <badge.icon className={`w-4 h-4 ${badge.color}`} />
-            <span className="text-xs text-muted-foreground text-center leading-tight">{badge.label}</span>
+      {/* Safety consent + Continue — combined for less scrolling */}
+      <div className="space-y-3 pt-1">
+        <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5 p-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="safety-consent"
+              checked={safetyConfirmed}
+              onCheckedChange={setSafetyConfirmed}
+            />
+            <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
+              I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
+            </Label>
           </div>
-        ))
-        }
-      </div>
-
-      {/* Safety consent */}
-      <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5 p-5">
-        <div className="flex items-center gap-3">
-          <Switch
-            id="safety-consent"
-            checked={safetyConfirmed}
-            onCheckedChange={setSafetyConfirmed}
-          />
-          <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
-            I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
-          </Label>
         </div>
-      </div>
 
-      {/* Continue button */}
-      <Button onClick={onNext} className="w-full h-12 mt-6" disabled={!safetyConfirmed}>
-        Continue to payment
-      </Button>
+        <Button onClick={onNext} className="w-full h-12" disabled={!safetyConfirmed}>
+          Continue to payment
+        </Button>
+
+        <p className="text-[11px] text-muted-foreground/70 text-center">
+          Reviewed by a real Australian doctor · Full refund if we can&apos;t help
+        </p>
+      </div>
     </div>
   )
 }

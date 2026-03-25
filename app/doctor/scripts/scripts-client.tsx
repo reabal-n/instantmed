@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { capture } from "@/lib/analytics/capture"
@@ -30,6 +30,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
   const [tasks, setTasks] = useState(initialTasks)
   const [counts, setCounts] = useState(initialCounts)
   const [isPending, startTransition] = useTransition()
+  const lastKnownGoodTasks = useRef(initialTasks)
 
   const filteredTasks = filter === "all" ? tasks : tasks.filter((t) => t.status === filter)
 
@@ -62,18 +63,19 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
       }
       toast.success(`Marked as ${STATUS_CONFIG[newStatus].label}`)
 
-      // Refresh data
+      // Refresh data and update last-known-good state
       startTransition(async () => {
         const refreshRes = await fetch("/api/doctor/scripts")
         if (refreshRes.ok) {
           const data = await refreshRes.json()
           setTasks(data.tasks)
           setCounts(data.counts)
+          lastKnownGoodTasks.current = data.tasks
         }
       })
     } catch {
-      // Revert optimistic update
-      setTasks(initialTasks)
+      // Revert optimistic update to last-known-good state (not stale initial prop)
+      setTasks(lastKnownGoodTasks.current)
       toast.error("Failed to update task")
     }
   }
