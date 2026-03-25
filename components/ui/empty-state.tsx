@@ -51,14 +51,14 @@ export function EmptyState({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : "initial"}
+      initial={prefersReducedMotion ? {} : "initial"}
       animate="animate"
       variants={fadeIn}
       className={cn("text-center py-16 px-4 max-w-2xl mx-auto", className)}
     >
       {/* Illustration or Icon */}
       <motion.div
-        initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
         className="mb-8"
@@ -67,8 +67,8 @@ export function EmptyState({
           <div className="w-32 h-32 mx-auto">{illustration}</div>
         ) : (
           <>
-            <LottieAnimation name="empty-state" size={100} loop={false} className="mx-auto" />
-            <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg">
+            <LottieAnimation name="empty-state" size={100} className="mx-auto" />
+            <div className="w-24 h-24 mx-auto rounded-3xl bg-linear-to-br from-primary/15 to-secondary/15 flex items-center justify-center shadow-lg -mt-4">
               <Icon className="w-11 h-11 text-primary" />
             </div>
           </>
@@ -77,7 +77,7 @@ export function EmptyState({
 
       {/* Title */}
       <motion.h3
-        initial={prefersReducedMotion ? false : "initial"}
+        initial={prefersReducedMotion ? {} : "initial"}
         animate="animate"
         variants={slideUp}
         transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
@@ -88,7 +88,7 @@ export function EmptyState({
 
       {/* Description */}
       <motion.p
-        initial={prefersReducedMotion ? false : "initial"}
+        initial={prefersReducedMotion ? {} : "initial"}
         animate="animate"
         variants={slideUp}
         transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
@@ -100,7 +100,7 @@ export function EmptyState({
       {/* Actions */}
       {(action || secondaryAction) && (
         <motion.div
-          initial={prefersReducedMotion ? false : "initial"}
+          initial={prefersReducedMotion ? {} : "initial"}
           animate="animate"
           variants={slideUp}
           transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
@@ -146,7 +146,7 @@ export function EmptyState({
       {/* Tips */}
       {tips && tips.length > 0 && (
         <motion.div
-          initial={prefersReducedMotion ? false : "initial"}
+          initial={prefersReducedMotion ? {} : "initial"}
           animate="animate"
           variants={slideUp}
           transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
@@ -170,7 +170,7 @@ export function EmptyState({
       {/* Examples/Templates */}
       {examples && examples.length > 0 && (
         <motion.div
-          initial={prefersReducedMotion ? false : "initial"}
+          initial={prefersReducedMotion ? {} : "initial"}
           animate="animate"
           variants={slideUp}
           transition={{ delay: prefersReducedMotion ? 0 : 0.6 }}

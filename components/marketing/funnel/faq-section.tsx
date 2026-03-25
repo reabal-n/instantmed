@@ -26,7 +26,9 @@ export function FaqSection({ config }: FaqSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <SectionPill>FAQ</SectionPill>
+          <div className="mb-4">
+            <SectionPill>FAQ</SectionPill>
+          </div>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {config.faq.title}

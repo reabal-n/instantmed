@@ -164,6 +164,11 @@ export function TrackingClient({
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Success animation for approved/completed */}
+        {(intake.status === "approved" || intake.status === "completed") && (
+          <LottieAnimation name="success" size={80} loop={false} className="mx-auto -mb-4" />
+        )}
+
         {/* Request info card */}
         <div className="bg-card border rounded-2xl p-6 mb-8">
           <div className="flex items-start justify-between gap-4">
@@ -188,9 +193,6 @@ export function TrackingClient({
               </p>
             </div>
 
-            {(intake.status === "approved" || intake.status === "completed") && (
-              <LottieAnimation name="success" size={60} loop={false} className="mx-auto -mb-2" />
-            )}
             <Badge
               variant={
                 intake.status === "approved" || intake.status === "completed"
