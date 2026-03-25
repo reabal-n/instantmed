@@ -85,7 +85,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
       const result = await updateFeatureFlagAction(key, !currentValue)
       if (result.success) {
         setFlags(prev => ({ ...prev, [key]: !currentValue }))
-        toast.success(`${!currentValue ? "Disabled" : "Enabled"} successfully`)
+        toast.success(`${!currentValue ? "Enabled" : "Disabled"} successfully`)
         router.refresh()
       } else {
         toast.error(result.error || "Failed to update flag")
