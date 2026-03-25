@@ -82,7 +82,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
     const emailResult = await sendEmail({
       to: patient.email,
       toName: certificate.patient_name,
-      subject: "Your Medical Certificate is Ready - InstantMed",
+      subject: "Your medical certificate is ready 🎉",
       template: emailTemplate,
       emailType: "med_cert_patient",
       intakeId: certificate.intake_id,

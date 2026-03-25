@@ -61,8 +61,8 @@ const colors = {
   errorText: "#991B1B",     // Red-800
 }
 
-// Source Sans 3 (brand) — many email clients block web fonts, so fallbacks are critical
-const fontFamily = "'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+// System sans-serif stack — web fonts get stripped by most email clients, causing serif fallback
+const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
 interface BaseEmailProps {
   children: React.ReactNode
@@ -78,12 +78,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="light dark" />
         <meta name="supported-color-schemes" content="light dark" />
-        {/* Source Sans 3 — matches the website font */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
+{/* No web fonts — email clients strip <link> tags, causing serif fallback */}
         <title>InstantMed</title>
         <style>{`
           body, td, p, h1, h2, h3, a, span, div, li {

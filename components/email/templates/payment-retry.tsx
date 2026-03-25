@@ -14,7 +14,7 @@ export interface PaymentRetryEmailProps {
 }
 
 export function paymentRetrySubject() {
-  return "Complete your InstantMed payment"
+  return "Just a heads up — your payment needs another go"
 }
 
 export function PaymentRetryEmail({
@@ -73,9 +73,9 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+
 </head>
-<body style="font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
   <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FAFAF9;">
     <tr>
       <td style="padding: 48px 16px;">
@@ -121,7 +121,7 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
                 <a href="${baseUrl}/patient/settings" style="color: #A8A29E; text-decoration: none;">Preferences</a>
               </p>
               <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0;">
-                {COMPANY_NAME} &middot; ABN {ABN} &middot; Australia
+                InstantMed Pty Ltd &middot; ABN 64 694 559 334 &middot; Australia
               </p>
             </td>
           </tr>

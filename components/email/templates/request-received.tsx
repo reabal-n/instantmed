@@ -28,7 +28,7 @@ export interface RequestReceivedEmailProps {
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `Your ${requestType} request has been received`
+  return `All sorted — your ${requestType} is with a doctor now`
 }
 
 export function RequestReceivedEmail({
@@ -77,7 +77,7 @@ export function RequestReceivedEmail({
         <List
           items={[
             "A doctor reviews your request (typically 1–2 hours)",
-            "You&apos;ll get an email as soon as a decision is made",
+            "You'll get an email as soon as a decision is made",
             "If anything else is needed, the doctor will reach out directly",
           ]}
         />

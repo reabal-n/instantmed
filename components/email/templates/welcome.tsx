@@ -70,4 +70,4 @@ export function WelcomeEmail({
   )
 }
 
-export const welcomeEmailSubject = "Welcome to InstantMed"
+export const welcomeEmailSubject = "Welcome aboard — here's how InstantMed works"

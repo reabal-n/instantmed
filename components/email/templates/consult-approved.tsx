@@ -79,4 +79,4 @@ export function ConsultApprovedEmail({
   )
 }
 
-export const consultApprovedSubject = "Your consultation has been reviewed"
+export const consultApprovedSubject = "Good news — your consultation is all done"

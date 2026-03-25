@@ -18,7 +18,7 @@ export interface AbandonedCheckoutEmailProps {
 }
 
 export function abandonedCheckoutSubject(serviceName: string) {
-  return `Your ${serviceName} request is waiting`
+  return `Still thinking? Your ${serviceName} is ready when you are`
 }
 
 export function AbandonedCheckoutEmail({
@@ -74,7 +74,7 @@ export function AbandonedCheckoutEmail({
  * Render the email to an HTML string (used by abandoned-checkout cron job)
  */
 export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps): string {
-  const { patientName, serviceName, resumeUrl, appUrl = "https://instantmed.com.au", hoursAgo } = props
+  const { patientName, serviceName, resumeUrl, appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au", hoursAgo } = props
   const firstName = patientName.split(" ")[0]
 
   return `<!DOCTYPE html>
@@ -83,9 +83,9 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+
 </head>
-<body style="font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
   <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FAFAF9;">
     <tr>
       <td style="padding: 48px 16px;">

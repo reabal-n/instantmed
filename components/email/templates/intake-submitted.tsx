@@ -26,7 +26,7 @@ export interface IntakeSubmittedEmailProps {
 }
 
 export function intakeSubmittedSubject(requestType: string) {
-  return `Your ${requestType} request is being reviewed`
+  return `Got it — your ${requestType} is being reviewed`
 }
 
 export function IntakeSubmittedEmail({

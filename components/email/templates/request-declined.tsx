@@ -86,4 +86,4 @@ export function RequestDeclinedEmail({
 }
 
 export const requestDeclinedEmailSubject = (requestType: string) =>
-  `Update on your ${requestType} request`
+  `An update on your ${requestType} — please have a read`

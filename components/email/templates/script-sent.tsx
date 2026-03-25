@@ -93,4 +93,4 @@ export function ScriptSentEmail({
   )
 }
 
-export const scriptSentEmailSubject = "Your eScript has been sent"
+export const scriptSentEmailSubject = "Your eScript is on its way"

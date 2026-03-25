@@ -23,7 +23,7 @@ export interface VerificationCodeEmailProps {
 }
 
 export const verificationCodeSubject = (code: string) =>
-  `${code} — your InstantMed verification code ✨`
+  `Your InstantMed verification code — ${code}`
 
 export function VerificationCodeEmail({
   code,

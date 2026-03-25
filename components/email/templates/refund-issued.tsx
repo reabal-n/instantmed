@@ -73,4 +73,4 @@ export function RefundIssuedEmail({
 }
 
 export const refundIssuedEmailSubject = (requestType: string) =>
-  `Refund processed for your ${requestType} request`
+  `Your ${requestType} refund is on its way`

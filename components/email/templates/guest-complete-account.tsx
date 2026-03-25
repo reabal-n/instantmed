@@ -17,7 +17,7 @@ export interface GuestCompleteAccountEmailProps {
 }
 
 export function guestCompleteAccountSubject(requestType: string) {
-  return `Create your InstantMed account to track your ${requestType}`
+  return `Your ${requestType} is underway — set up your account to track it`
 }
 
 export function GuestCompleteAccountEmail({

@@ -18,7 +18,7 @@ export interface PaymentFailedEmailProps {
 }
 
 export function paymentFailedSubject(serviceName: string) {
-  return `Payment issue with your ${serviceName} request`
+  return `Heads up — there was a hiccup with your ${serviceName} payment`
 }
 
 export function PaymentFailedEmail({

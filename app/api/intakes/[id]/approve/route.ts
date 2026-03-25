@@ -168,7 +168,7 @@ export async function POST(
       email_type: "med_cert_patient",
       to_email: patient.email,
       to_name: patient.full_name,
-      subject: "Your Medical Certificate is Ready",
+      subject: "Your medical certificate is ready 🎉",
       status: "pending",
       provider: "resend",
       intake_id: intakeId,

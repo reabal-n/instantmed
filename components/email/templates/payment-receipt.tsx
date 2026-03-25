@@ -91,4 +91,6 @@ export function PaymentReceiptEmail({
   )
 }
 
-export const paymentReceiptEmailSubject = "Payment confirmed — {{service_name}}"
+export function paymentReceiptEmailSubject(serviceName: string) {
+  return `Payment confirmed — ${serviceName}`
+}
