@@ -24,11 +24,11 @@ export const siteConfig = {
 }
 
 export const heroRotatingTexts = [
-  `Medical certificate from ${PRICING_DISPLAY.MED_CERT} — most reviewed within 1–2 hours.`,
-  "Too sick to visit a GP? Get your cert from bed.",
-  "AHPRA-registered doctors. Employer-accepted certificates.",
-  `Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Any pharmacy, Australia-wide.`,
-  "Save $40–70 compared to a GP visit. Same doctor review.",
+  "A doctor, without the waiting room.",
+  "Back at work tomorrow.",
+  "Sorted before your next coffee.",
+  "No appointment. No waiting room. No drama.",
+  "Real GP review, without leaving the couch.",
 ]
 
 export const trustSignals = [
