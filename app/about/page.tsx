@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { AboutClient } from "./about-client"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // ISR: Revalidate about page every 24 hours (static content)
 export const revalidate = 86400
@@ -23,5 +24,15 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  return <AboutClient />
+  return (
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "About", url: "https://instantmed.com.au/about" },
+        ]}
+      />
+      <AboutClient />
+    </>
+  )
 }

@@ -11,7 +11,7 @@ import { ThemeProvider } from "next-themes"
 import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas-loader"
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
-import { OrganizationSchema } from "@/components/seo/healthcare-schema"
+import { OrganizationSchema, WebSiteSchema } from "@/components/seo/healthcare-schema"
 import { PostHogLoader } from "@/components/providers/posthog-loader"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
@@ -178,6 +178,7 @@ export default function RootLayout({
             `}
           </Script>
           <OrganizationSchema />
+          <WebSiteSchema />
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogLoader>

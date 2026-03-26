@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { BreadcrumbSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, MedicalServiceSchema, HowToSchema } from '@/components/seo/healthcare-schema'
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 
 export const metadata: Metadata = {
@@ -48,10 +48,30 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
           { name: "Doctor Consultation", url: "https://instantmed.com.au/consult" }
         ]} 
       />
-      <MedicalServiceSchema 
+      <MedicalServiceSchema
         name="Online Doctor Consultation"
         description="A proper doctor consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice."
         price="49.95"
+      />
+      <HowToSchema
+        name="How to Get an Online Doctor Consultation in Australia"
+        description="Consult with an AHPRA-registered GP online. Get treatment advice, prescriptions, or referrals without visiting a clinic."
+        totalTime="PT120M"
+        estimatedCost="49.95"
+        steps={[
+          {
+            name: "Describe your health concern",
+            text: "Tell us what you'd like to discuss with a doctor. Include your symptoms, how long you've had them, and any relevant medical history.",
+          },
+          {
+            name: "Provide your details",
+            text: "Enter your personal and Medicare details so the doctor can verify your identity and prescribe if needed.",
+          },
+          {
+            name: "Doctor reviews and responds",
+            text: "An AHPRA-registered GP reviews your information. They may call you to discuss further, or provide advice, a prescription, or referral directly.",
+          },
+        ]}
       />
       {/* Show contextual banner for med cert redirects */}
       {isFromMedCert && <MedCertRedirectBanner />}

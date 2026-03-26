@@ -161,7 +161,6 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | Med cert (1 day) | $19.95 | `STRIPE_PRICE_MEDCERT` |
 | Med cert (2 day) | $29.95 | `STRIPE_PRICE_MEDCERT_2DAY` |
 | Med cert (3 day) | $39.95 | `STRIPE_PRICE_MEDCERT_3DAY` |
-| Prescription (new) | $49.95 | `STRIPE_PRICE_PRESCRIPTION` |
 | Repeat prescription | $29.95 | `STRIPE_PRICE_REPEAT_SCRIPT` |
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $39.95 | `STRIPE_PRICE_CONSULT_ED` |

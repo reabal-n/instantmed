@@ -64,8 +64,15 @@ function hasE2EAuthBypass(req: Request): boolean {
 }
 
 export default clerkMiddleware(async (auth, req) => {
-  const { pathname } = new URL(req.url)
-  
+  const url = new URL(req.url)
+  const { pathname } = url
+
+  // Redirect www → non-www (consolidate domain authority)
+  if (url.hostname === "www.instantmed.com.au") {
+    url.hostname = "instantmed.com.au"
+    return NextResponse.redirect(url, 301)
+  }
+
   // Block /api/test/* and /(dev)/* routes in production and preview
   if (pathname.startsWith("/api/test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
