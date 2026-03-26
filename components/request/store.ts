@@ -46,6 +46,7 @@ export interface RequestState {
     isAuthenticated: boolean
     hasProfile: boolean
     hasMedicare: boolean
+    hasAddress: boolean
   }
   
   // Consents
@@ -73,6 +74,7 @@ export interface AuthContext {
   isAuthenticated: boolean
   hasProfile: boolean
   hasMedicare: boolean
+  hasAddress: boolean
 }
 
 export interface RequestActions {
@@ -129,6 +131,7 @@ const initialState: RequestState = {
     isAuthenticated: false,
     hasProfile: false,
     hasMedicare: false,
+    hasAddress: false,
   },
   agreedToTerms: false,
   confirmedAccuracy: false,
@@ -327,6 +330,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
                   isAuthenticated: false,
                   hasProfile: false,
                   hasMedicare: false,
+                  hasAddress: false,
                   serviceType: st.serviceType,
                   answers: st.answers ?? {},
                 }

@@ -2,23 +2,21 @@
 
 /**
  * Medical History Step - Allergies, conditions, other medications
- * 
- * Features:
- * - Real-time validation
- * - Help tooltips with medical jargon explanations
- * - Keyboard navigation
+ *
+ * Layout:
+ * 1. Three yes/no clinical questions (allergies, conditions, other meds)
+ *    — compact card-based layout, each with conditional detail textarea
+ * 2. Safety screening toggles (pregnancy, adverse reactions)
+ *    — grouped in a single card with clear "informational only" label
  */
 
 import { useState, useCallback } from "react"
-import { HeartPulse } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -29,9 +27,75 @@ interface MedicalHistoryStepProps {
   onComplete: () => void
 }
 
+interface YesNoQuestionProps {
+  label: string
+  helpText: string
+  yesLabel: string
+  noLabel: string
+  value: boolean | undefined
+  onSelect: (val: boolean) => void
+  detail?: string
+  onDetailChange?: (val: string) => void
+  detailPlaceholder?: string
+  error?: string
+}
+
+function YesNoQuestion({
+  label,
+  helpText,
+  yesLabel,
+  noLabel,
+  value,
+  onSelect,
+  detail,
+  onDetailChange,
+  detailPlaceholder,
+  error,
+}: YesNoQuestionProps) {
+  return (
+    <div className="space-y-2.5">
+      <div>
+        <p className="text-sm font-medium">
+          {label} <span className="text-destructive">*</span>
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">{helpText}</p>
+      </div>
+      <div className="flex gap-2">
+        <EnhancedSelectionButton
+          variant="chip"
+          selected={value === false}
+          onClick={() => onSelect(false)}
+          className="flex-1 touch-manipulation"
+        >
+          {noLabel}
+        </EnhancedSelectionButton>
+        <EnhancedSelectionButton
+          variant="chip"
+          selected={value === true}
+          onClick={() => onSelect(true)}
+          className="flex-1 touch-manipulation"
+        >
+          {yesLabel}
+        </EnhancedSelectionButton>
+      </div>
+      {value === true && onDetailChange && (
+        <Textarea
+          value={detail || ""}
+          onChange={(e) => onDetailChange(e.target.value)}
+          placeholder={detailPlaceholder}
+          className="min-h-[60px] text-sm"
+        />
+      )}
+      {error && (
+        <p className="text-xs text-destructive">{error}</p>
+      )}
+    </div>
+  )
+}
+
 export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) {
   const { answers, setAnswer } = useRequestStore()
-  
+
   const hasAllergies = answers.hasAllergies as boolean | undefined
   const allergies = (answers.allergies as string) || ""
   const hasConditions = answers.hasConditions as boolean | undefined
@@ -46,28 +110,28 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
-    
+
     if (hasAllergies === undefined) {
       newErrors.allergies = "Please indicate if you have any allergies"
     }
     if (hasAllergies && !allergies.trim()) {
       newErrors.allergies = "Please list your allergies"
     }
-    
+
     if (hasConditions === undefined) {
       newErrors.conditions = "Please indicate if you have any medical conditions"
     }
     if (hasConditions && !conditions.trim()) {
       newErrors.conditions = "Please list your medical conditions"
     }
-    
+
     if (hasOtherMedications === undefined) {
       newErrors.otherMedications = "Please indicate if you take any other medications"
     }
     if (hasOtherMedications && !otherMedications.trim()) {
       newErrors.otherMedications = "Please list your other medications"
     }
-    
+
     setErrors(newErrors)
     setTouched({ allergies: true, conditions: true, otherMedications: true })
     return Object.keys(newErrors).length === 0
@@ -79,7 +143,7 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
     }
   }, [validate, onNext])
 
-  const isComplete = 
+  const isComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
     hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
     hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
@@ -93,151 +157,71 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
   })
 
   return (
-    <div className="space-y-5">
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <HeartPulse className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          This information helps our doctors ensure your treatment is safe.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      {/* Clinical questions — required */}
+      <div className="rounded-2xl border border-border/60 bg-white dark:bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 space-y-5">
+        <YesNoQuestion
+          label="Any allergies?"
+          helpText="Drug, food, or environmental allergies"
+          noLabel="No allergies"
+          yesLabel="Yes"
+          value={hasAllergies}
+          onSelect={(val) => {
+            setAnswer("hasAllergies", val)
+            if (!val) setAnswer("allergies", "")
+          }}
+          detail={allergies}
+          onDetailChange={(val) => setAnswer("allergies", val)}
+          detailPlaceholder="e.g., Penicillin — rash, Peanuts — anaphylaxis"
+          error={touched.allergies ? errors.allergies : undefined}
+        />
 
-      {/* Allergies */}
-      <FormField
-        label="Do you have any allergies?"
-        required
-        error={touched.allergies ? errors.allergies : undefined}
-        helpContent={{ 
-          title: "What counts as an allergy?", 
-          content: "Include drug allergies (e.g., penicillin), food allergies, and environmental allergies. Describe the reaction if known (e.g., rash, anaphylaxis)." 
-        }}
-      >
-        <div className="flex gap-2 mt-2">
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasAllergies === false}
-            onClick={() => {
-              setAnswer("hasAllergies", false)
-              setAnswer("allergies", "")
-            }}
-            className="flex-1 touch-manipulation"
-          >
-            No allergies
-          </EnhancedSelectionButton>
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasAllergies === true}
-            onClick={() => setAnswer("hasAllergies", true)}
-            className="flex-1 touch-manipulation"
-          >
-            Yes, I have allergies
-          </EnhancedSelectionButton>
-        </div>
-        
-        {hasAllergies && (
-          <Textarea
-            value={allergies}
-            onChange={(e) => setAnswer("allergies", e.target.value)}
-            placeholder="e.g., Penicillin - causes rash, Peanuts - anaphylaxis"
-            className="min-h-[70px] mt-3"
-          />
-        )}
-      </FormField>
+        <div className="border-t border-border/40" />
 
-      {/* Medical conditions */}
-      <FormField
-        label="Do you have any medical conditions?"
-        required
-        error={touched.conditions ? errors.conditions : undefined}
-        helpContent={{ 
-          title: "What should I include?", 
-          content: "Include chronic conditions (diabetes, asthma, heart disease), past surgeries, and ongoing health issues. This helps ensure safe treatment." 
-        }}
-      >
-        <div className="flex gap-2 mt-2">
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasConditions === false}
-            onClick={() => {
-              setAnswer("hasConditions", false)
-              setAnswer("conditions", "")
-            }}
-            className="flex-1 touch-manipulation"
-          >
-            No conditions
-          </EnhancedSelectionButton>
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasConditions === true}
-            onClick={() => setAnswer("hasConditions", true)}
-            className="flex-1 touch-manipulation"
-          >
-            Yes, I have conditions
-          </EnhancedSelectionButton>
-        </div>
-        
-        {hasConditions && (
-          <Textarea
-            value={conditions}
-            onChange={(e) => setAnswer("conditions", e.target.value)}
-            placeholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
-            className="min-h-[70px] mt-3"
-          />
-        )}
-      </FormField>
+        <YesNoQuestion
+          label="Any medical conditions?"
+          helpText="Chronic illness, past surgeries, ongoing issues"
+          noLabel="No conditions"
+          yesLabel="Yes"
+          value={hasConditions}
+          onSelect={(val) => {
+            setAnswer("hasConditions", val)
+            if (!val) setAnswer("conditions", "")
+          }}
+          detail={conditions}
+          onDetailChange={(val) => setAnswer("conditions", val)}
+          detailPlaceholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
+          error={touched.conditions ? errors.conditions : undefined}
+        />
 
-      {/* Other medications */}
-      <FormField
-        label="Are you taking any other medications?"
-        required
-        error={touched.otherMedications ? errors.otherMedications : undefined}
-        helpContent={{ 
-          title: "What medications should I list?", 
-          content: "Include all prescription medications, over-the-counter medicines (paracetamol, ibuprofen), vitamins, and supplements. This helps check for drug interactions." 
-        }}
-      >
-        <div className="flex gap-2 mt-2">
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasOtherMedications === false}
-            onClick={() => {
-              setAnswer("hasOtherMedications", false)
-              setAnswer("otherMedications", "")
-            }}
-            className="flex-1 touch-manipulation"
-          >
-            No other medications
-          </EnhancedSelectionButton>
-          <EnhancedSelectionButton
-            variant="chip"
-            selected={hasOtherMedications === true}
-            onClick={() => setAnswer("hasOtherMedications", true)}
-            className="flex-1 touch-manipulation"
-          >
-            Yes, I take medications
-          </EnhancedSelectionButton>
-        </div>
-        
-        {hasOtherMedications && (
-          <Textarea
-            value={otherMedications}
-            onChange={(e) => setAnswer("otherMedications", e.target.value)}
-            placeholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU daily"
-            className="min-h-[70px] mt-3"
-          />
-        )}
-      </FormField>
+        <div className="border-t border-border/40" />
 
-      {/* Additional screening — informational flags for the doctor */}
-      <div className="space-y-4 pt-2 border-t">
-        <p className="text-xs text-muted-foreground">
-          The following help our doctors ensure your treatment is safe. These are informational only.
+        <YesNoQuestion
+          label="Taking any other medications?"
+          helpText="Prescriptions, over-the-counter, vitamins, supplements"
+          noLabel="No medications"
+          yesLabel="Yes"
+          value={hasOtherMedications}
+          onSelect={(val) => {
+            setAnswer("hasOtherMedications", val)
+            if (!val) setAnswer("otherMedications", "")
+          }}
+          detail={otherMedications}
+          onDetailChange={(val) => setAnswer("otherMedications", val)}
+          detailPlaceholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
+          error={touched.otherMedications ? errors.otherMedications : undefined}
+        />
+      </div>
+
+      {/* Safety screening — informational toggles */}
+      <div className="rounded-2xl border border-border/60 bg-muted/30 dark:bg-white/5 p-4 space-y-3">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Safety screening
         </p>
 
-        {/* Pregnancy / breastfeeding */}
-        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/30">
+        <div className="flex items-center justify-between gap-3 py-2">
           <Label htmlFor="pregnant-toggle" className="text-sm cursor-pointer leading-snug flex-1">
-            Are you currently pregnant or breastfeeding?
+            Currently pregnant or breastfeeding?
           </Label>
           <Switch
             id="pregnant-toggle"
@@ -246,10 +230,11 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
           />
         </div>
 
-        {/* Adverse medication reactions */}
-        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/30">
+        <div className="border-t border-border/30" />
+
+        <div className="flex items-center justify-between gap-3 py-2">
           <Label htmlFor="adverse-reactions-toggle" className="text-sm cursor-pointer leading-snug flex-1">
-            Have you had any adverse reactions to medications?
+            Previous adverse reactions to medications?
           </Label>
           <Switch
             id="adverse-reactions-toggle"

@@ -100,6 +100,7 @@ interface RequestFlowProps {
   /** Profile has complete identity (incl. date_of_birth) — details step can be skipped */
   hasCompleteIdentity?: boolean
   hasMedicare: boolean
+  hasAddress: boolean
   /** User email for pre-filling */
   userEmail?: string
   /** User name for pre-filling */
@@ -108,6 +109,10 @@ interface RequestFlowProps {
   userPhone?: string
   /** Profile date of birth for pre-filling (decrypted) */
   profileDateOfBirth?: string
+  /** Profile Medicare number for pre-filling */
+  profileMedicare?: string
+  /** Profile address for pre-filling */
+  profileAddress?: { addressLine1: string; suburb: string; state: string; postcode: string }
   /** Health profile data for pre-filling medical history steps */
   healthProfile?: HealthProfilePrefill | null
 }
@@ -127,10 +132,13 @@ export function RequestFlow({
   hasProfile,
   hasCompleteIdentity,
   hasMedicare,
+  hasAddress,
   userEmail,
   userName,
   userPhone,
   profileDateOfBirth,
+  profileMedicare,
+  profileAddress,
   healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
@@ -185,8 +193,8 @@ export function RequestFlow({
 
   // Initialize auth context in store for step navigation
   useEffect(() => {
-    setAuthContext({ isAuthenticated, hasProfile, hasMedicare })
-  }, [isAuthenticated, hasProfile, hasMedicare, setAuthContext])
+    setAuthContext({ isAuthenticated, hasProfile, hasMedicare, hasAddress })
+  }, [isAuthenticated, hasProfile, hasMedicare, hasAddress, setAuthContext])
 
   // Pre-fill identity from auth if available
   useEffect(() => {
@@ -206,7 +214,18 @@ export function RequestFlow({
     if (profileDateOfBirth) {
       setIdentity({ dob: profileDateOfBirth })
     }
-  }, [userEmail, userName, userPhone, profileDateOfBirth, answers.email, phone, setIdentity])
+    // Pre-fill Medicare from profile
+    if (profileMedicare && !answers.medicareNumber) {
+      setAnswer('medicareNumber', profileMedicare)
+    }
+    // Pre-fill address from profile
+    if (profileAddress && !answers.addressLine1) {
+      setAnswer('addressLine1', profileAddress.addressLine1)
+      setAnswer('suburb', profileAddress.suburb)
+      setAnswer('state', profileAddress.state)
+      setAnswer('postcode', profileAddress.postcode)
+    }
+  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileAddress, answers.email, answers.medicareNumber, answers.addressLine1, phone, setIdentity, setAnswer])
 
   // Pre-fill medical history from health profile
   useEffect(() => {
@@ -301,9 +320,10 @@ export function RequestFlow({
     hasProfile,
     hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
     hasMedicare,
+    hasAddress,
     serviceType: effectiveService || 'med-cert',
     answers,
-  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, effectiveService, answers])
+  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, effectiveService, answers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {

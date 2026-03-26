@@ -22,7 +22,6 @@ beforeEach(() => {
     STRIPE_PRICE_MEDCERT: 'price_medcert',
     STRIPE_PRICE_MEDCERT_2DAY: 'price_medcert_2day',
     STRIPE_PRICE_MEDCERT_3DAY: 'price_medcert_3day',
-    STRIPE_PRICE_PRESCRIPTION: 'price_prescription',
     STRIPE_PRICE_REPEAT_SCRIPT: 'price_repeat_script',
     STRIPE_PRICE_CONSULT: 'price_consult_general',
     STRIPE_PRICE_CONSULT_ED: 'price_consult_ed',

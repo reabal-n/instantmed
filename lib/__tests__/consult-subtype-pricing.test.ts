@@ -158,7 +158,6 @@ describe('Non-Consult Categories Unchanged', () => {
       ...originalEnv,
       STRIPE_PRICE_MEDCERT: 'price_medcert',
       STRIPE_PRICE_MEDCERT_2DAY: 'price_medcert_2day',
-      STRIPE_PRICE_PRESCRIPTION: 'price_prescription',
       STRIPE_PRICE_REPEAT_SCRIPT: 'price_repeat_script',
       STRIPE_PRICE_CONSULT: 'price_consult',
     }

@@ -13,7 +13,6 @@ describe('Tiered Pricing for Medical Certificates', () => {
     // Reset environment variables before each test
     vi.stubEnv('STRIPE_PRICE_MEDCERT', 'price_test_1day')
     vi.stubEnv('STRIPE_PRICE_MEDCERT_2DAY', 'price_test_2day')
-    vi.stubEnv('STRIPE_PRICE_PRESCRIPTION', 'price_test_rx')
     vi.stubEnv('STRIPE_PRICE_REPEAT_SCRIPT', 'price_test_repeat')
     vi.stubEnv('STRIPE_PRICE_CONSULT', 'price_test_consult')
   })

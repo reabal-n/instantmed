@@ -215,6 +215,7 @@ export default async function RequestPage({
     }
   }
   const hasCompleteIdentity = !!profile && !!profileDateOfBirth
+  const hasAddress = !!(profile?.address_line1 && profile?.suburb && profile?.state && profile?.postcode)
 
   return (
     <RequestFlow
@@ -226,10 +227,18 @@ export default async function RequestPage({
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}
       hasMedicare={!!profile?.medicare_number}
+      hasAddress={hasAddress}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
       userPhone={profile?.phone ?? undefined}
       profileDateOfBirth={profileDateOfBirth ?? undefined}
+      profileMedicare={profile?.medicare_number ?? undefined}
+      profileAddress={hasAddress ? {
+        addressLine1: profile!.address_line1!,
+        suburb: profile!.suburb!,
+        state: profile!.state!,
+        postcode: profile!.postcode!,
+      } : undefined}
     />
   )
 }
