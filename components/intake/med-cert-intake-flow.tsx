@@ -262,7 +262,7 @@ export function MedCertIntakeFlow({
         transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
         className={cn(
           "w-full max-w-2xl relative",
-          "bg-card/95 dark:bg-white/5 backdrop-blur-xl",
+          "bg-white dark:bg-card",
           "rounded-2xl",
           "shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none",
           "border border-border/50 dark:border-white/10",

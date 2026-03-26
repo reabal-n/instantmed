@@ -115,7 +115,7 @@ function ButtonSpinner({ className }: { className?: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl bg-card/50 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 p-6 space-y-4 shadow-[0_4px_20px_rgb(59,130,246,0.1)]">
+    <div className="rounded-2xl bg-white dark:bg-card border border-border/50 p-6 space-y-4 shadow-md shadow-primary/[0.06]">
       <Skeleton className="h-5 w-3/4" />
       <Skeleton className="h-4 w-1/2" />
       <Skeleton className="h-4 w-2/3" />

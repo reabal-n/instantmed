@@ -78,7 +78,7 @@ export function ComplianceBar({ className }: { className?: string }) {
 
   return (
     <div className={cn(
-      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-card/50 dark:bg-white/5 border-y border-border/50 dark:border-white/10",
+      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-muted/50 dark:bg-white/5 border-y border-border/50 dark:border-white/10",
       className
     )}>
       {keyItems.map((item, i) => (

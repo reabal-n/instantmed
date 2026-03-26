@@ -246,7 +246,7 @@ export function SmartSymptomInput({
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
               transition={prefersReducedMotion ? { duration: 0 } : undefined}
-              className="absolute z-10 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 shadow-lg overflow-hidden"
+              className="absolute z-10 w-full mt-1 bg-white dark:bg-card rounded-xl border border-border/50 shadow-lg overflow-hidden"
             >
               <div className="p-2 text-xs text-muted-foreground border-b">
                 Quick suggestions

@@ -100,7 +100,7 @@ export function StepProgress({
                     className={cn(
                       "w-1.5 h-1.5 rounded-full transition-colors duration-300",
                       (isCompleted || isCurrent) && "bg-primary",
-                      !isCompleted && !isCurrent && "bg-card/40 dark:bg-white/20"
+                      !isCompleted && !isCurrent && "bg-muted dark:bg-white/20"
                     )}
                   />
                 </div>

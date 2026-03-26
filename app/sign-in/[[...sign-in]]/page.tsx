@@ -98,7 +98,7 @@ export default function SignInPage() {
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
           <div className="w-full max-w-md text-center">
             <Suspense fallback={
-              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+              <div className="shadow-xl border border-border/50 bg-white dark:bg-card rounded-2xl p-8">
                 <div className="animate-pulse space-y-4">
                   <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
                   <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
@@ -107,7 +107,7 @@ export default function SignInPage() {
               </div>
             }>
               <SignInRedirect />
-              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+              <div className="shadow-xl border border-border/50 bg-white dark:bg-card rounded-2xl p-8">
                 <div className="animate-pulse space-y-4">
                   <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
                   <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>

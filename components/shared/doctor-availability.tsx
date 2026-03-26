@@ -133,7 +133,7 @@ export function DoctorAvailability({
         "w-full px-4 py-2.5 flex items-center justify-center gap-3",
         showOnline
           ? "bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-800"
-          : "bg-card/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10",
+          : "bg-muted/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10",
         className,
       )}
     >

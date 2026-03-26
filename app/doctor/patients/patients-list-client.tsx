@@ -109,7 +109,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
             <div className="flex gap-3">
               <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="w-[120px] rounded-xl bg-card/50 border-border/40">
+                <SelectTrigger className="w-[120px] rounded-xl bg-white dark:bg-card border-border/50">
                   <SelectValue placeholder="State" />
                 </SelectTrigger>
                 <SelectContent>
@@ -123,7 +123,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
               </Select>
 
               <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
-                <SelectTrigger className="w-[150px] rounded-xl bg-card/50 border-border/40">
+                <SelectTrigger className="w-[150px] rounded-xl bg-white dark:bg-card border-border/50">
                   <SelectValue placeholder="Onboarding" />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,7 +147,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-card/30 hover:bg-card/30">
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead scope="col">Patient</TableHead>
                 <TableHead scope="col">Contact</TableHead>
                 <TableHead scope="col">Location</TableHead>

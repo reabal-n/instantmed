@@ -14,13 +14,13 @@ interface PerspectiveTiltCardProps {
 
 const variantStyles = {
   glass:
-    "bg-card/75 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10",
+    "bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]",
   solid:
     "bg-white dark:bg-white/5 border border-border dark:border-white/10 shadow-sm",
   gradient:
     "bg-gradient-to-br from-sky-50 to-dawn-50 dark:from-background dark:to-muted/30 border border-border",
   outline:
-    "bg-transparent border border-border hover:bg-card/50 dark:hover:bg-white/5",
+    "bg-transparent border border-border hover:bg-muted/50 dark:hover:bg-white/5",
 };
 
 export function PerspectiveTiltCard({

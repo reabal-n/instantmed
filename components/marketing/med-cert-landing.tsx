@@ -128,7 +128,7 @@ function SocialProofStrip() {
   const animate = !prefersReducedMotion
 
   return (
-    <section className="py-8 border-y border-border/30 dark:border-white/10 bg-white/50 dark:bg-card/30">
+    <section className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"

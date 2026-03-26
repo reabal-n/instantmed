@@ -150,12 +150,11 @@ export function MotionCard({
   return (
     <motion.div
       className={cn(
-        // Glass surface
-        "bg-card/75 dark:bg-white/5",
-        "backdrop-blur-xl",
-        "border border-sky-300/35 dark:border-white/10",
+        // Solid depth surface
+        "bg-white dark:bg-card",
+        "border border-border/50",
         "rounded-2xl",
-        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
+        "shadow-md shadow-primary/[0.06]",
         className
       )}
       initial="hidden"

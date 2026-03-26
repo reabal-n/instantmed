@@ -571,7 +571,7 @@ export function PrescriptionFlowClient({
       {/* Red Flags Warning Banner */}
       {hasRedFlags && (
         <div
-          className="rounded-2xl border-2 border-red-300 bg-red-50/80 backdrop-blur-sm p-5 animate-fade-in-up"
+          className="rounded-2xl border-2 border-red-300 bg-red-50 dark:bg-red-500/10 p-5 animate-fade-in-up"
           style={{ animationFillMode: "forwards" }}
         >
           <div className="flex gap-3">
@@ -775,7 +775,7 @@ export function PrescriptionFlowClient({
             value={additionalNotes}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalNotes(e.target.value)}
             placeholder="Any other relevant information for the doctor..."
-            className="rounded-xl bg-card/50 border-border/40 focus:border-primary/40 min-h-20 resize-none"
+            className="rounded-xl bg-white dark:bg-card border-border/50 focus:border-primary/40 min-h-20 resize-none"
           />
         </div>
       </div>
@@ -835,7 +835,7 @@ export function PrescriptionFlowClient({
         <Button
           variant="outline"
           onClick={() => setStep("intro")}
-          className="rounded-xl border-border/40 bg-card/50 hover:bg-card/70"
+          className="rounded-xl border-border/50 bg-white dark:bg-card hover:bg-muted/50"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back

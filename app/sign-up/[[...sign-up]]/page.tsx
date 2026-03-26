@@ -150,7 +150,7 @@ export default function SignUpPage() {
             </div>
             
             {/* Social proof */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-card border border-border/50">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-secondary border-2 border-white" />

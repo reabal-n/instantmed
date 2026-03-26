@@ -471,7 +471,7 @@ export function ConsultFlowClient({
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button
             onClick={stepIndex > 0 ? goBack : () => router.push("/consult")}
-            className="p-2 -ml-2 hover:bg-muted backdrop-blur-lg rounded-full transition-all duration-200"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -777,7 +777,7 @@ export function ConsultFlowClient({
               </p>
               {error && (
                 <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
-                  <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-500/20 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
+                  <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-800/30 text-sm text-red-700 dark:text-red-400">
                     {error}
                   </div>
                 </ShakeAnimation>
