@@ -123,7 +123,7 @@ export function FAQList({
             >
               {group.items.map((item, ii) => (
                 <motion.div
-                  key={item.question}
+                  key={ii}
                   initial={shouldAnimate ? { opacity: 0, y: 8 } : {}}
                   whileInView={
                     shouldAnimate ? { opacity: 1, y: 0 } : undefined
