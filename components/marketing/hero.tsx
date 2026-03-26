@@ -6,7 +6,9 @@ import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { motion, useReducedMotion } from 'framer-motion'
+import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
@@ -65,7 +67,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 Medical certificates from $19.95
               </Badge>
               <p className="text-xs text-muted-foreground mt-1 text-center lg:text-left">
-                Typically $60–90 at a GP clinic
+                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
               </p>
             </motion.div>
 

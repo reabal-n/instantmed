@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight, ChevronDown, AlertCircle } from 'lucide-react'
 import { FlowContent } from '../flow-content'
 import { useFlowStore, useFlowService, serviceCategories } from '@/lib/flow'

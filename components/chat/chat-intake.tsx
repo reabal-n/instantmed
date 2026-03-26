@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { ChatIntakeProvider } from "@/components/chat/chat-intake-context"
 import { ChatHeader } from "@/components/chat/chat-header"
 import { ChatMessages } from "@/components/chat/chat-messages"

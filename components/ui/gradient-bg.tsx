@@ -2,7 +2,8 @@
 
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { motion, type HTMLMotionProps, useReducedMotion } from 'framer-motion'
+import { motion, type HTMLMotionProps } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 const gradientBgVariants = cva('absolute inset-0 pointer-events-none overflow-hidden', {

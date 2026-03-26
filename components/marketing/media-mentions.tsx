@@ -1,6 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 // Authentic Australian tech/health/business publications

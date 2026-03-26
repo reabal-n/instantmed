@@ -174,7 +174,7 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
  * 6. No injury keywords
  * 7. No chronic condition keywords
  * 8. No pregnancy keywords
- * 9. Duration is 1-3 days
+ * 9. Duration is 1-N days (N configurable, default 3)
  * 10. Start date not backdated > 1 day
  * 11. Symptom text is not empty (must have actual medical reason)
  * 12. AI clinical note draft exists with status "ready"
@@ -185,6 +185,7 @@ export function evaluateAutoApprovalEligibility(
   answers: Record<string, unknown> | null,
   drafts: { clinicalNote: DraftInfo | null },
   patient?: PatientInfo | null,
+  options?: { maxDurationDays?: number },
 ): AutoApprovalEligibility {
   const flags: string[] = []
 
@@ -248,12 +249,13 @@ export function evaluateAutoApprovalEligibility(
     flags.push(`pregnancy: ${pregnancyMatches.join(", ")}`)
   }
 
-  // 8. Duration check (1-3 days only)
+  // 8. Duration check (1-N days, configurable via admin dashboard)
+  const maxDuration = options?.maxDurationDays ?? 3
   const durationDays = extractDurationDays(answers)
   if (durationDays === null) {
     flags.push("duration_unknown")
-  } else if (durationDays > 3) {
-    flags.push(`duration_too_long: ${durationDays} days`)
+  } else if (durationDays > maxDuration) {
+    flags.push(`duration_too_long: ${durationDays} days (max ${maxDuration})`)
   } else if (durationDays < 1) {
     flags.push("duration_invalid")
   }

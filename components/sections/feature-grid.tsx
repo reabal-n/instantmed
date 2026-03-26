@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import { DottedGrid } from "@/components/marketing/dotted-grid";
 import type { SectionProps, FeatureItem } from "./types";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 
 interface FeatureGridProps extends SectionProps {
   pill?: string;

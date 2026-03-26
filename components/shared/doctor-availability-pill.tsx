@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
 import { Moon, Users } from 'lucide-react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 
 const OPEN_HOUR = 8
 const CLOSE_HOUR = 22

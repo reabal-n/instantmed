@@ -37,6 +37,10 @@ export const FLAG_KEYS = {
   SUPPORT_TICKETS_ENABLED: "support_tickets_enabled",
   CLINICAL_DECISION_SUPPORT_ENABLED: "clinical_decision_support_enabled",
   AI_AUTO_APPROVE_ENABLED: "ai_auto_approve_enabled",
+  AUTO_APPROVE_DELAY_MINUTES: "auto_approve_delay_minutes",
+  AUTO_APPROVE_RATE_LIMIT_5MIN: "auto_approve_rate_limit_5min",
+  AUTO_APPROVE_DAILY_CAP: "auto_approve_daily_cap",
+  AUTO_APPROVE_MAX_DURATION_DAYS: "auto_approve_max_duration_days",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -73,6 +77,10 @@ export interface FeatureFlags {
   support_tickets_enabled: boolean
   clinical_decision_support_enabled: boolean
   ai_auto_approve_enabled: boolean
+  auto_approve_delay_minutes: number
+  auto_approve_rate_limit_5min: number
+  auto_approve_daily_cap: number
+  auto_approve_max_duration_days: number
 }
 
 // ============================================================================
@@ -114,6 +122,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   support_tickets_enabled: false,
   clinical_decision_support_enabled: false,
   ai_auto_approve_enabled: false,
+  auto_approve_delay_minutes: 2,
+  auto_approve_rate_limit_5min: 10,
+  auto_approve_daily_cap: 50,
+  auto_approve_max_duration_days: 3,
 }
 
 // ============================================================================
@@ -229,6 +241,22 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
       label: "AI Auto-Approve Med Certs",
       description: "Automatically approve eligible medical certificates (1-3 day, no flags) within minutes of payment. Doctor batch review still applies.",
     },
+    auto_approve_delay_minutes: {
+      label: "Auto-Approve Delay (minutes)",
+      description: "Minimum wait time after payment before auto-approval triggers. 0 = immediate (in webhook), >0 = handled by retry cron.",
+    },
+    auto_approve_rate_limit_5min: {
+      label: "Auto-Approve Rate Limit (per 5 min)",
+      description: "Maximum number of auto-approvals allowed per 5-minute window.",
+    },
+    auto_approve_daily_cap: {
+      label: "Auto-Approve Daily Cap",
+      description: "Maximum number of auto-approvals per 24-hour period.",
+    },
+    auto_approve_max_duration_days: {
+      label: "Auto-Approve Max Duration (days)",
+      description: "Maximum certificate duration (in days) eligible for auto-approval. Certs longer than this require doctor review.",
+    },
   }
   return info[key]
 }
@@ -268,4 +296,20 @@ export function isStringFlag(key: FlagKey): boolean {
     FLAG_KEYS.MAINTENANCE_SCHEDULED_END,
   ]
   return stringFlags.includes(key)
+}
+
+/**
+ * Check if a flag is a number type
+ */
+export function isNumberFlag(key: FlagKey): boolean {
+  const numberFlags: FlagKey[] = [
+    FLAG_KEYS.BUSINESS_HOURS_OPEN,
+    FLAG_KEYS.BUSINESS_HOURS_CLOSE,
+    FLAG_KEYS.CAPACITY_LIMIT_MAX,
+    FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES,
+    FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN,
+    FLAG_KEYS.AUTO_APPROVE_DAILY_CAP,
+    FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS,
+  ]
+  return numberFlags.includes(key)
 }

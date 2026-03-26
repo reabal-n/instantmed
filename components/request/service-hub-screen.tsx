@@ -11,7 +11,8 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { usePostHog } from "posthog-js/react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { 
   FileText, 
   Pill, 

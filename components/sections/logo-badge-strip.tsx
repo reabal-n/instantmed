@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import type { SectionProps } from "./types";
 
 interface Badge {

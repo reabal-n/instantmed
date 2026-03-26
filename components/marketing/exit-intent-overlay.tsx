@@ -7,6 +7,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { CheckCircle2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PRICING } from "@/lib/constants"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const SESSION_KEY = "exit_intent_shown"
 const ARM_DELAY_MS = 10_000
@@ -22,11 +23,18 @@ interface ExitIntentOverlayProps {
   ctaHref?: string
   /** Override the default price display */
   price?: number
+  /** Analytics callbacks */
+  onShow?: () => void
+  onCTAClick?: () => void
+  onDismiss?: () => void
 }
 
 export function ExitIntentOverlay({
   ctaHref = "/request?service=med-cert",
   price = PRICING.MED_CERT,
+  onShow,
+  onCTAClick,
+  onDismiss,
 }: ExitIntentOverlayProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isArmed, setIsArmed] = useState(false)
@@ -53,8 +61,9 @@ export function ExitIntentOverlay({
       sessionStorage.setItem(SESSION_KEY, "1")
       setIsArmed(false)
       setIsOpen(true)
+      onShow?.()
     },
-    [isArmed]
+    [isArmed, onShow]
   )
 
   useEffect(() => {
@@ -65,7 +74,10 @@ export function ExitIntentOverlay({
       document.documentElement.removeEventListener("mouseleave", handleMouseLeave)
   }, [isArmed, handleMouseLeave])
 
-  const dismiss = () => setIsOpen(false)
+  const dismiss = () => {
+    setIsOpen(false)
+    onDismiss?.()
+  }
 
   return (
     <AnimatePresence>
@@ -129,7 +141,7 @@ export function ExitIntentOverlay({
                       key={point}
                       className="flex items-center gap-2.5 text-sm text-foreground"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
                       {point}
                     </li>
                   ))}
@@ -137,7 +149,7 @@ export function ExitIntentOverlay({
 
                 {/* Price anchor */}
                 <p className="text-xs text-muted-foreground">
-                  From ${price.toFixed(2)} &middot; Typically $60–90 at a GP
+                  From ${price.toFixed(2)} &middot; Typically {SOCIAL_PROOF.gpPriceStandard} at a GP
                 </p>
 
                 {/* CTA */}
@@ -145,7 +157,10 @@ export function ExitIntentOverlay({
                   asChild
                   size="lg"
                   className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
-                  onClick={dismiss}
+                  onClick={() => {
+                    onCTAClick?.()
+                    dismiss()
+                  }}
                 >
                   <Link href={ctaHref}>Get your certificate</Link>
                 </Button>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { Cloud, CloudOff } from "lucide-react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface AutoSaveIndicatorProps {
   lastSavedAt: string | null

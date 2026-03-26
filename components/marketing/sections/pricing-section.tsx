@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { ArrowRight, Check, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -72,7 +74,7 @@ export function PricingSection({
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             {title}
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -89,7 +91,7 @@ export function PricingSection({
           {/* Price */}
           <div className="mb-6">
             <div className="flex items-center justify-center gap-3 mb-2">
-              <span className={cn('text-4xl sm:text-5xl font-bold', colors.text)}>
+              <span className={cn('text-4xl sm:text-5xl font-semibold', colors.text)}>
                 ${price.toFixed(2)}
               </span>
               {originalPrice && (
@@ -197,7 +199,7 @@ function ComparisonTable() {
 }
 
 function renderCell(value: string | boolean) {
-  if (value === true) return <Check className="w-5 h-5 text-emerald-500 mx-auto" />
+  if (value === true) return <Check className="w-5 h-5 text-success mx-auto" />
   if (value === false) return <span className="text-muted-foreground/40">—</span>
   return value
 }
@@ -209,7 +211,7 @@ const comparisonRows: Array<{
   walkin: string | boolean
   instantHighlight?: boolean
 }> = [
-  { label: 'Cost', instant: '$19.95', gp: '$60–90', walkin: '$80–120', instantHighlight: true },
+  { label: 'Cost', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
   { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours', instantHighlight: true },
   { label: 'Leave your couch?', instant: false, gp: true, walkin: true, instantHighlight: true },
   { label: 'Employer accepted', instant: true, gp: true, walkin: true },

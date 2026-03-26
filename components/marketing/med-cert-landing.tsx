@@ -4,7 +4,7 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
   Check,
@@ -16,6 +16,7 @@ import {
   Clock,
   Star,
   ShieldCheck,
+  ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -39,20 +40,25 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 
 // Below-fold lazy loads — keep initial bundle small
 const CertificateShowcaseMockup = dynamic(
   () => import("@/components/marketing/mockups/certificate-showcase").then((m) => m.CertificateShowcaseMockup),
+  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
 )
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
+  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
 )
 const ExitIntentOverlay = dynamic(
   () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
@@ -100,7 +106,6 @@ const CERTIFICATE_FEATURES = [
   "Secure PDF delivered directly to your email",
 ]
 
-
 const PRICING_FEATURES = [
   "Accepted by all Australian employers",
   "Reviewed by an AHPRA-registered GP",
@@ -110,13 +115,87 @@ const PRICING_FEATURES = [
   "Covers work, uni, or carer\u2019s leave",
 ]
 
-
 const SOCIAL_PROOF_STATS = [
-  { icon: Users, value: "4,200+", label: "certificates issued", color: "text-primary" },
-  { icon: Clock, value: "42 min", label: "avg turnaround", color: "text-primary" },
-  { icon: Star, value: "4.9/5", label: "patient rating", color: "text-amber-500" },
-  { icon: ShieldCheck, value: "100%", label: "employer accepted", color: "text-success" },
+  { icon: Users, value: 4200, suffix: "+", label: "certificates issued", color: "text-primary" },
+  { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg turnaround", color: "text-primary" },
+  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
+  { icon: ShieldCheck, value: SOCIAL_PROOF.employerAcceptancePercent, suffix: "%", label: "employer accepted", color: "text-success" },
 ]
+
+const RELATED_ARTICLES = [
+  { title: "Your Sick Leave Rights in Australia", href: "/blog/sick-leave-rights-australia" },
+  { title: "Medical Certificates for Mental Health Days", href: "/blog/medical-certificate-mental-health-day" },
+  { title: "How Long Can a Medical Certificate Cover?", href: "/blog/how-long-can-medical-certificate-cover" },
+]
+
+// =============================================================================
+// SMALL COMPONENTS
+// =============================================================================
+
+/** Breadcrumb navigation */
+function Breadcrumbs() {
+  return (
+    <nav aria-label="Breadcrumb" className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10 pt-4">
+      <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <li>
+          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+        </li>
+        <li><ChevronRight className="h-3 w-3" /></li>
+        <li aria-current="page" className="text-foreground font-medium">Medical Certificate</li>
+      </ol>
+    </nav>
+  )
+}
+
+/** Animated number counter using NumberFlow when available */
+function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
+  const [displayed, setDisplayed] = useState(0)
+  const [hasAnimated, setHasAnimated] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || hasAnimated) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasAnimated(true)
+          observer.disconnect()
+
+          if (prefersReducedMotion) {
+            setDisplayed(value)
+            return
+          }
+
+          const duration = 1200
+          const start = performance.now()
+          const animate = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+            setDisplayed(eased * value)
+            if (progress < 1) requestAnimationFrame(animate)
+          }
+          requestAnimationFrame(animate)
+        }
+      },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [value, hasAnimated, prefersReducedMotion])
+
+  const formatted = decimals > 0
+    ? displayed.toFixed(decimals)
+    : Math.round(displayed).toLocaleString()
+
+  return (
+    <span ref={ref}>
+      {formatted}{suffix}
+    </span>
+  )
+}
 
 // =============================================================================
 // SECTION COMPONENTS
@@ -128,7 +207,7 @@ function SocialProofStrip() {
   const animate = !prefersReducedMotion
 
   return (
-    <section className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
+    <section aria-label="Social proof statistics" className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
@@ -148,7 +227,9 @@ function SocialProofStrip() {
             >
               <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} />
               <div>
-                <p className="text-lg font-semibold text-foreground leading-tight">{stat.value}</p>
+                <p className="text-lg font-semibold text-foreground leading-tight">
+                  <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
+                </p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
             </motion.div>
@@ -160,12 +241,18 @@ function SocialProofStrip() {
 }
 
 /** Section 1: Hero with product mockup + embedded trust signals */
-function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | null> }) {
+function HeroSection({
+  ctaRef,
+  onCTAClick,
+}: {
+  ctaRef?: React.RefObject<HTMLDivElement | null>
+  onCTAClick?: () => void
+}) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
   return (
-    <section className="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -221,7 +308,7 @@ function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | nul
                 Medical certificates from ${PRICING.MED_CERT.toFixed(2)}
               </Badge>
               <p className="text-xs text-muted-foreground">
-                Typically $60–90 at a GP clinic
+                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
               </p>
             </motion.div>
 
@@ -238,6 +325,7 @@ function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | nul
                   asChild
                   size="lg"
                   className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                  onClick={onCTAClick}
                 >
                   <Link href="/request?service=med-cert">
                     Get your certificate — ${PRICING.MED_CERT.toFixed(2)}
@@ -270,9 +358,14 @@ function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | nul
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop */}
+          {/* Hero product mockup — desktop only, mobile gets compact version below */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <MedCertHeroMockup />
+          </div>
+
+          {/* Mobile mockup — compact, below text content */}
+          <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
+            <MedCertHeroMockup compact />
           </div>
         </div>
       </div>
@@ -281,7 +374,7 @@ function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | nul
 }
 
 /** Section 2: How It Works with animated FloatingCard mockups */
-function HowItWorksSection() {
+function HowItWorksSection({ onCTAClick }: { onCTAClick?: () => void }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
@@ -291,6 +384,7 @@ function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
+      aria-label="How it works"
       className="relative py-20 lg:py-24 scroll-mt-20"
     >
       <DottedGrid />
@@ -359,6 +453,7 @@ function HowItWorksSection() {
             asChild
             size="lg"
             className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
+            onClick={onCTAClick}
           >
             <Link href="/request?service=med-cert">
               Get your certificate <ArrowRight className="h-4 w-4" />
@@ -374,12 +469,12 @@ function HowItWorksSection() {
 }
 
 /** Section 3: Certificate Preview — split layout with animated mockup */
-function CertificatePreviewSection() {
+function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => void }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
   return (
-    <section className="py-20 lg:py-24 bg-muted/20 dark:bg-muted/10">
+    <section aria-label="Certificate preview" className="py-20 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text content */}
@@ -421,6 +516,7 @@ function CertificatePreviewSection() {
               asChild
               variant="outline"
               className="active:scale-[0.98]"
+              onClick={onCTAClick}
             >
               <Link href="/request?service=med-cert">
                 Get your certificate
@@ -445,13 +541,13 @@ function CertificatePreviewSection() {
   )
 }
 
-/** Section 5: FAQ with expanded items (absorbs eligibility + after-submit) */
-function FaqCtaSection() {
+/** Section 5: FAQ with expanded items */
+function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
   return (
-    <section id="faq" className="py-20 lg:py-24 scroll-mt-20">
+    <section id="faq" aria-label="Frequently asked questions" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -488,6 +584,12 @@ function FaqCtaSection() {
             collapsible
             defaultValue="0"
             className="space-y-3"
+            onValueChange={(value) => {
+              if (value && onFAQOpen) {
+                const idx = parseInt(value, 10)
+                onFAQOpen(MED_CERT_FAQ[idx]?.question ?? "", idx)
+              }
+            }}
           >
             {MED_CERT_FAQ.map((item, index) => (
               <AccordionItem
@@ -527,7 +629,7 @@ function FaqCtaSection() {
           </a>
         </motion.div>
 
-        {/* Emergency note — subtle, not a full section */}
+        {/* Emergency note */}
         <p className="mt-8 text-center text-xs text-muted-foreground/60">
           For emergencies, call 000. This service is for non-urgent conditions
           only.
@@ -537,12 +639,37 @@ function FaqCtaSection() {
   )
 }
 
+/** Related blog articles — internal links for SEO */
+function RelatedArticles() {
+  return (
+    <section aria-label="Related articles" className="py-12 lg:py-16">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+          Related reading
+        </h3>
+        <div className="flex flex-wrap justify-center gap-3">
+          {RELATED_ARTICLES.map((article) => (
+            <Link
+              key={article.href}
+              href={article.href}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
+            >
+              {article.title}
+              <ArrowRight className="h-3 w-3 text-muted-foreground" />
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /** Section 7: Final CTA */
-function FinalCtaSection() {
+function FinalCtaSection({ onCTAClick }: { onCTAClick?: () => void }) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
+    <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -560,6 +687,7 @@ function FinalCtaSection() {
             asChild
             size="lg"
             className="px-10 h-14 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+            onClick={onCTAClick}
           >
             <Link href="/request?service=med-cert">
               Get your certificate
@@ -586,6 +714,8 @@ export function MedCertLanding() {
   const isDisabled = useServiceAvailability().isServiceDisabled("med-cert")
   const heroCTARef = useRef<HTMLDivElement>(null)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const analytics = useLandingAnalytics("med-cert")
 
   useEffect(() => {
     const el = heroCTARef.current
@@ -597,7 +727,8 @@ export function MedCertLanding() {
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
-  // Get testimonials for scrolling columns
+
+  // Testimonials data — service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("medical-certificate")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -612,13 +743,20 @@ export function MedCertLanding() {
       ? columnsData
       : getTestimonialsForColumns().slice(0, 9)
 
-  // Pricing section color config (emerald for med cert)
   const pricingColors = {
     light: "bg-success/10",
     text: "text-success",
     border: "border-success/20",
     button: "bg-success hover:bg-success/90",
   }
+
+  // CTA click handlers with analytics
+  const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
+  const handleHowItWorksCTA = useCallback(() => analytics.trackCTAClick("how_it_works"), [analytics])
+  const handleCertPreviewCTA = useCallback(() => analytics.trackCTAClick("certificate_preview"), [analytics])
+  const handleFinalCTA = useCallback(() => analytics.trackCTAClick("final_cta"), [analytics])
+  const handleStickyCTA = useCallback(() => analytics.trackCTAClick("sticky_mobile"), [analytics])
+  const handleFAQOpen = useCallback((question: string, index: number) => analytics.trackFAQOpen(question, index), [analytics])
 
   return (
     <MarketingPageShell>
@@ -650,9 +788,12 @@ export function MedCertLanding() {
 
         <Navbar variant="marketing" />
 
+        {/* Breadcrumb navigation */}
+        <Breadcrumbs />
+
         <main className="relative">
           {/* 1. Hero */}
-          <HeroSection ctaRef={heroCTARef} />
+          <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
           {/* Live wait time — med cert only */}
           <LiveWaitTime variant="strip" services={["med-cert"]} />
@@ -661,10 +802,10 @@ export function MedCertLanding() {
           <SocialProofStrip />
 
           {/* 2. How It Works */}
-          <HowItWorksSection />
+          <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
 
           {/* 3. Certificate Preview */}
-          <CertificatePreviewSection />
+          <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
 
           {/* 4. Pricing with comparison table */}
           <PricingSection
@@ -673,7 +814,7 @@ export function MedCertLanding() {
             price={PRICING.MED_CERT}
             originalPrice={70}
             features={PRICING_FEATURES}
-            refundNote="Full refund if we can't help (minus $4.95 admin fee)"
+            refundNote={`Full refund if we can't help (minus ${SOCIAL_PROOF_DISPLAY.adminFee} admin fee)`}
             medicareNote="Medicare rebates do not apply to telehealth consultations"
             ctaText={
               isDisabled
@@ -694,30 +835,44 @@ export function MedCertLanding() {
           />
 
           {/* 6. FAQ */}
-          <FaqCtaSection />
+          <FaqCtaSection onFAQOpen={handleFAQOpen} />
+
+          {/* Related articles — SEO internal linking */}
+          <RelatedArticles />
 
           {/* 7. Final CTA */}
-          <FinalCtaSection />
+          <FinalCtaSection onCTAClick={handleFinalCTA} />
         </main>
 
         <MarketingFooter />
 
         {/* Exit-intent overlay — desktop only, once per session */}
-        {!isDisabled && <ExitIntentOverlay />}
+        {!isDisabled && (
+          <ExitIntentOverlay
+            onShow={() => analytics.trackExitIntent("shown")}
+            onCTAClick={() => analytics.trackExitIntent("clicked")}
+            onDismiss={() => analytics.trackExitIntent("dismissed")}
+          />
+        )}
 
         {/* Sticky mobile CTA — appears after hero CTA scrolls out of view */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-          initial={{ y: 100 }}
-          animate={{ y: showStickyCTA ? 0 : 100 }}
+          initial={prefersReducedMotion ? {} : { y: 100 }}
+          animate={prefersReducedMotion
+            ? { opacity: showStickyCTA ? 1 : 0 }
+            : { y: showStickyCTA ? 0 : 100 }
+          }
           transition={{ duration: 0.3, ease: "easeOut" }}
+          aria-hidden={!showStickyCTA}
         >
-          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-bottom">
+          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
             <Button
               asChild
               size="lg"
               className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
               disabled={isDisabled}
+              onClick={handleStickyCTA}
             >
               <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
                 {isDisabled

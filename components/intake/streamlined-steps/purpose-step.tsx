@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/uix"
 import { Briefcase, GraduationCap, Heart, ChevronRight, Info } from "lucide-react"
 import { SelectCard, staggerChildren, childFade, fadeSlide } from "../intake-ui-primitives"

@@ -1,10 +1,10 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
 
 interface SectionHeaderProps {

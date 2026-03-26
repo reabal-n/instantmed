@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 /**
  * Typing indicator shown in the message area (bouncing dots with optional "still thinking" text).

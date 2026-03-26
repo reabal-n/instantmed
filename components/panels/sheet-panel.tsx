@@ -1,7 +1,8 @@
 'use client'
 
 import { type ReactNode, useEffect } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { X } from 'lucide-react'
 import { usePanel } from './panel-provider'
 import { sheetVariants, backdropVariants } from '@/lib/motion/panel-variants'

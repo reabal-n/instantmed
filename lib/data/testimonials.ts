@@ -546,24 +546,3 @@ export function getFeaturedTestimonialsByService(service: Testimonial["service"]
   return TESTIMONIALS.filter((t) => t.service === service && t.image)
 }
 
-/**
- * Platform statistics - keep vague to avoid Google penalty from unverifiable numbers.
- * Do NOT add specific review counts or patient totals unless backed by a real data source.
- */
-export const PLATFORM_STATS = {
-  averageRating: 4.9,
-  averageResponseMinutes: 34,
-  doctorCount: 4,
-  availableHoursStart: 8,
-  availableHoursEnd: 22,
-} as const
-
-/**
- * Format stats for display
- */
-export function formatStats() {
-  return {
-    rating: PLATFORM_STATS.averageRating.toFixed(1),
-    responseTime: `~${PLATFORM_STATS.averageResponseMinutes} min`,
-  }
-}

@@ -708,7 +708,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
         </Card>
       )}
 
-      {/* AI Auto-Approve Toggle */}
+      {/* AI Auto-Approve Med Certs */}
       <Card className={flags.ai_auto_approve_enabled ? "border-violet-300 bg-violet-50/30" : ""}>
         <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
@@ -719,11 +719,12 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
             )}
           </CardTitle>
           <CardDescription>
-            Automatically approve eligible medical certificates (1-3 day, no flags, no mental health/injury/chronic) within minutes of payment.
+            Automatically approve eligible medical certificates (no flags, no mental health/injury/chronic) after payment.
             Doctor batch review still applies — all AI-approved certs appear in the review queue for oversight.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 pb-6">
+        <CardContent className="space-y-5 px-6 pb-6">
+          {/* Master toggle */}
           <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${flags.ai_auto_approve_enabled ? "bg-violet-100" : "bg-muted"}`}>
@@ -733,7 +734,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
                 <p className="font-medium">Auto-Approval Status</p>
                 <p className="text-sm text-muted-foreground">
                   {flags.ai_auto_approve_enabled
-                    ? "Eligible med certs are auto-approved and delivered instantly"
+                    ? "Eligible med certs are auto-approved and delivered"
                     : "All med certs require manual doctor review (default)"}
                 </p>
               </div>
@@ -749,8 +750,123 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
               />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Safety: rate-limited to 10/5min and 50/day. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and certs over 3 days.
+
+          {/* Settings (shown when enabled) */}
+          {flags.ai_auto_approve_enabled && (
+            <div className="space-y-4 p-5 rounded-lg border bg-violet-50/20">
+              <p className="text-sm font-medium">Auto-Approve Settings</p>
+
+              {/* Delay */}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-sm text-muted-foreground w-48">Waiting delay after payment</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={60}
+                    value={flags.auto_approve_delay_minutes}
+                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_delay_minutes: Math.min(60, Math.max(0, parseInt(e.target.value, 10) || 0)) }))}
+                    onBlur={async () => {
+                      if (flags.auto_approve_delay_minutes !== initialFlags.auto_approve_delay_minutes) {
+                        setIsSaving(FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES)
+                        try {
+                          const result = await updateFeatureFlagAction(FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES, flags.auto_approve_delay_minutes)
+                          if (result.success) { toast.success("Delay updated"); router.refresh() }
+                          else { toast.error(result.error || "Failed to save") }
+                        } finally { setIsSaving(null) }
+                      }
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">minutes</span>
+                </div>
+                <p className="text-xs text-muted-foreground w-full">
+                  0 = approve immediately in webhook. {">"}0 = wait this long, then the retry cron (every 3 min) picks it up.
+                </p>
+              </div>
+
+              {/* Rate limit */}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-sm text-muted-foreground w-48">Rate limit (per 5 min)</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={flags.auto_approve_rate_limit_5min}
+                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_rate_limit_5min: Math.min(100, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                    onBlur={async () => {
+                      if (flags.auto_approve_rate_limit_5min !== initialFlags.auto_approve_rate_limit_5min) {
+                        setIsSaving(FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN)
+                        try {
+                          const result = await updateFeatureFlagAction(FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN, flags.auto_approve_rate_limit_5min)
+                          if (result.success) { toast.success("Rate limit updated"); router.refresh() }
+                          else { toast.error(result.error || "Failed to save") }
+                        } finally { setIsSaving(null) }
+                      }
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">approvals per 5 min</span>
+                </div>
+              </div>
+
+              {/* Daily cap */}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-sm text-muted-foreground w-48">Daily cap</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={flags.auto_approve_daily_cap}
+                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_daily_cap: Math.min(500, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                    onBlur={async () => {
+                      if (flags.auto_approve_daily_cap !== initialFlags.auto_approve_daily_cap) {
+                        setIsSaving(FLAG_KEYS.AUTO_APPROVE_DAILY_CAP)
+                        try {
+                          const result = await updateFeatureFlagAction(FLAG_KEYS.AUTO_APPROVE_DAILY_CAP, flags.auto_approve_daily_cap)
+                          if (result.success) { toast.success("Daily cap updated"); router.refresh() }
+                          else { toast.error(result.error || "Failed to save") }
+                        } finally { setIsSaving(null) }
+                      }
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">approvals per day</span>
+                </div>
+              </div>
+
+              {/* Max duration */}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-sm text-muted-foreground w-48">Max cert duration eligible</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={7}
+                    value={flags.auto_approve_max_duration_days}
+                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_max_duration_days: Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                    onBlur={async () => {
+                      if (flags.auto_approve_max_duration_days !== initialFlags.auto_approve_max_duration_days) {
+                        setIsSaving(FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS)
+                        try {
+                          const result = await updateFeatureFlagAction(FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS, flags.auto_approve_max_duration_days)
+                          if (result.success) { toast.success("Max duration updated"); router.refresh() }
+                          else { toast.error(result.error || "Failed to save") }
+                        } finally { setIsSaving(null) }
+                      }
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">days (certs longer than this need doctor review)</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Safety: excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail.
           </p>
         </CardContent>
       </Card>

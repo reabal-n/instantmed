@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { ChevronRight, RefreshCw, Pill } from "lucide-react"
 import { SelectCard } from "@/components/intake/prescription-shared"

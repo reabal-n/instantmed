@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { ArrowRight, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ServiceFunnelConfig, ColorClasses } from './funnel-types'

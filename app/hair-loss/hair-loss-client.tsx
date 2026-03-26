@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import {
   ArrowRight,
@@ -26,7 +26,7 @@ import {
   CTABanner,
   SectionHeader,
 } from "@/components/sections";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import { TrustLogos } from "@/components/marketing/trust-badges";
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 

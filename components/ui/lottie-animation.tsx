@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import type { AnimationItem } from "lottie-web"
 import { cn } from "@/lib/utils"
-import { useReducedMotion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 type AnimationName =
   | "confetti"

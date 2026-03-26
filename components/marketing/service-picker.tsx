@@ -3,13 +3,13 @@
 import Link from 'next/link'
 import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { Separator } from '@/components/ui/separator'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
-import { SpotlightReveal } from '@/components/ui/glowing-effect'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { CertificateMockup } from '@/components/marketing/mockups/certificate'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
@@ -173,7 +173,6 @@ export function ServicePicker() {
             const ServiceMockup = mockupMap[service.id]
 
             const cardContent = (
-                  <SpotlightReveal color={colors.accent} size={350} borderRadius="0.75rem" className="h-full">
                   <div className="relative h-full">
                     {/* Temporarily unavailable badge */}
                     {disabled && (
@@ -333,7 +332,6 @@ export function ServicePicker() {
                       )}
                     </div>
                   </div>
-                  </SpotlightReveal>
             )
 
             return (

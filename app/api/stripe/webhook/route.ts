@@ -723,16 +723,25 @@ export async function POST(request: Request) {
               medCert: 'medCert' in result ? result.medCert?.status : undefined,
             })
 
-            // Attempt auto-approval for med certs
+            // Attempt auto-approval for med certs (if no delay configured)
             try {
-              const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
-              const autoResult = await attemptAutoApproval(intakeId)
-              log.info("Auto-approval attempted", {
-                intakeId,
-                autoApproved: autoResult.autoApproved,
-                reason: autoResult.reason,
-                certificateId: autoResult.certificateId,
-              })
+              const { getFeatureFlags: getFlags } = await import("@/lib/feature-flags")
+              const currentFlags = await getFlags()
+              if (currentFlags.auto_approve_delay_minutes <= 0) {
+                const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
+                const autoResult = await attemptAutoApproval(intakeId)
+                log.info("Auto-approval attempted", {
+                  intakeId,
+                  autoApproved: autoResult.autoApproved,
+                  reason: autoResult.reason,
+                  certificateId: autoResult.certificateId,
+                })
+              } else {
+                log.info("Auto-approval deferred to cron (delay configured)", {
+                  intakeId,
+                  delayMinutes: currentFlags.auto_approve_delay_minutes,
+                })
+              }
             } catch (autoErr) {
               // Never fail — auto-approval failure just means doctor reviews manually
               log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {

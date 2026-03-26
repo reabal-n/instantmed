@@ -156,10 +156,10 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     return { success: true, autoApproved: false, reason: "Feature disabled" }
   }
 
-  // 1b. System-level rate limiting (max 10 auto-approvals per 5 minutes)
+  // 1b. System-level rate limiting (configurable via admin dashboard)
   const rateLimitResult = await checkRateLimit("system-auto-approve", {
     windowMs: 5 * 60 * 1000,
-    maxRequests: 10,
+    maxRequests: featureFlags.auto_approve_rate_limit_5min,
     action: "auto_approve",
   })
   if (!rateLimitResult.allowed) {
@@ -171,15 +171,15 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     return { success: true, autoApproved: false, reason: "Rate limit exceeded" }
   }
 
-  // 1c. Daily cap check (max 50 auto-approvals per day)
+  // 1c. Daily cap check (configurable via admin dashboard)
   const dailyRateLimitResult = await checkRateLimit("system-auto-approve-daily", {
     windowMs: 24 * 60 * 60 * 1000,
-    maxRequests: 50,
+    maxRequests: featureFlags.auto_approve_daily_cap,
     action: "auto_approve_daily",
   })
   if (!dailyRateLimitResult.allowed) {
     log.warn("Auto-approval daily cap hit", { intakeId })
-    Sentry.captureMessage("Auto-approval daily cap exceeded (50/day)", {
+    Sentry.captureMessage(`Auto-approval daily cap exceeded (${featureFlags.auto_approve_daily_cap}/day)`, {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
@@ -267,7 +267,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const patientRaw = intake.patient as unknown
     const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { date_of_birth: string | null } | null
 
-    // 7. Evaluate eligibility
+    // 7. Evaluate eligibility (with configurable max duration from admin settings)
     const eligibility = evaluateAutoApprovalEligibility(
       { service_type: service.type, subtype: intake.subtype },
       answersData,
@@ -277,6 +277,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           : null,
       },
       patientInfo,
+      { maxDurationDays: featureFlags.auto_approve_max_duration_days },
     )
 
     // Log eligibility decision regardless of outcome

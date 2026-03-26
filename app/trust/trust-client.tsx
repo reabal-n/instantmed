@@ -18,11 +18,13 @@ import {
   ServerCog,
   Eye,
 } from "lucide-react"
-import { usePatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { usePatientCount } from "@/lib/use-patient-count"
 import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import NumberFlow from "@number-flow/react"
 import { useSyncExternalStore } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 // Morning Canvas components

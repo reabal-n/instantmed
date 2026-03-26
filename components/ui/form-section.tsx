@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
 

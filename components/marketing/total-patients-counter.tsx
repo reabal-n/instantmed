@@ -1,11 +1,13 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
-import { usePatientCount, SOCIAL_PROOF } from '@/lib/social-proof'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { usePatientCount } from '@/lib/use-patient-count'
 
 function useHasMounted() {
   return useSyncExternalStore(

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { X, MessageCircle } from "lucide-react"
 
 const CHAT_BUBBLE_DISMISSED_KEY = "instantmed_chat_bubble_dismissed"

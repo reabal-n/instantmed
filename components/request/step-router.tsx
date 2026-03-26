@@ -10,7 +10,8 @@
  */
 
 import { Suspense, lazy, useMemo } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { StepErrorBoundary } from "./step-error-boundary"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 import { SkeletonForm } from "@/components/ui/skeleton"

@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion";
 
 const DASHBOARD_PREFIXES = ["/patient", "/doctor", "/admin"];
 

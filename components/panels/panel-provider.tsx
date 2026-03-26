@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
-import { AnimatePresence, useReducedMotion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 
 /**
  * Panel System - Core interaction model

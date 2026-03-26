@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { Clock, FileText, Pill, Phone, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

@@ -36,9 +36,10 @@ export async function GET(request: NextRequest) {
     // Find med cert intakes that are:
     // - status = 'paid' (not yet approved)
     // - unclaimed (no doctor or system has claimed them)
-    // - paid 2-30 minutes ago (avoid racing with webhook, don't pick up ancient ones)
-    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString()
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
+    // - paid after configurable delay (admin setting) to 60 minutes ago
+    const delayMinutes = Math.max(1, flags.auto_approve_delay_minutes)
+    const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
+    const sixtyMinAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
 
     const { data: eligibleIntakes, error: fetchError } = await supabase
       .from("intakes")
@@ -50,8 +51,8 @@ export async function GET(request: NextRequest) {
       .eq("status", "paid")
       .is("claimed_by", null)
       .eq("ai_approved", false)
-      .lt("paid_at", twoMinAgo)
-      .gt("paid_at", thirtyMinAgo)
+      .lt("paid_at", delayAgo)
+      .gt("paid_at", sixtyMinAgo)
       .order("paid_at", { ascending: true })
       .limit(5)
 

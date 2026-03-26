@@ -8,6 +8,7 @@ import {
   BreadcrumbSchema,
 } from "@/components/seo/structured-data"
 import { ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
@@ -90,10 +91,9 @@ export default function Page() {
           { name: "Trust & Safety", url: "/trust" },
         ]}
       />
-      {/* Rating values match SOCIAL_PROOF constants in lib/social-proof.ts */}
       <ReviewAggregateSchema
-        ratingValue={4.9}
-        reviewCount={847}
+        ratingValue={SOCIAL_PROOF.averageRating}
+        reviewCount={SOCIAL_PROOF.reviewCount}
       />
     </>
   )

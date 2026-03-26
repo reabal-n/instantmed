@@ -1,3 +1,5 @@
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+
 // Service Landing Page Configuration
 // All content centralized for easy updates - NO SPECIFIC DRUG NAMES ON MARKETING PAGES
 
@@ -148,7 +150,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     },
     {
       question: 'What if my request is declined?',
-      answer: 'If a doctor determines your request isn\'t suitable for online assessment, you\'ll receive a full refund minus a small admin fee ($4.95). We\'ll explain why and suggest alternatives like seeing your local GP.',
+      answer: `If a doctor determines your request isn't suitable for online assessment, you'll receive a full refund minus a small admin fee (${SOCIAL_PROOF_DISPLAY.adminFee}). We'll explain why and suggest alternatives like seeing your local GP.`,
     },
     {
       question: 'Is my information kept private?',

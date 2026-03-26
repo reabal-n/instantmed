@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { ProgressBar } from "./intake-ui-primitives"
 import { PurposeStep } from "./streamlined-steps/purpose-step"
 import { DetailsStep } from "./streamlined-steps/details-step"

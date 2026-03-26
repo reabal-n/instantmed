@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { useChatIntakeContext } from "@/components/chat/chat-intake-context"
 
 export function ChatRedirectOverlay() {

@@ -61,21 +61,9 @@ export const PRICING_DISPLAY = {
   RANGE: `$${PRICING.MED_CERT.toFixed(2)} - $${PRICING.CONSULT.toFixed(2)}`,
 } as const
 
-// GP comparison pricing (for context, not exact)
-export const GP_COMPARISON = {
-  STANDARD: "$60–90",
-  COMPLEX: "$80–120",
-} as const
-
 // Consent/terms version for compliance audit (align with Terms page "Last updated")
 export const TERMS_VERSION = "2026-02"
 export const TELEHEALTH_CONSENT_VERSION = "2026-02"
-
-// Response time guarantees
-export const RESPONSE_TIMES = {
-  AVERAGE: "2-4 hours",
-  GUARANTEE: "24 hours",
-} as const
 
 // Service types
 export const REQUEST_TYPES = {
@@ -109,44 +97,11 @@ export const PAYMENT_STATUSES = {
   REFUNDED: "refunded",
 } as const
 
-// Animation delays (for consistent staggered animations)
-export const ANIMATION_DELAYS = {
-  FAST: "0.1s",
-  MEDIUM: "0.2s",
-  SLOW: "0.3s",
-} as const
-
 // Regex patterns
 export const PATTERNS = {
   MEDICARE: /^\d{10,11}$/,
   PHONE: /^(?:\+61|0)[2-478](?:[ -]?\d){8}$/,
   POSTCODE: /^\d{4}$/,
-} as const
-
-// Form field design tokens - single source of truth for consistent styling
-export const FORM_TOKENS = {
-  // Border colors
-  border: {
-    default: "border-slate-200 dark:border-slate-700",
-    hover: "hover:border-slate-300 dark:hover:border-slate-600",
-    focus: "data-[focused=true]:border-primary focus:border-primary",
-    error: "border-red-500",
-    success: "border-green-500",
-  },
-  // Background colors
-  bg: {
-    default: "bg-white dark:bg-white/5",
-    glass: "bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]",
-  },
-  // Border radius
-  radius: "rounded-xl",
-  // Heights
-  height: {
-    input: "min-h-[48px] md:min-h-0",
-    textarea: "min-h-[100px]",
-  },
-  // Transitions
-  transition: "transition-all duration-200",
 } as const
 
 // Medical certificate duration options

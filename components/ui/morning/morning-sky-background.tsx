@@ -1,6 +1,6 @@
 "use client"
 
-import { useReducedMotion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface MorningSkyBackgroundProps {

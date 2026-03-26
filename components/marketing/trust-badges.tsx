@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { Shield, Clock, Lock, UserCheck, Award, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 /**
  * Trust Badges Component
@@ -275,9 +276,9 @@ export function PaymentLogos({ className }: { className?: string }) {
 export function StatsBar({ className }: { className?: string }) {
   const stats = [
     { value: "Hundreds", label: "Satisfied patients" },
-    { value: "4.9★", label: "Patient satisfaction" },
-    { value: "~15 min", label: "Typical review time" },
-    { value: "8am–10pm", label: "7 days a week" },
+    { value: SOCIAL_PROOF_DISPLAY.ratingWithStar, label: "Patient satisfaction" },
+    { value: SOCIAL_PROOF_DISPLAY.responseTime, label: "Typical review time" },
+    { value: SOCIAL_PROOF_DISPLAY.operatingHours, label: `${SOCIAL_PROOF.operatingDays} days a week` },
   ]
 
   return (

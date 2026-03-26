@@ -1,7 +1,8 @@
 "use client"
 
 import { Check } from "lucide-react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface ProgressBarProps {
   steps: { id: string; shortLabel: string }[]

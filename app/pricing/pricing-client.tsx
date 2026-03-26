@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { AnimatedIcon } from "@/components/shared/animated-icons"
-// GlowCard replaced with solid cards for dub.co depth consistency
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
-import { Check, Star, ArrowRight, Shield, Clock, Zap } from "lucide-react"
+import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill } from "lucide-react"
 import { PRICING } from "@/lib/constants"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -30,7 +29,7 @@ const services = [
     ],
     popular: true,
     href: "/medical-certificate",
-    iconType: "medCert" as const,
+    icon: FileText,
     color: "#2563EB",
   },
   {
@@ -46,7 +45,7 @@ const services = [
     ],
     popular: false,
     href: "/prescriptions",
-    iconType: "pill" as const,
+    icon: Pill,
     color: "#4f46e5",
   },
 ]
@@ -105,9 +104,9 @@ export function PricingClient() {
           highlightWords={["subscriptions"]}
           subtitle="Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help."
           stats={[
-            { value: 100, suffix: "%", label: "Refund if declined" },
+            { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "Refund if declined" },
             { value: 0, prefix: "$", label: "Hidden fees" },
-            { value: 7, label: "Days a week" },
+            { value: SOCIAL_PROOF.operatingDays, label: "Days a week" },
           ]}
         />
 
@@ -137,7 +136,7 @@ export function PricingClient() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: `${service.color}20` }}
                     >
-                      <AnimatedIcon type={service.iconType} size={32} />
+                      <service.icon className="w-7 h-7" style={{ color: service.color }} />
                     </div>
                   </div>
 

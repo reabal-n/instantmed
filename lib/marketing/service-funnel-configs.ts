@@ -1,5 +1,6 @@
 import type { ServiceFunnelConfig } from '@/components/marketing/service-funnel-page'
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // ===========================================
 // MEDICAL CERTIFICATES LANDING PAGE
@@ -110,7 +111,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'RefreshCw',
         title: 'If we can\'t help',
-        description: 'If your request isn\'t suitable for online assessment, we\'ll refund your payment (minus $4.95 admin fee) and explain why.',
+        description: `If your request isn't suitable for online assessment, we'll refund your payment (minus ${SOCIAL_PROOF_DISPLAY.adminFee} admin fee) and explain why.`,
       },
     ],
   },
@@ -128,7 +129,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       'Message your doctor if you have questions',
       'Covers work, uni, or carer\'s leave',
     ],
-    refundNote: 'Full refund if we can\'t help (minus $4.95 admin fee)',
+    refundNote: `Full refund if we can't help (minus ${SOCIAL_PROOF_DISPLAY.adminFee} admin fee)`,
     medicareNote: 'Medicare rebates do not apply to telehealth consultations',
   },
   

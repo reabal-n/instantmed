@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { AlertTriangle, Phone, Heart, Shield, ArrowRight } from 'lucide-react'
 import { FlowContent } from '../flow-content'
 import { IOSToggle } from '@/components/ui/ios-toggle'

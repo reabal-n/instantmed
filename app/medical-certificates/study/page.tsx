@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@/components/ui/button'
@@ -325,7 +326,7 @@ export default function StudyMedCertPage() {
               </div>
 
               <p className="text-center text-sm text-muted-foreground mt-6">
-                If we can&apos;t help, you&apos;ll receive a full refund (minus $4.95 admin fee) and an explanation.
+                If we can&apos;t help, you&apos;ll receive a full refund (minus {SOCIAL_PROOF_DISPLAY.adminFee} admin fee) and an explanation.
               </p>
             </div>
           </section>

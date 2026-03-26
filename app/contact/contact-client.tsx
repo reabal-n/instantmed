@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { motion, useReducedMotion, useInView } from "framer-motion"
+import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
-import { scrollRevealConfig } from "@/components/ui/motion"
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
 import {
   Mail,
   MapPin,

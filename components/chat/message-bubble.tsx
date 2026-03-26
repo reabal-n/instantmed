@@ -1,7 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { AlertCircle, RefreshCw } from "lucide-react"
 import { type Message, type QuickReply, parseQuickReplies, useChatIntakeContext } from "@/components/chat/chat-intake-context"
 

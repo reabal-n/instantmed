@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useInView, useReducedMotion, type Variants } from "framer-motion"
+import { motion, useInView, type Variants } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { useRef, type ReactNode } from "react"
 
 interface BlurFadeProps {

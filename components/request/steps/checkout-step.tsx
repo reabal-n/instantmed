@@ -14,7 +14,8 @@
 
 import { useState, useEffect } from "react"
 import { usePostHog } from "posthog-js/react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
 import { Switch } from "@/components/ui/switch"

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
 
 /**

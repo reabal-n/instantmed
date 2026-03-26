@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { useRouter } from "next/navigation"
 import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"

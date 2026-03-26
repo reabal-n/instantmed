@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useInView, useReducedMotion, useSpring, useMotionValue } from "framer-motion";
+import { motion, useInView, useSpring, useMotionValue } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import type { SectionProps, StatItem } from "./types";
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {

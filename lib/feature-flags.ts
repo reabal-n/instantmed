@@ -111,6 +111,14 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.maintenance_scheduled_end = typeof row.value === "string" && row.value ? row.value : null
       } else if (row.key === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED) {
         flags.ai_auto_approve_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
+        flags.auto_approve_delay_minutes = typeof row.value === "number" ? row.value : 2
+      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
+        flags.auto_approve_rate_limit_5min = typeof row.value === "number" ? row.value : 10
+      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DAILY_CAP) {
+        flags.auto_approve_daily_cap = typeof row.value === "number" ? row.value : 50
+      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
+        flags.auto_approve_max_duration_days = typeof row.value === "number" ? row.value : 3
       }
     }
 

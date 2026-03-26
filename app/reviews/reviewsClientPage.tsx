@@ -10,10 +10,10 @@ import { LogoBadgeStrip, CTABanner } from "@/components/sections"
 
 import { useState } from "react"
 import {
-  PLATFORM_STATS,
   getFeaturedTestimonials,
   getReviewsPageTestimonials
 } from "@/lib/data/testimonials"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Get reviews from centralized data — limited to a curated selection
 const reviewsData = getReviewsPageTestimonials().slice(0, 10)
@@ -139,7 +139,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
 // ── Main page component ──
 
 export function ReviewsClientPageComponent() {
-  const avgRating = PLATFORM_STATS.averageRating.toFixed(1)
+  const avgRating = SOCIAL_PROOF.averageRating.toFixed(1)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -185,7 +185,7 @@ export function ReviewsClientPageComponent() {
             },
             {
               icon: <Clock className="w-3.5 h-3.5" />,
-              label: `~${PLATFORM_STATS.averageResponseMinutes} min avg response`,
+              label: `~${SOCIAL_PROOF.averageResponseMinutes} min avg response`,
             },
             {
               icon: <Zap className="w-3.5 h-3.5 text-success" />,

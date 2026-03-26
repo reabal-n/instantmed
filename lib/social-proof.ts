@@ -8,15 +8,15 @@
  *
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
  * All social proof stats (rating, response time) live here.
+ *
+ * This file is SERVER-SAFE — no React hooks. Client hook is in ./use-patient-count.ts
  */
-
-import { useState, useEffect, useSyncExternalStore, useCallback } from "react"
 
 // ─── Counter Anchors ───────────────────────────────────────────────
 
 /** AEST (UTC+11) anchor date */
 const ANCHOR_DATE = new Date("2026-03-04T00:00:00+11:00")
-const ANCHOR_COUNT = 2_400
+export const ANCHOR_COUNT = 2_400
 
 /** AEST (UTC+11) target date */
 const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
@@ -27,13 +27,61 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 
 // ─── Platform Stats ────────────────────────────────────────────────
 
+/**
+ * Canonical social proof metrics — SINGLE SOURCE OF TRUTH.
+ *
+ * All marketing pages, SEO data objects, and structured data must
+ * reference these constants (or SOCIAL_PROOF_DISPLAY) instead of
+ * hardcoding numbers. Prose copy (blog articles, meta descriptions)
+ * may use natural language equivalents ("under an hour") but the
+ * numbers here are the source.
+ *
+ * Update here when real analytics data becomes available.
+ */
 export const SOCIAL_PROOF = {
+  // ── Ratings & Reviews ──
   averageRating: 4.9,
-  averageResponseMinutes: 34,
-  ahpraVerifiedPercent: 100,
-  operatingDays: 7,
-  /** Approximate number of collected reviews (subset of total patients) */
   reviewCount: 847,
+
+  // ── Response Times ──
+  /** Average response in minutes (used for stat displays) */
+  averageResponseMinutes: 34,
+  /** Typical turnaround for certificates specifically */
+  certTurnaroundMinutes: 42,
+
+  // ── Platform Credentials ──
+  ahpraVerifiedPercent: 100,
+  employerAcceptancePercent: 100,
+  operatingDays: 7,
+  operatingHoursStart: 8,
+  operatingHoursEnd: 22,
+  doctorCount: 4,
+
+  // ── Guarantees ──
+  refundPercent: 100,
+  adminFee: 4.95,
+
+  // ── GP Comparison (for context, not exact) ──
+  gpPriceStandard: "$60–90",
+  gpPriceComplex: "$80–120",
+} as const
+
+/**
+ * Pre-formatted display strings — use these in UI, like PRICING_DISPLAY.
+ * Avoids scattering template literals and `.toFixed()` calls everywhere.
+ */
+export const SOCIAL_PROOF_DISPLAY = {
+  rating: `${SOCIAL_PROOF.averageRating}`,
+  ratingWithStar: `${SOCIAL_PROOF.averageRating}★`,
+  ratingOutOf5: `${SOCIAL_PROOF.averageRating}/5`,
+  responseTime: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+  certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
+  operatingHours: `${SOCIAL_PROOF.operatingHoursStart}am–${SOCIAL_PROOF.operatingHoursEnd > 12 ? SOCIAL_PROOF.operatingHoursEnd - 12 : SOCIAL_PROOF.operatingHoursEnd}pm`,
+  operatingSchedule: `${SOCIAL_PROOF.operatingDays} days a week`,
+  refundGuarantee: `${SOCIAL_PROOF.refundPercent}% refund guarantee`,
+  adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
+  gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
+  gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
 } as const
 
 // ─── Counter Logic ─────────────────────────────────────────────────
@@ -52,35 +100,4 @@ export function getPatientCount(now: Date = new Date()): number {
 
   const progress = elapsed / TOTAL_MS
   return Math.floor(ANCHOR_COUNT + progress * TOTAL_GROWTH)
-}
-
-// ─── Hydration-Safe Hook ───────────────────────────────────────────
-
-/**
- * SSR-safe hook that returns the current patient count.
- * Updates every `intervalMs` (default 15s) for a slow, realistic tick.
- */
-export function usePatientCount(intervalMs: number = 15_000): number {
-  // Prevent hydration mismatch — render nothing on server
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  )
-
-  const [count, setCount] = useState(() => getPatientCount())
-
-  const tick = useCallback(() => {
-    setCount(getPatientCount())
-  }, [])
-
-  useEffect(() => {
-    if (!mounted) return
-    // Sync immediately on mount
-    tick()
-    const id = setInterval(tick, intervalMs)
-    return () => clearInterval(id)
-  }, [mounted, intervalMs, tick])
-
-  return mounted ? count : ANCHOR_COUNT
 }

@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
-import { GlowingBorder } from "@/components/ui/glowing-effect"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 const services = [
   {
@@ -84,7 +84,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                     <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
                   ))}
                 </div>
-                <span className="text-muted-foreground">4.9/5 rating</span>
+                <span className="text-muted-foreground">{SOCIAL_PROOF_DISPLAY.ratingOutOf5} rating</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -94,7 +94,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4 text-primary" />
-                <span>45 min average</span>
+                <span>{SOCIAL_PROOF_DISPLAY.responseTime} average</span>
               </div>
             </div>
           </BlurFade>
@@ -108,7 +108,6 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             {services.map((service, i) => (
               <BlurFade key={service.id} delay={0.1 + i * 0.1}>
                 <Link href={service.href} className="group block h-full">
-                  <GlowingBorder>
                     <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
                       <div className="h-full bg-white dark:bg-card rounded-[22px] overflow-hidden">
                         {/* Image section */}
@@ -178,7 +177,6 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                         </div>
                       </div>
                     </div>
-                  </GlowingBorder>
                 </Link>
               </BlurFade>
             ))}
