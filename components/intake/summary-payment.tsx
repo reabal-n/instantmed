@@ -10,7 +10,6 @@ import {
   AHPRAStatement,
   CheckoutSecurityFooter,
 } from "@/components/checkout"
-import { CheckoutActivityBadge } from "@/components/marketing/social-proof-notifications"
 import type { FlowConfig } from "@/lib/intake/flow-engine"
 import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
@@ -171,9 +170,6 @@ export function SummaryPayment({
 
       {/* AHPRA statement */}
       <AHPRAStatement variant="inline" />
-
-      {/* Mobile social proof */}
-      <CheckoutActivityBadge className="sm:hidden" />
 
       {/* Submit button - sticky on mobile */}
       <div className="sticky bottom-0 bg-background pt-2 pb-4 -mx-4 px-4 border-t mt-6">
