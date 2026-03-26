@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import Link from 'next/link'
 import { FloatingCard } from '@/components/marketing/floating-card'
-import { DottedGrid } from '@/components/marketing/dotted-grid'
 
 function StepOneMockup() {
   return (
@@ -16,7 +15,6 @@ function StepOneMockup() {
         <p className="text-[10px] font-medium text-muted-foreground mb-1">What&apos;s going on?</p>
         <div className="h-8 rounded-lg bg-muted/40 dark:bg-muted/20 border border-border/50 px-2.5 flex items-center">
           <span className="text-xs text-foreground/70">Cold and flu symptoms</span>
-          <span className="ml-0.5 w-px h-3.5 bg-primary animate-[blink_1s_ease-in-out_infinite]" />
         </div>
       </div>
       <div>
@@ -108,8 +106,7 @@ export function HowItWorks() {
   const stepBadges = ["~2 min", "~30 min", "Same day"]
 
   return (
-    <section id="how-it-works" className="relative py-20 lg:py-24 scroll-mt-20">
-      <DottedGrid />
+    <section id="how-it-works" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <motion.div
@@ -210,7 +207,7 @@ const steps = [
   },
   {
     number: "3",
-    title: "Sorted",
-    description: "Certificate to your inbox, medication to your phone. All sorted.",
+    title: "Done.",
+    description: "Certificate to your inbox. Prescription to your phone. All taken care of.",
   },
 ]
