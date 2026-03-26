@@ -25,9 +25,9 @@ export const siteConfig = {
 
 export const heroRotatingTexts = [
   "A doctor, without the waiting room.",
-  "Back at work tomorrow.",
-  "Sorted before your next coffee.",
-  "No appointment. No waiting room. No drama.",
+  "Skip the waiting room, not the doctor.",
+  "AHPRA-registered doctors. Reviewed, not automated.",
+  "Fill in a form. A doctor reviews it. Done.",
   "Real GP review, without leaving the couch.",
 ]
 
