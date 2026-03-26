@@ -5,10 +5,9 @@ import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
+import { DocumentPremium, PillPremium, StethoscopePremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { AnimatedText } from '@/components/ui/animated-underline-text-one'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { CertificateMockup } from '@/components/marketing/mockups/certificate'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
@@ -92,13 +91,8 @@ export function ServicePicker() {
   const { isServiceDisabled } = useServiceAvailability()
 
   return (
-    <section id="pricing" className="relative py-20 lg:py-24 scroll-mt-20">
-      {/* Warm background accent */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-[50%] left-[-100px] w-[500px] h-[400px] bg-[#F0B4A0]/[0.06] dark:bg-[#F0B4A0]/[0.02] rounded-full blur-3xl" />
-        <div className="absolute top-[20%] right-[-150px] w-[400px] h-[300px] bg-dawn-200/[0.08] dark:bg-dawn-400/[0.03] rounded-full blur-3xl" />
-      </div>
-      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-20 lg:py-24 scroll-mt-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           className="text-center mb-12"
@@ -107,25 +101,9 @@ export function ServicePicker() {
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6 cursor-default"
-            whileHover={prefersReducedMotion ? undefined : { y: -2 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <SparklesPremium className="w-4 h-4 text-foreground/40 dark:text-foreground/50" />
-            <span className="text-xs font-medium text-foreground/60 dark:text-foreground/50">Pick what you need</span>
-          </motion.div>
-          
-          <div className="mb-4">
-            <AnimatedText
-              text="What are you here for?"
-              textClassName="text-3xl sm:text-4xl lg:text-4xl font-bold text-foreground tracking-tight"
-              underlineClassName="text-primary"
-              underlinePath="M 0,10 Q 100,0 200,10 Q 300,20 400,10"
-              underlineHoverPath="M 0,10 Q 100,20 200,10 Q 300,0 400,10"
-              underlineDuration={1.2}
-            />
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-4">
+            What do you need?
+          </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
             Flat pricing. No hidden fees. No account needed to start.
           </p>
@@ -195,9 +173,6 @@ export function ServicePicker() {
                         service.popular && "ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-xl shadow-primary/[0.08] dark:shadow-none",
                       ]
                     )}>
-                      {/* Gradient accent bar */}
-                      <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
-
                       {/* Product mockup */}
                       {ServiceMockup && (
                         <div className="h-[200px] overflow-hidden group-hover:-translate-y-0.5 transition-transform duration-300 flex items-center justify-center">
