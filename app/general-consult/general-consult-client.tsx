@@ -5,7 +5,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Star } from "lucide-react"
-import { TrustLogos } from "@/components/marketing/trust-badges"
+import { RegulatoryPartners } from "@/components/marketing"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
@@ -306,7 +306,7 @@ export default function GeneralConsultPage() {
 
             {/* Partner Logos */}
             <div className="mt-8">
-              <TrustLogos />
+              <RegulatoryPartners />
             </div>
           </div>
         </section>

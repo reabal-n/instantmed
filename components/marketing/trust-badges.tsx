@@ -220,6 +220,7 @@ export function TrustLogos({ className }: { className?: string }) {
     { src: "/logos/AHPRA.svg", alt: "AHPRA — Australian Health Practitioner Regulation Agency", width: 100 },
     { src: "/logos/TGA.svg", alt: "TGA — Therapeutic Goods Administration", width: 80 },
     { src: "/logos/medicare.svg", alt: "Medicare Australia", width: 90 },
+    { src: "/logos/RACGP.jpg", alt: "RACGP — Royal Australian College of General Practitioners", width: 90 },
   ]
 
   return (

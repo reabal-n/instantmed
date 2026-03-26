@@ -27,8 +27,8 @@ const regulatoryPartners = [
   {
     name: 'RACGP',
     description: 'RACGP-aligned protocols',
-    logo: null,
-    width: 0,
+    logo: '/logos/RACGP.jpg',
+    width: 90,
   },
 ]
 
@@ -57,20 +57,14 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
                 className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity"
                 title={partner.description}
               >
-                {partner.logo ? (
-                  <Image
-                    src={partner.logo}
-                    alt={partner.description}
-                    width={partner.width}
-                    height={32}
-                    unoptimized
-                    className="h-7 w-auto object-contain dark:brightness-0 dark:invert"
-                  />
-                ) : (
-                  <span className="text-sm font-semibold text-muted-foreground tracking-tight">
-                    {partner.name}
-                  </span>
-                )}
+                <Image
+                  src={partner.logo}
+                  alt={partner.description}
+                  width={partner.width}
+                  height={32}
+                  unoptimized
+                  className="h-7 w-auto object-contain dark:brightness-0 dark:invert"
+                />
               </motion.div>
             ))}
           </div>
@@ -101,20 +95,14 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
                 className="opacity-70 hover:opacity-100 transition-opacity"
                 title={partner.description}
               >
-                {partner.logo ? (
-                  <Image
-                    src={partner.logo}
-                    alt={partner.description}
-                    width={partner.width}
-                    height={40}
-                    unoptimized
-                    className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
-                  />
-                ) : (
-                  <span className="text-base font-semibold text-muted-foreground tracking-tight">
-                    {partner.name}
-                  </span>
-                )}
+                <Image
+                  src={partner.logo}
+                  alt={partner.description}
+                  width={partner.width}
+                  height={40}
+                  unoptimized
+                  className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                />
               </motion.div>
             ))}
           </div>

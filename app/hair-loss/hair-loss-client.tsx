@@ -28,7 +28,7 @@ import {
   SectionHeader,
 } from "@/components/sections";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
-import { TrustLogos } from "@/components/marketing/trust-badges";
+import { RegulatoryPartners } from "@/components/marketing";
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility";
 import { getTestimonialsByService } from "@/lib/data/testimonials";
@@ -341,7 +341,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
           {/* Trust logos */}
           <div className="px-4 pb-8">
             <div className="mx-auto max-w-5xl">
-              <TrustLogos />
+              <RegulatoryPartners />
             </div>
           </div>
 

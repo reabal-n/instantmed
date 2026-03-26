@@ -22,7 +22,7 @@ import {
   Users,
 } from 'lucide-react'
 import { AccordionSection, CTABanner, ProcessSteps } from '@/components/sections'
-import { TrustLogos } from '@/components/marketing/trust-badges'
+import { RegulatoryPartners } from '@/components/marketing'
 import { LiveWaitTime, StatsStrip } from '@/components/marketing'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
@@ -286,7 +286,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 ))}
               </div>
               <div className="mt-8">
-                <TrustLogos />
+                <RegulatoryPartners />
               </div>
             </div>
           </section>

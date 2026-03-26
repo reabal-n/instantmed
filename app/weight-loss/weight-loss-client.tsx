@@ -6,7 +6,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TrustLogos } from "@/components/marketing/trust-badges"
+import { RegulatoryPartners } from "@/components/marketing"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { CenteredHero } from "@/components/heroes"
 import {
@@ -291,7 +291,7 @@ export function WeightLossClient() {
           {/* Trust Logos */}
           <div className="px-4 pb-8">
             <div className="mx-auto max-w-5xl">
-              <TrustLogos />
+              <RegulatoryPartners />
             </div>
           </div>
 
