@@ -249,6 +249,29 @@ export default async function IntentPage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Guides & Comparisons Cross-Links */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                  Med cert guide
+                </Link>
+                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                  Telehealth guide
+                </Link>
+                <Link href="/compare/telehealth-vs-gp" className="text-primary hover:underline">
+                  Telehealth vs GP
+                </Link>
+                <Link href="/guides/how-to-get-repeat-prescription-online" className="text-primary hover:underline">
+                  Repeat script guide
+                </Link>
+                <Link href="/conditions" className="text-primary hover:underline">
+                  All conditions
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* Final CTA */}
           <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">

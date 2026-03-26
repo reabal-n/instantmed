@@ -452,8 +452,42 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
         />
       )}
 
+      {/* Service & guide cross-links */}
+      <div className="mt-8 py-5 border-t">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+          {article.category === "medical-certificates" && (
+            <>
+              <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical certificates</Link>
+              <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">Med cert guide</Link>
+              <Link href="/conditions/cold-and-flu" className="text-primary hover:underline">Cold & flu</Link>
+            </>
+          )}
+          {article.category === "medications" && (
+            <>
+              <Link href="/services/prescriptions" className="text-primary hover:underline">Prescription service</Link>
+              <Link href="/repeat-prescriptions" className="text-primary hover:underline">Repeat prescriptions</Link>
+              <Link href="/guides/how-to-get-repeat-prescription-online" className="text-primary hover:underline">Repeat script guide</Link>
+            </>
+          )}
+          {article.category === "telehealth" && (
+            <>
+              <Link href="/services/telehealth-consult" className="text-primary hover:underline">Online consultations</Link>
+              <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">Telehealth guide</Link>
+              <Link href="/how-it-works" className="text-primary hover:underline">How it works</Link>
+            </>
+          )}
+          {!["medical-certificates", "medications", "telehealth"].includes(article.category) && (
+            <>
+              <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical certificates</Link>
+              <Link href="/services/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
+              <Link href="/services/telehealth-consult" className="text-primary hover:underline">Consultations</Link>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Location cross-links for local SEO */}
-      <div className="mt-8 py-4 border-t">
+      <div className="mt-4 py-4 border-t">
         <p className="text-xs text-muted-foreground text-center">
           Available in{" "}
           {["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"].map((city, i, arr) => (

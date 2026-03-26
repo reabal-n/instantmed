@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -21,8 +21,8 @@ export async function GET(
     if (rateLimitResponse) return rateLimitResponse
 
     // Require doctor or admin role
-    const authResult = await getApiAuth()
-    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+    const authResult = await requireApiRole(["doctor", "admin"])
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult
@@ -68,8 +68,8 @@ export async function POST(
     if (rateLimitResponse) return rateLimitResponse
 
     // Require doctor or admin role
-    const authResult = await getApiAuth()
-    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+    const authResult = await requireApiRole(["doctor", "admin"])
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult

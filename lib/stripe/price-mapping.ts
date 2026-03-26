@@ -1,4 +1,7 @@
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("stripe-price-mapping")
 
 /**
  * Stripe Price ID Mapping
@@ -91,10 +94,9 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
     throw new Error("Missing STRIPE_PRICE_CONSULT environment variable")
   }
   
-  // Log warning in dev if subtype doesn't have a specific price
-  if (process.env.NODE_ENV === 'development' && subtype && subtype !== 'general') {
-    // eslint-disable-next-line no-console
-    console.warn(`[Stripe] No specific price for consult subtype '${subtype}', using default STRIPE_PRICE_CONSULT`)
+  // Log warning if subtype doesn't have a specific price
+  if (subtype && subtype !== 'general') {
+    logger.warn("No specific price for consult subtype, using default", { subtype })
   }
   
   return defaultPriceId

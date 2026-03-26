@@ -520,10 +520,32 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
  */
 export async function requireApiAuth(): Promise<{ userId: string; profile: Profile }> {
   const result = await getApiAuth()
-  
+
   if (!result) {
     throw new Error("Unauthorized")
   }
 
+  return result
+}
+
+/**
+ * Require authentication AND role check for API routes.
+ * Returns null if not authenticated or role doesn't match.
+ *
+ * Use this in API route handlers for defense-in-depth role enforcement
+ * (middleware protects the route path, this verifies the actual role).
+ *
+ * @example
+ * const auth = await requireApiRole(["doctor", "admin"])
+ * if (!auth) {
+ *   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+ * }
+ */
+export async function requireApiRole(
+  allowedRoles: Array<"patient" | "doctor" | "admin">
+): Promise<{ userId: string; profile: Profile } | null> {
+  const result = await getApiAuth()
+  if (!result) return null
+  if (!allowedRoles.includes(result.profile.role as "patient" | "doctor" | "admin")) return null
   return result
 }

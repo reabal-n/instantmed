@@ -1,9 +1,13 @@
 /**
  * PHI Sanitization for Audit Logs
- * 
+ *
  * Removes or redacts PHI fields from state snapshots before storing in audit_logs.
  * This ensures compliance with privacy requirements while maintaining audit trail integrity.
  */
+
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("sanitize-audit")
 
 // Keys that contain PHI and must be redacted
 const PHI_KEYS = new Set([
@@ -277,8 +281,7 @@ export function assertNoPHI(obj: unknown, context: string): void {
     for (const [key, value] of Object.entries(o as Record<string, unknown>)) {
       const currentPath = `${path}.${key}`
       if (isPHIKey(key) && value !== REDACTED && !String(value).startsWith("[REDACTED")) {
-        // eslint-disable-next-line no-console
-        console.warn(`[AUDIT PHI WARNING] Potential unsanitized PHI at ${currentPath} in ${context}`)
+        logger.warn("Potential unsanitized PHI detected", { path: currentPath, context })
       }
       if (typeof value === "object" && value !== null) {
         check(value, currentPath)

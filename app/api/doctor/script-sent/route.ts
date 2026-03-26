@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    // Require doctor or admin role
-    const authResult = await getApiAuth()
-    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+    // Require doctor or admin role (defense-in-depth)
+    const authResult = await requireApiRole(["doctor", "admin"])
+    if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

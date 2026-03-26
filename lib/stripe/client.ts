@@ -1,5 +1,6 @@
 import "server-only"
 import Stripe from "stripe"
+import { createLogger } from "@/lib/observability/logger"
 
 // Re-export price mapping functions (these don't need server-only)
 // This allows consumers to import from @/lib/stripe/client as before
@@ -13,14 +14,15 @@ export {
   type PriceIdInput,
 } from "./price-mapping"
 
+const log = createLogger("stripe-client")
+
 // Validate required environment variables - fail fast in production
 // Skip in CI — NODE_ENV=production is set by Next.js build but CI isn't real production
 if (!process.env.STRIPE_SECRET_KEY) {
   if (process.env.NODE_ENV === 'production' && !process.env.CI) {
     throw new Error("STRIPE_SECRET_KEY is required in production")
   }
-  // eslint-disable-next-line no-console
-  console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
+  log.warn("STRIPE_SECRET_KEY environment variable not set", {})
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_placeholder_for_build", {

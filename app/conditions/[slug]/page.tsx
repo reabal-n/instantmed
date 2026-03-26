@@ -10,7 +10,8 @@ import {
   Stethoscope,
   FileText,
   Users,
-  Zap
+  Zap,
+  BookOpen,
 } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -272,8 +273,73 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* FAQ Section */}
+          {/* E-E-A-T: Medical Context & Doctor Review */}
           <section className="px-4 py-16">
+            <div className="mx-auto max-w-3xl">
+              <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-4">
+                  Understanding {condition.name}
+                </h2>
+                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
+                  <p>{condition.description}</p>
+                  <p>{condition.searchIntent}</p>
+                  <p>
+                    All assessments on InstantMed are conducted by AHPRA-registered Australian doctors.
+                    If your symptoms fall outside what can be safely managed via telehealth, your doctor will
+                    advise you to seek in-person care — your safety always comes first.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Stethoscope className="w-3.5 h-3.5" />
+                    Reviewed by AHPRA-registered GP
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Last updated: March 2026
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Helpful Articles */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                <span className="text-muted-foreground font-medium">Helpful reading:</span>
+                {condition.serviceType === "med-cert" || condition.serviceType === "both" ? (
+                  <>
+                    <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                      How to get a med cert for work
+                    </Link>
+                    <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-primary hover:underline">
+                      Getting a med cert online
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                      Telehealth guide
+                    </Link>
+                    <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
+                      When to use telehealth
+                    </Link>
+                  </>
+                )}
+                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
+                  Telehealth vs GP
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* FAQ Section */}
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Questions About {condition.name}
@@ -292,6 +358,88 @@ export default async function ConditionPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Related Conditions & Symptoms */}
+          {condition.relatedConditions.length > 0 && (
+            <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
+              <div className="mx-auto max-w-4xl">
+                <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+                  Related Health Topics
+                </h2>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Related condition pages */}
+                  {condition.relatedConditions
+                    .filter((relSlug) => conditions[relSlug])
+                    .map((relSlug) => {
+                      const related = conditions[relSlug]
+                      return (
+                        <Link
+                          key={relSlug}
+                          href={`/conditions/${relSlug}`}
+                          className="flex items-start gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15 hover:border-primary/30 transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <Stethoscope className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                              {related.name}
+                            </span>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              {related.description}
+                            </p>
+                          </div>
+                        </Link>
+                      )
+                    })}
+
+                  {/* Link to symptoms hub if related conditions reference symptom-type slugs */}
+                  {condition.relatedConditions
+                    .filter((relSlug) => !conditions[relSlug])
+                    .slice(0, 4)
+                    .map((symptomSlug) => (
+                      <Link
+                        key={symptomSlug}
+                        href={`/symptoms/${symptomSlug}`}
+                        className="flex items-center gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15 hover:border-primary/30 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                          <BookOpen className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors capitalize">
+                          {symptomSlug.replace(/-/g, " ")}
+                        </span>
+                      </Link>
+                    ))}
+                </div>
+
+                {/* Cross-links to other page types */}
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+                  <Link
+                    href="/conditions"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    View all conditions →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link
+                    href="/symptoms"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Browse by symptom →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link
+                    href="/guides/how-to-get-medical-certificate-for-work"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    How to get a medical certificate →
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Final CTA Section */}
           <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">

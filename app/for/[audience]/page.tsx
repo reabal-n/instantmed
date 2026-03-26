@@ -262,30 +262,77 @@ export default async function AudiencePage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Related */}
-          <section className="px-4 py-8 border-t">
-            <div className="mx-auto max-w-3xl text-center">
-              <p className="text-sm text-muted-foreground">
-                <Link href="/for/students" className="text-primary hover:underline">
-                  Students
-                </Link>
-                {" • "}
-                <Link href="/for/tradies" className="text-primary hover:underline">
-                  Tradies
-                </Link>
-                {" • "}
-                <Link href="/for/corporate" className="text-primary hover:underline">
-                  Corporate
-                </Link>
-                {" • "}
-                <Link href="/for/shift-workers" className="text-primary hover:underline">
-                  Shift Workers
-                </Link>
-                {" • "}
-                <Link href="/medical-certificate" className="text-primary hover:underline">
-                  Medical Certificate
-                </Link>
-              </p>
+          {/* Related Resources & Cross-Links */}
+          <section className="px-4 py-12 border-t">
+            <div className="mx-auto max-w-3xl">
+              <div className="grid gap-6 sm:grid-cols-2 mb-8">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Helpful Guides</h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-sm text-primary hover:underline">
+                        How to get a med cert for work
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/guides/how-to-get-sick-note-for-uni" className="text-sm text-primary hover:underline">
+                        Getting a sick note for uni
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/guides/telehealth-guide-australia" className="text-sm text-primary hover:underline">
+                        Telehealth guide for Australians
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-sm text-primary hover:underline">
+                        How to get a med cert online
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Common Conditions</h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link href="/conditions/cold-and-flu" className="text-sm text-primary hover:underline">
+                        Cold & Flu
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/conditions/back-pain" className="text-sm text-primary hover:underline">
+                        Back Pain
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/conditions/migraine" className="text-sm text-primary hover:underline">
+                        Migraine
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/conditions/mental-health-day" className="text-sm text-primary hover:underline">
+                        Mental Health
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  <Link href="/for/students" className="text-primary hover:underline">Students</Link>
+                  {" • "}
+                  <Link href="/for/tradies" className="text-primary hover:underline">Tradies</Link>
+                  {" • "}
+                  <Link href="/for/corporate" className="text-primary hover:underline">Corporate</Link>
+                  {" • "}
+                  <Link href="/for/shift-workers" className="text-primary hover:underline">Shift Workers</Link>
+                  {" • "}
+                  <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical Certificates</Link>
+                  {" • "}
+                  <Link href="/services/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
+                </p>
+              </div>
             </div>
           </section>
 

@@ -38,6 +38,7 @@ const isPublicRoute = createRouteMatcher([
   '/health-guides(.*)',
   '/api/health',
   '/api/webhooks(.*)',
+  '/api/stripe/webhook', // Stripe webhook (explicit — not under /api/webhooks)
   '/api/cron(.*)',
   '/api/test(.*)', // E2E test endpoints
 ])

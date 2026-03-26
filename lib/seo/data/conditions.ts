@@ -1389,6 +1389,669 @@ export const conditionsData: Record<string, ConditionData> = {
     ctaHref: "/request?service=consult&condition=anxiety",
     stats: { avgTime: "55 mins", satisfaction: "4.9/5" },
   },
+  "tonsillitis": {
+    name: "Tonsillitis",
+    slug: "tonsillitis",
+    description:
+      "Inflammation of the tonsils, usually caused by viral or bacterial infection. Common in children and young adults, causing sore throat, difficulty swallowing, and fever.",
+    searchIntent:
+      "People searching for tonsillitis typically need a medical certificate for work or school absence, or want advice on whether they need antibiotics.",
+    symptoms: [
+      "Severe sore throat",
+      "Difficulty or pain when swallowing",
+      "Swollen, red tonsils (may have white spots)",
+      "Fever and chills",
+      "Swollen lymph nodes in the neck",
+      "Bad breath",
+      "Headache",
+      "Ear pain",
+    ],
+    whenToSeek: [
+      "Sore throat lasting more than 48 hours",
+      "Difficulty swallowing fluids",
+      "Fever over 38.5°C for more than 2 days",
+      "Recurring tonsillitis (more than 5 episodes per year)",
+      "You need a medical certificate for work or study",
+    ],
+    whenEmergency: [
+      "Difficulty breathing",
+      "Unable to swallow saliva (drooling)",
+      "Severe neck swelling",
+      "Difficulty opening your mouth",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work or study",
+        "Assessment of whether antibiotics may be needed",
+        "Advice on symptom management and pain relief",
+        "Guidance on when to return to work",
+      ],
+      no: [
+        "Physical examination of tonsils (in-person assessment may be needed)",
+        "Surgical referrals for tonsillectomy",
+        "Treatment if you're experiencing emergency symptoms",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for tonsillitis?",
+        a: "Yes. Tonsillitis often requires several days off work. Our doctors can provide a medical certificate if your symptoms warrant time off.",
+      },
+      {
+        q: "Do I need antibiotics for tonsillitis?",
+        a: "Not always. Most tonsillitis is viral and resolves on its own. Bacterial tonsillitis may benefit from antibiotics, but a doctor needs to assess your symptoms.",
+      },
+      {
+        q: "How long is tonsillitis contagious?",
+        a: "Usually contagious for 24-48 hours after starting antibiotics (if bacterial), or until symptoms improve (if viral). Most people should stay home for 2-3 days.",
+      },
+      {
+        q: "When should I see a doctor in person for tonsillitis?",
+        a: "If you can't swallow fluids, have difficulty breathing, or symptoms last more than 5 days, see a doctor in person for a throat examination.",
+      },
+    ],
+    relatedConditions: ["cold-and-flu", "sinusitis", "conjunctivitis"],
+    serviceType: "both",
+    ctaText: "Get assessed",
+    ctaHref: "/request?service=consult",
+    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+  },
+  "ear-infection": {
+    name: "Ear Infection",
+    slug: "ear-infection",
+    description:
+      "Infection of the middle or outer ear causing pain, discharge, and sometimes hearing changes. Common in both children and adults, often following a cold or upper respiratory infection.",
+    searchIntent:
+      "People searching for ear infections want pain relief advice, need a medical certificate, or want to know if they need antibiotics.",
+    symptoms: [
+      "Ear pain (can be sharp or dull)",
+      "Feeling of fullness or pressure in the ear",
+      "Reduced hearing or muffled sounds",
+      "Discharge from the ear",
+      "Fever",
+      "Balance problems or dizziness",
+      "Headache on the affected side",
+    ],
+    whenToSeek: [
+      "Ear pain lasting more than 48 hours",
+      "Discharge from the ear",
+      "Hearing loss",
+      "Symptoms in children under 2",
+      "You need a medical certificate for work or study",
+    ],
+    whenEmergency: [
+      "Sudden severe hearing loss",
+      "Facial drooping on the affected side",
+      "High fever with stiff neck",
+      "Severe dizziness with vomiting",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work",
+        "Advice on pain management",
+        "Assessment of whether you need antibiotics",
+        "Guidance on when to see an ENT specialist",
+      ],
+      no: [
+        "Physical ear examination (otoscopy)",
+        "Treatment for chronic or recurring ear infections",
+        "Ear infections in young children (needs in-person assessment)",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for an ear infection?",
+        a: "Yes. Ear infections can be quite painful and affect your ability to work. Our doctors can provide a medical certificate when appropriate.",
+      },
+      {
+        q: "Do ear infections always need antibiotics?",
+        a: "No. Many ear infections resolve on their own within 2-3 days. Antibiotics may be recommended if symptoms are severe or don't improve.",
+      },
+      {
+        q: "Can telehealth help with ear infections?",
+        a: "Telehealth is good for initial assessment, pain management advice, and medical certificates. If an ear examination is needed, we'll refer you to see a doctor in person.",
+      },
+      {
+        q: "How long do ear infections last?",
+        a: "Most ear infections improve within 2-3 days and resolve fully within 1-2 weeks. If symptoms persist beyond a week, see a doctor.",
+      },
+    ],
+    relatedConditions: ["cold-and-flu", "sinusitis", "tonsillitis"],
+    serviceType: "both",
+    ctaText: "Get assessed",
+    ctaHref: "/request?service=consult",
+    stats: { avgTime: "35 mins", satisfaction: "4.7/5" },
+  },
+  "muscle-strain": {
+    name: "Muscle Strain",
+    slug: "muscle-strain",
+    description:
+      "Stretching or tearing of muscle fibres, commonly in the back, neck, shoulders, or legs. Usually caused by overuse, improper lifting, or sudden movements.",
+    searchIntent:
+      "People searching for muscle strain often need a medical certificate for work, especially if their job involves physical labour.",
+    symptoms: [
+      "Pain in the affected muscle",
+      "Swelling or bruising",
+      "Limited range of motion",
+      "Muscle weakness",
+      "Stiffness",
+      "Muscle spasms",
+      "Pain that worsens with movement",
+    ],
+    whenToSeek: [
+      "Pain lasting more than a few days despite rest",
+      "Unable to perform daily activities",
+      "Significant swelling or bruising",
+      "Pain that's getting worse rather than better",
+      "You need a medical certificate for work",
+    ],
+    whenEmergency: [
+      "Inability to bear weight or move the limb",
+      "Numbness or tingling",
+      "A visible deformity",
+      "Severe pain that doesn't respond to pain relief",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work",
+        "Advice on pain management and recovery",
+        "Guidance on when it's safe to return to physical work",
+        "Referral to physiotherapy if needed",
+      ],
+      no: [
+        "Physical examination of the injury",
+        "X-rays or imaging",
+        "Treatment for fractures or severe tears",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for a muscle strain?",
+        a: "Yes. Muscle strains can prevent you from working, especially in physical roles. Our doctors can provide certificates for recovery time.",
+      },
+      {
+        q: "How long does a muscle strain take to heal?",
+        a: "Mild strains heal in 1-2 weeks. Moderate strains take 3-6 weeks. Severe tears may need 3+ months. Recovery depends on the muscle and severity.",
+      },
+      {
+        q: "Should I use heat or ice for a muscle strain?",
+        a: "Ice for the first 48-72 hours to reduce swelling, then heat to improve blood flow and healing. Both can help with pain management.",
+      },
+      {
+        q: "When can I return to work after a muscle strain?",
+        a: "This depends on your role. Desk workers may return sooner. Physical workers may need 1-2 weeks. Our doctors can advise based on your situation.",
+      },
+    ],
+    relatedConditions: ["back-pain", "stress"],
+    serviceType: "med-cert",
+    ctaText: "Get a certificate",
+    ctaHref: "/request?service=med-cert",
+    stats: { avgTime: "30 mins", satisfaction: "4.8/5" },
+  },
+  "covid-19": {
+    name: "COVID-19",
+    slug: "covid-19",
+    description:
+      "Respiratory illness caused by the SARS-CoV-2 virus. Symptoms range from mild (similar to a cold) to severe. Most people recover at home with rest.",
+    searchIntent:
+      "People searching for COVID-19 often need a medical certificate for isolation or work absence, or advice on symptom management.",
+    symptoms: [
+      "Sore throat",
+      "Runny or blocked nose",
+      "Cough",
+      "Fatigue and body aches",
+      "Headache",
+      "Fever or chills",
+      "Loss of taste or smell",
+      "Shortness of breath",
+    ],
+    whenToSeek: [
+      "Symptoms not improving after 7 days",
+      "You're in a high-risk group (over 65, immunocompromised, pregnant)",
+      "You need a medical certificate for work",
+      "Difficulty managing symptoms at home",
+    ],
+    whenEmergency: [
+      "Difficulty breathing or severe shortness of breath",
+      "Chest pain or tightness",
+      "Confusion or difficulty staying awake",
+      "Bluish lips or face",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for work or study absence",
+        "Advice on symptom management",
+        "Assessment of whether you need further care",
+        "Guidance on isolation and return-to-work timing",
+      ],
+      no: [
+        "COVID-19 testing (visit a testing site or use a RAT)",
+        "Antiviral medications (need specialised assessment)",
+        "Treatment if you're experiencing severe symptoms",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for COVID-19?",
+        a: "Yes. Our doctors can provide medical certificates for COVID-related absences. You don't need a positive test — a clinical assessment of your symptoms is sufficient.",
+      },
+      {
+        q: "How long should I stay home with COVID?",
+        a: "Current Australian guidelines recommend staying home until acute symptoms resolve, usually 5-7 days. Your employer may have specific policies.",
+      },
+      {
+        q: "Do I need a positive RAT for a medical certificate?",
+        a: "No. Our doctors assess your symptoms and can provide a certificate based on clinical judgement. A positive test isn't required.",
+      },
+      {
+        q: "Can telehealth help with COVID symptoms?",
+        a: "Yes. Most COVID cases are mild and well-suited to telehealth. We can advise on symptom management, medication, and when to seek in-person care.",
+      },
+    ],
+    relatedConditions: ["cold-and-flu", "sinusitis", "tonsillitis"],
+    serviceType: "med-cert",
+    ctaText: "Get a certificate",
+    ctaHref: "/request?service=med-cert",
+    stats: { avgTime: "25 mins", satisfaction: "4.9/5" },
+  },
+  "mental-health-day": {
+    name: "Mental Health Day",
+    slug: "mental-health-day",
+    description:
+      "Taking a day off work to prioritise mental wellbeing. Recognised under Australian workplace law as a legitimate reason for personal leave.",
+    searchIntent:
+      "People searching for mental health day usually need a medical certificate for a day off work to manage stress, anxiety, or emotional exhaustion.",
+    symptoms: [
+      "Feeling overwhelmed or emotionally drained",
+      "Difficulty concentrating at work",
+      "Irritability or mood changes",
+      "Physical symptoms from stress (headaches, muscle tension)",
+      "Sleep disruption",
+      "Reduced motivation or productivity",
+      "Feeling disconnected or withdrawn",
+    ],
+    whenToSeek: [
+      "You feel unable to function at work",
+      "Stress is affecting your physical health",
+      "You need a mental health day but your employer requires a certificate",
+      "Symptoms have lasted more than two weeks",
+    ],
+    whenEmergency: [
+      "Thoughts of self-harm or suicide — call Lifeline 13 11 14",
+      "Severe panic attacks",
+      "Psychotic symptoms (hallucinations, delusions)",
+      "Unable to care for yourself or others",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for mental health days",
+        "Assessment of your mental wellbeing",
+        "Referral to psychologist or counsellor",
+        "Advice on managing workplace stress",
+      ],
+      no: [
+        "Ongoing therapy or counselling sessions",
+        "Emergency mental health intervention",
+        "WorkCover mental health claims",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for a mental health day?",
+        a: "Yes. Under Australian law, mental health is a valid reason for personal/sick leave. Our doctors can provide certificates for mental health days.",
+      },
+      {
+        q: "Does my employer need to know it's a mental health day?",
+        a: "No. Medical certificates don't need to specify your condition. Your employer only needs to see that you were unfit for work on the given date.",
+      },
+      {
+        q: "How often can I take mental health days?",
+        a: "Mental health days come from your personal leave balance. There's no specific limit — it depends on your leave entitlements and genuine need.",
+      },
+      {
+        q: "Is a mental health day the same as sick leave?",
+        a: "Yes. Under the Fair Work Act, personal/carer's leave covers physical and mental health. A mental health day is legitimate sick leave.",
+      },
+    ],
+    relatedConditions: ["anxiety", "stress", "burnout", "insomnia"],
+    serviceType: "med-cert",
+    ctaText: "Get a certificate",
+    ctaHref: "/request?service=med-cert",
+    stats: { avgTime: "20 mins", satisfaction: "4.9/5" },
+  },
+  "chest-infection": {
+    name: "Chest Infection",
+    slug: "chest-infection",
+    description:
+      "Infection of the lungs or airways (bronchitis or pneumonia) causing persistent cough, mucus production, and difficulty breathing. Usually follows a cold or flu.",
+    searchIntent:
+      "People searching for chest infections often need a medical certificate for extended work absence, or want to know if they need antibiotics.",
+    symptoms: [
+      "Persistent cough (often producing mucus)",
+      "Chest pain or tightness when coughing",
+      "Shortness of breath",
+      "Wheezing",
+      "Fever and sweating",
+      "Fatigue and feeling generally unwell",
+      "Body aches",
+      "Loss of appetite",
+    ],
+    whenToSeek: [
+      "Cough lasting more than 3 weeks",
+      "Coughing up blood-tinged mucus",
+      "High fever (over 38.5°C) for more than 3 days",
+      "Shortness of breath at rest",
+      "You need a medical certificate for work",
+    ],
+    whenEmergency: [
+      "Severe difficulty breathing",
+      "Coughing up significant amounts of blood",
+      "Chest pain at rest (not just when coughing)",
+      "Confusion or drowsiness",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for work or study absence",
+        "Assessment of symptom severity",
+        "Advice on managing cough and recovery",
+        "Guidance on when antibiotics may be needed",
+      ],
+      no: [
+        "Chest X-rays or lung function tests",
+        "Treatment for pneumonia (may need in-person assessment)",
+        "Ongoing management of chronic lung conditions",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for a chest infection?",
+        a: "Yes. Chest infections often need 1-2 weeks recovery. Our doctors can provide certificates for the time you need off work.",
+      },
+      {
+        q: "Do chest infections always need antibiotics?",
+        a: "No. Most bronchitis is viral and antibiotics won't help. If a bacterial infection is suspected, antibiotics may be recommended.",
+      },
+      {
+        q: "How long does a chest infection last?",
+        a: "Most chest infections improve within 7-10 days, but the cough can linger for 3-4 weeks. See a doctor if symptoms aren't improving after a week.",
+      },
+      {
+        q: "Is a chest infection contagious?",
+        a: "The infection itself is often viral and contagious. Stay home while you have a fever and cover coughs. Most people aren't contagious after a few days.",
+      },
+    ],
+    relatedConditions: ["cold-and-flu", "sinusitis", "covid-19"],
+    serviceType: "both",
+    ctaText: "Get assessed",
+    ctaHref: "/request?service=consult",
+    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+  },
+  "sore-throat": {
+    name: "Sore Throat",
+    slug: "sore-throat",
+    description:
+      "Pain, scratchiness, or irritation in the throat that often worsens when swallowing. Usually caused by viral infections, but can also be bacterial (strep throat).",
+    searchIntent:
+      "People searching for sore throat want to know if they need antibiotics, need a medical certificate for work, or want advice on home remedies.",
+    symptoms: [
+      "Pain or scratchiness in the throat",
+      "Difficulty or pain when swallowing",
+      "Swollen glands in the neck",
+      "Hoarse or muffled voice",
+      "Red or swollen tonsils",
+      "White patches on the tonsils",
+      "Fever",
+      "Headache",
+    ],
+    whenToSeek: [
+      "Sore throat lasting more than a week",
+      "Difficulty swallowing fluids",
+      "Fever lasting more than 3 days",
+      "Recurring sore throats",
+      "You need a medical certificate for work or study",
+    ],
+    whenEmergency: [
+      "Difficulty breathing or swallowing",
+      "Inability to open your mouth",
+      "Drooling (unable to swallow saliva)",
+      "Severe neck swelling",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work or study",
+        "Advice on whether antibiotics are needed",
+        "Pain management recommendations",
+        "Guidance on when to see a GP in person",
+      ],
+      no: [
+        "Throat swab testing",
+        "Treatment for peritonsillar abscess",
+        "Ongoing throat conditions requiring ENT referral",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for a sore throat?",
+        a: "Yes. If your sore throat is severe enough to keep you from work, our doctors can provide a medical certificate.",
+      },
+      {
+        q: "Do I need antibiotics for a sore throat?",
+        a: "Most sore throats are viral and don't need antibiotics. Bacterial infections (strep throat) may benefit from antibiotics — a doctor can assess.",
+      },
+      {
+        q: "How long does a sore throat last?",
+        a: "Viral sore throats usually resolve in 5-7 days. If it lasts more than a week or gets worse, see a doctor.",
+      },
+      {
+        q: "What's the fastest way to get rid of a sore throat?",
+        a: "Rest, fluids, throat lozenges, and paracetamol or ibuprofen for pain. Gargling warm salt water can also help. See a doctor if it's severe.",
+      },
+    ],
+    relatedConditions: ["cold-and-flu", "tonsillitis", "sinusitis"],
+    serviceType: "med-cert",
+    ctaText: "Get a certificate",
+    ctaHref: "/request?service=med-cert",
+    stats: { avgTime: "25 mins", satisfaction: "4.8/5" },
+  },
+  "depression": {
+    name: "Depression",
+    slug: "depression",
+    description:
+      "A mental health condition causing persistent low mood, loss of interest, and changes in sleep, appetite, and energy. More than just feeling sad — depression affects daily functioning.",
+    searchIntent:
+      "People searching for depression often need a medical certificate for time off work, or want to explore treatment options including counselling referrals.",
+    symptoms: [
+      "Persistent low mood or sadness",
+      "Loss of interest in activities you usually enjoy",
+      "Changes in appetite (eating more or less)",
+      "Sleep disturbances (insomnia or oversleeping)",
+      "Fatigue and low energy",
+      "Difficulty concentrating or making decisions",
+      "Feelings of worthlessness or guilt",
+      "Withdrawal from social activities",
+    ],
+    whenToSeek: [
+      "Low mood lasting more than two weeks",
+      "Symptoms affecting your ability to work or study",
+      "Loss of interest in things you normally enjoy",
+      "Difficulty maintaining relationships or daily routines",
+      "You need a medical certificate or referral",
+    ],
+    whenEmergency: [
+      "Thoughts of self-harm or suicide — call Lifeline 13 11 14",
+      "Plans or intent to harm yourself",
+      "Severe distress or agitation",
+      "Psychotic symptoms (hearing voices, paranoia)",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work",
+        "Initial assessment and mental health screening",
+        "Referral to psychologist under a Mental Health Treatment Plan",
+        "Advice on support services and next steps",
+      ],
+      no: [
+        "Ongoing therapy or counselling",
+        "Prescription of antidepressants (requires established care)",
+        "Crisis intervention (call 000 or Lifeline 13 11 14)",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for depression?",
+        a: "Yes. Depression is a legitimate medical condition. Our doctors can provide certificates for time off work when your symptoms affect your ability to function.",
+      },
+      {
+        q: "Can a telehealth doctor help with depression?",
+        a: "Yes. Telehealth is well-suited for initial depression assessment, referrals, and medical certificates. For ongoing care, we recommend establishing a relationship with a regular GP.",
+      },
+      {
+        q: "Does my employer need to know I have depression?",
+        a: "No. Medical certificates don't need to specify your diagnosis. Your privacy is protected — the certificate only states you were unfit for work.",
+      },
+      {
+        q: "Can I get a Mental Health Treatment Plan online?",
+        a: "Mental Health Treatment Plans are best done with a regular GP who can provide ongoing care. We can refer you to appropriate services.",
+      },
+    ],
+    relatedConditions: ["anxiety", "stress", "burnout", "insomnia"],
+    serviceType: "both",
+    ctaText: "Get support",
+    ctaHref: "/request?service=consult&condition=anxiety",
+    stats: { avgTime: "50 mins", satisfaction: "4.9/5" },
+  },
+  "gastritis": {
+    name: "Gastritis",
+    slug: "gastritis",
+    description:
+      "Inflammation of the stomach lining causing upper abdominal pain, nausea, and bloating. Can be caused by infection (H. pylori), medication use (NSAIDs), or stress.",
+    searchIntent:
+      "People searching for gastritis want symptom management advice, need a medical certificate if pain is severe, or want to know if they need further testing.",
+    symptoms: [
+      "Upper abdominal pain or burning",
+      "Nausea or vomiting",
+      "Feeling of fullness after eating",
+      "Bloating",
+      "Loss of appetite",
+      "Indigestion",
+      "Hiccups",
+    ],
+    whenToSeek: [
+      "Symptoms lasting more than a week",
+      "Severe or worsening abdominal pain",
+      "Frequent nausea or vomiting",
+      "Unintentional weight loss",
+      "You need a medical certificate for work",
+    ],
+    whenEmergency: [
+      "Vomiting blood or coffee-ground-like material",
+      "Black, tarry stools",
+      "Severe abdominal pain that won't subside",
+      "Fainting or severe dizziness",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work",
+        "Advice on dietary changes and triggers to avoid",
+        "Assessment of whether further testing is needed",
+        "Guidance on over-the-counter treatments",
+      ],
+      no: [
+        "Endoscopy or H. pylori testing",
+        "Treatment for bleeding ulcers",
+        "Ongoing management of chronic gastritis",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for gastritis?",
+        a: "Yes. Severe gastritis can prevent you from working. Our doctors can provide certificates for the time you need to recover.",
+      },
+      {
+        q: "What's the difference between gastritis and acid reflux?",
+        a: "Gastritis is inflammation of the stomach lining. Acid reflux is stomach acid flowing up into the oesophagus. They can occur together but are different conditions.",
+      },
+      {
+        q: "How long does gastritis last?",
+        a: "Acute gastritis can resolve in days to weeks with treatment. Chronic gastritis may need ongoing management. See a doctor if symptoms persist.",
+      },
+      {
+        q: "What should I avoid eating with gastritis?",
+        a: "Avoid spicy foods, alcohol, caffeine, acidic foods, and NSAIDs (like ibuprofen). Eat smaller, more frequent meals.",
+      },
+    ],
+    relatedConditions: ["acid-reflux", "food-poisoning", "ibs"],
+    serviceType: "both",
+    ctaText: "Get assessed",
+    ctaHref: "/request?service=consult",
+    stats: { avgTime: "35 mins", satisfaction: "4.7/5" },
+  },
+  "pink-eye": {
+    name: "Pink Eye (Conjunctivitis)",
+    slug: "pink-eye",
+    description:
+      "Inflammation or infection of the clear membrane covering the white of the eye. Causes redness, itching, and discharge. Can be viral, bacterial, or allergic.",
+    searchIntent:
+      "People searching for pink eye want to know if it's contagious, need a medical certificate for work or school, or want treatment advice.",
+    symptoms: [
+      "Redness in one or both eyes",
+      "Itching or burning sensation",
+      "Watery or sticky discharge",
+      "Crusty eyelids (especially in the morning)",
+      "Gritty feeling in the eye",
+      "Swollen eyelids",
+      "Sensitivity to light",
+    ],
+    whenToSeek: [
+      "Symptoms not improving after 2-3 days",
+      "Significant discharge from the eye",
+      "Pain in the eye (not just irritation)",
+      "Vision changes",
+      "You need a medical certificate for work or school",
+    ],
+    whenEmergency: [
+      "Sudden loss of vision",
+      "Severe eye pain",
+      "Sensitivity to light with severe headache",
+      "Injury to the eye",
+    ],
+    canWeHelp: {
+      yes: [
+        "Medical certificates for time off work or school",
+        "Assessment of whether it's viral, bacterial, or allergic",
+        "Advice on symptom management and hygiene",
+        "Guidance on preventing spread to others",
+      ],
+      no: [
+        "Eye examination with specialised equipment",
+        "Prescription eye drops for severe infections",
+        "Treatment for corneal conditions",
+      ],
+    },
+    commonQuestions: [
+      {
+        q: "Can I get a medical certificate for pink eye?",
+        a: "Yes. Conjunctivitis is contagious and many workplaces require you to stay home. Our doctors can provide a certificate for the necessary time off.",
+      },
+      {
+        q: "How long is pink eye contagious?",
+        a: "Viral conjunctivitis is contagious for 10-14 days. Bacterial conjunctivitis is contagious until 24 hours after starting antibiotic drops. Allergic conjunctivitis isn't contagious.",
+      },
+      {
+        q: "Can telehealth diagnose pink eye?",
+        a: "Telehealth can assess your symptoms and provide advice. If treatment isn't improving symptoms, an in-person eye examination may be recommended.",
+      },
+      {
+        q: "Do I need antibiotic eye drops?",
+        a: "Not always. Viral and allergic conjunctivitis don't respond to antibiotics. Bacterial conjunctivitis may benefit from antibiotic drops — a doctor can advise.",
+      },
+    ],
+    relatedConditions: ["conjunctivitis", "hay-fever", "cold-and-flu"],
+    serviceType: "med-cert",
+    ctaText: "Get a certificate",
+    ctaHref: "/request?service=med-cert",
+    stats: { avgTime: "25 mins", satisfaction: "4.7/5" },
+  },
 }
 
 export function getConditionBySlug(slug: string): ConditionData | undefined {

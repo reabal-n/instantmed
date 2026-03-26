@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { getIntakeWithDetails, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
@@ -21,9 +21,9 @@ export async function GET(
 
   const { id: intakeId } = await params
 
-  // Auth check
-  const auth = await getApiAuth()
-  if (!auth || !["doctor", "admin"].includes(auth.profile.role)) {
+  // Auth + role check (defense-in-depth — middleware also protects /api/doctor/*)
+  const auth = await requireApiRole(["doctor", "admin"])
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

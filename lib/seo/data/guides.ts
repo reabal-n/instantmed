@@ -88,6 +88,41 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
     readTime: "4 min read",
     category: "Prescriptions",
   },
+  {
+    slug: "mental-health-certificate-australia",
+    title: "How to Get a Medical Certificate for a Mental Health Day",
+    description: "Mental health days are legitimate sick leave in Australia. Learn how to get a medical certificate for mental health without an in-person visit.",
+    readTime: "5 min read",
+    category: "Medical Certificates",
+  },
+  {
+    slug: "medical-certificate-for-surgery-recovery",
+    title: "How to Get a Medical Certificate for Surgery Recovery",
+    description: "Need time off work after surgery? Learn how to get a medical certificate covering your recovery period in Australia.",
+    readTime: "4 min read",
+    category: "Medical Certificates",
+  },
+  {
+    slug: "telehealth-for-prescriptions-australia",
+    title: "Getting Prescriptions Through Telehealth in Australia",
+    description: "Can you get a prescription through telehealth? Learn what medications can be prescribed online and how the process works.",
+    readTime: "6 min read",
+    category: "Prescriptions",
+  },
+  {
+    slug: "what-employers-can-ask-medical-certificate",
+    title: "What Can Employers Ask About Your Medical Certificate?",
+    description: "Know your rights. Learn what information employers can and cannot request regarding your medical certificate in Australia.",
+    readTime: "5 min read",
+    category: "Medical Certificates",
+  },
+  {
+    slug: "medical-certificate-casual-workers",
+    title: "Do Casual Workers Need Medical Certificates?",
+    description: "Guide for casual employees on when medical certificates are required and your entitlements under Australian workplace law.",
+    readTime: "4 min read",
+    category: "Medical Certificates",
+  },
 ]
 
 export const GUIDE_SLUGS = GUIDE_INDEX.map((g) => g.slug) as readonly string[]

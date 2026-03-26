@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { getScriptTasks, getScriptTaskCounts } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -14,16 +14,12 @@ export async function GET(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const authResult = await getApiAuth()
+    const authResult = await requireApiRole(["doctor", "admin"])
     if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { profile } = authResult
-
-    if (!["doctor", "admin"].includes(profile.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
 
     const status = request.nextUrl.searchParams.get("status") as "pending_send" | "sent" | "confirmed" | null
 

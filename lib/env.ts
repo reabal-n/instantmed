@@ -1,6 +1,9 @@
 import "server-only"
 import { z } from "zod"
 import { COMPANY_NAME, CONTACT_EMAIL_NOREPLY, CONTACT_EMAIL_ADMIN } from "@/lib/constants"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("env")
 
 /**
  * Environment variable validation and access
@@ -167,8 +170,7 @@ const validatedEnv = validateServerEnv()
 export function getResendApiKey(): string {
   const key = process.env.RESEND_API_KEY
   if (!key) {
-    // eslint-disable-next-line no-console
-    if (process.env.NODE_ENV === 'development') console.warn("[env] RESEND_API_KEY not set - emails will be logged only")
+    if (process.env.NODE_ENV === 'development') log.warn("RESEND_API_KEY not set - emails will be logged only", {})
     return ""
   }
   return key
@@ -223,8 +225,7 @@ export function getStripeWebhookSecret(): string {
 export function getVercelAIGatewayApiKey(): string {
   const key = process.env.VERCEL_AI_GATEWAY_API_KEY
   if (!key) {
-    // eslint-disable-next-line no-console
-    if (process.env.NODE_ENV === 'development') console.warn("[env] VERCEL_AI_GATEWAY_API_KEY not set - AI features will not work")
+    if (process.env.NODE_ENV === 'development') log.warn("VERCEL_AI_GATEWAY_API_KEY not set - AI features will not work", {})
     return ""
   }
   return key
@@ -236,8 +237,7 @@ export function getVercelAIGatewayApiKey(): string {
 export function getResendWebhookSecret(): string {
   const key = process.env.RESEND_WEBHOOK_SECRET
   if (!key) {
-    // eslint-disable-next-line no-console
-    if (process.env.NODE_ENV === 'development') console.warn("[env] RESEND_WEBHOOK_SECRET not set - webhook verification disabled")
+    if (process.env.NODE_ENV === 'development') log.warn("RESEND_WEBHOOK_SECRET not set - webhook verification disabled", {})
     return ""
   }
   return key

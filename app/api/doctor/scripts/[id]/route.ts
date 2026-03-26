@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { updateScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -27,17 +27,12 @@ export async function PATCH(
     if (csrfError) return csrfError
 
     const { id } = await params
-    const authResult = await getApiAuth()
-
+    const authResult = await requireApiRole(["doctor", "admin"])
     if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { profile } = authResult
-
-    if (!["doctor", "admin"].includes(profile.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
 
     const body = await request.json()
     const parsed = updateScriptTaskSchema.safeParse(body)

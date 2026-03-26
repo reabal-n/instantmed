@@ -780,26 +780,80 @@ export default async function CityPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Related Blog Posts - internal linking */}
-          <section className="px-4 py-8">
+          {/* Related Resources - internal cross-linking */}
+          <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">Related Resources</h3>
-              <div className="flex flex-wrap justify-center gap-3 text-sm">
-                <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-primary hover:underline">
-                  How to Get a Med Cert Online
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
-                  Telehealth vs Doctor
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/medical-certificate" className="text-primary hover:underline">
-                  Medical Certificates
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/prescriptions" className="text-primary hover:underline">
-                  Prescriptions
-                </Link>
+              <h2 className="text-xl font-bold mb-6 text-center">
+                Health Resources for {cityData.name}
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-3 mb-8">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Common Conditions</h3>
+                  <ul className="space-y-2">
+                    {[
+                      { href: "/conditions/cold-and-flu", label: "Cold & Flu" },
+                      { href: "/conditions/back-pain", label: "Back Pain" },
+                      { href: "/conditions/migraine", label: "Migraine" },
+                      { href: "/conditions/gastro", label: "Gastro" },
+                      { href: "/conditions/mental-health-day", label: "Mental Health" },
+                    ].map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="text-sm text-primary hover:underline">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <Link href="/conditions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        View all conditions →
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Helpful Guides</h3>
+                  <ul className="space-y-2">
+                    {[
+                      { href: "/guides/how-to-get-medical-certificate-for-work", label: "Med Cert for Work" },
+                      { href: "/guides/telehealth-guide-australia", label: "Telehealth Guide" },
+                      { href: "/guides/how-to-get-repeat-prescription-online", label: "Repeat Prescriptions" },
+                      { href: "/guides/when-to-use-telehealth", label: "When to Use Telehealth" },
+                    ].map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="text-sm text-primary hover:underline">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <Link href="/guides" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        View all guides →
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Our Services</h3>
+                  <ul className="space-y-2">
+                    {[
+                      { href: "/services/medical-certificates", label: "Medical Certificates" },
+                      { href: "/services/prescriptions", label: "Prescriptions" },
+                      { href: "/services/telehealth-consult", label: "Telehealth Consults" },
+                      { href: "/repeat-prescriptions", label: "Repeat Prescriptions" },
+                    ].map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="text-sm text-primary hover:underline">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                    <li>
+                      <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        Read: How to get a med cert online →
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </section>

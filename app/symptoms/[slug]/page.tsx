@@ -1201,8 +1201,66 @@ export default async function SymptomPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* E-E-A-T: Next Steps & Doctor Review */}
+          <section className="px-4 py-16">
+            <div className="mx-auto max-w-3xl">
+              <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-4">
+                  Next Steps for {symptom.name}
+                </h2>
+                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
+                  <p>{symptom.description}</p>
+                  <p>
+                    If you&apos;re experiencing {symptom.name.toLowerCase()} and need medical advice, an Australian telehealth
+                    consultation can help determine whether your symptoms require further investigation, a medical certificate,
+                    or a referral to a specialist.
+                  </p>
+                  <p>
+                    All assessments on InstantMed are conducted by AHPRA-registered doctors. If your symptoms require
+                    in-person examination, your doctor will advise you accordingly — your safety always comes first.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Stethoscope className="w-3.5 h-3.5" />
+                    Reviewed by AHPRA-registered GP
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Last updated: March 2026
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Related Reading */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                <span className="text-muted-foreground font-medium">Related reading:</span>
+                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                  Telehealth guide
+                </Link>
+                <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
+                  When to use telehealth
+                </Link>
+                <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                  Med cert for work
+                </Link>
+                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
+                  Telehealth vs GP
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* FAQ Section */}
-          <section className="px-4 py-16 bg-white dark:bg-card">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
@@ -1210,9 +1268,9 @@ export default async function SymptomPage({ params }: PageProps) {
 
               <div className="space-y-4">
                 {symptom.faqs.map((faq, i) => (
-                  <div 
+                  <div
                     key={i}
-                    className="bg-white dark:bg-card rounded-xl p-6"
+                    className="bg-white dark:bg-card rounded-xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
@@ -1221,6 +1279,77 @@ export default async function SymptomPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Related Symptoms & Conditions */}
+          {symptom.relatedSymptoms.length > 0 && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-4xl">
+                <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+                  Related Health Topics
+                </h2>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {symptom.relatedSymptoms
+                    .filter((relSlug) => symptoms[relSlug])
+                    .map((relSlug) => {
+                      const related = symptoms[relSlug]
+                      return (
+                        <Link
+                          key={relSlug}
+                          href={`/symptoms/${relSlug}`}
+                          className="flex items-start gap-3 p-4 bg-white dark:bg-card rounded-xl border border-border dark:border-border hover:border-primary/30 transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <Activity className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                              {related.name}
+                            </span>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              {related.description}
+                            </p>
+                          </div>
+                        </Link>
+                      )
+                    })}
+
+                  {/* Link to condition pages where slug matches a condition */}
+                  {symptom.relatedSymptoms
+                    .filter((relSlug) => !symptoms[relSlug])
+                    .slice(0, 4)
+                    .map((conditionSlug) => (
+                      <Link
+                        key={conditionSlug}
+                        href={`/conditions/${conditionSlug}`}
+                        className="flex items-center gap-3 p-4 bg-white dark:bg-card rounded-xl border border-border dark:border-border hover:border-primary/30 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                          <Stethoscope className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors capitalize">
+                          {conditionSlug.replace(/-/g, " ")}
+                        </span>
+                      </Link>
+                    ))}
+                </div>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+                  <Link href="/symptoms" className="text-primary hover:underline font-medium">
+                    All symptoms →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/conditions" className="text-primary hover:underline font-medium">
+                    Browse conditions →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline font-medium">
+                    Medical certificate guide →
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* CTA Section */}
           <section className="px-4 py-20 bg-primary/5">

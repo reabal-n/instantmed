@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
-    const auth = await getApiAuth()
-    if (!auth || (auth.profile.role !== "doctor" && auth.profile.role !== "admin")) {
+    const auth = await requireApiRole(["doctor", "admin"])
+    if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

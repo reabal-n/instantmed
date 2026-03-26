@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -27,16 +27,12 @@ interface _IntakeRow {
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await getApiAuth()
+    const authResult = await requireApiRole(["doctor", "admin"])
     if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { userId, profile } = authResult
-
-    if (profile.role !== "doctor" && profile.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     const supabase = createServiceRoleClient()
 

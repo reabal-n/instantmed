@@ -1,6 +1,9 @@
 import "server-only"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("approval-invariants")
 
 /**
  * Check if a document URL points to permanent Supabase Storage.
@@ -181,7 +184,6 @@ export async function assertApprovalInvariants(
 
   // Log warnings
   if (result.warnings.length > 0) {
-    // eslint-disable-next-line no-console
-    if (process.env.NODE_ENV === 'development') console.warn("[ApprovalInvariants] Warnings:", result.warnings)
+    logger.warn("Approval invariant warnings", { warnings: result.warnings })
   }
 }

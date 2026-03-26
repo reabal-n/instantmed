@@ -402,10 +402,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       .select("id, status")
       .single()
 
-    // DEV: Debug log for intake creation tracing (no PHI)
-    if (process.env.NODE_ENV === 'development' && intake) {
-      // eslint-disable-next-line no-console
-      console.log('[Checkout] Intake created:', {
+    // Debug log for intake creation tracing (no PHI)
+    if (intake) {
+      logger.debug("Intake created", {
         intakeId: intake.id,
         serviceId: service.id,
         serviceSlug: serviceSlug,
