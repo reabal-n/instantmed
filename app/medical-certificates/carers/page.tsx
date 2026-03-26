@@ -119,7 +119,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* Who This Is For */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">Who qualifies for carer&apos;s leave</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -220,7 +220,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* What Doctors Review */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -325,7 +325,7 @@ export default function CarersMedCertPage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
 

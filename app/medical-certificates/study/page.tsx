@@ -82,7 +82,7 @@ export default function StudyMedCertPage() {
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
                 <GraduationCap className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-400">University &amp; TAFE</span>
+                <span className="text-sm font-medium text-primary">University &amp; TAFE</span>
               </div>
 
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
@@ -122,7 +122,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Use Cases */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-10">What you can use it for</h2>
 
@@ -175,7 +175,7 @@ export default function StudyMedCertPage() {
                   'QUT',
                   'All TAFEs',
                 ].map((uni) => (
-                  <span key={uni} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300">
+                  <span key={uni} className="px-3 py-1.5 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-full text-primary">
                     {uni}
                   </span>
                 ))}
@@ -184,7 +184,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* What Happens */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">What happens</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -193,8 +193,8 @@ export default function StudyMedCertPage() {
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">1</span>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-primary">1</span>
                   </div>
                   <h3 className="font-semibold mb-2">Answer a few questions</h3>
                   <p className="text-sm text-muted-foreground">
@@ -203,8 +203,8 @@ export default function StudyMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">2</span>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-primary">2</span>
                   </div>
                   <h3 className="font-semibold mb-2">Doctor reviews</h3>
                   <p className="text-sm text-muted-foreground">
@@ -213,8 +213,8 @@ export default function StudyMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-blue-700 dark:text-blue-400">3</span>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-bold text-primary">3</span>
                   </div>
                   <h3 className="font-semibold mb-2">Certificate delivered</h3>
                   <p className="text-sm text-muted-foreground">
@@ -268,7 +268,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Approval vs Decline */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
 
@@ -375,7 +375,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
 
@@ -391,7 +391,7 @@ export default function StudyMedCertPage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-blue-50 dark:bg-blue-950/20">
+          <section className="px-4 py-16 bg-primary/5 dark:bg-primary/10">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold mb-4">Get your certificate in under an hour</h2>
               <p className="text-muted-foreground mb-8">

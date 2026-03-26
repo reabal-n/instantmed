@@ -266,7 +266,7 @@ export default function StudentsPage() {
                     <div key={item.name} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
+                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                         ))}
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>

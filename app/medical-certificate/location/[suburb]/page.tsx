@@ -411,7 +411,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <div className="mx-auto max-w-2xl text-center">
                 <div className="flex justify-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-dawn-400 text-dawn-400" />
+                    <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
                 <blockquote className="text-lg mb-4">&quot;{data.testimonial.quote}&quot;</blockquote>

@@ -120,7 +120,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* Who This Is For */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">Is this right for you?</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -222,7 +222,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* What Doctors Review */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -327,7 +327,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* Employer Acceptance */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">Your employer will accept this</h2>
               <p className="text-center text-muted-foreground mb-10">
