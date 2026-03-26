@@ -13,8 +13,9 @@ import { createLogger } from "@/lib/observability/logger"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { evaluateAutoApprovalEligibility, extractDurationDays } from "./auto-approval"
 import { executeCertApproval } from "@/lib/cert/execute-approval"
-import { checkRateLimit } from "@/lib/rate-limit/doctor"
+import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 
@@ -100,7 +101,7 @@ async function logAutoApprovalAudit(
       action: "auto_approve",
       draft_type: "med_cert",
       draft_id: null,
-      actor_id: "system",
+      actor_id: SYSTEM_AUTO_APPROVE_ID,
       actor_type: "system",
       metadata: {
         eligible,
@@ -126,7 +127,7 @@ async function releaseSystemClaim(
       .from("intakes")
       .update({ claimed_by: null, claimed_at: null })
       .eq("id", intakeId)
-      .eq("claimed_by", "system-auto-approve")
+      .eq("claimed_by", SYSTEM_AUTO_APPROVE_ID)
 
     if (error) {
       log.warn("Failed to release system claim", { intakeId, error: error.message })
@@ -157,7 +158,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   }
 
   // 1b. System-level rate limiting (configurable via admin dashboard)
-  const rateLimitResult = await checkRateLimit("system-auto-approve", {
+  const rateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
     windowMs: 5 * 60 * 1000,
     maxRequests: featureFlags.auto_approve_rate_limit_5min,
     action: "auto_approve",
@@ -234,7 +235,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const { data: claimRows, error: claimError } = await supabase
       .from("intakes")
       .update({
-        claimed_by: "system-auto-approve",
+        claimed_by: SYSTEM_AUTO_APPROVE_ID,
         claimed_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
@@ -378,6 +379,10 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         duration_ms: durationMs,
         email_sent: approvalResult.emailSent,
       })
+
+      // Record rate-limit actions so the DB-backed counter increments
+      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve", { intakeId })
+      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve_daily", { intakeId })
 
       return {
         success: true,

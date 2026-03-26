@@ -30,7 +30,7 @@ export function IntakeActionButtons() {
           ) : (
             <CheckCircle className="h-4 w-4 mr-1.5" />
           )}
-          {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : "Review & Send Certificate"}
+          {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : "Approve & Send Certificate"}
         </Button>
       )}
 

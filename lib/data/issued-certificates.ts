@@ -5,6 +5,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import crypto from "crypto"
 import type { ClinicIdentity, TemplateConfig } from "@/types/certificate-template"
 import {
@@ -356,7 +357,12 @@ export async function atomicApproveCertificate(
 
   // Validate doctor holds the claim (unless already approved - idempotent case)
   // For paid/in_review states, verify claim ownership to prevent race conditions
-  if (intakeCheck.status !== "approved" && intakeCheck.claimed_by !== input.doctor_id) {
+  // Auto-approval pipeline claims with 'system-auto-approve' then passes the real doctor ID
+  const validClaimHolder =
+    intakeCheck.status === "approved" ||
+    intakeCheck.claimed_by === input.doctor_id ||
+    intakeCheck.claimed_by === SYSTEM_AUTO_APPROVE_ID
+  if (!validClaimHolder) {
     log.error("Intake validation failed - doctor does not hold claim", {
       intakeId: input.intake_id,
       claimedBy: intakeCheck.claimed_by,

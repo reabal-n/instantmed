@@ -60,7 +60,7 @@ describe("Auto-Approval Pipeline Helpers", () => {
   describe("Feature flag gating", () => {
     it("pipeline uses DB-backed feature flag (ai_auto_approve_enabled), not env var", async () => {
       // The pipeline reads from getFeatureFlags() which queries the feature_flags DB table.
-      // DEFAULT_FLAGS has ai_auto_approve_enabled = false, so auto-approval is off by default.
+      // DEFAULT_FLAGS has ai_auto_approve_enabled = false — must be explicitly enabled via admin.
       const { DEFAULT_FLAGS } = await import("@/lib/data/types/feature-flags")
       expect(DEFAULT_FLAGS.ai_auto_approve_enabled).toBe(false)
     })
@@ -143,15 +143,15 @@ describe("Auto-Approval Pipeline Helpers", () => {
   })
 
   describe("Claim lifecycle documentation", () => {
-    it("releaseSystemClaim pattern: claim is set with specific value for safe release", () => {
+    it("releaseSystemClaim pattern: claim uses system profile UUID for FK safety", async () => {
       // This is a documentation test that verifies the claim/release contract:
-      // - Claim: UPDATE intakes SET claimed_by='system-auto-approve' WHERE status='paid' AND claimed_by IS NULL
-      // - Release: UPDATE intakes SET claimed_by=NULL WHERE claimed_by='system-auto-approve'
-      // - The eq("claimed_by", "system-auto-approve") guard prevents releasing doctor claims
-      const CLAIM_VALUE = "system-auto-approve"
-      expect(CLAIM_VALUE).toBe("system-auto-approve")
-      // The claim value is a constant string, not a UUID — this is intentional so all
-      // auto-approval instances use the same claim value and don't orphan each other's claims
+      // - Claim: UPDATE intakes SET claimed_by=SYSTEM_AUTO_APPROVE_ID WHERE status='paid' AND claimed_by IS NULL
+      // - Release: UPDATE intakes SET claimed_by=NULL WHERE claimed_by=SYSTEM_AUTO_APPROVE_ID
+      // - The eq("claimed_by", SYSTEM_AUTO_APPROVE_ID) guard prevents releasing doctor claims
+      const { SYSTEM_AUTO_APPROVE_ID } = await import("@/lib/constants")
+      // Must be a valid UUID (intakes.claimed_by is UUID REFERENCES profiles)
+      expect(SYSTEM_AUTO_APPROVE_ID).toBe("00000000-0000-0000-0000-000000000000")
+      expect(SYSTEM_AUTO_APPROVE_ID).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
     })
   })
 })

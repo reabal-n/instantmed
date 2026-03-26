@@ -100,7 +100,7 @@ export async function checkRateLimit(
     const { count, error } = await supabase
       .from("audit_logs")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
+      .eq("actor_id", userId)
       .eq("action", config.action)
       .gte("created_at", windowStart.toISOString())
 
@@ -199,7 +199,7 @@ export async function recordRateLimitedAction(
 
   try {
     await supabase.from("audit_logs").insert({
-      user_id: userId,
+      actor_id: userId,
       action,
       metadata: metadata || {},
       created_at: new Date().toISOString(),

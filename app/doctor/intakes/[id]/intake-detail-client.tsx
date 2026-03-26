@@ -43,7 +43,7 @@ import {
   Send,
   Mail,
 } from "lucide-react"
-import { regenerateDrafts } from "@/app/actions/draft-approval"
+import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
@@ -385,6 +385,13 @@ export function IntakeDetailClient({
     startTransition(async () => {
       // Save clinical notes first
       await saveDoctorNotesAction(intake.id, doctorNotes)
+
+      // Auto-approve any pending AI drafts — collapses the separate draft
+      // approval step so the doctor doesn't need 3 clicks to approve a cert
+      const pendingDrafts = aiDrafts.filter(d => d.status === "ready" && !d.approved_at && !d.rejected_at)
+      for (const draft of pendingDrafts) {
+        await approveDraft(draft.id)
+      }
 
       const result = await approveWithPreviewDataAction(intake.id, {
         startDate: editedData.startDate,
@@ -877,7 +884,7 @@ export function IntakeDetailClient({
             {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
               <Button onClick={handleMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
                 {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Review & Send Certificate"}
+                {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
               </Button>
             )}
 
