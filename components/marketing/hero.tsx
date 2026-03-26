@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -105,18 +105,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Trust signals */}
             <motion.div
-              className="flex flex-col gap-2"
               initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-center lg:text-left">AHPRA-registered doctors &middot; Accepted by all employers</span>
-              </p>
-              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
-                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />
-                <span className="text-center lg:text-left">No account required &middot; Pay only if approved</span>
+              <p className="text-xs sm:text-sm text-muted-foreground text-center lg:text-left">
+                AHPRA-registered doctors · Accepted by all employers · Pay only if approved
               </p>
             </motion.div>
           </div>
