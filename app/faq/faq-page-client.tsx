@@ -161,10 +161,8 @@ export default function FAQPage() {
 
         {/* FAQ Sections — 5 categories with accordion */}
         <AccordionSection
-          title="Frequently Asked Questions"
-          subtitle="Browse by category to find the answer you're looking for."
-          highlightWords={["Questions"]}
           groups={accordionGroups}
+          hideHeader
         />
 
         {/* CTA */}

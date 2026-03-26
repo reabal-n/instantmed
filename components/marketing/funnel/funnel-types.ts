@@ -95,7 +95,7 @@ export interface ServiceFunnelConfig {
     title: string
     subtitle: string
     price: number
-    originalPrice?: number
+    originalPrice?: number | string
     features: string[]
     refundNote: string
     medicareNote: string

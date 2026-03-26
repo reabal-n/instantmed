@@ -56,7 +56,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
             >
               {disabled ? (
                 <div className="flex items-center gap-3 px-3 py-2.5 w-full">
-                  <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15">
+                  <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-accent-teal/15">
                     <service.icon className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div>
@@ -69,7 +69,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                   href={service.href}
                   className="flex items-center gap-3 px-3 py-2.5 w-full"
                 >
-                  <div className="p-1.5 rounded-lg bg-dawn-100/50 dark:bg-accent-teal/15 transition-colors">
+                  <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-accent-teal/15 transition-colors">
                     <service.icon className="h-4 w-4 text-primary" />
                   </div>
                   <div>

@@ -12,6 +12,7 @@ import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { SplitHero } from "@/components/heroes"
 import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
@@ -251,7 +252,7 @@ export default function GeneralConsultPage() {
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
                 <p className="text-xs text-muted-foreground">Flat fee</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">vs $80–120 at a GP</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">vs {SOCIAL_PROOF.gpPriceComplex} at a GP</p>
               </div>
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                 <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>

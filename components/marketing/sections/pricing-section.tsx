@@ -26,8 +26,8 @@ export interface PricingSectionProps {
   subtitle: string
   /** Price amount (number — displayed as $XX.XX) */
   price: number
-  /** Optional strikethrough original price */
-  originalPrice?: number
+  /** Optional strikethrough original price (number renders as $XX.XX, string renders as-is) */
+  originalPrice?: number | string
   /** Feature bullet list */
   features: string[]
   /** Refund policy note */
@@ -96,7 +96,7 @@ export function PricingSection({
               </span>
               {originalPrice && (
                 <span className="text-2xl text-muted-foreground line-through">
-                  ${originalPrice.toFixed(2)}
+                  {typeof originalPrice === 'string' ? originalPrice : `$${originalPrice.toFixed(2)}`}
                 </span>
               )}
             </div>

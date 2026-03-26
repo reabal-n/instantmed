@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
 import { Button } from '@/components/uix'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { FAQList } from '@/components/ui/faq-list'
 import { SectionPill } from '@/components/ui/section-pill'
 import {
   AlertCircle,
@@ -294,22 +294,9 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               Frequently asked questions
             </h2>
 
-            <Accordion type="single" collapsible defaultValue="0">
-              {page.faqs.map((faq, idx) => (
-                <AccordionItem
-                  key={idx.toString()}
-                  value={idx.toString()}
-                  className="border-b border-border last:border-0"
-                >
-                  <AccordionTrigger>{faq.q}</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {faq.a}
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <FAQList
+              items={page.faqs.map((faq) => ({ question: faq.q, answer: faq.a }))}
+            />
           </div>
         </section>
       </main>

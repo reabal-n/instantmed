@@ -71,8 +71,8 @@ export const SOCIAL_PROOF = {
   adminFee: 4.95,
 
   // ── GP Comparison (for context, not exact) ──
-  gpPriceStandard: "$60–90",
-  gpPriceComplex: "$80–120",
+  gpPriceStandard: "~$72",
+  gpPriceComplex: "~$100",
 } as const
 
 /**

@@ -20,13 +20,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion"
+import { FAQList } from "@/components/ui/faq-list"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
@@ -293,33 +287,13 @@ function HeroSection({
               AHPRA-registered doctors. Usually sorted in under an hour.
             </motion.p>
 
-            {/* Price anchor */}
-            <motion.div
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
-            >
-              <Badge
-                variant="price"
-                shape="pill"
-                size="lg"
-                className="hover:bg-success/15 transition-colors duration-200 cursor-default"
-              >
-                Medical certificates from ${PRICING.MED_CERT.toFixed(2)}
-              </Badge>
-              <p className="text-xs text-muted-foreground">
-                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
-              </p>
-            </motion.div>
-
             {/* CTA */}
             <motion.div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
             >
               <MagneticButton>
                 <Button
@@ -334,6 +308,9 @@ function HeroSection({
                   </Link>
                 </Button>
               </MagneticButton>
+              <p className="text-xs text-muted-foreground">
+                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
+              </p>
             </motion.div>
 
             {/* Trust signals + wait time */}
@@ -574,42 +551,15 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
         </motion.div>
 
         {/* Accordion */}
-        <motion.div
-          initial={animate ? { opacity: 0, y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Accordion
-            type="single"
-            collapsible
-            defaultValue="0"
-            className="space-y-3"
-            onValueChange={(value) => {
-              if (value && onFAQOpen) {
-                const idx = parseInt(value, 10)
-                onFAQOpen(MED_CERT_FAQ[idx]?.question ?? "", idx)
-              }
-            }}
-          >
-            {MED_CERT_FAQ.map((item, index) => (
-              <AccordionItem
-                key={index.toString()}
-                value={index.toString()}
-                className="rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 px-5"
-              >
-                <AccordionTrigger className="text-foreground py-5">
-                  <span className="font-medium text-foreground text-left">
-                    {item.question}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
-                  {item.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </motion.div>
+        <FAQList
+          items={MED_CERT_FAQ}
+          onValueChange={(value) => {
+            if (value && onFAQOpen) {
+              const idx = parseInt(value, 10)
+              onFAQOpen(MED_CERT_FAQ[idx]?.question ?? "", idx)
+            }
+          }}
+        />
 
         {/* Contact */}
         <motion.div
@@ -745,10 +695,10 @@ export function MedCertLanding() {
       : getTestimonialsForColumns().slice(0, 9)
 
   const pricingColors = {
-    light: "bg-success/10",
-    text: "text-success",
-    border: "border-success/20",
-    button: "bg-success hover:bg-success/90",
+    light: "bg-primary/10",
+    text: "text-primary",
+    border: "border-primary/20",
+    button: "bg-primary hover:bg-primary/90",
   }
 
   // CTA click handlers with analytics
@@ -810,10 +760,10 @@ export function MedCertLanding() {
 
           {/* 4. Pricing with comparison table */}
           <PricingSection
-            title="One flat fee. Save $40–70 vs a GP."
+            title="One flat fee. Save ~$50 vs a GP."
             subtitle="One flat fee — no hidden costs. Full refund if we can't help."
             price={PRICING.MED_CERT}
-            originalPrice={70}
+            originalPrice="~$72"
             features={PRICING_FEATURES}
             refundNote={`Full refund if we can't help (minus ${SOCIAL_PROOF_DISPLAY.adminFee} admin fee)`}
             medicareNote="Medicare rebates do not apply to telehealth consultations"
