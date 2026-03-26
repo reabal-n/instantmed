@@ -116,7 +116,7 @@ function QuickReplyButton({ reply, index }: { reply: QuickReply; index: number }
         "hover:bg-primary hover:text-primary-foreground hover:border-primary",
         "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
         "transition-all duration-150",
-        "active:scale-95"
+        "active:scale-[0.98]"
       )}
     >
       {reply.text}

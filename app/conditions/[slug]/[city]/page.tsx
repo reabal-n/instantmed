@@ -167,7 +167,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           </section>
 
           {/* Symptoms */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
@@ -234,7 +234,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           </section>
 
           {/* When to Seek / Emergency */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
