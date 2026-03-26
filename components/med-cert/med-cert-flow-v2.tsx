@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 
 // Step components
 import { MedCertHeader } from "@/components/med-cert/med-cert-header"
-import { TrustStrip } from "@/components/med-cert/med-cert-shared"
+import { TrustStrip } from "@/components/shared/trust-strip"
 import { SafetyStep } from "@/components/med-cert/steps/safety-step"
 import { TypeAndDatesStep } from "@/components/med-cert/steps/type-and-dates-step"
 import { SymptomsStep } from "@/components/med-cert/steps/symptoms-step"
@@ -440,7 +440,7 @@ export function MedCertFlowV2({
         {currentStep !== "confirmation" && (
           <footer className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-4 safe-area-pb">
             <div className="max-w-lg mx-auto space-y-3">
-              <TrustStrip />
+              <TrustStrip badges={["ahpra", "encrypted", "refund"]} />
 
               <div className="flex gap-3">
                 {currentStep !== "safety" && (

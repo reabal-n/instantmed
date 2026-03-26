@@ -6,59 +6,12 @@ import {
   AlertTriangle,
   Check,
   ExternalLink,
-  BadgeCheck,
-  Lock,
-  Shield,
 } from "lucide-react"
 import { Button } from "@/components/uix"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 
 // Time estimate per stage in minutes
 const STAGE_TIME_ESTIMATES = [4, 1, 1, 1] // Details takes longer due to medication search
-
-// Trust indicators strip
-export function TrustStrip() {
-  return (
-    <div className="flex items-center justify-center gap-4 py-2 px-3 bg-muted/50 rounded-lg">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
-            <BadgeCheck className="w-3.5 h-3.5 text-green-600" aria-hidden="true" />
-            <span className="hidden sm:inline">AHPRA Doctors</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-          All prescriptions reviewed by AHPRA-registered Australian doctors
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
-            <Lock className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-            <span className="hidden sm:inline">Encrypted</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-          Your data is protected with bank-level 256-bit encryption
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
-            <Shield className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-            <span className="hidden sm:inline">Private</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-          We never sell your data. Your health information stays private.
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
 
 // Progress indicator with animated dots and time estimate
 export function Progress({ stages, currentIndex }: { stages: readonly string[]; currentIndex: number }) {

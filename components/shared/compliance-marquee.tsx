@@ -101,30 +101,3 @@ export function ComplianceBar({ className }: { className?: string }) {
     </div>
   )
 }
-
-/**
- * Compact trust strip for headers
- */
-export function TrustStrip({ className }: { className?: string }) {
-  return (
-    <div className={cn(
-      "flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground",
-      className
-    )}>
-      <div className="flex items-center gap-1.5">
-        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-        <span>AHPRA Verified</span>
-      </div>
-      <span className="text-muted-foreground/30">|</span>
-      <div className="flex items-center gap-1.5">
-        <Lock className="w-3.5 h-3.5 text-primary" />
-        <span>256-bit Encrypted</span>
-      </div>
-      <span className="text-muted-foreground/30">|</span>
-      <div className="flex items-center gap-1.5">
-        <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-        <span>TGA Compliant</span>
-      </div>
-    </div>
-  )
-}

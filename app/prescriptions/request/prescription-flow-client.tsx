@@ -19,7 +19,8 @@ import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import type { SelectedPBSProduct } from "@/components/shared/medication-search"
 import { ButtonSpinner } from "@/components/ui/skeleton"
 import { createLogger } from "@/lib/observability/logger"
-import { TrustStrip, Progress, SafetyKnockout, ControlledWarning } from "./prescription-flow-ui"
+import { TrustStrip } from "@/components/shared/trust-strip"
+import { Progress, SafetyKnockout, ControlledWarning } from "./prescription-flow-ui"
 import {
   TypeSelectionStep,
   MedicationStep,

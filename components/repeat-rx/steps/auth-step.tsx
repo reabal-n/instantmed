@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { ButtonSpinner } from "@/components/ui/skeleton"
 import { RefreshCw, Check } from "lucide-react"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
-import { TrustStrip } from "../shared/trust-strip"
+import { TrustStrip } from "@/components/shared/trust-strip"
 
 interface AuthStepProps {
   onSignIn: () => void

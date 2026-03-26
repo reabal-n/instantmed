@@ -2,33 +2,35 @@
 
 /**
  * Checkout Trust Badges
- * 
- * Comprehensive trust signals for checkout and payment flows.
- * Includes payment providers, security badges, policy badges,
- * AHPRA statement, and Privacy Act compliance.
+ *
+ * Trust signals for checkout, payment, and onboarding flows.
+ *
+ * Exports:
+ * - StripeBadge — Stripe branding badge
+ * - PaymentMethodIcons — "Secured by Stripe" message
+ * - AHPRAStatement — AHPRA registration badge (inline/card/minimal)
+ * - CheckoutTrustStrip — Combined trust strip (compact/full/minimal)
+ * - CheckoutSecurityFooter — Full footer with payment + security + AHPRA
+ * - DataSecurityStrip — For onboarding/data entry forms
+ * - OnboardingTrustFooter — Bottom-of-step trust footer
  */
 
-import { 
-  Lock, 
-  Shield, 
+import {
+  Lock,
+  Shield,
   ShieldCheck,
-  CheckCircle2, 
+  CheckCircle2,
   Award,
   MapPin,
-  Eye,
   EyeOff
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// ============================================
-// PAYMENT PROVIDER BADGES
-// ============================================
+// ── Stripe ──────────────────────────────────────────────────────────
 
-// Stripe wordmark - using text with correct brand font weight instead of SVG path
-// (SVG path was rendering as jumbled characters on some systems)
 function StripeLogo() {
   return (
-    <span 
+    <span
       className="text-[#635BFF] font-bold text-base tracking-tight leading-none"
       aria-label="Stripe"
     >
@@ -37,15 +39,12 @@ function StripeLogo() {
   )
 }
 
-/**
- * Stripe badge with official branding
- */
-export function StripeBadge({ 
+export function StripeBadge({
   variant = "powered-by",
-  className 
-}: { 
+  className
+}: {
   variant?: "powered-by" | "secure" | "logo-only"
-  className?: string 
+  className?: string
 }) {
   if (variant === "logo-only") {
     return (
@@ -69,7 +68,6 @@ export function StripeBadge({
     )
   }
 
-  // Default: powered-by
   return (
     <div className={cn(
       "inline-flex items-center gap-1.5 text-xs text-muted-foreground",
@@ -81,16 +79,12 @@ export function StripeBadge({
   )
 }
 
-/**
- * Payment method icons - simplified to just show Stripe security message
- * Card logos were looking deformed, so replaced with clean text
- */
-export function PaymentMethodIcons({ 
-  className 
-}: { 
+export function PaymentMethodIcons({
+  className
+}: {
   showLabels?: boolean
   size?: "sm" | "md"
-  className?: string 
+  className?: string
 }) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
@@ -102,179 +96,14 @@ export function PaymentMethodIcons({
   )
 }
 
-// ============================================
-// SECURITY BADGES
-// ============================================
+// ── AHPRA Statement ─────────────────────────────────────────────────
 
-/**
- * SSL Encryption badge
- */
-export function SSLBadge({ 
+export function AHPRAStatement({
   variant = "inline",
-  className 
-}: { 
-  variant?: "inline" | "badge"
-  className?: string 
-}) {
-  if (variant === "badge") {
-    return (
-      <div className={cn(
-        "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40",
-        className
-      )}>
-        <Lock className="w-4 h-4 text-emerald-600" />
-        <div className="flex flex-col">
-          <span className="text-xs font-medium text-emerald-800 dark:text-emerald-200">256-bit SSL</span>
-          <span className="text-xs text-emerald-600 dark:text-emerald-400">Encrypted Connection</span>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <Lock className="w-3.5 h-3.5 text-emerald-600" />
-      <span>256-bit SSL Encrypted</span>
-    </div>
-  )
-}
-
-/**
- * PCI Compliance badge
- */
-export function PCIBadge({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-      <span>PCI-DSS Compliant</span>
-    </div>
-  )
-}
-
-/**
- * Secure Checkout badge - combines SSL + PCI
- */
-export function SecureCheckoutBadge({ 
-  variant = "inline",
-  className 
-}: { 
-  variant?: "inline" | "card"
-  className?: string 
-}) {
-  if (variant === "card") {
-    return (
-      <div className={cn(
-        "flex items-center gap-3 p-3 rounded-xl",
-        "bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800",
-        "hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300/80 dark:hover:border-emerald-700/50 transition-all duration-300",
-        className
-      )}>
-        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
-          <Shield className="w-5 h-5 text-emerald-600" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Secure Checkout</p>
-          <p className="text-xs text-emerald-700 dark:text-emerald-400">256-bit encryption • PCI compliant</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn(
-      "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
-      "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40",
-      className
-    )}>
-      <Shield className="w-3.5 h-3.5 text-emerald-600" />
-      <span className="text-xs text-emerald-800 dark:text-emerald-200 font-medium">Secure Checkout</span>
-    </div>
-  )
-}
-
-// ============================================
-// POLICY BADGES
-// ============================================
-
-/**
- * 100% Confidential badge
- */
-export function ConfidentialBadge({ 
-  variant = "inline",
-  className 
-}: { 
-  variant?: "inline" | "badge"
-  className?: string 
-}) {
-  if (variant === "badge") {
-    return (
-      <div className={cn(
-        "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-white dark:bg-card border border-border/50 dark:border-white/10",
-        className
-      )}>
-        <EyeOff className="w-4 h-4 text-muted-foreground" />
-        <span className="text-xs font-medium text-foreground">100% Confidential</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <EyeOff className="w-3.5 h-3.5" />
-      <span>100% Confidential</span>
-    </div>
-  )
-}
-
-/**
- * Australian-owned badge
- */
-export function AustralianOwnedBadge({ 
-  variant = "inline",
-  className 
-}: { 
-  variant?: "inline" | "badge"
-  className?: string 
-}) {
-  if (variant === "badge") {
-    return (
-      <div className={cn(
-        "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40",
-        className
-      )}>
-        <MapPin className="w-4 h-4 text-blue-600" />
-        <div className="flex flex-col">
-          <span className="text-xs font-medium text-blue-800 dark:text-blue-200">Australian Owned</span>
-          <span className="text-xs text-blue-600 dark:text-blue-400">& Operated</span>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <MapPin className="w-3.5 h-3.5 text-blue-600" />
-      <span>Australian-owned & operated</span>
-    </div>
-  )
-}
-
-// ============================================
-// AHPRA STATEMENT
-// ============================================
-
-/**
- * AHPRA Statement - for checkout/payment flows
- */
-export function AHPRAStatement({ 
-  variant = "inline",
-  className 
-}: { 
+  className
+}: {
   variant?: "inline" | "card" | "minimal"
-  className?: string 
+  className?: string
 }) {
   if (variant === "card") {
     return (
@@ -293,7 +122,7 @@ export function AHPRAStatement({
           <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
             All consultations reviewed by Australian Health Practitioner Regulation Agency registered doctors.
           </p>
-          <a 
+          <a
             href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
             target="_blank"
             rel="noopener noreferrer"
@@ -315,7 +144,6 @@ export function AHPRAStatement({
     )
   }
 
-  // Inline variant with link
   return (
     <div className={cn(
       "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
@@ -325,7 +153,7 @@ export function AHPRAStatement({
       <Award className="w-4 h-4 text-emerald-600" />
       <span className="text-xs text-emerald-800 dark:text-emerald-200">
         All consultations reviewed by{" "}
-        <a 
+        <a
           href="https://www.ahpra.gov.au"
           target="_blank"
           rel="noopener noreferrer"
@@ -339,69 +167,14 @@ export function AHPRAStatement({
   )
 }
 
-// ============================================
-// PRIVACY ACT COMPLIANCE
-// ============================================
+// ── Combined Checkout Strips ────────────────────────────────────────
 
-/**
- * Privacy Act Compliance badge (Australian Privacy Principles)
- */
-export function PrivacyActBadge({ 
-  variant = "inline",
-  className 
-}: { 
-  variant?: "inline" | "card"
-  className?: string 
-}) {
-  if (variant === "card") {
-    return (
-      <div className={cn(
-        "flex items-start gap-3 p-4 rounded-xl",
-        "bg-white dark:bg-card border border-border/50 dark:border-white/10",
-        className
-      )}>
-        <div className="w-10 h-10 rounded-xl bg-muted dark:bg-white/10 flex items-center justify-center shrink-0">
-          <Eye className="w-5 h-5 text-muted-foreground" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            Privacy Act Compliant
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            We comply with the Australian Privacy Principles (APP) under the Privacy Act 1988.
-          </p>
-          <a 
-            href="/privacy"
-            className="text-xs text-primary hover:underline underline-offset-2 mt-1 inline-block"
-          >
-            Read our Privacy Policy →
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <Eye className="w-3.5 h-3.5" />
-      <span>Privacy Act compliant</span>
-    </div>
-  )
-}
-
-// ============================================
-// COMBINED COMPONENTS
-// ============================================
-
-/**
- * Comprehensive checkout trust strip - all badges in one row
- */
-export function CheckoutTrustStrip({ 
+export function CheckoutTrustStrip({
   variant = "compact",
-  className 
-}: { 
+  className
+}: {
   variant?: "compact" | "full" | "minimal"
-  className?: string 
+  className?: string
 }) {
   if (variant === "minimal") {
     return (
@@ -409,8 +182,14 @@ export function CheckoutTrustStrip({
         "flex flex-wrap items-center justify-center gap-3 py-2 text-xs text-muted-foreground",
         className
       )}>
-        <SSLBadge />
-        <PCIBadge />
+        <div className="flex items-center gap-1.5">
+          <Lock className="w-3.5 h-3.5 text-emerald-600" />
+          <span>256-bit SSL Encrypted</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>PCI-DSS Compliant</span>
+        </div>
         <AHPRAStatement variant="minimal" />
       </div>
     )
@@ -419,25 +198,31 @@ export function CheckoutTrustStrip({
   if (variant === "full") {
     return (
       <div className={cn("space-y-4", className)}>
-        {/* Payment methods */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-xs text-muted-foreground">Accepted payment methods</span>
           <PaymentMethodIcons size="md" />
         </div>
-
-        {/* Security badges */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <SSLBadge />
-          <PCIBadge />
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-emerald-600" />
+            <span>256-bit SSL</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>PCI Compliant</span>
+          </div>
           <StripeBadge variant="powered-by" />
         </div>
-
-        {/* Trust badges */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
           <AHPRAStatement variant="minimal" />
-          <ConfidentialBadge />
-          <AustralianOwnedBadge />
-          <PrivacyActBadge />
+          <div className="flex items-center gap-1.5">
+            <EyeOff className="w-3.5 h-3.5" />
+            <span>100% Confidential</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-blue-600" />
+            <span>Australian-owned & operated</span>
+          </div>
         </div>
       </div>
     )
@@ -469,76 +254,49 @@ export function CheckoutTrustStrip({
   )
 }
 
-/**
- * Checkout footer with payment methods and security badges
- */
 export function CheckoutSecurityFooter({ className }: { className?: string }) {
   return (
     <div className={cn(
       "border-t border-border/50 pt-4 space-y-4",
       className
     )}>
-      {/* Payment methods */}
       <div className="flex flex-col items-center gap-2">
         <PaymentMethodIcons />
         <StripeBadge variant="powered-by" />
       </div>
-
-      {/* Security strip */}
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-        <SSLBadge />
-        <PCIBadge />
-        <ConfidentialBadge />
-      </div>
-
-      {/* AHPRA & Privacy */}
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-        <AHPRAStatement variant="minimal" />
-        <AustralianOwnedBadge />
-        <PrivacyActBadge />
-      </div>
-    </div>
-  )
-}
-
-/**
- * Compact payment trust row - for near payment buttons
- */
-export function PaymentTrustRow({ className }: { className?: string }) {
-  return (
-    <div className={cn(
-      "flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6",
-      className
-    )}>
-      <PaymentMethodIcons />
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Secure</span>
+          <span>256-bit SSL</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Stripe</span>
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>PCI Compliant</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <EyeOff className="w-3.5 h-3.5" />
+          <span>Confidential</span>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <AHPRAStatement variant="minimal" />
+        <div className="flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-blue-600" />
+          <span>Australian-owned</span>
         </div>
       </div>
     </div>
   )
 }
 
-// ============================================
-// ONBOARDING/DATA COLLECTION BADGES
-// ============================================
+// ── Onboarding / Data Entry ─────────────────────────────────────────
 
-/**
- * Data security trust strip for onboarding flows
- * Reassures users when entering sensitive personal/Medicare data
- */
-export function DataSecurityStrip({ 
+export function DataSecurityStrip({
   variant = "default",
-  className 
-}: { 
+  className
+}: {
   variant?: "default" | "compact" | "medicare"
-  className?: string 
+  className?: string
 }) {
   if (variant === "compact") {
     return (
@@ -602,9 +360,6 @@ export function DataSecurityStrip({
   )
 }
 
-/**
- * Onboarding trust footer - for bottom of onboarding steps
- */
 export function OnboardingTrustFooter({ className }: { className?: string }) {
   return (
     <div className={cn(
@@ -624,48 +379,6 @@ export function OnboardingTrustFooter({ className }: { className?: string }) {
           <MapPin className="w-3.5 h-3.5 text-blue-600" />
           <span>Australian-owned</span>
         </div>
-      </div>
-    </div>
-  )
-}
-
-/**
- * Hero trust badges - for landing page hero sections
- */
-export function HeroTrustBadges({ 
-  variant = "default",
-  className 
-}: { 
-  variant?: "default" | "compact" | "dark"
-  className?: string 
-}) {
-  const isDark = variant === "dark"
-  
-  return (
-    <div className={cn(
-      "flex flex-wrap items-center justify-center gap-3 sm:gap-4",
-      className
-    )}>
-      <div className={cn(
-        "flex items-center gap-1.5 text-xs",
-        isDark ? "text-white/80" : "text-muted-foreground"
-      )}>
-        <ShieldCheck className={cn("w-4 h-4", isDark ? "text-emerald-400" : "text-emerald-600")} />
-        <span>AHPRA-registered doctors</span>
-      </div>
-      <div className={cn(
-        "flex items-center gap-1.5 text-xs",
-        isDark ? "text-white/80" : "text-muted-foreground"
-      )}>
-        <Lock className={cn("w-4 h-4", isDark ? "text-emerald-400" : "text-emerald-600")} />
-        <span>256-bit SSL</span>
-      </div>
-      <div className={cn(
-        "flex items-center gap-1.5 text-xs",
-        isDark ? "text-white/80" : "text-muted-foreground"
-      )}>
-        <Eye className={cn("w-4 h-4", isDark ? "text-blue-400" : "text-blue-600")} />
-        <span>Privacy Act compliant</span>
       </div>
     </div>
   )

@@ -1,7 +1,6 @@
 "use client"
 
-import { Check, Lock, Shield, BadgeCheck } from "lucide-react"
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Check } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { MED_CERT_COPY } from "@/lib/microcopy/med-cert-v2"
 import type { MedCertStep } from "@/types/med-cert"
@@ -109,44 +108,6 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
         {PROGRESS_STEPS[currentIndex] || ""}
       </p>
     </nav>
-  )
-}
-
-export function TrustStrip() {
-  return (
-    <div className="flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 cursor-help">
-              <BadgeCheck className="w-3.5 h-3.5 text-green-600" />
-              <span>{MED_CERT_COPY.trust.ahpra}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>All doctors are AHPRA-registered</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 cursor-help">
-              <Lock className="w-3.5 h-3.5 text-primary" />
-              <span>{MED_CERT_COPY.trust.encrypted}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>Bank-level encryption protects your data</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 cursor-help">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
-              <span>{MED_CERT_COPY.trust.refund}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>Full refund if your request cannot be approved</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
   )
 }
 
