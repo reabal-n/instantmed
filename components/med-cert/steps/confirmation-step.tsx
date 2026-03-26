@@ -62,14 +62,14 @@ export function ConfirmationStep({ requiresCall }: ConfirmationStepProps) {
 
       {/* Escalation message */}
       {requiresCall && (
-        <div className="p-4 rounded-xl bg-dawn-50 border border-dawn-200">
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
           <div className="flex items-start gap-3">
-            <Phone className="w-5 h-5 text-dawn-600 mt-0.5" />
+            <Phone className="w-5 h-5 text-amber-600 mt-0.5" />
             <div>
-              <p className="font-medium text-dawn-900">
+              <p className="font-medium text-amber-900">
                 {MED_CERT_COPY.confirmation.escalationMessage.heading}
               </p>
-              <p className="text-sm text-dawn-800">
+              <p className="text-sm text-amber-800">
                 {MED_CERT_COPY.confirmation.escalationMessage.body}
               </p>
             </div>

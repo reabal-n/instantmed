@@ -119,7 +119,7 @@ export default function CompareIndexPage() {
               <p className="text-muted-foreground mb-8">
                 See why Australians choose InstantMed for quick, convenient healthcare.
               </p>
-              <Button asChild size="lg" className="rounded-full">
+              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-4 h-4" />

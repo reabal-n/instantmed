@@ -94,7 +94,7 @@ export default function GuidesIndexPage() {
               <p className="text-muted-foreground mb-8">
                 Skip the reading — our doctors can help you in under an hour.
               </p>
-              <Button asChild size="lg" className="rounded-full">
+              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link href="/request">
                   Start a request
                   <ArrowRight className="ml-2 w-4 h-4" />

@@ -767,7 +767,7 @@ export default async function GuidePage({ params }: PageProps) {
               <p className="text-muted-foreground mb-8">
                 {guide.cta.subtext}
               </p>
-              <Button asChild size="lg" className="h-14 px-10 rounded-full">
+              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link href={guide.cta.href}>
                   {guide.cta.text}
                   <ArrowRight className="ml-2 w-5 h-5" />

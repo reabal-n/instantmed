@@ -20,7 +20,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
       aria-hidden="true"
     >
       {/* ===== LIGHT MODE: Morning sky ===== */}
-      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-700">
+      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-500">
         {/* Sky gradient */}
         <div
           className="absolute inset-0"
@@ -101,7 +101,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
       </div>
 
       {/* ===== DARK MODE: Night sky ===== */}
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-700">
+      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-500">
         <div
           className="absolute inset-0"
           style={{

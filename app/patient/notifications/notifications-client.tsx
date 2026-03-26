@@ -62,7 +62,7 @@ function getNotificationColor(type: Notification["type"]) {
     case "document_ready":
       return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
     case "refill_reminder":
-      return "bg-amber-50 dark:bg-amber-500/10 text-dawn-600 dark:text-dawn-400"
+      return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400"
     default:
       return "bg-muted text-muted-foreground"
   }

@@ -19,8 +19,8 @@ export function ControlledSubstanceWarning({ onClose }: ControlledSubstanceWarni
         className="bg-white dark:bg-card rounded-2xl p-6 max-w-sm w-full space-y-4"
       >
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-full bg-dawn-100 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-6 h-6 text-dawn-600" />
+          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <h2 className="font-semibold text-lg">Controlled Substance</h2>

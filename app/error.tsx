@@ -179,16 +179,16 @@ export default function Error({
           <div className="relative">
             {/* Glow effect */}
             {prefersReducedMotion ? (
-              <div className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl opacity-40" />
+              <div className="absolute inset-0 rounded-3xl bg-amber-500/20 blur-xl opacity-40" />
             ) : (
               <motion.div
-                className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl"
+                className="absolute inset-0 rounded-3xl bg-amber-500/20 blur-xl"
                 animate={{ opacity: [0.3, 0.6, 0.3] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
               />
             )}
             <div className="relative bg-white dark:bg-card rounded-3xl p-8 border border-border/50 shadow-md shadow-primary/[0.06]">
-              <AlertTriangle className="h-14 w-14 text-dawn-500" />
+              <AlertTriangle className="h-14 w-14 text-amber-500" />
             </div>
           </div>
         </motion.div>

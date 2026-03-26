@@ -48,9 +48,9 @@ const outcomeConfig: Record<
   },
   REQUEST_MORE_INFO: {
     icon: FileText,
-    bgColor: 'bg-dawn-50 dark:bg-dawn-500/10',
-    iconColor: 'text-dawn-600 dark:text-dawn-400',
-    borderColor: 'border-dawn-200 dark:border-dawn-500/30',
+    bgColor: 'bg-amber-50 dark:bg-amber-500/10',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    borderColor: 'border-amber-200 dark:border-amber-500/30',
   },
   REQUIRES_CALL: {
     icon: Phone,
@@ -318,7 +318,7 @@ export function SafetyCheckStep({
                           [item.id]: e.target.value,
                         }))
                       }
-                      className="mt-1.5 w-full min-h-20 p-3 rounded-lg border border-border focus:border-dawn-500 focus:ring-0 resize-none text-sm"
+                      className="mt-1.5 w-full min-h-20 p-3 rounded-lg border border-border focus:border-amber-500 focus:ring-0 resize-none text-sm"
                       placeholder="Type your response..."
                     />
                   ) : item.type === 'select' && item.options ? (
@@ -330,7 +330,7 @@ export function SafetyCheckStep({
                           [item.id]: e.target.value,
                         }))
                       }
-                      className="mt-1.5 w-full h-11 px-3 rounded-lg border border-border focus:border-dawn-500 focus:ring-0 text-sm"
+                      className="mt-1.5 w-full h-11 px-3 rounded-lg border border-border focus:border-amber-500 focus:ring-0 text-sm"
                     >
                       <option value="">Select an option</option>
                       {item.options.map((opt) => (
@@ -360,7 +360,7 @@ export function SafetyCheckStep({
           <Button
             onClick={handleSubmitAdditionalInfo}
             disabled={!isAdditionalInfoComplete || isReEvaluating}
-            className="w-full h-12 bg-dawn-600 hover:bg-dawn-700 text-white rounded-xl"
+            className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-xl"
           >
             {isReEvaluating ? (
               <>

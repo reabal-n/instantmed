@@ -320,7 +320,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
       {error && <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
       {expiryWarning && (
-        <div className="p-3 rounded-xl bg-dawn-50 border border-dawn-200 text-sm text-dawn-700 flex items-start gap-2">
+        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{expiryWarning}</span>
         </div>

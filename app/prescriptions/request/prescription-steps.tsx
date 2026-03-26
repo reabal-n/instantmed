@@ -279,7 +279,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               prescribedBefore === false
-                ? "border-dawn-500 bg-amber-50 text-amber-700"
+                ? "border-amber-500 bg-amber-50 text-amber-700"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -299,7 +299,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               doseChanged === true
-                ? "border-dawn-500 bg-amber-50 text-amber-700"
+                ? "border-amber-500 bg-amber-50 text-amber-700"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -327,7 +327,7 @@ export function GatingStep({
       {isGatingBlocked && (
         <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-dawn-600 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-amber-900">This request requires a general consultation</p>
               <p className="text-sm text-amber-700 mt-1">
@@ -464,7 +464,7 @@ export function NotesStep({ notes, setNotes }: NotesStepProps) {
       />
       <p className="text-xs text-right text-muted-foreground">{notes.length}/500</p>
       {notes.length === 0 && (
-        <p className="text-xs text-dawn-600">
+        <p className="text-xs text-amber-600">
           This information helps the doctor assess whether this medication is appropriate for you
         </p>
       )}

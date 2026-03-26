@@ -501,8 +501,8 @@ export function MedCertFlowV2({
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-background rounded-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up">
               <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-dawn-100 flex items-center justify-center mx-auto mb-3">
-                  <Phone className="w-6 h-6 text-dawn-600" />
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+                  <Phone className="w-6 h-6 text-amber-600" />
                 </div>
                 <h2 className="text-lg font-semibold">
                   {MED_CERT_COPY.escalation.extendedDuration.heading}

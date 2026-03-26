@@ -123,7 +123,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
       case "patient":
         return "bg-blue-100 text-blue-800"
       case "admin":
-        return "bg-dawn-100 text-dawn-800"
+        return "bg-amber-100 text-amber-800"
       case "system":
         return "bg-muted text-foreground"
       case "webhook":

@@ -625,7 +625,7 @@ export default async function CityPage({ params }: PageProps) {
               </p>
 
               <Link href="/request">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8">
+                <Button size="lg" className="text-base px-8 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                   Get Started
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -772,7 +772,7 @@ export default async function CityPage({ params }: PageProps) {
                 Join hundreds of {cityData.name} residents who trust InstantMed for their telehealth needs.
               </p>
               <Link href="/request">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                   Get started
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

@@ -63,7 +63,7 @@ export function MedicationStep({
             onChange={(e) => onMedicationChange(e.target.value)}
             className={cn(
               "h-12",
-              isControlled && "border-dawn-500 focus-visible:ring-dawn-500"
+              isControlled && "border-amber-500 focus-visible:ring-amber-500"
             )}
             startContent={<Search className="w-5 h-5 text-muted-foreground" />}
             endContent={
@@ -97,7 +97,7 @@ export function MedicationStep({
         )}
 
         {isControlled && (
-          <div className="p-3 rounded-2xl bg-dawn-50/80 dark:bg-dawn-500/20 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm text-dawn-800">
+          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-500/20 border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm text-amber-800">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>This medication cannot be prescribed online. Please visit your GP.</span>

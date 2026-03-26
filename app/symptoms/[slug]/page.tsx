@@ -1059,7 +1059,7 @@ export default async function SymptomPage({ params }: PageProps) {
 
               {/* Quick CTA */}
               <div className="flex flex-wrap items-center gap-4 mt-8">
-                <Button asChild size="lg" className="rounded-full">
+                <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                   <Link href={symptom.serviceRecommendation.href}>
                     {symptom.serviceRecommendation.text}
                     <ArrowRight className="ml-2 w-4 h-4" />
@@ -1232,7 +1232,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 Our Australian-registered doctors can assess your symptoms and provide advice, treatment, or medical certificates if needed.
               </p>
 
-              <Button asChild size="lg" className="h-14 px-10 rounded-full">
+              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link href={symptom.serviceRecommendation.href}>
                   {symptom.serviceRecommendation.text}
                   <ArrowRight className="ml-2 w-5 h-5" />

@@ -38,7 +38,7 @@ export function MeshGradientCanvas() {
       aria-hidden="true"
     >
       {/* Light mode blobs */}
-      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-700">
+      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-500">
         {LIGHT_BLOBS.map((blob, i) => (
           <motion.div
             key={`light-${i}`}
@@ -72,7 +72,7 @@ export function MeshGradientCanvas() {
       </div>
 
       {/* Dark mode blobs */}
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-700">
+      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-500">
         {DARK_BLOBS.map((blob, i) => (
           <motion.div
             key={`dark-${i}`}
