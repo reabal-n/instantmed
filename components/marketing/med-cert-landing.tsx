@@ -40,6 +40,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
@@ -833,6 +834,9 @@ export function MedCertLanding() {
             subtitle="Real reviews from Australians who've used our service"
             badgeText="Patient Feedback"
           />
+
+          {/* Regulatory Partners */}
+          <RegulatoryPartners className="py-12" />
 
           {/* 6. FAQ */}
           <FaqCtaSection onFAQOpen={handleFAQOpen} />

@@ -41,14 +41,14 @@ export async function PATCH(request: Request) {
     }
 
     if (full_name !== undefined) updateData.full_name = full_name
-    if (phone !== undefined) updateData.phone = phone
+    if (phone !== undefined) updateData.phone = phone || null
     // Support both field names from client (street_address is legacy, address_line1 is canonical)
     const addressValue = address_line1 !== undefined ? address_line1 : street_address
     if (addressValue !== undefined) updateData.address_line1 = addressValue
     if (suburb !== undefined) updateData.suburb = suburb
     if (state !== undefined) updateData.state = state
     if (postcode !== undefined) updateData.postcode = postcode
-    if (date_of_birth !== undefined) updateData.date_of_birth = date_of_birth
+    if (date_of_birth !== undefined) updateData.date_of_birth = date_of_birth || null
     if (consent_myhr !== undefined) updateData.consent_myhr = consent_myhr
 
     const { error } = await supabase

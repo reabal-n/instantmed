@@ -4,6 +4,8 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { Timeline, FeatureGrid, CTABanner } from "@/components/sections"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import {
   Clock,
   Shield,
@@ -83,6 +85,13 @@ export function HowItWorksContent() {
           steps={processSteps}
         />
 
+        {/* Doctor Credibility */}
+        <DoctorCredibility
+          variant="section"
+          stats={["experience", "approval", "sameDay"]}
+          className="px-4 sm:px-6"
+        />
+
         {/* Features */}
         <FeatureGrid
           pill="Why InstantMed?"
@@ -92,6 +101,9 @@ export function HowItWorksContent() {
           features={features}
           columns={4}
         />
+
+        {/* Regulatory Partners */}
+        <RegulatoryPartners className="py-12" />
 
         {/* CTA */}
         <CTABanner

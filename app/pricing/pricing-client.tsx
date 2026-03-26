@@ -9,6 +9,8 @@ import { MarketingFooter } from "@/components/marketing"
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
 import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill } from "lucide-react"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -218,6 +220,13 @@ export function PricingClient() {
           </div>
         </section>
 
+        {/* Doctor Credibility */}
+        <DoctorCredibility
+          variant="inline"
+          stats={["experience", "approval", "reviews"]}
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
+        />
+
         {/* Comparison Table */}
         <ComparisonTable
           pill="Why InstantMed?"
@@ -236,6 +245,9 @@ export function PricingClient() {
           highlightWords={["questions"]}
           groups={pricingFaqs}
         />
+
+        {/* Regulatory Partners */}
+        <RegulatoryPartners className="py-12" />
 
         {/* CTA */}
         <CTABanner
