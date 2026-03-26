@@ -25,7 +25,10 @@ import {
   Activity,
   CheckCircle2,
   Scale,
+  Star,
 } from "lucide-react"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import { getTestimonialsByService } from "@/lib/data/testimonials"
 
 const treatments = [
   {
@@ -86,6 +89,14 @@ const eligibility = {
     "Some medication interactions",
   ],
 }
+
+// Weight loss testimonials — Greg W. (t41) first, plus 1-2 other consultation testimonials
+const weightLossTestimonials = (() => {
+  const all = getTestimonialsByService("consultation").filter(t => t.rating >= 4);
+  const greg = all.find(t => t.id === "t41");
+  const others = all.filter(t => t.id !== "t41").slice(0, 2);
+  return greg ? [greg, ...others] : all.slice(0, 3);
+})();
 
 const faqs = [
   {
@@ -347,6 +358,27 @@ export function WeightLossClient() {
               { number: 4, title: "Ongoing Support", description: "Regular check-ins to monitor progress and adjust your plan as needed." },
             ]}
           />
+
+          {/* Doctor credibility + patient feedback */}
+          <section className="py-12 px-4">
+            <div className="max-w-4xl mx-auto">
+              <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
+              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {weightLossTestimonials.map((t) => (
+                  <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
+                    <div className="flex gap-0.5 mb-2">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* FAQs */}
           <AccordionSection

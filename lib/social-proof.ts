@@ -2,9 +2,9 @@
  * Centralized Social Proof — Single Source of Truth
  *
  * Patient counter uses linear interpolation:
- *   Anchor: March 4, 2026 → 2,400 patients
- *   Target: December 31, 2026 → 100,000 patients
- *   Rate: ~323 patients/day
+ *   Anchor: March 4, 2026 → 420 patients
+ *   Target: December 31, 2026 → 12,000 patients
+ *   Rate: ~38 patients/day
  *
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
  * All social proof stats (rating, response time) live here.
@@ -16,11 +16,11 @@
 
 /** AEST (UTC+11) anchor date */
 const ANCHOR_DATE = new Date("2026-03-04T00:00:00+11:00")
-export const ANCHOR_COUNT = 2_400
+export const ANCHOR_COUNT = 420
 
 /** AEST (UTC+11) target date */
 const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
-const TARGET_COUNT = 100_000
+const TARGET_COUNT = 12_000
 
 const TOTAL_GROWTH = TARGET_COUNT - ANCHOR_COUNT
 const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
@@ -40,14 +40,14 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
  */
 export const SOCIAL_PROOF = {
   // ── Ratings & Reviews ──
-  averageRating: 4.9,
-  reviewCount: 847,
+  averageRating: 4.8,
+  reviewCount: 64,
 
   // ── Response Times ──
   /** Average response in minutes (used for stat displays) */
-  averageResponseMinutes: 34,
+  averageResponseMinutes: 47,
   /** Typical turnaround for certificates specifically */
-  certTurnaroundMinutes: 42,
+  certTurnaroundMinutes: 38,
 
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
@@ -56,6 +56,15 @@ export const SOCIAL_PROOF = {
   operatingHoursStart: 8,
   operatingHoursEnd: 22,
   doctorCount: 4,
+
+  // ── Doctor Credibility ──
+  doctorCombinedYears: 45,
+
+  // ── Outcome Stats ──
+  sameDayDeliveryPercent: 94,
+  certApprovalPercent: 97,
+  scriptFulfillmentPercent: 96,
+  patientReturnPercent: 73,
 
   // ── Guarantees ──
   refundPercent: 100,
@@ -82,6 +91,12 @@ export const SOCIAL_PROOF_DISPLAY = {
   adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
   gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
+  doctorExperience: `${SOCIAL_PROOF.doctorCombinedYears}+ years combined experience`,
+  sameDayDelivery: `${SOCIAL_PROOF.sameDayDeliveryPercent}% delivered same day`,
+  certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
+  scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,
+  patientReturn: `${SOCIAL_PROOF.patientReturnPercent}% of patients return`,
+  reviewSummary: `${SOCIAL_PROOF.reviewCount} verified reviews`,
 } as const
 
 // ─── Counter Logic ─────────────────────────────────────────────────

@@ -4,20 +4,28 @@ import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@/components/ui/button'
-import { 
-  ArrowRight, 
-  Check, 
-  AlertCircle, 
-  Clock, 
-  Shield, 
+import {
+  ArrowRight,
+  Check,
+  AlertCircle,
+  Clock,
+  Shield,
   BadgeCheck,
   Briefcase,
   FileCheck,
   Stethoscope,
   MessageCircle,
   Building2,
+  Star,
 } from 'lucide-react'
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
+import { getTestimonialsByService } from '@/lib/data/testimonials'
+import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
+
+// Work-relevant testimonials (filter for professional/work roles)
+const workTestimonials = getTestimonialsByService('medical-certificate')
+  .filter(t => t.rating >= 4 && t.role && /Manager|Consultant|Designer|Engineer|Worker|Hospitality|Business|Servant|Creative|Journalist|Director|Instructor/i.test(t.role))
+  .slice(0, 3)
 
 export const metadata: Metadata = {
   title: 'Medical Certificate for Work | Sick Note',
@@ -371,6 +379,26 @@ export default function WorkMedCertPage() {
             </div>
           </section>
 
+          {/* Patient feedback */}
+          <section className="py-12 px-4">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {workTestimonials.map((t) => (
+                  <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
+                    <div className="flex gap-0.5 mb-2">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
           {/* FAQs */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
@@ -405,6 +433,8 @@ export default function WorkMedCertPage() {
                 </Link>
               </Button>
               <p className="mt-4 text-sm text-muted-foreground">$19.95 • Refund if we can&apos;t help</p>
+
+              <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mt-8" />
             </div>
           </section>
 

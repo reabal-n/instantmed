@@ -20,6 +20,7 @@ import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
+import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
 
 export const revalidate = 3600
 
@@ -139,6 +140,12 @@ export default async function HomePage() {
         <Suspense fallback={<SectionSkeleton height="h-64" />}>
           <PatientReviews />
         </Suspense>
+
+        {/* Doctor credibility */}
+        <DoctorCredibility
+          variant="section"
+          stats={['experience', 'sameDay', 'returnRate', 'reviews']}
+        />
 
         {/* Key stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />

@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { PRICING } from "@/lib/constants"
 import { fadeSlide } from "../intake-ui-primitives"
+import { IntakeReviewSocialProof } from "@/components/intake/intake-review-social-proof"
 import type { IntakeFormData } from "../streamlined-intake"
 
 interface ReviewStepProps {
@@ -125,6 +126,9 @@ export function ReviewStep({
           {errors.submit}
         </div>
       )}
+
+      {/* Social proof */}
+      <IntakeReviewSocialProof service="medical-certificate" />
 
       {/* Navigation */}
       <div className="flex gap-3 pt-2">

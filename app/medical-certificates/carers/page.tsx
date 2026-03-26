@@ -4,19 +4,33 @@ import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@/components/ui/button'
-import { 
-  ArrowRight, 
-  Check, 
-  AlertCircle, 
-  Clock, 
-  Shield, 
+import {
+  ArrowRight,
+  Check,
+  AlertCircle,
+  Clock,
+  Shield,
   BadgeCheck,
   Heart,
   FileCheck,
   Stethoscope,
-  Users
+  Users,
+  Star,
 } from 'lucide-react'
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
+import { getTestimonialsByService } from '@/lib/data/testimonials'
+import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
+
+// Carer/family-relevant testimonials
+const carerTestimonials = getTestimonialsByService('medical-certificate')
+  .filter(t => t.rating >= 4 && (
+    (t.role && /Mum|Mom|Parent|Retired|Director/i.test(t.role)) ||
+    (t.id === 't9') || // Priya - kids were sick
+    (t.id === 't16') || // Andrew - mum had a fall
+    (t.id === 't15') || // Linda - did it for her mum
+    (t.id === 't33') // Clare - both kids used it
+  ))
+  .slice(0, 3)
 
 export const metadata: Metadata = {
   title: "Carer's Leave Certificate | Family Member Illness",
@@ -325,6 +339,26 @@ export default function CarersMedCertPage() {
             </div>
           </section>
 
+          {/* Patient feedback */}
+          <section className="py-12 px-4">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {carerTestimonials.map((t) => (
+                  <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
+                    <div className="flex gap-0.5 mb-2">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
           {/* FAQs */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
@@ -359,6 +393,8 @@ export default function CarersMedCertPage() {
                 </Link>
               </Button>
               <p className="mt-4 text-sm text-muted-foreground">$19.95 • Refund if we can&apos;t help</p>
+
+              <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mt-8" />
             </div>
           </section>
 

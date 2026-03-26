@@ -1,75 +1,43 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
-// Authentic Australian tech/health/business publications
-// These are realistic for an Australian telehealth startup
-const mediaLogos = [
+const regulatoryPartners = [
   {
-    name: 'StartupDaily',
-    // StartupDaily - Australian startup news
-    logo: (
-      <svg viewBox="0 0 150 24" className="h-5 w-auto" fill="currentColor">
-        <text x="0" y="18" fontSize="16" fontWeight="700" fontFamily="system-ui, sans-serif">
-          StartupDaily
-        </text>
-      </svg>
-    ),
+    name: 'AHPRA',
+    description: 'AHPRA-registered doctors',
+    logo: '/logos/AHPRA.svg',
+    width: 100,
   },
   {
-    name: 'SmartCompany',
-    // SmartCompany - Australian business publication
-    logo: (
-      <svg viewBox="0 0 150 24" className="h-5 w-auto" fill="currentColor">
-        <text x="0" y="18" fontSize="16" fontWeight="600" fontFamily="system-ui, sans-serif">
-          SmartCompany
-        </text>
-      </svg>
-    ),
+    name: 'TGA',
+    description: 'TGA-compliant prescribing',
+    logo: '/logos/TGA.svg',
+    width: 80,
   },
   {
-    name: 'Pulse+IT',
-    // Pulse+IT - Australian health IT news
-    logo: (
-      <svg viewBox="0 0 100 24" className="h-5 w-auto" fill="currentColor">
-        <text x="0" y="18" fontSize="16" fontWeight="700" fontFamily="system-ui, sans-serif">
-          Pulse+IT
-        </text>
-      </svg>
-    ),
+    name: 'Medicare',
+    description: 'Medicare Australia',
+    logo: '/logos/medicare.svg',
+    width: 90,
   },
   {
-    name: 'Australian Doctor',
-    // Australian Doctor - Medical industry publication
-    logo: (
-      <svg viewBox="0 0 180 24" className="h-5 w-auto" fill="currentColor">
-        <text x="0" y="18" fontSize="15" fontWeight="600" fontFamily="Georgia, serif" fontStyle="italic">
-          Australian Doctor
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Business News Australia',
-    // Business News Australia
-    logo: (
-      <svg viewBox="0 0 200 24" className="h-4 w-auto" fill="currentColor">
-        <text x="0" y="17" fontSize="13" fontWeight="600" fontFamily="system-ui, sans-serif" letterSpacing="-0.5">
-          Business News Australia
-        </text>
-      </svg>
-    ),
+    name: 'RACGP',
+    description: 'RACGP-aligned protocols',
+    logo: null,
+    width: 0,
   },
 ]
 
-interface MediaMentionsProps {
+interface RegulatoryPartnersProps {
   variant?: 'strip' | 'section'
   className?: string
 }
 
-export function MediaMentions({ variant = 'strip', className = '' }: MediaMentionsProps) {
+export function RegulatoryPartners({ variant = 'strip', className = '' }: RegulatoryPartnersProps) {
   const prefersReducedMotion = useReducedMotion()
 
   if (variant === 'strip') {
@@ -77,19 +45,32 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
       <div className={cn('py-8', className)}>
         <div className="container mx-auto px-4">
           <p className="text-xs text-muted-foreground text-center mb-6 uppercase tracking-wider">
-            As featured in
+            Regulated by
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-60">
-            {mediaLogos.map((media) => (
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+            {regulatoryPartners.map((partner) => (
               <motion.div
-                key={media.name}
+                key={partner.name}
                 initial={prefersReducedMotion ? {} : { opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title={media.name}
+                className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity"
+                title={partner.description}
               >
-                {media.logo}
+                {partner.logo ? (
+                  <Image
+                    src={partner.logo}
+                    alt={partner.description}
+                    width={partner.width}
+                    height={32}
+                    unoptimized
+                    className="h-7 w-auto object-contain dark:brightness-0 dark:invert"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-muted-foreground tracking-tight">
+                    {partner.name}
+                  </span>
+                )}
               </motion.div>
             ))}
           </div>
@@ -98,29 +79,42 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
     )
   }
 
-  // Section variant - more prominent
+  // Section variant
   return (
     <section className={cn('py-12', className)}>
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            Featured in Australian media
+            Regulated by Australian health authorities
           </h3>
           <p className="text-sm text-muted-foreground mb-8">
-            InstantMed has been recognised by leading Australian health and business publications.
+            All doctors are AHPRA-registered. Prescriptions are TGA-compliant.
           </p>
           <div className="flex flex-wrap justify-center items-center gap-10 md:gap-14">
-            {mediaLogos.map((media, index) => (
+            {regulatoryPartners.map((partner, index) => (
               <motion.div
-                key={media.name}
+                key={partner.name}
                 initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: prefersReducedMotion ? 0 : index * 0.1, duration: prefersReducedMotion ? 0 : undefined }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title={media.name}
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}
+                className="opacity-70 hover:opacity-100 transition-opacity"
+                title={partner.description}
               >
-                {media.logo}
+                {partner.logo ? (
+                  <Image
+                    src={partner.logo}
+                    alt={partner.description}
+                    width={partner.width}
+                    height={40}
+                    unoptimized
+                    className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                  />
+                ) : (
+                  <span className="text-base font-semibold text-muted-foreground tracking-tight">
+                    {partner.name}
+                  </span>
+                )}
               </motion.div>
             ))}
           </div>
@@ -129,3 +123,6 @@ export function MediaMentions({ variant = 'strip', className = '' }: MediaMentio
     </section>
   )
 }
+
+// Keep old export name for backwards compatibility
+export { RegulatoryPartners as MediaMentions }

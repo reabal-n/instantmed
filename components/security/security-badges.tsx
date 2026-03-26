@@ -29,9 +29,9 @@ const securityCerts = [
   },
   {
     icon: CheckCircle2,
-    label: "ISO 27001",
-    sublabel: "Compliant",
-    color: "#EC4899",
+    label: "SOC 2",
+    sublabel: "Infrastructure",
+    color: "#059669",
   },
 ]
 

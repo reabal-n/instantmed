@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 const services = [
   {

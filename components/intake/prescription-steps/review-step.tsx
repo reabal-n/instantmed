@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ButtonSpinner } from "@/components/ui/skeleton"
 import { ChevronLeft, Pill, FileText, Shield, Clock, Check, Sparkles } from "lucide-react"
 import { CONDITIONS, DURATIONS } from "@/components/intake/prescription-steps/details-step"
+import { IntakeReviewSocialProof } from "@/components/intake/intake-review-social-proof"
 import type { PrescriptionFormData } from "@/components/intake/prescription-intake"
 
 // Animation variants
@@ -105,6 +106,9 @@ export function PrescriptionReviewStep({
           {submitError}
         </div>
       )}
+
+      {/* Social proof */}
+      <IntakeReviewSocialProof service="prescription" />
 
       {/* Navigation */}
       <div className="flex gap-3 pt-2">

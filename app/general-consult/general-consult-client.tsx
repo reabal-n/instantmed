@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2 } from "lucide-react"
+import { AlertCircle, ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, Shield, BadgeCheck, FileCheck, Lock, Building2, Star } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
@@ -17,6 +17,7 @@ import { SplitHero } from "@/components/heroes"
 import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 
 // Consultation types
 const CONSULT_TYPES = [
@@ -106,6 +107,11 @@ const FAQS = [
     answer: "If your concern requires in-person examination or is outside our scope, we will advise you and provide a full refund.",
   },
 ]
+
+// Service-specific testimonial cards (consultation t36-t41)
+const consultCardTestimonials = getTestimonialsByService("consultation")
+  .filter(t => t.rating >= 4)
+  .slice(0, 3)
 
 // Get testimonials from centralized data
 const consultTestimonials = getTestimonialsByService("consultation")
@@ -498,6 +504,27 @@ export default function GeneralConsultPage() {
           steps={processSteps}
           className="scroll-mt-20"
         />
+
+        {/* Doctor credibility + patient feedback cards */}
+        <section className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
+            <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {consultCardTestimonials.map((t) => (
+                <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
+                  <div className="flex gap-0.5 mb-2">
+                    {[...Array(t.rating)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                  <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Testimonials */}
         <section className="py-8 overflow-hidden">

@@ -29,7 +29,15 @@ function useHasMounted() {
 }
 
 function getRandomVisitors(): number {
-  return Math.floor(Math.random() * 17) + 2 // 2-18
+  const aest = getAESTTime()
+  const hour = aest.getHours()
+
+  // Weight visitor count by time of day
+  if (hour >= 8 && hour < 10) return Math.floor(Math.random() * 6) + 3    // 3-8 morning
+  if (hour >= 10 && hour < 14) return Math.floor(Math.random() * 8) + 5   // 5-12 midday peak
+  if (hour >= 14 && hour < 18) return Math.floor(Math.random() * 7) + 4   // 4-10 afternoon
+  if (hour >= 18 && hour < 22) return Math.floor(Math.random() * 9) + 6   // 6-14 evening peak
+  return Math.floor(Math.random() * 3) + 1                                 // 1-3 overnight
 }
 
 export function DoctorAvailabilityPill() {
@@ -45,16 +53,16 @@ export function DoctorAvailabilityPill() {
     return () => clearInterval(interval)
   }, [])
 
-  // Fluctuate visitor count every 15-30 seconds
+  // Fluctuate visitor count every ~35 seconds
   useEffect(() => {
     const fluctuate = () => {
       setVisitors(prev => {
         const change = Math.random() > 0.5 ? 1 : -1
         const next = prev + change
-        return Math.max(2, Math.min(18, next))
+        return Math.max(1, Math.min(14, next))
       })
     }
-    const interval = setInterval(fluctuate, 15000 + Math.random() * 15000)
+    const interval = setInterval(fluctuate, 35000)
     return () => clearInterval(interval)
   }, [])
 

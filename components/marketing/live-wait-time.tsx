@@ -12,8 +12,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Medical Certificates',
     shortLabel: 'Med Certs',
     icon: FileText,
-    minWait: 8,
-    maxWait: 25,
+    minWait: 25,
+    maxWait: 55,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },
@@ -21,8 +21,8 @@ const SERVICE_WAIT_TIMES = {
     label: 'Repeat medication',
     shortLabel: 'Medication',
     icon: Pill,
-    minWait: 10,
-    maxWait: 30,
+    minWait: 45,
+    maxWait: 110,
     color: 'text-emerald-600 dark:text-emerald-400',
     bgColor: 'bg-emerald-500/10',
   },
@@ -30,12 +30,20 @@ const SERVICE_WAIT_TIMES = {
     label: 'Consultations',
     shortLabel: 'Consults',
     icon: Phone,
-    minWait: 12,
-    maxWait: 35,
+    minWait: 50,
+    maxWait: 120,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },
 } as const
+
+function formatWaitTime(minutes: number): string {
+  if (minutes < 60) return `~${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remaining = minutes % 60
+  if (remaining === 0) return `~${hours}hr`
+  return `~${hours}hr ${remaining}min`
+}
 
 type ServiceType = keyof typeof SERVICE_WAIT_TIMES
 
@@ -149,7 +157,7 @@ export function LiveWaitTime({
         <span className="text-sm">
           {isOnline ? (
             <>
-              <span className="font-medium text-foreground">~{time} min</span>
+              <span className="font-medium text-foreground">{formatWaitTime(time)}</span>
               <span className="text-muted-foreground"> typical wait</span>
             </>
           ) : (
@@ -201,7 +209,7 @@ export function LiveWaitTime({
                   transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   className="font-medium text-foreground"
                 >
-                  ~{time} min
+                  {formatWaitTime(time)}
                 </motion.span>
               ) : (
                 <span className="font-medium text-foreground">Next business day</span>
@@ -255,7 +263,7 @@ export function LiveWaitTime({
                           transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                           className="font-semibold text-foreground"
                         >
-                          ~{time} min
+                          {formatWaitTime(time)}
                         </motion.span>
                         {showTrending && isFast && (
                           <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
@@ -326,7 +334,7 @@ export function LiveWaitTime({
                       transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                       className="text-lg font-bold text-foreground"
                     >
-                      ~{time} min
+                      {formatWaitTime(time)}
                     </motion.span>
                     {showTrending && isFast && (
                       <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
@@ -345,7 +353,7 @@ export function LiveWaitTime({
       </div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        Wait times update in real-time based on current queue
+        Typical wait times based on recent activity
       </p>
     </div>
   )

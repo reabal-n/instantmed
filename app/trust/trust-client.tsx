@@ -121,9 +121,9 @@ export default function TrustPage() {
         {/* ── Stats Counter Strip ───────────────────────────── */}
         <StatStrip
           stats={[
-            { value: mounted ? patientCount : 2400, suffix: "+", label: "Patients served" },
-            { value: mounted ? SOCIAL_PROOF.averageRating * 10 : 49, suffix: "", label: "Average rating", prefix: "" },
-            { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 34, suffix: " min", label: "Avg response" },
+            { value: mounted ? patientCount : 420, suffix: "+", label: "Patients served" },
+            { value: mounted ? SOCIAL_PROOF.averageRating : 4.8, suffix: "/5", label: "Patient rating" },
+            { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 47, suffix: " min", label: "Avg response" },
             { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
           ]}
         />
@@ -331,7 +331,7 @@ export default function TrustPage() {
         {/* ── CTA ───────────────────────────────────────────── */}
         <CTABanner
           title="Confident in the process?"
-          subtitle={`Join ${mounted ? patientCount.toLocaleString() : "2,400"}+ Australians who've already made the switch.`}
+          subtitle={`Join ${mounted ? patientCount.toLocaleString() : "420"}+ Australians who've already made the switch.`}
           ctaText="Start a request"
           ctaHref="/request"
           secondaryText="No account required · Full refund if request declined"
