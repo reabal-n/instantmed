@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendSms } from "@/lib/sms/service"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import { timingSafeEqual } from "crypto"
@@ -36,6 +37,8 @@ export async function GET(request: Request) {
   if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  await recordCronHeartbeat("emergency-flags")
 
   try {
     const supabase = createServiceRoleClient()

@@ -1,0 +1,161 @@
+import type Stripe from "stripe"
+import { NextResponse } from "next/server"
+import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
+import { createLogger } from "@/lib/observability/logger"
+import type { WebhookContext, HandlerResult } from "./types"
+import { tryClaimEvent } from "./utils"
+
+const log = createLogger("stripe-webhook:async-payment-succeeded")
+
+export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<HandlerResult> {
+  const { event, supabase } = ctx
+  const session = event.data.object as Stripe.Checkout.Session
+  const intakeId = session.metadata?.intake_id
+  const patientId = session.metadata?.patient_id
+
+  log.info("checkout.session.async_payment_succeeded received", {
+    eventId: event.id,
+    sessionId: session.id,
+    intakeId,
+    patientId,
+    amount: session.amount_total,
+  })
+
+  const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, intakeId, session.id, {
+    amount: session.amount_total,
+    payment_intent: session.payment_intent,
+    customer: session.customer,
+  })
+  if (!shouldProcess) {
+    return NextResponse.json({ received: true, skipped: true })
+  }
+
+  if (!intakeId) {
+    log.error("CRITICAL: Missing intake_id in async_payment_succeeded metadata", {
+      eventId: event.id,
+      sessionId: session.id,
+    })
+    return NextResponse.json({ error: "Missing intake_id" }, { status: 200 })
+  }
+
+  try {
+    const { data: currentIntake } = await supabase
+      .from("intakes")
+      .select("id, status, payment_status")
+      .eq("id", intakeId)
+      .single()
+
+    if (!currentIntake) {
+      log.error("Intake not found for async payment", { intakeId })
+      return NextResponse.json({ error: "Intake not found" }, { status: 500 })
+    }
+
+    if (currentIntake.payment_status === "paid") {
+      log.info("Intake already paid, skipping async payment update", { intakeId })
+      return NextResponse.json({ received: true, already_paid: true })
+    }
+
+    const paymentIntentId = typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id || null
+    const stripeCustomerId = typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id || null
+
+    const { error: updateError } = await supabase
+      .from("intakes")
+      .update({
+        payment_status: "paid",
+        status: "paid",
+        paid_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        stripe_payment_intent_id: paymentIntentId,
+        stripe_customer_id: stripeCustomerId,
+      })
+      .eq("id", intakeId)
+
+    if (updateError) {
+      log.error("Failed to update intake for async payment", { intakeId, error: updateError.message })
+      return NextResponse.json({ error: "Update failed" }, { status: 500 })
+    }
+
+    // Save Stripe customer ID to profile
+    if (stripeCustomerId && patientId) {
+      await supabase
+        .from("profiles")
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq("id", patientId)
+        .is("stripe_customer_id", null)
+    }
+
+    // Send payment confirmation email (non-blocking to avoid Stripe timeout).
+    // If this fails, the email-dispatcher cron will retry from the outbox.
+    if (patientId) {
+      const asyncEmailIntakeId = intakeId
+      const asyncEmailPatientId = patientId
+      const asyncEmailSessionMetadata = session.metadata
+      const asyncEmailAmountTotal = session.amount_total
+
+      ;(async () => {
+        try {
+          const { data: patientProfile } = await supabase
+            .from("profiles")
+            .select("email, full_name, clerk_user_id")
+            .eq("id", asyncEmailPatientId)
+            .single()
+
+          if (!patientProfile?.email) return
+
+          const React = await import("react")
+          const { sendEmail } = await import("@/lib/email/send-email")
+          const { PaymentConfirmedEmail, paymentConfirmedSubject } = await import("@/components/email/templates/payment-confirmed")
+
+          const serviceName = asyncEmailSessionMetadata?.service_slug
+            ?.replace(/-/g, " ")
+            ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
+            || "medical request"
+          const amountFormatted = `$${((asyncEmailAmountTotal || 0) / 100).toFixed(2)}`
+
+          await sendEmail({
+            to: patientProfile.email,
+            toName: patientProfile.full_name || "Patient",
+            subject: paymentConfirmedSubject(serviceName, amountFormatted),
+            template: React.createElement(PaymentConfirmedEmail, {
+              patientName: patientProfile.full_name || "there",
+              requestType: serviceName,
+              amount: amountFormatted,
+              requestId: asyncEmailIntakeId,
+            }),
+            emailType: "payment_confirmed",
+            intakeId: asyncEmailIntakeId,
+            patientId: asyncEmailPatientId,
+            metadata: { amount_cents: asyncEmailAmountTotal },
+          })
+
+          // Send guest account completion email if this was a guest checkout
+          const isGuestCheckout = asyncEmailSessionMetadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
+          if (isGuestCheckout) {
+            const guestServiceName = asyncEmailSessionMetadata?.service_slug || "medical certificate"
+            sendGuestCompleteAccountEmail({
+              to: patientProfile.email,
+              patientName: patientProfile.full_name || "there",
+              serviceName: guestServiceName,
+              intakeId: asyncEmailIntakeId,
+              patientId: asyncEmailPatientId,
+            }).catch((err: unknown) => {
+              log.error("Guest account email error in async payment (non-fatal)", { intakeId: asyncEmailIntakeId }, err)
+            })
+            log.info("Guest account completion email queued (async payment)", { intakeId: asyncEmailIntakeId, email: patientProfile.email })
+          }
+        } catch (emailErr) {
+          log.warn("Async payment confirmation email error (non-fatal)", { intakeId: asyncEmailIntakeId }, emailErr)
+        }
+      })()
+    }
+
+    log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
+  } catch (error) {
+    log.error("Error processing async_payment_succeeded", { intakeId, eventId: event.id }, error)
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 })
+  }
+}

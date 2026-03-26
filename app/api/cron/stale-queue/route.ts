@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import * as Sentry from "@sentry/nextjs"
 import { trackBusinessMetric } from "@/lib/posthog-server"
 
@@ -23,6 +24,8 @@ export async function GET(request: NextRequest) {
   // Verify cron authentication
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  await recordCronHeartbeat("stale-queue")
 
   try {
     const supabase = createServiceRoleClient()

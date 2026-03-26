@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { captureCronError } from "@/lib/observability/sentry"
 import { getReconciliationRecords } from "@/lib/data/reconciliation"
 import * as Sentry from "@sentry/nextjs"
@@ -25,6 +26,8 @@ const logger = createLogger("cron-daily-reconciliation")
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  await recordCronHeartbeat("daily-reconciliation")
 
   // Acquire concurrency lock — prevents overlapping execution in serverless
   const lock = await acquireCronLock("daily-reconciliation")

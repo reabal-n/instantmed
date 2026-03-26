@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { captureCronError } from "@/lib/observability/sentry"
 import { toError } from "@/lib/errors"
 
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
   // Verify cron authentication (fail-closed)
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  await recordCronHeartbeat("release-stale-claims")
 
   // Acquire concurrency lock — prevents overlapping execution in serverless
   const lock = await acquireCronLock("release-stale-claims")

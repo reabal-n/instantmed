@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -23,6 +24,8 @@ const logger = createLogger("cron-retry-auto-approval")
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  await recordCronHeartbeat("retry-auto-approval")
 
   // Quick bail if feature flag is off
   const flags = await getFeatureFlags()

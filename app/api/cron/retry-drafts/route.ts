@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { toError } from "@/lib/errors"
@@ -20,6 +21,8 @@ export async function GET(request: NextRequest) {
   // Verify cron authentication (standardized)
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  await recordCronHeartbeat("retry-drafts")
 
   const supabase = createServiceRoleClient()
 

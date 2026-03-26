@@ -16,6 +16,7 @@ import { checkQueueHealthAndAlert } from "@/lib/monitoring/queue-health"
 import { checkDoctorActivityAndAlert } from "@/lib/monitoring/doctor-activity"
 import { checkDeliveryHealthAndAlert } from "@/lib/monitoring/delivery-tracking"
 import { getAIHealthMetrics } from "@/lib/monitoring/ai-health"
+import { recordCronHeartbeat, checkCronHeartbeats } from "@/lib/monitoring/cron-heartbeat"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import * as Sentry from "@sentry/nextjs"
 
@@ -28,11 +29,14 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
   
+  // Record heartbeat for this cron
+  await recordCronHeartbeat("health-check")
+
   const results: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     checks: {},
   }
-  
+
   try {
     // 1. Queue Health Check
     const queueHealth = await checkQueueHealthAndAlert()
@@ -78,11 +82,23 @@ export async function GET(request: NextRequest) {
       },
     }
     
+    // 5. Cron Heartbeat Check
+    const cronHealth = await checkCronHeartbeats()
+    results.checks = {
+      ...results.checks as object,
+      crons: {
+        healthy: cronHealth.healthy,
+        overdueCount: cronHealth.overdue.length,
+        overdue: cronHealth.overdue.map((o) => `${o.jobName} (+${o.minutesOverdue}min)`),
+      },
+    }
+
     // Determine overall health
-    const isHealthy = 
-      queueHealth.isHealthy && 
+    const isHealthy =
+      queueHealth.isHealthy &&
       (doctorActivity.hasRecentActivity || !doctorActivity.isBusinessHours) &&
-      aiHealth.isHealthy
+      aiHealth.isHealthy &&
+      cronHealth.healthy
     
     results.healthy = isHealthy
     results.status = isHealthy ? "ok" : "degraded"
