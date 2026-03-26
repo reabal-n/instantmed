@@ -13,6 +13,11 @@ export const ABN = "64 694 559 334"
 export const COMPANY_ADDRESS = "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010"
 export const COMPANY_ADDRESS_SHORT = "Level 1/457-459 Elizabeth St, Surry Hills NSW 2010"
 
+// System actor for auto-approval pipeline
+// This UUID must match the profile row seeded in the DB migration.
+// Used as claimed_by and actor_id so FK constraints are satisfied.
+export const SYSTEM_AUTO_APPROVE_ID = "00000000-0000-0000-0000-000000000000"
+
 // Contact info — use these constants instead of hardcoded strings
 export const CONTACT_EMAIL = "support@instantmed.com.au"
 export const CONTACT_EMAIL_HELLO = "hello@instantmed.com.au"
