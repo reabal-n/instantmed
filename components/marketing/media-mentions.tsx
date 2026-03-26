@@ -11,24 +11,28 @@ const regulatoryPartners = [
     description: 'AHPRA-registered doctors',
     logo: '/logos/AHPRA.svg',
     width: 100,
+    isSvg: true,
   },
   {
     name: 'TGA',
     description: 'TGA-compliant prescribing',
     logo: '/logos/TGA.svg',
     width: 80,
+    isSvg: true,
   },
   {
     name: 'Medicare',
     description: 'Medicare Australia',
     logo: '/logos/medicare.svg',
     width: 90,
+    isSvg: true,
   },
   {
     name: 'RACGP',
     description: 'RACGP-aligned protocols',
     logo: '/logos/RACGP.jpg',
     width: 90,
+    isSvg: false,
   },
 ]
 
@@ -63,7 +67,12 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
                   width={partner.width}
                   height={32}
                   unoptimized
-                  className="h-7 w-auto object-contain dark:brightness-0 dark:invert"
+                  className={cn(
+                    "h-7 w-auto object-contain",
+                    partner.isSvg
+                      ? "dark:brightness-0 dark:invert"
+                      : "rounded dark:bg-white/90 dark:p-0.5"
+                  )}
                 />
               </motion.div>
             ))}
@@ -101,7 +110,12 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
                   width={partner.width}
                   height={40}
                   unoptimized
-                  className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                  className={cn(
+                    "h-8 w-auto object-contain",
+                    partner.isSvg
+                      ? "dark:brightness-0 dark:invert"
+                      : "rounded dark:bg-white/90 dark:p-0.5"
+                  )}
                 />
               </motion.div>
             ))}
