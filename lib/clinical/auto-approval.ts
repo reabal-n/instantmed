@@ -249,8 +249,8 @@ export function evaluateAutoApprovalEligibility(
     flags.push(`pregnancy: ${pregnancyMatches.join(", ")}`)
   }
 
-  // 8. Duration check (1-N days, configurable via admin dashboard)
-  const maxDuration = options?.maxDurationDays ?? 3
+  // 8. Duration check (1-N days, configurable via admin dashboard, hard-capped at 3)
+  const maxDuration = Math.min(options?.maxDurationDays ?? 3, 3)
   const durationDays = extractDurationDays(answers)
   if (durationDays === null) {
     flags.push("duration_unknown")

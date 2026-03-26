@@ -204,6 +204,102 @@ export async function refreshFeatureFlagsAction() {
 }
 
 // ============================================================================
+// AUTO-APPROVE STATS
+// ============================================================================
+
+export interface AutoApproveStats {
+  todayApproved: number
+  todayFailed: number
+  todaySkipped: number
+  last7DaysApproved: number
+  lastApprovedAt: string | null
+  recentActivity: Array<{
+    id: string
+    intake_id: string | null
+    eligible: boolean
+    reason: string
+    created_at: string
+  }>
+}
+
+export async function getAutoApproveStatsAction(): Promise<AutoApproveStats> {
+  await requireAdmin()
+
+  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+  const supabase = createServiceRoleClient()
+
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const todayISO = todayStart.toISOString()
+
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const sevenDaysAgoISO = sevenDaysAgo.toISOString()
+
+  // Fetch today's auto-approve audit entries
+  const [todayResult, weekResult, recentResult] = await Promise.all([
+    supabase
+      .from("ai_audit_log")
+      .select("id, metadata")
+      .eq("action", "auto_approve")
+      .gte("created_at", todayISO),
+    supabase
+      .from("ai_audit_log")
+      .select("id, metadata")
+      .eq("action", "auto_approve")
+      .gte("created_at", sevenDaysAgoISO)
+      .not("metadata->certificate_id", "is", null),
+    supabase
+      .from("ai_audit_log")
+      .select("id, intake_id, metadata, created_at")
+      .eq("action", "auto_approve")
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ])
+
+  const todayEntries = todayResult.data || []
+  const todayApproved = todayEntries.filter(e => {
+    const meta = e.metadata as Record<string, unknown> | null
+    return meta?.certificate_id != null
+  }).length
+  const todayTotal = todayEntries.length
+  // Entries with eligible=true but no certificate_id are failures
+  const todayFailed = todayEntries.filter(e => {
+    const meta = e.metadata as Record<string, unknown> | null
+    return meta?.eligible === true && meta?.certificate_id == null
+  }).length
+  const todaySkipped = todayTotal - todayApproved - todayFailed
+
+  const weekApproved = (weekResult.data || []).length
+
+  // Find last approved timestamp
+  const lastApprovedEntry = (recentResult.data || []).find(e => {
+    const meta = e.metadata as Record<string, unknown> | null
+    return meta?.certificate_id != null
+  })
+
+  const recentActivity = (recentResult.data || []).map(e => {
+    const meta = e.metadata as Record<string, unknown> | null
+    return {
+      id: e.id as string,
+      intake_id: e.intake_id as string | null,
+      eligible: (meta?.eligible as boolean) ?? (meta?.certificate_id != null),
+      reason: (meta?.reason as string) || (meta?.certificate_id ? "Certificate issued" : "Unknown"),
+      created_at: e.created_at as string,
+    }
+  })
+
+  return {
+    todayApproved,
+    todayFailed,
+    todaySkipped,
+    last7DaysApproved: weekApproved,
+    lastApprovedAt: lastApprovedEntry?.created_at as string | null ?? null,
+    recentActivity,
+  }
+}
+
+// ============================================================================
 // REFUND ACTIONS
 // ============================================================================
 
