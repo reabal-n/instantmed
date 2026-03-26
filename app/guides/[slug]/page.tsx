@@ -706,7 +706,7 @@ export default async function GuidePage({ params }: PageProps) {
                             <ul className="space-y-2">
                               {step.tips.map((tip, j) => (
                                 <li key={j} className="text-sm text-muted-foreground flex items-start gap-2">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                  <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
                                   <span>{tip}</span>
                                 </li>
                               ))}

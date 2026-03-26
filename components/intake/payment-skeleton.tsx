@@ -42,7 +42,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
       </div>
 
       {/* Skeleton order summary */}
-      <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-border/50 dark:border-white/10 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 overflow-hidden shadow-sm">
         <div className="p-5 space-y-4">
           {/* Skeleton lines */}
           <div className="flex items-center justify-between">

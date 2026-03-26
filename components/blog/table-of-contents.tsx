@@ -63,7 +63,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   }
 
   return (
-    <nav className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 sticky top-24 border border-border/50 dark:border-white/10">
+    <nav className="bg-white dark:bg-card rounded-xl p-5 sticky top-24 border border-border/50 dark:border-white/10">
       <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-foreground">
         <List className="w-4 h-4" />
         On this page

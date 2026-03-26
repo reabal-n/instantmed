@@ -47,7 +47,7 @@ export function GlassStatCard({
     warning: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
     error: "bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400",
     info: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400",
-    neutral: "bg-card/60 text-muted-foreground dark:bg-white/10 dark:text-muted-foreground",
+    neutral: "bg-muted text-muted-foreground dark:bg-white/10 dark:text-muted-foreground",
   }
 
   const Wrapper = href ? "a" : onClick ? "button" : "div"
@@ -109,7 +109,7 @@ export function GlassStatCard({
             className={cn(
               "shrink-0 p-3 rounded-xl transition-transform duration-200",
               iconBgClasses[status],
-              "group-hover:scale-110"
+              "group-hover:scale-[1.02]"
             )}
           >
             {icon}

@@ -29,7 +29,7 @@ export function getSessionId(): string {
   let sessionId = localStorage.getItem(STORAGE_KEYS.SESSION_ID)
   
   if (!sessionId) {
-    sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+    sessionId = `sess_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
     localStorage.setItem(STORAGE_KEYS.SESSION_ID, sessionId)
   }
   

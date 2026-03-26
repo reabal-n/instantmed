@@ -13,8 +13,8 @@ export default function FlowError({ error, reset }: { error: Error & { digest?: 
 
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-4">
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-500/10 dark:bg-red-500/20">
-        <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-500" />
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-destructive/10 dark:bg-destructive/15">
+        <AlertTriangle className="h-6 w-6 text-destructive" />
       </div>
       <h2 className="text-lg font-semibold">Something went wrong</h2>
       <p className="text-sm text-muted-foreground max-w-sm text-center">

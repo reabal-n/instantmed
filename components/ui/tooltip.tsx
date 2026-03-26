@@ -24,14 +24,14 @@ const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        // Glass surface
-        "bg-card/90 dark:bg-white/10 backdrop-blur-xl",
+        // Solid depth surface
+        "bg-white dark:bg-card",
         // Border
-        "border border-border/50 dark:border-white/15",
+        "border border-border/50",
         // Shape
         "rounded-xl px-3 py-2 text-xs",
-        // Glow shadow
-        "shadow-[0_4px_20px_rgb(59,130,246,0.15)] dark:shadow-[0_4px_20px_rgb(139,92,246,0.15)]",
+        // Shadow
+        "shadow-md",
         // Text
         "text-foreground",
         // Z-index

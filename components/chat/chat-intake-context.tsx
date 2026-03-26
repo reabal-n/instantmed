@@ -41,10 +41,7 @@ interface StoredChat {
 }
 
 export function generateMessageId(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  return `msg_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
 }
 
 export function parseQuickReplies(content: string): { cleanContent: string; quickReplies: QuickReply[] } {

@@ -102,7 +102,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
   return (
     <div className="space-y-8">
       {/* Search and Filters */}
-      <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 sm:p-6 border border-border/50 dark:border-white/10">
+      <div className="bg-white dark:bg-card rounded-xl p-4 sm:p-6 border border-border/50 dark:border-white/10">
         {/* Search with Autocomplete */}
         <div className="mb-4">
           <SearchAutocomplete
@@ -120,7 +120,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
               "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
               selectedCategory === 'all'
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-card/60 dark:bg-white/5 text-muted-foreground hover:bg-card/80 dark:hover:bg-white/10'
+                : 'bg-muted dark:bg-white/10 text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/10'
             )}
           >
             All Articles
@@ -133,7 +133,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                 "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
                 selectedCategory === cat.slug
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-card/60 dark:bg-white/5 text-muted-foreground hover:bg-card/80 dark:hover:bg-white/10'
+                  : 'bg-muted dark:bg-white/10 text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/10'
               )}
             >
               {cat.name}
@@ -179,7 +179,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((article) => (
             <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
-              <article className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
+              <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
                 <div className="relative h-40 bg-card/40 dark:bg-white/10">
                   <Image
                     src={article.heroImage}
@@ -188,7 +188,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                     className="object-cover"
                   />
                   <div className="absolute top-3 left-3">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-card/90 dark:bg-white/10 backdrop-blur-sm text-primary">
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white dark:bg-card text-primary">
                       {categories[article.category]?.name || article.category}
                     </span>
                   </div>
@@ -216,7 +216,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10">
+        <div className="text-center py-16 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/10">
           <p className="text-muted-foreground mb-4">No articles found matching your criteria.</p>
           <Button variant="outline" onClick={clearFilters}>
             Clear filters

@@ -28,7 +28,7 @@ export function IntakeSkeleton({ className, variant = "form" }: IntakeSkeletonPr
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-20 rounded-xl bg-card/60 dark:bg-white/5 border border-border/50 dark:border-white/10 animate-pulse"
+              className="h-20 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 animate-pulse"
               style={{ animationDelay: `${i * 100}ms` }}
             />
           ))}
@@ -47,7 +47,7 @@ export function IntakeSkeleton({ className, variant = "form" }: IntakeSkeletonPr
         </div>
         
         {/* Review card skeleton */}
-        <div className="rounded-xl bg-card/60 dark:bg-white/5 border border-border/50 dark:border-white/10 p-5 space-y-4">
+        <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 p-5 space-y-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex justify-between">
               <div className="h-4 w-24 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
@@ -82,7 +82,7 @@ export function IntakeSkeleton({ className, variant = "form" }: IntakeSkeletonPr
         {[1, 2, 3].map((i) => (
           <div key={i} className="space-y-2" style={{ animationDelay: `${i * 100}ms` }}>
             <div className="h-4 w-24 bg-card/40 dark:bg-white/10 rounded animate-pulse" />
-            <div className="h-12 w-full bg-card/60 dark:bg-white/5 rounded-xl border border-border/50 dark:border-white/10 animate-pulse" />
+            <div className="h-12 w-full bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/10 animate-pulse" />
           </div>
         ))}
       </div>

@@ -17,7 +17,7 @@ async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
     const { Redis } = await import("@upstash/redis")
     const redis = Redis.fromEnv()
     const lockKey = "cron:repeat-rx-reminders:lock"
-    const lockValue = `${Date.now()}-${Math.random()}`
+    const lockValue = `${Date.now()}-${crypto.randomUUID()}`
     const acquired = await redis.set(lockKey, lockValue, { nx: true, ex: 3600 })
     if (!acquired) {
       logger.warn("Cron lock already held, skipping run")

@@ -126,7 +126,7 @@ export function Stepper({
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-300",
                     isCompleted && "bg-primary text-primary-foreground",
-                    isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-110",
+                    isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-[1.02]",
                     isPending && "bg-background border-2 border-default-200 text-muted-foreground"
                   )}
                 >
@@ -186,7 +186,7 @@ export function Stepper({
               className={cn(
                 "w-1.5 h-1.5 rounded-full transition-all duration-300",
                 index <= currentStep ? "bg-primary" : "bg-default-200",
-                index === currentStep && "scale-150"
+                index === currentStep && "scale-[1.05]"
               )}
             />
           ))}

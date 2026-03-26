@@ -61,7 +61,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            'p-2 rounded-full bg-card/60 dark:bg-white/5 text-muted-foreground transition-colors',
+            'p-2 rounded-full bg-muted dark:bg-white/10 text-muted-foreground transition-colors',
             link.color
           )}
           title={`Share on ${link.name}`}
@@ -73,7 +73,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
       <button
         onClick={copyToClipboard}
         className={cn(
-          'p-2 rounded-full bg-card/60 dark:bg-white/5 transition-colors',
+          'p-2 rounded-full bg-muted dark:bg-white/10 transition-colors',
           copied 
             ? 'text-emerald-600 dark:text-emerald-400' 
             : 'text-muted-foreground hover:text-primary'

@@ -125,7 +125,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                   "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                   isCompleted && "bg-primary border-primary",
                   isCurrent && "bg-white dark:bg-white/10 border-primary ring-4 ring-primary/20",
-                  isPending && "bg-card/60 dark:bg-white/5 border-border/50 dark:border-white/10"
+                  isPending && "bg-white dark:bg-card border-border/50 dark:border-white/10"
                 )}
                 initial={prefersReducedMotion ? {} : { scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
@@ -343,7 +343,7 @@ export function MedCertIntakeFlow({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
-              className="px-6 py-4 sm:px-8 sm:py-5 bg-card/60 dark:bg-white/5 border-t border-border/50 dark:border-white/10"
+              className="px-6 py-4 sm:px-8 sm:py-5 bg-white dark:bg-card border-t border-border/50 dark:border-white/10"
             >
               <div className="flex items-center justify-between gap-4">
                 {/* Back button */}

@@ -54,7 +54,7 @@ export default function CompareIndexPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 bg-card/80 dark:bg-white/5 border-b border-border/50 dark:border-white/10">
+          <section className="px-4 py-16 bg-white dark:bg-card border-b border-border/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                 <Scale className="w-4 h-4 text-primary" />
@@ -95,7 +95,7 @@ export default function CompareIndexPage() {
                           {comparison.highlights.map((highlight) => (
                             <span 
                               key={highlight}
-                              className="text-xs px-2 py-1 bg-card/60 dark:bg-white/10 rounded-full text-muted-foreground"
+                              className="text-xs px-2 py-1 bg-muted dark:bg-white/10 rounded-full text-muted-foreground"
                             >
                               {highlight}
                             </span>

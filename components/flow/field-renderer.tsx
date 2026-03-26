@@ -47,7 +47,7 @@ export function FieldRenderer({
         >
           {label}
           {field.validation?.required && (
-            <span className="text-red-400 ml-0.5">*</span>
+            <span className="text-destructive ml-0.5">*</span>
           )}
         </Label>
       )}
@@ -70,7 +70,7 @@ export function FieldRenderer({
 
       {/* Error */}
       {error && (
-        <p className="mt-1.5 text-xs text-red-500 dark:text-red-400" role="alert">
+        <p className="mt-1.5 text-xs text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -224,9 +224,9 @@ function OptionCards({
             onClick={() => handleClick(opt.value)}
             className={cn(
               "w-full text-left rounded-xl border-2 px-4 py-3 transition-all duration-200",
-              "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
+              "hover:border-success/30 hover:bg-success/10",
               isActive
-                ? "border-emerald-500 bg-emerald-50 shadow-sm dark:border-emerald-400 dark:bg-emerald-950/30"
+                ? "border-success bg-success/10 shadow-sm"
                 : "border-border bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
@@ -261,9 +261,9 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
             key={String(opt.value)}
             className={cn(
               "flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all duration-200",
-              "hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/20",
+              "hover:border-success/30 hover:bg-success/10",
               isActive
-                ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/30"
+                ? "border-success bg-success/10"
                 : "border-border bg-white dark:border-white/10 dark:bg-white/5"
             )}
           >
@@ -278,11 +278,11 @@ function RadioGroup({ id, value, onChange, options }: FieldInternals) {
             <span
               className={cn(
                 "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                isActive ? "border-emerald-500 dark:border-emerald-400" : "border-border"
+                isActive ? "border-success" : "border-border"
               )}
             >
               {isActive && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-success" />
               )}
             </span>
             <div>

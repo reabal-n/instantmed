@@ -153,8 +153,5 @@ export function getDraftSummary(draft: DraftIntake): {
 // =============================================================================
 
 export function generateDraftId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `draft_${crypto.randomUUID()}`
-  }
-  return `draft_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  return `draft_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
 }

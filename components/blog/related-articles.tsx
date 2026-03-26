@@ -28,7 +28,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
             href={`/blog/${article.slug}`}
             className="group"
           >
-            <article className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
+            <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
               <div className="relative h-32 bg-card/40 dark:bg-white/10">
                 <Image
                   src={article.heroImage}
@@ -37,7 +37,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   className="object-cover"
                 />
                 <div className="absolute top-2 left-2">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-card/90 dark:bg-white/10 backdrop-blur-sm text-primary">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white dark:bg-card text-primary">
                     {article.readingTime} min read
                   </span>
                 </div>

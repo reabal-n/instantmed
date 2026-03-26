@@ -37,7 +37,7 @@ export function ComplianceMarquee({
 
   return (
     <div className={cn(
-      "relative overflow-hidden bg-card/60 dark:bg-white/5 border-y border-border/50 dark:border-white/10 py-3",
+      "relative overflow-hidden bg-white dark:bg-card border-y border-border/50 dark:border-white/10 py-3",
       className
     )}>
       {/* Gradient fade edges */}

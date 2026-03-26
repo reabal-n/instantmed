@@ -85,11 +85,11 @@ function ReviewSection({
   onEdit?: () => void
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 dark:border-white/10 bg-card/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <div className="rounded-2xl border border-border/60 dark:border-white/10 bg-white dark:bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
       <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-card/60 dark:hover:bg-white/10">
+          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10">
             <Edit2 className="w-3 h-3" />
             Edit
           </Button>

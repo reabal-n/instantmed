@@ -97,7 +97,7 @@ export function OptionCard({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
           ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-          : "border-border/60 bg-card/50 hover:border-primary/40 hover:bg-card/80",
+          : "border-border/60 bg-white dark:bg-card hover:border-primary/40 hover:bg-muted/50",
         disabled && "opacity-50 cursor-not-allowed hover:scale-100",
         className
       )}
@@ -185,7 +185,7 @@ export function ChipOption({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
           ? "border-primary bg-primary text-primary-foreground shadow-md"
-          : "border-border/60 bg-card/50 hover:border-primary/40",
+          : "border-border/60 bg-white dark:bg-card hover:border-primary/40",
         disabled && "opacity-50 cursor-not-allowed hover:scale-100",
         className
       )}

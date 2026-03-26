@@ -83,7 +83,7 @@ export function SummaryPayment({
       </div>
 
       {/* Summary card */}
-      <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5 backdrop-blur-xl divide-y divide-border/50">
+      <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-white dark:bg-card divide-y divide-border/50">
         {/* Request type */}
         <div className="p-4">
           <SummaryRow label="Request type" value={config.name} />

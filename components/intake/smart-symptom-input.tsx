@@ -228,7 +228,7 @@ export function SmartSymptomInput({
           placeholder={getContextPlaceholder()}
           className={cn(
             "min-h-[120px] resize-none transition-all duration-200",
-            "bg-card/80 dark:bg-white/5 backdrop-blur-sm",
+            "bg-white dark:bg-card",
             "border border-input",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             !isValid && value.length > 0 && "border-amber-400",

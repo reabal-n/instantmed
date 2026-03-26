@@ -366,7 +366,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <Link 
               key={i}
               href={service.href}
-              className="group flex items-start gap-4 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
+              className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
             >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <ServiceIcon icon={service.icon} />
@@ -413,7 +413,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Author card - at end of article */}
       <div className="mt-8 pt-6 border-t border-border">
-        <div className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-border/50 dark:border-white/10">
+        <div className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/10">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-foreground">{article.author.name}</p>
             <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
@@ -491,7 +491,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             
             {/* Popular Articles */}
             {allArticles.length > 0 && (
-              <div className="bg-card/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-border/50 dark:border-white/10">
+              <div className="bg-white dark:bg-card rounded-xl p-5 border border-border/50 dark:border-white/10">
                 <PopularArticlesCompact articles={allArticles} limit={3} />
               </div>
             )}

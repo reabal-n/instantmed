@@ -137,7 +137,7 @@ export function DetailsStep({
           placeholder="E.g., dosage, frequency, any concerns..."
           value={additionalNotes}
           onChange={(e) => onNotesChange(e.target.value)}
-          className="min-h-20 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-lg border-border/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
+          className="min-h-20 rounded-xl bg-white dark:bg-card border-border/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
         />
       </FormField>
 

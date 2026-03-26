@@ -323,7 +323,7 @@ export function createEmptyIntake(
   const now = new Date().toISOString()
   
   return {
-    id: `intake_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+    id: `intake_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
     createdAt: now,
     updatedAt: now,
     status: 'in_progress',

@@ -46,11 +46,11 @@ export function SessionProgress({
               className={cn(
                 "w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300",
                 isComplete && "bg-primary scale-100",
-                isCurrent && "bg-primary/80 scale-110",
+                isCurrent && "bg-primary/80 scale-[1.02]",
                 !isComplete && !isCurrent && "bg-border"
               )}
               animate={{
-                scale: isCurrent ? 1.1 : 1
+                scale: isCurrent ? 1.02 : 1
               }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               role="progressbar"
@@ -105,7 +105,7 @@ export function SessionProgressDots({
           key={i}
           className={cn(
             "w-2 h-2 rounded-full transition-all duration-300",
-            i === currentStep && "bg-primary scale-125",
+            i === currentStep && "bg-primary scale-[1.02]",
             i < currentStep && "bg-primary/60",
             i > currentStep && "bg-border"
           )}

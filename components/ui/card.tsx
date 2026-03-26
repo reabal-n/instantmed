@@ -7,7 +7,7 @@ export interface CardProps {
   children?: React.ReactNode
   className?: string
   style?: React.CSSProperties
-  /** Glass intensity level */
+  /** Elevation tier */
   glass?: "subtle" | "normal" | "elevated"
   /** Enable hover effects */
   hoverable?: boolean
@@ -17,11 +17,11 @@ export interface CardProps {
 
 const craftCardStyles = {
   subtle:
-    "bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10",
+    "bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none",
   normal:
-    "bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none",
+    "bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none",
   elevated:
-    "bg-card/90 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 shadow-md dark:shadow-none",
+    "bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.1] dark:shadow-none",
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(

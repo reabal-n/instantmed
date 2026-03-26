@@ -171,9 +171,9 @@ async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
     const { Redis } = await import("@upstash/redis")
     const redis = Redis.fromEnv()
     const lockKey = "cron:abandoned-checkout:lock"
-    const lockValue = `${Date.now()}-${Math.random()}`
+    const lockValue = `${Date.now()}-${crypto.randomUUID()}`
     const lockTtlSeconds = 3600 // 1 hour max lock duration
-    
+
     // Try to acquire lock with NX (only set if not exists)
     const acquired = await redis.set(lockKey, lockValue, { nx: true, ex: lockTtlSeconds })
     

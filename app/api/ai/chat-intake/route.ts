@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate session ID for tracking
-    const sessionId = request.headers.get('x-session-id') || `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+    const sessionId = request.headers.get('x-session-id') || `session_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
     const startTime = Date.now()
 
     // Parse request body

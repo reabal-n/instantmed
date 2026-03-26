@@ -74,7 +74,7 @@ export function EmailVerificationGate({
           </div>
 
           {/* Email display */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-card border text-sm">
             <Mail className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{email}</span>
           </div>

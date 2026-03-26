@@ -128,7 +128,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -140,7 +140,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -152,7 +152,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
@@ -164,7 +164,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
                     <div>
@@ -230,7 +230,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <Stethoscope className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Your symptoms</h3>
@@ -240,7 +240,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <Clock className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration requested</h3>
@@ -250,7 +250,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <MessageCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Telehealth appropriateness</h3>
@@ -335,7 +335,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/80 dark:bg-white/5">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
                   <BadgeCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">AHPRA Registered</h3>
@@ -343,7 +343,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/80 dark:bg-white/5">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
                   <FileCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Provider Number Included</h3>
@@ -351,7 +351,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/80 dark:bg-white/5">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
                   <Building2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Australian-Based</h3>
@@ -359,7 +359,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-card/80 dark:bg-white/5">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
                   <Shield className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Legally Valid</h3>
@@ -377,7 +377,7 @@ export default function WorkMedCertPage() {
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                  <div key={i} className="p-5 rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
                   </div>

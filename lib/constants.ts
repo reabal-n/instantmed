@@ -136,7 +136,7 @@ export const FORM_TOKENS = {
   // Background colors
   bg: {
     default: "bg-white dark:bg-white/5",
-    glass: "bg-white/60 dark:bg-white/5 backdrop-blur-lg",
+    glass: "bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]",
   },
   // Border radius
   radius: "rounded-xl",

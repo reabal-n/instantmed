@@ -270,8 +270,5 @@ export function detectIntakeStep(
  * Generate a session ID for tracking
  */
 export function generateSessionId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `intake_${crypto.randomUUID()}`
-  }
-  return `intake_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  return `intake_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
 }

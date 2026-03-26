@@ -187,7 +187,7 @@ export default function Error({
                 transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
               />
             )}
-            <div className="relative bg-card/80 backdrop-blur-md rounded-3xl p-8 border border-amber-200/50 dark:border-dawn-500/20 shadow-2xl">
+            <div className="relative bg-white dark:bg-card rounded-3xl p-8 border border-border/50 shadow-md shadow-primary/[0.06]">
               <AlertTriangle className="h-14 w-14 text-dawn-500" />
             </div>
           </div>

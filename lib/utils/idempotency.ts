@@ -10,6 +10,7 @@ export function generateIdempotencyKey(): string {
   
   // Fallback for older environments
   const timestamp = Date.now().toString(36)
-  const randomPart = Math.random().toString(36).substring(2, 15)
+  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  const randomPart = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
   return `${timestamp}-${randomPart}`
 }

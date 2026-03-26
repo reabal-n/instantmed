@@ -115,7 +115,7 @@ const SOCIAL_PROOF_STATS = [
   { icon: Users, value: "4,200+", label: "certificates issued", color: "text-primary" },
   { icon: Clock, value: "42 min", label: "avg turnaround", color: "text-primary" },
   { icon: Star, value: "4.9/5", label: "patient rating", color: "text-amber-500" },
-  { icon: ShieldCheck, value: "100%", label: "employer accepted", color: "text-emerald-500" },
+  { icon: ShieldCheck, value: "100%", label: "employer accepted", color: "text-success" },
 ]
 
 // =============================================================================
@@ -216,7 +216,7 @@ function HeroSection({ ctaRef }: { ctaRef?: React.RefObject<HTMLDivElement | nul
                 variant="price"
                 shape="pill"
                 size="lg"
-                className="hover:bg-emerald-500/15 transition-colors duration-200 cursor-default"
+                className="hover:bg-success/15 transition-colors duration-200 cursor-default"
               >
                 Medical certificates from ${PRICING.MED_CERT.toFixed(2)}
               </Badge>
@@ -411,7 +411,7 @@ function CertificatePreviewSection() {
                   key={feature}
                   className="flex items-start gap-3 text-sm text-foreground"
                 >
-                  <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <span>{feature}</span>
                 </li>
               ))}
@@ -614,10 +614,10 @@ export function MedCertLanding() {
 
   // Pricing section color config (emerald for med cert)
   const pricingColors = {
-    light: "bg-emerald-50 dark:bg-emerald-950/30",
-    text: "text-emerald-600 dark:text-emerald-400",
-    border: "border-emerald-200 dark:border-emerald-800",
-    button: "bg-emerald-600 hover:bg-emerald-700",
+    light: "bg-success/10",
+    text: "text-success",
+    border: "border-success/20",
+    button: "bg-success hover:bg-success/90",
   }
 
   return (

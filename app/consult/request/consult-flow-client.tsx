@@ -622,7 +622,7 @@ export function ConsultFlowClient({
                       <button
                         key={n}
                         onClick={() => setIrn(n)}
-                        className={`flex-1 h-12 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-lg border-border/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
+                        className={`flex-1 h-12 rounded-xl bg-white dark:bg-card border-border/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
                           irn === n
                             ? "border-primary bg-primary/5 text-primary"
                             : "border-border/60 hover:border-border"

@@ -116,7 +116,7 @@ export function DoctorAvailability({
           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
           showOnline
             ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-            : "bg-card/60 text-muted-foreground dark:bg-white/10",
+            : "bg-muted text-muted-foreground dark:bg-white/10",
           className,
         )}
       >

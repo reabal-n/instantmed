@@ -35,7 +35,7 @@ export function PopularArticles({
 
   return (
     <aside className={className}>
-      <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/10 overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm">{title}</h3>
@@ -49,7 +49,7 @@ export function PopularArticles({
               className="flex gap-3 p-4 hover:bg-muted/50 transition-colors group"
             >
               {/* Rank number */}
-              <div className="shrink-0 w-6 h-6 rounded-full bg-card/60 dark:bg-white/5 flex items-center justify-center">
+              <div className="shrink-0 w-6 h-6 rounded-full bg-muted dark:bg-white/10 flex items-center justify-center">
                 <span className="text-xs font-bold text-muted-foreground">
                   {index + 1}
                 </span>

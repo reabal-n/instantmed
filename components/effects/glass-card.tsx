@@ -21,19 +21,19 @@ interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
 // Glass styles
 const glassStyles = {
   subtle: cn(
-    "bg-card/60 dark:bg-white/5",
-    "backdrop-blur-lg",
-    "border border-border/40 dark:border-white/10",
+    "bg-white dark:bg-card",
+    "border border-border/50 dark:border-white/15",
+    "shadow-sm shadow-primary/[0.04] dark:shadow-none",
   ),
   normal: cn(
-    "bg-card/75 dark:bg-white/5",
-    "backdrop-blur-xl",
-    "border border-border/50 dark:border-white/10",
+    "bg-white dark:bg-card",
+    "border border-border/50 dark:border-white/15",
+    "shadow-md shadow-primary/[0.06] dark:shadow-none",
   ),
   elevated: cn(
-    "bg-card/90 dark:bg-white/10",
-    "backdrop-blur-2xl",
+    "bg-white dark:bg-card",
     "border border-border/50 dark:border-white/15",
+    "shadow-lg shadow-primary/[0.1] dark:shadow-none",
   ),
 }
 
@@ -63,7 +63,7 @@ export function GlassCard({
         // Glass surface
         glassStyles[glass],
         // Soft shadow
-        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
+        "shadow-md shadow-primary/[0.06]",
         // Hover glow
         hover && glowColors[glowColor],
         // Transition
@@ -84,12 +84,7 @@ export function GlassCard({
       } : undefined}
       {...props}
     >
-      {/* Inner glow gradient overlay */}
-      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-white/10 to-transparent pointer-events-none" />
-      {/* Content */}
-      <div className="relative">
-        {children}
-      </div>
+      {children}
     </motion.div>
   )
 }
@@ -109,14 +104,11 @@ export function GlassPanel({
       className={cn(
         "relative rounded-2xl",
         glassStyles[glass],
-        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
+        "shadow-md shadow-primary/[0.06]",
         className,
       )}
     >
-      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-white/10 to-transparent pointer-events-none" />
-      <div className="relative">
-        {children}
-      </div>
+      {children}
     </div>
   )
 }

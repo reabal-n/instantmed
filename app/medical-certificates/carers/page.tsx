@@ -127,7 +127,7 @@ export default function CarersMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -139,7 +139,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -151,7 +151,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -163,7 +163,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
@@ -186,7 +186,7 @@ export default function CarersMedCertPage() {
                 The certificate provides what your employer needs while protecting privacy.
               </p>
 
-              <div className="p-6 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+              <div className="p-6 rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <FileCheck className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
@@ -228,7 +228,7 @@ export default function CarersMedCertPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <Users className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Relationship</h3>
@@ -238,7 +238,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <Stethoscope className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Care requirement</h3>
@@ -248,7 +248,7 @@ export default function CarersMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <Clock className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration</h3>
@@ -331,7 +331,7 @@ export default function CarersMedCertPage() {
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                  <div key={i} className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question.replace(/&apos;/g, "'")}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer.replace(/&apos;/g, "'")}</p>
                   </div>

@@ -110,7 +110,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                 <Link href={service.href} className="group block h-full">
                   <GlowingBorder>
                     <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-                      <div className="h-full bg-card/80 dark:bg-card/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                      <div className="h-full bg-white dark:bg-card rounded-[22px] overflow-hidden">
                         {/* Image section */}
                         <div className="relative h-40 overflow-hidden">
                           <Image
@@ -130,13 +130,13 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           )}
 
                           {/* Price tag */}
-                          <div className="absolute top-4 right-4 bg-card/95 dark:bg-card/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                          <div className="absolute top-4 right-4 bg-white dark:bg-card rounded-full px-3 py-1 shadow-lg">
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
                           </div>
 
                           {/* Icon */}
                           <div
-                            className="absolute bottom-4 left-4 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl shadow-lg"
+                            className="absolute bottom-4 left-4 h-12 w-12 rounded-xl flex items-center justify-center shadow-lg"
                             style={{
                               background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
                             }}
@@ -145,7 +145,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           </div>
                           
                           {/* Time badge */}
-                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-card/90 dark:bg-card/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-1 text-xs">
                             <Clock className="h-3 w-3" style={{ color: service.color }} />
                             <span className="font-medium">{service.estimatedTime}</span>
                           </div>

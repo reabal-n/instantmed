@@ -77,7 +77,7 @@ export function Progress({ stages, currentIndex }: { stages: readonly string[]; 
               <div
                 key={label}
                 className={`w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300 ${
-                  isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-110" : "bg-muted-foreground/30"
+                  isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-[1.02]" : "bg-muted-foreground/30"
                 }`}
                 role="progressbar"
                 aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
@@ -139,7 +139,7 @@ export function OptionTile({
       className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
         selected
           ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-          : "border-border/60 dark:border-border/40 bg-card/90 dark:bg-white/5 hover:border-border hover:bg-card"
+          : "border-border/60 dark:border-border/40 bg-white dark:bg-card hover:border-border hover:bg-muted/50"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export function PillButton({
       className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
         selected
           ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-          : "bg-card/90 dark:bg-white/5 text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-white"
+          : "bg-white dark:bg-card text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-muted/50"
       }`}
     >
       {emoji && <span className="mr-1.5">{emoji}</span>}

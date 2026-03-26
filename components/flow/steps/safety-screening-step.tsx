@@ -65,7 +65,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border-2 border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5 backdrop-blur-xl p-5"
+          className="rounded-xl border-2 border-border/50 dark:border-white/10 bg-white dark:bg-card p-5"
         >
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
@@ -90,7 +90,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.05 }}
                 className="flex items-center gap-2.5 text-sm text-foreground"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
                 {symptom}
               </motion.li>
             ))}
@@ -105,8 +105,8 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
           className={cn(
             'rounded-xl border-2 p-5 transition-all duration-200',
             safetyConfirmed
-              ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10'
-              : 'border-border/50 dark:border-white/10 bg-card/80 dark:bg-white/5'
+              ? 'border-success bg-success/10'
+              : 'border-border/50 dark:border-white/10 bg-white dark:bg-card'
           )}
         >
           <IOSToggle
@@ -125,7 +125,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-success/20 text-success">
                   <Shield className="w-4 h-4" />
                   <span className="text-sm font-medium">Ready to continue</span>
                 </div>
@@ -158,7 +158,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
             className={cn(
               'w-full h-13 text-base font-semibold rounded-xl transition-all duration-200',
               safetyConfirmed
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20'
+                ? 'bg-success hover:bg-success/90 text-white shadow-lg shadow-success/20'
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
             )}
           >
@@ -183,11 +183,11 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
               animate={{ scale: 1, opacity: 1 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-card/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+              className="w-full max-w-md bg-white dark:bg-card border border-border/50 rounded-2xl p-6 shadow-xl"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg text-foreground">
@@ -202,12 +202,12 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
               <div className="space-y-3 mb-6">
                 <a
                   href="tel:000"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border-2 border-destructive/20 hover:bg-destructive/15 transition-colors"
                 >
-                  <Phone className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <Phone className="w-5 h-5 text-destructive" />
                   <div>
-                    <p className="font-semibold text-red-900 dark:text-red-200">Call 000</p>
-                    <p className="text-sm text-red-700 dark:text-red-400">Emergency services</p>
+                    <p className="font-semibold text-destructive">Call 000</p>
+                    <p className="text-sm text-destructive/80">Emergency services</p>
                   </div>
                 </a>
 

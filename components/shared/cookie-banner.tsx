@@ -123,7 +123,7 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checke
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full",
         "transition-colors duration-200 ease-in-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        checked ? "bg-primary" : "bg-card/60 dark:bg-white/10"
+        checked ? "bg-primary" : "bg-muted dark:bg-white/10"
       )}
     >
       <span
@@ -229,7 +229,7 @@ export function CookieBanner() {
       role="dialog"
       aria-label="Cookie consent"
     >
-      <div className="bg-card/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 dark:border-white/10 overflow-hidden">
+      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 dark:border-white/10 overflow-hidden">
         {!showDetails ? (
           // Simple view - compact floating card
           <div className="p-4">
@@ -294,7 +294,7 @@ export function CookieBanner() {
 
             <div className="space-y-2">
               {/* Essential - always on */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <div>
                   <p className="text-sm font-medium text-foreground">Essential</p>
                   <p className="text-xs text-muted-foreground">
@@ -305,7 +305,7 @@ export function CookieBanner() {
               </div>
 
               {/* Analytics */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <label htmlFor="analytics-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-foreground">Analytics</p>
                   <p className="text-xs text-muted-foreground">
@@ -320,7 +320,7 @@ export function CookieBanner() {
               </div>
 
               {/* Marketing */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/60 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <label htmlFor="marketing-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-foreground">Marketing</p>
                   <p className="text-xs text-muted-foreground">

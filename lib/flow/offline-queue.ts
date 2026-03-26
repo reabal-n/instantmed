@@ -76,7 +76,7 @@ function saveQueue(state: OfflineQueueState): void {
  * Generate unique action ID
  */
 function generateActionId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 }
 
 /**

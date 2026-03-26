@@ -26,7 +26,7 @@ export default function NotFound() {
           </h1>
           <div className="absolute inset-0 flex items-center justify-center">
             <div 
-              className="bg-card/80 backdrop-blur-md rounded-3xl px-8 py-6 border border-border/50 shadow-2xl shadow-primary/5 animate-bounce"
+              className="bg-white dark:bg-card rounded-3xl px-8 py-6 border border-border/50 shadow-md shadow-primary/[0.06]"
             >
               <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-blue-600 flex items-center justify-center">
                 <Zap className="h-7 w-7 text-background" aria-hidden="true" />

@@ -313,8 +313,7 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
         <motion.div
           className={cn(
             // Glass elevated surface
-            "bg-card/90 dark:bg-white/10",
-            "backdrop-blur-2xl",
+            "bg-white dark:bg-card",
             "border border-sky-300/45 dark:border-white/15",
             "rounded-3xl",
             "shadow-[0_20px_60px_rgba(197,221,240,0.30)]",

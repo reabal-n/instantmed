@@ -181,7 +181,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </div>
                 ) : (
                   <AppSignInButton>
-                    <Button variant="outline" className="w-full rounded-xl bg-card/50 dark:bg-white/5 hover:bg-card/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
+                    <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                       Sign in
                     </Button>
                   </AppSignInButton>

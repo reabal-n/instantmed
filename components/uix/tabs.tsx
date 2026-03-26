@@ -64,7 +64,7 @@ export function Tabs({
       <TabsPrimitive.List
         className={cn(
           "inline-flex items-center justify-center",
-          "bg-default-100/50 backdrop-blur-sm p-1 rounded-xl",
+          "bg-default-100/50 p-1 rounded-xl",
           "text-muted-foreground",
           fullWidth && "w-full",
           classNames?.tabList
