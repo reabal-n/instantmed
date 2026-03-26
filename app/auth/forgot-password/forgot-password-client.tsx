@@ -64,7 +64,7 @@ export function ForgotPasswordClient() {
             </div>
           </div>
         </main>
-        <Footer />
+        <Footer variant="minimal" />
       </>
     )
   }
@@ -130,7 +130,7 @@ export function ForgotPasswordClient() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer variant="minimal" />
     </>
   )
 }

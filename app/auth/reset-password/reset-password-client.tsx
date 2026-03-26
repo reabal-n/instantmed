@@ -152,7 +152,7 @@ export function ResetPasswordClient() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer variant="minimal" />
     </>
   )
 }

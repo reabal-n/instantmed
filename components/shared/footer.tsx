@@ -2,8 +2,10 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 import { FooterAuth } from "@/components/shared/footer-auth"
-import { Phone } from "lucide-react"
-import { CONTACT_PHONE, COMPANY_NAME, ABN } from "@/lib/constants"
+import { PaymentMethodIcons, StripeBadge } from "@/components/checkout/trust-badges"
+import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from "lucide-react"
+import { footerLinks } from "@/lib/marketing/homepage"
+import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE, COMPANY_NAME, COMPANY_ADDRESS_SHORT, ABN } from "@/lib/constants"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -12,13 +14,51 @@ const TapeDecoration = () => (
   </svg>
 )
 
-export function Footer() {
+function FooterTrustBadges() {
+  return (
+    <div className="flex flex-col items-center gap-4 py-6 border-t border-border/30 dark:border-border/50">
+      <div className="flex flex-col items-center gap-2">
+        <PaymentMethodIcons size="sm" />
+        <StripeBadge variant="powered-by" />
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>SSL Encrypted</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>PCI Compliant</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Award className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>AHPRA Doctors</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Pill className="w-3.5 h-3.5 text-primary" />
+          <span>TGA Compliant</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Eye className="w-3.5 h-3.5" />
+          <span>Privacy Act Compliant</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface FooterProps {
+  variant?: "marketing" | "minimal"
+}
+
+export function Footer({ variant = "marketing" }: FooterProps) {
   const currentYear = new Date().getFullYear()
+  const isMarketing = variant === "marketing"
 
   return (
     <footer className="my-8 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card with tape decorations */}
-      <div className="relative bg-card dark:bg-white/5 rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 dark:border-white/10 shadow-sm dark:shadow-none">
+      <div className="relative bg-white dark:bg-card rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
         {/* Tape decorations */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
@@ -29,14 +69,34 @@ export function Footer() {
 
         <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-10 px-2 md:px-8 flex-1 w-full">
           {/* Brand section */}
-          <div className="flex flex-col items-start gap-2">
+          <div className="flex flex-col items-start gap-3">
             <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              See a doctor from bed. Sorted in under an hour.
+              See a doctor from bed. Most requests reviewed within 1-2 hours.
             </p>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Phone className="w-3.5 h-3.5 shrink-0" />
-              <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
+            <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+              {isMarketing && (
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>{COMPANY_ADDRESS_SHORT}</span>
+                </div>
+              )}
+              {isMarketing && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL}</a>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
+              </div>
+              {isMarketing && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground/70">Complaints:</span>
+                  <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL_COMPLAINTS}</a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -45,15 +105,15 @@ export function Footer() {
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
               <h4 className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</h4>
               <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=med-cert">
-                  Medical Certificates
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=prescription">
-                  Repeat Medication
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=consult">
-                  General Consult
-                </Link>
+                {footerLinks.services.map((link) => (
+                  <Link
+                    key={link.href}
+                    className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </nav>
 
@@ -61,50 +121,70 @@ export function Footer() {
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Company">
               <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Company</h4>
               <div className="flex gap-2 flex-wrap md:flex-col text-sm items-start">
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-it-works">
-                  How it Works
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-we-decide">
-                  How Decisions Are Made
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/clinical-governance">
-                  Clinical Governance
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/pricing">
-                  Pricing
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/trust">
-                  Why Trust Us
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/contact">
-                  Contact
-                </Link>
+                {footerLinks.company.map((link) => (
+                  <Link
+                    key={link.href}
+                    className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </nav>
 
+            {/* Legal column */}
+            {isMarketing && (
+              <nav className="flex flex-col gap-1 md:gap-4" aria-label="Legal">
+                <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Legal</h4>
+                <div className="flex flex-col gap-2 text-sm items-start">
+                  {footerLinks.legal.map((link) => (
+                    <Link
+                      key={link.href}
+                      className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
+                      href={link.href}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Scrolling Compliance Marquee */}
+      {/* Trust badges (marketing only) */}
+      {isMarketing && <FooterTrustBadges />}
+
+      {/* Compliance marquee */}
       <ComplianceMarquee speed="slow" />
+
+      {/* Disclaimer (marketing only) */}
+      {isMarketing && (
+        <div className="my-4 px-4 md:px-8 text-xs text-muted-foreground/70 space-y-2">
+          <p>
+            <strong className="text-muted-foreground">Important:</strong> Online assessment is not suitable for medical emergencies.
+            If you are experiencing a medical emergency, call <strong className="text-foreground">000</strong> immediately.
+          </p>
+        </div>
+      )}
 
       {/* Bottom bar */}
       <div className="my-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center">
           <p className="whitespace-nowrap text-xs">
-            © {currentYear} {COMPANY_NAME}. All rights reserved.
+            &copy; {currentYear} {COMPANY_NAME}. All rights reserved.
           </p>
           <div className="flex flex-row gap-4 text-xs">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund Policy</Link>
             <FooterAuth />
           </div>
         </div>
-
         <p className="text-xs text-muted-foreground/70">
-          Operating since 2025 · ABN: {ABN}
+          Operating since 2025 &middot; ABN: {ABN}
         </p>
       </div>
     </footer>

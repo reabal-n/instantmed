@@ -58,7 +58,7 @@ export default async function CompleteAccountPage({
           </Suspense>
         </div>
       </main>
-      <Footer />
+      <Footer variant="minimal" />
     </>
   )
 }
