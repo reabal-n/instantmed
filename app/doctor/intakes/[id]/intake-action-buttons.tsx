@@ -52,7 +52,7 @@ export function IntakeActionButtons({
           {serviceType === "med_certs" && ["paid", "in_review"].includes(intakeStatus) && (
             <Button onClick={onMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
               {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-              {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Review & Send Certificate"}
+              {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
             </Button>
           )}
 
