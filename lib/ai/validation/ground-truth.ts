@@ -98,9 +98,31 @@ interface IntakeAnswers {
   duration_days?: number
   symptoms?: string[]
   symptom_list?: string[]
+  symptomDetails?: string
+  symptom_details?: string
+  additional_info?: string
+  reason_for_visit?: string
   certificateType?: string
   certificate_type?: string
   [key: string]: unknown
+}
+
+/**
+ * Extract all patient-reported text from intake answers (lowercased).
+ * Terms that appear in this text are allowed in AI output — the forbidden lists
+ * should only catch AI *hallucinations*, not echoes of patient-reported data.
+ */
+function getPatientReportedText(answers: IntakeAnswers): string {
+  const parts: string[] = []
+  const symptoms = answers.symptoms ?? answers.symptom_list
+  if (Array.isArray(symptoms)) {
+    parts.push(...symptoms.filter((s): s is string => typeof s === "string"))
+  }
+  if (typeof answers.symptomDetails === "string") parts.push(answers.symptomDetails)
+  if (typeof answers.symptom_details === "string") parts.push(answers.symptom_details)
+  if (typeof answers.additional_info === "string") parts.push(answers.additional_info)
+  if (typeof answers.reason_for_visit === "string") parts.push(answers.reason_for_visit)
+  return parts.join(" ").toLowerCase()
 }
 
 /** Normalize intake answers to canonical keys (supports both camelCase and snake_case) */
@@ -133,6 +155,7 @@ export function validateMedCertAgainstIntake(
 ): GroundTruthValidationResult {
   const errors: GroundTruthError[] = []
   const n = normalizeIntakeAnswers(intakeAnswers)
+  const patientText = getPatientReportedText(intakeAnswers)
 
   // 1. Validate dates match intake
   if (n.startDate && aiOutput.startDate !== n.startDate) {
@@ -166,7 +189,7 @@ export function validateMedCertAgainstIntake(
     })
   }
 
-  // 3. Check for forbidden diagnosis terms
+  // 3. Check for forbidden diagnosis terms (skip if patient reported the term)
   const allMedCertText = [
     aiOutput.certificateStatement,
     aiOutput.symptomsSummary,
@@ -174,7 +197,7 @@ export function validateMedCertAgainstIntake(
   ].join(" ")
 
   const diagnosisMatch = containsForbiddenDiagnosisTerm(allMedCertText)
-  if (diagnosisMatch) {
+  if (diagnosisMatch && !patientText.includes(diagnosisMatch.term.toLowerCase())) {
     errors.push({
       code: "FORBIDDEN_DIAGNOSIS",
       message: `AI output contains forbidden diagnosis term: "${diagnosisMatch.term}"`,
@@ -183,10 +206,10 @@ export function validateMedCertAgainstIntake(
     })
   }
 
-  // 4. Check for forbidden medication terms
+  // 4. Check for forbidden medication terms (skip if patient reported the term)
   const allMedCertTextLower = allMedCertText.toLowerCase()
   for (const term of FORBIDDEN_MEDICATION_TERMS) {
-    if (allMedCertTextLower.includes(term.toLowerCase())) {
+    if (allMedCertTextLower.includes(term.toLowerCase()) && !patientText.includes(term.toLowerCase())) {
       errors.push({
         code: "FORBIDDEN_MEDICATION",
         message: `AI output contains forbidden medication term: "${term}"`,
@@ -253,8 +276,9 @@ export function validateClinicalNoteAgainstIntake(
   intakeAnswers: IntakeAnswers
 ): GroundTruthValidationResult {
   const errors: GroundTruthError[] = []
+  const patientText = getPatientReportedText(intakeAnswers)
 
-  // 1. Check for forbidden diagnosis terms
+  // 1. Check for forbidden diagnosis terms (skip if patient reported the term)
   const allText = [
     aiOutput.presentingComplaint,
     aiOutput.historyOfPresentIllness,
@@ -263,7 +287,7 @@ export function validateClinicalNoteAgainstIntake(
   ].join(" ")
 
   const diagnosisMatch = containsForbiddenDiagnosisTerm(allText)
-  if (diagnosisMatch) {
+  if (diagnosisMatch && !patientText.includes(diagnosisMatch.term.toLowerCase())) {
     errors.push({
       code: "FORBIDDEN_DIAGNOSIS",
       message: `AI output contains forbidden diagnosis term: "${diagnosisMatch.term}"`,
@@ -274,9 +298,9 @@ export function validateClinicalNoteAgainstIntake(
 
   const allTextLower = allText.toLowerCase()
 
-  // 2. Check for forbidden medication terms
+  // 2. Check for forbidden medication terms (skip if patient reported the term)
   for (const term of FORBIDDEN_MEDICATION_TERMS) {
-    if (allTextLower.includes(term.toLowerCase())) {
+    if (allTextLower.includes(term.toLowerCase()) && !patientText.includes(term.toLowerCase())) {
       errors.push({
         code: "FORBIDDEN_MEDICATION",
         message: `AI output contains forbidden medication term: "${term}"`,
