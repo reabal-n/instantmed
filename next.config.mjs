@@ -237,6 +237,22 @@ const nextConfig = {
         }, {
           key: "Content-Security-Policy",
           value: standardCSP.join("; ")
+        }, {
+          // Report-Only CSP: stricter policy (no unsafe-inline) that reports violations
+          // without blocking anything. Used to monitor what would break if we tightened the
+          // main CSP. Violations are logged to Sentry via /api/csp-report.
+          key: "Content-Security-Policy-Report-Only",
+          value: [
+            "default-src 'self'",
+            "script-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au",
+            "style-src 'self' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com data:",
+            "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://api.dicebear.com https://img.clerk.com https://*.clerk.com",
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au",
+            "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com",
+            "object-src 'none'",
+            "report-uri /api/csp-report",
+          ].join("; ")
         }]
       },
       // Cache static assets for 1 year (immutable)

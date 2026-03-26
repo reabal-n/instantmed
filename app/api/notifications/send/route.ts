@@ -1,4 +1,5 @@
-// LEGACY: retained pending external dependency audit (requires INTERNAL_API_SECRET)
+// NOTE: No active callers found in codebase. Retained as internal notification endpoint.
+// Delete this file if no external service is calling it.
 import { timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"

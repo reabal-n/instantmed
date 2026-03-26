@@ -51,10 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/gp-consult",
     "/weight-loss",
     "/weight-management",
-    "/mens-health",
-    "/womens-health",
     "/hair-loss",
-    "/performance-anxiety",
     // Canonical medical certificate pages only (no redirect URLs)
     "/medical-certificate/work",
     "/medical-certificate/study",
@@ -208,37 +205,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const intentSlugs = getAllIntentSlugs()
 
   // ============================================
-  // MEDICATION PAGES (Priority 0.6)
-  // Educational medication information
-  // ============================================
-  const medicationSlugs = [
-    "amoxicillin",
-    "metformin",
-    "sildenafil",
-    "trimethoprim",
-    "doxycycline",
-    "sertraline",
-    "pantoprazole",
-    "omeprazole",
-    "azithromycin",
-    "citalopram",
-    "escitalopram",
-    "fluoxetine",
-    "loratadine",
-    "cetirizine",
-    "salbutamol",
-    "prednisolone",
-    "naproxen",
-    "diclofenac",
-    "famotidine",
-    "amoxicillin-clavulanate",
-    "cephalexin",
-    "gabapentin",
-    "propranolol",
-    "oral-contraceptive",
-  ]
-
-  // ============================================
   // BUILD ROUTES
   // ============================================
 
@@ -332,13 +298,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  const medicationRoutes = medicationSlugs.map((slug) => ({
-    url: `${baseUrl}/medications/${slug}`,
-    lastModified: BUILD_DATE,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }))
-
   // Condition + location combo pages (e.g. /conditions/cold-and-flu/sydney)
   const conditionLocationCombos = getAllConditionLocationComboSlugs()
   const conditionLocationRoutes = conditionLocationCombos.map(({ slug, city }) => ({
@@ -360,7 +319,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...blogRoutes,
     ...audienceRoutes,
     ...intentRoutes,
-    ...medicationRoutes,
     ...conditionLocationRoutes,
   ]
 }

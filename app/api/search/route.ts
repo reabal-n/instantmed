@@ -63,34 +63,35 @@ export async function GET(request: NextRequest) {
 
   try {
     if (effectiveVariant === "doctor" || effectiveVariant === "admin") {
-      const { data: intakes } = await supabase
-        .from("intakes")
-        .select(`
-          id,
-          status,
-          created_at,
-          patient:profiles!patient_id (
-            id,
-            full_name,
-            medicare_number
-          ),
-          category
-        `)
-        .order("created_at", { ascending: false })
+      // Step 1: Find matching patients by name/medicare at the DB level (not in-memory JS)
+      const { data: matchingPatients } = await supabase
+        .from("profiles")
+        .select("id, full_name, medicare_number")
+        .eq("role", "patient")
+        .or(`full_name.ilike.%${escapeIlike(query)}%,medicare_number.ilike.%${escapeIlike(query)}%`)
         .limit(20)
 
-      if (intakes) {
-        for (const intake of intakes) {
-          const patientRaw = intake.patient as unknown as { id: string; full_name: string; medicare_number?: string }[] | { id: string; full_name: string; medicare_number?: string } | null
-          const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
-          const serviceData = { name: intake.category || "Service", type: intake.category }
-          if (patientData?.full_name?.toLowerCase().includes(query.toLowerCase()) ||
-              patientData?.medicare_number?.includes(query)) {
+      const patientIds = matchingPatients?.map(p => p.id) ?? []
+
+      if (patientIds.length > 0) {
+        // Step 2: Get most recent intake per matching patient
+        const { data: intakes } = await supabase
+          .from("intakes")
+          .select("id, status, created_at, category, patient_id")
+          .in("patient_id", patientIds)
+          .order("created_at", { ascending: false })
+          .limit(20)
+
+        const patientMap = new Map(matchingPatients?.map(p => [p.id, p]) ?? [])
+
+        if (intakes) {
+          for (const intake of intakes) {
+            const patientData = patientMap.get(intake.patient_id)
             results.push({
               id: intake.id,
               type: "intake",
               title: patientData?.full_name || "Unknown Patient",
-              subtitle: serviceData?.name || "Service",
+              subtitle: intake.category || "Service",
               status: intake.status,
               href: `/doctor/intakes/${intake.id}`,
             })

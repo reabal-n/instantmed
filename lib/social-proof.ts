@@ -55,7 +55,7 @@ export const SOCIAL_PROOF = {
   operatingDays: 7,
   operatingHoursStart: 8,
   operatingHoursEnd: 22,
-  doctorCount: 4,
+  doctorCount: 1,
 
   // ── Doctor Credibility ──
   doctorCombinedYears: 15,
