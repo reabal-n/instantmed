@@ -263,13 +263,15 @@ export function evaluateAutoApprovalEligibility(
   // 9. Backdating check (start date should not be > 1 day in the past)
   const startDateStr = extractStartDate(answers)
   if (startDateStr) {
+    // Parse date-only string as UTC (YYYY-MM-DD from forms is always UTC midnight)
     const startDate = new Date(startDateStr)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const oneDayAgo = new Date(today)
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1)
+    // Compare against UTC midnight boundaries for consistency
+    const todayUtc = new Date()
+    const todayDateStr = todayUtc.toISOString().split("T")[0]
+    const oneDayAgoUtc = new Date(todayDateStr)
+    oneDayAgoUtc.setUTCDate(oneDayAgoUtc.getUTCDate() - 1)
 
-    if (startDate < oneDayAgo) {
+    if (startDate < oneDayAgoUtc) {
       flags.push("backdated_too_far")
     }
   }

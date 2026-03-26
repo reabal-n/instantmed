@@ -124,9 +124,11 @@ export function PricingSection({
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
-          <p className="mt-3 text-xs text-muted-foreground">
-            No account required &middot; Full refund if we can&apos;t help
-          </p>
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-xs font-medium text-success">
+            <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+            100% refund if we can&apos;t help
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">No account required</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
             {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((m) => (
               <span key={m} className="text-xs text-muted-foreground/50 px-1.5 py-0.5 rounded bg-background/50 border border-border/30">
@@ -194,6 +196,10 @@ function ComparisonTable() {
           </tbody>
         </table>
       </div>
+      <p className="mt-4 text-[11px] text-muted-foreground/60 text-center leading-relaxed px-2">
+        * Average review time based on recent requests. Individual times vary.{" "}
+        † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
+      </p>
     </motion.div>
   )
 }
@@ -211,8 +217,8 @@ const comparisonRows: Array<{
   walkin: string | boolean
   instantHighlight?: boolean
 }> = [
-  { label: 'Cost', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
-  { label: 'Wait time', instant: 'Under 1 hour', gp: '1–3 days', walkin: '2–4 hours', instantHighlight: true },
+  { label: 'Cost †', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
+  { label: 'Turnaround *', instant: '~38 min avg', gp: 'Requires booking', walkin: '2–4 hours', instantHighlight: true },
   { label: 'Leave your couch?', instant: false, gp: true, walkin: true, instantHighlight: true },
   { label: 'Employer accepted', instant: true, gp: true, walkin: true },
   { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },

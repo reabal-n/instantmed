@@ -39,10 +39,13 @@ const regulatoryPartners = [
 interface RegulatoryPartnersProps {
   variant?: 'strip' | 'section'
   className?: string
+  /** Logo names to exclude (e.g. ["Medicare"] on pages where Medicare rebates don't apply) */
+  exclude?: string[]
 }
 
-export function RegulatoryPartners({ variant = 'strip', className = '' }: RegulatoryPartnersProps) {
+export function RegulatoryPartners({ variant = 'strip', className = '', exclude = [] }: RegulatoryPartnersProps) {
   const prefersReducedMotion = useReducedMotion()
+  const visiblePartners = regulatoryPartners.filter((p) => !exclude.includes(p.name))
 
   if (variant === 'strip') {
     return (
@@ -52,7 +55,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
             Regulated by
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-            {regulatoryPartners.map((partner) => (
+            {visiblePartners.map((partner) => (
               <motion.div
                 key={partner.name}
                 initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -94,7 +97,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '' }: Regula
             All doctors are AHPRA-registered. Prescriptions are TGA-compliant.
           </p>
           <div className="flex flex-wrap justify-center items-center gap-10 md:gap-14">
-            {regulatoryPartners.map((partner, index) => (
+            {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
                 initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}

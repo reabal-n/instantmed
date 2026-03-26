@@ -14,7 +14,7 @@ const ARM_DELAY_MS = 10_000
 
 const REASSURANCE_POINTS = [
   "Full refund if we can\u2019t help",
-  "Reviewed by AHPRA-registered doctors",
+  "Reviewed by an AHPRA-registered doctor",
   "No account needed to start",
 ]
 
@@ -131,7 +131,7 @@ export function ExitIntentOverlay({
                   Still thinking it over?
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  No pressure. Here&apos;s why thousands of Australians trust us:
+                  Here&apos;s what to know before you go:
                 </p>
 
                 {/* Reassurance bullets */}

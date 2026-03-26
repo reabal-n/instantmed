@@ -51,7 +51,7 @@ export const SOCIAL_PROOF = {
 
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
-  employerAcceptancePercent: 100,
+  employerAcceptancePercent: 98,
   operatingDays: 7,
   operatingHoursStart: 8,
   operatingHoursEnd: 22,

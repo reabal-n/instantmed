@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
@@ -7,11 +8,16 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
+  Award,
+  BadgeCheck,
   Check,
   CheckCircle2,
+  ChevronDown,
   CreditCard,
   FileText,
   AlertCircle,
+  HelpCircle,
+  PhoneOff,
   Users,
   Clock,
   Star,
@@ -46,11 +52,9 @@ import {
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 
+import { CertificateShowcaseMockup } from "@/components/marketing/mockups/certificate-showcase"
+
 // Below-fold lazy loads — keep initial bundle small
-const CertificateShowcaseMockup = dynamic(
-  () => import("@/components/marketing/mockups/certificate-showcase").then((m) => m.CertificateShowcaseMockup),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
-)
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
@@ -65,9 +69,9 @@ const ExitIntentOverlay = dynamic(
 // =============================================================================
 
 const ROTATING_WORDS = [
-  "Reviewed by Australian GPs.",
-  "Accepted everywhere.",
-  "From your couch.",
+  "reviewed by a real Australian doctor.",
+  "accepted everywhere.",
+  "no appointment needed.",
 ]
 
 const HOW_IT_WORKS_STEPS = [
@@ -111,7 +115,7 @@ const PRICING_FEATURES = [
 ]
 
 const SOCIAL_PROOF_STATS = [
-  { icon: Users, value: 4200, suffix: "+", label: "certificates issued", color: "text-primary" },
+  { icon: Users, value: SOCIAL_PROOF.certApprovalPercent, suffix: "%", label: "requests approved", color: "text-success" },
   { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg turnaround", color: "text-primary" },
   { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
   { icon: ShieldCheck, value: SOCIAL_PROOF.employerAcceptancePercent, suffix: "%", label: "employer accepted", color: "text-success" },
@@ -235,6 +239,20 @@ function SocialProofStrip() {
   )
 }
 
+/** Employer acceptance callout — thin strip between stats and how-it-works */
+function EmployerCalloutStrip() {
+  return (
+    <div className="bg-success/5 border-y border-success/15">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-3">
+        <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities — identical to an in-person GP certificate
+        </p>
+      </div>
+    </div>
+  )
+}
+
 /** Section 1: Hero with product mockup + embedded trust signals */
 function HeroSection({
   ctaRef,
@@ -269,7 +287,7 @@ function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
             >
-              Medical certificates.{" "}
+              Medical certificates,{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
                 <RotatingText texts={ROTATING_WORDS} interval={3500} />
@@ -283,8 +301,8 @@ function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              Valid for work, uni, or carer&apos;s leave. Reviewed by
-              AHPRA-registered doctors. Usually sorted in under an hour.
+              Valid for work, uni, or carer&apos;s leave. Reviewed by an
+              AHPRA-registered GP and delivered straight to your inbox.
             </motion.p>
 
             {/* CTA */}
@@ -308,9 +326,15 @@ function HeroSection({
                   </Link>
                 </Button>
               </MagneticButton>
-              <p className="text-xs text-muted-foreground">
-                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
-              </p>
+              <div className="flex flex-col items-center lg:items-start gap-0.5">
+                <p className="text-xs text-muted-foreground">
+                  {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  Open today {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
+                </p>
+              </div>
             </motion.div>
 
             {/* Trust signals + wait time */}
@@ -327,12 +351,34 @@ function HeroSection({
                   &middot; Full refund if we can&apos;t help
                 </span>
               </p>
+              <div className="flex justify-center lg:justify-start">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary/80 dark:bg-primary/10 dark:border-primary/30 dark:text-primary/70">
+                  <PhoneOff className="h-3.5 w-3.5 shrink-0" />
+                  No call required
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
                 <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                 <span>
-                  No account required &middot; Pay only if approved
+                  No account required &middot; Full refund if not approved
                 </span>
               </p>
+            </motion.div>
+
+            {/* Secondary anchor CTA */}
+            <motion.div
+              className="flex justify-center lg:justify-start mt-4"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+            >
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                See how it works
+                <ChevronDown className="h-3.5 w-3.5" />
+              </a>
             </motion.div>
           </div>
 
@@ -519,6 +565,58 @@ function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => void }) 
   )
 }
 
+/** Doctor profile — trust signal, med-cert page only */
+function DoctorProfileSection() {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
+  return (
+    <section aria-label="Reviewed by a real doctor" className="py-16 lg:py-20 bg-muted/20 dark:bg-muted/10">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={animate ? { opacity: 0, y: 20 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6"
+        >
+          {/* Avatar */}
+          <div className="shrink-0">
+            <Image
+              src="https://api.dicebear.com/7.x/notionists/svg?seed=ReabalNajjar"
+              alt="Dr. Reabal Najjar"
+              width={72}
+              height={72}
+              className="rounded-full bg-primary/10"
+              unoptimized
+            />
+          </div>
+
+          {/* Details */}
+          <div className="text-center sm:text-left flex-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
+              <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium text-primary">AHPRA Verified</span>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-0.5">
+              Dr. Reabal Najjar
+            </h3>
+            <p className="text-sm text-muted-foreground mb-0.5">BHSc, MD, AFHEA</p>
+            <p className="text-xs text-muted-foreground/60 mb-4">
+              AHPRA registration: MED0002576546
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {SOCIAL_PROOF.doctorCombinedYears}+ years of GP experience. Every request is
+              reviewed and approved by a registered doctor — no automated
+              clinical decisions.
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
 /** Section 5: FAQ with expanded items */
 function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
   const prefersReducedMotion = useReducedMotion()
@@ -536,7 +634,7 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
           transition={{ duration: 0.5 }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6">
-            <CheckCircle2 className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
+            <HelpCircle className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
             <span className="text-sm font-medium text-foreground/60 dark:text-foreground/50">
               FAQ
             </span>
@@ -615,6 +713,43 @@ function RelatedArticles() {
   )
 }
 
+/** Limitations callout — honest scope boundary, reduces bad-fit conversions */
+function LimitationsSection() {
+  return (
+    <section aria-label="Service limitations" className="pb-4">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-border/40 bg-muted/30 dark:bg-white/[0.03] px-6 py-5">
+          <p className="text-sm font-medium text-foreground mb-3">
+            Not the right fit for every situation
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+            {[
+              "Backdated certificates for past absences",
+              "Conditions needing physical examination",
+              "Workers\u2019 compensation claims",
+              "Complex or ongoing chronic conditions",
+              "Patients under 18 (parental consent required)",
+              "Medical emergencies \u2014 call 000",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
+                <span className="mt-0.5 text-muted-foreground/40 shrink-0">&times;</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Not sure if we can help?{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+              Ask us first
+            </a>{" "}
+            — we&apos;ll be straight with you.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /** Section 7: Final CTA */
 function FinalCtaSection({ onCTAClick }: { onCTAClick?: () => void }) {
   const prefersReducedMotion = useReducedMotion()
@@ -628,7 +763,7 @@ function FinalCtaSection({ onCTAClick }: { onCTAClick?: () => void }) {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 tracking-tight">
-            Still feeling rough? Let us handle the paperwork.
+            Let a doctor handle the paperwork.
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
             Two minutes on your phone. A real doctor reviews it. Certificate in
@@ -752,11 +887,17 @@ export function MedCertLanding() {
           {/* Social proof stats */}
           <SocialProofStrip />
 
+          {/* Employer acceptance callout */}
+          <EmployerCalloutStrip />
+
           {/* 2. How It Works */}
           <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
 
           {/* 3. Certificate Preview */}
           <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
+
+          {/* Doctor profile — trust signal, this page only */}
+          <DoctorProfileSection />
 
           {/* 4. Pricing with comparison table */}
           <PricingSection
@@ -785,20 +926,23 @@ export function MedCertLanding() {
             badgeText="Patient Feedback"
           />
 
-          {/* Regulatory Partners */}
-          <RegulatoryPartners className="py-12" />
+          {/* Regulatory Partners — Medicare excluded (no rebate applies here) */}
+          <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
           {/* 6. FAQ */}
           <FaqCtaSection onFAQOpen={handleFAQOpen} />
 
-          {/* Related articles — SEO internal linking */}
-          <RelatedArticles />
+          {/* Honest limitations — reduces bad-fit conversions */}
+          <LimitationsSection />
 
           {/* 7. Final CTA */}
           <FinalCtaSection onCTAClick={handleFinalCTA} />
         </main>
 
         <MarketingFooter />
+
+        {/* Related articles — SEO internal linking, after footer to avoid draining conversion */}
+        <RelatedArticles />
 
         {/* Exit-intent overlay — desktop only, once per session */}
         {!isDisabled && (
@@ -820,7 +964,10 @@ export function MedCertLanding() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           aria-hidden={!showStickyCTA}
         >
-          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
+          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
+            <p className="text-xs text-muted-foreground text-center mb-2">
+              Need a certificate today? Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST.
+            </p>
             <Button
               asChild
               size="lg"

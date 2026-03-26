@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, Clock, CheckCircle2, Mail } from "lucide-react"
+import { FileText, Clock, CheckCircle2, Mail, PhoneOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MedCertHeroMockupProps {
@@ -69,7 +69,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           <span className="text-sm font-semibold text-white">Submit request</span>
         </div>
 
-        {/* Time badge — desktop only */}
+        {/* Time badge top-right — desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -80,6 +80,20 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           >
             <Clock className="w-3.5 h-3.5 text-primary" />
             Takes ~2 min
+          </motion.div>
+        )}
+
+        {/* No appointment badge top-left — desktop only */}
+        {!compact && (
+          <motion.div
+            className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
+            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
+          >
+            <PhoneOff className="w-3.5 h-3.5 text-primary" />
+            No appointment needed
           </motion.div>
         )}
       </motion.div>
