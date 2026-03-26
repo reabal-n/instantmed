@@ -37,7 +37,8 @@ export async function GET(
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
 
-    // Rate limit: 30 downloads/hour per user
+    // Rate limit: 30 downloads/hour per user — reuses "upload" bucket (same 30/hr limit,
+    // no dedicated "download" bucket defined in rateLimitConfigs)
     const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
     if (rateLimitResponse) return rateLimitResponse
 

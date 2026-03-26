@@ -16,7 +16,6 @@ interface Intake {
   updated_at: string
   is_priority?: boolean
   patient: {
-    full_name: string
     id: string
   }
   service?: {

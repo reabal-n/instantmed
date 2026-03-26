@@ -24,7 +24,6 @@ export default async function TrackingPage({ params }: PageProps) {
     .select(`
       id, status, created_at, updated_at, is_priority,
       patient:profiles!patient_id (
-        full_name,
         id
       )
     `)

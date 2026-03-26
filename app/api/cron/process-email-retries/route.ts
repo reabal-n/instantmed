@@ -8,9 +8,10 @@ import { toError } from "@/lib/errors"
 const logger = createLogger("cron-email-retries")
 
 /**
- * DEPRECATED: This cron route now delegates to the email_outbox dispatcher.
+ * DEPRECATED + UNREGISTERED: Removed from vercel.json (2026-03-26).
  * The legacy email_retry_queue system has been replaced by email_outbox + dispatcher.
- * This route is kept for backward compatibility with existing Vercel cron config.
+ * Canonical cron: /api/cron/email-dispatcher (every 5 min)
+ * Safe to delete this file if no external service is calling it directly.
  */
 export async function GET(request: NextRequest) {
   // Use centralized cron auth

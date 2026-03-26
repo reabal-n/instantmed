@@ -106,7 +106,7 @@ export function FAQList({
     return (
       <div className={cn("space-y-10", className)}>
         {groups.map((group, gi) => (
-          <div key={group.category}>
+          <div key={gi}>
             <motion.h3
               className="mb-4 text-lg font-semibold text-foreground"
               initial={shouldAnimate ? { opacity: 0, y: 8 } : {}}

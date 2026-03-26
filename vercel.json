@@ -30,10 +30,6 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/process-email-retries",
-      "schedule": "*/10 * * * *"
-    },
-    {
       "path": "/api/cron/expire-certificates",
       "schedule": "0 1 * * *"
     },
