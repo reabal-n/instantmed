@@ -54,13 +54,13 @@ export function DetailsStep({
 
       {/* Carer-specific fields */}
       {formData.certType === "carer" && (
-        <div className="space-y-4 p-4 rounded-2xl bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+        <div className="space-y-4 p-4 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
           <FormField label="Who are you caring for?" required error={errors.carerPatientName}>
             <Input
               placeholder="Patient's full name"
               value={formData.carerPatientName}
               onChange={(e) => onUpdateField("carerPatientName", e.target.value)}
-              className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+              className="h-12 rounded-full bg-white dark:bg-card border border-border/50 hover:bg-muted/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
             />
           </FormField>
           <FormField label="Your relationship" required error={errors.carerRelationship}>
@@ -120,7 +120,7 @@ export function DetailsStep({
           type="date"
           value={formData.startDate}
           onChange={(e) => onUpdateField("startDate", e.target.value)}
-          className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+          className="h-12 rounded-full bg-white dark:bg-card border border-border/50 hover:bg-muted/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
         />
       </FormField>
 

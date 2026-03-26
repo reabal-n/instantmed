@@ -60,7 +60,7 @@ export function ProgressBar({ steps, currentIndex }: ProgressBarProps) {
                   ? "bg-primary text-primary-foreground"
                   : i === currentIndex
                     ? "bg-primary/20 text-primary border-2 border-primary"
-                    : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 text-muted-foreground"
+                    : "bg-muted border border-border/50 text-muted-foreground"
               )}
             >
               {i < currentIndex ? <Check className="w-4 h-4" /> : i + 1}
@@ -69,7 +69,7 @@ export function ProgressBar({ steps, currentIndex }: ProgressBarProps) {
               <div
                 className={cn(
                   "h-0.5 w-8 sm:w-12 mx-1 sm:mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10"
+                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-muted border border-border/50"
                 )}
               />
             )}
@@ -114,7 +114,7 @@ export function SelectCard({
         "active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border-border/40 dark:border-white/10 hover:border-primary/50 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
+          : "bg-white dark:bg-card border-border/50 hover:border-primary/50 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -124,7 +124,7 @@ export function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-muted border border-border/50 text-muted-foreground"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -157,7 +157,7 @@ export function OptionChip({ selected, onClick, label }: OptionChipProps) {
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl border-2 border-border/40 dark:border-white/10 hover:border-primary/50 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+          : "bg-white dark:bg-card border-2 border-border/50 hover:border-primary/50 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
       )}
     >
       {label}
@@ -167,7 +167,7 @@ export function OptionChip({ selected, onClick, label }: OptionChipProps) {
 
 export function SafetyQuestion({ question, value, onChange }: SafetyQuestionProps) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
       <CinematicSwitch
         value={value}

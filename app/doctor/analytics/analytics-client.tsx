@@ -194,7 +194,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20 shrink-0">
-                <Clock className="h-5 w-5 text-dawn-600 dark:text-dawn-400" />
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
@@ -209,8 +209,8 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-dawn-100 dark:bg-dawn-500/20 shrink-0">
-                <Activity className="h-5 w-5 text-dawn-600 dark:text-dawn-400" />
+              <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20 shrink-0">
+                <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Response</p>
@@ -265,15 +265,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl bg-linear-to-br from-dawn-50 to-white border-dawn-200 dark:from-dawn-950/30 dark:to-background dark:border-dawn-800">
+        <Card className="rounded-xl bg-linear-to-br from-amber-50 to-white border-amber-200 dark:from-amber-950/30 dark:to-background dark:border-amber-800">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-dawn-600 dark:text-dawn-400 uppercase tracking-wider">All Time</p>
-                <p className="text-2xl font-bold tabular-nums text-dawn-700 dark:text-dawn-300 mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
-                <p className="text-xs text-dawn-500 dark:text-dawn-400 mt-0.5">{analytics.totalIntakes} total intakes</p>
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">All Time</p>
+                <p className="text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-300 mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
+                <p className="text-xs text-amber-500 dark:text-amber-400 mt-0.5">{analytics.totalIntakes} total intakes</p>
               </div>
-              <Users className="h-8 w-8 text-dawn-400 dark:text-dawn-500 shrink-0" />
+              <Users className="h-8 w-8 text-amber-400 dark:text-amber-500 shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -352,7 +352,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
                       <div className="flex items-center gap-2">
                         {service.name.includes("Medical") && <Stethoscope className="h-4 w-4 text-blue-500" />}
                         {service.name.includes("Script") && <Pill className="h-4 w-4 text-emerald-500" />}
-                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-dawn-500" />}
+                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-amber-500" />}
                         <span className="font-medium">{service.name}</span>
                       </div>
                       <span className="text-muted-foreground">{service.count} ({percentage}%)</span>
@@ -387,7 +387,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
             </div>
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-800">
               <p className="text-lg font-semibold text-amber-700 dark:text-amber-300">{analytics.statusCounts.in_review || 0}</p>
-              <p className="text-sm text-dawn-600 dark:text-dawn-400">Under Review</p>
+              <p className="text-sm text-amber-600 dark:text-amber-400">Under Review</p>
             </div>
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-800">
               <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">{analytics.statusCounts.approved || 0}</p>
@@ -403,11 +403,11 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Priority Stats */}
       {analytics.priorityCount > 0 && (
-        <Card className="rounded-xl border-amber-200 bg-linear-to-r from-dawn-50 to-white dark:from-dawn-950/30 dark:to-background dark:border-amber-800">
+        <Card className="rounded-xl border-amber-200 bg-linear-to-r from-amber-50 to-white dark:from-amber-950/30 dark:to-background dark:border-amber-800">
           <CardContent className="p-3">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20">
-                <Zap className="h-6 w-6 text-dawn-600 dark:text-dawn-400" />
+                <Zap className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
                 <p className="font-medium">Priority Requests</p>

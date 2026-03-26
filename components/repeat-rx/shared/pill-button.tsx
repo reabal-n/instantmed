@@ -25,12 +25,12 @@ export function PillButton({ selected, onClick, children, className }: PillButto
       aria-pressed={selected}
       className={cn(
         "min-h-[44px] px-4 py-2 rounded-full text-sm font-medium",
-        "bg-card/70 dark:bg-white/5 backdrop-blur-xl",
-        "border-2 border-border/40 dark:border-white/10",
+        "bg-white dark:bg-card",
+        "border-2 border-border/50",
         "transition-all duration-300 ease-out",
         selected
           ? "border-primary/50 bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
-          : "hover:border-primary/40 hover:bg-card/85 dark:hover:bg-white/10 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]",
+          : "hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]",
         className
       )}
       whileHover={prefersReducedMotion ? undefined : (selected ? {} : { y: -2 })}

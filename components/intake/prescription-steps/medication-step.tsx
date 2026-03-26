@@ -82,7 +82,7 @@ export function MedicationStep({
 
         {/* Autocomplete suggestions */}
         {medicationSuggestions.length > 0 && !isControlled && (
-          <div className="bg-card/70 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
+          <div className="bg-white dark:bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden">
             {medicationSuggestions.map((med) => (
               <button
                 key={med}

@@ -321,7 +321,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-300",
                         state === s
                           ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                          : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                       )}
                     >
                       {s}
@@ -451,7 +451,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         "w-12 h-12 rounded-xl text-base font-semibold transition-all duration-300",
                         irn === n
                           ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                          : "bg-card/70 dark:bg-white/5 backdrop-blur-xl text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                          : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                       )}
                     >
                       {n}
@@ -478,7 +478,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                           "py-2 rounded-lg text-xs font-medium transition-all duration-300",
                           expiryMonth === m.value
                             ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                            : "bg-card/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10"
+                            : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
                         )}
                       >
                         {m.label}
@@ -496,7 +496,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                           "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-300 shrink-0",
                           expiryYear === y
                             ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                            : "bg-card/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10"
+                            : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
                         )}
                       >
                         {y}

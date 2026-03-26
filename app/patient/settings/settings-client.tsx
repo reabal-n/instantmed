@@ -294,7 +294,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="full_name"
                       value={formData.full_name}
                       onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
+                      className="rounded-xl bg-white dark:bg-card"
                     />
                   </div>
                   <div className="space-y-2">
@@ -309,7 +309,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.phone}
                       onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                       placeholder="04XX XXX XXX"
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
+                      className="rounded-xl bg-white dark:bg-card"
                     />
                   </div>
                   <div className="space-y-2">
@@ -319,7 +319,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       type="date"
                       value={formData.date_of_birth ? formData.date_of_birth.split("T")[0] : ""}
                       onChange={(e) => setFormData((prev) => ({ ...prev, date_of_birth: e.target.value }))}
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
+                      className="rounded-xl bg-white dark:bg-card"
                     />
                   </div>
                 </div>
@@ -358,7 +358,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                     id="street"
                     value={formData.address_line1}
                     onChange={(e) => setFormData((prev) => ({ ...prev, address_line1: e.target.value }))}
-                    className="rounded-xl bg-card/50 dark:bg-card/30"
+                    className="rounded-xl bg-white dark:bg-card"
                   />
                 </div>
                 <div className="grid gap-5 sm:grid-cols-3">
@@ -368,7 +368,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="suburb"
                       value={formData.suburb}
                       onChange={(e) => setFormData((prev) => ({ ...prev, suburb: e.target.value }))}
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
+                      className="rounded-xl bg-white dark:bg-card"
                     />
                   </div>
                   <div className="space-y-2">
@@ -377,7 +377,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.state}
                       onValueChange={(value) => setFormData((prev) => ({ ...prev, state: value }))}
                     >
-                      <SelectTrigger id="state" className="rounded-xl bg-card/50 dark:bg-card/30">
+                      <SelectTrigger id="state" className="rounded-xl bg-white dark:bg-card">
                         <SelectValue placeholder="Select state" />
                       </SelectTrigger>
                       <SelectContent>
@@ -395,7 +395,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="postcode"
                       value={formData.postcode}
                       onChange={(e) => setFormData((prev) => ({ ...prev, postcode: e.target.value }))}
-                      className="rounded-xl bg-card/50 dark:bg-card/30"
+                      className="rounded-xl bg-white dark:bg-card"
                     />
                   </div>
                 </div>
@@ -434,7 +434,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   onChange={setMedicareForm}
                 />
 
-                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-white dark:bg-card border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">My Health Record</p>
                     <p className="text-sm text-muted-foreground mt-0.5">Opt in to share with My Health Record when relevant</p>
@@ -479,7 +479,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-white dark:bg-card border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Marketing emails</p>
                     <p className="text-sm text-muted-foreground mt-0.5">Occasional updates about new services and features</p>
@@ -491,7 +491,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-white dark:bg-card border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Checkout reminders</p>
                     <p className="text-sm text-muted-foreground mt-0.5">Reminders if you have an incomplete request</p>
@@ -503,7 +503,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-5 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
+                <div className="flex items-center justify-between p-5 rounded-xl bg-white dark:bg-card border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Transactional emails</p>
                     <p className="text-sm text-muted-foreground mt-0.5">Updates about your requests, certificates, and account</p>

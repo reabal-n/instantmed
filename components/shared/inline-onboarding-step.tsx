@@ -215,7 +215,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               placeholder="0400 000 000"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.phone ? "border-red-400" : ""}`}
+              className={`h-11 rounded-xl bg-white dark:bg-card border-border/40 ${errors.phone ? "border-red-400" : ""}`}
             />
             {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
           </div>
@@ -232,7 +232,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 setPostcode(address.postcode)
               }}
               placeholder="Start typing your address..."
-              className="h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40"
+              className="h-11 rounded-xl bg-white dark:bg-card border-border/40"
               error={errors.addressLine1}
               requireVerified={true}
             />
@@ -240,7 +240,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               placeholder="Apartment, unit, etc. (optional)"
               value={addressLine2}
               onChange={(e) => setAddressLine2(e.target.value)}
-              className="h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40"
+              className="h-11 rounded-xl bg-white dark:bg-card border-border/40"
             />
           </div>
 
@@ -251,7 +251,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 placeholder="Suburb"
                 value={suburb}
                 onChange={(e) => setSuburb(e.target.value)}
-                className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.suburb ? "border-red-400" : ""}`}
+                className={`h-11 rounded-xl bg-white dark:bg-card border-border/40 ${errors.suburb ? "border-red-400" : ""}`}
               />
               {errors.suburb && <p className="text-xs text-red-500">{errors.suburb}</p>}
             </div>
@@ -262,7 +262,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 maxLength={4}
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value)}
-                className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.postcode ? "border-red-400" : ""}`}
+                className={`h-11 rounded-xl bg-white dark:bg-card border-border/40 ${errors.postcode ? "border-red-400" : ""}`}
               />
               {errors.postcode && <p className="text-xs text-red-500">{errors.postcode}</p>}
             </div>
@@ -279,7 +279,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     state === s
                       ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                      : "bg-card/70 dark:bg-white/5 backdrop-blur-xl text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                      : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                   }`}
                 >
                   {s}
@@ -336,7 +336,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
             placeholder="1234 56789 0"
             value={medicareNumber}
             onChange={handleMedicareChange}
-            className={`h-12 text-lg font-mono tracking-wider rounded-xl bg-card/50 dark:bg-card/30 border-border/40 text-center ${
+            className={`h-12 text-lg font-mono tracking-wider rounded-xl bg-white dark:bg-card border-border/40 text-center ${
               errors.medicare ? "border-red-400" : ""
             }`}
             aria-describedby="medicare-help"
@@ -396,7 +396,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
                     expiryMonth === m.value
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-card/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10"
+                      : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
                   }`}
                 >
                   {m.label}
@@ -412,7 +412,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 whitespace-nowrap ${
                     expiryYear === y
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-card/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-card/85 dark:hover:bg-white/10 border border-border/40 dark:border-white/10"
+                      : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
                   }`}
                 >
                   {y}

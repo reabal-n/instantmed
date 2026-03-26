@@ -130,7 +130,7 @@ function SafetyKnockout() {
         <p className="text-red-700 text-base">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-card/70 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
+        <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
           <p className="font-medium">If this is a medical emergency:</p>
           <Button asChild variant="destructive" className="w-full h-12">
             <a href="tel:000">Call 000</a>
@@ -527,7 +527,7 @@ export function ConsultFlowClient({
                     className={`w-full p-5 rounded-2xl border-2 text-left transition-all duration-300 ${
                       consultReason === reason.id
                         ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                        : "bg-card/70 backdrop-blur-xl border-border/40 hover:border-primary/40 hover:bg-card/85 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                        : "bg-white dark:bg-card border-border/50 hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                     }`}
                   >
                     <span className="font-medium">{reason.label}</span>
@@ -579,7 +579,7 @@ export function ConsultFlowClient({
               <StepHeader emoji="🛡️" title="Safety screening" subtitle="Please answer honestly" />
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
-                  <div key={q.id} className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
+                  <div key={q.id} className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] space-y-3">
                     <p className="text-sm font-medium mb-2">{q.question}</p>
                     <CinematicSwitch
                       value={safetyAnswers[q.id] ?? undefined}
@@ -712,7 +712,7 @@ export function ConsultFlowClient({
           {step === "review" && (
             <div className="space-y-4">
               <StepHeader title="Review your request" subtitle="Please confirm the details below" />
-              <div className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-3">
+              <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">Reason for consultation</p>
@@ -751,7 +751,7 @@ export function ConsultFlowClient({
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
-              <div className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
+              <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
                   <span className="text-2xl font-bold">$49.95</span>

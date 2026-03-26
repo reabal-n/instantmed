@@ -95,7 +95,7 @@ function StatusBadge({ status }: { status: EmailOutboxRow["status"] }) {
     sent: { icon: CheckCircle, className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" },
     failed: { icon: AlertCircle, className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
     pending: { icon: Clock, className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-    skipped_e2e: { icon: TestTube, className: "bg-dawn-100 text-dawn-800 dark:bg-dawn-500/20 dark:text-dawn-300" },
+    skipped_e2e: { icon: TestTube, className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
   }
 
   const { icon: Icon, className } = config[status] || config.pending
@@ -136,7 +136,7 @@ function StatsCards({
         <div className="text-xs text-muted-foreground">Pending</div>
       </Card>
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold text-dawn-600">
+        <div className="text-2xl font-bold text-amber-600">
           {stats.skipped_e2e}
         </div>
         <div className="text-xs text-muted-foreground">E2E Skipped</div>

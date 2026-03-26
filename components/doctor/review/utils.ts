@@ -115,7 +115,7 @@ export function getStatusColor(status: string) {
     case "pending_info":
       return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
     case "awaiting_script":
-      return "bg-dawn-50 dark:bg-dawn-500/10 text-dawn-700 dark:text-dawn-400 border-dawn-200 dark:border-dawn-500/20"
+      return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
     default:
       return "bg-primary/10 text-primary"
   }

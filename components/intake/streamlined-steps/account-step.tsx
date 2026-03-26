@@ -75,7 +75,7 @@ export function AccountStep({
             placeholder="As shown on Medicare card"
             value={formData.fullName}
             onChange={(e) => onUpdateField("fullName", e.target.value)}
-            className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+            className="h-12 rounded-full bg-white dark:bg-card border border-border/50 hover:bg-muted/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
           />
         </FormField>
 
@@ -85,7 +85,7 @@ export function AccountStep({
             placeholder="you@example.com"
             value={formData.email}
             onChange={(e) => onUpdateField("email", e.target.value)}
-            className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+            className="h-12 rounded-full bg-white dark:bg-card border border-border/50 hover:bg-muted/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
           />
         </FormField>
 
@@ -94,13 +94,13 @@ export function AccountStep({
             type="date"
             value={formData.dateOfBirth}
             onChange={(e) => onUpdateField("dateOfBirth", e.target.value)}
-            className="h-12 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 hover:bg-card/85 dark:hover:bg-background/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+            className="h-12 rounded-full bg-white dark:bg-card border border-border/50 hover:bg-muted/50 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
           />
         </FormField>
       </div>
 
       {/* Trust signals */}
-      <div className="flex items-center gap-3 p-3 rounded-2xl bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
+      <div className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
         <Shield className="w-5 h-5 text-primary shrink-0" />
         <span>Your information is encrypted and secure. We never share your data.</span>
       </div>

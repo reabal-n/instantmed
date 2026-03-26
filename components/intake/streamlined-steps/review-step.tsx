@@ -57,8 +57,8 @@ export function ReviewStep({
       </div>
 
       {/* Summary card */}
-      <div className="rounded-2xl border-2 border-border/40 dark:border-white/10 bg-card/70 dark:bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
-        <div className="p-4 bg-card/50 dark:bg-background/40 backdrop-blur-lg border-b border-border/40 dark:border-white/10">
+      <div className="rounded-2xl border-2 border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] overflow-hidden">
+        <div className="p-4 bg-muted/50 border-b border-border/50">
           <div className="flex items-center gap-3">
             {formData.certType === "work" && <Briefcase className="w-5 h-5 text-primary" />}
             {formData.certType === "uni" && <GraduationCap className="w-5 h-5 text-primary" />}
@@ -99,7 +99,7 @@ export function ReviewStep({
             <span className="text-sm text-muted-foreground">Symptoms/Reason</span>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {formData.symptoms.map((s) => (
-                <span key={s} className="px-2 py-0.5 rounded-full bg-card/70 dark:bg-background/60 backdrop-blur-xl border border-border/40 dark:border-white/10 text-xs">
+                <span key={s} className="px-2 py-0.5 rounded-full bg-muted border border-border/50 text-xs">
                   {s}
                 </span>
               ))}

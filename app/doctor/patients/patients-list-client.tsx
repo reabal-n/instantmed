@@ -85,7 +85,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Incomplete</span>
-              <XCircle className="h-5 w-5 text-dawn-500 shrink-0" />
+              <XCircle className="h-5 w-5 text-amber-500 shrink-0" />
             </div>
             <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">
               {patients.filter((p) => !p.onboarding_completed).length}
