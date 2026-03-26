@@ -14,6 +14,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
 import {
   Mail,
@@ -166,6 +167,13 @@ export function ContactClient() {
           ctaHref="/request"
           secondaryText="See how it works"
           secondaryHref="/faq"
+        />
+
+        {/* Doctor Credibility */}
+        <DoctorCredibility
+          variant="inline"
+          stats={["experience", "approval", "reviews"]}
+          className="max-w-3xl mx-auto px-4 sm:px-6 py-8"
         />
 
         {/* Social Proof */}

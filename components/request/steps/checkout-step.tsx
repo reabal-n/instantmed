@@ -18,6 +18,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
+import { IntakeReviewSocialProof } from "@/components/intake/intake-review-social-proof"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
@@ -294,6 +295,13 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           </p>
         </div>
       )}
+
+      {/* Social proof testimonial */}
+      <motion.div variants={stagger.item}>
+        <IntakeReviewSocialProof
+          service={serviceType === 'med-cert' ? 'medical-certificate' : serviceType === 'consult' ? 'consultation' : 'prescription'}
+        />
+      </motion.div>
 
       {/* Single combined consent */}
       <motion.div variants={stagger.item}>

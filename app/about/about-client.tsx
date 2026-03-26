@@ -17,6 +17,7 @@ import {
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { MediaMentions } from "@/components/marketing/media-mentions"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { ComplianceBar } from "@/components/shared/compliance-marquee"
 import { CenteredHero } from "@/components/heroes"
 import {
@@ -141,6 +142,13 @@ export function AboutClient() {
             </blockquote>
           </div>
         </section>
+
+        {/* Doctor Stats */}
+        <DoctorCredibility
+          variant="inline"
+          stats={["experience", "approval", "sameDay", "reviews"]}
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
+        />
 
         {/* Clinical Standards */}
         <FeatureGrid

@@ -175,52 +175,47 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     })
   }
 
-  // Prescription specific sections
+  // Prescription specific sections — combined Medication + History into one card
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
     const medications = answers.medications as Array<{ product: unknown; name: string; strength?: string; form?: string }> | undefined
     const medicationName = answers.medicationName as string
     const medicationStrength = answers.medicationStrength as string
-    const medicationForm = answers.medicationForm as string
+    const prescriptionHistory = answers.prescriptionHistory as string | undefined
+    const hasSideEffects = answers.hasSideEffects as boolean | undefined
+    const sideEffects = answers.sideEffects as string | undefined
+
+    const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
+      less_than_3_months: 'Less than 3 months ago',
+      '3_to_6_months': '3-6 months ago',
+      '6_to_12_months': '6-12 months ago',
+      over_12_months: 'Over 12 months ago',
+    }
 
     if (medications && medications.length > 1) {
       // Multi-medication mode
       const items = medications.flatMap((med, i) => [
         { label: `Medication ${i + 1}`, value: med.name || '' },
         ...(med.strength ? [{ label: `Strength`, value: med.strength }] : []),
-        ...(med.form ? [{ label: `Form`, value: med.form }] : []),
       ])
+      if (prescriptionHistory) {
+        items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
+      }
+      if (hasSideEffects) {
+        items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
+      }
       sections.push({ title: 'Medications', items, stepId: 'medication' })
     } else {
-      sections.push({
-        title: 'Medication',
-        items: [
-          { label: 'Name', value: medicationName || '' },
-          { label: 'Strength', value: medicationStrength || '' },
-          { label: 'Form', value: medicationForm || '' },
-        ],
-        stepId: 'medication',
-      })
-    }
-
-    // Prescription history & side effects
-    const prescriptionHistory = answers.prescriptionHistory as string | undefined
-    const lastPrescribedBy = answers.lastPrescribedBy as string | undefined
-    const hasSideEffects = answers.hasSideEffects as boolean | undefined
-    const sideEffects = answers.sideEffects as string | undefined
-
-    if (prescriptionHistory) {
-      const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
-        less_than_3_months: 'Less than 3 months ago',
-        '3_to_6_months': '3-6 months ago',
-        '6_to_12_months': '6-12 months ago',
-        over_12_months: 'Over 12 months ago',
-      }
-      const historyItems = [
-        { label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory },
-        ...(lastPrescribedBy ? [{ label: 'Last prescriber', value: lastPrescribedBy }] : []),
-        { label: 'Side effects', value: hasSideEffects ? (sideEffects || 'Yes') : 'None reported' },
+      const items = [
+        { label: 'Medication', value: medicationName || '' },
+        ...(medicationStrength ? [{ label: 'Strength', value: medicationStrength }] : []),
       ]
-      sections.push({ title: 'Prescription History', items: historyItems, stepId: 'medication-history' })
+      if (prescriptionHistory) {
+        items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
+      }
+      if (hasSideEffects) {
+        items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
+      }
+      sections.push({ title: 'Medication', items, stepId: 'medication' })
     }
   }
 
@@ -474,7 +469,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     }
   }
 
-  // Medical history section (shared)
+  // Medical history — only show items with notable values (positive flags)
   const hasAllergies = answers.hasAllergies as boolean
   const allergies = answers.allergies as string
   const hasConditions = answers.hasConditions as boolean
@@ -485,19 +480,19 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const otherMedications = answers.otherMedications as string | undefined
 
   if (hasAllergies !== undefined || hasConditions !== undefined) {
-    const medHistoryItems = [
-      { label: 'Allergies', value: hasAllergies ? (allergies || 'Yes') : 'None' },
-      { label: 'Conditions', value: hasConditions ? (conditions || 'Yes') : 'None' },
-    ]
-    if (hasOtherMedications !== undefined) {
-      medHistoryItems.push({ label: 'Other medications', value: hasOtherMedications ? (otherMedications || 'Yes') : 'None' })
+    const medHistoryItems: { label: string; value: string }[] = []
+    // Only show positive flags or things the doctor needs to see
+    if (hasAllergies) medHistoryItems.push({ label: 'Allergies', value: allergies || 'Yes' })
+    if (hasConditions) medHistoryItems.push({ label: 'Conditions', value: conditions || 'Yes' })
+    if (hasOtherMedications) medHistoryItems.push({ label: 'Other medications', value: otherMedications || 'Yes' })
+    if (isPregnantOrBreastfeeding) medHistoryItems.push({ label: 'Pregnant/breastfeeding', value: 'Yes' })
+    if (hasAdverseMedicationReactions) medHistoryItems.push({ label: 'Adverse reactions', value: 'Yes' })
+
+    // If everything is clear, show a single "all clear" line
+    if (medHistoryItems.length === 0) {
+      medHistoryItems.push({ label: 'Medical history', value: 'Nothing to report' })
     }
-    if (isPregnantOrBreastfeeding !== undefined) {
-      medHistoryItems.push({ label: 'Pregnant/breastfeeding', value: isPregnantOrBreastfeeding ? 'Yes' : 'No' })
-    }
-    if (hasAdverseMedicationReactions !== undefined) {
-      medHistoryItems.push({ label: 'Adverse medication reactions', value: hasAdverseMedicationReactions ? 'Yes' : 'No' })
-    }
+
     sections.push({
       title: 'Medical History',
       items: medHistoryItems,
@@ -505,16 +500,18 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     })
   }
 
-  // Patient details
+  // Patient details — compact
   const dobDisplay = dob ? new Date(dob).toLocaleDateString('en-AU') : ''
+  const detailItems = [
+    { label: 'Name', value: `${firstName} ${lastName}`.trim() },
+    { label: 'Email', value: email },
+    { label: 'Date of birth', value: dobDisplay || '—' },
+  ]
+  // Only show phone if provided
+  if (phone) detailItems.push({ label: 'Phone', value: phone })
   sections.push({
     title: 'Your Details',
-    items: [
-      { label: 'Name', value: `${firstName} ${lastName}`.trim() },
-      { label: 'Email', value: email },
-      { label: 'Date of birth', value: dobDisplay || '—' },
-      { label: 'Phone', value: phone || 'Not provided' },
-    ],
+    items: detailItems,
     stepId: 'details',
   })
 
@@ -543,7 +540,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         ))}
       </div>
 
-      {/* Safety consent + Continue — combined for less scrolling */}
+      {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
         <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5 p-4">
           <div className="flex items-center gap-3">
