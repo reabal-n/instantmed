@@ -509,6 +509,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   ]
   // Only show phone if provided
   if (phone) detailItems.push({ label: 'Phone', value: phone })
+  // Show Medicare for prescriptions
+  const medicareNumber = answers.medicareNumber as string | undefined
+  if (medicareNumber) detailItems.push({ label: 'Medicare', value: medicareNumber.replace(/(\d{4})(\d{5})(\d)/, '$1 $2 $3') })
   sections.push({
     title: 'Your Details',
     items: detailItems,

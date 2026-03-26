@@ -23,6 +23,7 @@ beforeEach(() => {
     STRIPE_PRICE_MEDCERT_2DAY: 'price_medcert_2day',
     STRIPE_PRICE_MEDCERT_3DAY: 'price_medcert_3day',
     STRIPE_PRICE_PRESCRIPTION: 'price_prescription',
+    STRIPE_PRICE_REPEAT_SCRIPT: 'price_repeat_script',
     STRIPE_PRICE_CONSULT: 'price_consult_general',
     STRIPE_PRICE_CONSULT_ED: 'price_consult_ed',
     STRIPE_PRICE_CONSULT_HAIR_LOSS: 'price_consult_hair_loss',
@@ -174,12 +175,12 @@ describe('getPriceIdForRequest — error paths', () => {
     ).toThrow('Missing STRIPE_PRICE_MEDCERT_3DAY environment variable')
   })
 
-  it('throws when STRIPE_PRICE_PRESCRIPTION is missing', async () => {
-    delete process.env.STRIPE_PRICE_PRESCRIPTION
+  it('throws when STRIPE_PRICE_REPEAT_SCRIPT is missing', async () => {
+    delete process.env.STRIPE_PRICE_REPEAT_SCRIPT
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
     expect(() =>
       getPriceIdForRequest({ category: 'prescription', subtype: 'repeat' })
-    ).toThrow('Missing STRIPE_PRICE_PRESCRIPTION environment variable')
+    ).toThrow('Missing STRIPE_PRICE_REPEAT_SCRIPT environment variable')
   })
 })
 

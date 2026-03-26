@@ -228,6 +228,7 @@ export default async function RequestPage({
       hasMedicare={!!profile?.medicare_number}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
+      userPhone={profile?.phone ?? undefined}
       profileDateOfBirth={profileDateOfBirth ?? undefined}
     />
   )

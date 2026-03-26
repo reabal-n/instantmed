@@ -104,6 +104,8 @@ interface RequestFlowProps {
   userEmail?: string
   /** User name for pre-filling */
   userName?: string
+  /** User phone for pre-filling */
+  userPhone?: string
   /** Profile date of birth for pre-filling (decrypted) */
   profileDateOfBirth?: string
   /** Health profile data for pre-filling medical history steps */
@@ -127,6 +129,7 @@ export function RequestFlow({
   hasMedicare,
   userEmail,
   userName,
+  userPhone,
   profileDateOfBirth,
   healthProfile,
 }: RequestFlowProps) {
@@ -144,15 +147,16 @@ export function RequestFlow({
   const dragX = useMotionValue(0)
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   
-  const { 
-    serviceType, 
-    currentStepId, 
+  const {
+    serviceType,
+    currentStepId,
     direction,
     setServiceType,
-    nextStep, 
+    nextStep,
     prevStep,
     goToStep,
     answers,
+    phone,
     setAnswer,
     setIdentity,
     setAuthContext,
@@ -196,10 +200,13 @@ export function RequestFlow({
         lastName: lastParts.join(' ') || '',
       })
     }
+    if (userPhone && !phone) {
+      setIdentity({ phone: userPhone })
+    }
     if (profileDateOfBirth) {
       setIdentity({ dob: profileDateOfBirth })
     }
-  }, [userEmail, userName, profileDateOfBirth, answers.email, setIdentity])
+  }, [userEmail, userName, userPhone, profileDateOfBirth, answers.email, phone, setIdentity])
 
   // Pre-fill medical history from health profile
   useEffect(() => {
@@ -447,8 +454,9 @@ export function RequestFlow({
       exit_step: currentStepId,
       step_index: currentStepIndex,
     })
-    router.push('/')
-  }, [analyticsServiceType, currentStepId, currentStepIndex, router, posthog])
+    // Full page navigation to avoid white-page from layout mismatch
+    window.location.href = '/'
+  }, [analyticsServiceType, currentStepId, currentStepIndex, posthog])
 
   // Handle draft restoration
   const handleRestoreDraft = useCallback(() => {

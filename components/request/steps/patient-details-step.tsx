@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -21,6 +21,7 @@ import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
+import { validateMedicareNumber, formatMedicareNumber } from "@/lib/validation/medicare"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -44,6 +45,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const suburb = (answers.suburb as string) || ""
   const state = (answers.state as string) || ""
   const postcode = (answers.postcode as string) || ""
+  const medicareNumber = (answers.medicareNumber as string) || ""
   
   // Check for saved identity on mount
   useEffect(() => {
@@ -73,6 +75,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         setAnswer('state', savedData.state || '')
         setAnswer('postcode', savedData.postcode || '')
       }
+      if (savedData.medicareNumber) {
+        setAnswer('medicareNumber', savedData.medicareNumber)
+      }
       setShowAutofillBanner(false)
     }
   }, [savedData, setIdentity, setAnswer])
@@ -86,8 +91,10 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script' || serviceType === 'consult'
-  // Only show address for services that might need physical delivery
+  const needsPrescriptionDetails = serviceType === 'prescription' || serviceType === 'repeat-script'
+  // Show address for prescriptions (required by prescribing software) and consults
   const showAddress = serviceType !== 'med-cert'
+  const addressRequired = needsPrescriptionDetails
 
   // Real-time validation on blur
   const validateField = useCallback((field: string, value: string | undefined) => {
@@ -109,8 +116,21 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       case 'phone':
         error = validatePhone(value, needsPhone)
         break
+      case 'medicareNumber':
+        if (needsPrescriptionDetails && value) {
+          const result = validateMedicareNumber(value)
+          error = result.valid ? null : (result.error || 'Invalid Medicare number')
+        } else if (needsPrescriptionDetails && !value) {
+          error = 'Medicare number is required for prescriptions'
+        }
+        break
+      case 'addressLine1':
+        if (addressRequired && !value?.trim()) {
+          error = 'Address is required for prescriptions'
+        }
+        break
     }
-    
+
     setErrors(prev => {
       if (error) {
         return { ...prev, [field]: error }
@@ -118,9 +138,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       const { [field]: _, ...rest } = prev
       return rest
     })
-    
+
     return error === null
-  }, [needsPhone])
+  }, [needsPhone, needsPrescriptionDetails, addressRequired])
   
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -144,9 +164,21 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     
     const phoneError = validatePhone(phone, needsPhone)
     if (phoneError) newErrors.phone = phoneError
-    
+
+    if (needsPrescriptionDetails) {
+      if (!medicareNumber.trim()) {
+        newErrors.medicareNumber = 'Medicare number is required for prescriptions'
+      } else {
+        const medicareResult = validateMedicareNumber(medicareNumber)
+        if (!medicareResult.valid) newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
+      }
+      if (!addressLine1.trim()) {
+        newErrors.addressLine1 = 'Address is required for prescriptions'
+      }
+    }
+
     setErrors(newErrors)
-    setTouched({ firstName: true, lastName: true, email: true, dob: true, phone: true })
+    setTouched({ firstName: true, lastName: true, email: true, dob: true, phone: true, medicareNumber: true, addressLine1: true })
     return Object.keys(newErrors).length === 0
   }
 
@@ -163,6 +195,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         suburb,
         state,
         postcode,
+        medicareNumber,
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
@@ -176,7 +209,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     }
   }
 
-  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone)
+  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareNumber && addressLine1))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
   
@@ -322,11 +355,43 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         )}
       </FormField>
 
-      {/* Address - only for services that need physical delivery (not med-cert) */}
+      {/* Medicare number - required for prescriptions */}
+      {needsPrescriptionDetails && (
+        <FormField
+          label="Medicare number"
+          required
+          error={touched.medicareNumber ? errors.medicareNumber : undefined}
+          icon={CreditCard}
+          helpContent={{ title: "Why do we need your Medicare number?", content: "Required by prescribing software to generate your eScript. Your Medicare details are encrypted and never shared." }}
+        >
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={medicareNumber}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
+              setAnswer('medicareNumber', raw)
+            }}
+            onBlur={() => handleBlur('medicareNumber', medicareNumber)}
+            placeholder="1234 56789 0"
+            data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
+            className={`h-11 ${touched.medicareNumber && errors.medicareNumber ? 'border-destructive' : ''}`}
+          />
+          {medicareNumber.length === 10 && !errors.medicareNumber && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatMedicareNumber(medicareNumber)}
+            </p>
+          )}
+        </FormField>
+      )}
+
+      {/* Address - required for prescriptions, optional for consults */}
       {showAddress && (
         <FormField
           label="Address"
-          hint="Optional - for prescription or referral delivery"
+          required={addressRequired}
+          error={touched.addressLine1 ? errors.addressLine1 : undefined}
+          hint={addressRequired ? undefined : "Optional - for prescription or referral delivery"}
           icon={MapPin}
         >
           <AddressAutocomplete
@@ -334,7 +399,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(val) => setAnswer("addressLine1", val)}
             onAddressSelect={handleAddressSelect}
             placeholder="Start typing your address..."
-            className="h-11"
+            className={`h-11 ${touched.addressLine1 && errors.addressLine1 ? 'border-destructive' : ''}`}
           />
           {(suburb || state || postcode) && (
             <p className="text-xs text-muted-foreground mt-1">

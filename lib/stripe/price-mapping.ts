@@ -134,11 +134,12 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
     return priceId
   }
 
-  // Prescriptions - all use the same price
+  // Prescriptions — the intake flow is always for repeats ($29.95).
+  // New prescriptions route through the consult flow and use STRIPE_PRICE_CONSULT ($49.95).
   if (category === "prescription") {
-    const priceId = process.env.STRIPE_PRICE_PRESCRIPTION
+    const priceId = process.env.STRIPE_PRICE_REPEAT_SCRIPT
     if (!priceId) {
-      throw new Error("Missing STRIPE_PRICE_PRESCRIPTION environment variable")
+      throw new Error("Missing STRIPE_PRICE_REPEAT_SCRIPT environment variable")
     }
     return priceId
   }

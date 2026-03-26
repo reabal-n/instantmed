@@ -44,7 +44,7 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
     label: 'Medical Certificate'
   },
   'prescription': {
-    base: APP_PRICING.NEW_SCRIPT,
+    base: APP_PRICING.REPEAT_SCRIPT,
     label: 'Prescription Request'
   },
   'repeat-script': {

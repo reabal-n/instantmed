@@ -41,6 +41,7 @@ export interface UserPreferences {
     suburb?: string
     state?: string
     postcode?: string
+    medicareNumber?: string
   }
   
   // Consult preferences

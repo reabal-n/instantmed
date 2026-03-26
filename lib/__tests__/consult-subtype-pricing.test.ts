@@ -159,6 +159,7 @@ describe('Non-Consult Categories Unchanged', () => {
       STRIPE_PRICE_MEDCERT: 'price_medcert',
       STRIPE_PRICE_MEDCERT_2DAY: 'price_medcert_2day',
       STRIPE_PRICE_PRESCRIPTION: 'price_prescription',
+      STRIPE_PRICE_REPEAT_SCRIPT: 'price_repeat_script',
       STRIPE_PRICE_CONSULT: 'price_consult',
     }
   })
@@ -179,14 +180,14 @@ describe('Non-Consult Categories Unchanged', () => {
     expect(priceId).toBe('price_medcert')
   })
 
-  it('prescription still uses STRIPE_PRICE_PRESCRIPTION', async () => {
+  it('prescription uses STRIPE_PRICE_REPEAT_SCRIPT', async () => {
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
-    
+
     const priceId = getPriceIdForRequest({
       category: 'prescription',
       subtype: 'repeat',
     })
-    
-    expect(priceId).toBe('price_prescription')
+
+    expect(priceId).toBe('price_repeat_script')
   })
 })
