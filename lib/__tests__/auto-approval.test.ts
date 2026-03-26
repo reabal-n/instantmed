@@ -506,4 +506,82 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.eligible).toBe(false)
     expect(result.disqualifyingFlags.length).toBeGreaterThan(1)
   })
+
+  // ---- Configurable maxDurationDays ----
+
+  it("respects custom maxDurationDays=2 (rejects 3-day cert)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "3" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+      { maxDurationDays: 2 },
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("duration_too_long"))).toBe(true)
+  })
+
+  it("respects custom maxDurationDays=1 (rejects 2-day cert)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "2" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+      { maxDurationDays: 1 },
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("duration_too_long"))).toBe(true)
+  })
+
+  it("allows 1-day cert with maxDurationDays=1", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "1" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+      { maxDurationDays: 1 },
+    )
+    expect(result.eligible).toBe(true)
+  })
+
+  it("hard-caps maxDurationDays at 3 even if set higher", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "4" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+      { maxDurationDays: 7 },
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("duration_too_long"))).toBe(true)
+  })
+
+  it("allows 3-day cert with maxDurationDays=7 (hard-capped to 3)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "3" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+      { maxDurationDays: 7 },
+    )
+    expect(result.eligible).toBe(true)
+  })
+
+  it("defaults to maxDurationDays=3 when options not provided", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "3" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+    )
+    expect(result.eligible).toBe(true)
+
+    const result4 = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "4" }),
+      makeReadyDraft(),
+      { date_of_birth: "1990-01-15" },
+    )
+    expect(result4.eligible).toBe(false)
+  })
 })

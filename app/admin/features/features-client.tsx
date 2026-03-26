@@ -34,10 +34,16 @@ import {
   Clock,
   Megaphone,
   Calendar,
+  CheckCircle2,
+  XCircle,
+  SkipForward,
+  TrendingUp,
+  Activity,
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
+import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
 interface AuditLogEntry {
@@ -52,6 +58,7 @@ interface AuditLogEntry {
 interface FeatureFlagsClientProps {
   initialFlags: FeatureFlags
   auditLogs?: AuditLogEntry[]
+  autoApproveStats?: AutoApproveStats | null
 }
 
 // Kill switch flags that require confirmation before disabling
@@ -67,7 +74,7 @@ const KILL_SWITCH_LABELS: Record<string, string> = {
   [FLAG_KEYS.DISABLE_CONSULTS]: "Consultations",
 }
 
-export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlagsClientProps) {
+export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveStats }: FeatureFlagsClientProps) {
   const router = useRouter()
   const [flags, setFlags] = useState(initialFlags)
   const [isSaving, setIsSaving] = useState<string | null>(null)
@@ -844,9 +851,9 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
                   <Input
                     type="number"
                     min={1}
-                    max={7}
+                    max={3}
                     value={flags.auto_approve_max_duration_days}
-                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_max_duration_days: Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                    onChange={(e) => setFlags(prev => ({ ...prev, auto_approve_max_duration_days: Math.min(3, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
                     onBlur={async () => {
                       if (flags.auto_approve_max_duration_days !== initialFlags.auto_approve_max_duration_days) {
                         setIsSaving(FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS)
@@ -859,14 +866,97 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [] }: FeatureFlag
                     }}
                     className="w-20"
                   />
-                  <span className="text-sm text-muted-foreground">days (certs longer than this need doctor review)</span>
+                  <span className="text-sm text-muted-foreground">days (max 3, certs longer need doctor review)</span>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Stats (shown when enabled and stats available) */}
+          {flags.ai_auto_approve_enabled && autoApproveStats && (
+            <div className="space-y-4">
+              {/* Stat counters */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-4 rounded-lg border bg-green-50/50 dark:bg-green-500/5">
+                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-2xl font-semibold">{autoApproveStats.todayApproved}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Approved today</p>
+                </div>
+                <div className="p-4 rounded-lg border bg-red-50/50 dark:bg-red-500/5">
+                  <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <XCircle className="h-4 w-4" />
+                    <span className="text-2xl font-semibold">{autoApproveStats.todayFailed}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Failed today</p>
+                </div>
+                <div className="p-4 rounded-lg border">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <SkipForward className="h-4 w-4" />
+                    <span className="text-2xl font-semibold">{autoApproveStats.todaySkipped}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Skipped today</p>
+                </div>
+                <div className="p-4 rounded-lg border bg-violet-50/50 dark:bg-violet-500/5">
+                  <div className="flex items-center gap-2 text-violet-700 dark:text-violet-400">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-2xl font-semibold">{autoApproveStats.last7DaysApproved}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Last 7 days</p>
+                </div>
+              </div>
+
+              {/* Last approved */}
+              {autoApproveStats.lastApprovedAt && (
+                <p className="text-xs text-muted-foreground">
+                  Last auto-approved:{" "}
+                  {new Date(autoApproveStats.lastApprovedAt).toLocaleString("en-AU", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+              )}
+
+              {/* Recent activity log */}
+              {autoApproveStats.recentActivity.length > 0 && (
+                <div className="p-4 rounded-lg border">
+                  <p className="text-sm font-medium flex items-center gap-2 mb-3">
+                    <Activity className="h-4 w-4" />
+                    Recent Activity
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {autoApproveStats.recentActivity.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-center justify-between gap-2 py-1.5 border-b border-border/50 last:border-0 text-sm"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {entry.eligible ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          )}
+                          <span className="truncate text-muted-foreground">{entry.reason}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {new Date(entry.created_at).toLocaleString("en-AU", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground">
-            Safety: excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail.
+            Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail.
           </p>
         </CardContent>
       </Card>
