@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useUser, UserButton } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import {
   LogOut,
   User,
@@ -72,7 +72,31 @@ export function UserMenu({
               <LayoutDashboard className="h-3.5 w-3.5" />
               Dashboard
             </Link>
-            <UserButton afterSignOutUrl="/" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors">
+                  <User className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => router.push("/patient/settings")}
+                >
+                  <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  disabled={isLoggingOut}
+                  className="text-red-600 focus:text-red-600 cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         ) : (
           <AppSignInButton>

@@ -1,11 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, PhoneOff, Check, ShieldCheck, Stethoscope, Star, AlertCircle } from 'lucide-react'
+import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { Separator } from '@/components/ui/separator'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -53,18 +52,11 @@ const colorConfig: Record<string, {
   },
 }
 
-// Service metadata for additional info
-const serviceMetadata: Record<string, { time: string; callNote: string; gpCompare: string }> = {
-  'med-cert': { time: 'GP reviewed', callNote: 'No call needed', gpCompare: '60–90' },
-  'scripts': { time: 'GP reviewed', callNote: 'No call needed', gpCompare: '60–90' },
-  'consult': { time: 'GP reviewed', callNote: 'May include a call', gpCompare: '80–120' },
-}
-
-// Static trust signals (replaces fake live stats)
+// Trust signals — unique per section, no duplicates with hero/trust-badge-slider
 const trustSignals = [
-  { icon: Stethoscope, text: 'Australian GP-reviewed' },
-  { icon: Clock, text: 'Same-day turnaround' },
-  { icon: ShieldCheck, text: 'Full refund if we can\'t help' },
+  { icon: Stethoscope, text: 'AHPRA-registered doctors' },
+  { icon: Clock, text: 'Most reviewed within 1–2 hours' },
+  { icon: ShieldCheck, text: 'Flat pricing, no hidden fees' },
 ]
 
 function useServicePickerVariants() {
@@ -135,7 +127,7 @@ export function ServicePicker() {
             />
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-            Flat pricing. No hidden fees. Full refund if we can&apos;t help.
+            Flat pricing. No hidden fees. No account needed to start.
           </p>
           
           {/* Trust Signals */}
@@ -167,7 +159,6 @@ export function ServicePicker() {
           {serviceCategories.map((service) => {
             const Icon = iconMap[service.icon as keyof typeof iconMap] || DocumentPremium
             const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
-            const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
             const displayPrice = service.priceFrom
             const disabled = isServiceDisabled(service.id as ServiceId)
             const ServiceMockup = mockupMap[service.id]
@@ -191,8 +182,7 @@ export function ServicePicker() {
                         </div>
                       </div>
                     )}
-                    
-                    {/* Clean card - dub-style depth */}
+
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
                       "bg-white dark:bg-card",
@@ -208,43 +198,33 @@ export function ServicePicker() {
                       {/* Gradient accent bar */}
                       <div className={cn("h-1.5 w-full bg-gradient-to-r rounded-b-sm", colors.gradient)} />
 
-                      {/* Product mockup — fixed height for equal cards */}
+                      {/* Product mockup */}
                       {ServiceMockup && (
-                        <div className="h-[220px] overflow-hidden group-hover:-translate-y-0.5 transition-transform duration-300 flex items-center justify-center">
+                        <div className="h-[200px] overflow-hidden group-hover:-translate-y-0.5 transition-transform duration-300 flex items-center justify-center">
                           <ServiceMockup />
                         </div>
                       )}
 
                       <div className="p-4 pb-3 flex-1 flex flex-col">
-                        {/* Icon with animated background */}
-                        <motion.div 
-                          className="relative w-9 h-9 rounded-lg flex items-center justify-center mb-2 overflow-hidden icon-spin-hover"
-                          style={{ backgroundColor: colors.light }}
-                        >
+                        {/* Icon + title row */}
+                        <div className="flex items-center gap-2.5 mb-2">
                           <motion.div
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                            style={{ 
-                              background: `radial-gradient(circle at center, ${colors.accent}30 0%, transparent 70%)` 
-                            }}
-                          />
-                          <Icon className="w-5 h-5 relative z-10" style={{ color: colors.accent }} />
-                        </motion.div>
-                        
-                        {/* #3: Benefit question above title */}
-                        {'benefitQuestion' in service && service.benefitQuestion && (
-                          <p className="text-xs font-medium text-primary mb-0.5">
-                            {service.benefitQuestion}
-                          </p>
-                        )}
-                        
-                        {/* Title */}
-                        <h3 className="text-base font-semibold text-foreground mb-0.5 group-hover:text-primary transition-colors duration-300">
-                          {service.title}
-                        </h3>
-                        
+                            className="relative w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 icon-spin-hover"
+                            style={{ backgroundColor: colors.light }}
+                          >
+                            <Icon className="w-4 h-4 relative z-10" style={{ color: colors.accent }} />
+                          </motion.div>
+                          <div>
+                            <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                              {service.title}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">From ${displayPrice.toFixed(2)}</p>
+                          </div>
+                        </div>
+
                         {/* Benefits list */}
                         {service.benefits && (
-                          <ul className="space-y-1 mb-1 flex-1">
+                          <ul className="space-y-1 mb-3 flex-1">
                             {service.benefits.map((benefit, idx) => (
                               <li key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
                                 <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
@@ -253,83 +233,24 @@ export function ServicePicker() {
                             ))}
                           </ul>
                         )}
-                        
-                        {/* Meta info - #6: clearer time, #7: reframed call messaging */}
-                        <div className="flex items-center gap-3 text-xs min-h-[18px]">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {meta.time}
-                          </span>
-                          {meta.callNote === 'No call needed' ? (
-                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                              <PhoneOff className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                              {meta.callNote}
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <PhoneOff className="h-3 w-3 shrink-0" />
-                              {meta.callNote}
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* Medicare note - only for prescriptions */}
-                        {service.id === 'scripts' && (
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                            PBS subsidies may apply at pharmacy
-                          </p>
-                        )}
                       </div>
-                      
-                      <Separator className="opacity-50" />
-                      
-                      <div className="flex items-center justify-between px-4 py-3 shrink-0">
-                        {/* Price */}
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-foreground">
-                            From ${displayPrice.toFixed(2)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            Typically ${meta.gpCompare || '60–90'} at a GP
-                          </span>
-                        </div>
-                        
+
+                      {/* CTA footer */}
+                      <div className="px-4 pb-4">
                         {disabled ? (
-                          <Button size="sm" variant="outline" className="gap-1" asChild>
+                          <Button size="sm" variant="outline" className="w-full gap-1" asChild>
                             <Link href="/contact">
                               Contact us
                               <ArrowRight className="h-3 w-3" />
                             </Link>
                           </Button>
                         ) : (
-                          <Button size="sm" className="gap-1">
+                          <Button size="sm" className="w-full gap-1">
                             {'cta' in service ? service.cta : 'Start request'}
                             <ArrowRight className="h-3 w-3" />
                           </Button>
                         )}
                       </div>
-                      
-                      {/* #5: Testimonial for popular card */}
-                      {service.popular && 'testimonial' in service && service.testimonial && (
-                        <div className="px-4 pb-3 pt-2 border-t border-border/30">
-                          <div className="flex items-center gap-2 text-xs">
-                            <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
-                            <span className="text-muted-foreground italic">
-                              &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
-                            </span>
-                            <span className="text-muted-foreground/70 dark:text-muted-foreground">
-                              — {(service.testimonial as { quote: string; author: string }).author}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Disclaimer for General Consult */}
-                      {service.id === 'consult' && (
-                        <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground text-center px-4 pb-4">
-                          For non-urgent concerns only — if it&apos;s an emergency, call 000.
-                        </p>
-                      )}
                     </div>
                   </div>
             )

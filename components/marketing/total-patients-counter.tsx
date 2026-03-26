@@ -209,8 +209,8 @@ export function StatsStrip({
         <div className="flex items-center gap-2 text-sm">
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           <span>
-            <span className="font-semibold text-foreground">{SOCIAL_PROOF.reviewCount}+</span>
-            <span className="text-muted-foreground ml-1">verified reviews</span>
+            <span className="font-semibold text-foreground">{SOCIAL_PROOF.certApprovalPercent}%</span>
+            <span className="text-muted-foreground ml-1">approval rate</span>
           </span>
         </div>
       )}

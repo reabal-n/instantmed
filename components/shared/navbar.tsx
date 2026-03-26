@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
-import { UserButton, useUser, useClerk } from "@clerk/nextjs"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { LogOut } from "lucide-react"
 import { BrandLogo } from "@/components/shared/brand-logo"
@@ -176,9 +176,16 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {variant === "marketing" && (
               <>
                 {isClerkLoaded && user ? (
-                  <div className="flex justify-center">
-                    <UserButton afterSignOutUrl="/" />
-                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      router.push("/patient/settings")
+                    }}
+                  >
+                    Settings
+                  </Button>
                 ) : (
                   <AppSignInButton>
                     <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">

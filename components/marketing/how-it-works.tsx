@@ -135,24 +135,16 @@ export function HowItWorks() {
           {steps.map((step, index) => {
             const Mockup = stepMockups[index]
             return (
-              <div key={step.number} className="relative">
+              <div key={step.number} className="relative flex flex-col">
                 {/* Step number */}
-                <div className="text-center mb-4">
+                <div className="text-center mb-4 order-1">
                   <span className="text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none">
                     {step.number}
                   </span>
                 </div>
 
-                {/* Floating card with mockup */}
-                <FloatingCard
-                  delay={index * 0.15}
-                  direction={directions[index]}
-                >
-                  <Mockup />
-                </FloatingCard>
-
-                {/* Step text */}
-                <div className="text-center mt-4">
+                {/* Step text — above mockup on mobile, below on desktop */}
+                <div className="text-center mb-4 lg:mb-0 lg:mt-4 order-2 lg:order-3">
                   <h3 className="text-base font-semibold text-foreground mb-1">
                     {step.title}
                   </h3>
@@ -162,6 +154,16 @@ export function HowItWorks() {
                   <span className="inline-block mt-2 text-[10px] text-primary font-medium bg-primary/5 px-2 py-0.5 rounded-full">
                     {stepBadges[index]}
                   </span>
+                </div>
+
+                {/* Floating card with mockup */}
+                <div className="order-3 lg:order-2">
+                  <FloatingCard
+                    delay={index * 0.15}
+                    direction={directions[index]}
+                  >
+                    <Mockup />
+                  </FloatingCard>
                 </div>
               </div>
             )

@@ -76,15 +76,15 @@ export function CTABanner({
           )}
         </div>
 
-        {/* Floating certificate-ready card */}
+        {/* Floating reassurance card */}
         <div className="mt-8 flex justify-center">
           <FloatingCard delay={0.3} className="inline-flex items-center gap-3 px-5 py-3">
             <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-foreground">Your certificate is ready</p>
-              <p className="text-xs text-muted-foreground">Delivered to your inbox</p>
+              <p className="text-sm font-medium text-foreground">Full refund if we can&apos;t help</p>
+              <p className="text-xs text-muted-foreground">No questions asked</p>
             </div>
           </FloatingCard>
         </div>

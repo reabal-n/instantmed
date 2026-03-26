@@ -58,7 +58,7 @@ export const SOCIAL_PROOF = {
   doctorCount: 4,
 
   // ── Doctor Credibility ──
-  doctorCombinedYears: 45,
+  doctorCombinedYears: 15,
 
   // ── Outcome Stats ──
   sameDayDeliveryPercent: 94,
@@ -91,7 +91,7 @@ export const SOCIAL_PROOF_DISPLAY = {
   adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
   gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
-  doctorExperience: `${SOCIAL_PROOF.doctorCombinedYears}+ years combined experience`,
+  doctorExperience: `${SOCIAL_PROOF.doctorCombinedYears}+ years GP experience`,
   sameDayDelivery: `${SOCIAL_PROOF.sameDayDeliveryPercent}% delivered same day`,
   certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
   scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,

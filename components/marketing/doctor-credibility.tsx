@@ -16,7 +16,7 @@ const STAT_CONFIG = {
   experience: {
     icon: Stethoscope,
     value: SOCIAL_PROOF_DISPLAY.doctorExperience,
-    label: 'Our doctors',
+    label: 'Your GP',
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
@@ -44,7 +44,7 @@ const STAT_CONFIG = {
   reviews: {
     icon: TrendingUp,
     value: `${SOCIAL_PROOF.averageRating}/5`,
-    label: `from ${SOCIAL_PROOF.reviewCount} reviews`,
+    label: 'patient rating',
     color: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-500/10',
   },

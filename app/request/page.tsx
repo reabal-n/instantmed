@@ -143,8 +143,19 @@ export default async function RequestPage({
   }
 
   const params = await searchParams
-  const user = await getCurrentUser()
-  const profile = user ? await getUserProfile(user.id) : null
+
+  // Wrap auth in try-catch — if Clerk/Supabase is temporarily unavailable,
+  // fall through to guest checkout rather than crashing the server component
+  let user: Awaited<ReturnType<typeof getCurrentUser>> = null
+  let profile: Awaited<ReturnType<typeof getUserProfile>> = null
+  try {
+    user = await getCurrentUser()
+    profile = user ? await getUserProfile(user.id) : null
+  } catch {
+    // Auth service unavailable — proceed as guest
+    user = null
+    profile = null
+  }
 
   // Map URL param to unified service type
   // Returns null for invalid services (RequestFlow will show error)

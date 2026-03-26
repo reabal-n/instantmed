@@ -3,13 +3,6 @@
 /**
  * Checkout Step - Review and payment
  * Uses shared CheckoutButton and integrates with Stripe checkout
- *
- * UX improvements:
- * - Single combined consent toggle (accuracy + terms)
- * - Enlarged price with "one-time fee" callout
- * - Payment method logos (Visa, MC, Amex, Apple Pay, Google Pay)
- * - "No account required" messaging
- * - Refund guarantee badge next to pay button
  */
 
 import { useState, useEffect } from "react"
@@ -17,11 +10,10 @@ import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, CreditCard, ShieldCheck, UserX } from "lucide-react"
-import { IntakeReviewSocialProof } from "@/components/intake/intake-review-social-proof"
+import { Check, Shield, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
+import { CheckoutButton } from "@/components/shared/checkout-button"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
@@ -29,13 +21,6 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
 import { PRICING as APP_PRICING, MED_CERT_DURATIONS } from "@/lib/constants"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
-
-interface CheckoutStepProps {
-  serviceType: UnifiedServiceType
-  onNext?: () => void
-  onBack?: () => void
-  onComplete?: () => void
-}
 
 // Prices sourced from lib/constants.ts (single source of truth)
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
@@ -57,6 +42,14 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
   },
 }
 
+const CONSULT_SUBTYPE_LABELS: Record<string, string> = {
+  general: 'General Consultation',
+  ed: 'ED Consultation',
+  hair_loss: 'Hair Loss Consultation',
+  womens_health: "Women's Health Consultation",
+  weight_loss: 'Weight Management Consultation',
+}
+
 const PAYMENT_METHODS = ['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay']
 
 function ReviewItem({ label, value }: { label: string; value: string }) {
@@ -68,8 +61,8 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
-  const { answers, getIdentity, setConsent, chatSessionId } = useRequestStore()
+export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServiceType }) {
+  const { answers, getIdentity, setConsent, chatSessionId, authContext } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -96,14 +89,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     price = getConsultSubtypePrice(consultSubtype)
   }
 
-  // Subtype-specific label for consults
-  const CONSULT_SUBTYPE_LABELS: Record<string, string> = {
-    general: 'General Consultation',
-    ed: 'ED Consultation',
-    hair_loss: 'Hair Loss Consultation',
-    womens_health: "Women's Health Consultation",
-    weight_loss: 'Weight Management Consultation',
-  }
   const displayLabel = serviceType === 'consult' && consultSubtype
     ? CONSULT_SUBTYPE_LABELS[consultSubtype] || pricing.label
     : pricing.label
@@ -123,7 +108,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     setIsProcessing(true)
     setError(null)
 
-    // Track checkout funnel: initiated
     posthog?.capture('checkout_initiated', {
       service_type: serviceType,
       price_dollars: price,
@@ -147,7 +131,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       })
 
       if (!result.success) {
-        // Track checkout funnel: failed (before Stripe redirect)
         posthog?.capture('checkout_failed', {
           service_type: serviceType,
           error: result.error,
@@ -158,7 +141,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       }
 
       if (result.checkoutUrl) {
-        // Track checkout funnel: redirecting to Stripe
         posthog?.capture('checkout_redirecting', {
           service_type: serviceType,
           intake_id: result.intakeId,
@@ -195,13 +177,15 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       initial="initial"
       animate="animate"
     >
-      {/* No account required badge */}
-      <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <UserX className="w-4 h-4 text-primary" />
-        <span>No account required — pay as a guest</span>
-      </motion.div>
+      {/* Guest badge — only for unauthenticated users */}
+      {!authContext.isAuthenticated && (
+        <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <UserX className="w-4 h-4 text-primary" />
+          <span>No account required — pay as a guest</span>
+        </motion.div>
+      )}
 
-      {/* Summary card with enlarged price */}
+      {/* Summary card */}
       <motion.div variants={stagger.item} className="p-4 rounded-xl border bg-card space-y-3">
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-primary" />
@@ -238,7 +222,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           })()}
         </div>
 
-        {/* Enlarged price section */}
+        {/* Price section */}
         <div className="pt-3 border-t">
           <div className="flex justify-between items-baseline">
             <div>
@@ -250,7 +234,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Pay after your request is created. Full refund if we can&apos;t help.
+            Pay after your request is created.
           </p>
         </div>
       </motion.div>
@@ -264,10 +248,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         <span className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5 text-primary" />
           {estimatedWait} review
-        </span>
-        <span className="flex items-center gap-1">
-          <RefreshCw className="w-3.5 h-3.5 text-primary" />
-          Full refund if we can&apos;t help
         </span>
       </motion.div>
 
@@ -295,13 +275,6 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           </p>
         </div>
       )}
-
-      {/* Social proof testimonial */}
-      <motion.div variants={stagger.item}>
-        <IntakeReviewSocialProof
-          service={serviceType === 'med-cert' ? 'medical-certificate' : serviceType === 'consult' ? 'consultation' : 'prescription'}
-        />
-      </motion.div>
 
       {/* Single combined consent */}
       <motion.div variants={stagger.item}>
@@ -340,37 +313,34 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       )}
 
       {/* Spacer for sticky CTA on mobile */}
-      <div className="h-44 sm:hidden" />
+      <div className="h-36 sm:hidden" />
 
-      {/* Checkout button with guarantee badge - sticky on mobile */}
+      {/* Checkout button — sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
-        <div className="max-w-lg mx-auto space-y-2.5">
-          <CheckoutSection>
-            <CheckoutButton
-              onClick={handleCheckout}
-              isLoading={isProcessing}
-              disabled={!canCheckout}
-              price={`$${price.toFixed(2)}`}
-              label="Continue to payment"
-              loadingLabel="Processing..."
-              variant="prominent"
-            />
-          </CheckoutSection>
+        <div className="max-w-lg mx-auto space-y-2">
+          <CheckoutButton
+            onClick={handleCheckout}
+            isLoading={isProcessing}
+            disabled={!canCheckout}
+            price={`$${price.toFixed(2)}`}
+            label="Continue to payment"
+            loadingLabel="Processing..."
+            variant="prominent"
+          />
 
-          {/* Refund guarantee right next to pay button */}
+          {/* Refund guarantee */}
           <div className="flex items-center justify-center gap-2 text-xs text-primary">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span className="font-medium">Full refund if we can&apos;t help</span>
           </div>
 
-          {/* Payment method logos */}
-          <div className="flex items-center justify-center gap-1.5">
-            <CreditCard className="h-3.5 w-3.5 text-muted-foreground/50" />
+          {/* Stripe + payment methods — single trust line */}
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/60">
+            <Lock className="h-3 w-3" />
+            <span>Secured by Stripe</span>
+            <span className="mx-1">·</span>
             {PAYMENT_METHODS.map((method) => (
-              <span
-                key={method}
-                className="text-xs text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30"
-              >
+              <span key={method} className="px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
                 {method}
               </span>
             ))}
@@ -378,7 +348,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </div>
       </div>
 
-      {/* Subtle checkmark on successful checkout creation */}
+      {/* Checkmark overlay on successful checkout creation */}
       {showCheckmark && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"

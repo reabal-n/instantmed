@@ -1,11 +1,9 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "lucide-react"
+import { BadgeCheck, FileCheck, BookOpen, UserCheck, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { DottedGrid } from "@/components/marketing/dotted-grid"
 
 const trustBadges = [
@@ -46,12 +44,12 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
   const animate = !prefersReducedMotion
 
   return (
-    <section className={cn("py-20 lg:py-24 relative", className)}>
+    <section className={cn("py-10 lg:py-14 relative", className)}>
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Trust badges grid */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-10"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
           initial={animate ? { opacity: 0, y: 20 } : false}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
@@ -93,52 +91,6 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
           })}
         </motion.div>
 
-        {/* CTA Section */}
-        <motion.div
-          className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-10 lg:p-14 text-center"
-          initial={animate ? { opacity: 0, y: 20 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <CheckCircle2 className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Simple and straightforward</span>
-          </div>
-
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-3 tracking-tight">
-            Healthcare on your schedule
-          </h2>
-          <p className="text-muted-foreground mb-6 max-w-lg mx-auto leading-relaxed">
-            Trusted by Australians across the country. Most requests reviewed within an hour.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              asChild
-              size="lg"
-              className="px-8 font-semibold shadow-md shadow-primary/15 active:scale-[0.98]"
-            >
-              <Link href="/request">Start a request</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="px-8 active:scale-[0.98]"
-            >
-              <Link href="/pricing">View pricing</Link>
-            </Button>
-          </div>
-
-          <p className="text-xs text-muted-foreground mt-4">
-            <Shield className="w-3.5 h-3.5 inline mr-1" />
-            Full refund if we can&apos;t help
-          </p>
-          <p className="text-xs text-muted-foreground/60 dark:text-muted-foreground/80 mt-3">
-            Operating since 2025 · ABN 64 694 559 334
-          </p>
-        </motion.div>
       </div>
     </section>
   )

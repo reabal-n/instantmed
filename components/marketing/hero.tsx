@@ -112,7 +112,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             >
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-center lg:text-left">{'AHPRA-registered doctors \u00b7 Accepted by all employers \u00b7 Full refund if we can\'t help'}</span>
+                <span className="text-center lg:text-left">AHPRA-registered doctors &middot; Accepted by all employers</span>
               </p>
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                 <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 dark:text-muted-foreground shrink-0" />

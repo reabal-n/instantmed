@@ -162,9 +162,9 @@ export default async function HomePage() {
         {/* Final CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle="Tell us what's going on, a doctor reviews it, and your certificate lands in your inbox. No appointments, no waiting rooms."
+          subtitle="Tell us what's going on, a doctor reviews it, and you're sorted. No appointments, no waiting rooms."
           ctaText="Get started"
-          ctaHref="/request?service=med-cert"
+          ctaHref="/request"
         />
       </main>
 
