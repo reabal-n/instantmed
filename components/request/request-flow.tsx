@@ -770,7 +770,9 @@ export function RequestFlow({
       {/* Content with swipe gestures */}
       <motion.main 
         ref={contentRef}
-        className="max-w-lg mx-auto px-4 py-6 pb-28 sm:pb-6 touch-pan-y"
+        className={`max-w-lg mx-auto px-4 py-6 sm:pb-6 touch-pan-y ${
+          currentStepId === 'checkout' || currentStepId === 'review' ? 'pb-6' : 'pb-28'
+        }`}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
@@ -834,27 +836,29 @@ export function RequestFlow({
         </AnimatePresence>
       </motion.main>
 
-      {/* Sticky bottom CTA bar for mobile */}
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t p-4 sm:hidden safe-area-bottom">
-        <div className="container max-w-lg mx-auto flex items-center gap-3">
-          {currentStepIndex > 0 && (
-            <Button 
-              variant="outline" 
-              size="lg" 
-              onClick={handleBack}
-              className="h-12 px-5"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          )}
-          <div className="flex-1 text-center">
-            <p className="text-xs text-muted-foreground">
-              Step {currentStepIndex + 1} of {activeSteps.length}
-            </p>
+      {/* Sticky bottom CTA bar for mobile — hidden on checkout/review which have their own CTAs */}
+      {currentStepId !== 'checkout' && currentStepId !== 'review' && (
+        <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t p-4 sm:hidden safe-area-bottom">
+          <div className="container max-w-lg mx-auto flex items-center gap-3">
+            {currentStepIndex > 0 && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleBack}
+                className="h-12 px-5"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <div className="flex-1 text-center">
+              <p className="text-xs text-muted-foreground">
+                Step {currentStepIndex + 1} of {activeSteps.length}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

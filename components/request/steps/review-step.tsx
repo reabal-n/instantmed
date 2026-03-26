@@ -17,8 +17,8 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 interface ReviewStepProps {
   serviceType: UnifiedServiceType
   onNext: () => void
-  onBack: () => void
-  onComplete: () => void
+  onBack?: () => void
+  onComplete?: () => void
 }
 
 const SERVICE_LABELS: Record<UnifiedServiceType, string> = {
@@ -509,9 +509,17 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   ]
   // Only show phone if provided
   if (phone) detailItems.push({ label: 'Phone', value: phone })
-  // Show Medicare for prescriptions
+  // Show Medicare and address for prescriptions
   const medicareNumber = answers.medicareNumber as string | undefined
   if (medicareNumber) detailItems.push({ label: 'Medicare', value: medicareNumber.replace(/(\d{4})(\d{5})(\d)/, '$1 $2 $3') })
+  const addressLine1 = answers.addressLine1 as string | undefined
+  const suburb = answers.suburb as string | undefined
+  const addressState = answers.state as string | undefined
+  const postcode = answers.postcode as string | undefined
+  if (addressLine1) {
+    const addressParts = [addressLine1, suburb, addressState, postcode].filter(Boolean)
+    detailItems.push({ label: 'Address', value: addressParts.join(', ') })
+  }
   sections.push({
     title: 'Your Details',
     items: detailItems,

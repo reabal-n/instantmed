@@ -32,9 +32,9 @@ import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
-  onNext: () => void
-  onBack: () => void
-  onComplete: () => void
+  onNext?: () => void
+  onBack?: () => void
+  onComplete?: () => void
 }
 
 // Prices sourced from lib/constants.ts (single source of truth)
