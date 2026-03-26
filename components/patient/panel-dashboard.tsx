@@ -292,23 +292,8 @@ export function PanelDashboard({
         {intakes.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title={FEEDBACK_MESSAGES.noRequests}
-            description="Pick what you need and a doctor will review it — we'll let you know when it's ready."
-            action={{
-              label: "New Request",
-              href: "/request",
-            }}
-            secondaryAction={{
-              label: "Learn how it works",
-              href: "/how-it-works",
-            }}
-            tips={[
-              "Medical certificates can be issued for past or future dates",
-              "Repeat prescriptions are usually approved same-day",
-              "Your documents are stored securely and can be downloaded anytime",
-              "Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST)",
-              "You'll receive an email when your document is ready",
-            ]}
+            title="Nothing here yet"
+            description="When you submit a request, it'll show up here."
           />
         ) : (
           <div className="space-y-4">
@@ -460,8 +445,8 @@ function IntakeCard({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={cn("px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium", config.color)}>
-            <Icon className="w-4 h-4" />
+          <div className={cn("flex items-center gap-1.5 text-xs font-medium", config.color)}>
+            <Icon className="w-3 h-3" />
             {config.label}
           </div>
           <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
