@@ -10,7 +10,7 @@ type Testimonial = {
   text: string;
   image: string;
   name: string;
-  role: string;
+  role?: string;
 };
 
 interface TestimonialsColumnsWrapperProps {

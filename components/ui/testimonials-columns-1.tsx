@@ -17,7 +17,7 @@ type Testimonial = {
   text: string;
   image: string;
   name: string;
-  role: string;
+  role?: string;
   verified?: boolean;
 };
 
@@ -47,7 +47,7 @@ export const TestimonialsColumn = (props: {
         {[
           ...new Array(2).fill(0).map((_, index) => (
             <React.Fragment key={index}>
-              {props.testimonials.map(({ text, image, name, role }, i) => (
+              {props.testimonials.map(({ text, image, name }, i) => (
                 <div className="p-5 rounded-2xl border border-border/30 dark:border-border/50 shadow-md shadow-primary/[0.05] dark:shadow-none max-w-xs w-full bg-white dark:bg-card" key={i}>
                   <div className="text-muted-foreground dark:text-foreground/70 leading-relaxed text-sm">{text}</div>
                   <div className="flex items-center gap-2 mt-4">
@@ -72,7 +72,6 @@ export const TestimonialsColumn = (props: {
                     )}
                     <div className="flex flex-col min-w-0 flex-1">
                       <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
-                      <div className="leading-4 opacity-60 dark:opacity-75 tracking-tight text-xs truncate">{role}</div>
                     </div>
                     <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0">
                       <BadgeCheck className="w-3.5 h-3.5" />
