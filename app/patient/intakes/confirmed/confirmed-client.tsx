@@ -59,7 +59,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">
-              Most requests are reviewed within 30 minutes during business hours
+              Reviewed within hours, most days.
             </p>
           </div>
         </div>
