@@ -808,6 +808,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: "Server configuration error. Please contact support." }
     }
 
+    const cookieStore = await cookies()
+    const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
+
     const sessionParams = {
       line_items: [
         {
@@ -825,6 +828,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         category: intake.category || "",
         subtype: intake.subtype || "",
         service_slug: serviceSlugForSafety || "",
+        ...(refCode ? { referral_code: refCode } : {}),
       },
       customer: authUser.profile.stripe_customer_id || undefined,
       customer_email: !authUser.profile.stripe_customer_id && patientEmail ? patientEmail : undefined,

@@ -62,7 +62,7 @@ export function GlobalIntakeNotifications({ patientId }: GlobalIntakeNotificatio
     const supabase = createClient()
 
     const channel = supabase
-      .channel(`patient-intakes-${patientId}`)
+      .channel(`global-intake-status-${patientId}`)
       .on(
         "postgres_changes",
         {

@@ -119,6 +119,8 @@ export interface Intake {
   cancelled_at: string | null
   expired_at: string | null
   expiry_reason: string | null
+  // Follow-up tracking
+  follow_up_sent_at: string | null
   // Email tracking
   abandoned_email_sent_at: string | null
   confirmation_email_sent_at: string | null
