@@ -90,17 +90,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   </Link>
                 </Button>
               </MagneticButton>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 px-6 text-base active:scale-[0.98]"
+              <Link
+                href="/request?service=prescription"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
-                <Link href="/request?service=prescription">
-                  Renew medication
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+                Renew medication
+              </Link>
             </motion.div>
 
             {/* Trust signals */}
