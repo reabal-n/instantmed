@@ -58,7 +58,7 @@ export function CompleteAccountForm({
     return (
       <>
         <Confetti trigger={showConfetti} />
-        <div className="p-8 glass-card">
+        <div className="p-8 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
               <Check className="w-8 h-8 text-emerald-500" />
@@ -73,7 +73,7 @@ export function CompleteAccountForm({
   }
 
   return (
-    <div className="p-8 glass-card">
+    <div className="p-8 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
           <Check className="w-8 h-8 text-emerald-500" />
