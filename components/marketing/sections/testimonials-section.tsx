@@ -21,8 +21,6 @@ export interface TestimonialsSectionProps {
   title: string
   /** Section subheading */
   subtitle?: string
-  /** Badge text shown above the heading */
-  badgeText?: string
   className?: string
 }
 
@@ -40,7 +38,6 @@ export function TestimonialsSection({
   testimonials,
   title,
   subtitle,
-  badgeText = 'Patient Feedback',
   className,
 }: TestimonialsSectionProps) {
   if (!testimonials || testimonials.length === 0) return null
@@ -51,7 +48,6 @@ export function TestimonialsSection({
         testimonials={testimonials}
         title={title}
         subtitle={subtitle}
-        badgeText={badgeText}
         className="py-0 my-0"
       />
     </section>

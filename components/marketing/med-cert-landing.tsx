@@ -923,7 +923,6 @@ export function MedCertLanding() {
             testimonials={testimonialsForColumns}
             title="What patients say"
             subtitle="Real reviews from Australians who've used our service"
-            badgeText="Patient Feedback"
           />
 
           {/* Regulatory Partners — Medicare excluded (no rebate applies here) */}

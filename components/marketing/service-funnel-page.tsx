@@ -163,7 +163,6 @@ export function ServiceFunnelPage({ config, isDisabled }: ServiceFunnelPageProps
         testimonials={testimonialsForColumns}
         title={config.testimonials.title}
         subtitle={config.testimonials.subtitle}
-        badgeText="Patient Feedback"
       />
 
       {/* Stats + Media Mentions */}

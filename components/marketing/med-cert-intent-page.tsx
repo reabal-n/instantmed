@@ -434,7 +434,6 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               testimonials={testimonials}
               title="What our patients say"
               subtitle="Real feedback from people who've been where you are."
-              badgeText="Patient Reviews"
               className="py-0 my-0"
             />
           </section>

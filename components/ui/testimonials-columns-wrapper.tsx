@@ -4,7 +4,6 @@ import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/components/ui/motion";
-import { SectionPill } from "@/components/ui/section-pill";
 
 type Testimonial = {
   text: string;
@@ -17,7 +16,6 @@ interface TestimonialsColumnsWrapperProps {
   testimonials: Testimonial[];
   title?: string;
   subtitle?: string;
-  badgeText?: string;
   className?: string;
 }
 
@@ -25,7 +23,6 @@ export function TestimonialsColumnsWrapper({
   testimonials,
   title = "What our users say",
   subtitle = "See what our customers have to say about us.",
-  badgeText = "Testimonials",
   className,
 }: TestimonialsColumnsWrapperProps) {
   const prefersReducedMotion = useReducedMotion()
@@ -48,11 +45,7 @@ export function TestimonialsColumnsWrapper({
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
-          <div className="flex justify-center">
-            <SectionPill>{badgeText}</SectionPill>
-          </div>
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter text-center text-foreground">
             {title}
           </h2>
           <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">

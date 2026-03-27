@@ -14,7 +14,6 @@ export function PatientReviews() {
         testimonials={reviewsForColumns}
         title="What our patients say"
         subtitle="Hear from Australians who've used InstantMed."
-        badgeText="Patient Feedback"
         className="py-0 my-0"
       />
     </section>

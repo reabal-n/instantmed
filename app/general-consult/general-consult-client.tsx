@@ -533,7 +533,6 @@ export default function GeneralConsultPage() {
             testimonials={testimonials}
             title="What our patients say"
             subtitle="Real reviews from Australians who have used our service."
-            badgeText="Patient Reviews"
             className="py-0 my-0"
           />
         </section>
