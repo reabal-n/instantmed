@@ -568,7 +568,7 @@ export function getTestimonialsForColumns() {
   return TESTIMONIALS.map((t) => ({
     text: t.text,
     image: t.image || "",
-    name: `${t.name}${t.age ? `, ${t.age}` : ""}`,
+    name: t.name,
     role: `${t.location}${t.role ? ` • ${t.role}` : ""}`,
   }))
 }
