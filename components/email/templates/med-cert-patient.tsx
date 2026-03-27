@@ -92,6 +92,13 @@ export function MedCertPatientEmail({
         </Text>
       )}
 
+      <Text muted small style={{ textAlign: "center" as const }}>
+        Need to renew a prescription?{" "}
+        <a href={`${appUrl}/request?service=prescription`} style={{ color: colors.accent, fontWeight: 500 }}>
+          Repeat prescriptions from $29.95
+        </a>
+      </Text>
+
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>

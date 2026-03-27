@@ -81,6 +81,13 @@ export function PrescriptionApprovedEmail({
         View Request Details
       </Button>
 
+      <Text muted small style={{ textAlign: "center" as const }}>
+        Need a GP consultation?{" "}
+        <a href={`${appUrl}/request?service=consult`} style={{ color: colors.accent, fontWeight: 500 }}>
+          Consultations from $49.95
+        </a>
+      </Text>
+
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
         <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
