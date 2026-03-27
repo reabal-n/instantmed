@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AuthenticatedShell } from '@/components/shell'
 import { usePanel, SessionPanel } from '@/components/panels'
 import { ServiceSelector } from '@/components/patient/service-selector'
+import { GlobalIntakeNotifications } from '@/components/patient/global-intake-notifications'
 import { MobileNav } from '@/components/ui/mobile-nav'
 
 /**
@@ -30,7 +31,7 @@ interface PatientShellProps {
  * Inner component that renders inside PanelProvider (via AuthenticatedShell)
  * and can safely call usePanel().
  */
-function PatientShellContent({ children }: { children: ReactNode }) {
+function PatientShellContent({ children, patientId }: { children: ReactNode; patientId: string }) {
   const { openPanel, closePanel } = usePanel()
   const router = useRouter()
   const openPanelRef = useRef(openPanel)
@@ -68,6 +69,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <GlobalIntakeNotifications patientId={patientId} />
       {/* Session timeout warning removed - Clerk handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 lg:pb-8">
         {children}
@@ -92,7 +94,7 @@ export function PatientShell({ children, user }: PatientShellProps) {
       userRole="patient"
       onNewRequest={handleNewRequest}
     >
-      <PatientShellContent>
+      <PatientShellContent patientId={user.id}>
         {children}
       </PatientShellContent>
     </AuthenticatedShell>
