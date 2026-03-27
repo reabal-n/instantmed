@@ -72,6 +72,10 @@
     {
       "path": "/api/cron/retry-auto-approval",
       "schedule": "*/3 * * * *"
+    },
+    {
+      "path": "/api/cron/follow-up-reminder",
+      "schedule": "0 1 * * *"
     }
   ]
 }

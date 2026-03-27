@@ -100,3 +100,7 @@ export type { RefundIssuedEmailProps } from "./refund-issued"
 // --- Verification Code (Clerk OTP via Resend) ---
 export { VerificationCodeEmail, verificationCodeSubject } from "./verification-code"
 export type { VerificationCodeEmailProps } from "./verification-code"
+
+// --- Follow-Up Reminder (day-3 post med cert approval) ---
+export { renderFollowUpReminderEmail, followUpReminderSubject } from "./follow-up-reminder"
+export type { FollowUpReminderEmailProps } from "./follow-up-reminder"
