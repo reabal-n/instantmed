@@ -24,6 +24,7 @@ import {
   type RequestType,
 } from "@/lib/audit/compliance-audit"
 import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { cookies } from "next/headers"
 
 const logger = createLogger("stripe-checkout")
 
@@ -538,6 +539,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const cancelUrl = `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`
 
     // 9. Build checkout session params
+    const cookieStore = await cookies()
+    const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
+
     const sessionParams = {
       line_items: [
         {
@@ -554,6 +558,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         category: input.category,
         subtype: input.subtype,
         service_slug: serviceSlug,
+        ...(refCode ? { referral_code: refCode } : {}),
       },
       customer: stripeCustomerId || undefined,
       customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
