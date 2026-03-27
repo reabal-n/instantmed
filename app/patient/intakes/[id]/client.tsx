@@ -29,6 +29,7 @@ import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
+import { CrossSellCard } from "@/components/patient/cross-sell-card"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
 import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
@@ -499,6 +500,11 @@ export function IntakeDetailClient({
                 </CardContent>
               </Card>
             </EmailVerificationGate>
+          )}
+
+          {/* Cross-sell — shown after approval, service-aware */}
+          {(intake.status === "approved" || intake.status === "completed") && (
+            <CrossSellCard serviceType={intake.service?.type} />
           )}
 
           {/* Action Buttons */}
