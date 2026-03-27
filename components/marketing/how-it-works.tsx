@@ -186,7 +186,7 @@ export function HowItWorks() {
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">
-            Most people are sorted in under an hour
+            Reviewed within hours, most days.
           </p>
         </motion.div>
       </div>
