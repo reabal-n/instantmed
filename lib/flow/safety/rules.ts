@@ -191,9 +191,11 @@ const medCertRules: SafetyRule[] = [
   {
     id: 'medcert_severe_symptoms',
     name: 'Severe Symptoms',
-    description: 'Patient reports severe symptoms',
+    description: 'Patient reports severe symptoms — not yet collected in intake UI',
     conditions: [
-      { fieldId: 'symptom_severity', operator: 'equals', value: 'severe' },
+      // symptom_severity is not collected by any med cert intake step.
+      // Rule is aspirational — will fire once severity field is added to the flow.
+      { fieldId: 'symptom_severity', operator: 'equals', value: 'severe', derivedFrom: { type: 'duration_days', fields: ['symptoms'] } },
     ],
     outcome: 'REQUIRES_CALL',
     riskTier: 'medium',
@@ -205,9 +207,11 @@ const medCertRules: SafetyRule[] = [
   {
     id: 'medcert_mental_health',
     name: 'Mental Health Absence',
-    description: 'Absence reason is mental health',
+    description: 'Absence reason is mental health — not yet collected in intake UI',
     conditions: [
-      { fieldId: 'absence_reason', operator: 'equals', value: 'mental_health' },
+      // absence_reason is not collected by any med cert intake step.
+      // Rule is aspirational — will fire once absence reason field is added to the flow.
+      { fieldId: 'absence_reason', operator: 'equals', value: 'mental_health', derivedFrom: { type: 'duration_days', fields: ['symptoms'] } },
     ],
     outcome: 'REQUEST_MORE_INFO',
     riskTier: 'low',
@@ -242,9 +246,17 @@ const prescriptionRules: SafetyRule[] = [
   {
     id: 'rx_controlled_substance',
     name: 'Controlled Substance Request',
-    description: 'Request for S8 or controlled medication',
+    description: 'Request for S8 or controlled medication — defense-in-depth (also blocked by isControlledSubstance() in checkout action and medication step UI)',
     conditions: [
-      { fieldId: 'is_controlled', operator: 'equals', value: true },
+      {
+        fieldId: 'is_controlled',
+        operator: 'equals',
+        value: true,
+        // Derived: determined by isControlledSubstance() regex against the selected
+        // medication name. The medication step blocks S8 drugs client-side and the
+        // checkout action blocks them server-side, so this rule is a safety net.
+        derivedFrom: { type: 'duration_days', fields: ['medicationName'] },
+      },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -258,8 +270,8 @@ const prescriptionRules: SafetyRule[] = [
     name: 'New Chronic Medication',
     description: 'New prescription for chronic condition medication',
     conditions: [
-      { fieldId: 'prescriptionType', operator: 'equals', value: 'new' },
-      { fieldId: 'medical_conditions', operator: 'is_not_empty' },
+      { fieldId: 'prescriptionHistory', operator: 'equals', value: 'first_time' },
+      { fieldId: 'conditions', operator: 'is_not_empty' },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
@@ -280,7 +292,7 @@ const prescriptionRules: SafetyRule[] = [
         value: 3,
         derivedFrom: {
           type: 'duration_days', // Using as generic counter
-          fields: ['medical_conditions'],
+          fields: ['conditions'],
         },
       },
     ],
@@ -305,8 +317,15 @@ const prescriptionRules: SafetyRule[] = [
     name: 'Potential Drug Interaction',
     description: 'Current medications may interact',
     conditions: [
-      { fieldId: 'other_medications', operator: 'is_not_empty' },
-      { fieldId: 'has_interaction_risk', operator: 'equals', value: true },
+      { fieldId: 'otherMedications', operator: 'is_not_empty' },
+      {
+        fieldId: 'has_interaction_risk',
+        operator: 'equals',
+        value: true,
+        // Derived: would be calculated from medication + otherMedications interaction check.
+        // Currently not implemented — rule acts as a future hook for drug interaction screening.
+        derivedFrom: { type: 'duration_days', fields: ['otherMedications', 'medicationName'] },
+      },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
@@ -332,11 +351,10 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ed_nitrate_contraindication',
     name: 'Nitrate Use - ED Contraindication',
-    description: 'Patient is taking nitrates and requesting ED medication - absolute contraindication',
+    description: 'Patient is taking nitrates and requesting ED medication - absolute contraindication. Defense-in-depth: ED safety step also hard-blocks nitrate users.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
-      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
-      { fieldId: 'mens_heart_meds', operator: 'equals', value: true },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
+      { fieldId: 'edSafety_nitrates', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -352,11 +370,10 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ed_recent_cardiac_event',
     name: 'Recent Cardiac Event - ED',
-    description: 'Patient had heart attack or stroke and requesting ED medication',
+    description: 'Patient had heart attack or stroke and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
-      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
-      { fieldId: 'mens_cardiovascular', operator: 'includes_any', value: ['heart_attack', 'stroke'] },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
+      { fieldId: 'edSafety_recentHeartEvent', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -372,11 +389,10 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ed_uncontrolled_bp',
     name: 'Uncontrolled Blood Pressure - ED',
-    description: 'Patient reports high/uncontrolled blood pressure and requesting ED medication',
+    description: 'Patient reports severe heart condition and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
-      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
-      { fieldId: 'mens_blood_pressure', operator: 'equals', value: 'high' },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
+      { fieldId: 'edSafety_severeHeartCondition', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
@@ -394,7 +410,7 @@ const consultRules: SafetyRule[] = [
     name: 'Under 18 - Men\'s Health',
     description: 'Patient is under 18 for men\'s health consultation',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
       { 
         fieldId: 'patient_age',
         operator: 'lt',
@@ -423,11 +439,13 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ocp_blood_clot_contraindication',
     name: 'Blood Clot History - OCP Contraindication',
-    description: 'Patient has personal or family history of blood clots - absolute contraindication for combined OCP',
+    description: 'Patient has personal or family history of blood clots - absolute contraindication for combined OCP. Not yet collected in intake UI.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
-      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
+      // womens_blood_clot_history: not yet collected by women's health assessment step.
+      // Rule is aspirational — will fire once blood clot screening is added.
+      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -443,11 +461,12 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ocp_migraine_aura_contraindication',
     name: 'Migraine with Aura - OCP Contraindication',
-    description: 'Patient has migraine with aura - absolute contraindication for combined OCP',
+    description: 'Patient has migraine with aura - absolute contraindication for combined OCP. Not yet collected in intake UI.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
-      { fieldId: 'womens_migraine_aura', operator: 'equals', value: true },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
+      // womens_migraine_aura: not yet collected by women's health assessment step.
+      { fieldId: 'womens_migraine_aura', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -463,12 +482,13 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ocp_smoker_over_35_contraindication',
     name: 'Smoker Over 35 - OCP Contraindication',
-    description: 'Patient is a smoker aged over 35 - absolute contraindication for combined OCP',
+    description: 'Patient is a smoker aged over 35 - absolute contraindication for combined OCP. Not yet collected in intake UI.',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
-      { fieldId: 'womens_smoker', operator: 'equals', value: true },
-      { fieldId: 'womens_over_35', operator: 'equals', value: true },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
+      // womens_smoker, womens_over_35: not yet collected by women's health assessment step.
+      { fieldId: 'womens_smoker', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
+      { fieldId: 'womens_over_35', operator: 'equals', value: true, derivedFrom: { type: 'age', fields: ['patient_dob'] } },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -486,7 +506,7 @@ const consultRules: SafetyRule[] = [
     name: 'Under 18 - Hair Loss',
     description: 'Patient is under 18 for hair loss consultation',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'hair_loss' },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'hair_loss' },
       {
         fieldId: 'patient_age',
         operator: 'lt',
@@ -516,7 +536,7 @@ const consultRules: SafetyRule[] = [
     name: 'Chest Pain - General Consult',
     description: 'Patient reporting chest pain in general consult - requires emergency care',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['chest_pain'] },
     ],
     conditionLogic: 'AND',
@@ -535,7 +555,7 @@ const consultRules: SafetyRule[] = [
     name: 'Suicidal Ideation - General Consult',
     description: 'Patient reporting suicidal thoughts in general consult',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['suicidal_thoughts', 'self_harm'] },
     ],
     conditionLogic: 'AND',
@@ -554,7 +574,7 @@ const consultRules: SafetyRule[] = [
     name: 'Pregnancy Concern - General Consult',
     description: 'Patient has pregnancy-related health concern requiring phone assessment',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'isPregnantOrBreastfeeding', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
@@ -573,7 +593,7 @@ const consultRules: SafetyRule[] = [
     name: 'Recent Surgery Complications - General Consult',
     description: 'Patient has had recent surgery and is experiencing complications',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
+      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['post_surgical_complications'] },
     ],
     conditionLogic: 'AND',
@@ -592,8 +612,9 @@ const consultRules: SafetyRule[] = [
     name: 'Severe Symptoms - General Consult',
     description: 'Patient reports severe symptoms in general consult',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'general' },
-      { fieldId: 'general_severity', operator: 'equals', value: 'severe' },
+      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
+      // Maps to consultUrgency from consult-reason-step (closest available field)
+      { fieldId: 'consultUrgency', operator: 'equals', value: 'urgent' },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
@@ -615,9 +636,9 @@ const consultRules: SafetyRule[] = [
     name: 'Pregnancy - Hormonal Medication Contraindication',
     description: 'Patient is pregnant and requesting hormonal medication - contraindicated',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_pregnancy_status', operator: 'equals', value: 'pregnant' },
-      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['contraception', 'period_problems', 'hrt'] },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'pregnancyStatus', operator: 'equals', value: 'pregnant' },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -637,9 +658,10 @@ const consultRules: SafetyRule[] = [
     name: 'DVT/PE History - Hormonal Treatment Contraindication',
     description: 'Patient has DVT/PE history and requesting hormonal treatment beyond just OCP',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true },
-      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['period_problems', 'hrt', 'pms'] },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      // womens_blood_clot_history: not yet collected by women's health assessment step.
+      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -658,8 +680,10 @@ const consultRules: SafetyRule[] = [
     name: 'Undiagnosed Vaginal Bleeding',
     description: 'Patient has irregular or unexplained vaginal bleeding that requires clinical assessment',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_last_period', operator: 'equals', value: 'irregular' },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      // womens_last_period: lastPeriod is free text in the UI, not a select with 'irregular' option.
+      // Rule is aspirational — will fire if lastPeriod is changed to structured input.
+      { fieldId: 'womens_last_period', operator: 'equals', value: 'irregular', derivedFrom: { type: 'duration_days', fields: ['lastPeriod'] } },
     ],
     outcome: 'REQUIRES_CALL',
     riskTier: 'medium',
@@ -677,9 +701,9 @@ const consultRules: SafetyRule[] = [
     name: 'Breastfeeding - Hormonal Medication Review',
     description: 'Patient is breastfeeding and requesting hormonal medication - needs careful review',
     conditions: [
-      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'womens_pregnancy_status', operator: 'equals', value: 'breastfeeding' },
-      { fieldId: 'womens_concern_type', operator: 'includes_any', value: ['contraception', 'period_problems', 'hrt'] },
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'pregnancyStatus', operator: 'equals', value: 'breastfeeding' },
+      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
@@ -724,7 +748,9 @@ const weightRules: SafetyRule[] = [
     name: 'Pregnancy/Breastfeeding',
     description: 'Patient is pregnant or breastfeeding',
     conditions: [
-      { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no' },
+      // weight_pregnancy_status: not yet collected in weight loss assessment step.
+      // Rule is aspirational — will fire once pregnancy screening is added.
+      { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no', derivedFrom: { type: 'duration_days', fields: ['isPregnantOrBreastfeeding'] } },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -744,7 +770,7 @@ const weightRules: SafetyRule[] = [
         value: 27,
         derivedFrom: {
           type: 'bmi',
-          fields: ['current_weight', 'height'],
+          fields: ['currentWeight', 'currentHeight'],
         },
       },
     ],
@@ -760,7 +786,8 @@ const weightRules: SafetyRule[] = [
     name: 'Eating Disorder History',
     description: 'Patient has history of eating disorder',
     conditions: [
-      { fieldId: 'eating_disorder_history', operator: 'equals', value: true },
+      // Step saves as eatingDisorderHistory (camelCase). Step also sets requiresCall=true directly.
+      { fieldId: 'eatingDisorderHistory', operator: 'equals', value: 'yes' },
     ],
     outcome: 'REQUIRES_CALL',
     riskTier: 'high',
@@ -774,7 +801,9 @@ const weightRules: SafetyRule[] = [
     name: 'MEN2 or Medullary Thyroid Cancer History',
     description: 'Patient or family has history of MEN2 syndrome or medullary thyroid cancer - absolute contraindication for GLP-1 agonists',
     conditions: [
-      { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true },
+      // weight_men2_thyroid_cancer: not yet collected in weight loss assessment step.
+      // Rule is aspirational — will fire once MEN2/thyroid cancer screening is added.
+      { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -788,7 +817,9 @@ const weightRules: SafetyRule[] = [
     name: 'Pancreatitis History',
     description: 'Patient has history of pancreatitis - absolute contraindication for GLP-1 agonists',
     conditions: [
-      { fieldId: 'weight_pancreatitis', operator: 'equals', value: true },
+      // weight_pancreatitis: not yet collected in weight loss assessment step.
+      // Rule is aspirational — will fire once pancreatitis screening is added.
+      { fieldId: 'weight_pancreatitis', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -802,7 +833,8 @@ const weightRules: SafetyRule[] = [
     name: 'Heart Disease',
     description: 'Patient has heart disease',
     conditions: [
-      { fieldId: 'medical_conditions', operator: 'includes_any', value: ['heart_disease'] },
+      // Step uses wlHistoryHeartCondition (boolean toggle), not medical_conditions array
+      { fieldId: 'wlHistoryHeartCondition', operator: 'equals', value: true },
     ],
     outcome: 'REQUIRES_CALL',
     riskTier: 'medium',

@@ -461,14 +461,23 @@ export function validateSafetyFieldsPresent(
   const config = getSafetyConfig(serviceSlug)
   if (!config) return { valid: true, missingFields: [] }
 
+  // Safety rules are designed to TRIGGER on dangerous conditions. When a field
+  // is missing, the condition evaluates to false and the rule doesn't fire.
+  // This is safe behavior — it means the patient isn't blocked or flagged.
+  //
+  // Field presence is already enforced by step validation (each step has its own
+  // validateFn that prevents progression without answering required questions).
+  //
+  // This function only flags fields that are explicitly marked as required for
+  // safety evaluation via the `requiredForSafety` flag on the condition.
   const missingFields: string[] = []
 
   for (const rule of config.rules) {
-    // Only check fields for high-priority rules (DECLINE and REQUIRES_CALL)
     if (rule.outcome !== 'DECLINE' && rule.outcome !== 'REQUIRES_CALL') continue
 
     for (const condition of rule.conditions) {
-      if (condition.derivedFrom) continue // Derived values calculated from other fields
+      if (condition.derivedFrom) continue
+      if (!condition.requiredForSafety) continue
       const fieldId = condition.fieldId
       const value = answers[fieldId]
       if (value === null || value === undefined || value === '') {

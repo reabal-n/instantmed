@@ -67,7 +67,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [estimatedWait, setEstimatedWait] = useState("~30 min")
+  const [estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
 

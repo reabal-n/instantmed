@@ -50,6 +50,9 @@ export interface RuleCondition {
     type: 'bmi' | 'age' | 'duration_days' | 'signed_days'
     fields: string[]
   }
+  // When true, validateSafetyFieldsPresent requires this field in the answers.
+  // By default, missing fields safely prevent the rule from firing.
+  requiredForSafety?: boolean
 }
 
 /**

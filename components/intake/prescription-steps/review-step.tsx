@@ -143,7 +143,7 @@ export function PrescriptionReviewStep({
         </span>
         <span className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
-          ~30 min review
+          1–2 hour review
         </span>
         <span className="flex items-center gap-1">
           <Check className="w-3.5 h-3.5" />
