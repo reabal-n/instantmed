@@ -13,7 +13,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY, CONTACT_EMAIL } from "@/lib/constants"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { SplitHero } from "@/components/heroes"
 import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
@@ -166,8 +166,6 @@ const trustSignals = [
   { icon: Clock, text: 'Same-day response' },
   { icon: Shield, text: 'Full refund guarantee' },
 ]
-
-const CONTACT_EMAIL = "support@instantmed.com.au"
 
 export default function GeneralConsultPage() {
   const prefersReducedMotion = useReducedMotion()

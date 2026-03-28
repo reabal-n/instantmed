@@ -35,8 +35,7 @@ import { useServiceAvailability } from '@/components/providers/service-availabil
 import { getTestimonialsByService } from '@/lib/data/testimonials'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import type { MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
-
-const CONTACT_EMAIL = 'support@instantmed.com.au'
+import { CONTACT_EMAIL } from '@/lib/constants'
 
 const trustBadges = [
   { name: 'AHPRA Registered', description: 'Australian doctors only', icon: BadgeCheck, color: 'text-success' },

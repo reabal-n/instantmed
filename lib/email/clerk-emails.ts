@@ -5,6 +5,7 @@ import { renderEmailToHtml } from "./react-renderer-server"
 import { sendViaResend } from "./resend"
 import { VerificationCodeEmail, verificationCodeSubject } from "@/components/email/templates/verification-code"
 import { createLogger } from "@/lib/observability/logger"
+import { CONTACT_EMAIL } from "@/lib/constants"
 
 const log = createLogger("clerk-emails")
 
@@ -45,7 +46,7 @@ export async function sendClerkVerificationEmail({
     subject,
     html,
     from: `InstantMed <notifications@instantmed.com.au>`,
-    replyTo: "support@instantmed.com.au",
+    replyTo: CONTACT_EMAIL,
     tags: [
       { name: "email_type", value: "verification_code" },
       { name: "source", value: "clerk_webhook" },
