@@ -474,7 +474,7 @@ export function SafetyCheckStep({
                 <Clock className="w-5 h-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium text-foreground">
-                    Typical review time: 1–2 hours
+                    Typical review time: {serviceSlug === 'med-cert' ? '~30 minutes' : '1–2 hours'}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     During business hours (8am-8pm AEST)
