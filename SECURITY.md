@@ -32,7 +32,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
 | `patient_notes` | `content`, `title` | `content` ✅ Phase 2 | Yes |
 | `issued_certificates` | `generated_data` (JSONB), `patient_name`, `pdf_storage_path` | `patient_name` ✅ Phase 2 | Yes |
-| `health_summary` | Clinical summary content | No | Yes |
+| `health_summary` | N/A — computed view (aggregates from `intakes`, `issued_certificates`, `intake_answers`) | N/A (source tables encrypted) | N/A |
 | `document_drafts` | `data` (JSONB), `content` (AI-generated), `edited_content` | `data` ✅ Phase 2 | Yes |
 | `documents` | `storage_path` (references PDF with PHI) | N/A (ref) | Yes |
 | `patient_health_profiles` | `allergies`, `conditions`, `current_medications`, `notes` | All 4 ✅ Phase 3 | Yes |
