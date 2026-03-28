@@ -1,5 +1,6 @@
 "use server"
 
+import { auth as clerkAuth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -8,12 +9,13 @@ const log = createLogger("ensure-profile")
 /**
  * Ensures a profile exists for an authenticated user.
  * This is the ONLY place where profiles are created - server-side only using service role.
- * 
+ *
  * Flow:
- * 1. Check if profile exists (by clerk_user_id)
- * 2. If found: do nothing, return existing profile ID
- * 3. If not found: create profile server-side using service role client
- * 
+ * 1. Verify caller's Clerk session matches the requested userId
+ * 2. Check if profile exists (by clerk_user_id)
+ * 3. If found: do nothing, return existing profile ID
+ * 4. If not found: create profile server-side using service role client
+ *
  * IMPORTANT:
  * - This is a server action ("use server") - can ONLY be called from server
  * - Uses service role client to bypass RLS
@@ -21,7 +23,7 @@ const log = createLogger("ensure-profile")
  * - Uses clerk_user_id (Clerk user ID format: user_2xxx...)
  */
 export async function ensureProfile(
-  userId: string, // Supabase auth user ID (UUID)
+  userId: string, // Clerk user ID (user_2xxx...)
   userEmail: string,
   options?: {
     fullName?: string
@@ -29,6 +31,14 @@ export async function ensureProfile(
   }
 ): Promise<{ profileId: string | null; error: string | null }> {
   try {
+    // SECURITY: Verify the caller's Clerk session matches the requested userId.
+    // Prevents creation/modification of profiles for other users.
+    const { userId: sessionUserId } = await clerkAuth()
+    if (!sessionUserId || sessionUserId !== userId) {
+      log.warn("ensureProfile caller mismatch", { requestedUserId: userId, sessionUserId: sessionUserId ?? "none" })
+      return { profileId: null, error: "Unauthorized" }
+    }
+
     let supabase
     try {
       supabase = createServiceRoleClient()

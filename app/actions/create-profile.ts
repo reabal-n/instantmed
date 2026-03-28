@@ -1,5 +1,6 @@
 "use server"
 import { revalidatePath } from "next/cache"
+import { auth as clerkAuth } from "@clerk/nextjs/server"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
@@ -12,6 +13,15 @@ export async function createOrGetProfile(
   dateOfBirth: string,
 ): Promise<{ profileId: string | null; error: string | null }> {
   try {
+    // SECURITY: Verify the caller has a valid Clerk session.
+    // The authUserId must match the caller's Clerk userId to prevent
+    // creating/modifying profiles for other users.
+    const { userId: sessionUserId } = await clerkAuth()
+    if (!sessionUserId || sessionUserId !== authUserId) {
+      log.warn("createOrGetProfile caller mismatch", { requestedUserId: authUserId, sessionUserId: sessionUserId ?? "none" })
+      return { profileId: null, error: "Unauthorized" }
+    }
+
     let supabase
     try {
       supabase = createServiceRoleClient()
