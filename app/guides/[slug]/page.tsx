@@ -17,7 +17,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 
 // How-to guides for high-intent SEO traffic
@@ -812,8 +812,9 @@ export default async function GuidePage({ params }: PageProps) {
 
   return (
     <>
+      <HealthArticleSchema title={guide.title} description={guide.description} url={`/guides/${slug}`} />
       <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Guides", url: "https://instantmed.com.au/guides" },

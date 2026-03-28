@@ -13,7 +13,7 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
@@ -325,8 +325,9 @@ export default async function ComparisonPage({ params }: PageProps) {
 
   return (
     <>
+      <HealthArticleSchema title={comparison.title} description={comparison.description} url={`/compare/${slug}`} />
       <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Compare", url: "https://instantmed.com.au/compare" },

@@ -393,13 +393,15 @@ WHERE i.status = 'approved'
 
 ### Known Observability Gaps
 
-| Priority | Gap | Fix |
-|----------|-----|-----|
-| ~~HIGH~~ | ~~All crons lack Sentry error capture~~ | ✅ Fixed — all 20 crons now have `Sentry.captureException` |
-| HIGH | `intake_id` not in Sentry tags | Move from extra to tags in `lib/observability/sentry.ts` |
-| ~~HIGH~~ | ~~No checkout latency tracking~~ | ✅ Fixed — latency tracked with >5s threshold alert in `lib/stripe/checkout.ts` |
-| MEDIUM | Email send failures not in Sentry | Add capture in `lib/email/send.ts` |
-| MEDIUM | `service_type` not in Sentry tags | Add to `captureApiError` context |
+All previously identified gaps have been resolved:
+
+| Priority | Gap | Status |
+|----------|-----|--------|
+| ~~HIGH~~ | ~~Crons lack Sentry error capture~~ | ✅ All 20 crons have `Sentry.captureException` |
+| ~~HIGH~~ | ~~`intake_id` not in Sentry tags~~ | ✅ In tags via `captureApiError`, `captureServerError`, `captureCheckoutError` |
+| ~~HIGH~~ | ~~No checkout latency tracking~~ | ✅ Latency tracked with >5s threshold alert in `lib/stripe/checkout.ts` |
+| ~~MEDIUM~~ | ~~Email send failures not in Sentry~~ | ✅ Captured in `lib/email/send-email.ts` (lines 376, 541, 585) |
+| ~~MEDIUM~~ | ~~`service_type` not in Sentry tags~~ | ✅ In tags via `captureApiError`, `captureServerError`, `captureCheckoutError` |
 
 ---
 

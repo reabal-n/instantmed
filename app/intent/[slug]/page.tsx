@@ -10,7 +10,7 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import {
   getIntentPageBySlug,
@@ -94,6 +94,7 @@ export default async function IntentPage({ params }: PageProps) {
 
   return (
     <>
+      <HealthArticleSchema title={page.title} description={page.description} url={`/intent/${slug}`} />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[

@@ -16,7 +16,7 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -77,6 +77,12 @@ export default async function ConditionPage({ params }: PageProps) {
   return (
     <>
       {/* SEO Structured Data */}
+      <MedicalConditionSchema
+        name={condition.name}
+        description={condition.description}
+        url={`/conditions/${slug}`}
+        symptoms={condition.symptoms}
+      />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema 
         items={[

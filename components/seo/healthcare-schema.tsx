@@ -603,3 +603,95 @@ export function WebSiteSchema({ baseUrl = "https://instantmed.com.au" }: { baseU
     />
   )
 }
+
+// ============================================================================
+// MEDICAL CONDITION SCHEMA
+// ============================================================================
+
+interface MedicalConditionSchemaProps {
+  name: string
+  description: string
+  url: string
+  symptoms?: string[]
+  possibleTreatments?: string[]
+  baseUrl?: string
+}
+
+export function MedicalConditionSchema({
+  name,
+  description,
+  url,
+  symptoms,
+  possibleTreatments,
+  baseUrl = "https://instantmed.com.au",
+}: MedicalConditionSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "MedicalCondition",
+    name,
+    description,
+    url: `${baseUrl}${url}`,
+    ...(symptoms?.length && {
+      signOrSymptom: symptoms.map((s) => ({
+        "@type": "MedicalSignOrSymptom",
+        name: s,
+      })),
+    }),
+    ...(possibleTreatments?.length && {
+      possibleTreatment: possibleTreatments.map((t) => ({
+        "@type": "MedicalTherapy",
+        name: t,
+      })),
+    }),
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}${url}` },
+  }
+
+  return (
+    <Script
+      id={`condition-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
+    />
+  )
+}
+
+// ============================================================================
+// HEALTH GUIDE / ARTICLE SCHEMA (for guides, compare, intent pages)
+// ============================================================================
+
+interface HealthArticleSchemaProps {
+  title: string
+  description: string
+  url: string
+  baseUrl?: string
+}
+
+export function HealthArticleSchema({
+  title,
+  description,
+  url,
+  baseUrl = "https://instantmed.com.au",
+}: HealthArticleSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    name: title,
+    description,
+    url: `${baseUrl}${url}`,
+    publisher: {
+      "@type": "MedicalOrganization",
+      "@id": `${baseUrl}/#organization`,
+      name: "InstantMed",
+    },
+    inLanguage: "en-AU",
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}${url}` },
+  }
+
+  return (
+    <Script
+      id={`health-article-schema-${url.replace(/\//g, "-")}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
+    />
+  )
+}

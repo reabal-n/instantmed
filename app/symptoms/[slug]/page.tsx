@@ -14,7 +14,7 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 
 // Symptom checker SEO pages - what could be causing your symptom
@@ -1014,8 +1014,13 @@ export default async function SymptomPage({ params }: PageProps) {
   return (
     <>
       {/* SEO Structured Data */}
+      <MedicalConditionSchema
+        name={symptom.name}
+        description={symptom.description}
+        url={`/symptoms/${slug}`}
+      />
       <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Symptom Checker", url: "https://instantmed.com.au/symptoms" },
