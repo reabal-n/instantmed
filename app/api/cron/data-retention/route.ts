@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -161,6 +162,7 @@ export async function GET(request: NextRequest) {
       checked_at: now.toISOString(),
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Data retention policy failed", { error: err.message })
     captureCronError(err, { jobName: "data-retention" })

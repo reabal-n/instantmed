@@ -75,7 +75,7 @@ export function DoctorAvailabilityPill() {
       transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
       className="flex justify-center"
     >
-      <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all duration-300">
+      <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30 transition-all duration-300">
         {isOnline ? (
           <>
             <span className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">

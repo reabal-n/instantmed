@@ -436,6 +436,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
 
+    trackIntakeFunnelStep({
+      step: "intake_started",
+      intakeId: intake.id,
+      serviceSlug: serviceSlugForSafety,
+      serviceType: input.category,
+      sessionId: normalizedEmail,
+    })
+
     // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
     const requestType = mapCategoryToRequestType(input.category, input.subtype || "")
     await logRequestCreated(intake.id, requestType, guestProfileId, {

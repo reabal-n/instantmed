@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -102,6 +103,7 @@ export async function GET(request: NextRequest) {
       maintenance_mode: newMode,
     })
   } catch (error) {
+    Sentry.captureException(error)
     log.error("Scheduled maintenance cron error", { error })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

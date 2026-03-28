@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { processEmailDispatch } from "@/lib/email/email-dispatcher"
 import { createLogger } from "@/lib/observability/logger"
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Email retry cron failed", { error: err.message })
     captureCronError(err, { jobName: "process-email-retries" })

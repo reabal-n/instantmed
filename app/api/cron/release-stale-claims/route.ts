@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
       durationMs: duration,
     })
   } catch (err) {
+    Sentry.captureException(err)
     const error = toError(err)
     logger.error("Cron job failed", { error: error.message })
     captureCronError(error, { jobName: "release-stale-claims" })

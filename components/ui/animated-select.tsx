@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence, MotionConfig } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { ChevronDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -111,6 +112,7 @@ export function AnimatedSelect({
   className,
   showDividerAfterFirst = false,
 }: AnimatedSelectProps) {
+  const prefersReducedMotion = useReducedMotion()
   const [isOpen, setIsOpen] = React.useState(false)
   const [internalValue, setInternalValue] = React.useState(defaultValue || "")
   const [hoveredOption, setHoveredOption] = React.useState<string | null>(null)
@@ -203,22 +205,22 @@ export function AnimatedSelect({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -4, height: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -4, height: 0 }}
               animate={{
                 opacity: 1,
                 y: 0,
                 height: "auto",
                 transition: {
-                  duration: 0.2,
+                  duration: prefersReducedMotion ? 0 : 0.2,
                   ease: "easeOut",
                 },
               }}
               exit={{
                 opacity: 0,
-                y: -4,
-                height: 0,
+                y: prefersReducedMotion ? 0 : -4,
+                height: prefersReducedMotion ? "auto" : 0,
                 transition: {
-                  duration: 0.2,
+                  duration: prefersReducedMotion ? 0 : 0.2,
                   ease: "easeOut",
                 },
               }}

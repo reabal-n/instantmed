@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -128,6 +129,7 @@ export async function GET(request: NextRequest) {
       ...stats,
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Orphaned storage cleanup failed", { error: err.message })
     captureCronError(err, { jobName: "cleanup-orphaned-storage" })

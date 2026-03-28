@@ -81,7 +81,7 @@ export function CinematicSwitch({
             backgroundColor: thumbColor,
           }}
           transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.2 }}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.98 }}
         >
           {/* Thumb Highlight (Gloss) */}
           <div className="absolute top-1 left-1.5 w-2 h-1 bg-white/30 rounded-full blur-[1px]" />

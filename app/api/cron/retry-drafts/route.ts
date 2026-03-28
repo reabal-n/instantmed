@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -127,6 +128,7 @@ export async function GET(request: NextRequest) {
       failed,
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Cron job error", { error: err.message })
     captureCronError(err, { jobName: "retry-drafts" })

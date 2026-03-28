@@ -229,7 +229,7 @@ export function CookieBanner() {
       role="dialog"
       aria-label="Cookie consent"
     >
-      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 dark:border-white/10 overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-xl border border-border/50 dark:border-white/15 dark:shadow-none overflow-hidden">
         {!showDetails ? (
           // Simple view - compact floating card
           <div className="p-4">

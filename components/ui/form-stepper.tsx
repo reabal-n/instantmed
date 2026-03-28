@@ -85,7 +85,7 @@ export function FormStepper({
                       isCurrent && 'bg-primary text-primary-foreground ring-4 ring-primary/20',
                       isPending && 'bg-surface-elevated border border-border text-muted-foreground'
                     )}
-                    animate={prefersReducedMotion ? {} : { scale: isCurrent ? 1.1 : 1 }}
+                    animate={prefersReducedMotion ? {} : { scale: isCurrent ? 1.02 : 1 }}
                     transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
                   >
                     <AnimatePresence mode="wait">
@@ -188,7 +188,7 @@ export function FormStepper({
                   'w-1.5 h-1.5 rounded-full transition-colors',
                   index <= currentStep ? 'bg-primary' : 'bg-border'
                 )}
-                animate={prefersReducedMotion ? {} : { scale: index === currentStep ? 1.5 : 1 }}
+                animate={prefersReducedMotion ? {} : { scale: index === currentStep ? 1.02 : 1 }}
                 transition={prefersReducedMotion ? { duration: 0 } : spring.snappy}
               />
             ))}

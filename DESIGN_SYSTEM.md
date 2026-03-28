@@ -41,22 +41,22 @@
   --muted-dark:#8FA3BF;
 
   /* -- Semantic -- */
-  --blue:         #3B82F6;   /* primary */
+  --blue:         #2563EB;   /* primary (WCAG AA 5.17:1 with white) */
   --blue-light:   #EFF6FF;
-  --blue-border:  rgba(59,130,246,0.20);
+  --blue-border:  rgba(37,99,235,0.20);
 
   --teal:         #5DB8C9;   /* dark mode primary accent */
   --teal-light:   rgba(93,184,201,0.12);
 
-  --green:        #22C55E;   /* success */
+  --green:        #15803D;   /* success (WCAG AA 5.02:1 on white) */
   --green-light:  #F0FDF4;
   --green-border: rgba(34,197,94,0.20);
 
-  --coral:        #F87171;   /* destructive */
+  --coral:        #DC2626;   /* destructive (WCAG AA 4.83:1 on white) */
   --coral-light:  #FEF2F2;
-  --coral-border: rgba(248,113,113,0.20);
+  --coral-border: rgba(220,38,38,0.20);
 
-  --amber:        #F59E0B;   /* warning */
+  --amber:        #B45309;   /* warning (WCAG AA 5.02:1 on white) */
   --amber-light:  #FFFBEB;
   --amber-border: rgba(245,158,11,0.20);
 

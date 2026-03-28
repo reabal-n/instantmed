@@ -251,7 +251,7 @@ Prevents Google Ads disapproval and AHPRA scrutiny.
 
 **Surfaces:** Solid depth, not glass. Cards use `bg-white dark:bg-card` with sky-toned shadows (`shadow-primary/[0.06]`). No `backdrop-blur` on content surfaces — only on functional overlays (sticky CTAs, mobile menus). Page backgrounds use warm ivory (`#F8F7F4`), cards use pure white for contrast.
 
-**Color:** Morning spectrum — soft sky blue, pale ivory, soft peach, warm apricot, gentle champagne. Low saturation. **Semantic:** Primary `#3B82F6` (blue), Destructive `#F87171` (coral), Success `#22C55E` (green). **Prohibited:** purple/violet, neon, dark blues, pure black page backgrounds.
+**Color:** Morning spectrum — soft sky blue, pale ivory, soft peach, warm apricot, gentle champagne. Low saturation. **Semantic:** Primary `#2563EB` (blue), Destructive `#DC2626` (red), Success `#15803D` (green), Warning `#B45309` (amber). All WCAG AA compliant (≥4.5:1 on white). **Prohibited:** purple/violet, neon, dark blues, pure black page backgrounds.
 
 **Dark mode:** Full site support via `darkMode: "class"` (default: light, `next-themes` provider). SkyToggle in navbar animates sun→moon. Dark palette is "Quiet Night Sky" — deep navy `#0B1120` background, teal primary `#5DB8C9`, muted warm accents. Cards: `dark:bg-card dark:border-white/15 dark:shadow-none`. `BrandLogo` supports dark invert. Morning theme by day, night sky by dark — same brand, different time of day.
 

@@ -634,7 +634,7 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6">
             <HelpCircle className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
-            <span className="text-sm font-medium text-foreground/60 dark:text-foreground/50">
+            <span className="text-sm font-medium text-muted-foreground">
               FAQ
             </span>
           </div>

@@ -6,6 +6,14 @@ import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
 
+// Context to pass aria-describedby from FormGroup to child inputs
+const FormGroupContext = React.createContext<string | undefined>(undefined)
+
+/** Hook for child inputs to read the FormGroup's aria-describedby value */
+export function useFormGroupDescribedBy() {
+  return React.useContext(FormGroupContext)
+}
+
 // =============================================================================
 // FORM SECTION - GlassCard wrapper for form groups
 // =============================================================================
@@ -39,12 +47,11 @@ export function FormSection({
   const content = (
     <div
       className={cn(
-        // Glass card styling
+        // Solid depth card styling (design system §5)
         'relative rounded-2xl p-5 md:p-6',
-        'bg-[var(--glass-bg)]',
-        'backdrop-blur-[var(--glass-blur)]',
-        'border border-[var(--glass-border)]',
-        'shadow-[var(--shadow-sm-value)]',
+        'bg-white dark:bg-card',
+        'border border-border/50 dark:border-white/15',
+        'shadow-sm shadow-primary/[0.04] dark:shadow-none',
         className
       )}
     >
@@ -126,6 +133,11 @@ export function FormGroup({
 }: FormGroupProps) {
   const prefersReducedMotion = useReducedMotion()
 
+  const hintId = htmlFor && hint ? `${htmlFor}-hint` : undefined
+  const errorId = htmlFor && error ? `${htmlFor}-error` : undefined
+  const warningId = htmlFor && warning && !error ? `${htmlFor}-warning` : undefined
+  const describedBy = [errorId, warningId, hintId].filter(Boolean).join(' ') || undefined
+
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
@@ -134,37 +146,44 @@ export function FormGroup({
           className="block text-sm font-medium text-foreground"
         >
           {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
+          {required && <span className="text-destructive ml-0.5" aria-hidden="true">*</span>}
+          {required && <span className="sr-only"> (required)</span>}
         </label>
       )}
 
-      {children}
+      <FormGroupContext.Provider value={describedBy}>
+        {children}
+      </FormGroupContext.Provider>
 
       {/* Messages */}
       {(hint || error || warning) && (
         <div className="space-y-1">
           {hint && !error && (
-            <p className="text-xs text-muted-foreground">{hint}</p>
+            <p id={hintId} className="text-xs text-muted-foreground">{hint}</p>
           )}
           {warning && !error && (
             <motion.p
+              id={warningId}
               initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-warning flex items-center gap-1"
+              role="alert"
             >
-              <span className="w-1 h-1 rounded-full bg-amber-500" />
+              <span className="w-1 h-1 rounded-full bg-amber-500" aria-hidden="true" />
               {warning}
             </motion.p>
           )}
           {error && (
             <motion.p
+              id={errorId}
               initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : undefined }}
               className="text-xs text-destructive flex items-center gap-1"
+              role="alert"
             >
-              <span className="w-1 h-1 rounded-full bg-destructive" />
+              <span className="w-1 h-1 rounded-full bg-destructive" aria-hidden="true" />
               {error}
             </motion.p>
           )}

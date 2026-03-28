@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processEmailDispatch } from "@/lib/email/email-dispatcher"
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Email dispatcher cron failed", { error: err.message })
     captureCronError(err, { jobName: "email-dispatcher" })

@@ -81,12 +81,7 @@ export function GlassRadioGroup({
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <div
-        className="relative flex rounded-2xl backdrop-blur-xl overflow-hidden w-fit"
-        style={{
-          background: "rgba(255, 255, 255, 0.06)",
-          boxShadow:
-            "inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(197, 221, 240, 0.3), 0 4px 12px rgba(197, 221, 240, 0.15)",
-        }}
+        className="relative flex rounded-2xl overflow-hidden w-fit bg-muted/50 dark:bg-white/[0.06] border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none"
       >
         {options.map((option) => (
           <React.Fragment key={option.id}>

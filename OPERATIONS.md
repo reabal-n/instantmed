@@ -395,9 +395,9 @@ WHERE i.status = 'approved'
 
 | Priority | Gap | Fix |
 |----------|-----|-----|
-| HIGH | 5 crons lack Sentry error capture | Add `Sentry.captureException` in catch blocks |
+| ~~HIGH~~ | ~~All crons lack Sentry error capture~~ | ✅ Fixed — all 20 crons now have `Sentry.captureException` |
 | HIGH | `intake_id` not in Sentry tags | Move from extra to tags in `lib/observability/sentry.ts` |
-| HIGH | No checkout latency tracking | Add timing metric in `lib/stripe/checkout.ts` |
+| ~~HIGH~~ | ~~No checkout latency tracking~~ | ✅ Fixed — latency tracked with >5s threshold alert in `lib/stripe/checkout.ts` |
 | MEDIUM | Email send failures not in Sentry | Add capture in `lib/email/send.ts` |
 | MEDIUM | `service_type` not in Sentry tags | Add to `captureApiError` context |
 

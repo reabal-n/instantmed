@@ -69,7 +69,7 @@ export function CTABanner({
           {secondaryText && secondaryHref && (
             <Link
               href={secondaryHref}
-              className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors underline underline-offset-4 decoration-border"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-border"
             >
               {secondaryText}
             </Link>

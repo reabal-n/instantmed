@@ -186,7 +186,7 @@ export function Stepper({
               className={cn(
                 "w-1.5 h-1.5 rounded-full transition-all duration-300",
                 index <= currentStep ? "bg-primary" : "bg-default-200",
-                index === currentStep && "scale-[1.05]"
+                index === currentStep && "scale-[1.02]"
               )}
             />
           ))}

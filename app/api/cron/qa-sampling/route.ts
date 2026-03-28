@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
       sampled: sampleSize,
     })
   } catch (error) {
+    Sentry.captureException(error)
     logger.error("QA sampling failed", {
       error: error instanceof Error ? error.message : "Unknown",
     })

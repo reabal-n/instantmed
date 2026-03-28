@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -151,6 +152,7 @@ export async function GET(request: NextRequest) {
       draftsGenerated,
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = error instanceof Error ? error : new Error(String(error))
     captureCronError(err, { jobName: "retry-auto-approval" })
     logger.error("Unexpected error in retry-auto-approval cron", { error: err.message })

@@ -462,6 +462,14 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         subtype: input.subtype,
         status: intake.status,
       })
+
+      trackIntakeFunnelStep({
+        step: "intake_started",
+        intakeId: intake.id,
+        serviceSlug: serviceSlug,
+        serviceType: input.category,
+        userId: authUser.user.id,
+      })
     }
 
     if (intakeError || !intake) {

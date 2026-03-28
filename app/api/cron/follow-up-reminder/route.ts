@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { processFollowUpReminders } from "@/lib/email/follow-up-reminder"
 import { createLogger } from "@/lib/observability/logger"
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    Sentry.captureException(error)
     const err = toError(error)
     logger.error("Cron: follow-up reminders failed", { error: err.message })
     captureCronError(err, { jobName: "follow-up-reminder" })

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useFormGroupDescribedBy } from "@/components/ui/form-section"
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -42,6 +43,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const inputId = id || (label ? `input-${label.toLowerCase().replace(/\s+/g, "-")}` : undefined)
     const errorId = isInvalid && errorMessage ? `${inputId ?? "input"}-error` : undefined
+    const formGroupDescribedBy = useFormGroupDescribedBy()
+    const describedBy = [errorId, formGroupDescribedBy].filter(Boolean).join(' ') || undefined
 
     return (
       <div className={cn("w-full", className)}>
@@ -77,7 +80,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             aria-invalid={isInvalid || undefined}
-            aria-describedby={errorId}
+            aria-describedby={describedBy}
             className={cn(
               "flex-1 bg-transparent px-3 py-2",
               "text-foreground placeholder:text-muted-foreground/60",

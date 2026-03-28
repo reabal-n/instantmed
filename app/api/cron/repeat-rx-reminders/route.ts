@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -166,6 +167,7 @@ export async function GET(request: NextRequest) {
     logger.info("Repeat Rx reminders complete", { enqueued, skipped, total: intakes.length })
     return NextResponse.json({ enqueued, skipped, total: intakes.length })
   } catch (error) {
+    Sentry.captureException(error)
     logger.error("Repeat Rx reminder cron failed", {}, toError(error))
     captureCronError(toError(error), { jobName: "repeat-rx-reminders" })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

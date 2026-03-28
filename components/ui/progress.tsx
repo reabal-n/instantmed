@@ -17,8 +17,8 @@ function Progress({
     <ProgressPrimitive.Root
       className={cn(
         "relative h-2 w-full overflow-hidden rounded-full",
-        // Glass track
-        "bg-card/50 dark:bg-white/10 backdrop-blur-sm",
+        // Solid track
+        "bg-muted/50 dark:bg-white/10",
         "border border-border/30 dark:border-white/10",
         className
       )}

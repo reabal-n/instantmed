@@ -27,7 +27,8 @@
     "e2e:teardown": "pnpm tsx scripts/e2e/teardown.ts",
     "e2e:full": "pnpm e2e:teardown || true && PLAYWRIGHT=1 playwright test && pnpm e2e:teardown || true",
     "e2e:smoke": "PLAYWRIGHT=1 playwright test --project=chromium e2e/portals.smoke.spec.ts e2e/rbac.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/doctor.patients.spec.ts",
-    "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts"
+    "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts",
+    "e2e:a11y": "PLAYWRIGHT=1 playwright test --project=chromium e2e/accessibility.spec.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",
@@ -82,6 +83,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.39.2",
     "@next/bundle-analyzer": "^16.1.1",

@@ -122,6 +122,7 @@ const productionRequirements = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url("Production requires UPSTASH_REDIS_REST_URL for rate limiting"),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Production requires UPSTASH_REDIS_REST_TOKEN for rate limiting"),
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
+  CLERK_SECRET_KEY: z.string().min(1, "Production requires CLERK_SECRET_KEY for authentication"),
   CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
   PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),

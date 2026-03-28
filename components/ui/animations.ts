@@ -33,7 +33,7 @@ export const easing = {
   easeIn: [0.4, 0, 1, 1] as [number, number, number, number],
   easeInOut: [0.33, 0, 0.2, 1] as [number, number, number, number],
   gentle: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-  spring: { type: "spring" as const, stiffness: 200, damping: 30 },
+  spring: [0.16, 1, 0.3, 1] as [number, number, number, number],
 } as const
 
 // Base transition

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { StepErrorBoundary } from "@/components/request/step-error-boundary"
 import { useFlowStore, useFlowService } from "@/lib/flow"
@@ -93,6 +94,7 @@ export function FlowOrchestrator({
   configLoader,
 }: FlowOrchestratorProps) {
   const router = useRouter()
+  const prefersReducedMotion = useReducedMotion()
   const serviceSlug = useFlowService()
   const { currentStep, setServiceSlug, nextStep, prevStep, reset } = useFlowStore()
   const [direction, setDirection] = useState<1 | -1>(1)
@@ -284,11 +286,11 @@ export function FlowOrchestrator({
         <motion.div
           key={currentStepDef?.id ?? "loading"}
           custom={direction}
-          variants={variants}
-          initial="enter"
+          variants={prefersReducedMotion ? undefined : variants}
+          initial={prefersReducedMotion ? {} : "enter"}
           animate="center"
-          exit="exit"
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
         >
           <StepErrorBoundary stepId={currentStepDef?.id ?? "unknown"}>
             {isCompleting ? (
