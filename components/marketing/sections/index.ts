@@ -1,4 +1,0 @@
-export { PricingSection } from './pricing-section'
-export type { PricingSectionProps, PricingSectionColors } from './pricing-section'
-export { TestimonialsSection } from './testimonials-section'
-export type { TestimonialsSectionProps, TestimonialItem } from './testimonials-section'
