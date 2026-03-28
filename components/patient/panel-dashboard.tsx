@@ -168,7 +168,7 @@ export function PanelDashboard({
           <div>
             <p className="font-medium text-foreground">Your request is being reviewed</p>
             <p className="text-sm text-muted-foreground mt-0.5">
-              A doctor will look at it shortly. Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST).
+              A doctor will look at it shortly. Most requests are reviewed within 1–2 hours during business hours (8am–10pm AEST).
             </p>
           </div>
         </div>

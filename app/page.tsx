@@ -124,7 +124,7 @@ export default async function HomePage() {
         {/* Hero with main value prop — LCP p passed as children for server render */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
-            Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Most people are sorted within the hour.
+            Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Reviewed within 1–2 hours, most days.
           </p>
         </Hero>
 

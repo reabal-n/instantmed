@@ -108,7 +108,7 @@ export function HowItWorksContent() {
         {/* CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Most people are sorted within the hour."
+          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Reviewed within 1–2 hours, most days."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"

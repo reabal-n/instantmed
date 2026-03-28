@@ -34,7 +34,7 @@ interface WhatHappensNextProps {
 const FAQ_ITEMS = [
   {
     question: "How long does review take?",
-    answer: "Most requests are reviewed within 30 minutes during business hours (8am–10pm AEST). Priority requests are reviewed within 15 minutes.",
+    answer: "Most requests are reviewed within 1–2 hours during business hours (8am–10pm AEST).",
   },
   {
     question: "What if the doctor needs more info?",

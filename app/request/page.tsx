@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    "Medical certificates from $19, repeat medication from $29.95, doctor consultations from $49.95. Reviewed by Australian doctors. Most requests completed within 30 minutes.",
+    "Medical certificates from $19, repeat medication from $29.95, doctor consultations from $49.95. Reviewed by Australian doctors. Most requests completed within 1–2 hours.",
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",

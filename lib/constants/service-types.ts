@@ -115,7 +115,7 @@ export const SERVICE_METADATA: Record<ServiceType, ServiceMetadata> = {
     shortName: "Script",
     urlSlug: "repeat-prescription",
     description: "Renew your regular medication",
-    estimatedTime: "30 minutes",
+    estimatedTime: "1–2 hours",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
     priceInCents: PRICING.REPEAT_SCRIPT * 100,
     requiresConsult: false,

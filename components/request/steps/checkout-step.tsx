@@ -265,7 +265,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </li>
             <li className="flex items-start gap-2">
               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>Typically reviewed within 30 minutes during business hours</span>
+              <span>Typically reviewed within 1–2 hours during business hours</span>
             </li>
           </ul>
           <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">

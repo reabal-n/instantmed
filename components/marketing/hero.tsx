@@ -52,7 +52,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* LCP slot — server-rendered when passed as children, else fallback */}
             {children ?? (
               <p className={LCP_CLASSES}>
-                Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Reviewed within hours, most days.
+                Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Reviewed within 1–2 hours, most days.
               </p>
             )}
 

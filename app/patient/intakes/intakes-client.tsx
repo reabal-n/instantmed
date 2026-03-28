@@ -239,7 +239,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                 activeTab === "all"
                   ? [
                       "Medical certificates can be issued for past or future dates",
-                      "Most requests are reviewed within 30 minutes (8am–10pm AEST)",
+                      "Most requests are reviewed within 1–2 hours (8am–10pm AEST)",
                       "You'll receive an email when your document is ready",
                     ]
                   : undefined

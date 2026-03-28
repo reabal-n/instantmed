@@ -190,7 +190,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Most requests are sorted within an hour. Sometimes 20 minutes, sometimes 90 — depends on how busy we are. You'll get email updates so you're not left wondering.",
+    answer: "Most requests are reviewed within 1–2 hours. You'll get email updates as things progress, so you're not left wondering.",
   },
   {
     question: "Is my information private?",
