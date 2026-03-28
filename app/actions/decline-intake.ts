@@ -18,6 +18,7 @@ import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
+import { trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { stripe } from "@/lib/stripe/client"
 import { logStatusChange } from "@/lib/data/intake-events"
 import { logTriageDeclined } from "@/lib/audit/compliance-audit"
@@ -186,6 +187,14 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     }
 
     logger.info("[Decline] Status updated to declined", { intakeId, actorId })
+
+    trackIntakeFunnelStep({
+      step: "declined",
+      intakeId,
+      serviceSlug: intake.category || "unknown",
+      serviceType: intake.category || "unknown",
+      userId: actorId,
+    })
 
     // 4. PROCESS REFUND
     let refundResult: DeclineResult["refund"] = {

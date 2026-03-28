@@ -12,6 +12,7 @@ import {
 import { requireRole } from "@/lib/auth"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { createLogger } from "@/lib/observability/logger"
+import { trackIntakeFunnelStep } from "@/lib/posthog-server"
 import type { IntakeStatus } from "@/types/db"
 import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
 
@@ -321,6 +322,15 @@ export async function claimIntakeAction(
     }
 
     logger.info("[ClaimIntake] Claim successful", { intakeId, doctorId: profile.id })
+
+    trackIntakeFunnelStep({
+      step: "review_started",
+      intakeId,
+      serviceSlug: "unknown",
+      serviceType: "unknown",
+      userId: profile.id,
+    })
+
     return { success: true }
   } catch (error) {
     logger.error("[ClaimIntake] Unexpected error", { intakeId }, error instanceof Error ? error : undefined)
