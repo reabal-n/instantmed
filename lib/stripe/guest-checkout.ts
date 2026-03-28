@@ -12,7 +12,7 @@ import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
+import { trackSafetyOutcome, trackSafetyBlock, trackIntakeFunnelStep } from "@/lib/posthog-server"
 import {
   logRequestCreated,
   logTermsConsentGiven,
@@ -543,10 +543,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .update({ payment_id: session.id })
       .eq("id", intake.id)
 
-    logger.info("Guest checkout session created successfully", { 
-      intakeId: intake.id, 
-      sessionId: session.id 
+    logger.info("Guest checkout session created successfully", {
+      intakeId: intake.id,
+      sessionId: session.id
     })
+
+    // Track funnel: payment initiated (checkout redirect)
+    trackIntakeFunnelStep({
+      step: "payment_initiated",
+      intakeId: intake.id,
+      serviceSlug: serviceSlug,
+      serviceType: input.category,
+    })
+
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"

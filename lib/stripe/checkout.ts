@@ -14,7 +14,7 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock } from "@/lib/posthog-server"
+import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock, trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 import { completeTranscript } from "@/lib/chat/audit-trail"
 import {
@@ -699,10 +699,19 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       .eq("id", intake.id)
 
     const latencyMs = Date.now() - startTime
-    logger.info("Checkout session created successfully", { 
-      intakeId: intake.id, 
+    logger.info("Checkout session created successfully", {
+      intakeId: intake.id,
       sessionId: session.id,
       latencyMs,
+    })
+
+    // Track funnel: payment initiated (checkout redirect)
+    trackIntakeFunnelStep({
+      step: "payment_initiated",
+      intakeId: intake.id,
+      serviceSlug: serviceSlug,
+      serviceType: input.category,
+      userId: authUser.user.id,
     })
     // Checkout latency tracking for OPERATIONS.md Golden Signals (P95 < 5s)
     if (latencyMs > 5000) {
