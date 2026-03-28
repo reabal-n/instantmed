@@ -105,11 +105,11 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden">
         {isDisabled && (
-          <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-warning shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-900 dark:text-amber-100">This service is temporarily unavailable.</p>
-              <p className="text-xs text-amber-700 dark:text-amber-200">
+              <p className="text-sm font-medium text-warning">This service is temporarily unavailable.</p>
+              <p className="text-xs text-warning">
                 We&apos;ll be back soon. <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">Contact us</a> if you have questions.
               </p>
             </div>

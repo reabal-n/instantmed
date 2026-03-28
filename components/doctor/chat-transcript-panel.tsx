@@ -85,7 +85,7 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
               </Button>
             </CollapsibleTrigger>
             {transcript?.hadSafetyFlags && (
-              <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
+              <Badge className="bg-warning-light text-warning border-warning-border">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Safety flags
               </Badge>
@@ -134,12 +134,12 @@ export function ChatTranscriptPanel({ intakeId }: ChatTranscriptPanelProps) {
 
                 {/* Safety flags warning */}
                 {transcript.hadSafetyFlags && transcript.safetyFlags.length > 0 && (
-                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-semibold text-sm mb-1">
+                  <div className="p-3 rounded-lg bg-warning-light border border-warning-border">
+                    <div className="flex items-center gap-2 text-warning font-semibold text-sm mb-1">
                       <AlertTriangle className="h-4 w-4" />
                       Safety Flags Detected
                     </div>
-                    <ul className="text-xs text-amber-700 dark:text-amber-300 list-disc list-inside">
+                    <ul className="text-xs text-warning list-disc list-inside">
                       {transcript.safetyFlags.map((flag, i) => (
                         <li key={i}>{flag}</li>
                       ))}

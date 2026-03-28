@@ -165,7 +165,7 @@ export function LiveWaitTime({
           )}
         </span>
         {showTrending && isFast && isOnline && (
-          <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-1 text-xs text-success">
             <TrendingDown className="w-3 h-3" />
             Fast
           </span>
@@ -266,7 +266,7 @@ export function LiveWaitTime({
                           {formatWaitTime(time)}
                         </motion.span>
                         {showTrending && isFast && (
-                          <span className="hidden sm:flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="hidden sm:flex items-center gap-0.5 text-xs text-success font-medium">
                             <TrendingDown className="w-3 h-3" />
                           </span>
                         )}
@@ -301,7 +301,7 @@ export function LiveWaitTime({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Live</span>
+            <span className="text-success font-medium">Live</span>
           </div>
         )}
       </div>
@@ -337,7 +337,7 @@ export function LiveWaitTime({
                       {formatWaitTime(time)}
                     </motion.span>
                     {showTrending && isFast && (
-                      <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <span className="flex items-center gap-1 text-xs text-success font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
                         <TrendingDown className="w-3 h-3" />
                         Fast
                       </span>

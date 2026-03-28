@@ -214,23 +214,23 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
 
                 <a
                   href="tel:131114"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-info-light border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
                 >
-                  <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <Heart className="w-5 h-5 text-info" />
                   <div>
                     <p className="font-semibold text-blue-900 dark:text-blue-200">Lifeline: 13 11 14</p>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">24/7 crisis support</p>
+                    <p className="text-sm text-info">24/7 crisis support</p>
                   </div>
                 </a>
 
                 <a
                   href="tel:1800022222"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-info-light border-2 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/15 transition-colors"
                 >
-                  <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <Phone className="w-5 h-5 text-info" />
                   <div>
                     <p className="font-semibold text-blue-900 dark:text-blue-200">Healthdirect: 1800 022 222</p>
-                    <p className="text-sm text-blue-700 dark:text-blue-400">Health advice line</p>
+                    <p className="text-sm text-info">Health advice line</p>
                   </div>
                 </a>
               </div>

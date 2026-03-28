@@ -171,7 +171,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
       {/* Safety notice */}
       <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
         <ShieldAlert className="w-4 h-4 text-amber-600" />
-        <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+        <AlertDescription className="text-xs text-warning">
           These questions help ensure ED medication is safe for you. Please answer honestly.
         </AlertDescription>
       </Alert>
@@ -195,7 +195,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
         <div className="space-y-4 slide-in-from-bottom-2">
           <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
-            <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
+            <AlertDescription className="text-sm text-warning">
               This condition may affect your eligibility. We need a bit more information.
             </AlertDescription>
           </Alert>

@@ -51,7 +51,7 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-green-800 dark:text-green-200">Safety confirmed</p>
-            <p className="text-xs text-green-600 dark:text-green-400">Not a medical emergency</p>
+            <p className="text-xs text-success">Not a medical emergency</p>
           </div>
         </div>
         <Button

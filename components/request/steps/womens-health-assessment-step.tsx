@@ -164,7 +164,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
         {pregnancyStatus === 'yes' && (
           <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
             <AlertCircle className="w-4 h-4 text-amber-600" />
-            <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+            <AlertDescription className="text-xs text-warning">
               Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
             </AlertDescription>
           </Alert>
@@ -251,7 +251,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
     <div className="space-y-6">
       <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
         <Sparkles className="w-4 h-4 text-amber-600" />
-        <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+        <AlertDescription className="text-xs text-warning">
           Emergency contraception is most effective when taken as soon as possible.
         </AlertDescription>
       </Alert>

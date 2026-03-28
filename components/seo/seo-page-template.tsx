@@ -161,7 +161,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-primary dark:border-primary">
+                <div className="mb-16 p-6 bg-info-light rounded-lg border border-primary dark:border-primary">
                   <h3 className="font-semibold text-foreground mb-4">
                     Important disclaimers
                   </h3>
@@ -212,7 +212,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Backdating */}
-                <div className="mb-16 p-6 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="mb-16 p-6 bg-warning-light rounded-lg border border-warning-border">
                   <h3 className="font-semibold text-foreground mb-2">
                     📅 Can we backdate certificates?
                   </h3>

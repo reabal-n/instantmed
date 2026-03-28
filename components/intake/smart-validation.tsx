@@ -172,7 +172,7 @@ export function SmartValidation({
           errorCount > 0 
             ? "bg-destructive-light border-destructive-border"
             : warningCount > 0
-            ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+            ? "bg-warning-light border-warning-border"
             : "bg-primary/5 border-primary/20"
         )}
         onClick={() => setIsExpanded(!isExpanded)}

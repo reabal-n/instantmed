@@ -242,7 +242,7 @@ export function YesNoButtons({
           "hover:-translate-y-0.5 active:scale-[0.98]",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           value === false
-            ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+            ? "border-red-500 bg-destructive-light text-destructive"
             : "border-border/60 hover:border-red-300 dark:hover:border-red-700"
         )}
       >

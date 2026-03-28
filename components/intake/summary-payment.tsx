@@ -153,8 +153,8 @@ export function SummaryPayment({
       </div>
 
       {/* AI disclosure */}
-      <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 border border-blue-100 dark:border-blue-800">
-        <span className="font-medium text-blue-700 dark:text-blue-400">How we process your request:</span>{" "}
+      <div className="text-xs text-muted-foreground bg-info-light rounded-xl p-3 border border-blue-100 dark:border-blue-800">
+        <span className="font-medium text-info">How we process your request:</span>{" "}
         Your information will be summarized by AI to help the doctor review your request efficiently. 
         The doctor makes all clinical decisions.
       </div>

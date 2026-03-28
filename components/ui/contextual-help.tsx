@@ -54,12 +54,12 @@ export function ContextualHelp({
     return (
       <div
         className={cn(
-          "p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800/40",
+          "p-3 rounded-xl bg-info-light border border-blue-100 dark:border-blue-800/40",
           className
         )}
       >
         <div className="flex items-start gap-2">
-          <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+          <Icon className="w-4 h-4 text-info mt-0.5 shrink-0" />
           <div className="text-sm text-blue-900 dark:text-blue-100 flex-1">
             {typeof content === "string" ? <p>{content}</p> : content}
           </div>
@@ -104,11 +104,11 @@ export function InfoCard({
 }: InfoCardProps) {
   const variantStyles = {
     info: {
-      bg: "bg-blue-50 dark:bg-blue-950/30",
+      bg: "bg-info-light",
       border: "border-blue-100 dark:border-blue-800/40",
       iconColor: "text-blue-600",
       titleColor: "text-blue-900 dark:text-blue-100",
-      textColor: "text-blue-700 dark:text-blue-300",
+      textColor: "text-info",
       defaultIcon: Info,
     },
     success: {

@@ -453,7 +453,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                             : opt.color === 'amber'
                             ? 'border-amber-500 bg-amber-50 text-amber-700'
-                            : 'border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400'
+                            : 'border-red-500 bg-destructive-light text-destructive'
                           : 'border-border hover:border-border text-muted-foreground'
                       )}
                     >
@@ -488,10 +488,10 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                         'px-3 py-1.5 text-sm rounded-lg border transition-colors',
                         data.sideEffects === opt.value
                           ? opt.value === 'severe'
-                            ? 'border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400'
+                            ? 'border-red-500 bg-destructive-light text-destructive'
                             : opt.value === 'moderate'
-                            ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300'
-                            : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
+                            ? 'border-amber-500 bg-warning-light text-warning'
+                            : 'border-emerald-500 bg-success-light text-success'
                           : 'border-border hover:border-border text-muted-foreground'
                       )}
                     >
