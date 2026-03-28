@@ -675,6 +675,193 @@ export function needsEncryptionMigration(record: Record<string, unknown>): boole
   return false
 }
 
+// ============================================================================
+// HEALTH PROFILE — ALLERGIES (patient_health_profiles.allergies / allergies_enc)
+// ============================================================================
+
+export interface HealthAllergiesWriteResult {
+  allergies: string[]
+  allergies_enc: EncryptedPHI | null
+}
+
+export async function prepareHealthAllergiesWrite(
+  allergies: string[]
+): Promise<HealthAllergiesWriteResult> {
+  if (!allergies.length) {
+    return { allergies: [], allergies_enc: null }
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const encrypted = await encryptPHI(JSON.stringify(allergies))
+      return { allergies, allergies_enc: encrypted }
+    } catch (error) {
+      logger.error("Failed to encrypt health allergies, falling back to plaintext", {}, toError(error))
+    }
+  }
+
+  return { allergies, allergies_enc: null }
+}
+
+export async function readHealthAllergies(record: {
+  allergies?: string[] | null
+  allergies_enc?: EncryptedPHI | null
+}): Promise<string[]> {
+  if (isEncryptionEnabled() && isReadEnabled() && record.allergies_enc) {
+    if (isEncryptedPHI(record.allergies_enc)) {
+      try {
+        const plaintext = await decryptPHI(record.allergies_enc)
+        return JSON.parse(plaintext) as string[]
+      } catch (error) {
+        logger.error("Failed to decrypt health allergies", {}, toError(error))
+      }
+    }
+  }
+
+  return record.allergies ?? []
+}
+
+// ============================================================================
+// HEALTH PROFILE — CONDITIONS (patient_health_profiles.conditions / conditions_enc)
+// ============================================================================
+
+export interface HealthConditionsWriteResult {
+  conditions: string[]
+  conditions_enc: EncryptedPHI | null
+}
+
+export async function prepareHealthConditionsWrite(
+  conditions: string[]
+): Promise<HealthConditionsWriteResult> {
+  if (!conditions.length) {
+    return { conditions: [], conditions_enc: null }
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const encrypted = await encryptPHI(JSON.stringify(conditions))
+      return { conditions, conditions_enc: encrypted }
+    } catch (error) {
+      logger.error("Failed to encrypt health conditions, falling back to plaintext", {}, toError(error))
+    }
+  }
+
+  return { conditions, conditions_enc: null }
+}
+
+export async function readHealthConditions(record: {
+  conditions?: string[] | null
+  conditions_enc?: EncryptedPHI | null
+}): Promise<string[]> {
+  if (isEncryptionEnabled() && isReadEnabled() && record.conditions_enc) {
+    if (isEncryptedPHI(record.conditions_enc)) {
+      try {
+        const plaintext = await decryptPHI(record.conditions_enc)
+        return JSON.parse(plaintext) as string[]
+      } catch (error) {
+        logger.error("Failed to decrypt health conditions", {}, toError(error))
+      }
+    }
+  }
+
+  return record.conditions ?? []
+}
+
+// ============================================================================
+// HEALTH PROFILE — MEDICATIONS (patient_health_profiles.current_medications / current_medications_enc)
+// ============================================================================
+
+export interface HealthMedicationsWriteResult {
+  current_medications: string[]
+  current_medications_enc: EncryptedPHI | null
+}
+
+export async function prepareHealthMedicationsWrite(
+  medications: string[]
+): Promise<HealthMedicationsWriteResult> {
+  if (!medications.length) {
+    return { current_medications: [], current_medications_enc: null }
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const encrypted = await encryptPHI(JSON.stringify(medications))
+      return { current_medications: medications, current_medications_enc: encrypted }
+    } catch (error) {
+      logger.error("Failed to encrypt health medications, falling back to plaintext", {}, toError(error))
+    }
+  }
+
+  return { current_medications: medications, current_medications_enc: null }
+}
+
+export async function readHealthMedications(record: {
+  current_medications?: string[] | null
+  current_medications_enc?: EncryptedPHI | null
+}): Promise<string[]> {
+  if (isEncryptionEnabled() && isReadEnabled() && record.current_medications_enc) {
+    if (isEncryptedPHI(record.current_medications_enc)) {
+      try {
+        const plaintext = await decryptPHI(record.current_medications_enc)
+        return JSON.parse(plaintext) as string[]
+      } catch (error) {
+        logger.error("Failed to decrypt health medications", {}, toError(error))
+      }
+    }
+  }
+
+  return record.current_medications ?? []
+}
+
+// ============================================================================
+// HEALTH PROFILE — NOTES (patient_health_profiles.notes / notes_enc)
+// ============================================================================
+
+export interface HealthNotesWriteResult {
+  notes: string | null
+  notes_enc: EncryptedPHI | null
+}
+
+export async function prepareHealthNotesWrite(
+  notes: string | null
+): Promise<HealthNotesWriteResult> {
+  if (!notes) {
+    return { notes: null, notes_enc: null }
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const encrypted = await encryptPHI(notes)
+      return { notes, notes_enc: encrypted }
+    } catch (error) {
+      logger.error("Failed to encrypt health notes, falling back to plaintext", {}, toError(error))
+    }
+  }
+
+  return { notes, notes_enc: null }
+}
+
+export async function readHealthNotes(record: {
+  notes?: string | null
+  notes_enc?: EncryptedPHI | null
+}): Promise<string | null> {
+  if (isEncryptionEnabled() && isReadEnabled() && record.notes_enc) {
+    if (isEncryptedPHI(record.notes_enc)) {
+      try {
+        return await decryptPHI(record.notes_enc)
+      } catch (error) {
+        logger.error("Failed to decrypt health notes", {}, toError(error))
+      }
+    }
+  }
+
+  return record.notes ?? null
+}
+
+// ============================================================================
+// ENCRYPTION STATUS (admin dashboard / debugging)
+// ============================================================================
+
 /**
  * Get encryption status for monitoring
  */

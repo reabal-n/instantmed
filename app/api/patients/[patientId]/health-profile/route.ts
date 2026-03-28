@@ -1,5 +1,5 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@clerk/nextjs/server"
+import { requireApiRole } from "@/lib/auth"
+import { getHealthProfile } from "@/lib/data/health-profile"
 import { NextResponse, type NextRequest } from "next/server"
 
 /**
@@ -14,35 +14,14 @@ export async function GET(
 ) {
   const { patientId } = await params
 
-  // Verify the caller is authenticated via Clerk
-  const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) {
+  // Require doctor or admin role
+  const authResult = await requireApiRole(["doctor", "admin"])
+  if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const supabase = createServiceRoleClient()
+  // Fetch health profile (decrypts PHI fields via data layer)
+  const profile = await getHealthProfile(patientId)
 
-  // Check caller has doctor or admin role
-  const { data: callerProfile } = await supabase
-    .from("profiles")
-    .select("id, role")
-    .eq("clerk_user_id", clerkUserId)
-    .single()
-
-  if (!callerProfile || !["doctor", "admin"].includes(callerProfile.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
-
-  // Fetch health profile
-  const { data: profile, error } = await supabase
-    .from("patient_health_profiles")
-    .select("allergies, conditions, current_medications, blood_type, emergency_contact_name, emergency_contact_phone, notes, updated_at")
-    .eq("patient_id", patientId)
-    .maybeSingle()
-
-  if (error) {
-    return NextResponse.json({ profile: null }, { status: 200 })
-  }
-
-  return NextResponse.json({ profile })
+  return NextResponse.json({ profile: profile ?? null })
 }

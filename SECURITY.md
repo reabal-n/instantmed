@@ -35,7 +35,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `health_summary` | Clinical summary content | No | Yes |
 | `document_drafts` | `data` (JSONB), `content` (AI-generated), `edited_content` | `data` ✅ Phase 2 | Yes |
 | `documents` | `storage_path` (references PDF with PHI) | N/A (ref) | Yes |
-| `patient_health_profiles` | `allergies`, `conditions`, `current_medications`, `notes` | ⏳ Not yet | Yes |
+| `patient_health_profiles` | `allergies`, `conditions`, `current_medications`, `notes` | All 4 ✅ Phase 3 | Yes |
 
 ### Encryption Status
 
