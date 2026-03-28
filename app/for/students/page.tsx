@@ -5,6 +5,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOpen, FileText, Calendar } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Uni Students | Special Consideration",
@@ -305,7 +306,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
+                      a: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT} for 1 day, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days. If your request isn't approved, you get a refund minus a small admin fee.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
@@ -333,7 +334,7 @@ export default function StudentsPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Accepted by all unis</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Accepted by all unis</p>
                 </div>
               </div>
             </div>

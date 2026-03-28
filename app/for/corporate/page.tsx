@@ -5,6 +5,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, Clock, Star, Briefcase, Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Corporate Workers | 15 Min",
@@ -244,9 +245,9 @@ export default function CorporatePage() {
                 <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Other services for busy professionals</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
-                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: "From $29.95", href: "/prescriptions" },
-                    { title: "Hair Loss", desc: "Discreet treatment options", price: "From $29.95", href: "/hair-loss" },
-                    { title: "Weight Management", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-management" },
+                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: PRICING_DISPLAY.FROM_SCRIPT, href: "/prescriptions" },
+                    { title: "Hair Loss", desc: "Discreet treatment options", price: `From ${PRICING_DISPLAY.REPEAT_SCRIPT}`, href: "/hair-loss" },
+                    { title: "Weight Management", desc: "Doctor-guided programs", price: PRICING_DISPLAY.FROM_CONSULT, href: "/weight-management" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
                       <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 h-full hover:border-border transition-all">
@@ -314,7 +315,7 @@ export default function CorporatePage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
                 </div>
               </div>
             </div>

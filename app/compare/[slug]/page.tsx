@@ -15,6 +15,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // Comparison pages for competitive SEO
 const comparisons: Record<string, {
@@ -54,7 +55,7 @@ const comparisons: Record<string, {
       { feature: "Blood tests & procedures", instantmed: "Referrals only", competitor: "On-site or nearby", winner: "competitor" },
       { feature: "Medical certificates", instantmed: "Yes - legally valid", competitor: "Yes", winner: "tie" },
       { feature: "Prescriptions", instantmed: "E-prescriptions for suitable conditions", competitor: "Full prescribing", winner: "competitor" },
-      { feature: "Cost with Medicare", instantmed: "From $19.95 (no Medicare rebate)", competitor: "Free if bulk-billed", winner: "competitor" },
+      { feature: "Cost with Medicare", instantmed: `${PRICING_DISPLAY.FROM_MED_CERT} (no Medicare rebate)`, competitor: "Free if bulk-billed", winner: "competitor" },
       { feature: "Continuity of care", instantmed: "Records available, different doctors", competitor: "Same GP can follow your history", winner: "competitor" },
       { feature: "Convenience", instantmed: "From anywhere, no travel", competitor: "Need to travel to clinic", winner: "instantmed" },
       { feature: "Privacy", instantmed: "Completely private", competitor: "Waiting room, shared space", winner: "instantmed" },
@@ -110,7 +111,7 @@ const comparisons: Record<string, {
     comparisonTable: [
       { feature: "AHPRA registered doctors", instantmed: true, competitor: "Varies - always check", winner: "tie" },
       { feature: "Average response time", instantmed: "Under 1 hour", competitor: "1-24 hours", winner: "instantmed" },
-      { feature: "Price for med cert", instantmed: "From $19.95", competitor: "$15-50", winner: "tie" },
+      { feature: "Price for med cert", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "$15-50", winner: "tie" },
       { feature: "Backdating available", instantmed: "If clinically appropriate", competitor: "Varies by service", winner: "tie" },
       { feature: "Carer's leave certificates", instantmed: true, competitor: "Most services", winner: "tie" },
       { feature: "Mental health certificates", instantmed: true, competitor: "Most services", winner: "tie" },
@@ -216,7 +217,7 @@ const comparisons: Record<string, {
     competitor: { name: "Bulk-Billed Telehealth", type: "alternative" },
     heroText: "Bulk-billed telehealth is free with Medicare, but private telehealth often offers faster service and more flexibility. Here's how they compare.",
     comparisonTable: [
-      { feature: "Out-of-pocket cost", instantmed: "From $19.95", competitor: "Free (with Medicare)", winner: "competitor" },
+      { feature: "Out-of-pocket cost", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Free (with Medicare)", winner: "competitor" },
       { feature: "Wait time for appointment", instantmed: "Usually under 1 hour", competitor: "Often days to weeks", winner: "instantmed" },
       { feature: "Available 7 days", instantmed: true, competitor: "Varies — limited", winner: "instantmed" },
       { feature: "Extended hours", instantmed: "7am-10pm AEST", competitor: "Often business hours only", winner: "instantmed" },

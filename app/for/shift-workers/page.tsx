@@ -5,6 +5,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Hospital } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Shift Workers | 24/7 Available",
@@ -308,7 +309,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95.",
+                      a: `Medical certificates from ${PRICING_DISPLAY.MED_CERT} (1 day) or ${PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
@@ -336,7 +337,7 @@ export default function ShiftWorkersPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • 8am-10pm, 7 days</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • 8am-10pm, 7 days</p>
                 </div>
               </div>
             </div>

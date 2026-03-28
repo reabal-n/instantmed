@@ -17,6 +17,7 @@ import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import {
   getConditionLocationCombo,
   getAllConditionLocationComboSlugs,
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!condition || !combo) return {}
 
   const title = `${condition.name} in ${cityName} | Medical Certificate Online | InstantMed`
-  const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment. From $19.95.`
+  const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment. ${PRICING_DISPLAY.FROM_MED_CERT}.`
 
   return {
     title,
@@ -161,7 +162,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <p className="text-sm text-muted-foreground">From $19.95 · No appointment needed</p>
+                <p className="text-sm text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} · No appointment needed</p>
               </div>
             </div>
           </section>

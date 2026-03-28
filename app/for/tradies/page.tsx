@@ -5,6 +5,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, Clock, Smartphone, Star, Wrench, Building } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Tradies | 15 Min Script",
@@ -220,9 +221,9 @@ export default function TradiesPage() {
                 <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">What you can get</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
-                    { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: "From $19.95" },
-                    { title: "Carer's Leave Cert", desc: "Looking after sick family", price: "From $19.95" },
-                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $29.95" },
+                    { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: PRICING_DISPLAY.FROM_MED_CERT },
+                    { title: "Carer's Leave Cert", desc: "Looking after sick family", price: PRICING_DISPLAY.FROM_MED_CERT },
+                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: PRICING_DISPLAY.FROM_SCRIPT },
                   ].map((item) => (
                     <div key={item.title} className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 text-center hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300">
                       <Wrench className="h-6 w-6 mx-auto mb-2 text-primary" />
@@ -261,7 +262,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "What's it cost?",
-                      a: "Med certs from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95. No surprises.",
+                      a: `Med certs from ${PRICING_DISPLAY.MED_CERT} (1 day) or ${PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No surprises.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
@@ -289,7 +290,7 @@ export default function TradiesPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
                 </div>
               </div>
             </div>

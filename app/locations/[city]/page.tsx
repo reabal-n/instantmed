@@ -6,6 +6,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // Geo coordinates for each city (latitude, longitude)
@@ -125,7 +126,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   adelaide: [
     { q: "Is InstantMed available in South Australia?", a: "Yes — we serve all of Adelaide and regional SA. All you need is an internet connection." },
     { q: "Are your doctors registered in South Australia?", a: "Our doctors are AHPRA-registered, which means they can practise anywhere in Australia, including SA." },
-    { q: "How much does a medical certificate cost in Adelaide?", a: "Medical certificates start from $19.95. The same price applies regardless of your location." },
+    { q: "How much does a medical certificate cost in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. The same price applies regardless of your location.` },
   ],
 }
 
@@ -456,8 +457,8 @@ const cities: Record<
 }
 
 const services = [
-  { name: "Medical Certificates", href: "/medical-certificate", price: "From $19.95" },
-  { name: "Prescriptions", href: "/prescriptions", price: "From $29.95" },
+  { name: "Medical Certificates", href: "/medical-certificate", price: PRICING_DISPLAY.FROM_MED_CERT },
+  { name: "Prescriptions", href: "/prescriptions", price: PRICING_DISPLAY.FROM_SCRIPT },
 ]
 
 interface PageProps {

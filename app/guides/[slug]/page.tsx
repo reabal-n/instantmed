@@ -13,6 +13,7 @@ import {
   BookOpen
 } from "lucide-react"
 import { GUIDE_INDEX } from "@/lib/seo/data/guides"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -121,7 +122,7 @@ const guides: Record<string, {
     cta: {
       text: "Get a medical certificate now",
       href: "/request?service=med-cert",
-      subtext: "From $19.95 · Usually ready in under 1 hour"
+      subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Usually ready in under 1 hour`
     }
   },
   "how-to-get-sick-note-for-uni": {
@@ -191,7 +192,7 @@ const guides: Record<string, {
     cta: {
       text: "Get your certificate now",
       href: "/request?service=med-cert",
-      subtext: "From $19.95 · Perfect for special consideration applications"
+      subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Perfect for special consideration applications`
     }
   },
   "telehealth-guide-australia": {
@@ -277,7 +278,7 @@ const guides: Record<string, {
     cta: {
       text: "Try InstantMed telehealth",
       href: "/request",
-      subtext: "Australian doctors · Fast response · From $19.95"
+      subtext: `Australian doctors · Fast response · ${PRICING_DISPLAY.FROM_MED_CERT}`
     }
   },
   "medical-certificate-centrelink": {
@@ -315,7 +316,7 @@ const guides: Record<string, {
       { q: "What if Centrelink rejects my certificate?", a: "Centrelink may reject certificates that don't meet their requirements (e.g. wrong format, missing information). Check their feedback and get a new certificate if needed. Your doctor can help ensure it meets requirements." },
       { q: "How long is a Centrelink medical certificate valid?", a: "It depends on your situation. Some certificates cover a specific period (e.g. 2 weeks). For ongoing conditions, Centrelink may accept certificates covering longer periods. Check your specific requirements." }
     ],
-    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: "From $19.95 · Australian doctors" }
+    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Australian doctors` }
   },
   "when-to-use-telehealth": {
     title: "When to Use Telehealth vs See a Doctor In Person",
@@ -389,7 +390,7 @@ const guides: Record<string, {
       { q: "How do eScripts work?", a: "You receive a QR code or token via SMS. Take it to any pharmacy — they scan it and dispense your medication. No paper needed." },
       { q: "Will my regular GP know?", a: "Only if you or the telehealth service shares the information. For continuity, consider asking for a summary to be sent to your GP." }
     ],
-    cta: { text: "Request a repeat prescription", href: "/prescriptions", subtext: "From $29.95 · eScript to your phone" }
+    cta: { text: "Request a repeat prescription", href: "/prescriptions", subtext: `${PRICING_DISPLAY.FROM_SCRIPT} · eScript to your phone` }
   },
   "medical-certificate-for-carers-leave": {
     title: "How to Get a Medical Certificate for Carer's Leave",
@@ -425,7 +426,7 @@ const guides: Record<string, {
       { q: "What if my child is the one who's sick?", a: "Same process. You complete the form on their behalf. The certificate documents that they needed care, supporting your carer's leave." },
       { q: "Do I need to say what was wrong with them?", a: "The certificate typically states that the person needed care. Specific diagnosis may or may not be included — the doctor will include what's appropriate." }
     ],
-    cta: { text: "Get a carer's leave certificate", href: "/medical-certificate/carer", subtext: "From $19.95 · No need to leave home" }
+    cta: { text: "Get a carer's leave certificate", href: "/medical-certificate/carer", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · No need to leave home` }
   },
   "telehealth-first-time-guide": {
     title: "Telehealth First Time: A Complete Guide for Australians",
@@ -461,7 +462,7 @@ const guides: Record<string, {
       { q: "What if the doctor can't help online?", a: "They'll advise you to see a GP in person. You typically won't be charged the full fee if they can't assist." },
       { q: "Is my information secure?", a: "Reputable services use encrypted systems and comply with Australian privacy law. Your information isn't shared with employers or insurers." }
     ],
-    cta: { text: "Try your first telehealth consultation", href: "/request", subtext: "Australian doctors · From $19.95" }
+    cta: { text: "Try your first telehealth consultation", href: "/request", subtext: `Australian doctors · ${PRICING_DISPLAY.FROM_MED_CERT}` }
   },
   "how-to-claim-medicare-rebate-telehealth": {
     title: "How to Claim a Medicare Rebate for Telehealth",
@@ -533,7 +534,7 @@ const guides: Record<string, {
       { q: "Do I have to tell my employer why I'm sick?", a: "No. You only need to provide a certificate stating you were unfit. The certificate doesn't need to specify your condition." },
       { q: "Can they ask for a certificate from day one?", a: "Employers can have policies requiring certificates from the first day. Check your employment contract or workplace policy." }
     ],
-    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: "From $19.95 · Valid for all employers" }
+    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Valid for all employers` }
   },
   "escript-vs-paper-prescription": {
     title: "eScript vs Paper Prescription: What's the Difference?",
@@ -754,11 +755,11 @@ const guides: Record<string, {
     ],
     faqs: [
       { q: "Can I be fired for calling in sick as a casual?", a: "You can't be fired for a genuine illness. However, casual employment can be ended without notice. Having medical certificates documents that your absences were legitimate." },
-      { q: "Do I need to pay for a medical certificate as a casual?", a: "Yes, there's typically a cost for the consultation. Telehealth services like InstantMed offer certificates from $19.95 — often cheaper than an in-person GP visit." },
+      { q: "Do I need to pay for a medical certificate as a casual?", a: `Yes, there's typically a cost for the consultation. Telehealth services like InstantMed offer certificates from ${PRICING_DISPLAY.MED_CERT} — often cheaper than an in-person GP visit.` },
       { q: "Can a casual worker get unpaid sick leave?", a: "There's no 'unpaid sick leave' entitlement, but you can simply not work. Having documentation helps protect your position with your employer." },
       { q: "What if my employer pressures me to work while sick?", a: "You're never obligated to work while genuinely unwell. If pressured, document the conversation and contact Fair Work if necessary." }
     ],
-    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: "From $19.95. Valid for all Australian employers." }
+    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT}. Valid for all Australian employers.` }
   },
 }
 

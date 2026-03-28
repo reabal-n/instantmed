@@ -19,6 +19,7 @@ import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 const conditions = conditionsData
 
@@ -141,7 +142,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  From $19.95 · No appointment needed
+                  {PRICING_DISPLAY.FROM_MED_CERT} · No appointment needed
                 </p>
               </div>
 

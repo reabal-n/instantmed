@@ -8,6 +8,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getAudiencePageConfig, getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface PageProps {
   params: Promise<{ audience: string }>
@@ -227,8 +228,8 @@ export default async function AudiencePage({ params }: PageProps) {
                   <div className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15">
                     <h3 className="text-sm font-semibold mb-1.5">What does it cost?</h3>
                     <p className="text-xs text-muted-foreground">
-                      Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from
-                      $29.95.
+                      Medical certificates from {PRICING_DISPLAY.MED_CERT} (1 day) or {PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from
+                      {" "}{PRICING_DISPLAY.REPEAT_SCRIPT}.
                     </p>
                   </div>
                 </div>
@@ -255,7 +256,7 @@ export default async function AudiencePage({ params }: PageProps) {
                     </Button>
                   </Link>
                   <p className="mt-4 text-xs text-muted-foreground">
-                    From $19.95 • 8am-10pm, 7 days
+                    {PRICING_DISPLAY.FROM_MED_CERT} • 8am-10pm, 7 days
                   </p>
                 </div>
               </div>
