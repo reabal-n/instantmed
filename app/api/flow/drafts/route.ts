@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { prepareIntakeDraftDataWrite } from "@/lib/security/phi-field-wrappers"
 
 const logger = createLogger("flow-drafts-api")
 
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Encrypt draft data (dual-write: plaintext + encrypted)
+    const dataFields = await prepareIntakeDraftDataWrite(initialData || {})
+
     // Create new draft with upsert to handle race conditions
     const { data: draft, error } = await supabase
       .from("intake_drafts")
@@ -74,7 +78,7 @@ export async function POST(request: NextRequest) {
           session_id: sessionId,
           service_slug: serviceSlug,
           user_id: callerProfile?.id || null,
-          data: initialData || {},
+          ...dataFields,
           current_step: "safety",
           current_group_index: 0,
           status: "in_progress",

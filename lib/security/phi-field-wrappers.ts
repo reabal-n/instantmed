@@ -572,6 +572,67 @@ export async function readMedicalConditions(record: {
 }
 
 // ============================================================================
+// INTAKE DRAFT DATA (intake_drafts.data / data_encrypted)
+// ============================================================================
+
+export interface IntakeDraftDataWriteResult {
+  /** Plaintext value (for backward compatibility during migration) */
+  data: Record<string, unknown> | null
+  /** Encrypted value (for new storage) */
+  data_encrypted: EncryptedPHI | null
+}
+
+/**
+ * Prepare intake draft data for database write
+ */
+export async function prepareIntakeDraftDataWrite(
+  data: Record<string, unknown> | null
+): Promise<IntakeDraftDataWriteResult> {
+  if (!data) {
+    return { data: null, data_encrypted: null }
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const plaintext = JSON.stringify(data)
+      const encrypted = await encryptPHI(plaintext)
+      return {
+        data: data, // Keep plaintext during migration
+        data_encrypted: encrypted,
+      }
+    } catch (error) {
+      logger.error("Failed to encrypt intake_drafts.data, falling back to plaintext", {},
+        toError(error))
+      return { data: data, data_encrypted: null }
+    }
+  }
+
+  return { data: data, data_encrypted: null }
+}
+
+/**
+ * Read intake draft data from database record
+ */
+export async function readIntakeDraftData(record: {
+  data?: Record<string, unknown> | null
+  data_encrypted?: EncryptedPHI | null
+}): Promise<Record<string, unknown> | null> {
+  if (isEncryptionEnabled() && isReadEnabled() && record.data_encrypted) {
+    if (isEncryptedPHI(record.data_encrypted)) {
+      try {
+        const plaintext = await decryptPHI(record.data_encrypted)
+        return JSON.parse(plaintext) as Record<string, unknown>
+      } catch (error) {
+        logger.error("Failed to decrypt intake_drafts.data, falling back to plaintext", {},
+          toError(error))
+      }
+    }
+  }
+
+  return record.data ?? null
+}
+
+// ============================================================================
 // MIGRATION HELPERS
 // ============================================================================
 

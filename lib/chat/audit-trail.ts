@@ -7,6 +7,7 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
+import { prepareMessagesWrite, readMessages } from '@/lib/security/phi-field-wrappers'
 import * as Sentry from '@sentry/nextjs'
 
 const log = createLogger('ai-audit-trail')
@@ -73,8 +74,9 @@ export async function logAIInteraction(entry: AIAuditEntry): Promise<void> {
       service_type: entry.serviceType,
       turn_number: entry.turnNumber,
       // Store truncated versions for audit, not full content
-      user_input_preview: entry.userInput.slice(0, 200),
-      ai_output_preview: entry.aiOutput.slice(0, 500),
+      // SECURITY.md spec: truncated to 50 chars for PHI minimization
+      user_input_preview: entry.userInput.slice(0, 50),
+      ai_output_preview: entry.aiOutput.slice(0, 50),
       user_input_length: entry.userInput.length,
       ai_output_length: entry.aiOutput.length,
       input_tokens: entry.inputTokens,
@@ -392,10 +394,13 @@ export async function upsertChatTranscript(params: {
     const totalTurns = Math.ceil(params.messages.filter(m => m.role === 'user').length)
     const hadFlags = (params.safetyFlags?.length || 0) > 0
     
+    // Dual-write: plaintext + encrypted messages (PHI encryption)
+    const messagesFields = await prepareMessagesWrite(transcriptMessages)
+
     const upsertData: Record<string, unknown> = {
       session_id: params.sessionId,
       patient_id: params.patientId || null,
-      messages: transcriptMessages,
+      ...messagesFields,
       service_type: params.serviceType || null,
       model_version: params.modelVersion,
       prompt_version: params.promptVersion,
@@ -538,13 +543,13 @@ export async function completeTranscript(
 export async function getTranscriptBySession(sessionId: string): Promise<ChatTranscript | null> {
   try {
     const supabase = createServiceRoleClient()
-    
+
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
+      .select('id, session_id, patient_id, intake_id, messages, messages_enc, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('session_id', sessionId)
       .single()
-    
+
     if (error) {
       if (error.code === 'PGRST116') {
         return null // Not found
@@ -552,8 +557,11 @@ export async function getTranscriptBySession(sessionId: string): Promise<ChatTra
       log.error('Failed to fetch transcript by session', { error, sessionId })
       return null
     }
-    
-    return data as ChatTranscript
+
+    // Decrypt messages (prefer encrypted, fall back to plaintext)
+    const decryptedMessages = await readMessages(data)
+    const { messages_enc: _enc, ...rest } = data
+    return { ...rest, messages: decryptedMessages } as ChatTranscript
   } catch (error) {
     log.error('Transcript fetch error', { error, sessionId })
     return null
@@ -566,13 +574,13 @@ export async function getTranscriptBySession(sessionId: string): Promise<ChatTra
 export async function getTranscriptByIntake(intakeId: string): Promise<ChatTranscript | null> {
   try {
     const supabase = createServiceRoleClient()
-    
+
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
+      .select('id, session_id, patient_id, intake_id, messages, messages_enc, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('intake_id', intakeId)
       .single()
-    
+
     if (error) {
       if (error.code === 'PGRST116') {
         return null // Not found
@@ -580,8 +588,11 @@ export async function getTranscriptByIntake(intakeId: string): Promise<ChatTrans
       log.error('Failed to fetch transcript by intake', { error, intakeId })
       return null
     }
-    
-    return data as ChatTranscript
+
+    // Decrypt messages (prefer encrypted, fall back to plaintext)
+    const decryptedMessages = await readMessages(data)
+    const { messages_enc: _enc, ...rest } = data
+    return { ...rest, messages: decryptedMessages } as ChatTranscript
   } catch (error) {
     log.error('Transcript fetch by intake error', { error, intakeId })
     return null
@@ -597,20 +608,29 @@ export async function getTranscriptsForPatient(
 ): Promise<ChatTranscript[]> {
   try {
     const supabase = createServiceRoleClient()
-    
+
     const { data, error } = await supabase
       .from('ai_chat_transcripts')
-      .select('id, session_id, patient_id, intake_id, messages, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
+      .select('id, session_id, patient_id, intake_id, messages, messages_enc, service_type, model_version, prompt_version, total_turns, is_complete, completion_status, had_safety_flags, safety_flags, was_blocked, block_reason, started_at, last_activity_at, completed_at')
       .eq('patient_id', patientId)
       .order('started_at', { ascending: false })
       .limit(limit)
-    
+
     if (error) {
       log.error('Failed to fetch patient transcripts', { error, patientId })
       return []
     }
-    
-    return data as ChatTranscript[]
+
+    // Decrypt messages for each transcript
+    const decrypted = await Promise.all(
+      data.map(async (row) => {
+        const decryptedMessages = await readMessages(row)
+        const { messages_enc: _enc, ...rest } = row
+        return { ...rest, messages: decryptedMessages } as ChatTranscript
+      })
+    )
+
+    return decrypted
   } catch (error) {
     log.error('Patient transcripts fetch error', { error, patientId })
     return []

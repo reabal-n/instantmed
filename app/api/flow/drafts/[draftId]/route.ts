@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { prepareIntakeDraftDataWrite, readIntakeDraftData } from "@/lib/security/phi-field-wrappers"
 
 const logger = createLogger("flow-drafts-api")
 
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { data: draft, error } = await supabase
       .from("intake_drafts")
-      .select("id, session_id, service_slug, current_step, current_group_index, data, status, safety_outcome, safety_risk_tier, created_at, updated_at")
+      .select("id, session_id, service_slug, current_step, current_group_index, data, data_encrypted, status, safety_outcome, safety_risk_tier, created_at, updated_at")
       .eq("id", draftId)
       .eq("session_id", sessionId)
       .single()
@@ -96,6 +97,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
         { status: 404 }
       )
     }
+
+    // Decrypt data (prefer encrypted, fall back to plaintext)
+    const decryptedData = await readIntakeDraftData(draft)
 
     // Update last accessed timestamp
     await supabase
@@ -109,7 +113,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       serviceSlug: draft.service_slug,
       currentStep: draft.current_step,
       currentGroupIndex: draft.current_group_index,
-      data: draft.data,
+      data: decryptedData,
       status: draft.status,
       safetyOutcome: draft.safety_outcome,
       safetyRiskTier: draft.safety_risk_tier,
@@ -183,7 +187,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     if (data !== undefined) {
-      updateData.data = data
+      // Encrypt draft data (dual-write: plaintext + encrypted)
+      const dataFields = await prepareIntakeDraftDataWrite(data)
+      Object.assign(updateData, dataFields)
     }
 
     const { data: updatedDraft, error } = await supabase
