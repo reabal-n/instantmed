@@ -199,7 +199,7 @@ export function EmergencyDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
+          <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
             Emergency Attention Needed
           </DialogTitle>
@@ -210,13 +210,13 @@ export function EmergencyDialog({
 
         <div className="space-y-4 py-4">
           {/* Red flags list */}
-          <div className="rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 p-4">
-            <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
+          <div className="rounded-lg border border-destructive-border bg-destructive-light p-4">
+            <p className="text-sm font-medium text-destructive mb-2">
               Concerning symptoms detected:
             </p>
             <ul className="space-y-1">
               {redFlags.map((flag) => (
-                <li key={flag} className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+                <li key={flag} className="text-sm text-destructive flex items-center gap-2">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {flag}
                 </li>
@@ -251,7 +251,7 @@ export function EmergencyDialog({
 
           {/* Safety notice - no bypass allowed for critical symptoms */}
           <div className="pt-2 border-t">
-            <p className="text-xs text-center text-red-600 font-medium py-2">
+            <p className="text-xs text-center text-destructive font-medium py-2">
               This service cannot proceed with these symptoms. Please seek emergency care.
             </p>
           </div>

@@ -319,7 +319,7 @@ export function EmailTestClient() {
               </Select>
               <p className="text-xs text-muted-foreground">{selectedTemplate.description}</p>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                <CheckCircle2 className="h-3 w-3 text-success" />
                 <span>Uses real production template</span>
               </div>
             </CardContent>

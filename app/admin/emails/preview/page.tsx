@@ -11,7 +11,7 @@ export default function EmailPreviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Email Template Preview</h1>
+        <h1 className="text-2xl font-semibold">Email Template Preview</h1>
         <p className="text-muted-foreground">
           Preview and test email templates before sending
         </p>

@@ -56,13 +56,13 @@ function getNotificationIcon(type: Notification["type"]) {
 function getNotificationColor(type: Notification["type"]) {
   switch (type) {
     case "request_update":
-      return "bg-blue-50 dark:bg-blue-500/10 text-primary"
+      return "bg-info-light text-primary"
     case "payment":
-      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      return "bg-success-light text-success"
     case "document_ready":
-      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      return "bg-success-light text-success"
     case "refill_reminder":
-      return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      return "bg-warning-light text-warning"
     default:
       return "bg-muted text-muted-foreground"
   }

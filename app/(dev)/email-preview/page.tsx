@@ -49,11 +49,11 @@ export default function EmailPreviewIndex() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Email Templates</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">Email Templates</h1>
           <p className="mt-2 text-gray-600">
             Preview and test email templates in development mode.
           </p>
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+          <div className="mt-4 p-3 bg-warning-light border border-warning-border rounded-lg text-sm text-warning">
             ⚠️ This page is only available in development mode.
           </div>
         </div>

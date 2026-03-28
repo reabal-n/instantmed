@@ -82,37 +82,37 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
         <div className="dashboard-card rounded-xl p-6">
           <h3 className="text-base font-semibold text-foreground mb-4">Today&apos;s Activity</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-info-light">
               <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-blue-600" />
+                <FileText className="h-5 w-5 text-info" />
                 <span className="text-sm font-medium">Submitted</span>
               </div>
-              <span className="text-lg font-bold">{queueHealth.todaySubmissions}</span>
+              <span className="text-lg font-semibold">{queueHealth.todaySubmissions}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-success-light/30">
               <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span className="text-sm font-medium">Approved</span>
               </div>
-              <span className="text-lg font-bold text-emerald-700">{queueHealth.approvedToday}</span>
+              <span className="text-lg font-semibold text-success">{queueHealth.approvedToday}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/30">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive-light">
               <div className="flex items-center gap-3">
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-destructive" />
                 <span className="text-sm font-medium">Declined</span>
               </div>
-              <span className="text-lg font-bold text-red-700">{queueHealth.declinedToday}</span>
+              <span className="text-lg font-semibold text-destructive">{queueHealth.declinedToday}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-warning-light/30">
               <div className="flex items-center gap-3">
-                <Zap className="h-5 w-5 text-amber-600" />
+                <Zap className="h-5 w-5 text-warning" />
                 <span className="text-sm font-medium">Net Queue Change</span>
               </div>
               <span className={cn(
-                "text-lg font-bold",
+                "text-lg font-semibold",
                 queueHealth.todaySubmissions - queueHealth.approvedToday - queueHealth.declinedToday > 0
-                  ? "text-amber-700"
-                  : "text-emerald-700"
+                  ? "text-warning"
+                  : "text-success"
               )}>
                 {queueHealth.todaySubmissions - queueHealth.approvedToday - queueHealth.declinedToday > 0 ? "+" : ""}
                 {queueHealth.todaySubmissions - queueHealth.approvedToday - queueHealth.declinedToday}
@@ -195,9 +195,9 @@ function SlaIndicator({
         : "critical"
 
   const statusConfig = {
-    good: { color: "bg-emerald-500", label: "Healthy", textColor: "text-emerald-600" },
-    warning: { color: "bg-amber-500", label: "Warning", textColor: "text-amber-600" },
-    critical: { color: "bg-red-500", label: "Critical", textColor: "text-red-600" },
+    good: { color: "bg-emerald-500", label: "Healthy", textColor: "text-success" },
+    warning: { color: "bg-amber-500", label: "Warning", textColor: "text-warning" },
+    critical: { color: "bg-red-500", label: "Critical", textColor: "text-destructive" },
   }
 
   const config = statusConfig[status]

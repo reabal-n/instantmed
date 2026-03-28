@@ -210,13 +210,13 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
       </div>
 
       {/* Warning */}
-      <Card className="border-amber-200 bg-amber-50/50">
+      <Card className="border-warning-border bg-warning-light/50">
         <CardContent className="p-6">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
             <div>
               <p className="font-medium text-amber-900">Service Kill Switches</p>
-              <p className="text-sm text-amber-700 mt-1">
+              <p className="text-sm text-warning mt-1">
                 Disabling a service will immediately prevent patients from creating new requests.
                 Existing requests will continue processing. Changes take effect within 30 seconds.
               </p>
@@ -226,7 +226,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
       </Card>
 
       {/* Maintenance Mode - Global Kill Switch */}
-      <Card className={flags.maintenance_mode ? "border-red-300 bg-red-50/50" : ""}>
+      <Card className={flags.maintenance_mode ? "border-destructive-border bg-destructive-light/50" : ""}>
         <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Wrench className="h-4 w-4" />
@@ -242,8 +242,8 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
         <CardContent className="space-y-5 px-6 pb-6">
           <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${flags.maintenance_mode ? "bg-red-100" : "bg-muted"}`}>
-                <Wrench className={`h-5 w-5 ${flags.maintenance_mode ? "text-red-600" : "text-muted-foreground"}`} />
+              <div className={`p-2 rounded-lg ${flags.maintenance_mode ? "bg-destructive-light" : "bg-muted"}`}>
+                <Wrench className={`h-5 w-5 ${flags.maintenance_mode ? "text-destructive" : "text-muted-foreground"}`} />
               </div>
               <div>
                 <p className="font-medium">Platform Status</p>
@@ -309,8 +309,8 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
           {/* Medical Certificates */}
           <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100">
-                <FileText className="h-5 w-5 text-blue-600" />
+              <div className="p-2 rounded-lg bg-info-light">
+                <FileText className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="font-medium">Medical Certificates</p>
@@ -334,8 +334,8 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
           {/* Repeat Prescriptions */}
           <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100">
-                <Pill className="h-5 w-5 text-green-600" />
+              <div className="p-2 rounded-lg bg-success-light">
+                <Pill className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="font-medium">Repeat Prescriptions</p>
@@ -359,8 +359,8 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
           {/* Consults */}
           <div className="flex items-center justify-between p-5 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100">
-                <Stethoscope className="h-5 w-5 text-blue-600" />
+              <div className="p-2 rounded-lg bg-info-light">
+                <Stethoscope className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="font-medium">Consultations</p>
@@ -664,12 +664,12 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
             {flags.safety_screening_symptoms.map((symptom) => (
               <div
                 key={symptom}
-                className="flex items-center justify-between p-2 rounded-lg bg-red-50 border border-red-100"
+                className="flex items-center justify-between p-2 rounded-lg bg-destructive-light border border-destructive-border"
               >
                 <span className="text-sm text-red-900">{symptom}</span>
                 <button
                   onClick={() => removeSafetySymptom(symptom)}
-                  className="text-red-600 hover:text-red-800 p-1"
+                  className="text-destructive hover:text-destructive p-1"
                   disabled={isSaving === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS}
                 >
                   <X className="h-4 w-4" />
@@ -877,15 +877,15 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
             <div className="space-y-4">
               {/* Stat counters */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-lg border bg-green-50/50 dark:bg-green-500/5">
-                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                <div className="p-4 rounded-lg border bg-success-light/50">
+                  <div className="flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="text-2xl font-semibold">{autoApproveStats.todayApproved}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Approved today</p>
                 </div>
-                <div className="p-4 rounded-lg border bg-red-50/50 dark:bg-red-500/5">
-                  <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <div className="p-4 rounded-lg border bg-destructive-light">
+                  <div className="flex items-center gap-2 text-destructive">
                     <XCircle className="h-4 w-4" />
                     <span className="text-2xl font-semibold">{autoApproveStats.todayFailed}</span>
                   </div>
@@ -933,7 +933,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {entry.eligible ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
                           ) : (
                             <XCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           )}
@@ -977,7 +977,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
                   <p>
                     This will immediately close the entire platform. No patients will be able to submit new requests or make payments.
                   </p>
-                  <p className="font-medium text-amber-700">
+                  <p className="font-medium text-warning">
                     Existing requests will continue processing. Remember to disable maintenance mode when you&apos;re done.
                   </p>
                 </>
@@ -987,7 +987,7 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
                     This will immediately prevent patients from creating new{" "}
                     {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key].toLowerCase() : "requests"}.
                   </p>
-                  <p className="font-medium text-amber-700">
+                  <p className="font-medium text-warning">
                     Existing requests will continue processing, but no new ones can be submitted.
                   </p>
                 </>

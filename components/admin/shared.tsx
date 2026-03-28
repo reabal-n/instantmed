@@ -207,10 +207,10 @@ interface StatusBadgeProps {
 }
 
 const statusStyles: Record<StatusVariant, string> = {
-  success: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  warning: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  error: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400",
-  info: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  success: "bg-success-light text-success",
+  warning: "bg-warning-light text-warning",
+  error: "bg-destructive-light text-destructive",
+  info: "bg-info-light text-info",
   default: "bg-muted text-foreground dark:bg-muted dark:text-muted-foreground",
 }
 
@@ -287,7 +287,7 @@ export function StatsCard({
           <span
             className={cn(
               "text-xs font-medium",
-              trend.isPositive ? "text-emerald-600" : "text-red-600"
+              trend.isPositive ? "text-success" : "text-destructive"
             )}
           >
             {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%

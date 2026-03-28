@@ -7,7 +7,7 @@ export function CertificateMockup() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center text-[8px] font-bold text-primary">iM</div>
+            <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center text-[8px] font-semibold text-primary">iM</div>
             <span className="text-[10px] font-semibold text-foreground">Medical Certificate</span>
           </div>
           <span className="text-[8px] text-muted-foreground font-mono">IM-CERT-2026</span>
@@ -49,7 +49,7 @@ export function CertificateMockup() {
           </div>
           {/* Seal */}
           <div className="w-9 h-9 rounded-full border-2 border-primary/20 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full border border-primary/30 flex items-center justify-center text-[6px] font-bold text-primary/50">
+            <div className="w-6 h-6 rounded-full border border-primary/30 flex items-center justify-center text-[6px] font-semibold text-primary/50">
               GP
             </div>
           </div>

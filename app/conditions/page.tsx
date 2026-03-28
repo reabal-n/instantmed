@@ -83,7 +83,7 @@ export default function ConditionsIndexPage() {
           {/* Hero */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5 border-b border-border/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-4xl font-bold text-foreground mb-4">
+              <h1 className="text-4xl font-semibold text-foreground mb-4">
                 Health Conditions We Can Help With
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -142,7 +142,7 @@ export default function ConditionsIndexPage() {
           {/* CTA */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Not sure which service you need?
               </h2>
               <p className="text-muted-foreground mb-8">

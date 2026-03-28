@@ -133,7 +133,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               <div className="flex flex-col lg:flex-row items-center lg:gap-12">
                 <div className="text-center lg:text-left flex-1 max-w-2xl">
                   <motion.h1
-                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
+                    className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15]"
                     initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -301,7 +301,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
                   {config.explainerTitle}
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8">
@@ -377,7 +377,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3 tracking-tight">
                     {config.recognitionTitle}
                   </h2>
                   <p className="text-muted-foreground mb-6 max-w-xl lg:mx-0 mx-auto">

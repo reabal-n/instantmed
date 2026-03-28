@@ -221,9 +221,9 @@ export function SuccessClient({
             initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut", delay: 0.1 }}
-            className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center"
+            className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center"
           >
-            <AlertTriangle className="w-8 h-8 text-amber-600" />
+            <AlertTriangle className="w-8 h-8 text-warning" />
           </motion.div>
           <div>
             <h2 className="text-xl font-semibold">Connection issue</h2>

@@ -204,15 +204,15 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
 
       {/* Incomplete Warning */}
       {!isComplete && (
-        <Card className="rounded-xl border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40">
+        <Card className="rounded-xl border-warning-border bg-warning-light/40">
           <CardContent className="pt-4 px-4 pb-4">
             <div className="flex gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-amber-900 dark:text-amber-100">
+                <p className="font-medium text-amber-900">
                   Certificate identity incomplete
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                <p className="text-sm text-warning mt-1">
                   You must provide your Provider Number and AHPRA Registration Number
                   before you can approve medical certificates.
                 </p>
@@ -227,8 +227,8 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
         <div
           className={`p-3 rounded-xl flex items-center gap-2 ${
             message.type === "success"
-              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
-              : "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800"
+              ? "bg-success-light/40 text-success border border-success-border"
+              : "bg-destructive-light text-destructive border border-destructive-border"
           }`}
         >
           {message.type === "success" ? (
@@ -283,7 +283,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
 
           <div className="space-y-2">
             <Label htmlFor="provider_number">
-              Provider Number <span className="text-red-500 dark:text-red-400">*</span>
+              Provider Number <span className="text-destructive">*</span>
             </Label>
             <Input
               id="provider_number"
@@ -294,10 +294,10 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
               }}
               onBlur={handleProviderBlur}
               placeholder="e.g., 2426577L"
-              className={providerError ? "border-red-500" : ""}
+              className={providerError ? "border-destructive-border" : ""}
             />
             {providerError ? (
-              <p className="text-xs text-red-600 dark:text-red-400">{providerError}</p>
+              <p className="text-xs text-destructive">{providerError}</p>
             ) : (
               <p className="text-xs text-muted-foreground">
                 Medicare provider number (6-7 digits + letter)
@@ -307,7 +307,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
 
           <div className="space-y-2">
             <Label htmlFor="ahpra_number">
-              AHPRA Registration Number <span className="text-red-500 dark:text-red-400">*</span>
+              AHPRA Registration Number <span className="text-destructive">*</span>
             </Label>
             <Input
               id="ahpra_number"
@@ -318,10 +318,10 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
               }}
               onBlur={handleAhpraBlur}
               placeholder="e.g., MED0002576546"
-              className={ahpraError ? "border-red-500" : ""}
+              className={ahpraError ? "border-destructive-border" : ""}
             />
             {ahpraError ? (
-              <p className="text-xs text-red-600 dark:text-red-400">{ahpraError}</p>
+              <p className="text-xs text-destructive">{ahpraError}</p>
             ) : (
               <p className="text-xs text-muted-foreground">
                 AHPRA registration (3 letters + 10 digits)
@@ -346,7 +346,7 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
           <div className="flex items-center gap-4">
             <div className="w-40 h-16 bg-muted flex items-center justify-center text-xs text-muted-foreground border rounded">
               {signaturePath ? (
-                <span className="text-emerald-600 dark:text-emerald-400">Signature uploaded</span>
+                <span className="text-success">Signature uploaded</span>
               ) : (
                 "No signature"
               )}

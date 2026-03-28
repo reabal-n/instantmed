@@ -182,14 +182,14 @@ export function TypeSelectionStep({ rxType, selectType }: TypeSelectionStepProps
     <div className="space-y-4 animate-step-enter">
       <StepHeader emoji="💊" title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
       {/* S8 Disclaimer - shown upfront */}
-      <div className="p-3 rounded-xl bg-red-50 border border-red-200">
-        <p className="text-xs text-red-800 leading-relaxed font-medium">
+      <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
+        <p className="text-xs text-destructive leading-relaxed font-medium">
           <strong className="text-red-900">No Schedule 8 / controlled medications.</strong>
         </p>
-        <p className="text-xs text-red-700 mt-1">
+        <p className="text-xs text-destructive mt-1">
           Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
         </p>
-        <p className="text-xs text-red-700 mt-2">
+        <p className="text-xs text-destructive mt-2">
           <strong>If you need a new medication or dose change →</strong>{" "}
           <Link href="/consult" className="underline hover:no-underline">General Consult</Link> required.
         </p>
@@ -220,8 +220,8 @@ export function MedicationStep({ selectedMedication, setSelectedMedication }: Me
         subtitle="Search and select your medication from the list"
       />
       {/* S8 Disclaimer */}
-      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-        <p className="text-xs text-amber-800 leading-relaxed">
+      <div className="p-3 rounded-xl bg-warning-light border border-warning-border">
+        <p className="text-xs text-warning leading-relaxed">
           <strong className="text-amber-900">No Schedule 8 (S8) medications.</strong>{" "}
           Common examples we do not provide via repeat script: dexamphetamine, lisdexamfetamine (Vyvanse),
           methylphenidate (Ritalin/Concerta), oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine.
@@ -266,7 +266,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               prescribedBefore === true
-                ? "border-green-500 bg-green-50 text-green-700"
+                ? "border-success-border bg-success-light text-success"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -279,7 +279,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               prescribedBefore === false
-                ? "border-amber-500 bg-amber-50 text-amber-700"
+                ? "border-warning-border bg-warning-light text-warning"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -299,7 +299,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               doseChanged === true
-                ? "border-amber-500 bg-amber-50 text-amber-700"
+                ? "border-warning-border bg-warning-light text-warning"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -314,7 +314,7 @@ export function GatingStep({
             }}
             className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
               doseChanged === false
-                ? "border-green-500 bg-green-50 text-green-700"
+                ? "border-success-border bg-success-light text-success"
                 : "border-border/60 hover:border-border"
             }`}
           >
@@ -325,12 +325,12 @@ export function GatingStep({
 
       {/* Blocking message */}
       {isGatingBlocked && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-4">
+        <div className="p-4 rounded-xl bg-warning-light border border-warning-border space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-amber-900">This request requires a general consultation</p>
-              <p className="text-sm text-amber-700 mt-1">
+              <p className="text-sm text-warning mt-1">
                 {prescribedBefore === false
                   ? "New medications require a doctor consultation to assess suitability."
                   : "Dose changes require a doctor consultation to ensure safety."}
@@ -464,7 +464,7 @@ export function NotesStep({ notes, setNotes }: NotesStepProps) {
       />
       <p className="text-xs text-right text-muted-foreground">{notes.length}/500</p>
       {notes.length === 0 && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-warning">
           This information helps the doctor assess whether this medication is appropriate for you
         </p>
       )}
@@ -492,8 +492,8 @@ export function SafetyStep({ safetyAnswers, setSafetyAnswers, checkSafetyKnockou
         ))}
       </div>
       {checkSafetyKnockout() && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-          <p className="text-xs text-amber-800">{RX_MICROCOPY.safety.knockoutBody}</p>
+        <div className="p-3 rounded-xl bg-warning-light border border-warning-border">
+          <p className="text-xs text-warning">{RX_MICROCOPY.safety.knockoutBody}</p>
         </div>
       )}
     </div>
@@ -529,7 +529,7 @@ export function MedicareStep({
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {medicareDigits === 10 && medicareValidation.valid ? (
-                <Check className="w-5 h-5 text-green-500" />
+                <Check className="w-5 h-5 text-success" />
               ) : medicareDigits > 0 ? (
                 <span className="text-xs text-muted-foreground">{medicareDigits}/10</span>
               ) : null}
@@ -654,13 +654,13 @@ export function PaymentStep({ error, isSubmitting: _isSubmitting, handleSubmit: 
       <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
         <div className="flex justify-between items-center">
           <span className="font-medium">Total</span>
-          <span className="text-2xl font-bold">{RX_MICROCOPY.payment.price}</span>
+          <span className="text-2xl font-semibold">{RX_MICROCOPY.payment.price}</span>
         </div>
         <hr className="border-border/40" />
         <ul className="space-y-2">
           {RX_MICROCOPY.payment.includes.map((item, i) => (
             <li key={i} className="flex items-center gap-2 text-sm">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+              <CheckCircle className="w-4 h-4 text-success shrink-0" />
               {item}
             </li>
           ))}

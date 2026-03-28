@@ -101,7 +101,7 @@ export function ServicePicker() {
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight mb-4">
             What do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">

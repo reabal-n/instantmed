@@ -77,7 +77,7 @@ function TrendBadge({ value, suffix = "%" }: { value: number; suffix?: string })
   return (
     <div className={cn(
       "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-      isPositive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"
+      isPositive ? "bg-success-light text-success" : "bg-destructive-light text-destructive"
     )}>
       {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
       {isPositive ? "+" : ""}{value}{suffix}
@@ -177,12 +177,12 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-500/20 shrink-0">
-                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-3 rounded-xl bg-info-light shrink-0">
+                <FileText className="h-5 w-5 text-info" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Today</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.todayIntakes}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{analytics.todayIntakes}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{analytics.todayApproved} approved</p>
               </div>
             </div>
@@ -193,12 +193,12 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20 shrink-0">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-xl bg-warning-light shrink-0">
+                <Clock className="h-5 w-5 text-warning" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.pendingInQueue}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{analytics.pendingInQueue}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">awaiting review</p>
               </div>
             </div>
@@ -209,12 +209,12 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20 shrink-0">
-                <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-xl bg-warning-light shrink-0">
+                <Activity className="h-5 w-5 text-warning" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Response</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{formatMinutes(analytics.avgResponseMinutes)}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{formatMinutes(analytics.avgResponseMinutes)}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">turnaround time</p>
               </div>
             </div>
@@ -225,12 +225,12 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 shrink-0">
-                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-3 rounded-xl bg-success-light shrink-0">
+                <CheckCircle className="h-5 w-5 text-success" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Rate</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{analytics.approvalRate}%</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{analytics.approvalRate}%</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{analytics.statusCounts.approved || 0} approved</p>
               </div>
             </div>
@@ -240,40 +240,40 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Revenue Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="rounded-xl bg-linear-to-br from-emerald-50 to-white border-emerald-200 dark:from-emerald-950/30 dark:to-background dark:border-emerald-800">
+        <Card className="rounded-xl bg-linear-to-br from-emerald-50 to-white border-success-border dark:from-emerald-950/30 dark:to-background">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Today&apos;s Revenue</p>
-                <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300 mt-0.5">${analytics.todayRevenue.toFixed(0)}</p>
+                <p className="text-xs font-medium text-success uppercase tracking-wider">Today&apos;s Revenue</p>
+                <p className="text-2xl font-semibold tabular-nums text-success mt-0.5">${analytics.todayRevenue.toFixed(0)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-emerald-400 dark:text-emerald-500 shrink-0" />
+              <DollarSign className="h-8 w-8 text-emerald-400 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl bg-linear-to-br from-blue-50 to-white border-blue-200 dark:from-blue-950/30 dark:to-background dark:border-blue-800">
+        <Card className="rounded-xl bg-linear-to-br from-blue-50 to-white border-info-border dark:from-blue-950/30 dark:to-background">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">This Week</p>
-                <p className="text-2xl font-bold tabular-nums text-blue-700 dark:text-blue-300 mt-0.5">${analytics.thisWeekRevenue.toFixed(0)}</p>
+                <p className="text-xs font-medium text-info uppercase tracking-wider">This Week</p>
+                <p className="text-2xl font-semibold tabular-nums text-info mt-0.5">${analytics.thisWeekRevenue.toFixed(0)}</p>
                 <div className="mt-1"><TrendBadge value={analytics.revenueTrend} suffix="%" /></div>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-400 dark:text-blue-500 shrink-0" />
+              <TrendingUp className="h-8 w-8 text-blue-400 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl bg-linear-to-br from-amber-50 to-white border-amber-200 dark:from-amber-950/30 dark:to-background dark:border-amber-800">
+        <Card className="rounded-xl bg-linear-to-br from-amber-50 to-white border-warning-border dark:from-amber-950/30 dark:to-background">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">All Time</p>
-                <p className="text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-300 mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
-                <p className="text-xs text-amber-500 dark:text-amber-400 mt-0.5">{analytics.totalIntakes} total intakes</p>
+                <p className="text-xs font-medium text-warning uppercase tracking-wider">All Time</p>
+                <p className="text-2xl font-semibold tabular-nums text-warning mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
+                <p className="text-xs text-warning mt-0.5">{analytics.totalIntakes} total intakes</p>
               </div>
-              <Users className="h-8 w-8 text-amber-400 dark:text-amber-500 shrink-0" />
+              <Users className="h-8 w-8 text-amber-400 shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -350,9 +350,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
                   <div key={service.name} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        {service.name.includes("Medical") && <Stethoscope className="h-4 w-4 text-blue-500" />}
-                        {service.name.includes("Script") && <Pill className="h-4 w-4 text-emerald-500" />}
-                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-amber-500" />}
+                        {service.name.includes("Medical") && <Stethoscope className="h-4 w-4 text-info" />}
+                        {service.name.includes("Script") && <Pill className="h-4 w-4 text-success" />}
+                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-warning" />}
                         <span className="font-medium">{service.name}</span>
                       </div>
                       <span className="text-muted-foreground">{service.count} ({percentage}%)</span>
@@ -381,21 +381,21 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-800">
-              <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">{analytics.statusCounts.paid || 0}</p>
-              <p className="text-sm text-blue-600 dark:text-blue-400">In Queue</p>
+            <div className="p-3 rounded-xl bg-info-light border border-info-border">
+              <p className="text-lg font-semibold text-info">{analytics.statusCounts.paid || 0}</p>
+              <p className="text-sm text-info">In Queue</p>
             </div>
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-800">
-              <p className="text-lg font-semibold text-amber-700 dark:text-amber-300">{analytics.statusCounts.in_review || 0}</p>
-              <p className="text-sm text-amber-600 dark:text-amber-400">Under Review</p>
+            <div className="p-3 rounded-xl bg-warning-light border border-warning-border">
+              <p className="text-lg font-semibold text-warning">{analytics.statusCounts.in_review || 0}</p>
+              <p className="text-sm text-warning">Under Review</p>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-800">
-              <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">{analytics.statusCounts.approved || 0}</p>
-              <p className="text-sm text-emerald-600 dark:text-emerald-400">Approved</p>
+            <div className="p-3 rounded-xl bg-success-light border border-success-border">
+              <p className="text-lg font-semibold text-success">{analytics.statusCounts.approved || 0}</p>
+              <p className="text-sm text-success">Approved</p>
             </div>
-            <div className="p-3 rounded-xl bg-red-50 border border-red-100 dark:bg-red-950/30 dark:border-red-800">
-              <p className="text-lg font-semibold text-red-700 dark:text-red-300">{analytics.statusCounts.declined || 0}</p>
-              <p className="text-sm text-red-600 dark:text-red-400">Declined</p>
+            <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
+              <p className="text-lg font-semibold text-destructive">{analytics.statusCounts.declined || 0}</p>
+              <p className="text-sm text-destructive">Declined</p>
             </div>
           </div>
         </CardContent>
@@ -403,11 +403,11 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Priority Stats */}
       {analytics.priorityCount > 0 && (
-        <Card className="rounded-xl border-amber-200 bg-linear-to-r from-amber-50 to-white dark:from-amber-950/30 dark:to-background dark:border-amber-800">
+        <Card className="rounded-xl border-warning-border bg-linear-to-r from-amber-50 to-white dark:from-amber-950/30 dark:to-background">
           <CardContent className="p-3">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-500/20">
-                <Zap className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-xl bg-warning-light">
+                <Zap className="h-6 w-6 text-warning" />
               </div>
               <div>
                 <p className="font-medium">Priority Requests</p>

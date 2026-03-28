@@ -89,8 +89,8 @@ export default async function ComplianceDashboardPage() {
         </div>
         <div className={`rounded-xl border p-4 ${
           (oldRecords || 0) > 0
-            ? "border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20"
-            : "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+            ? "border-warning-border bg-warning-light"
+            : "border-success-border bg-success-light"
         }`}>
           <div className="flex items-center gap-2 text-muted-foreground">
             <FileSearch className="h-4 w-4" aria-hidden="true" />
@@ -103,14 +103,14 @@ export default async function ComplianceDashboardPage() {
 
       {/* Anomaly alerts */}
       {anomalies.length > 0 && (
-        <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 dark:border-red-800 dark:bg-red-950/20" role="alert">
+        <div className="rounded-xl border border-destructive-border bg-destructive-light/50 p-4" role="alert">
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" aria-hidden="true" />
-            <h2 className="font-semibold text-red-800 dark:text-red-300">Anomalous Activity Detected</h2>
+            <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
+            <h2 className="font-semibold text-destructive">Anomalous Activity Detected</h2>
           </div>
           <div className="space-y-1">
             {anomalies.map((a) => (
-              <p key={a.actorId} className="text-sm text-red-700 dark:text-red-400">
+              <p key={a.actorId} className="text-sm text-destructive">
                 Actor {a.actorId.slice(0, 8)}... performed {a.count} actions in the last hour
               </p>
             ))}

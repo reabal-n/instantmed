@@ -57,9 +57,9 @@ function Switch({
           // Neutral off state
           "bg-muted/80 dark:bg-white/10",
           "border border-border/30 dark:border-white/20",
-          // Selected state - soft sage green
-          "data-[state=checked]:bg-[#6BBF8A]",
-          "data-[state=checked]:border-[#6BBF8A]/40",
+          // Selected state - success green
+          "data-[state=checked]:bg-success",
+          "data-[state=checked]:border-success/40",
           // Gentle transition
           "transition-all duration-300 ease-out",
           // Focus

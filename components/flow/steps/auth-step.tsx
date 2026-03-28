@@ -209,7 +209,7 @@ export function AuthStep({
             <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </div>
 
-          <h2 className="text-2xl font-bold text-foreground mt-6">
+          <h2 className="text-2xl font-semibold text-foreground mt-6">
             You&apos;re signed in
           </h2>
           <p className="text-muted-foreground mt-2">

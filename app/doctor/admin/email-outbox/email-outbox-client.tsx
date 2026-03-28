@@ -92,10 +92,10 @@ function truncateId(id: string | null): string {
 
 function StatusBadge({ status }: { status: EmailOutboxRow["status"] }) {
   const config = {
-    sent: { icon: CheckCircle, className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" },
-    failed: { icon: AlertCircle, className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
-    pending: { icon: Clock, className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-    skipped_e2e: { icon: TestTube, className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+    sent: { icon: CheckCircle, className: "bg-success-light text-success" },
+    failed: { icon: AlertCircle, className: "bg-destructive-light text-destructive" },
+    pending: { icon: Clock, className: "bg-warning-light text-warning" },
+    skipped_e2e: { icon: TestTube, className: "bg-warning-light text-warning" },
   }
 
   const { icon: Icon, className } = config[status] || config.pending
@@ -120,23 +120,23 @@ function StatsCards({
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold">{stats.total}</div>
+        <div className="text-2xl font-semibold">{stats.total}</div>
         <div className="text-xs text-muted-foreground">Total</div>
       </Card>
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold text-emerald-600">{stats.sent}</div>
+        <div className="text-2xl font-semibold text-success">{stats.sent}</div>
         <div className="text-xs text-muted-foreground">Sent</div>
       </Card>
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
+        <div className="text-2xl font-semibold text-destructive">{stats.failed}</div>
         <div className="text-xs text-muted-foreground">Failed</div>
       </Card>
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+        <div className="text-2xl font-semibold text-warning">{stats.pending}</div>
         <div className="text-xs text-muted-foreground">Pending</div>
       </Card>
       <Card className="rounded-xl border-border/50 p-3">
-        <div className="text-2xl font-bold text-amber-600">
+        <div className="text-2xl font-semibold text-warning">
           {stats.skipped_e2e}
         </div>
         <div className="text-xs text-muted-foreground">E2E Skipped</div>
@@ -338,7 +338,7 @@ function DetailModal({
                 {isRetrying ? "Sending..." : "Resend Now"}
               </Button>
               {retryResult && (
-                <span className={retryResult.success ? "text-emerald-600 text-sm" : "text-red-600 text-sm"}>
+                <span className={retryResult.success ? "text-success text-sm" : "text-destructive text-sm"}>
                   {retryResult.success ? "Sent successfully!" : retryResult.error}
                 </span>
               )}
@@ -405,12 +405,12 @@ function DetailModal({
 
           {/* Error Message */}
           {row.error_message && (
-            <Card className="border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10">
+            <Card className="border-destructive-border bg-red-500/10">
               <CardHeader className="py-3">
-                <CardTitle className="text-sm text-red-800 dark:text-red-300">Error</CardTitle>
+                <CardTitle className="text-sm text-destructive">Error</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="text-xs text-red-800 dark:text-red-300 whitespace-pre-wrap overflow-x-auto">
+                <pre className="text-xs text-destructive whitespace-pre-wrap overflow-x-auto">
                   {row.error_message}
                 </pre>
               </CardContent>
@@ -529,7 +529,7 @@ export function EmailOutboxClient({
             <ArrowLeft className="h-3 w-3 mr-1" />
             Back to Ops
           </Link>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-semibold flex items-center gap-2">
             <Mail className="h-6 w-6" />
             Email Outbox
           </h1>
@@ -562,9 +562,9 @@ export function EmailOutboxClient({
 
       {/* Error State */}
       {error && (
-        <Card className="border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10">
+        <Card className="border-destructive-border bg-red-500/10">
           <CardContent className="py-4">
-            <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
+            <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
               <span>Query failed: {error}</span>
             </div>
@@ -623,7 +623,7 @@ export function EmailOutboxClient({
                       {truncateId(row.intake_id)}
                     </TableCell>
                     <TableCell className="text-xs">{row.provider}</TableCell>
-                    <TableCell className="max-w-[150px] truncate text-red-600 dark:text-red-400">
+                    <TableCell className="max-w-[150px] truncate text-destructive">
                       {row.error_message || "-"}
                     </TableCell>
                   </TableRow>

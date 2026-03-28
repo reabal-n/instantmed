@@ -281,13 +281,13 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <AlertTriangle className="h-4 w-4 text-warning" />
                   Stripe Disputes
                 </h3>
                 <p className="text-sm text-muted-foreground">Active payment disputes requiring attention</p>
               </div>
               {summary.activeDisputes > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full dark:bg-amber-500/20 dark:text-amber-400">
+                <span className="px-2 py-1 text-xs font-medium bg-warning-light text-warning rounded-full0/20">
                   {summary.activeDisputes} active
                 </span>
               )}
@@ -302,9 +302,9 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "px-2 py-0.5 text-xs font-medium rounded",
-                          d.status === "won" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                          d.status === "lost" ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" :
-                          "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400"
+                          d.status === "won" ? "bg-success-light text-success" :
+                          d.status === "lost" ? "bg-destructive-light text-destructive" :
+                          "bg-warning-light text-warning"
                         )}>
                           {d.status}
                         </span>
@@ -324,7 +324,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                       href={`https://dashboard.stripe.com/disputes/${d.disputeId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                      className="text-xs text-info hover:underline"
                     >
                       View
                     </a>
@@ -339,13 +339,13 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-red-500" />
+                  <Shield className="h-4 w-4 text-destructive" />
                   Fraud Flags
                 </h3>
                 <p className="text-sm text-muted-foreground">Suspicious activity detected by fraud detection</p>
               </div>
               {summary.recentFraudFlags > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full dark:bg-red-500/20 dark:text-red-400">
+                <span className="px-2 py-1 text-xs font-medium bg-destructive-light text-destructive rounded-full0/20">
                   {summary.recentFraudFlags} high/critical
                 </span>
               )}
@@ -360,9 +360,9 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "px-2 py-0.5 text-xs font-medium rounded",
-                          f.severity === "critical" ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" :
+                          f.severity === "critical" ? "bg-destructive-light text-destructive" :
                           f.severity === "high" ? "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400" :
-                          f.severity === "medium" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" :
+                          f.severity === "medium" ? "bg-warning-light text-warning" :
                           "bg-muted text-foreground"
                         )}>
                           {f.severity}

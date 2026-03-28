@@ -418,7 +418,7 @@ function ServiceCard({
           {/* Popular badge */}
           {popularBadge && (
             <div className="absolute top-0 right-0">
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-xl">
                 Most popular
               </div>
             </div>

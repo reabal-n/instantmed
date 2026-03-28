@@ -82,7 +82,7 @@ export default function EmployersPage() {
                 <Building2 className="w-3.5 h-3.5 mr-1.5" />
                 For Employers & HR Teams
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-6">
+              <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight mb-6">
                 Verifying InstantMed{" "}
                 <span className="text-primary">Medical Certificates</span>
               </h1>
@@ -102,7 +102,7 @@ export default function EmployersPage() {
         {/* About InstantMed */}
         <section className="py-16">
           <div className="max-w-3xl mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-6 text-center">
                 About InstantMed
               </h2>
               <div className="bg-card rounded-2xl border p-6 md:p-8 space-y-4">
@@ -139,12 +139,12 @@ export default function EmployersPage() {
         {/* How to Verify */}
         <section className="py-16 bg-muted/30">
           <div className="max-w-3xl mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 How to verify a certificate
               </h2>
               <div className="space-y-6">
                 <div className="bg-card rounded-2xl border p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-semibold">
                     1
                   </div>
                   <div>
@@ -162,7 +162,7 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-semibold">
                     2
                   </div>
                   <div>
@@ -180,7 +180,7 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-semibold">
                     3
                   </div>
                   <div>
@@ -200,7 +200,7 @@ export default function EmployersPage() {
         {/* What Certificates Include */}
         <section className="py-16">
           <div className="max-w-5xl mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 What our certificates look like
               </h2>
               <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -217,7 +217,7 @@ export default function EmployersPage() {
                     <ul className="space-y-3">
                       {certificateFeatures.map((feature) => (
                         <li key={feature} className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                          <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
                           <span className="text-foreground">{feature}</span>
                         </li>
                       ))}
@@ -231,13 +231,13 @@ export default function EmployersPage() {
         {/* Trust Indicators */}
         <section className="py-16 bg-muted/30">
           <div className="max-w-4xl mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 Why you can trust our certificates
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Shield className="w-7 h-7 text-emerald-600" />
+                  <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-7 h-7 text-success" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">AHPRA-Registered Doctors</h3>
                   <p className="text-sm text-muted-foreground">
@@ -256,8 +256,8 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Lock className="w-7 h-7 text-emerald-600" />
+                  <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <Lock className="w-7 h-7 text-success" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Secure & Tamper-Proof</h3>
                   <p className="text-sm text-muted-foreground">
@@ -267,8 +267,8 @@ export default function EmployersPage() {
                 </div>
 
                 <div className="bg-card rounded-2xl border p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <FileText className="w-7 h-7 text-emerald-600" />
+                  <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-7 h-7 text-success" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Clinical Standards</h3>
                   <p className="text-sm text-muted-foreground">
@@ -290,7 +290,7 @@ export default function EmployersPage() {
         {/* FAQs */}
         <section className="py-16">
           <div className="max-w-3xl mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 <HelpCircle className="w-6 h-6 inline mr-2" />
                 Frequently Asked Questions
               </h2>
@@ -308,7 +308,7 @@ export default function EmployersPage() {
         {/* Contact CTA */}
         <section className="py-16 bg-muted/30">
           <div className="max-w-xl mx-auto px-4 text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Need further assistance?
               </h2>
               <p className="text-muted-foreground mb-6">

@@ -379,7 +379,7 @@ export default async function MedicationPage({ params }: PageProps) {
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <Link href="/medications" className="hover:text-emerald-500">
+                <Link href="/medications" className="hover:text-success">
                   Medications
                 </Link>
                 <span>/</span>
@@ -387,11 +387,11 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               <div className="flex items-start gap-4 mb-6">
-                <div className="h-14 w-14 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <Pill className="h-7 w-7 text-emerald-500" />
+                <div className="h-14 w-14 rounded-xl bg-success-light flex items-center justify-center shrink-0">
+                  <Pill className="h-7 w-7 text-success" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
+                  <h1 className="text-2xl font-semibold sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
                     {med.name}
                   </h1>
                   <p className="text-muted-foreground">
@@ -419,7 +419,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Uses */}
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-5 w-5 text-emerald-500" />
+                  <FileText className="h-5 w-5 text-success" />
                   <h2 className="font-semibold">Common Uses</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -445,7 +445,7 @@ export default async function MedicationPage({ params }: PageProps) {
               {/* Side Effects */}
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Pill className="h-5 w-5 text-amber-600" />
+                  <Pill className="h-5 w-5 text-warning" />
                   <h2 className="font-semibold">Possible Side Effects</h2>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -456,12 +456,12 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               {/* Warnings */}
-              <div className="bg-amber-50/50 dark:bg-card border border-amber-200 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
+              <div className="bg-warning-light/50 dark:bg-card border border-warning-border dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  <h2 className="font-semibold text-amber-800">Important Warnings</h2>
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                  <h2 className="font-semibold text-warning">Important Warnings</h2>
                 </div>
-                <ul className="space-y-1.5 text-sm text-amber-700">
+                <ul className="space-y-1.5 text-sm text-warning">
                   {med.warnings.map((warning, i) => (
                     <li key={i}>• {warning}</li>
                   ))}

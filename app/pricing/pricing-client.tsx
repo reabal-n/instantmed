@@ -152,7 +152,7 @@ export function PricingClient() {
                   </div>
 
                   <div className="text-center mb-4">
-                    <span className="text-3xl font-bold">
+                    <span className="text-3xl font-semibold">
                       {service.priceLabel || `$${service.price}`}
                     </span>
                     <span className="text-muted-foreground ml-1 text-sm">

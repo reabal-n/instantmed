@@ -280,7 +280,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 {data.localFlair}
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <h1 className="text-4xl md:text-5xl font-semibold mb-4">
                 Medical Certificate Online
                 <br />
                 <span className="text-primary">{data.name}</span>
@@ -337,7 +337,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-12">How it works</h2>
+              <h2 className="text-2xl font-semibold text-center mb-12">How it works</h2>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
@@ -358,7 +358,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 ].map((item) => (
                   <div key={item.step} className="text-center">
                     <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                      <span className="text-primary font-bold">{item.step}</span>
+                      <span className="text-primary font-semibold">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-2">{item.title}</h3>
                     <p className="text-sm text-background/60">{item.desc}</p>
@@ -370,7 +370,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
               <p className="text-background/60 mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>

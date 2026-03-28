@@ -156,7 +156,7 @@ export function ReviewsClientPageComponent() {
           <div className="inline-block rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none px-6 py-4">
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <p className="text-4xl font-bold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
+                <p className="text-4xl font-semibold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
                   {avgRating}
                 </p>
                 <div className="flex gap-0.5 mt-1 justify-center">

@@ -195,7 +195,7 @@ export default function Error({
         </motion.div>
 
         <motion.h1
-          className="text-2xl sm:text-3xl font-bold mb-4 text-foreground"
+          className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground"
           initial="initial"
           animate="animate"
           variants={slideUp}

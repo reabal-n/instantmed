@@ -48,7 +48,7 @@ export function MedicationStep({
       className="space-y-6"
     >
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-semibold text-foreground">
           Which medication?
         </h1>
         <p className="text-muted-foreground">

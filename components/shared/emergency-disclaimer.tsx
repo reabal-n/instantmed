@@ -139,14 +139,14 @@ export function EmergencyDisclaimer({
           <div className="flex flex-wrap gap-2">
             <a
               href="tel:000"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive-light border border-destructive-border text-destructive text-xs font-medium hover:bg-destructive-light transition-colors"
             >
               <Phone className="h-3 w-3" />
               000 — Emergency
             </a>
             <a
               href="tel:131114"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-info-light border border-info-border text-info text-xs font-medium hover:bg-info-light transition-colors"
             >
               <Heart className="h-3 w-3" />
               Lifeline — 13 11 14

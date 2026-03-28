@@ -54,9 +54,9 @@ function formatMinutes(minutes: number | null): string {
 
 function getTimeColor(minutes: number | null, threshold: number): string {
   if (minutes === null) return ""
-  if (minutes <= threshold) return "text-green-600"
-  if (minutes <= threshold * 2) return "text-amber-600"
-  return "text-red-600"
+  if (minutes <= threshold) return "text-success"
+  if (minutes <= threshold * 2) return "text-warning"
+  return "text-destructive"
 }
 
 // ============================================================================
@@ -191,7 +191,7 @@ export function DoctorOpsClient({
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalDoctors}</div>
+            <div className="text-2xl font-semibold">{totalDoctors}</div>
           </CardContent>
         </Card>
 
@@ -200,7 +200,7 @@ export function DoctorOpsClient({
             <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPending}</div>
+            <div className="text-2xl font-semibold">{totalPending}</div>
             <p className="text-xs text-muted-foreground">Across all doctors</p>
           </CardContent>
         </Card>
@@ -210,7 +210,7 @@ export function DoctorOpsClient({
             <CardTitle className="text-sm font-medium">Total Decisions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalDecisions}</div>
+            <div className="text-2xl font-semibold">{totalDecisions}</div>
             <p className="text-xs text-muted-foreground">Last {dateRange === "7d" ? "7" : "30"} days</p>
           </CardContent>
         </Card>
@@ -220,7 +220,7 @@ export function DoctorOpsClient({
             <CardTitle className="text-sm font-medium">SLA Breaches</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalBreaches > 0 ? "text-destructive" : ""}`}>
+            <div className={`text-2xl font-semibold ${totalBreaches > 0 ? "text-destructive" : ""}`}>
               {totalBreaches}
             </div>
             <p className="text-xs text-muted-foreground">Last {dateRange === "7d" ? "7" : "30"} days</p>

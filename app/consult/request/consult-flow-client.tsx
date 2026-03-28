@@ -123,22 +123,22 @@ function SafetyKnockout() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="max-w-md w-full text-center space-y-8">
-        <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center">
-          <AlertTriangle className="w-10 h-10 text-red-600" />
+        <div className="w-20 h-20 mx-auto rounded-full bg-destructive-light flex items-center justify-center">
+          <AlertTriangle className="w-10 h-10 text-destructive" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Please Seek Immediate Help</h1>
-        <p className="text-red-700 text-base">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-red-900">Please Seek Immediate Help</h1>
+        <p className="text-destructive text-base">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
+        <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-8 border border-destructive-border shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
           <p className="font-medium">If this is a medical emergency:</p>
           <Button asChild variant="destructive" className="w-full h-12">
             <a href="tel:000">Call 000</a>
           </Button>
           <p className="text-sm text-muted-foreground">or go to your nearest emergency department</p>
-          <hr className="border-red-100" />
+          <hr className="border-destructive-border" />
           <p className="font-medium">For mental health crisis support:</p>
-          <Button asChild variant="outline" className="w-full h-12 border-red-300 text-red-700 hover:bg-red-50">
+          <Button asChild variant="outline" className="w-full h-12 border-destructive-border text-destructive hover:bg-destructive-light">
             <a href="tel:131114">Lifeline: 13 11 14</a>
           </Button>
         </div>
@@ -508,11 +508,11 @@ export function ConsultFlowClient({
                 subtitle="Select the main reason for your consultation"
               />
               {/* S8 Disclaimer - shown upfront at consult intake */}
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
-                <p className="text-xs text-red-800 leading-relaxed font-medium">
+              <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
+                <p className="text-xs text-destructive leading-relaxed font-medium">
                   <strong className="text-red-900">No Schedule 8 / controlled medications.</strong>
                 </p>
-                <p className="text-xs text-red-700 mt-1">
+                <p className="text-xs text-destructive mt-1">
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
@@ -743,31 +743,31 @@ export function ConsultFlowClient({
             <div className="space-y-4">
               <StepHeader title="Complete your booking" subtitle="Secure payment via Stripe" />
               {/* S8 Disclaimer - shown again before payment */}
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
-                <p className="text-xs text-red-800 leading-relaxed font-medium">
+              <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
+                <p className="text-xs text-destructive leading-relaxed font-medium">
                   <strong className="text-red-900">Reminder: No Schedule 8 / controlled medications.</strong>
                 </p>
-                <p className="text-xs text-red-700 mt-1">
+                <p className="text-xs text-destructive mt-1">
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
               <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
-                  <span className="text-2xl font-bold">$49.95</span>
+                  <span className="text-2xl font-semibold">$49.95</span>
                 </div>
                 <hr className="border-border/40" />
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
                     Doctor review within 24 hours
                   </li>
                   <li className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
                     Prescription or referral if appropriate
                   </li>
                   <li className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
                     Follow-up messaging included
                   </li>
                 </ul>
@@ -777,7 +777,7 @@ export function ConsultFlowClient({
               </p>
               {error && (
                 <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
-                  <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-800/30 text-sm text-red-700 dark:text-red-400">
+                  <div className="p-3 rounded-2xl bg-destructive-light border border-destructive-border/30 text-sm text-destructive">
                     {error}
                   </div>
                 </ShakeAnimation>

@@ -28,8 +28,8 @@ export function ConfirmationStep({ referenceNumber, email }: ConfirmationStepPro
 
       {/* Success indicator */}
       <div className="flex justify-center">
-        <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
-          <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+        <div className="w-20 h-20 rounded-full bg-success-light flex items-center justify-center">
+          <CheckCircle className="w-10 h-10 text-success" />
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export function ConfirmationStep({ referenceNumber, email }: ConfirmationStepPro
       {referenceNumber && (
         <div className="p-4 rounded-xl bg-muted/50 text-center">
           <p className="text-xs text-muted-foreground mb-1">Reference number</p>
-          <p className="font-mono font-bold text-lg">{referenceNumber}</p>
+          <p className="font-mono font-semibold text-lg">{referenceNumber}</p>
         </div>
       )}
 

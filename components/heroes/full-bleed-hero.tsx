@@ -59,7 +59,7 @@ export function FullBleedHero({
             text={title}
             as="h1"
             highlightWords={highlightWords}
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl justify-center"
+            className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl justify-center"
           />
           {subtitle && (
             <motion.p

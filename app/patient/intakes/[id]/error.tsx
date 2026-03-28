@@ -84,8 +84,8 @@ export default function PatientIntakeError({
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 dark:bg-red-500/20 mb-6" aria-hidden="true">
-          <IconComponent className="h-8 w-8 text-red-600 dark:text-red-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-destructive-light mb-6" aria-hidden="true">
+          <IconComponent className="h-8 w-8 text-destructive" />
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight mb-2">{errorInfo.title}</h1>

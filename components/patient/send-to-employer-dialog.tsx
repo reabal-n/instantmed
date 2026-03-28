@@ -105,8 +105,8 @@ export function SendToEmployerDialog({
         {success ? (
           // Success state
           <div className="py-6 text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-4">
-              <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-success-light flex items-center justify-center mb-4">
+              <CheckCircle className="h-6 w-6 text-success" />
             </div>
             <DialogTitle className="text-xl mb-2">Email Sent</DialogTitle>
             <DialogDescription className="mb-6">
@@ -204,16 +204,16 @@ export function SendToEmployerDialog({
 
               {/* Error message */}
               {error && (
-                <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-800 dark:text-red-300">
+                <div className="flex items-start gap-2 p-3 bg-destructive-light border border-destructive-border rounded-xl text-sm text-destructive">
                   <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* Info box */}
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-800 dark:text-blue-300">
+              <div className="p-3 bg-info-light border border-info-border rounded-xl text-sm text-info">
                 <p className="font-medium">What they&apos;ll receive:</p>
-                <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-400">
+                <ul className="mt-1 space-y-1 text-info">
                   <li>• Secure download link (expires in 7 days)</li>
                   <li>• Certificate verification code</li>
                   <li>• Your name and absence dates</li>

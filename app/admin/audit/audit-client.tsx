@@ -121,13 +121,13 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
   const getActorColor = (type: string) => {
     switch (type) {
       case "patient":
-        return "bg-blue-100 text-blue-800"
+        return "bg-info-light text-info"
       case "admin":
-        return "bg-amber-100 text-amber-800"
+        return "bg-warning-light text-warning"
       case "system":
         return "bg-muted text-foreground"
       case "webhook":
-        return "bg-amber-100 text-amber-800"
+        return "bg-warning-light text-warning"
       default:
         return "bg-muted text-foreground"
     }
@@ -162,7 +162,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold">{stats.total.toLocaleString()}</p>
+                <p className="text-2xl font-semibold">{stats.total.toLocaleString()}</p>
               </div>
               <ScrollText className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -173,7 +173,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Today</p>
-                <p className="text-2xl font-bold text-primary">{stats.today}</p>
+                <p className="text-2xl font-semibold text-primary">{stats.today}</p>
               </div>
               <Activity className="h-8 w-8 text-primary/50" />
             </div>

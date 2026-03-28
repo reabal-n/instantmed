@@ -1048,7 +1048,7 @@ export default async function SymptomPage({ params }: PageProps) {
                   <ThermometerSun className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+                  <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-2">
                     {symptom.name}
                   </h1>
                   <p className="text-lg text-muted-foreground leading-relaxed">
@@ -1075,7 +1075,7 @@ export default async function SymptomPage({ params }: PageProps) {
           {/* Possible Causes Section */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
                 What Could Be Causing Your {symptom.name}?
               </h2>
               <p className="text-muted-foreground mb-8">
@@ -1092,9 +1092,9 @@ export default async function SymptomPage({ params }: PageProps) {
                       <h3 className="font-semibold text-lg text-foreground">{cause.name}</h3>
                       <span className={`text-xs font-medium px-3 py-1 rounded-full ${
                         cause.likelihood === 'common' 
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                          ? 'bg-success-light text-success'
                           : cause.likelihood === 'less-common'
-                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                          ? 'bg-warning-light text-warning'
                           : 'bg-white text-foreground dark:bg-white/[0.06] dark:text-muted-foreground'
                       }`}>
                         {cause.likelihood === 'common' ? 'Common' : cause.likelihood === 'less-common' ? 'Less common' : 'Rare'}
@@ -1130,7 +1130,7 @@ export default async function SymptomPage({ params }: PageProps) {
           {/* Self-Care Advice */}
           <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8">
+              <h2 className="text-2xl font-semibold text-foreground mb-8">
                 Self-Care Tips for {symptom.name}
               </h2>
 
@@ -1140,7 +1140,7 @@ export default async function SymptomPage({ params }: PageProps) {
                     key={i}
                     className="flex items-start gap-3 p-4 bg-white dark:bg-card rounded-xl"
                   >
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
                     <span className="text-foreground">{tip}</span>
                   </div>
                 ))}
@@ -1154,7 +1154,7 @@ export default async function SymptomPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 {/* See a doctor */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-primary" />
                     See a Doctor If
                   </h2>
@@ -1177,21 +1177,21 @@ export default async function SymptomPage({ params }: PageProps) {
 
                 {/* Emergency signs */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
                     Seek Emergency Care If
                   </h2>
-                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-5">
+                  <div className="bg-destructive-light border border-destructive-border rounded-xl p-5">
                     <div className="space-y-3">
                       {symptom.emergencySigns.map((item, i) => (
-                        <div key={i} className="flex items-start gap-2 text-red-700 dark:text-red-300">
+                        <div key={i} className="flex items-start gap-2 text-destructive">
                           <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                           <span>{item}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
-                      <p className="text-sm font-semibold text-red-800 dark:text-red-200">
+                    <div className="mt-4 pt-4 border-t border-destructive-border">
+                      <p className="text-sm font-semibold text-destructive">
                         Call 000 or go to Emergency immediately
                       </p>
                     </div>
@@ -1209,7 +1209,7 @@ export default async function SymptomPage({ params }: PageProps) {
                   <Shield className="w-5 h-5 text-primary" />
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
                 </div>
-                <h2 className="text-xl font-bold text-foreground mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                   Next Steps for {symptom.name}
                 </h2>
                 <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
@@ -1262,7 +1262,7 @@ export default async function SymptomPage({ params }: PageProps) {
           {/* FAQ Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
 
@@ -1284,7 +1284,7 @@ export default async function SymptomPage({ params }: PageProps) {
           {symptom.relatedSymptoms.length > 0 && (
             <section className="px-4 py-16">
               <div className="mx-auto max-w-4xl">
-                <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                   Related Health Topics
                 </h2>
 
@@ -1324,8 +1324,8 @@ export default async function SymptomPage({ params }: PageProps) {
                         href={`/conditions/${conditionSlug}`}
                         className="flex items-center gap-3 p-4 bg-white dark:bg-card rounded-xl border border-border dark:border-border hover:border-primary/30 transition-colors group"
                       >
-                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                          <Stethoscope className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 rounded-full bg-info-light flex items-center justify-center shrink-0">
+                          <Stethoscope className="w-4 h-4 text-info" />
                         </div>
                         <span className="font-medium text-foreground group-hover:text-primary transition-colors capitalize">
                           {conditionSlug.replace(/-/g, " ")}
@@ -1354,7 +1354,7 @@ export default async function SymptomPage({ params }: PageProps) {
           {/* CTA Section */}
           <section className="px-4 py-20 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Concerned About Your Symptoms?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">

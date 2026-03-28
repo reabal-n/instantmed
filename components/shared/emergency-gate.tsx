@@ -71,7 +71,7 @@ export function EmergencyGate({
         <button
           type="button"
           onClick={() => setShowSymptoms(!showSymptoms)}
-          className="mt-3 flex items-center gap-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+          className="mt-3 flex items-center gap-1.5 text-xs font-medium text-destructive hover:text-destructive transition-colors"
         >
           <Phone className="w-3 h-3" />
           <span>Call 000 if you have an emergency</span>
@@ -80,7 +80,7 @@ export function EmergencyGate({
 
         {showSymptoms && (
           <div className="mt-3 pt-3 border-t border-amber-200/60 dark:border-amber-800/30 space-y-2">
-            <ul className="space-y-1 text-xs text-red-800 dark:text-red-300">
+            <ul className="space-y-1 text-xs text-destructive">
               {EMERGENCY_SYMPTOMS.map((symptom, i) => (
                 <li key={i} className="flex items-start gap-1.5">
                   <span className="text-red-500 mt-0.5">&#8226;</span>

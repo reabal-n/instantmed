@@ -58,7 +58,7 @@ export function AttestationStep({
               "w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
               "flex items-start gap-3",
               attestations[item.key]
-                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                ? "border-success-border bg-success-light"
                 : "border-border hover:border-primary/40"
             )}
           >

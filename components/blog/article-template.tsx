@@ -70,17 +70,17 @@ function CalloutBox({ variant, content }: { variant: ArticleSection['variant'], 
     },
     tip: {
       icon: Lightbulb,
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      border: 'border-emerald-200 dark:border-emerald-800',
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
-      textColor: 'text-emerald-800 dark:text-emerald-200'
+      bg: 'bg-success-light',
+      border: 'border-success-border',
+      iconColor: 'text-success',
+      textColor: 'text-success'
     },
     emergency: {
       icon: AlertTriangle,
-      bg: 'bg-red-50 dark:bg-red-950/30',
-      border: 'border-red-200 dark:border-red-800',
-      iconColor: 'text-red-600 dark:text-red-400',
-      textColor: 'text-red-800 dark:text-red-200'
+      bg: 'bg-destructive-light',
+      border: 'border-destructive-border',
+      iconColor: 'text-destructive',
+      textColor: 'text-destructive'
     }
   }
 
@@ -145,7 +145,7 @@ function ContentSection({ section }: { section: ArticleSection }) {
         )
       }
       return (
-        <h2 className="text-xl font-bold text-foreground mt-10 mb-4">
+        <h2 className="text-xl font-semibold text-foreground mt-10 mb-4">
           {section.content}
         </h2>
       )
@@ -184,7 +184,7 @@ function generateFaqId(question: string, index: number): string {
 function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   return (
     <div className="mt-12 pt-8 border-t border-border">
-      <h2 className="text-xl font-bold text-foreground mb-6" id="faq">
+      <h2 className="text-xl font-semibold text-foreground mb-6" id="faq">
         Frequently Asked Questions
       </h2>
       <div className="space-y-4" itemScope itemType="https://schema.org/FAQPage">
@@ -274,7 +274,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </Badge>
 
       {/* Title */}
-      <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-4">
+      <h1 className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight mb-4">
         {article.title}
       </h1>
 
@@ -303,11 +303,11 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Trust badges */}
       <div className="flex flex-wrap gap-3 mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-          <BadgeCheck className="w-4 h-4 text-emerald-600" />
-          <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Doctor Reviewed</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border">
+          <BadgeCheck className="w-4 h-4 text-success" />
+          <span className="text-xs font-medium text-success">Doctor Reviewed</span>
         </div>
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-info-light border border-info-border">
           <Shield className="w-4 h-4 text-blue-600" />
           <span className="text-xs font-medium text-blue-700 dark:text-blue-300">AHPRA Verified</span>
         </div>
@@ -354,7 +354,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Related services CTA */}
       <div className="mt-12 pt-8 border-t border-border">
-        <h2 className="text-xl font-bold text-foreground mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           How InstantMed Can Help
         </h2>
         <p className="text-muted-foreground mb-6">

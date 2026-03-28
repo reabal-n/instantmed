@@ -104,17 +104,17 @@ export function TotalPatientsCounter({
             <NumberFlow
               value={count}
               format={{ notation: 'standard' }}
-              className="text-4xl sm:text-5xl font-bold text-foreground"
+              className="text-4xl sm:text-5xl font-semibold text-foreground"
             />
           ) : (
-            <span className="text-4xl sm:text-5xl font-bold text-foreground">
+            <span className="text-4xl sm:text-5xl font-semibold text-foreground">
               {formattedCount}
             </span>
           )}
         </div>
         <p className="text-lg text-muted-foreground">{label}</p>
         {showGrowth && (
-          <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1 flex items-center justify-center gap-1">
+          <p className="text-sm text-success mt-1 flex items-center justify-center gap-1">
             <TrendingUp className="w-4 h-4" />
             Growing every day
           </p>
@@ -144,10 +144,10 @@ export function TotalPatientsCounter({
           <NumberFlow
             value={count}
             format={{ notation: 'standard' }}
-            className="text-3xl sm:text-4xl font-bold text-foreground"
+            className="text-3xl sm:text-4xl font-semibold text-foreground"
           />
         ) : (
-          <span className="text-3xl sm:text-4xl font-bold text-foreground">
+          <span className="text-3xl sm:text-4xl font-semibold text-foreground">
             {formattedCount}
           </span>
         )}

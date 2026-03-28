@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         <section className="pt-32 pb-10 px-4">
           <div className="mx-auto max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">Legal</p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
+            <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-2">Privacy Policy</h1>
             <p className="text-sm text-muted-foreground">Last updated: February 2026</p>
           </div>
         </section>

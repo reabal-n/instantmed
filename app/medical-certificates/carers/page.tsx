@@ -97,7 +97,7 @@ export default function CarersMedCertPage() {
                 <span className="text-sm font-medium text-rose-700 dark:text-rose-400">Carer&apos;s Leave</span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
                 Certificate for carer&apos;s leave
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -136,7 +136,7 @@ export default function CarersMedCertPage() {
           {/* Who This Is For */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">Who qualifies for carer&apos;s leave</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">Who qualifies for carer&apos;s leave</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Carer&apos;s leave covers care for immediate family or household members.
               </p>
@@ -196,7 +196,7 @@ export default function CarersMedCertPage() {
           {/* What The Certificate Says */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the certificate says</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the certificate says</h2>
               <p className="text-center text-muted-foreground mb-10">
                 The certificate provides what your employer needs while protecting privacy.
               </p>
@@ -237,7 +237,7 @@ export default function CarersMedCertPage() {
           {/* What Doctors Review */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
                 The doctor assesses whether carer&apos;s leave documentation is appropriate.
               </p>
@@ -279,54 +279,54 @@ export default function CarersMedCertPage() {
           {/* Approval vs Decline */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">What results in approval vs decline</h2>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-success-light/30 border border-success-border">
+                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
                     <Check className="h-5 w-5" />
                     We can usually help if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Immediate family member is acutely unwell</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Short-term care needed (1-3 days)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Same-day or recent need (within 48 hours)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Child, parent, spouse, or household member</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                  <h3 className="font-semibold text-red-800 dark:text-red-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-destructive-light border border-destructive-border">
+                  <h3 className="font-semibold text-destructive mb-4 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     We&apos;ll refer you elsewhere if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Long-term or ongoing care arrangements</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>More than 48 hours ago</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Non-family member (friend, neighbour)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Complex care coordination needs</span>
                     </li>
                   </ul>
@@ -342,7 +342,7 @@ export default function CarersMedCertPage() {
           {/* Patient feedback */}
           <section className="py-12 px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {carerTestimonials.map((t) => (
                   <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
@@ -362,7 +362,7 @@ export default function CarersMedCertPage() {
           {/* FAQs */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
@@ -378,7 +378,7 @@ export default function CarersMedCertPage() {
           {/* Final CTA */}
           <section className="px-4 py-16 bg-rose-50 dark:bg-rose-950/30">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to get your certificate?</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
                 Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
               </p>

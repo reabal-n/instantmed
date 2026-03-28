@@ -391,7 +391,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 {post.category}
               </span>
 
-              <h1 className="text-2xl font-bold sm:text-3xl mb-4">
+              <h1 className="text-2xl font-semibold sm:text-3xl mb-4">
                 {post.title}
               </h1>
 

@@ -182,7 +182,7 @@ export function IntakesStuckClient({
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{counts.total}</div>
+            <div className="text-2xl font-semibold">{counts.total}</div>
           </CardContent>
         </Card>
 
@@ -198,7 +198,7 @@ export function IntakesStuckClient({
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{counts.paid_no_review}</div>
+              <div className="text-2xl font-semibold">{counts.paid_no_review}</div>
               <p className="text-xs text-muted-foreground">&gt; 5 min</p>
             </CardContent>
           </Card>
@@ -213,10 +213,10 @@ export function IntakesStuckClient({
           <Card className="rounded-xl border-border/50 cursor-pointer hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Review Timeout</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{counts.review_timeout}</div>
+              <div className="text-2xl font-semibold">{counts.review_timeout}</div>
               <p className="text-xs text-muted-foreground">&gt; 60 min</p>
             </CardContent>
           </Card>
@@ -234,7 +234,7 @@ export function IntakesStuckClient({
               <Mail className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{counts.delivery_pending}</div>
+              <div className="text-2xl font-semibold">{counts.delivery_pending}</div>
               <p className="text-xs text-muted-foreground">&gt; 10 min</p>
             </CardContent>
           </Card>
@@ -252,7 +252,7 @@ export function IntakesStuckClient({
               <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{counts.delivery_failed}</div>
+              <div className="text-2xl font-semibold text-destructive">{counts.delivery_failed}</div>
               <p className="text-xs text-muted-foreground">Email failed</p>
             </CardContent>
           </Card>
@@ -355,7 +355,7 @@ export function IntakesStuckClient({
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center">
                     <div className="flex flex-col items-center gap-2">
-                      <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      <CheckCircle2 className="h-8 w-8 text-success" />
                       <span className="text-muted-foreground">
                         No stuck intakes found
                       </span>

@@ -79,7 +79,7 @@ export const TestimonialsColumn = (props: {
                     <div className="flex flex-col min-w-0 flex-1">
                       <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
                     </div>
-                    <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <div className="flex items-center gap-1 text-success shrink-0">
                       <BadgeCheck className="w-3.5 h-3.5" />
                       <span className="text-xs font-medium">Verified</span>
                     </div>

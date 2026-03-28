@@ -199,8 +199,36 @@ body {
   /* Status colors — soft, clinical */
   --success: #22C55E;
   --success-foreground: #ffffff;
+  --success-light: #F0FDF4;
+  --success-border: rgba(34,197,94,0.20);
   --warning: #F59E0B;
   --warning-foreground: var(--slate-800);
+  --warning-light: #FFFBEB;
+  --warning-border: rgba(245,158,11,0.20);
+  --destructive-light: #FEF2F2;
+  --destructive-border: rgba(248,113,113,0.20);
+  --info: var(--primary);
+  --info-foreground: #ffffff;
+  --info-light: #EFF6FF;
+  --info-border: rgba(59,130,246,0.20);
+
+  /* Morning spectrum (hero/marketing only) */
+  --morning-sky: #BAD4F5;
+  --morning-peach: #F5C6A0;
+  --morning-ivory: #F7F3EC;
+  --morning-champ: #E8D5A3;
+
+  /* Trust signal tokens */
+  --trust-bg: rgba(34,197,94,0.06);
+  --trust-border: rgba(34,197,94,0.15);
+  --trust-text: #22C55E;
+
+  /* Service type tokens */
+  --service-medcert: #3B82F6;
+  --service-referral: #8B5CF6;
+  --service-rx: #22C55E;
+  --service-hair: #F59E0B;
+  --service-weight: #EC4899;
 
   /* Morning Canvas accent tokens */
   --accent-teal: #5DB8C9;
@@ -269,10 +297,32 @@ body {
   /* Status */
   --destructive: #E07A7A;
   --destructive-foreground: #ffffff;
+  --destructive-light: rgba(224,122,122,0.10);
+  --destructive-border: rgba(224,122,122,0.20);
   --success: #4ADE80;
   --success-foreground: #0B1120;
+  --success-light: rgba(74,222,128,0.10);
+  --success-border: rgba(74,222,128,0.20);
   --warning: #FBBF24;
   --warning-foreground: #0B1120;
+  --warning-light: rgba(251,191,36,0.10);
+  --warning-border: rgba(251,191,36,0.20);
+  --info: #60A5FA;
+  --info-foreground: #0B1120;
+  --info-light: rgba(96,165,250,0.10);
+  --info-border: rgba(96,165,250,0.20);
+
+  /* Trust signal tokens — dark */
+  --trust-bg: rgba(74,222,128,0.06);
+  --trust-border: rgba(74,222,128,0.15);
+  --trust-text: #4ADE80;
+
+  /* Service type tokens — dark */
+  --service-medcert: #60A5FA;
+  --service-referral: #A78BFA;
+  --service-rx: #4ADE80;
+  --service-hair: #FBBF24;
+  --service-weight: #F472B6;
 
   /* Morning Canvas accent tokens — dark */
   --accent-teal: #7DD3E1;
@@ -359,8 +409,30 @@ body {
   --color-sidebar-ring: var(--sidebar-ring);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-light: var(--success-light);
+  --color-success-border: var(--success-border);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-light: var(--warning-light);
+  --color-warning-border: var(--warning-border);
+  --color-destructive-light: var(--destructive-light);
+  --color-destructive-border: var(--destructive-border);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-light: var(--info-light);
+  --color-info-border: var(--info-border);
+  --color-trust-bg: var(--trust-bg);
+  --color-trust-border: var(--trust-border);
+  --color-trust-text: var(--trust-text);
+  --color-morning-sky: var(--morning-sky);
+  --color-morning-peach: var(--morning-peach);
+  --color-morning-ivory: var(--morning-ivory);
+  --color-morning-champ: var(--morning-champ);
+  --color-service-medcert: var(--service-medcert);
+  --color-service-referral: var(--service-referral);
+  --color-service-rx: var(--service-rx);
+  --color-service-hair: var(--service-hair);
+  --color-service-weight: var(--service-weight);
   --color-accent-teal: var(--accent-teal);
   --color-accent-teal-foreground: var(--accent-teal-foreground);
   --color-accent-gold: var(--accent-gold);

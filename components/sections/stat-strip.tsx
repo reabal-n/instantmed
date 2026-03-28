@@ -77,7 +77,7 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
               ease: "easeOut",
             }}
           >
-            <div className="text-3xl font-bold text-foreground sm:text-4xl">
+            <div className="text-3xl font-semibold text-foreground sm:text-4xl">
               <AnimatedNumber
                 value={stat.value}
                 prefix={stat.prefix}

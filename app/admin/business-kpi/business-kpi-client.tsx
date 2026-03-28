@@ -112,16 +112,16 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
   }
 
   const readinessColor = data.launchReadiness.score >= 85
-    ? "text-green-600"
+    ? "text-success"
     : data.launchReadiness.score >= 60
-    ? "text-amber-600"
-    : "text-red-600"
+    ? "text-warning"
+    : "text-destructive"
 
   const readinessBg = data.launchReadiness.score >= 85
-    ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+    ? "bg-success-light border-success-border"
     : data.launchReadiness.score >= 60
-    ? "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800"
-    : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
+    ? "bg-warning-light border-warning-border/20"
+    : "bg-destructive-light border-destructive-border"
 
   return (
       <div className="space-y-6 p-6">
@@ -143,7 +143,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
             Launch Readiness
-            <span className={`text-3xl font-bold ml-auto ${readinessColor}`}>
+            <span className={`text-3xl font-semibold ml-auto ${readinessColor}`}>
               {data.launchReadiness.score}%
             </span>
           </CardTitle>
@@ -154,9 +154,9 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             {Object.entries(data.launchReadiness.checks).map(([key, passed]) => (
               <div key={key} className="flex items-center gap-2 text-sm">
                 {passed ? (
-                  <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-success shrink-0" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+                  <XCircle className="h-4 w-4 text-destructive shrink-0" />
                 )}
                 <span className={passed ? "text-muted-foreground" : "font-medium"}>
                   {readinessLabels[key] || key}
@@ -176,14 +176,14 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{formatCurrency(data.revenue.thisMonth)}</div>
+            <div className="text-2xl font-semibold">{formatCurrency(data.revenue.thisMonth)}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               {data.revenue.weeklyTrend >= 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-600" />
+                <TrendingUp className="h-3 w-3 text-success" />
               ) : (
-                <TrendingDown className="h-3 w-3 text-red-500" />
+                <TrendingDown className="h-3 w-3 text-destructive" />
               )}
-              <span className={data.revenue.weeklyTrend >= 0 ? "text-green-600" : "text-red-500"}>
+              <span className={data.revenue.weeklyTrend >= 0 ? "text-success" : "text-destructive"}>
                 {data.revenue.weeklyTrend >= 0 ? "+" : ""}{data.revenue.weeklyTrend}%
               </span>
               <span>vs last week</span>
@@ -201,7 +201,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{data.certs.thisWeek}</div>
+            <div className="text-2xl font-semibold">{data.certs.thisWeek}</div>
             <p className="text-xs text-muted-foreground mt-1">This week</p>
             <p className="text-xs text-muted-foreground">Today: {data.certs.today}</p>
           </CardContent>
@@ -214,12 +214,12 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{formatMinutes(data.sla.avgMinutes)}</div>
+            <div className="text-2xl font-semibold">{formatMinutes(data.sla.avgMinutes)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.sla.breaches > 0 ? (
-                <span className="text-red-500 font-medium">{data.sla.breaches} SLA breach{data.sla.breaches !== 1 ? "es" : ""}</span>
+                <span className="text-destructive font-medium">{data.sla.breaches} SLA breach{data.sla.breaches !== 1 ? "es" : ""}</span>
               ) : (
-                <span className="text-green-600">No SLA breaches</span>
+                <span className="text-success">No SLA breaches</span>
               )}
             </p>
             <p className="text-xs text-muted-foreground">{data.sla.queueSize} in queue</p>
@@ -233,7 +233,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{data.doctors.utilizationRate}%</div>
+            <div className="text-2xl font-semibold">{data.doctors.utilizationRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.doctors.active} active doctor{data.doctors.active !== 1 ? "s" : ""}
             </p>
@@ -251,11 +251,11 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{data.email.deliveryRate}%</div>
+            <div className="text-2xl font-semibold">{data.email.deliveryRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.email.sentThisWeek} sent this week
               {data.email.failedThisWeek > 0 && (
-                <span className="text-red-500"> | {data.email.failedThisWeek} failed</span>
+                <span className="text-destructive"> | {data.email.failedThisWeek} failed</span>
               )}
             </p>
           </CardContent>
@@ -268,7 +268,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{data.funnel.conversionRate}%</div>
+            <div className="text-2xl font-semibold">{data.funnel.conversionRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {data.funnel.paid} paid of {data.funnel.started} started (30d)
             </p>
@@ -282,7 +282,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-bold">{data.refunds.rate}%</div>
+            <div className="text-2xl font-semibold">{data.refunds.rate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {formatCurrency(data.refunds.totalMonth)} refunded this month
             </p>
@@ -354,7 +354,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
                       <div className="flex items-center gap-3">
                         <span>{item.value.toLocaleString()}</span>
                         {idx > 0 && dropOff > 0 && (
-                          <span className="text-red-500 text-xs">-{dropOff}%</span>
+                          <span className="text-destructive text-xs">-{dropOff}%</span>
                         )}
                       </div>
                     </div>

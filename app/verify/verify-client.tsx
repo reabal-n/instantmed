@@ -141,16 +141,16 @@ export function VerifyClient() {
       {hasSearched && result && (
         <>
           {result.valid && (result.certificate || result.document) ? (
-            <div className="glass-card rounded-2xl p-6 md:p-8 border border-emerald-200 dark:border-emerald-500/20">
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-success-border">
               <div className="space-y-6">
                 {/* Success Header */}
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3 shrink-0">
-                    <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                  <div className="rounded-full bg-success-light p-3 shrink-0">
+                    <CheckCircle className="h-7 w-7 text-success" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200">Certificate Verified</h3>
-                    <p className="text-emerald-700 dark:text-emerald-400 text-sm">
+                    <h3 className="text-xl font-semibold text-success">Certificate Verified</h3>
+                    <p className="text-success text-sm">
                       This is a valid certificate issued by {result.certificate?.issuingClinic || "InstantMed"}.
                     </p>
                   </div>
@@ -160,7 +160,7 @@ export function VerifyClient() {
                 {result.certificate && (
                   <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-5 space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20">
+                      <Badge className="bg-success-light text-success border-success-border">
                         {result.certificate.type}
                       </Badge>
                       <span className="font-mono text-xs text-muted-foreground">
@@ -206,7 +206,7 @@ export function VerifyClient() {
                 {!result.certificate && result.document && (
                   <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-5 space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20">
+                      <Badge className="bg-success-light text-success border-success-border">
                         {formatDocumentType(result.document.type, result.document.subtype)}
                       </Badge>
                       <span className="font-mono text-xs text-muted-foreground">
@@ -252,8 +252,8 @@ export function VerifyClient() {
               <div className="space-y-5">
                 {/* Error Header */}
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
-                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
+                  <div className="rounded-full bg-destructive-light p-3 shrink-0">
+                    <XCircle className="h-7 w-7 text-destructive" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Verification Failed</h3>
@@ -266,7 +266,7 @@ export function VerifyClient() {
                 {/* Help */}
                 <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-4">
                   <div className="flex gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                     <div className="space-y-2 text-sm">
                       <p className="font-medium text-foreground">Possible reasons:</p>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">

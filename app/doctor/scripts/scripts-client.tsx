@@ -20,9 +20,9 @@ interface ScriptsClientProps {
 }
 
 const STATUS_CONFIG: Record<ScriptTaskStatus, { label: string; color: string; icon: typeof Clock }> = {
-  pending_send: { label: "Pending Send", color: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300", icon: Clock },
+  pending_send: { label: "Pending Send", color: "bg-warning-light text-warning", icon: Clock },
   sent: { label: "Sent", color: "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300", icon: Send },
-  confirmed: { label: "Confirmed", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300", icon: CheckCircle2 },
+  confirmed: { label: "Confirmed", color: "bg-success-light text-success", icon: CheckCircle2 },
 }
 
 export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProps) {
@@ -128,7 +128,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                 <Icon className="h-4 w-4" />
               </div>
               <div className="text-left">
-                <p className="text-2xl font-bold tabular-nums">{counts[status]}</p>
+                <p className="text-2xl font-semibold tabular-nums">{counts[status]}</p>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{config.label}</p>
               </div>
             </button>
@@ -206,7 +206,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                     <Button
                       size="sm"
                       variant="secondary"
-                      className="text-emerald-700 dark:text-emerald-300"
+                      className="text-success"
                       onClick={() => updateStatus(task.id, "confirmed")}
                       aria-label={`Confirm script for ${task.patient_name}`}
                     >
@@ -215,7 +215,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
                     </Button>
                   )}
                   {task.status === "confirmed" && (
-                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                    <span className="flex items-center gap-1.5 rounded-full bg-success-light px-3 py-1 text-xs font-medium text-success">
                       <CheckCircle2 className="h-3 w-3" />
                       Done
                     </span>

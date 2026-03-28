@@ -35,7 +35,7 @@ export function PaymentStep({ price, isProcessing }: PaymentStepProps) {
       {/* Price summary */}
       <div className="p-6 rounded-2xl border-2 border-primary/20 bg-primary/5 text-center">
         <p className="text-sm text-muted-foreground mb-1">Total</p>
-        <p className="text-3xl font-bold text-primary">{price || PRICING_DISPLAY.REPEAT_SCRIPT}</p>
+        <p className="text-3xl font-semibold text-primary">{price || PRICING_DISPLAY.REPEAT_SCRIPT}</p>
         <p className="text-xs text-muted-foreground mt-2">One-time payment • No subscription</p>
       </div>
 

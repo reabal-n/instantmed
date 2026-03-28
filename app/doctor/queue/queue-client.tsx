@@ -452,11 +452,11 @@ export function QueueClient({
       {isStale && (
         <div
           role="alert"
-          className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20"
+          className="flex items-center gap-3 p-3 rounded-lg bg-warning-light border border-warning-border/60"
         >
-          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+            <p className="text-sm font-medium text-warning">
               {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
             </p>
           </div>
@@ -480,7 +480,7 @@ export function QueueClient({
           </h2>
           {/* Live connection indicator */}
           {!isStale && !isReconnecting && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="inline-flex items-center gap-1.5 text-xs text-success font-medium">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
@@ -571,7 +571,7 @@ export function QueueClient({
                           {service?.short_name || formatServiceType(service?.type || "")}
                         </Badge>
                         {intake.is_priority && (
-                          <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
+                          <Badge className="bg-warning-light text-warning border-warning-border">
                             <Zap className="w-3 h-3 mr-1" />
                             Priority
                           </Badge>
@@ -583,7 +583,7 @@ export function QueueClient({
                           </Badge>
                         )}
                         {intake.ai_draft_status === "completed" && (
-                          <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
+                          <Badge className="bg-info-light text-info border-info-border">
                             <Sparkles className="w-3 h-3 mr-1" />
                             AI ready
                           </Badge>
@@ -601,8 +601,8 @@ export function QueueClient({
                         <div className={cn(
                           "flex items-center gap-1.5 text-sm font-medium",
                           waitSeverity === "critical" ? "text-destructive"
-                            : waitSeverity === "warning" ? "text-amber-600 dark:text-amber-400"
-                            : "text-emerald-600 dark:text-emerald-400"
+                            : waitSeverity === "warning" ? "text-warning"
+                            : "text-success"
                         )}>
                           <Clock className="h-4 w-4" />
                           <span>{calculateSlaCountdown(intake.sla_deadline)}</span>
@@ -611,7 +611,7 @@ export function QueueClient({
                         <div className={cn(
                           "flex items-center gap-1.5 text-sm",
                           waitSeverity === "critical" ? "text-destructive"
-                            : waitSeverity === "warning" ? "text-amber-600 dark:text-amber-400"
+                            : waitSeverity === "warning" ? "text-warning"
                             : "text-muted-foreground"
                         )}>
                           <Clock className="h-4 w-4" />
@@ -641,7 +641,7 @@ export function QueueClient({
                       <Button
                         onClick={() => handleApprove(intake.id, service?.type)}
                         disabled={isPending || !identityComplete}
-                        className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50"
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
                         title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                       >
                         {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}

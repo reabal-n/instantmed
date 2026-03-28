@@ -143,7 +143,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <Send className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.emailsSentToday.toLocaleString()}</div>
+                <div className="text-2xl font-semibold">{stats.emailsSentToday.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   {emailTrendPct >= 0 ? "+" : ""}{emailTrendPct}% from yesterday ({yesterdayEmailCount})
                 </p>
@@ -155,7 +155,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.deliveryRate}%</div>
+                <div className="text-2xl font-semibold">{stats.deliveryRate}%</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.emailsSentWeek} sent this week
                 </p>
@@ -167,7 +167,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingEmails}</div>
+                <div className="text-2xl font-semibold">{stats.pendingEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.pendingEmails === 0 ? "Queue clear" : "Awaiting delivery"}
                 </p>
@@ -179,7 +179,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.failedEmails}</div>
+                <div className="text-2xl font-semibold">{stats.failedEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   Requires attention
                 </p>
@@ -342,14 +342,14 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                     <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-full ${
-                          item.status === 'sent' ? 'bg-green-100' :
-                          item.status === 'failed' ? 'bg-red-100' :
+                          item.status === 'sent' ? 'bg-success-light' :
+                          item.status === 'failed' ? 'bg-destructive-light' :
                           'bg-yellow-100'
                         }`}>
                           {item.status === 'sent' || item.status === 'skipped_e2e' ? (
-                            <MailCheck className="h-4 w-4 text-green-600" />
+                            <MailCheck className="h-4 w-4 text-success" />
                           ) : item.status === 'failed' ? (
-                            <AlertTriangle className="h-4 w-4 text-red-600" />
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
                           ) : (
                             <Clock className="h-4 w-4 text-yellow-600" />
                           )}
@@ -360,7 +360,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                             {sanitizeEmail(item.toEmail)} • {formatRelativeTime(item.createdAt)}
                           </p>
                           {item.errorMessage && (
-                            <p className="text-xs text-red-600 mt-1">{item.errorMessage}</p>
+                            <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
                           )}
                         </div>
                       </div>
@@ -433,7 +433,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingEmails}</div>
+                <div className="text-2xl font-semibold">{stats.pendingEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.pendingEmails === 0 ? "All clear" : "Awaiting delivery"}
                 </p>
@@ -445,7 +445,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.failedEmails}</div>
+                <div className="text-2xl font-semibold">{stats.failedEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.failedEmails === 0 ? "No failures" : "Needs attention"}
                 </p>
@@ -457,7 +457,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.deliveryRate}%</div>
+                <div className="text-2xl font-semibold">{stats.deliveryRate}%</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.emailsSentWeek} delivered this week
                 </p>

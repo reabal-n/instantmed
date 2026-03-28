@@ -65,52 +65,52 @@ export default async function SLAMonitoringPage() {
         className="grid grid-cols-1 gap-4 sm:grid-cols-3"
         aria-label="SLA status summary"
       >
-        <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 dark:border-red-800 dark:bg-red-950/20">
+        <div className="rounded-xl border border-destructive-border bg-destructive-light/50 p-4">
           <div className="flex items-center gap-2">
             <AlertTriangle
-              className="h-5 w-5 text-red-600 dark:text-red-400"
+              className="h-5 w-5 text-destructive"
               aria-hidden="true"
             />
-            <span className="font-medium text-red-800 dark:text-red-300">
+            <span className="font-medium text-destructive">
               SLA Breached
             </span>
           </div>
           <p
-            className="mt-1 text-3xl font-bold text-red-700 dark:text-red-400"
+            className="mt-1 text-3xl font-semibold text-destructive"
             aria-label={`${breached.length} breached intakes`}
           >
             {breached.length}
           </p>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
+        <div className="rounded-xl border border-warning-border bg-warning-light/50 p-4">
           <div className="flex items-center gap-2">
             <Clock
-              className="h-5 w-5 text-amber-600 dark:text-amber-400"
+              className="h-5 w-5 text-warning"
               aria-hidden="true"
             />
-            <span className="font-medium text-amber-800 dark:text-amber-300">
+            <span className="font-medium text-warning">
               At Risk (2-4h)
             </span>
           </div>
           <p
-            className="mt-1 text-3xl font-bold text-amber-700 dark:text-amber-400"
+            className="mt-1 text-3xl font-semibold text-warning"
             aria-label={`${atRisk.length} at risk intakes`}
           >
             {atRisk.length}
           </p>
         </div>
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-800 dark:bg-emerald-950/20">
+        <div className="rounded-xl border border-success-border bg-success-light/50 p-4">
           <div className="flex items-center gap-2">
             <CheckCircle2
-              className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+              className="h-5 w-5 text-success"
               aria-hidden="true"
             />
-            <span className="font-medium text-emerald-800 dark:text-emerald-300">
+            <span className="font-medium text-success">
               On Track
             </span>
           </div>
           <p
-            className="mt-1 text-3xl font-bold text-emerald-700 dark:text-emerald-400"
+            className="mt-1 text-3xl font-semibold text-success"
             aria-label={`${onTrack.length} on track intakes`}
           >
             {onTrack.length}
@@ -121,7 +121,7 @@ export default async function SLAMonitoringPage() {
       {/* Breached intakes */}
       {breached.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-red-700 dark:text-red-400">
+          <h2 className="text-lg font-semibold text-destructive">
             Breached Intakes
           </h2>
           <div className="space-y-2" role="list" aria-label="Breached intakes list">
@@ -129,7 +129,7 @@ export default async function SLAMonitoringPage() {
               <div
                 key={intake.id}
                 role="listitem"
-                className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/30 px-4 py-3 dark:border-red-800 dark:bg-red-950/10"
+                className="flex items-center justify-between rounded-lg border border-destructive-border bg-destructive-light/30 px-4 py-3"
               >
                 <div>
                   <p className="font-medium">
@@ -140,7 +140,7 @@ export default async function SLAMonitoringPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-red-600">
+                  <p className="font-semibold text-destructive">
                     {intake.hoursWaiting}h waiting
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -156,7 +156,7 @@ export default async function SLAMonitoringPage() {
       {/* At risk */}
       {atRisk.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-amber-700 dark:text-amber-400">
+          <h2 className="text-lg font-semibold text-warning">
             At Risk
           </h2>
           <div className="space-y-2" role="list" aria-label="At risk intakes list">
@@ -164,7 +164,7 @@ export default async function SLAMonitoringPage() {
               <div
                 key={intake.id}
                 role="listitem"
-                className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/30 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/10"
+                className="flex items-center justify-between rounded-lg border border-warning-border bg-warning-light/30 px-4 py-3"
               >
                 <div>
                   <p className="font-medium">
@@ -175,7 +175,7 @@ export default async function SLAMonitoringPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-amber-600">
+                  <p className="font-semibold text-warning">
                     {intake.hoursWaiting}h waiting
                   </p>
                   <p className="text-xs text-muted-foreground">

@@ -66,18 +66,18 @@ function formatDraftType(type: string): string {
 
 function getStatusBadge(draft: AIDraft) {
   if (draft.approved_at) {
-    return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">Approved</Badge>
+    return <Badge className="bg-success-light text-success">Approved</Badge>
   }
   if (draft.rejected_at) {
-    return <Badge className="bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300">Rejected</Badge>
+    return <Badge className="bg-destructive-light text-destructive">Rejected</Badge>
   }
   if (draft.status === "failed") {
-    return <Badge className="bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300">Generation Failed</Badge>
+    return <Badge className="bg-destructive-light text-destructive">Generation Failed</Badge>
   }
   if (draft.status === "pending") {
-    return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">Generating...</Badge>
+    return <Badge className="bg-warning-light text-warning">Generating...</Badge>
   }
-  return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300">Ready for Review</Badge>
+  return <Badge className="bg-info-light text-info">Ready for Review</Badge>
 }
 
 /**
@@ -94,12 +94,12 @@ function SideBySideFallback({
 }) {
   return (
     <div className="space-y-3">
-      <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20">
-        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 text-sm font-medium">
+      <div className="p-3 rounded-lg bg-warning-light border border-warning-border">
+        <div className="flex items-center gap-2 text-warning text-sm font-medium">
           <AlertTriangle className="h-4 w-4" />
           Diff too large to render safely
         </div>
-        <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">{reason}</p>
+        <p className="text-xs text-warning mt-1">{reason}</p>
       </div>
       
       <div className="grid grid-cols-2 gap-3">
@@ -234,7 +234,7 @@ function ValidationWarnings({ draft }: { draft: AIDraft }) {
 
   if (!hasValidationErrors && !hasGroundTruthErrors) {
     return (
-      <div className="flex items-center gap-2 text-sm text-emerald-600">
+      <div className="flex items-center gap-2 text-sm text-success">
         <Shield className="h-4 w-4" />
         All validation checks passed
       </div>
@@ -250,14 +250,14 @@ function ValidationWarnings({ draft }: { draft: AIDraft }) {
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2 space-y-2">
         {draft.ground_truth_errors?.map((error, i) => (
-          <div key={i} className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 p-2 rounded">
+          <div key={i} className="text-sm text-warning bg-warning-light p-2 rounded">
             {typeof error === "object" && error !== null && "message" in error
               ? String((error as { message: string }).message)
               : String(error)}
           </div>
         ))}
         {draft.validation_errors?.map((error, i) => (
-          <div key={i} className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-500/10 p-2 rounded">
+          <div key={i} className="text-sm text-destructive bg-destructive-light p-2 rounded">
             {typeof error === "object" && error !== null && "message" in error
               ? String((error as { message: string }).message)
               : String(error)}
@@ -454,7 +454,7 @@ function SingleDraftCard({
       <CardContent className="px-5 py-4 space-y-4">
         {actionMessage && (
           <div className={`p-2 rounded text-sm ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"
+            actionMessage.type === "success" ? "bg-success-light text-success" : "bg-destructive-light text-destructive"
           }`}>
             {actionMessage.text}
           </div>
@@ -462,19 +462,19 @@ function SingleDraftCard({
 
         {/* Staleness Warning Banner */}
         {stalenessInfo?.isStale && !isAlreadyDecided && (
-          <div className="p-3 rounded-lg border-2 border-amber-400 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30">
+          <div className="p-3 rounded-lg border-2 border-warning-border bg-warning-light">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium text-amber-800 dark:text-amber-200">Answers changed since draft was generated</p>
-                <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">{stalenessInfo.reason}</p>
+                <p className="font-medium text-warning">Answers changed since draft was generated</p>
+                <p className="text-sm text-warning mt-1">{stalenessInfo.reason}</p>
                 <div className="mt-3 flex items-center gap-2">
                   <Checkbox
                     id={`ack-${draft.id}`}
                     checked={acknowledgedChanges}
                     onCheckedChange={(checked) => setAcknowledgedChanges(checked === true)}
                   />
-                  <label htmlFor={`ack-${draft.id}`} className="text-sm text-amber-800 dark:text-amber-300 cursor-pointer">
+                  <label htmlFor={`ack-${draft.id}`} className="text-sm text-warning cursor-pointer">
                     I&apos;ve reviewed the updated answers and confirm this draft is still accurate
                   </label>
                 </div>
@@ -570,7 +570,7 @@ function SingleDraftCard({
         )}
 
         {draft.rejected_at && draft.rejection_reason && (
-          <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-500/10 p-3 rounded">
+          <div className="text-sm text-destructive bg-destructive-light p-3 rounded">
             <strong>Rejection reason:</strong> {draft.rejection_reason}
           </div>
         )}
@@ -667,7 +667,7 @@ export function DraftReviewPanel({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className={!isExpanded ? "border-blue-200 bg-blue-50/30 dark:border-blue-500/20 dark:bg-blue-500/5" : ""}>
+      <Card className={!isExpanded ? "border-info-border bg-info-light" : ""}>
         <CardHeader className="py-4 px-5">
           <div className="flex items-center justify-between">
             <CollapsibleTrigger asChild>
@@ -676,7 +676,7 @@ export function DraftReviewPanel({
                   <Bot className="h-5 w-5 text-blue-500" />
                   AI-Generated Drafts
                   {pendingCount > 0 && (
-                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 ml-2">{pendingCount} pending</Badge>
+                    <Badge className="bg-info-light text-info ml-2">{pendingCount} pending</Badge>
                   )}
                   <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </CardTitle>
@@ -708,7 +708,7 @@ export function DraftReviewPanel({
           <CardContent className="px-5 py-4 space-y-4">
             {regenerateMessage && (
               <div className={`p-2 rounded text-sm ${
-                regenerateMessage.includes("success") ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300"
+                regenerateMessage.includes("success") ? "bg-success-light text-success" : "bg-destructive-light text-destructive"
               }`}>
                 {regenerateMessage}
               </div>

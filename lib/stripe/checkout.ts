@@ -9,6 +9,7 @@ import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from 
 import { isOutsideBusinessHours, isAtCapacity } from "@/lib/operational-config"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
@@ -165,7 +166,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         }
       }
 
-      // KILL SWITCH: Check for blocked medications
+      // KILL SWITCH: Check for blocked medications (DB-based blocklist)
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
       const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
@@ -173,6 +174,16 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         return {
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+        }
+      }
+
+      // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
+      const medNameToCheck = medicationName || medicationDisplay || ""
+      if (medNameToCheck && isControlledSubstance(medNameToCheck)) {
+        logger.warn("Controlled substance blocked at checkout", { medication: medNameToCheck, category: input.category })
+        return {
+          success: false,
+          error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
         }
       }
     }
@@ -298,6 +309,27 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       patientId = profileId
     }
 
+    // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)
+    const profileDob = authUser.profile?.date_of_birth as string | null | undefined
+    if (profileDob) {
+      const dob = new Date(profileDob)
+      if (!isNaN(dob.getTime())) {
+        const today = new Date()
+        let age = today.getFullYear() - dob.getFullYear()
+        const monthDiff = today.getMonth() - dob.getMonth()
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+          age--
+        }
+        if (age < 18) {
+          logger.warn("Checkout blocked: patient under 18", { patientId, category: input.category })
+          return {
+            success: false,
+            error: "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian.",
+          }
+        }
+      }
+    }
+
     const patientEmail = authUser.user.email || undefined
     const stripeCustomerId = authUser.profile?.stripe_customer_id || undefined
 
@@ -307,6 +339,23 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { 
         success: false, 
         error: `Server configuration error. Please contact support at ${CONTACT_EMAIL}`
+      }
+    }
+
+    // CLINICAL AUDIT: Validate consent fields are present (CLINICAL.md §Consent Requirements)
+    // Consent must be explicit per-episode — never implied by signup
+    const hasTermsConsent = input.answers.terms_agreed === true || input.answers.agreedToTerms === true
+    const hasAccuracyConsent = input.answers.accuracy_confirmed === true || input.answers.confirmedAccuracy === true
+    if (!hasTermsConsent || !hasAccuracyConsent) {
+      logger.warn("Checkout blocked: missing consent fields", {
+        patientId,
+        hasTermsConsent,
+        hasAccuracyConsent,
+        category: input.category,
+      })
+      return {
+        success: false,
+        error: "Please agree to the terms of service and confirm your information is accurate before proceeding.",
       }
     }
 

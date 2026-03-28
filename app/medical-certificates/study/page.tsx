@@ -97,7 +97,7 @@ export default function StudyMedCertPage() {
                 <span className="text-sm font-medium text-primary">University &amp; TAFE</span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
                 Medical certificate for special consideration
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -136,7 +136,7 @@ export default function StudyMedCertPage() {
           {/* Use Cases */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-10">What you can use it for</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">What you can use it for</h2>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 text-center">
@@ -169,7 +169,7 @@ export default function StudyMedCertPage() {
           {/* University Acceptance */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Accepted by all Australian universities</h2>
+              <h2 className="text-2xl font-semibold mb-4">Accepted by all Australian universities</h2>
               <p className="text-muted-foreground mb-8">
                 Our certificates meet the requirements for special consideration at every Australian university and TAFE.
               </p>
@@ -198,7 +198,7 @@ export default function StudyMedCertPage() {
           {/* What Happens */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What happens</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What happens</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Three steps. Done from your phone.
               </p>
@@ -206,7 +206,7 @@ export default function StudyMedCertPage() {
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-primary">1</span>
+                    <span className="text-lg font-semibold text-primary">1</span>
                   </div>
                   <h3 className="font-semibold mb-2">Answer a few questions</h3>
                   <p className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ export default function StudyMedCertPage() {
 
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-primary">2</span>
+                    <span className="text-lg font-semibold text-primary">2</span>
                   </div>
                   <h3 className="font-semibold mb-2">Doctor reviews</h3>
                   <p className="text-sm text-muted-foreground">
@@ -226,7 +226,7 @@ export default function StudyMedCertPage() {
 
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-primary">3</span>
+                    <span className="text-lg font-semibold text-primary">3</span>
                   </div>
                   <h3 className="font-semibold mb-2">Certificate delivered</h3>
                   <p className="text-sm text-muted-foreground">
@@ -240,7 +240,7 @@ export default function StudyMedCertPage() {
           {/* What Doctors Review */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every request is reviewed by a real doctor. Here&apos;s what they consider.
               </p>
@@ -282,54 +282,54 @@ export default function StudyMedCertPage() {
           {/* Approval vs Decline */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">What results in approval vs decline</h2>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-success-light/30 border border-success-border">
+                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
                     <Check className="h-5 w-5" />
                     We can usually help if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Short-term illness (cold, flu, gastro, migraine)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Same-day or recent absence (within 48 hours)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Symptoms that don&apos;t require physical examination</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>1-3 day certificate duration</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                  <h3 className="font-semibold text-red-800 dark:text-red-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-destructive-light border border-destructive-border">
+                  <h3 className="font-semibold text-destructive mb-4 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     We&apos;ll refer you elsewhere if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Ongoing mental health concerns (see your GP)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Absence more than 48 hours ago</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Long-term certificate needs (chronic conditions)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Symptoms requiring physical examination</span>
                     </li>
                   </ul>
@@ -345,7 +345,7 @@ export default function StudyMedCertPage() {
           {/* What Certificate Includes */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What your certificate includes</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Everything universities require for special consideration.
               </p>
@@ -389,7 +389,7 @@ export default function StudyMedCertPage() {
           {/* Patient feedback */}
           <section className="py-12 px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {studentTestimonials.map((t) => (
                   <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
@@ -409,7 +409,7 @@ export default function StudyMedCertPage() {
           {/* FAQs */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
@@ -425,7 +425,7 @@ export default function StudyMedCertPage() {
           {/* Final CTA */}
           <section className="px-4 py-16 bg-primary/5 dark:bg-primary/10">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Get your certificate in under an hour</h2>
+              <h2 className="text-2xl font-semibold mb-4">Get your certificate in under an hour</h2>
               <p className="text-muted-foreground mb-8">
                 Don&apos;t miss your special consideration deadline. Get sorted now.
               </p>

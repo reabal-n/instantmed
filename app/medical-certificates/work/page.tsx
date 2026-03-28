@@ -87,12 +87,12 @@ export default function WorkMedCertPage() {
           {/* Hero */}
           <section className="px-4 py-16 sm:px-6 lg:py-20">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-                <Briefcase className="w-4 h-4 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Work Absence</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border/20 mb-6">
+                <Briefcase className="w-4 h-4 text-success" />
+                <span className="text-sm font-medium text-success">Work Absence</span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
                 Medical certificate for work
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -113,15 +113,15 @@ export default function WorkMedCertPage() {
 
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-emerald-600" />
+                  <Clock className="h-4 w-4 text-success" />
                   <span>Under 1 hour</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-emerald-600" />
+                  <BadgeCheck className="h-4 w-4 text-success" />
                   <span>AHPRA doctors</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-emerald-600" />
+                  <Shield className="h-4 w-4 text-success" />
                   <span>Employer accepted</span>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export default function WorkMedCertPage() {
           {/* Who This Is For */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">Is this right for you?</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">Is this right for you?</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Work certificates are suitable for most short-term illnesses. Here&apos;s what to know.
               </p>
@@ -139,7 +139,7 @@ export default function WorkMedCertPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Short-term illness</h3>
                       <p className="text-sm text-muted-foreground">
@@ -151,7 +151,7 @@ export default function WorkMedCertPage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Called in sick today</h3>
                       <p className="text-sm text-muted-foreground">
@@ -163,7 +163,7 @@ export default function WorkMedCertPage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Backdating limits</h3>
                       <p className="text-sm text-muted-foreground">
@@ -175,7 +175,7 @@ export default function WorkMedCertPage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Not for WorkCover</h3>
                       <p className="text-sm text-muted-foreground">
@@ -191,15 +191,15 @@ export default function WorkMedCertPage() {
           {/* What Happens */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What happens</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What happens</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Three steps. Done from your phone.
               </p>
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">1</span>
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-semibold text-success">1</span>
                   </div>
                   <h3 className="font-semibold mb-2">Answer a few questions</h3>
                   <p className="text-sm text-muted-foreground">
@@ -208,8 +208,8 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">2</span>
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-semibold text-success">2</span>
                   </div>
                   <h3 className="font-semibold mb-2">Doctor reviews</h3>
                   <p className="text-sm text-muted-foreground">
@@ -218,8 +218,8 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">3</span>
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
+                    <span className="text-lg font-semibold text-success">3</span>
                   </div>
                   <h3 className="font-semibold mb-2">Certificate delivered</h3>
                   <p className="text-sm text-muted-foreground">
@@ -233,14 +233,14 @@ export default function WorkMedCertPage() {
           {/* What Doctors Review */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every request is reviewed by a real doctor. Here&apos;s what they consider.
               </p>
 
               <div className="space-y-4">
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
-                  <Stethoscope className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <Stethoscope className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Your symptoms</h3>
                     <p className="text-sm text-muted-foreground">
@@ -250,7 +250,7 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
-                  <Clock className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <Clock className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration requested</h3>
                     <p className="text-sm text-muted-foreground">
@@ -260,7 +260,7 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10">
-                  <MessageCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <MessageCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Telehealth appropriateness</h3>
                     <p className="text-sm text-muted-foreground">
@@ -275,54 +275,54 @@ export default function WorkMedCertPage() {
           {/* Approval vs Decline */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-10">What results in approval vs decline</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">What results in approval vs decline</h2>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-success-light/30 border border-success-border">
+                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
                     <Check className="h-5 w-5" />
                     We can usually help if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Short-term illness (cold, flu, gastro, migraine)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Same-day or recent absence (within 48 hours)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>Symptoms that don&apos;t require physical examination</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600 mt-1">•</span>
+                      <span className="text-success mt-1">•</span>
                       <span>1-3 day certificate duration</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                  <h3 className="font-semibold text-red-800 dark:text-red-300 mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-xl bg-destructive-light border border-destructive-border">
+                  <h3 className="font-semibold text-destructive mb-4 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5" />
                     We&apos;ll refer you elsewhere if...
                   </h3>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>WorkCover or workplace injury claim</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Certificate for legal proceedings</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Absence more than 48 hours ago</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 mt-1">•</span>
+                      <span className="text-destructive mt-1">•</span>
                       <span>Symptoms requiring physical examination</span>
                     </li>
                   </ul>
@@ -338,14 +338,14 @@ export default function WorkMedCertPage() {
           {/* Employer Acceptance */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">Your employer will accept this</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">Your employer will accept this</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Our certificates meet all requirements for Australian employers.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
-                  <BadgeCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <BadgeCheck className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">AHPRA Registered</h3>
                     <p className="text-xs text-muted-foreground">All doctors registered with Australian Health Practitioner Regulation Agency</p>
@@ -353,7 +353,7 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
-                  <FileCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <FileCheck className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Provider Number Included</h3>
                     <p className="text-xs text-muted-foreground">Doctor&apos;s Medicare provider number on every certificate</p>
@@ -361,7 +361,7 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
-                  <Building2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <Building2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Australian-Based</h3>
                     <p className="text-xs text-muted-foreground">Our doctors and team are 100% based in Australia</p>
@@ -369,7 +369,7 @@ export default function WorkMedCertPage() {
                 </div>
 
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card">
-                  <Shield className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <Shield className="h-5 w-5 text-success shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Legally Valid</h3>
                     <p className="text-xs text-muted-foreground">Meets Fair Work Act requirements for medical evidence</p>
@@ -382,7 +382,7 @@ export default function WorkMedCertPage() {
           {/* Patient feedback */}
           <section className="py-12 px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {workTestimonials.map((t) => (
                   <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
@@ -402,7 +402,7 @@ export default function WorkMedCertPage() {
           {/* FAQs */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
@@ -416,9 +416,9 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-emerald-50 dark:bg-emerald-950/30">
+          <section className="px-4 py-16 bg-success-light/30">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to get your certificate?</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
                 Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
               </p>
@@ -442,15 +442,15 @@ export default function WorkMedCertPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificates/study" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificates/study" className="text-success hover:underline">
                   Certificates for study
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates/carers" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificates/carers" className="text-success hover:underline">
                   Carer&apos;s leave
                 </Link>
                 {' • '}
-                <Link href="/medical-certificates" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificates" className="text-success hover:underline">
                   All certificate types
                 </Link>
               </p>

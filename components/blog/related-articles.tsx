@@ -20,7 +20,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
 
   return (
     <section className="mt-12 pt-8 border-t">
-      <h2 className="text-xl font-bold mb-6">Related Articles</h2>
+      <h2 className="text-xl font-semibold mb-6">Related Articles</h2>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {relatedArticles.map((article) => (
           <Link 

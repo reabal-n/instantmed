@@ -119,11 +119,11 @@ export function WebhookMonitoringClient({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "delivered":
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-success" />
       case "failed":
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className="h-4 w-4 text-destructive" />
       case "pending":
-        return <Clock className="h-4 w-4 text-amber-600" />
+        return <Clock className="h-4 w-4 text-warning" />
       default:
         return null
     }
@@ -132,7 +132,7 @@ export function WebhookMonitoringClient({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "delivered":
-        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Delivered</Badge>
+        return <Badge className="bg-success-light text-success">Delivered</Badge>
       case "failed":
         return <Badge variant="destructive">Failed</Badge>
       case "pending":
@@ -151,7 +151,7 @@ export function WebhookMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-2xl font-semibold">{stats.total}</p>
               </div>
               <Webhook className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -163,9 +163,9 @@ export function WebhookMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Delivered</p>
-                <p className="text-2xl font-bold text-green-600">{stats.success}</p>
+                <p className="text-2xl font-semibold text-success">{stats.success}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600/50" />
+              <CheckCircle className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
@@ -175,9 +175,9 @@ export function WebhookMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Failed</p>
-                <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+                <p className="text-2xl font-semibold text-destructive">{stats.failed}</p>
               </div>
-              <XCircle className="h-8 w-8 text-red-600/50" />
+              <XCircle className="h-8 w-8 text-destructive/50" />
             </div>
           </CardContent>
         </Card>
@@ -187,9 +187,9 @@ export function WebhookMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">DLQ Items</p>
-                <p className="text-2xl font-bold text-amber-600">{dlqItems.length}</p>
+                <p className="text-2xl font-semibold text-warning">{dlqItems.length}</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-amber-600/50" />
+              <AlertTriangle className="h-8 w-8 text-warning/50" />
             </div>
           </CardContent>
         </Card>
@@ -308,7 +308,7 @@ export function WebhookMonitoringClient({
                         <TableCell className="font-mono text-xs">
                           {item.event_type}
                         </TableCell>
-                        <TableCell className="max-w-[300px] truncate text-xs text-red-600">
+                        <TableCell className="max-w-[300px] truncate text-xs text-destructive">
                           {item.error_message}
                         </TableCell>
                         <TableCell>{item.retry_count}</TableCell>
@@ -345,7 +345,7 @@ export function WebhookMonitoringClient({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteDLQ(item)}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -424,7 +424,7 @@ export function WebhookMonitoringClient({
             <div className="space-y-4">
               <div>
                 <p className="text-muted-foreground text-sm">Error Message</p>
-                <p className="text-red-600 text-sm mt-1">{selectedDLQ.error_message}</p>
+                <p className="text-destructive text-sm mt-1">{selectedDLQ.error_message}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-2">Payload</p>

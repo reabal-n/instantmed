@@ -175,7 +175,7 @@ export function TrackingClient({
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-xl font-semibold">{intake.service?.name || intake.service?.short_name || "Request"}</h1>
                 {intake.is_priority && (
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                  <Badge className="bg-warning-light text-warning border-warning-border">
                     <Zap className="w-3 h-3 mr-1" />
                     Priority
                   </Badge>
@@ -222,14 +222,14 @@ export function TrackingClient({
             <div className="mt-6 p-4 bg-muted/50 rounded-xl">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Queue Position</span>
-                <span className="text-2xl font-bold text-primary">#{queuePosition}</span>
+                <span className="text-2xl font-semibold text-primary">#{queuePosition}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>Estimated wait: ~{estimatedMinutes} min</span>
               </div>
               {intake.is_priority && (
-                <p className="text-xs text-amber-600 mt-2">Priority review — typically within 15 minutes</p>
+                <p className="text-xs text-warning mt-2">Priority review — typically within 15 minutes</p>
               )}
             </div>
           )}

@@ -187,14 +187,14 @@ export function MessagesClient({
                                 msg.sender_type === "patient"
                                   ? "bg-primary/10"
                                   : msg.sender_type === "doctor"
-                                  ? "bg-emerald-100 dark:bg-emerald-950/40"
+                                  ? "bg-success-light/40"
                                   : "bg-muted"
                               )}
                             >
                               {msg.sender_type === "patient" ? (
                                 <User className="w-4 h-4 text-primary" />
                               ) : msg.sender_type === "doctor" ? (
-                                <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <Stethoscope className="w-4 h-4 text-success" />
                               ) : (
                                 <MessageSquare className="w-4 h-4 text-muted-foreground" />
                               )}

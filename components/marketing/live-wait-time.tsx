@@ -23,8 +23,8 @@ const SERVICE_WAIT_TIMES = {
     icon: Pill,
     minWait: 15,
     maxWait: 35,
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
+    color: 'text-success',
+    bgColor: 'bg-success-light',
   },
   'consult': {
     label: 'Consultations',
@@ -332,7 +332,7 @@ export function LiveWaitTime({
                       initial={prefersReducedMotion ? {} : { opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
-                      className="text-lg font-bold text-foreground"
+                      className="text-lg font-semibold text-foreground"
                     >
                       {formatWaitTime(time)}
                     </motion.span>
@@ -344,7 +344,7 @@ export function LiveWaitTime({
                     )}
                   </>
                 ) : (
-                  <span className="text-lg font-bold text-foreground">Next business day</span>
+                  <span className="text-lg font-semibold text-foreground">Next business day</span>
                 )}
               </div>
             </div>

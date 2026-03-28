@@ -105,8 +105,8 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                     <Card key={cert.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
                       <CardContent className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
-                            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <div className="w-10 h-10 rounded-xl bg-info-light flex items-center justify-center shrink-0">
+                            <FileText className="h-5 w-5 text-info" />
                           </div>
                           <div>
                             <p className="font-medium">{cert.serviceName}</p>
@@ -144,8 +144,8 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                     <Card key={receipt.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
-                            <Receipt className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                          <div className="w-10 h-10 rounded-xl bg-success-light/40 flex items-center justify-center shrink-0">
+                            <Receipt className="h-5 w-5 text-success" />
                           </div>
                           <div>
                             <p className="font-medium">{receipt.serviceName}</p>

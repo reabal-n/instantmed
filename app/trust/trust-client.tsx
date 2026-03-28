@@ -373,7 +373,7 @@ function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount:
           <motion.h2
             variants={fadeUp}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
+            className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground"
           >
             What patients say
           </motion.h2>

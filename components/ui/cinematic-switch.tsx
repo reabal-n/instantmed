@@ -57,7 +57,7 @@ export function CinematicSwitch({
     >
       {/* 'OFF' Label */}
       <span className={cn(
-        "text-xs font-bold tracking-wider transition-colors duration-300",
+        "text-xs font-semibold tracking-wider transition-colors duration-300",
         !isOn ? "text-zinc-400" : "text-zinc-700"
       )}>
         {offLabel}
@@ -90,7 +90,7 @@ export function CinematicSwitch({
 
       {/* 'ON' Label */}
       <span className={cn(
-        "text-xs font-bold tracking-wider transition-colors duration-300",
+        "text-xs font-semibold tracking-wider transition-colors duration-300",
         onLabelColor
       )}>
         {onLabel}

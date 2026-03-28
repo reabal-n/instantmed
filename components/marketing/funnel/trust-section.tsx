@@ -24,7 +24,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             {config.trust.title}
           </h2>
         </motion.div>

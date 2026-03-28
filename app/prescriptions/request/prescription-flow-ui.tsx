@@ -153,8 +153,8 @@ export function ControlledWarning({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-background rounded-2xl p-5 max-w-sm w-full space-y-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
+          <div className="w-10 h-10 rounded-full bg-warning-light flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-warning" />
           </div>
           <div>
             <h2 className="font-semibold">{RX_MICROCOPY.controlled.title}</h2>
@@ -183,8 +183,8 @@ export function ControlledWarning({ onClose }: { onClose: () => void }) {
 export function SafetyKnockout() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
-      <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-        <AlertTriangle className="w-8 h-8 text-amber-600" />
+      <div className="w-16 h-16 rounded-full bg-warning-light flex items-center justify-center mb-4">
+        <AlertTriangle className="w-8 h-8 text-warning" />
       </div>
       <h1 className="text-xl font-semibold mb-2">{RX_MICROCOPY.safety.knockoutTitle}</h1>
       <p className="text-sm text-muted-foreground max-w-xs mb-6">{RX_MICROCOPY.safety.knockoutBody}</p>

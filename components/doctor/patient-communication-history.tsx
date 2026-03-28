@@ -88,7 +88,7 @@ export function PatientCommunicationHistory({
       return <Badge variant="destructive">Bounced</Badge>
     }
     if (email.opened_at) {
-      return <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">Opened</Badge>
+      return <Badge className="bg-success-light text-success border-success-border">Opened</Badge>
     }
     if (email.delivered_at) {
       return <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">Delivered</Badge>
@@ -213,7 +213,7 @@ export function PatientCommunicationHistory({
                 </div>
 
                 {email.bounced_at && (
-                  <div className="bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300">
+                  <div className="bg-destructive-light p-3 rounded-lg border border-destructive-border text-destructive">
                     <span className="font-medium">Bounced:</span> {formatDate(email.bounced_at)}
                     {email.error_message && (
                       <p className="text-xs mt-1">{email.error_message}</p>
@@ -222,7 +222,7 @@ export function PatientCommunicationHistory({
                 )}
 
                 {email.status === "failed" && email.error_message && (
-                  <div className="bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300">
+                  <div className="bg-destructive-light p-3 rounded-lg border border-destructive-border text-destructive">
                     <span className="font-medium">Error:</span> {email.error_message}
                   </div>
                 )}

@@ -139,17 +139,17 @@ export function AuditLogsClient({
   const getEventColor = (eventType: string) => {
     switch (eventType) {
       case "status_change":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+        return "bg-info-light text-info"
       case "payment_received":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+        return "bg-success-light text-success"
       case "document_generated":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+        return "bg-warning-light text-warning"
       case "email_sent":
         return "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
       case "email_failed":
-        return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"
+        return "bg-destructive-light text-destructive"
       case "refund_processed":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+        return "bg-warning-light text-warning"
       default:
         return "bg-muted text-muted-foreground"
     }
@@ -177,7 +177,7 @@ export function AuditLogsClient({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Audit Logs</h1>
+            <h1 className="text-2xl font-semibold">Audit Logs</h1>
             <p className="text-muted-foreground">View intake and certificate event history</p>
           </div>
         </div>

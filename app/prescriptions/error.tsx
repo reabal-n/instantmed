@@ -23,11 +23,11 @@ export default function PrescriptionsError({
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 mb-6">
-          <AlertTriangle className="h-8 w-8 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-warning-light mb-6">
+          <AlertTriangle className="h-8 w-8 text-warning" />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+        <h1 className="text-2xl font-semibold mb-2">Something went wrong</h1>
         <p className="text-muted-foreground mb-6">
           We couldn&apos;t load this page. This might be a temporary issue.
         </p>

@@ -12,10 +12,10 @@ import type { RepeatRxRequestRow } from "@/lib/data/repeat-rx"
 import { useTransition } from "react"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  pending: { label: "Pending", color: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300", icon: Clock },
-  requires_consult: { label: "Requires Consult", color: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300", icon: Clock },
-  approved: { label: "Script Sent", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300", icon: CheckCircle2 },
-  declined: { label: "Declined", color: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300", icon: CheckCircle2 },
+  pending: { label: "Pending", color: "bg-info-light text-info", icon: Clock },
+  requires_consult: { label: "Requires Consult", color: "bg-warning-light text-warning", icon: Clock },
+  approved: { label: "Script Sent", color: "bg-success-light text-success", icon: CheckCircle2 },
+  declined: { label: "Declined", color: "bg-destructive-light text-destructive", icon: CheckCircle2 },
 }
 
 interface RepeatRxListClientProps {
@@ -68,13 +68,13 @@ export function RepeatRxListClient({ initialRequests, counts }: RepeatRxListClie
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Awaiting review
           </p>
-          <p className="text-xl font-bold tabular-nums">{counts.pending}</p>
+          <p className="text-xl font-semibold tabular-nums">{counts.pending}</p>
         </div>
         <div className="rounded-xl border border-border/50 bg-card p-3">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Total
           </p>
-          <p className="text-xl font-bold tabular-nums">{counts.total}</p>
+          <p className="text-xl font-semibold tabular-nums">{counts.total}</p>
         </div>
       </div>
 

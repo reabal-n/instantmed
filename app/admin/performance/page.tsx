@@ -11,7 +11,7 @@ export default function PerformanceMonitoringPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Performance Monitoring</h1>
+        <h1 className="text-2xl font-semibold">Performance Monitoring</h1>
         <p className="text-muted-foreground">
           Monitor Core Web Vitals and application performance
         </p>

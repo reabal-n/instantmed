@@ -68,9 +68,9 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
       />
       <span className="text-sm">{label}</span>
       {healthy ? (
-        <CheckCircle className="w-4 h-4 text-emerald-500" />
+        <CheckCircle className="w-4 h-4 text-success" />
       ) : (
-        <AlertTriangle className="w-4 h-4 text-red-500" />
+        <AlertTriangle className="w-4 h-4 text-destructive" />
       )}
     </div>
   )
@@ -115,12 +115,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="dashboard-card rounded-xl p-5">
             <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-red-50" : "bg-emerald-50")}>
-                <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-red-600" : "text-emerald-600")} />
+              <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-destructive-light" : "bg-success-light")}>
+                <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-destructive" : "text-success")} />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Failed Webhooks</p>
-                <p className={cn("text-2xl font-bold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-red-600")}>
+                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-destructive")}>
                   {webhooks.failedCount}
                 </p>
               </div>
@@ -134,12 +134,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
           <div className="dashboard-card rounded-xl p-5">
             <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", emails.failed > 0 ? "bg-amber-50" : "bg-emerald-50")}>
-                <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-amber-600" : "text-emerald-600")} />
+              <div className={cn("p-3 rounded-lg shrink-0", emails.failed > 0 ? "bg-warning-light" : "bg-success-light")}>
+                <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-warning" : "text-success")} />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email Success</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{emails.successRate}%</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{emails.successRate}%</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{emails.total} sent today</p>
               </div>
             </div>
@@ -152,12 +152,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
           <div className="dashboard-card rounded-xl p-5">
             <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", staleIntakes > 0 ? "bg-amber-50" : "bg-emerald-50")}>
-                <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-amber-600" : "text-emerald-600")} />
+              <div className={cn("p-3 rounded-lg shrink-0", staleIntakes > 0 ? "bg-warning-light" : "bg-success-light")}>
+                <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-warning" : "text-success")} />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stale Intakes</p>
-                <p className={cn("text-2xl font-bold tabular-nums mt-0.5", staleIntakes > 0 && "text-amber-600")}>
+                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", staleIntakes > 0 && "text-warning")}>
                   {staleIntakes}
                 </p>
                 <p className="text-xs text-muted-foreground">Awaiting 2h+</p>
@@ -172,12 +172,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
           <div className="dashboard-card rounded-xl p-5">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-blue-50 shrink-0">
-                <ScrollText className="h-5 w-5 text-blue-600" />
+              <div className="p-3 rounded-lg bg-info-light shrink-0">
+                <ScrollText className="h-5 w-5 text-info" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Audit Logs (24h)</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{auditVolume.toLocaleString()}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{auditVolume.toLocaleString()}</p>
               </div>
             </div>
             <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
@@ -204,7 +204,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
             {webhooks.recentFailed.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
                 <p>No failed webhooks</p>
               </div>
             ) : (
@@ -233,7 +233,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <p className="text-sm text-muted-foreground mb-4">{errors.count} errors logged</p>
             {errors.recent.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
                 <p>No recent errors</p>
               </div>
             ) : (
@@ -246,7 +246,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                         {new Date(error.created_at).toLocaleString("en-AU")}
                       </p>
                     </div>
-                    <XCircle className="w-4 h-4 text-red-500 shrink-0 ml-2" />
+                    <XCircle className="w-4 h-4 text-destructive shrink-0 ml-2" />
                   </div>
                 ))}
               </div>

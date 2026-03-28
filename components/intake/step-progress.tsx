@@ -242,9 +242,9 @@ export function StepProgress({
           transition={prefersReducedMotion ? { duration: 0 } : undefined}
           className="flex justify-center mt-3"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border">
+            <Sparkles className="w-3.5 h-3.5 text-success" />
+            <span className="text-xs font-medium text-success">
               Last step — you&apos;re almost done
             </span>
           </div>

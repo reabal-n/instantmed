@@ -185,9 +185,9 @@ export interface ServiceFunnelConfig {
 export const colorClasses = {
   emerald: {
     gradient: 'from-emerald-500 to-teal-600',
-    light: 'bg-emerald-50 dark:bg-emerald-950/30',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    border: 'border-emerald-200 dark:border-emerald-800',
+    light: 'bg-success-light',
+    text: 'text-success',
+    border: 'border-success-border',
     button: 'bg-emerald-600 hover:bg-emerald-700',
     ring: 'ring-emerald-500/20',
   },

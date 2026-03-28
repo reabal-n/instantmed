@@ -452,7 +452,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
+          className="p-3 rounded-lg bg-warning-light border border-warning-border text-sm text-warning flex items-start gap-2"
         >
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{expiryWarning}</span>

@@ -74,13 +74,13 @@ const SPECIAL_STATUSES: Record<string, { label: string; description: string; ico
     label: "Info requested",
     description: "The doctor has a question for you",
     icon: <MessageSquare className="h-4 w-4" />,
-    color: "text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/40 dark:border-amber-800",
+    color: "text-warning bg-warning-light border-warning-border",
   },
   declined: {
     label: "Not approved",
     description: "Request couldn't be approved this time",
     icon: <XCircle className="h-4 w-4" />,
-    color: "text-red-700 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/40 dark:border-red-800",
+    color: "text-destructive bg-destructive-light border-destructive-border",
   },
   escalated: {
     label: "Escalated",
@@ -92,7 +92,7 @@ const SPECIAL_STATUSES: Record<string, { label: string; description: string; ico
     label: "Preparing script",
     description: "Your eScript is being prepared",
     icon: <FileText className="h-4 w-4" />,
-    color: "text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950/40 dark:border-blue-800",
+    color: "text-info bg-info-light border-info-border",
   },
 }
 
@@ -306,9 +306,9 @@ export function IntakeStatusTracker({
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+          className="mb-5 p-3 rounded-xl bg-info-light border border-info-border"
         >
-          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+          <div className="flex items-center gap-2 text-info">
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">
               Doctors typically review within {estimatedWait} minutes

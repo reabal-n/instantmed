@@ -109,9 +109,9 @@ function formatTimeAgo(dateString: string): string {
 
 function getLevelBadge(level: SentryIssue["level"]) {
   const styles = {
-    error: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400",
-    warning: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400",
-    info: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400",
+    error: "bg-destructive-light text-destructive",
+    warning: "bg-warning-light text-warning",
+    info: "bg-info-light text-info",
   }
   return styles[level]
 }
@@ -119,11 +119,11 @@ function getLevelBadge(level: SentryIssue["level"]) {
 function getStatusIcon(status: SentryIssue["status"]) {
   switch (status) {
     case "resolved":
-      return <CheckCircle className="h-4 w-4 text-green-500" />
+      return <CheckCircle className="h-4 w-4 text-success" />
     case "ignored":
       return <XCircle className="h-4 w-4 text-muted-foreground" />
     default:
-      return <AlertCircle className="h-4 w-4 text-red-500" />
+      return <AlertCircle className="h-4 w-4 text-destructive" />
   }
 }
 
@@ -176,7 +176,7 @@ export function ErrorMonitoringClient({
           </Button>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <Bug className="h-6 w-6 text-red-500" />
+              <Bug className="h-6 w-6 text-destructive" />
               Error Monitoring
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -205,35 +205,35 @@ export function ErrorMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Issues</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-2xl font-semibold">{stats.total}</p>
               </div>
               <Bug className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
-        <Card className={stats.unresolved > 0 ? "border-red-200 dark:border-red-800" : ""}>
+        <Card className={stats.unresolved > 0 ? "border-destructive-border" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Unresolved</p>
-                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                <p className="text-2xl font-semibold text-destructive">
                   {stats.unresolved}
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-500/50" />
+              <AlertTriangle className="h-8 w-8 text-destructive/50" />
             </div>
           </CardContent>
         </Card>
-        <Card className={stats.regressions > 0 ? "border-amber-200 dark:border-amber-800" : ""}>
+        <Card className={stats.regressions > 0 ? "border-warning-border" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Regressions</p>
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                <p className="text-2xl font-semibold text-warning">
                   {stats.regressions}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-amber-500/50" />
+              <TrendingUp className="h-8 w-8 text-warning/50" />
             </div>
           </CardContent>
         </Card>
@@ -242,7 +242,7 @@ export function ErrorMonitoringClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Users Affected</p>
-                <p className="text-2xl font-bold">{stats.usersAffected}</p>
+                <p className="text-2xl font-semibold">{stats.usersAffected}</p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -302,7 +302,7 @@ export function ErrorMonitoringClient({
                           <p className="font-medium truncate flex items-center gap-2">
                             {issue.title}
                             {issue.isRegression && (
-                              <Badge variant="outline" className="text-amber-600 border-amber-300">
+                              <Badge variant="outline" className="text-warning border-warning-border">
                                 Regression
                               </Badge>
                             )}
@@ -368,7 +368,7 @@ export function ErrorMonitoringClient({
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
             >
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-5 w-5 text-destructive" />
               <div>
                 <p className="font-medium">Unresolved Issues</p>
                 <p className="text-sm text-muted-foreground">View all open errors</p>
@@ -381,7 +381,7 @@ export function ErrorMonitoringClient({
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
             >
-              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <TrendingUp className="h-5 w-5 text-warning" />
               <div>
                 <p className="font-medium">Regressions</p>
                 <p className="text-sm text-muted-foreground">Previously fixed issues</p>
@@ -394,7 +394,7 @@ export function ErrorMonitoringClient({
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors"
             >
-              <Clock className="h-5 w-5 text-blue-500" />
+              <Clock className="h-5 w-5 text-info" />
               <div>
                 <p className="font-medium">Performance</p>
                 <p className="text-sm text-muted-foreground">Trace slow transactions</p>

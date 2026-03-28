@@ -27,7 +27,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             {config.specializedServices.title}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

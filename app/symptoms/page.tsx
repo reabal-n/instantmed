@@ -78,15 +78,15 @@ export default function SymptomsIndexPage() {
           />
 
           {/* Emergency Notice — critical safety, always visible */}
-          <section className="px-4 py-5 bg-red-50 dark:bg-red-950/30 border-y border-red-200 dark:border-red-800">
+          <section className="px-4 py-5 bg-destructive-light border-y border-destructive-border">
             <div className="mx-auto max-w-4xl flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <div>
-                <p className="text-red-800 dark:text-red-200 font-medium">
+                <p className="text-destructive font-medium">
                   If you&apos;re experiencing a medical emergency, call 000
                   immediately
                 </p>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                <p className="text-sm text-destructive mt-1">
                   Symptoms like chest pain, difficulty breathing, severe
                   bleeding, or loss of consciousness require emergency care.
                 </p>

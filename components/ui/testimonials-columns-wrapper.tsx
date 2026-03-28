@@ -45,7 +45,7 @@ export function TestimonialsColumnsWrapper({
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter text-center text-foreground">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tighter text-center text-foreground">
             {title}
           </h2>
           <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">

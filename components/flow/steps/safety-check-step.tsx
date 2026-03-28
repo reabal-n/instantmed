@@ -43,15 +43,15 @@ const outcomeConfig: Record<
 > = {
   ALLOW: {
     icon: CheckCircle2,
-    bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    borderColor: 'border-emerald-200 dark:border-emerald-500/30',
+    bgColor: 'bg-success-light',
+    iconColor: 'text-success',
+    borderColor: 'border-success-border',
   },
   REQUEST_MORE_INFO: {
     icon: FileText,
-    bgColor: 'bg-amber-50 dark:bg-amber-500/10',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    borderColor: 'border-amber-200 dark:border-amber-500/30',
+    bgColor: 'bg-warning-light',
+    iconColor: 'text-warning',
+    borderColor: 'border-warning-border',
   },
   REQUIRES_CALL: {
     icon: Phone,
@@ -61,9 +61,9 @@ const outcomeConfig: Record<
   },
   DECLINE: {
     icon: AlertCircle,
-    bgColor: 'bg-red-50 dark:bg-red-500/10',
-    iconColor: 'text-red-600 dark:text-red-400',
-    borderColor: 'border-red-200 dark:border-red-500/30',
+    bgColor: 'bg-destructive-light',
+    iconColor: 'text-destructive',
+    borderColor: 'border-destructive-border',
   },
 }
 
@@ -234,7 +234,7 @@ export function SafetyCheckStep({
             <Icon className={cn('w-10 h-10', config.iconColor)} />
           </div>
 
-          <h2 className="text-2xl font-bold text-foreground mt-6">
+          <h2 className="text-2xl font-semibold text-foreground mt-6">
             {result.patientTitle}
           </h2>
           <p className="text-muted-foreground mt-2 max-w-md mx-auto">
@@ -281,7 +281,7 @@ export function SafetyCheckStep({
               <Icon className={cn('w-8 h-8', config.iconColor)} />
             </div>
 
-            <h2 className="text-xl font-bold text-foreground mt-4">
+            <h2 className="text-xl font-semibold text-foreground mt-4">
               {result.patientTitle}
             </h2>
             <p className="text-muted-foreground mt-2">{result.patientMessage}</p>
@@ -396,7 +396,7 @@ export function SafetyCheckStep({
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
 
-            <h2 className="text-2xl font-bold text-foreground mt-6">
+            <h2 className="text-2xl font-semibold text-foreground mt-6">
               We&apos;ll be in touch soon
             </h2>
             <p className="text-muted-foreground mt-2 max-w-md mx-auto">
@@ -441,7 +441,7 @@ export function SafetyCheckStep({
               <Icon className={cn('w-8 h-8', config.iconColor)} />
             </div>
 
-            <h2 className="text-xl font-bold text-foreground mt-4">
+            <h2 className="text-xl font-semibold text-foreground mt-4">
               {result.patientTitle}
             </h2>
             <p className="text-muted-foreground mt-2 max-w-md mx-auto">
@@ -541,7 +541,7 @@ export function SafetyCheckStep({
             <Icon className={cn('w-8 h-8', config.iconColor)} />
           </div>
 
-          <h2 className="text-xl font-bold text-foreground mt-4">
+          <h2 className="text-xl font-semibold text-foreground mt-4">
             {result.patientTitle}
           </h2>
           <p className="text-muted-foreground mt-2 max-w-md mx-auto">
@@ -551,14 +551,14 @@ export function SafetyCheckStep({
 
         {/* Emergency notice if critical */}
         {result.riskTier === 'critical' && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+          <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
               <div>
-                <p className="font-semibold text-red-800">
+                <p className="font-semibold text-destructive">
                   If this is an emergency
                 </p>
-                <p className="text-sm text-red-700 mt-1">
+                <p className="text-sm text-destructive mt-1">
                   Call <strong>000</strong> immediately or go to your nearest
                   emergency department.
                 </p>

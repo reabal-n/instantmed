@@ -66,7 +66,7 @@ export default function StudentsPage() {
                 <div className="max-w-3xl mx-auto text-center">
                   <div className="mb-4"><SectionPill>For Uni & TAFE Students</SectionPill></div>
 
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Medical Certificates for Special Consideration
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
@@ -110,15 +110,15 @@ export default function StudentsPage() {
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-primary">2 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-primary">2 min</div>
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-primary">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-primary">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-primary">PDF</div>
+                      <div className="text-2xl font-semibold mb-1 text-primary">PDF</div>
                       <div className="text-xs text-muted-foreground">straight to email</div>
                     </div>
                   </div>
@@ -132,7 +132,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-3">Accepted by all Australian universities</h2>
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-3">Accepted by all Australian universities</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Our certificates meet the requirements for special consideration at every Australian university and TAFE.
                   </p>
@@ -164,7 +164,7 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">What you can use it for</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">What you can use it for</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     {
@@ -198,7 +198,7 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why students use InstantMed</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Why students use InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -239,7 +239,7 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What students say</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What students say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -284,7 +284,7 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">FAQ for students</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">FAQ for students</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
@@ -323,7 +323,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-primary/5 dark:bg-primary/5">
-                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Don&apos;t miss your special consideration deadline. Get sorted now.
                   </p>

@@ -115,12 +115,12 @@ export function SmartValidation({
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className={cn(
-          "flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800",
+          "flex items-center gap-2 p-3 rounded-xl bg-success-light border border-success-border",
           className
         )}
       >
-        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-        <span className="text-sm text-emerald-700 dark:text-emerald-400">
+        <CheckCircle2 className="w-4 h-4 text-success" />
+        <span className="text-sm text-success">
           {summary || "All checks passed. Ready to submit."}
         </span>
       </motion.div>
@@ -148,11 +148,11 @@ export function SmartValidation({
   const getIssueBgColor = (severity: string) => {
     switch (severity) {
       case "error":
-        return "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800"
+        return "bg-destructive-light border-destructive-border"
       case "warning":
-        return "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+        return "bg-warning-light border-warning-border"
       case "info":
-        return "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800"
+        return "bg-info-light border-info-border"
       default:
         return "bg-muted/50 border-border"
     }
@@ -170,7 +170,7 @@ export function SmartValidation({
         className={cn(
           "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors",
           errorCount > 0 
-            ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800"
+            ? "bg-destructive-light border-destructive-border"
             : warningCount > 0
             ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
             : "bg-primary/5 border-primary/20"
@@ -185,7 +185,7 @@ export function SmartValidation({
           {!isValidating && (
             <div className="flex items-center gap-1.5 ml-2">
               {errorCount > 0 && (
-                <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">
+                <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive-light text-destructive">
                   {errorCount} error{errorCount !== 1 ? "s" : ""}
                 </span>
               )}

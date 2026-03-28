@@ -192,20 +192,20 @@ export function PanelDashboard({
 
       {/* Error State */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
-          <p className="text-sm text-red-700 dark:text-red-300">Something went wrong loading your data. Try refreshing — if it keeps happening, <a href="/contact" className="underline font-medium">let us know</a>.</p>
+        <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+          <p className="text-sm text-destructive">Something went wrong loading your data. Try refreshing — if it keeps happening, <a href="/contact" className="underline font-medium">let us know</a>.</p>
         </div>
       )}
 
       {/* Payment Recovery Prompt */}
       {stalePaymentIntakes.length > 0 && (
-        <section className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 space-y-3">
-          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+        <section className="p-4 rounded-xl bg-info-light border border-info-border space-y-3">
+          <div className="flex items-center gap-2 text-info">
             <CreditCard className="w-5 h-5" />
             <h3 className="font-semibold">Complete your request</h3>
           </div>
-          <p className="text-sm text-blue-600 dark:text-blue-400">
+          <p className="text-sm text-info">
             {stalePaymentIntakes.length === 1 
               ? "You have a request waiting to be completed."
               : `You have ${stalePaymentIntakes.length} requests waiting to be completed.`}
@@ -218,7 +218,7 @@ export function PanelDashboard({
                 <Link 
                   key={intake.id}
                   href={`/patient/intakes/${intake.id}`}
-                  className="flex items-center justify-between bg-card rounded-xl p-3 border border-blue-100 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                  className="flex items-center justify-between bg-card rounded-xl p-3 border border-info-border hover:border-info-border transition-colors"
                 >
                   <div>
                     <p className="font-medium text-foreground">{serviceName}</p>
@@ -226,7 +226,7 @@ export function PanelDashboard({
                       Started {formatDate(intake.created_at)}
                     </p>
                   </div>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Button size="sm">
                     Complete
                   </Button>
                 </Link>
@@ -256,18 +256,18 @@ export function PanelDashboard({
                   <Link
                     key={intake.id}
                     href={`/patient/intakes/${intake.id}`}
-                    className="flex items-center justify-between p-5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group"
+                    className="flex items-center justify-between p-5 rounded-xl border border-success-border bg-success-light hover:bg-success-light transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                        <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="w-10 h-10 rounded-xl bg-success-light flex items-center justify-center">
+                        <Download className="w-5 h-5 text-success" />
                       </div>
                       <div>
                         <p className="font-medium text-foreground">{serviceName}</p>
                         <p className="text-sm text-muted-foreground">Ref: {intake.id.slice(0, 8).toUpperCase()}</p>
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
+                    <span className="text-sm font-medium text-success group-hover:underline">
                       Download
                     </span>
                   </Link>
@@ -311,21 +311,21 @@ export function PanelDashboard({
       {/* Prescription Renewal Reminders */}
       {prescriptionsNeedingRenewal.length > 0 && (
         <section>
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-3">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+          <div className="p-4 rounded-xl bg-warning-light border border-warning-border space-y-3">
+            <div className="flex items-center gap-2 text-warning">
               <AlertTriangle className="w-5 h-5" />
               <h3 className="font-semibold">Renewal reminders</h3>
             </div>
             {prescriptionsNeedingRenewal.map((rx) => (
-              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-amber-100 dark:border-amber-800/50">
+              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-warning-border">
                 <div>
                   <p className="font-medium text-foreground">{rx.medication_name}</p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                  <p className="text-sm text-warning">
                     Renews in {getDaysUntilExpiry(rx.expiry_date)} days
                   </p>
                 </div>
                 <Link href="/request?service=repeat-script">
-                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                  <Button size="sm">
                     <Pill className="w-4 h-4 mr-1" />
                     Renew now
                   </Button>
@@ -427,10 +427,10 @@ function IntakeCard({
           <div className="flex items-center gap-4 flex-1">
             <div className={cn(
               "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-              intake.service?.type === "common_scripts" ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/10"
+              intake.service?.type === "common_scripts" ? "bg-info-light" : "bg-primary/10"
             )}>
             {intake.service?.type === "common_scripts" ? (
-              <Pill className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <Pill className="w-5 h-5 text-info" aria-hidden="true" />
             ) : (
               <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
             )}

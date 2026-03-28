@@ -20,7 +20,7 @@ export function PaymentStep({ requiresCall }: PaymentStepProps) {
       <div className="p-5 rounded-2xl border border-border bg-card space-y-4">
         <div className="flex items-center justify-between">
           <span className="font-medium">Total</span>
-          <span className="text-2xl font-bold text-primary">
+          <span className="text-2xl font-semibold text-primary">
             {requiresCall ? MED_CERT_COPY.payment.priceExtended : MED_CERT_COPY.payment.price}
           </span>
         </div>

@@ -332,7 +332,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 {data.name}, {data.stateShort}
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">
                 Get a Medical Certificate Online in {data.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
@@ -369,15 +369,15 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
-                  <div className="text-4xl font-bold text-primary mb-1">2 min</div>
+                  <div className="text-4xl font-semibold text-primary mb-1">2 min</div>
                   <div className="text-sm text-background/70">to complete questionnaire</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold text-primary mb-1">15 min</div>
+                  <div className="text-4xl font-semibold text-primary mb-1">15 min</div>
                   <div className="text-sm text-background/70">typical doctor review</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold text-primary mb-1">Instant</div>
+                  <div className="text-4xl font-semibold text-primary mb-1">Instant</div>
                   <div className="text-sm text-background/70">PDF delivery to email</div>
                 </div>
               </div>
@@ -387,7 +387,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* Who uses this */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Popular with {data.name} locals</h2>
+              <h2 className="text-xl font-semibold mb-6 text-center">Popular with {data.name} locals</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   { icon: HardHat, label: "Tradies", desc: "No time off site" },
@@ -425,7 +425,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* How It Works */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">How to get your medical certificate</h2>
+              <h2 className="text-xl font-semibold mb-8 text-center">How to get your medical certificate</h2>
               <div className="grid gap-6 sm:grid-cols-3">
                 {[
                   {
@@ -449,7 +449,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 ].map((item) => (
                   <div key={item.step} className="text-center p-4">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-xl text-primary">{item.step}</span>
+                      <span className="font-semibold text-xl text-primary">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground mb-2">{item.desc}</p>
@@ -465,7 +465,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* FAQs */}
           <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-2xl">
-              <h2 className="text-xl font-bold text-center mb-8">
+              <h2 className="text-xl font-semibold text-center mb-8">
                 Medical Certificates in {data.name} — FAQ
               </h2>
               <div className="space-y-4">
@@ -503,7 +503,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* CTA */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>

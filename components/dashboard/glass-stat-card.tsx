@@ -43,10 +43,10 @@ export function GlassStatCard({
   }
 
   const iconBgClasses = {
-    success: "bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400",
-    warning: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
-    error: "bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400",
-    info: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400",
+    success: "bg-success-light text-success",
+    warning: "bg-warning-light text-warning",
+    error: "bg-destructive-light text-destructive",
+    info: "bg-info-light text-info",
     neutral: "bg-muted text-muted-foreground dark:bg-white/10 dark:text-muted-foreground",
   }
 
@@ -73,7 +73,7 @@ export function GlassStatCard({
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
             {label}
           </p>
-          <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground mt-0.5">
+          <p className="text-2xl font-semibold tabular-nums tracking-tight text-foreground mt-0.5">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
           {trend && (
@@ -89,9 +89,9 @@ export function GlassStatCard({
                 className={cn(
                   "font-medium",
                   trend.value > 0
-                    ? "text-emerald-600 dark:text-emerald-400"
+                    ? "text-success"
                     : trend.value < 0
-                    ? "text-red-600 dark:text-red-400"
+                    ? "text-destructive"
                     : "text-muted-foreground"
                 )}
               >

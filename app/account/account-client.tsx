@@ -169,7 +169,7 @@ export function AccountClient() {
         <Navbar variant="marketing" />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h1 className="text-xl font-semibold text-foreground mb-2">Unable to load account</h1>
             <p className="text-muted-foreground mb-4">{error || 'Please try again later'}</p>
             <Button onClick={() => window.location.reload()} className="magnetic-button">
@@ -190,7 +190,7 @@ export function AccountClient() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Your Account</h1>
+            <h1 className="text-3xl font-semibold text-foreground">Your Account</h1>
             <p className="mt-2 text-muted-foreground">Manage your profile and view your requests</p>
           </div>
 
@@ -199,8 +199,8 @@ export function AccountClient() {
             <div className="card-premium-bg rounded-2xl shadow-premium border border-border/50 p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <User className="h-7 w-7 text-emerald-600" />
+                <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center">
+                  <User className="h-7 w-7 text-success" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">{profile.full_name}</h2>
@@ -210,7 +210,7 @@ export function AccountClient() {
                   </div>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-success-light text-success">
                 <Shield className="h-3.5 w-3.5" />
                 {profile.role}
               </span>
@@ -226,7 +226,7 @@ export function AccountClient() {
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="magnetic-button text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="magnetic-button text-destructive hover:text-destructive hover:bg-destructive-light"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign out
@@ -264,7 +264,7 @@ export function AccountClient() {
                   <div key={request.id} className="hover-lift card-shine">
                     <Link
                       href={`/patient/intakes/${request.id}`}
-                      className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                      className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-success-border hover:bg-success-light/30 transition-colors"
                     >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
@@ -298,10 +298,10 @@ export function AccountClient() {
             <PerspectiveTiltCard maxRotation={3} variant="outline" className="p-0 hover-lift">
               <Link
                 href="/request"
-                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-success-border hover:bg-success-light/30 transition-colors"
               >
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-lg bg-success-light flex items-center justify-center">
+                <FileText className="h-5 w-5 text-success" />
               </div>
               <div>
                 <div className="font-medium text-foreground">New Request</div>
@@ -312,7 +312,7 @@ export function AccountClient() {
             <PerspectiveTiltCard maxRotation={3} variant="outline" className="p-0 hover-lift">
               <Link
                 href="/contact"
-                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-success-border hover:bg-success-light/30 transition-colors"
               >
               <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                 <Mail className="h-5 w-5 text-muted-foreground" />

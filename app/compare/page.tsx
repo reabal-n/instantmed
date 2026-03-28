@@ -60,7 +60,7 @@ export default function CompareIndexPage() {
                 <Scale className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium">Honest Comparisons</span>
               </div>
-              <h1 className="text-4xl font-bold text-foreground mb-4">
+              <h1 className="text-4xl font-semibold text-foreground mb-4">
                 Compare Your Healthcare Options
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -113,7 +113,7 @@ export default function CompareIndexPage() {
           {/* CTA */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Ready to Try Telehealth?
               </h2>
               <p className="text-muted-foreground mb-8">

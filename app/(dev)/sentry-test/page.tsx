@@ -100,7 +100,7 @@ export default function SentryTestPage() {
   return (
     <div className="container max-w-2xl mx-auto py-12 px-4 space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-semibold flex items-center gap-2">
           <Bug className="h-6 w-6" />
           Sentry Test Page
         </h1>
@@ -136,9 +136,9 @@ export default function SentryTestPage() {
               Trigger Client Error
             </Button>
             {clientEventId && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
+              <Alert className="bg-success-light border-success-border">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   <strong>Event ID:</strong> <code className="text-xs">{clientEventId}</code>
                 </AlertDescription>
               </Alert>
@@ -162,18 +162,18 @@ export default function SentryTestPage() {
               {isLoading ? "Testing..." : "Trigger Server Error"}
             </Button>
             {serverResult && (
-              <Alert className={serverResult.ok ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}>
+              <Alert className={serverResult.ok ? "bg-success-light border-success-border" : "bg-destructive-light border-destructive-border"}>
                 {serverResult.ok ? (
                   <>
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                    <AlertDescription className="text-success">
                       <strong>Event ID:</strong> <code className="text-xs">{serverResult.eventId}</code>
                     </AlertDescription>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription className="text-destructive">
                       {serverResult.error}
                     </AlertDescription>
                   </>

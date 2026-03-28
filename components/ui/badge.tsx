@@ -16,12 +16,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 const variantStyles: Record<string, string> = {
   default: "bg-primary/10 text-primary border border-primary/20",
   secondary: "bg-muted text-muted-foreground border border-border",
-  destructive: "bg-destructive/10 text-destructive border border-destructive/20",
+  destructive: "bg-destructive-light text-destructive border border-destructive-border",
   outline: "bg-transparent border border-border text-foreground",
-  success: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
-  price: "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 dark:text-emerald-400 font-semibold",
-  warning: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
-  info: "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:border-sky-800",
+  success: "bg-success-light text-success border border-success-border",
+  price: "bg-success/10 text-success border border-success/20 font-semibold",
+  warning: "bg-warning-light text-warning border border-warning-border",
+  info: "bg-info-light text-info border border-info-border",
 }
 
 const shapeStyles: Record<string, string> = {

@@ -6,6 +6,7 @@ import { getConversationalModel } from "@/lib/ai/provider"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
 import { logAIInteraction, logSafetyBlock, upsertChatTranscript, PROMPT_VERSION } from "@/lib/chat/audit-trail"
 import { trackAIInteraction } from "@/lib/chat/intake-analytics"
 // Validation is performed via separate /api/ai/chat-intake/validate endpoint
@@ -112,6 +113,8 @@ function checkForEmergency(messages: Array<{ role: string; content: string }>): 
  */
 
 const SYSTEM_PROMPT = `You are a structured intake assistant for InstantMed (Australian telehealth). Your output feeds a doctor review queue.
+
+${CLINICAL_SAFETY_PREAMBLE}
 
 ROLE BOUNDARIES (CRITICAL):
 - You COLLECT data. You do NOT diagnose, interpret, or advise.

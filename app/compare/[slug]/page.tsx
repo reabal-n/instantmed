@@ -353,7 +353,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Hero */}
           <section className="px-4 py-8 sm:py-12 bg-white dark:bg-card border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
                 {comparison.title}
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -365,7 +365,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Comparison Table */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Head-to-Head Comparison
               </h2>
 
@@ -387,12 +387,12 @@ export default async function ComparisonPage({ params }: PageProps) {
                     <div className="text-center">
                       {typeof row.instantmed === 'boolean' ? (
                         row.instantmed ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
+                          <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
                         ) : (
                           <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
                         )
                       ) : (
-                        <span className={`text-sm ${row.winner === 'instantmed' ? 'text-emerald-600 font-medium' : 'text-foreground'}`}>
+                        <span className={`text-sm ${row.winner === 'instantmed' ? 'text-success font-medium' : 'text-foreground'}`}>
                           {row.instantmed}
                         </span>
                       )}
@@ -400,12 +400,12 @@ export default async function ComparisonPage({ params }: PageProps) {
                     <div className="text-center">
                       {typeof row.competitor === 'boolean' ? (
                         row.competitor ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
+                          <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
                         ) : (
                           <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
                         )
                       ) : (
-                        <span className={`text-sm ${row.winner === 'competitor' ? 'text-emerald-600 font-medium' : 'text-foreground'}`}>
+                        <span className={`text-sm ${row.winner === 'competitor' ? 'text-success font-medium' : 'text-foreground'}`}>
                           {row.competitor}
                         </span>
                       )}
@@ -422,7 +422,7 @@ export default async function ComparisonPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Choose InstantMed */}
                 <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary" />
                     Choose InstantMed When
                   </h3>
@@ -444,7 +444,7 @@ export default async function ComparisonPage({ params }: PageProps) {
 
                 {/* Choose Competitor */}
                 <div className="bg-white dark:bg-card border border-border dark:border-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-muted-foreground" />
                     Choose {comparison.competitor.name} When
                   </h3>
@@ -465,7 +465,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-8 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <h2 className="text-xl font-bold text-foreground mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                   The Bottom Line
                 </h2>
                 <p className="text-foreground/80 dark:text-foreground/70 leading-relaxed">
@@ -478,7 +478,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
@@ -495,7 +495,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Final CTA */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Ready to try telehealth?
               </h2>
               <p className="text-muted-foreground mb-8">

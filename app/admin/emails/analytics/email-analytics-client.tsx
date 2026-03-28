@@ -85,7 +85,7 @@ function formatTimeAgo(dateString: string): string {
 function getStatusBadge(status: string) {
   if (status === "failed") {
     return (
-      <Badge className="bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400 gap-1">
+      <Badge className="bg-destructive-light text-destructive gap-1">
         <XCircle className="h-3 w-3" />
         Failed
       </Badge>
@@ -93,7 +93,7 @@ function getStatusBadge(status: string) {
   }
   if (status === "sent") {
     return (
-      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 gap-1">
+      <Badge className="bg-success-light text-success gap-1">
         <CheckCircle className="h-3 w-3" />
         Sent
       </Badge>
@@ -101,7 +101,7 @@ function getStatusBadge(status: string) {
   }
   if (status === "pending" || status === "claimed") {
     return (
-      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 gap-1">
+      <Badge className="bg-warning-light text-warning gap-1">
         <Clock className="h-3 w-3" />
         {status === "claimed" ? "Processing" : "Pending"}
       </Badge>
@@ -157,7 +157,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Emails Sent</p>
-                <p className="text-2xl font-bold">{summary.totalSent.toLocaleString()}</p>
+                <p className="text-2xl font-semibold">{summary.totalSent.toLocaleString()}</p>
               </div>
               <Send className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -175,7 +175,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   View in Resend dashboard
                 </p>
               </div>
-              <Eye className="h-8 w-8 text-blue-500/50" />
+              <Eye className="h-8 w-8 text-info/50" />
             </div>
           </CardContent>
         </Card>
@@ -191,18 +191,18 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   View in Resend dashboard
                 </p>
               </div>
-              <MousePointer className="h-8 w-8 text-emerald-500/50" />
+              <MousePointer className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
-        <Card className={summary.totalFailed > 0 ? "border-red-200 dark:border-red-800" : ""}>
+        <Card className={summary.totalFailed > 0 ? "border-destructive-border" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Delivery Rate</p>
                 <p className={cn(
-                  "text-2xl font-bold",
-                  summary.deliveryRate < 95 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
+                  "text-2xl font-semibold",
+                  summary.deliveryRate < 95 ? "text-destructive" : "text-success"
                 )}>
                   {summary.deliveryRate.toFixed(1)}%
                 </p>
@@ -211,9 +211,9 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                 </p>
               </div>
               {summary.deliveryRate < 95 ? (
-                <AlertTriangle className="h-8 w-8 text-red-500/50" />
+                <AlertTriangle className="h-8 w-8 text-destructive/50" />
               ) : (
-                <CheckCircle className="h-8 w-8 text-emerald-500/50" />
+                <CheckCircle className="h-8 w-8 text-success/50" />
               )}
             </div>
           </CardContent>
@@ -286,17 +286,17 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                           <TableCell className="text-right font-mono">
                             {template.sent.toLocaleString()}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-red-600 dark:text-red-400">
+                          <TableCell className="text-right font-mono text-destructive">
                             {template.failed.toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right">
                             <Badge
                               className={cn(
                                 deliveryRate >= 98
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400"
+                                  ? "bg-success-light text-success"
                                   : deliveryRate >= 95
-                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400"
-                                  : "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400"
+                                  ? "bg-warning-light text-warning"
+                                  : "bg-destructive-light text-destructive"
                               )}
                             >
                               {deliveryRate.toFixed(1)}%

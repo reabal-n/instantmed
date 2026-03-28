@@ -237,7 +237,7 @@ export function IntakeDetailClient({
       const Icon = config.icon
       return <Icon className="h-5 w-5" />
     }
-    return <Clock className="h-5 w-5 text-blue-500" />
+    return <Clock className="h-5 w-5 text-info" />
   }
 
   const getStatusColor = (status: string) => {
@@ -278,16 +278,16 @@ export function IntakeDetailClient({
         <CardContent className="space-y-6">
           {/* Pending Payment - Retry CTA */}
           {intake.status === "pending_payment" && (
-            <Card className="border-amber-200 dark:border-amber-800 bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20">
+            <Card className="border-warning-border bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="rounded-full bg-amber-100 dark:bg-amber-500/20 p-3 shrink-0">
-                    <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  <div className="rounded-full bg-warning-light p-3 shrink-0">
+                    <AlertCircle className="h-6 w-6 text-warning" />
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold text-amber-900 dark:text-amber-200">Payment Required</h3>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                      <h3 className="text-base font-semibold text-amber-900">Payment Required</h3>
+                      <p className="text-sm text-warning">
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
                     </div>
@@ -336,12 +336,12 @@ export function IntakeDetailClient({
               </div>
             )}
             {intake.status === "approved" && (
-              <div className="text-sm text-emerald-700 dark:text-emerald-300 space-y-1">
+              <div className="text-sm text-success space-y-1">
                 <p>Your request has been approved!</p>
                 {document?.pdf_url ? (
                   <p>Download your document below.</p>
                 ) : (
-                  <p className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <p className="flex items-center gap-2 text-info">
                     <Clock className="h-4 w-4 animate-pulse" />
                     Your document is being generated. This usually takes a few minutes.
                   </p>
@@ -350,11 +350,11 @@ export function IntakeDetailClient({
             )}
             {intake.status === "declined" && (
               <div className="space-y-2">
-                <p className="text-sm text-red-700 dark:text-red-300">
+                <p className="text-sm text-destructive">
                   Unfortunately, your request was declined.
                 </p>
-                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-800 dark:text-red-300">
+                <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
+                  <p className="text-sm text-destructive">
                     <strong>Reason:</strong> {intake.decline_reason_note || "This request could not be fulfilled via our telehealth service. For your safety, we recommend consulting with your regular doctor who has access to your full medical history."}
                   </p>
                 </div>
@@ -364,18 +364,18 @@ export function IntakeDetailClient({
               </div>
             )}
             {intake.status === "pending_info" && (
-              <p className="text-sm text-amber-700 dark:text-amber-300">
+              <p className="text-sm text-warning">
                 The doctor needs more information. Please check your messages.
               </p>
             )}
             {intake.status === "awaiting_script" && (
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+              <p className="text-sm text-info">
                 Your prescription has been approved! The doctor is preparing your script. 
                 You&apos;ll receive it via email or SMS shortly.
               </p>
             )}
             {intake.status === "completed" && (
-              <div className="text-sm text-emerald-700 dark:text-emerald-300 space-y-1">
+              <div className="text-sm text-success space-y-1">
                 <p>Your request has been completed.</p>
                 {/* Special message for repeat prescriptions */}
                 {intake.service?.type === "common_scripts" && (
@@ -393,14 +393,14 @@ export function IntakeDetailClient({
 
           {/* Action Error Display */}
           {actionError && (
-            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+            <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border text-sm text-destructive">
               {actionError}
             </div>
           )}
 
           {/* Resend Success Message */}
           {resendSuccess && (
-            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-success-light/30 border border-success-border text-sm text-success flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Certificate has been resent to your email.
             </div>
@@ -408,8 +408,8 @@ export function IntakeDetailClient({
 
           {/* Refund Status Badge */}
           {intake.payment_status === "refunded" && (
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
+            <div className="p-3 rounded-xl bg-warning-light/30 border border-warning-border">
+              <div className="flex items-center gap-2 text-sm text-warning">
                 <RefreshCw className="h-4 w-4" />
                 <span><strong>Refund processed</strong> — Your payment has been refunded.</span>
               </div>
@@ -432,16 +432,16 @@ export function IntakeDetailClient({
               isVerified={isEmailVerified}
               onResendVerification={resendVerificationEmail}
             >
-              <Card className="border-emerald-200 dark:border-emerald-800 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
+              <Card className="border-success-border bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3">
-                      <FileText className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                    <div className="rounded-full bg-success-light p-3">
+                      <FileText className="h-6 w-6 text-success" />
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="text-base font-semibold text-emerald-900 dark:text-emerald-200">Your Document is Ready</h3>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                        <h3 className="text-base font-semibold text-emerald-900">Your Document is Ready</h3>
+                        <p className="text-sm text-success">
                           Download your {service?.short_name || service?.name || "document"} below.
                         </p>
                       </div>
@@ -457,14 +457,14 @@ export function IntakeDetailClient({
                         </a>
                       </Button>
                       {document.verification_code && (
-                        <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300 pt-2">
+                        <div className="flex items-center gap-2 text-sm text-success pt-2">
                           <Shield className="h-4 w-4" />
                           <span>
-                            Verification Code: <code className="font-mono font-semibold bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded">{document.verification_code}</code>
+                            Verification Code: <code className="font-mono font-semibold bg-success-light px-2 py-0.5 rounded">{document.verification_code}</code>
                           </span>
                         </div>
                       )}
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                      <p className="text-xs text-success">
                         A copy has also been sent to your email.
                       </p>
                       {/* Action Buttons */}
@@ -522,7 +522,7 @@ export function IntakeDetailClient({
                   size="sm" 
                   onClick={handleCancel}
                   disabled={isPending}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/30"
+                  className="text-destructive hover:text-destructive hover:bg-destructive-light"
                 >
                   <Ban className="h-4 w-4 mr-2" />
                   {isPending ? "Cancelling..." : "Cancel request"}
@@ -563,9 +563,9 @@ export function IntakeDetailClient({
             <h3 className="text-base font-medium mb-4">Timeline</h3>
             <div className="space-y-4">
               <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
-              {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-emerald-500" />}
-              {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-emerald-500" />}
-              {intake.declined_at && <TimelineEntry icon={XCircle} label="Declined" date={intake.declined_at} color="text-red-500" />}
+              {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-success" />}
+              {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-success" />}
+              {intake.declined_at && <TimelineEntry icon={XCircle} label="Declined" date={intake.declined_at} color="text-destructive" />}
               {intake.cancelled_at && <TimelineEntry icon={Ban} label="Cancelled" date={intake.cancelled_at} />}
             </div>
           </div>

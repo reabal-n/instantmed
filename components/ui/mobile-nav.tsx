@@ -215,7 +215,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                 <div className="relative">
                   <Icon className={cn("w-5 h-5", isActive && "animate-scale-in")} />
                   {item.badge && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-semibold rounded-full flex items-center justify-center animate-pulse">
                       {item.badge > 9 ? "9+" : item.badge}
                     </span>
                   )}

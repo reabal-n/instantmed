@@ -119,13 +119,13 @@ export function WhatHappensNext({
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+            <span className="text-xs font-medium text-success">
               Doctors are reviewing requests now
             </span>
           </motion.div>

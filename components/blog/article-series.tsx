@@ -59,11 +59,11 @@ export function ArticleSeriesNav({
               )}
             >
               <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold",
                 isCurrent 
                   ? "bg-primary text-primary-foreground" 
                   : isCompleted
-                    ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400"
+                    ? "bg-success-light text-success"
                     : "bg-muted dark:bg-white/10 text-muted-foreground"
               )}>
                 {isCompleted ? <Check className="w-3.5 h-3.5" /> : index + 1}

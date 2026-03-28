@@ -53,13 +53,13 @@ export function ComplianceMarquee({
               className={cn(
                 "flex items-center gap-2 text-sm",
                 item.highlight 
-                  ? "text-emerald-700 dark:text-emerald-400 font-medium" 
+                  ? "text-success font-medium" 
                   : "text-muted-foreground"
               )}
             >
               <item.icon className={cn(
                 "w-4 h-4 shrink-0",
-                item.highlight ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
+                item.highlight ? "text-success" : "text-primary"
               )} />
               <span>{item.text}</span>
             </div>
@@ -87,13 +87,13 @@ export function ComplianceBar({ className }: { className?: string }) {
           className={cn(
             "flex items-center gap-2 text-sm",
             item.highlight 
-              ? "text-emerald-700 dark:text-emerald-400 font-medium" 
+              ? "text-success font-medium" 
               : "text-muted-foreground"
           )}
         >
           <item.icon className={cn(
             "w-4 h-4 shrink-0",
-            item.highlight ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
+            item.highlight ? "text-success" : "text-primary"
           )} />
           <span>{item.text}</span>
         </div>

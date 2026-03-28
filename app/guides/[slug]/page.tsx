@@ -840,7 +840,7 @@ export default async function GuidePage({ params }: PageProps) {
           {/* Hero */}
           <section className="px-4 py-8 sm:py-12 border-b border-border dark:border-border">
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 leading-tight">
                 {guide.title}
               </h1>
 
@@ -878,11 +878,11 @@ export default async function GuidePage({ params }: PageProps) {
                   <div key={i} className="relative">
                     {/* Step number */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary text-background flex items-center justify-center font-bold shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-primary text-background flex items-center justify-center font-semibold shrink-0">
                         {i + 1}
                       </div>
                       <div className="flex-1 pt-1">
-                        <h2 className="text-xl font-bold text-foreground mb-4">
+                        <h2 className="text-xl font-semibold text-foreground mb-4">
                           {step.title}
                         </h2>
                         <p className="text-foreground leading-relaxed mb-4">
@@ -915,14 +915,14 @@ export default async function GuidePage({ params }: PageProps) {
           {/* Important Notes */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-                <h2 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+              <div className="bg-warning-light/30 border border-warning-border rounded-2xl p-6">
+                <h2 className="font-semibold text-warning mb-4 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5" />
                   Important Things to Know
                 </h2>
                 <ul className="space-y-3">
                   {guide.importantNotes.map((note, i) => (
-                    <li key={i} className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                    <li key={i} className="flex items-start gap-2 text-warning">
                       <CheckCircle2 className="w-4 h-4 mt-1 shrink-0" />
                       <span>{note}</span>
                     </li>
@@ -935,7 +935,7 @@ export default async function GuidePage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8">
+              <h2 className="text-2xl font-semibold text-foreground mb-8">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
@@ -987,7 +987,7 @@ export default async function GuidePage({ params }: PageProps) {
             return (
               <section className="px-4 py-12">
                 <div className="mx-auto max-w-3xl">
-                  <h2 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
+                  <h2 className="text-2xl font-semibold text-foreground mb-8 flex items-center gap-2">
                     <BookOpen className="w-6 h-6 text-primary" />
                     Related Guides
                   </h2>
@@ -1037,7 +1037,7 @@ export default async function GuidePage({ params }: PageProps) {
           {/* CTA */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-8">

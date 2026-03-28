@@ -616,7 +616,7 @@ export default async function CityPage({ params }: PageProps) {
                 Serving {cityData.name}, {cityData.state}
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">
                 Online Doctor in {cityData.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
@@ -658,7 +658,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* Services */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Services Available in {cityData.name}</h2>
+              <h2 className="text-xl font-semibold mb-6 text-center">Services Available in {cityData.name}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {services.map((service) => (
                   <Link key={service.href} href={service.href}>
@@ -697,7 +697,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* How It Works */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">How It Works for {cityData.name} Patients</h2>
+              <h2 className="text-xl font-semibold mb-6 text-center">How It Works for {cityData.name} Patients</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   {
@@ -714,7 +714,7 @@ export default async function CityPage({ params }: PageProps) {
                 ].map((item) => (
                   <div key={item.step} className="text-center p-4">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-primary">{item.step}</span>
+                      <span className="font-semibold text-primary">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
@@ -727,7 +727,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* Why Telehealth */}
           <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Why {cityData.name} Residents Choose InstantMed</h2>
+              <h2 className="text-xl font-semibold mb-6 text-center">Why {cityData.name} Residents Choose InstantMed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   "No need to leave home or work",
@@ -749,7 +749,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* FAQ Section */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-2xl">
-              <h2 className="text-xl font-bold mb-6 text-center flex items-center justify-center gap-2">
+              <h2 className="text-xl font-semibold mb-6 text-center flex items-center justify-center gap-2">
                 <HelpCircle className="h-5 w-5 text-primary" />
                 Frequently Asked Questions — {cityData.name}
               </h2>
@@ -767,7 +767,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* CTA */}
           <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready to Get Started?</h2>
               <p className="text-muted-foreground mb-6">
                 Join hundreds of {cityData.name} residents who trust InstantMed for their telehealth needs.
               </p>
@@ -783,7 +783,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* Related Resources - internal cross-linking */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">
+              <h2 className="text-xl font-semibold mb-6 text-center">
                 Health Resources for {cityData.name}
               </h2>
               <div className="grid gap-6 sm:grid-cols-3 mb-8">

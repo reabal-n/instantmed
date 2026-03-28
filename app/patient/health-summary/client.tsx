@@ -56,7 +56,7 @@ function StatCard({
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold mt-1">{value}</p>
+            <p className="text-3xl font-semibold mt-1">{value}</p>
             {description && (
               <p className="text-xs text-muted-foreground mt-1">{description}</p>
             )}
@@ -113,8 +113,8 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
-              <FileText className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+            <div className="p-2 bg-success-light rounded-xl">
+              <FileText className="w-4 h-4 text-success" />
             </div>
             <div>
               <p className="font-medium text-sm">Medical Certificate</p>
@@ -149,8 +149,8 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-              <Pill className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+            <div className="p-2 bg-info-light rounded-xl">
+              <Pill className="w-4 h-4 text-info" />
             </div>
             <div>
               <p className="font-medium text-sm">
@@ -228,22 +228,22 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
       
       {/* Active Requests Alert */}
       {summary.stats.activeRequests > 0 && (
-        <Card className="mb-8 border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10">
+        <Card className="mb-8 border-warning-border bg-warning-light">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <Clock className="w-5 h-5 text-warning" />
                 <div>
-                  <p className="font-medium text-amber-900 dark:text-amber-200">
+                  <p className="font-medium text-amber-900">
                     {summary.stats.activeRequests} active request{summary.stats.activeRequests > 1 ? "s" : ""}
                   </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                  <p className="text-sm text-warning">
                     Currently being reviewed by our doctors
                   </p>
                 </div>
               </div>
               <Link href="/patient/intakes">
-                <Button variant="outline" size="sm" className="border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/10">
+                <Button variant="outline" size="sm" className="border-warning-border hover:bg-warning-light">
                   View All
                 </Button>
               </Link>
@@ -349,8 +349,8 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
           <Link href="/request?service=med-cert">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
-                  <FileText className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                <div className="p-3 bg-success-light rounded-xl">
+                  <FileText className="w-5 h-5 text-success" />
                 </div>
                 <div>
                   <p className="font-medium">Medical Certificate</p>
@@ -363,8 +363,8 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
           <Link href="/request?service=prescription">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-                  <Pill className="w-5 h-5 text-blue-700 dark:text-blue-400" />
+                <div className="p-3 bg-info-light rounded-xl">
+                  <Pill className="w-5 h-5 text-info" />
                 </div>
                 <div>
                   <p className="font-medium">Repeat Prescription</p>
@@ -377,8 +377,8 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
           <Link href="/patient/settings">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
-                <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-                  <Shield className="w-5 h-5 text-blue-700 dark:text-blue-400" />
+                <div className="p-3 bg-info-light rounded-xl">
+                  <Shield className="w-5 h-5 text-info" />
                 </div>
                 <div>
                   <p className="font-medium">Account Settings</p>

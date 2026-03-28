@@ -65,7 +65,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               </Badge>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
               <span className="bg-linear-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                 need?
@@ -122,7 +122,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           
                           {/* Popular badge */}
                           {service.popular && (
-                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-primary to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-primary to-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                               <Sparkles className="h-3 w-3" />
                               Most Popular
                             </div>
@@ -130,7 +130,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
 
                           {/* Price tag */}
                           <div className="absolute top-4 right-4 bg-white dark:bg-card rounded-full px-3 py-1 shadow-lg">
-                            <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
+                            <span className="text-sm font-semibold" style={{ color: service.color }}>From {service.price}</span>
                           </div>
 
                           {/* Icon */}
@@ -153,7 +153,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                         {/* Content */}
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-xl font-bold text-foreground">{service.title}</h2>
+                            <h2 className="text-xl font-semibold text-foreground">{service.title}</h2>
                             <ArrowRight 
                               className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" 
                               style={{ color: service.color }} 

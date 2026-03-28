@@ -72,15 +72,15 @@ export default async function EncryptionDashboardPage() {
             key={flag.label}
             className={`flex items-center gap-3 rounded-xl border p-4 ${
               flag.value
-                ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
-                : "border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20"
+                ? "border-success-border bg-success-light"
+                : "border-warning-border bg-warning-light"
             }`}
             aria-label={`${flag.label}: ${flag.value ? "Active" : "Disabled"}`}
           >
             {flag.value ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
             )}
             <div>
               <p className="font-medium text-sm">{flag.label}</p>
@@ -98,9 +98,9 @@ export default async function EncryptionDashboardPage() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 {stat.percentage === 100 ? (
-                  <Lock className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+                  <Lock className="h-4 w-4 text-success" aria-hidden="true" />
                 ) : (
-                  <Unlock className="h-4 w-4 text-amber-500" aria-hidden="true" />
+                  <Unlock className="h-4 w-4 text-warning" aria-hidden="true" />
                 )}
                 <span className="font-medium">{stat.label}</span>
               </div>

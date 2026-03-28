@@ -473,11 +473,11 @@ export function PrescriptionFlowClient({
           style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
         >
           <div className="flex items-center gap-1.5">
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
             <span>E-script to your phone</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
             <span>Any pharmacy Australia-wide</span>
           </div>
         </div>
@@ -510,7 +510,7 @@ export function PrescriptionFlowClient({
         </div>
 
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+          <CheckCircle className="h-3.5 w-3.5 text-success" />
           <span>Your answers are saved and will not be lost</span>
         </div>
       </div>
@@ -571,18 +571,18 @@ export function PrescriptionFlowClient({
       {/* Red Flags Warning Banner */}
       {hasRedFlags && (
         <div
-          className="rounded-2xl border-2 border-red-300 bg-red-50 dark:bg-red-500/10 p-5 animate-fade-in-up"
+          className="rounded-2xl border-2 border-destructive-border bg-destructive-light p-5 animate-fade-in-up"
           style={{ animationFillMode: "forwards" }}
         >
           <div className="flex gap-3">
-            <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
+            <AlertTriangle className="h-6 w-6 text-destructive shrink-0" />
             <div>
-              <h3 className="text-base font-semibold text-red-800">Immediate attention required</h3>
-              <p className="mt-1 text-sm text-red-700 leading-relaxed">
+              <h3 className="text-base font-semibold text-destructive">Immediate attention required</h3>
+              <p className="mt-1 text-sm text-destructive leading-relaxed">
                 Based on your responses, we strongly recommend seeking immediate in-person medical care. Please visit
                 your nearest emergency department or call emergency services.
               </p>
-              <p className="mt-2 text-sm text-red-700 font-medium">
+              <p className="mt-2 text-sm text-destructive font-medium">
                 This online service is not suitable for urgent medical concerns.
               </p>
             </div>
@@ -593,7 +593,7 @@ export function PrescriptionFlowClient({
       {/* Error message */}
       {error && (
         <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 animate-fade-in-up">
+          <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border text-sm text-destructive animate-fade-in-up">
             {error}
           </div>
         </ShakeAnimation>
@@ -627,7 +627,7 @@ export function PrescriptionFlowClient({
           <>
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                What is this repeat for? <span className="text-red-500">*</span>
+                What is this repeat for? <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {repeatReasonOptions.map((option) => (
@@ -644,7 +644,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                How long have you been on this medication? <span className="text-red-500">*</span>
+                How long have you been on this medication? <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {repeatDurationOptions.map((option) => (
@@ -661,7 +661,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                How are your symptoms on this current medication? <span className="text-red-500">*</span>
+                How are your symptoms on this current medication? <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {repeatControlOptions.map((option) => (
@@ -678,7 +678,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                Any recent changes or side effects? <span className="text-red-500">*</span>
+                Any recent changes or side effects? <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {repeatSideEffectsOptions.map((option) => (
@@ -700,7 +700,7 @@ export function PrescriptionFlowClient({
           <>
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                What do you need? (select all that apply) <span className="text-red-500">*</span>
+                What do you need? (select all that apply) <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {chronicRequestOptions.map((option) => (
@@ -717,7 +717,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                Primary condition being treated <span className="text-red-500">*</span>
+                Primary condition being treated <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {chronicConditionOptions.map((option) => (
@@ -734,7 +734,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                When was your last medication review? <span className="text-red-500">*</span>
+                When was your last medication review? <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {chronicReviewOptions.map((option) => (
@@ -751,7 +751,7 @@ export function PrescriptionFlowClient({
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                Current symptom control <span className="text-red-500">*</span>
+                Current symptom control <span className="text-destructive">*</span>
               </Label>
               <div className="flex flex-wrap gap-2">
                 {chronicControlOptions.map((option) => (
@@ -782,11 +782,11 @@ export function PrescriptionFlowClient({
 
       {/* Safety screening */}
       <div
-        className="glass-card rounded-2xl p-6 border-amber-200/50 bg-amber-50/30 animate-fade-in-up opacity-0"
+        className="glass-card rounded-2xl p-6 border-warning-border/50 bg-warning-light/30 animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
       >
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTriangle className="h-5 w-5 text-warning" />
           <h3 className="font-semibold text-foreground">Safety screening</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">Please answer honestly - this helps us ensure your safety.</p>

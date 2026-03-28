@@ -348,9 +348,9 @@ function StatCard({
   color: "green" | "yellow" | "red"
 }) {
   const colors = {
-    green: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
-    yellow: "bg-yellow-100 text-yellow-600 dark:bg-yellow-950/40 dark:text-yellow-400",
-    red: "bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400",
+    green: "bg-success-light text-success",
+    yellow: "bg-warning-light text-warning",
+    red: "bg-destructive-light text-destructive",
   }
 
   return (
@@ -430,8 +430,8 @@ function InvoiceDetailModal({
           )}
 
           {invoice.status === "failed" && (
-            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
-              <p className="text-sm text-red-700 dark:text-red-400">
+            <div className="bg-destructive-light border border-destructive-border rounded-xl p-4">
+              <p className="text-sm text-destructive">
                 This payment failed. Please try again or update your payment
                 method.
               </p>

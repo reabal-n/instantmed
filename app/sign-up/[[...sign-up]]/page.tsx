@@ -67,9 +67,9 @@ export default function SignUpPage() {
             <div className="lg:hidden text-center mb-8">
               <Link href="/" className="inline-flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <span className="text-xl font-bold text-white">I</span>
+                  <span className="text-xl font-semibold text-white">I</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">InstantMed</span>
+                <span className="text-2xl font-semibold text-foreground">InstantMed</span>
               </Link>
             </div>
             
@@ -111,14 +111,14 @@ export default function SignUpPage() {
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-xl font-bold text-white">I</span>
+                <span className="text-xl font-semibold text-white">I</span>
               </div>
-              <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+              <span className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">
                 InstantMed
               </span>
             </Link>
             
-            <h1 className="text-4xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="text-4xl font-semibold text-foreground mb-4 leading-tight">
               Join Australians
               <span className="text-primary">.</span>
             </h1>
@@ -130,8 +130,8 @@ export default function SignUpPage() {
             {/* Benefits */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
+                <div className="w-10 h-10 rounded-xl bg-success-light flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-success" />
                 </div>
                 <span>Free account, pay only when you need care</span>
               </div>

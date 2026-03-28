@@ -113,12 +113,12 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
           </Link>
         </Button>
         {patient.onboarding_completed ? (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <Badge variant="outline" className="bg-success-light text-success border-success-border">
             <CheckCircle className="mr-1 h-3 w-3" />
             Onboarded
           </Badge>
         ) : (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
             <XCircle className="mr-1 h-3 w-3" />
             Incomplete Profile
           </Badge>
@@ -221,14 +221,14 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
         <Card className="rounded-xl border-border/50 p-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Approved</span>
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </div>
           <p className="text-2xl font-semibold mt-2">{stats.approvedRequests}</p>
         </Card>
         <Card className="rounded-xl border-border/50 p-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Certificates</span>
-            <Activity className="h-4 w-4 text-blue-500" />
+            <Activity className="h-4 w-4 text-info" />
           </div>
           <p className="text-2xl font-semibold mt-2">{stats.certificatesIssued}</p>
         </Card>
@@ -264,7 +264,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                         {intake.paid_at && (
                           <>
                             <span>•</span>
-                            <span className="text-emerald-600 dark:text-emerald-400">Paid</span>
+                            <span className="text-success">Paid</span>
                           </>
                         )}
                       </div>

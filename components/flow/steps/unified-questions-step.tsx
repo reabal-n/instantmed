@@ -383,7 +383,7 @@ export function UnifiedQuestionsStep({
       {/* Compact header with progress */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-bold text-foreground">Health questions</h2>
+          <h2 className="text-lg font-semibold text-foreground">Health questions</h2>
           <span className="text-xs font-medium text-muted-foreground">
             {completedGroups}/{totalGroups} sections
           </span>

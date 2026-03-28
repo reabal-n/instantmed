@@ -107,7 +107,7 @@ export default async function ConditionPage({ params }: PageProps) {
             {/* Background decoration */}
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-info-light rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
@@ -117,14 +117,14 @@ export default async function ConditionPage({ params }: PageProps) {
                   <Shield className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">AHPRA Registered Doctors</span>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <Clock className="w-4 h-4 text-emerald-600" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-light border border-success-border/20">
+                  <Clock className="w-4 h-4 text-success" />
                   <span className="text-sm font-medium">Avg. {condition.stats.avgTime} response</span>
                 </div>
               </div>
 
               {/* Main heading */}
-              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-semibold text-center text-foreground mb-6 tracking-tight">
                 {condition.name}
               </h1>
 
@@ -152,7 +152,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   <span>AHPRA-registered doctors</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-emerald-600" />
+                  <Zap className="w-4 h-4 text-success" />
                   <span>Response in ~{condition.stats.avgTime}</span>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* Symptoms Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
               </h2>
 
@@ -185,20 +185,20 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* Can We Help Section */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 How We Can Help
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {/* What we can help with */}
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
+                <div className="bg-success-light/30 border border-success-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" />
                     What we can help with
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.yes.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300">
+                      <li key={i} className="flex items-start gap-2 text-success">
                         <CheckCircle2 className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -207,14 +207,14 @@ export default async function ConditionPage({ params }: PageProps) {
                 </div>
 
                 {/* What needs in-person care */}
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+                <div className="bg-warning-light/30 border border-warning-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <h3 className="font-semibold text-warning mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     What needs in-person care
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.no.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                      <li key={i} className="flex items-start gap-2 text-warning">
                         <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -231,7 +231,7 @@ export default async function ConditionPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 {/* When to see a doctor */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-primary" />
                     When to see a doctor
                   </h2>
@@ -249,21 +249,21 @@ export default async function ConditionPage({ params }: PageProps) {
 
                 {/* Emergency warning */}
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
                     Seek emergency care if
                   </h2>
-                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <div className="bg-destructive-light border border-destructive-border rounded-xl p-4 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <ul className="space-y-3">
                       {condition.whenEmergency.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-red-700 dark:text-red-300">
+                        <li key={i} className="flex items-start gap-2 text-destructive">
                           <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                    <div className="mt-4 pt-4 border-t border-destructive-border">
+                      <p className="text-sm font-medium text-destructive">
                         Call 000 or go to your nearest emergency department
                       </p>
                     </div>
@@ -281,7 +281,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   <Shield className="w-5 h-5 text-primary" />
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
                 </div>
-                <h2 className="text-xl font-bold text-foreground mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                   Understanding {condition.name}
                 </h2>
                 <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
@@ -341,7 +341,7 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* FAQ Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Common Questions About {condition.name}
               </h2>
 
@@ -363,7 +363,7 @@ export default async function ConditionPage({ params }: PageProps) {
           {condition.relatedConditions.length > 0 && (
             <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
               <div className="mx-auto max-w-4xl">
-                <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                   Related Health Topics
                 </h2>
 
@@ -404,8 +404,8 @@ export default async function ConditionPage({ params }: PageProps) {
                         href={`/symptoms/${symptomSlug}`}
                         className="flex items-center gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15 hover:border-primary/30 transition-colors group"
                       >
-                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                          <BookOpen className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 rounded-full bg-info-light flex items-center justify-center shrink-0">
+                          <BookOpen className="w-4 h-4 text-info" />
                         </div>
                         <span className="font-medium text-foreground group-hover:text-primary transition-colors capitalize">
                           {symptomSlug.replace(/-/g, " ")}
@@ -444,7 +444,7 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* Final CTA Section */}
           <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Ready to get help?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">

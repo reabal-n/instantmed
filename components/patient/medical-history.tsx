@@ -42,17 +42,17 @@ const typeIcons = {
 }
 
 const typeColors = {
-  prescription: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  medical_certificate: "bg-blue-50 dark:bg-blue-500/10 text-primary",
-  referral: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  pathology: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  prescription: "bg-info-light text-info",
+  medical_certificate: "bg-info-light text-primary",
+  referral: "bg-success-light text-success",
+  pathology: "bg-warning-light text-warning",
   consultation: "bg-muted text-muted-foreground",
 }
 
 const statusColors = {
-  active: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  active: "bg-success-light text-success",
   completed: "bg-muted text-muted-foreground",
-  expired: "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400",
+  expired: "bg-destructive-light text-destructive",
 }
 
 export function MedicalHistory({ items, patientName, showFilters = true }: MedicalHistoryProps) {
@@ -288,14 +288,14 @@ export function HealthSummary({ allergies = [], conditions = [], medications = [
     <div className="space-y-4">
       {/* Allergies Alert */}
       {allergies.length > 0 && (
-        <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
+        <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border">
           <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <span className="text-sm font-medium text-red-700 dark:text-red-300">Allergies</span>
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-medium text-destructive">Allergies</span>
           </div>
           <div className="flex flex-wrap gap-1">
             {allergies.map((allergy, i) => (
-              <Badge key={i} variant="outline" className="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/20">
+              <Badge key={i} variant="outline" className="bg-destructive-light text-destructive border-destructive-border">
                 {allergy}
               </Badge>
             ))}
@@ -305,14 +305,14 @@ export function HealthSummary({ allergies = [], conditions = [], medications = [
 
       {/* Current Conditions */}
       {conditions.length > 0 && (
-        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+        <div className="p-3 rounded-xl bg-warning-light border border-warning-border">
           <div className="flex items-center gap-2 mb-2">
-            <Activity className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <span className="text-sm font-medium text-amber-700 dark:text-amber-300">Conditions</span>
+            <Activity className="h-4 w-4 text-warning" />
+            <span className="text-sm font-medium text-warning">Conditions</span>
           </div>
           <div className="flex flex-wrap gap-1">
             {conditions.map((condition, i) => (
-              <Badge key={i} variant="outline" className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20">
+              <Badge key={i} variant="outline" className="bg-warning-light text-warning border-warning-border">
                 {condition}
               </Badge>
             ))}
@@ -322,14 +322,14 @@ export function HealthSummary({ allergies = [], conditions = [], medications = [
 
       {/* Current Medications */}
       {medications.length > 0 && (
-        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-primary/50">
+        <div className="p-3 rounded-xl bg-info-light border border-primary/50">
           <div className="flex items-center gap-2 mb-2">
             <Pill className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">Current Medications</span>
           </div>
           <div className="flex flex-wrap gap-1">
             {medications.map((med, i) => (
-              <Badge key={i} variant="outline" className="bg-blue-50 dark:bg-blue-500/10 text-primary border-primary/50">
+              <Badge key={i} variant="outline" className="bg-info-light text-primary border-primary/50">
                 {med}
               </Badge>
             ))}

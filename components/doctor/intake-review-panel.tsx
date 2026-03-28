@@ -480,7 +480,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
             {/* Lock warning */}
             {lockWarning && (
-              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-sm text-amber-800 dark:text-amber-200">
+              <div className="p-3 rounded-lg bg-warning-light border border-warning-border text-sm text-warning">
                 {lockWarning}
               </div>
             )}

@@ -647,17 +647,17 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
             </div>
 
             <div>
-              <h3 className="font-medium text-red-700 dark:text-red-400 mb-4">Danger Zone</h3>
-              <div className="p-4 rounded-xl bg-red-50/50 dark:bg-red-500/10 border border-red-200/50 dark:border-red-500/20 max-w-md">
-                <p className="font-medium text-red-700 dark:text-red-400">Delete Account</p>
-                <p className="text-sm text-red-600/70 dark:text-red-400/70 mb-4">
+              <h3 className="font-medium text-destructive mb-4">Danger Zone</h3>
+              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border/50 max-w-md">
+                <p className="font-medium text-destructive">Delete Account</p>
+                <p className="text-sm text-destructive/70 mb-4">
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="rounded-xl text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 bg-transparent"
+                      className="rounded-xl text-destructive border-destructive-border dark:border-destructive-border/30 hover:bg-destructive-light bg-transparent"
                     >
                       Delete My Account
                     </Button>

@@ -50,7 +50,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                 <Badge variant="outline" className="mb-4">
                   {CATEGORY_LABELS[med.category]}
                 </Badge>
-                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2">{med.name}</h1>
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl mb-2">{med.name}</h1>
                 <p className="text-lg text-muted-foreground mb-4">
                   {med.brandNames.join(", ")} • {med.genericName}
                 </p>
@@ -78,7 +78,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                 <div className="sticky top-24 p-6 rounded-2xl border bg-card shadow-lg">
                   <div className="text-center mb-4">
                     <p className="text-sm text-muted-foreground">From</p>
-                    <p className="text-4xl font-bold">${med.price}</p>
+                    <p className="text-4xl font-semibold">${med.price}</p>
                   </div>
                   <Button asChild className="w-full h-12 text-base" size="lg">
                     <Link href={`/request?service=prescription&medication=${med.slug}`}>
@@ -101,7 +101,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
             {/* Uses */}
             <div className="p-6 rounded-xl border bg-card">
               <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 What it&apos;s used for
               </h2>
               <ul className="space-y-2">
@@ -133,13 +133,13 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
             {/* Side Effects */}
             <div className="p-6 rounded-xl border bg-card">
               <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 text-warning" />
                 Possible side effects
               </h2>
               <ul className="space-y-2">
                 {med.sideEffects.map((effect) => (
                   <li key={effect} className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-500 mt-1">•</span>
+                    <span className="text-warning mt-1">•</span>
                     {effect}
                   </li>
                 ))}
@@ -149,13 +149,13 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
             {/* Warnings */}
             <div className="p-6 rounded-xl border bg-card">
               <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <AlertTriangle className="h-5 w-5 text-destructive" />
                 Important warnings
               </h2>
               <ul className="space-y-2">
                 {med.warnings.map((warning) => (
                   <li key={warning} className="flex items-start gap-2 text-sm">
-                    <span className="text-red-500 mt-1">•</span>
+                    <span className="text-destructive mt-1">•</span>
                     {warning}
                   </li>
                 ))}
@@ -168,9 +168,9 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
         {med.contraindications.length > 0 && (
           <section className="px-4 py-8">
             <div className="mx-auto max-w-2xl">
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200">
-                <h3 className="font-semibold text-red-800 mb-2">Who should NOT take {med.name}</h3>
-                <ul className="space-y-1 text-sm text-red-700">
+              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border">
+                <h3 className="font-semibold text-destructive mb-2">Who should NOT take {med.name}</h3>
+                <ul className="space-y-1 text-sm text-destructive">
                   {med.contraindications.map((contra) => (
                     <li key={contra}>• {contra}</li>
                   ))}
@@ -183,7 +183,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
         {/* Bottom CTA */}
         <section className="px-4 py-12 bg-muted/30">
           <div className="mx-auto max-w-xl text-center">
-            <h2 className="text-2xl font-bold mb-4">Ready to request {med.name}?</h2>
+            <h2 className="text-2xl font-semibold mb-4">Ready to request {med.name}?</h2>
             <p className="text-muted-foreground mb-6">
               Fill out a quick questionnaire. A doctor reviews within hours. E-script sent straight to your phone.
             </p>

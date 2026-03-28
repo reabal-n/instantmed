@@ -152,7 +152,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
               >
                 {/* Status icon */}
                 {item.isComplete ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                 ) : (
                   <Circle className="w-5 h-5 text-muted-foreground/40 shrink-0" />
                 )}
@@ -162,7 +162,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
                   className={cn(
                     "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
                     item.isComplete
-                      ? "bg-emerald-50 dark:bg-emerald-950/30"
+                      ? "bg-success-light"
                       : "bg-primary/8",
                   )}
                 >
@@ -170,7 +170,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
                     className={cn(
                       "w-4 h-4",
                       item.isComplete
-                        ? "text-emerald-600 dark:text-emerald-400"
+                        ? "text-success"
                         : "text-primary/70",
                     )}
                   />

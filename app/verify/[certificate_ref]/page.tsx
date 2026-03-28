@@ -73,11 +73,11 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
         <div className="mx-auto px-4 max-w-2xl">
           {/* Header */}
           <div className="text-center mb-10">
-            <Badge className="mb-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-0 px-4 py-1.5">
+            <Badge className="mb-4 bg-success-light text-success border-0 px-4 py-1.5">
               <Lock className="w-3.5 h-3.5 mr-1.5" />
               Certificate Verification
             </Badge>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">
+            <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight mb-3">
               Verify Certificate
             </h1>
             <p className="text-muted-foreground font-mono text-sm">
@@ -87,15 +87,15 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
 
           {/* Result */}
           {isValid && cert ? (
-            <div className="glass-card rounded-2xl p-6 md:p-8 border border-emerald-200 dark:border-emerald-500/20">
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-success-border">
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 p-3 shrink-0">
-                    <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                  <div className="rounded-full bg-success-light p-3 shrink-0">
+                    <CheckCircle className="h-7 w-7 text-success" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200">Certificate Verified</h3>
-                    <p className="text-emerald-700 dark:text-emerald-400 text-sm">
+                    <h3 className="text-xl font-semibold text-success">Certificate Verified</h3>
+                    <p className="text-success text-sm">
                       This is a valid certificate issued by InstantMed.
                     </p>
                   </div>
@@ -103,7 +103,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
 
                 <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <Badge className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20">
+                    <Badge className="bg-success-light text-success border-success-border">
                       {formatCertificateType(cert.certificate_type)}
                     </Badge>
                     <span className="font-mono text-xs text-muted-foreground">
@@ -148,11 +148,11 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
               </div>
             </div>
           ) : isRevoked ? (
-            <div className="glass-card rounded-2xl p-6 md:p-8 border border-red-200 dark:border-red-500/20">
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-destructive-border">
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
-                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
+                  <div className="rounded-full bg-destructive-light p-3 shrink-0">
+                    <XCircle className="h-7 w-7 text-destructive" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Certificate Revoked</h3>
@@ -171,8 +171,8 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
             <div className="glass-card rounded-2xl p-6 md:p-8 border border-border">
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-full bg-red-50 dark:bg-red-500/10 p-3 shrink-0">
-                    <XCircle className="h-7 w-7 text-red-500 dark:text-red-400" />
+                  <div className="rounded-full bg-destructive-light p-3 shrink-0">
+                    <XCircle className="h-7 w-7 text-destructive" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Certificate Not Found</h3>
@@ -184,7 +184,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
 
                 <div className="rounded-xl bg-muted/50 dark:bg-white/5 p-4">
                   <div className="flex gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                     <div className="space-y-2 text-sm">
                       <p className="font-medium text-foreground">Possible reasons:</p>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">

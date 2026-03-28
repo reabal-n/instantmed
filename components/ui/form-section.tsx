@@ -151,7 +151,7 @@ export function FormGroup({
               initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : undefined }}
-              className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
+              className="text-xs text-warning flex items-center gap-1"
             >
               <span className="w-1 h-1 rounded-full bg-amber-500" />
               {warning}

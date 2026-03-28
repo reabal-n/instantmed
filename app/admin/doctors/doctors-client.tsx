@@ -272,7 +272,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Practitioners</p>
-                <p className="text-2xl font-bold">{doctors.length}</p>
+                <p className="text-2xl font-semibold">{doctors.length}</p>
               </div>
               <Stethoscope className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -283,11 +283,11 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Complete Profiles</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-semibold text-success">
                   {doctors.filter(d => d.certificate_identity_complete).length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-emerald-500/50" />
+              <CheckCircle className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
@@ -296,11 +296,11 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Incomplete Profiles</p>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-2xl font-semibold text-warning">
                   {doctors.filter(d => !d.certificate_identity_complete).length}
                 </p>
               </div>
-              <XCircle className="h-8 w-8 text-amber-500/50" />
+              <XCircle className="h-8 w-8 text-warning/50" />
             </div>
           </CardContent>
         </Card>
@@ -362,12 +362,12 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                       </TableCell>
                       <TableCell>
                         {doctor.certificate_identity_complete ? (
-                          <Badge className="bg-emerald-100 text-emerald-800">
+                          <Badge className="bg-success-light text-success">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Complete
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                          <Badge variant="secondary" className="bg-warning-light text-warning">
                             <XCircle className="h-3 w-3 mr-1" />
                             Incomplete
                           </Badge>
@@ -519,14 +519,14 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-600" />
+              <Shield className="h-5 w-5 text-warning" />
               Confirm Credential Update
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
                 You are about to update <strong>sensitive practitioner credentials</strong> for {selectedDoctor?.full_name}.
               </p>
-              <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+              <div className="mt-3 p-3 rounded-lg bg-warning-light border border-warning-border text-sm text-warning">
                 <p className="font-medium">Changes being made:</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
                   {formData.provider_number !== selectedDoctor?.provider_number && (

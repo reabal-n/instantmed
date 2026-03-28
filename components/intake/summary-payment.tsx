@@ -133,7 +133,7 @@ export function SummaryPayment({
         <div className="p-4 bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium">Total</div>
-            <div className="text-xl font-bold">{price}</div>
+            <div className="text-xl font-semibold">{price}</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Payment taken now. Full refund if your request is declined.

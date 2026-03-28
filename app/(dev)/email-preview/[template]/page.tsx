@@ -159,9 +159,9 @@ export default async function EmailPreviewPage({ params }: PageProps) {
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           {/* Info bar */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center justify-between">
+          <div className="mb-4 p-3 bg-info-light border border-info-border rounded-lg text-sm text-info flex items-center justify-between">
             <span>📧 Preview with mock data — actual emails will use real patient information</span>
-            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+            <span className="text-xs text-info bg-info-light px-2 py-1 rounded">
               Dev Only
             </span>
           </div>

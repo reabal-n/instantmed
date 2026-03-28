@@ -3,6 +3,7 @@ import { generateText } from "ai"
 import { getDefaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
 import { z } from "zod"
 
 export const runtime = "edge"
@@ -244,7 +245,9 @@ export async function POST(req: NextRequest) {
       // Sanitize form data before passing to AI prompt
       const { output: formSummary } = checkAndSanitize(rawFormSummary, { endpoint: "form-validation" })
       
-      const prompt = `You are a medical intake form validator. Analyze this ${formType} form submission for potential inconsistencies or issues that might cause the request to be rejected by a doctor.
+      const prompt = `You are a medical intake form validation assistant. Analyze this ${formType} form submission for potential inconsistencies or issues that might cause the request to be rejected by a doctor.
+
+${CLINICAL_SAFETY_PREAMBLE}
 
 Form Data:
 ${formSummary}

@@ -47,10 +47,10 @@ export function ForgotPasswordClient() {
         <main className="min-h-screen bg-hero pt-32 pb-20">
           <div className="max-w-md mx-auto px-4">
             <div className="glass-card rounded-3xl p-8 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-6">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-success-light flex items-center justify-center mb-6">
+                <CheckCircle className="w-8 h-8 text-success" />
               </div>
-              <h1 className="text-2xl font-bold mb-2">Check Your Email</h1>
+              <h1 className="text-2xl font-semibold mb-2">Check Your Email</h1>
               <p className="text-muted-foreground mb-6">
                 We&apos;ve sent a password reset link to <strong>{email}</strong>. Click the link in the email to reset
                 your password.
@@ -87,12 +87,12 @@ export function ForgotPasswordClient() {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Mail className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">Forgot Password?</h1>
+              <h1 className="text-2xl font-semibold">Forgot Password?</h1>
               <p className="text-muted-foreground mt-2">No worries, we&apos;ll send you reset instructions.</p>
             </div>
 
             {error && (
-              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-sm mb-6">{error}</div>
+              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border text-destructive text-sm mb-6">{error}</div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">

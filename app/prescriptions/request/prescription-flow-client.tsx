@@ -639,13 +639,13 @@ export function PrescriptionFlowClient({
                 <div className="flex items-center gap-1.5">
                   {lastSaved && (
                     <>
-                      <Save className="w-3 h-3 text-green-500" aria-hidden="true" />
+                      <Save className="w-3 h-3 text-success" aria-hidden="true" />
                       <span>Progress saved</span>
                     </>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Phone className="w-3 h-3 text-red-500" aria-hidden="true" />
+                  <Phone className="w-3 h-3 text-destructive" aria-hidden="true" />
                   <span>Emergency? Call <a href="tel:000" className="underline font-medium">000</a></span>
                 </div>
               </div>

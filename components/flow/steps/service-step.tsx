@@ -90,7 +90,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
             >
               {/* Popular badge */}
               {service.popular && (
-                <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">
                   Popular
                 </span>
               )}
@@ -115,7 +115,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-0.5">
                     <h3 className="font-semibold text-foreground text-sm sm:text-base">{service.name}</h3>
-                    <span className="text-base sm:text-lg font-bold text-foreground whitespace-nowrap">{service.price}</span>
+                    <span className="text-base sm:text-lg font-semibold text-foreground whitespace-nowrap">{service.price}</span>
                   </div>
 
                   <p className="text-xs sm:text-sm text-muted-foreground mb-2">{service.description}</p>

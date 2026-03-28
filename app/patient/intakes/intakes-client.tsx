@@ -191,9 +191,9 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
           className="mb-6"
           items={[
             { value: intakes.length, label: "Total" },
-            { value: upcomingIntakes.length, label: "Upcoming", color: "text-blue-600" },
-            { value: completedIntakes.length, label: "Completed", color: "text-emerald-600" },
-            { value: declinedIntakes.length, label: "Declined", color: "text-red-600" },
+            { value: upcomingIntakes.length, label: "Upcoming", color: "text-info" },
+            { value: completedIntakes.length, label: "Completed", color: "text-success" },
+            { value: declinedIntakes.length, label: "Declined", color: "text-destructive" },
           ]}
         />
       )}
@@ -260,8 +260,8 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                     refId={intake.id.slice(0, 8).toUpperCase()}
                     status={intake.status}
                     icon={isPrescription ? Pill : FileText}
-                    iconClassName={isPrescription ? "w-5 h-5 text-blue-600 dark:text-blue-400" : "w-5 h-5 text-primary"}
-                    iconContainerClassName={isPrescription ? "bg-blue-50 dark:bg-blue-950/40" : "bg-primary/10"}
+                    iconClassName={isPrescription ? "w-5 h-5 text-info" : "w-5 h-5 text-primary"}
+                    iconContainerClassName={isPrescription ? "bg-info-light" : "bg-primary/10"}
                   />
                 )
               })}

@@ -58,8 +58,8 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
 }) {
   const colorMap = {
     default: "text-foreground",
-    success: "text-emerald-600 dark:text-emerald-400",
-    warning: "text-amber-600 dark:text-amber-400",
+    success: "text-success",
+    warning: "text-warning",
     danger: "text-destructive",
   }
 
@@ -69,7 +69,7 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <div className={cn("text-xl font-bold tabular-nums tracking-tight", colorMap[variant])}>
+      <div className={cn("text-xl font-semibold tabular-nums tracking-tight", colorMap[variant])}>
         {value}
       </div>
     </div>
@@ -171,9 +171,9 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         )}
         {(stats.slaApproaching ?? 0) > 0 && (stats.slaBreached ?? 0) === 0 && (
-          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-            <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning-light border border-warning-border">
+            <Clock className="h-3.5 w-3.5 text-warning shrink-0" />
+            <span className="text-sm font-medium text-warning">
               {stats.slaApproaching} case{stats.slaApproaching !== 1 ? "s" : ""} approaching deadline
             </span>
           </div>
@@ -184,10 +184,10 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           <div className="flex items-center gap-1.5">
             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              <span className="font-medium text-emerald-600 dark:text-emerald-400">{stats.paidCount}</span> paid
+              <span className="font-medium text-success">{stats.paidCount}</span> paid
             </span>
             {stats.pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20">
+              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-warning-light text-warning border-warning-border">
                 {stats.pendingCount} pending
               </Badge>
             )}
@@ -198,7 +198,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1">
               <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">{stats.approvedToday}</span>
+              <span className="text-sm font-medium text-success tabular-nums">{stats.approvedToday}</span>
             </div>
             <div className="flex items-center gap-1">
               <XCircle className="h-3.5 w-3.5 text-destructive/70" />
@@ -227,7 +227,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           {stats.queueSize === 0 && (
             <>
               <div className="h-3.5 w-px bg-border/60" />
-              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">
+              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-success-light text-success border-success-border">
                 Queue clear
               </Badge>
             </>

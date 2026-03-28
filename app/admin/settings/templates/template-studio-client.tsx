@@ -244,7 +244,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                 </span>
               )}
               {hasChanges && (
-                <span className="text-sm text-amber-600 font-medium">
+                <span className="text-sm text-warning font-medium">
                   Unsaved changes
                 </span>
               )}
@@ -275,8 +275,8 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
             <div
               className={`mt-3 p-3 rounded-lg flex items-center gap-2 ${
                 message.type === "success"
-                  ? "bg-emerald-50 text-emerald-800"
-                  : "bg-red-50 text-red-800"
+                  ? "bg-success-light text-success"
+                  : "bg-destructive-light text-destructive"
               }`}
             >
               {message.type === "success" ? (

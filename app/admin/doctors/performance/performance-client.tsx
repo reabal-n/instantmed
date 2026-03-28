@@ -98,8 +98,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <Users className="h-5 w-5 text-blue-600" />
+                <div className="p-2 rounded-lg bg-info-light">
+                  <Users className="h-5 w-5 text-info" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Active Doctors</p>
@@ -111,8 +111,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-50">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                <div className="p-2 rounded-lg bg-success-light">
+                  <CheckCircle className="h-5 w-5 text-success" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Total Reviewed</p>
@@ -125,8 +125,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                <div className="p-2 rounded-lg bg-info-light">
+                  <TrendingUp className="h-5 w-5 text-info" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Avg Approval Rate</p>
@@ -138,8 +138,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-50">
-                  <Zap className="h-5 w-5 text-amber-600" />
+                <div className="p-2 rounded-lg bg-warning-light">
+                  <Zap className="h-5 w-5 text-warning" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Avg Response</p>
@@ -177,7 +177,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-500" />
+                <Trophy className="h-5 w-5 text-warning" />
                 <CardTitle className="text-base">Leaderboard</CardTitle>
               </div>
               <CardDescription>By total reviews</CardDescription>
@@ -187,8 +187,8 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                 {doctors.slice(0, 5).map((doctor, index) => (
                   <div key={doctor.id} className="flex items-center gap-3">
                     <div className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                      index === 0 ? "bg-amber-100 text-amber-700" :
+                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold",
+                      index === 0 ? "bg-warning-light text-warning" :
                       index === 1 ? "bg-muted text-foreground" :
                       index === 2 ? "bg-orange-100 text-orange-700" :
                       "bg-muted text-muted-foreground"
@@ -201,7 +201,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                       size="sm"
                       className="flex-1 min-w-0"
                     />
-                    {index === 0 && <Award className="w-5 h-5 text-amber-500" />}
+                    {index === 0 && <Award className="w-5 h-5 text-warning" />}
                   </div>
                 ))}
               </div>
@@ -245,20 +245,20 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                     </TableCell>
                     <TableCell className="text-center font-medium">{doctor.totalReviewed}</TableCell>
                     <TableCell className="text-center">
-                      <span className="text-emerald-600">{doctor.approved}</span>
+                      <span className="text-success">{doctor.approved}</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="text-red-600">{doctor.declined}</span>
+                      <span className="text-destructive">{doctor.declined}</span>
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge
                         variant="outline"
                         className={cn(
                           doctor.approvalRate >= 90
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-success-light text-success border-success-border"
                             : doctor.approvalRate >= 70
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-red-50 text-red-700 border-red-200"
+                            ? "bg-warning-light text-warning border-warning-border"
+                            : "bg-destructive-light text-destructive border-destructive-border"
                         )}
                       >
                         {doctor.approvalRate.toFixed(0)}%
@@ -267,9 +267,9 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                     <TableCell className="text-center">
                       {doctor.avgResponseMinutes > 0 ? (
                         <span className={cn(
-                          doctor.avgResponseMinutes < 60 ? "text-emerald-600" :
-                          doctor.avgResponseMinutes < 180 ? "text-amber-600" :
-                          "text-red-600"
+                          doctor.avgResponseMinutes < 60 ? "text-success" :
+                          doctor.avgResponseMinutes < 180 ? "text-warning" :
+                          "text-destructive"
                         )}>
                           {formatResponseTime(doctor.avgResponseMinutes)}
                         </span>
@@ -279,7 +279,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                     </TableCell>
                     <TableCell className="text-center">
                       {doctor.pending > 0 ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge variant="outline" className="bg-info-light text-info border-info-border">
                           {doctor.pending}
                         </Badge>
                       ) : (

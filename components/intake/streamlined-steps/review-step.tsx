@@ -50,7 +50,7 @@ export function ReviewStep({
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <FileText className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-semibold text-foreground">
           Review your request
         </h1>
         <p className="text-muted-foreground">
@@ -116,7 +116,7 @@ export function ReviewStep({
           <p className="font-semibold">Total</p>
           <p className="text-xs text-muted-foreground">Reviewed by Australian doctor</p>
         </div>
-        <p className="text-2xl font-bold text-primary">
+        <p className="text-2xl font-semibold text-primary">
           ${formData.duration === "2 days" ? PRICING.MED_CERT_2DAY.toFixed(2) : PRICING.MED_CERT.toFixed(2)}
         </p>
       </div>

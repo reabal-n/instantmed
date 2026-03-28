@@ -58,7 +58,7 @@ function StepTwoMockup() {
         ))}
       </div>
       {/* Status badge */}
-      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success-light text-[10px] font-medium text-success">
         <CheckCircle2 className="w-3 h-3" />
         Approved
       </div>
@@ -116,7 +116,7 @@ export function HowItWorks() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
             How it works
           </h2>
           <p className="text-sm text-muted-foreground">

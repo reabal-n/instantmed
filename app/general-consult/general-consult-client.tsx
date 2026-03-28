@@ -175,11 +175,11 @@ export default function GeneralConsultPage() {
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
       {isDisabled && (
-        <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+        <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light/50 px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-warning shrink-0" />
           <div>
-            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">This service is temporarily unavailable.</p>
-            <p className="text-xs text-amber-700 dark:text-amber-200">
+            <p className="text-sm font-medium text-amber-900">This service is temporarily unavailable.</p>
+            <p className="text-xs text-warning">
               We&apos;ll be back soon. <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">Contact us</a> if you have questions.
             </p>
           </div>
@@ -250,20 +250,20 @@ export default function GeneralConsultPage() {
             {/* Stats bar with price justification */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
+                <div className="text-2xl font-semibold text-foreground mb-1">$49.95</div>
                 <p className="text-xs text-muted-foreground">Flat fee</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">vs {SOCIAL_PROOF.gpPriceComplex} at a GP</p>
               </div>
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
+                <div className="text-2xl font-semibold text-foreground mb-1">&lt;2 hrs</div>
                 <p className="text-xs text-muted-foreground">Doctor response</p>
               </div>
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
+                <div className="text-2xl font-semibold text-foreground mb-1">7 days</div>
                 <p className="text-xs text-muted-foreground">A week</p>
               </div>
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <div className="text-2xl font-bold text-foreground mb-1">$0</div>
+                <div className="text-2xl font-semibold text-foreground mb-1">$0</div>
                 <p className="text-xs text-muted-foreground">If we can&apos;t help</p>
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function GeneralConsultPage() {
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
                 How can we help?
               </h2>
               <p className="text-sm text-muted-foreground max-w-xl mx-auto">
@@ -370,7 +370,7 @@ export default function GeneralConsultPage() {
                         {/* Popular badge */}
                         {consult.popular && (
                           <div className="absolute top-0 right-4 z-20">
-                            <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-primary to-primary/80 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-primary/30">
+                            <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-primary to-primary/80 text-white text-xs font-semibold tracking-wide uppercase shadow-lg shadow-primary/30">
                               Popular
                             </div>
                           </div>
@@ -412,7 +412,7 @@ export default function GeneralConsultPage() {
                           <div className="flex items-center justify-between pt-4 border-t border-border/50">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-2xl font-bold text-foreground">${consult.price.toFixed(2)}</span>
+                                <span className="text-2xl font-semibold text-foreground">${consult.price.toFixed(2)}</span>
                               </div>
                               <span className="text-xs text-muted-foreground">{consult.time}</span>
                             </div>
@@ -437,7 +437,7 @@ export default function GeneralConsultPage() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
                 <Shield className="w-4 h-4 text-success" />
-                <span className="text-sm text-success dark:text-success font-medium">Full refund if we can&apos;t help</span>
+                <span className="text-sm text-success font-medium">Full refund if we can&apos;t help</span>
               </div>
             </motion.div>
           </div>
@@ -453,7 +453,7 @@ export default function GeneralConsultPage() {
               viewport={{ once: true }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
             >
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3 tracking-tight">
                 Common presenting concerns
               </h2>
               <p className="text-muted-foreground text-sm max-w-xl mx-auto">
@@ -510,7 +510,7 @@ export default function GeneralConsultPage() {
         <section className="py-12 px-4">
           <div className="max-w-4xl mx-auto">
             <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
-            <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+            <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
             <div className="grid md:grid-cols-3 gap-4">
               {consultCardTestimonials.map((t) => (
                 <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">

@@ -10,13 +10,13 @@ import { Info } from 'lucide-react'
  */
 export function MedCertRedirectBanner() {
   return (
-    <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-100 dark:border-blue-800">
+    <div className="bg-info-light border-b border-info-border">
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="flex items-start gap-3">
-          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
+          <Info className="w-4 h-4 text-info mt-0.5 shrink-0" />
+          <div className="text-sm text-info">
             <p className="font-medium">Looking for extended time off?</p>
-            <p className="text-blue-700 dark:text-blue-300 mt-0.5">
+            <p className="text-info mt-0.5">
               Absences longer than 2 days are best handled through a doctor consultation. 
               The doctor can assess your situation and provide appropriate documentation.
             </p>

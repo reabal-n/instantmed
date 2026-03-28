@@ -390,7 +390,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
           <section className="py-12 px-4">
             <div className="max-w-4xl mx-auto">
               <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
-              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {hairLossTestimonials.map((t) => (
                   <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">

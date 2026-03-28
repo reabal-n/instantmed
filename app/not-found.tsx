@@ -13,13 +13,13 @@ export default function NotFound() {
       
       {/* Animated gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-info-light rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
       
       <div className="relative z-10 text-center max-w-lg">
         {/* Animated 404 */}
         <div className="relative mb-8">
           <h1
-            className="text-[120px] sm:text-[180px] font-bold leading-none select-none bg-clip-text text-transparent bg-linear-to-b from-muted-foreground/20 to-muted-foreground/5"
+            className="text-[120px] sm:text-[180px] font-semibold leading-none select-none bg-clip-text text-transparent bg-linear-to-b from-muted-foreground/20 to-muted-foreground/5"
             aria-label="Error 404"
           >
             404
@@ -36,7 +36,7 @@ export default function NotFound() {
         </div>
 
         <h2
-          className="text-2xl sm:text-3xl font-bold mb-4 text-foreground"
+          className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground"
           style={{ fontFamily: "var(--font-display)" }}
         >
           Page not found

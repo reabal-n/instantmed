@@ -403,7 +403,7 @@ export function ClinicIdentityClient({ initialData, logoUrl }: ClinicIdentityCli
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                <CheckCircle className="h-4 w-4 text-success" />
                 Last updated: {new Date(initialData.updated_at).toLocaleDateString("en-AU", {
                   day: "numeric",
                   month: "long",

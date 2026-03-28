@@ -143,7 +143,7 @@ export default function ClinicalGovernanceClient() {
         {/* External verification — keep as custom since it has external links */}
         <section className="py-16 px-4">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl font-semibold text-foreground mb-4">
               Independent verification
             </h2>
             <p className="text-muted-foreground mb-6">

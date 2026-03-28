@@ -128,7 +128,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
             <div className="mt-6 p-4 rounded-xl bg-muted/30 border">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Overall Conversion</span>
-                <span className="text-lg font-bold">{overallRate}%</span>
+                <span className="text-lg font-semibold">{overallRate}%</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {funnel.visits} visits resulted in {funnel.completed} completed intakes

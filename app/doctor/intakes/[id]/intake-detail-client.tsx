@@ -588,7 +588,7 @@ export function IntakeDetailClient({
       {actionMessage && (
         <div
           className={`p-3 rounded-lg text-sm ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-destructive/10 text-destructive"
+            actionMessage.type === "success" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
           }`}
         >
           {actionMessage.text}
@@ -672,7 +672,7 @@ export function IntakeDetailClient({
             </div>
             {intake.paid_at && (
               <div className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                <CheckCircle className="h-4 w-4 text-success" />
                 Paid: {formatDateLong(intake.paid_at)}
               </div>
             )}
@@ -791,7 +791,7 @@ export function IntakeDetailClient({
                       ? "Regenerate AI draft"
                       : "Generate AI draft"}
                 </Button>
-                {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
+                {noteSaved && <span className="text-xs text-success">Saved!</span>}
               </div>
             </>
           )}
@@ -818,7 +818,7 @@ export function IntakeDetailClient({
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{prevService?.short_name || "Request"}</span>
                       {hasNotes && (
-                        <Badge variant="outline" className="text-xs h-4 px-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30">
+                        <Badge variant="outline" className="text-xs h-4 px-1 bg-info-light text-info border-info-border">
                           <FileText className="h-2.5 w-2.5 mr-0.5" />
                           Note
                         </Badge>
@@ -930,7 +930,7 @@ export function IntakeDetailClient({
 
             {/* Refund - show for paid intakes that haven't been refunded */}
             {intake.payment_status === "paid" && (
-              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-amber-600 border-amber-300 hover:bg-amber-50">
+              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Issue Refund
               </Button>
@@ -948,7 +948,7 @@ export function IntakeDetailClient({
                   variant="outline" 
                   onClick={handleRegenerateCertificate} 
                   disabled={isPending}
-                  className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950/20"
+                  className="text-warning border-warning-border hover:bg-warning-light"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   Regenerate Certificate

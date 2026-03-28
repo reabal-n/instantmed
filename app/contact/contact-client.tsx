@@ -100,7 +100,7 @@ export function ContactClient() {
                 >
                   <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
                 </div>
-                <h1 className="text-2xl font-bold mb-3">
+                <h1 className="text-2xl font-semibold mb-3">
                   Message sent!
                 </h1>
                 <p className="text-muted-foreground mb-8">

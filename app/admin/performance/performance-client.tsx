@@ -70,11 +70,11 @@ export function PerformanceMonitoringClient() {
   const getRatingColor = (rating: string) => {
     switch (rating) {
       case "good":
-        return "text-emerald-600 dark:text-emerald-400"
+        return "text-success"
       case "needs-improvement":
-        return "text-amber-600 dark:text-amber-400"
+        return "text-warning"
       case "poor":
-        return "text-red-600 dark:text-red-400"
+        return "text-destructive"
       default:
         return "text-muted-foreground"
     }
@@ -83,9 +83,9 @@ export function PerformanceMonitoringClient() {
   const getRatingBadge = (rating: string) => {
     switch (rating) {
       case "good":
-        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Good</Badge>
+        return <Badge className="bg-success-light text-success">Good</Badge>
       case "needs-improvement":
-        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">Needs Work</Badge>
+        return <Badge className="bg-warning-light text-warning">Needs Work</Badge>
       case "poor":
         return <Badge variant="destructive">Poor</Badge>
       default:
@@ -125,8 +125,8 @@ export function PerformanceMonitoringClient() {
 
   const getTrend = (current: number, target: number) => {
     const ratio = current / target
-    if (ratio < 0.7) return <TrendingDown className="h-4 w-4 text-emerald-500" />
-    if (ratio > 1) return <TrendingUp className="h-4 w-4 text-red-500" />
+    if (ratio < 0.7) return <TrendingDown className="h-4 w-4 text-success" />
+    if (ratio > 1) return <TrendingUp className="h-4 w-4 text-destructive" />
     return <Minus className="h-4 w-4 text-muted-foreground" />
   }
 
@@ -143,9 +143,9 @@ export function PerformanceMonitoringClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Realtime Users</p>
-                <p className="text-2xl font-bold">{data.realtimeUsers}</p>
+                <p className="text-2xl font-semibold">{data.realtimeUsers}</p>
               </div>
-              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-success-light flex items-center justify-center">
                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
             </div>
@@ -157,7 +157,7 @@ export function PerformanceMonitoringClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Page Views (24h)</p>
-                <p className="text-2xl font-bold">{data.pageViews24h.toLocaleString()}</p>
+                <p className="text-2xl font-semibold">{data.pageViews24h.toLocaleString()}</p>
               </div>
               <Globe className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -169,7 +169,7 @@ export function PerformanceMonitoringClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Avg Response</p>
-                <p className="text-2xl font-bold">{data.serverMetrics.avgResponseTime}ms</p>
+                <p className="text-2xl font-semibold">{data.serverMetrics.avgResponseTime}ms</p>
               </div>
               <Server className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -181,7 +181,7 @@ export function PerformanceMonitoringClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Error Rate</p>
-                <p className="text-2xl font-bold">{data.serverMetrics.errorRate}%</p>
+                <p className="text-2xl font-semibold">{data.serverMetrics.errorRate}%</p>
               </div>
               <Activity className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -228,7 +228,7 @@ export function PerformanceMonitoringClient() {
                     
                     <div className="flex items-end justify-between mt-3">
                       <div>
-                        <span className={`text-2xl font-bold ${getRatingColor(vital.rating)}`}>
+                        <span className={`text-2xl font-semibold ${getRatingColor(vital.rating)}`}>
                           {vital.value}
                         </span>
                         <span className="text-sm text-muted-foreground ml-1">
@@ -304,7 +304,7 @@ export function PerformanceMonitoringClient() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Error Rate</span>
-                      <span className={`font-medium ${data.serverMetrics.errorRate > 1 ? "text-red-500" : "text-emerald-500"}`}>
+                      <span className={`font-medium ${data.serverMetrics.errorRate > 1 ? "text-destructive" : "text-success"}`}>
                         {data.serverMetrics.errorRate}%
                       </span>
                     </div>

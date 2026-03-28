@@ -344,17 +344,17 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
         
         {/* Yellow Flags - Caution, review carefully */}
         {yellowFlagFields.length > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-sm">
+          <div className="bg-warning-light border border-warning-border rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-2 text-warning font-semibold text-sm">
               <AlertCircle className="h-4 w-4" />
               Caution Flags — Review Carefully
             </div>
             {yellowFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
-                <Badge className="text-xs bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">
+                <Badge className="text-xs bg-warning-light text-warning border-warning-border">
                   {FIELD_LABELS[key] || formatFieldLabel(key)}
                 </Badge>
-                <span className="text-amber-900 dark:text-amber-200">{formatValue(key, value)}</span>
+                <span className="text-warning">{formatValue(key, value)}</span>
               </div>
             ))}
           </div>
@@ -410,7 +410,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
                     key={key} 
                     className={cn(
                       "flex items-start gap-2 p-3 rounded-lg text-sm",
-                      isHighlighted ? "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" : "bg-muted/30"
+                      isHighlighted ? "bg-warning-light border border-warning-border" : "bg-muted/30"
                     )}
                   >
                     <div className="flex-1 min-w-0">
@@ -419,7 +419,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
                       </p>
                       <p className={cn(
                         "font-medium mt-0.5",
-                        isHighlighted && "text-amber-700 dark:text-amber-400"
+                        isHighlighted && "text-warning"
                       )}>
                         {formatValue(key, value)}
                       </p>

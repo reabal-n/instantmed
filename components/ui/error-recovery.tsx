@@ -125,8 +125,8 @@ export function ErrorBanner({
       className={cn(
         "rounded-xl border p-4",
         errorType === "validation"
-          ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20"
-          : "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20",
+          ? "bg-warning-light border-warning-border"
+          : "bg-destructive-light border-destructive-border",
         className
       )}
     >
@@ -137,8 +137,8 @@ export function ErrorBanner({
         <div className={cn(
           "shrink-0 mt-0.5",
           errorType === "validation"
-            ? "text-amber-600 dark:text-amber-400"
-            : "text-red-600 dark:text-red-400"
+            ? "text-warning"
+            : "text-destructive"
         )}>
           {config.icon}
         </div>
@@ -147,16 +147,16 @@ export function ErrorBanner({
           <h4 className={cn(
             "font-medium",
             errorType === "validation"
-              ? "text-amber-800 dark:text-amber-200"
-              : "text-red-800 dark:text-red-200"
+              ? "text-warning"
+              : "text-destructive"
           )}>
             {config.title}
           </h4>
           <p className={cn(
             "text-sm mt-1",
             errorType === "validation"
-              ? "text-amber-700 dark:text-amber-300"
-              : "text-red-700 dark:text-red-300"
+              ? "text-warning"
+              : "text-destructive"
           )}>
             {config.description}
           </p>
@@ -245,7 +245,7 @@ interface FieldErrorProps {
 export function FieldError({ error, suggestions, className }: FieldErrorProps) {
   return (
     <div className={cn("text-sm", className)}>
-      <p className="text-red-600 dark:text-red-400 flex items-center gap-1">
+      <p className="text-destructive flex items-center gap-1">
         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
         {error}
       </p>

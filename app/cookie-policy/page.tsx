@@ -29,7 +29,7 @@ export default function CookiePolicyPage() {
         {/* Hero */}
         <section className="pt-32 pb-10 px-4">
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Cookie Policy</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Cookie Policy</h1>
             <p className="mt-2 text-sm text-muted-foreground">Last updated: February 2026</p>
           </div>
         </section>

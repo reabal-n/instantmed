@@ -32,7 +32,7 @@ const SERVICES = [
     label: 'Prescription',
     description: 'New or repeat prescription',
     color: 'from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    iconColor: 'text-success',
   },
   {
     id: 'consultation' as const,

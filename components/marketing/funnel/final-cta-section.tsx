@@ -25,7 +25,7 @@ export function FinalCtaSection({ config, colors, isDisabled }: FinalCtaSectionP
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
             {config.finalCta.headline}
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">

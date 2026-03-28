@@ -24,7 +24,7 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             {config.whoItsFor.title}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -47,20 +47,20 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className={cn(
                   'rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
-                  isPositive && 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 hover:shadow-primary/[0.06] hover:border-emerald-300 dark:hover:border-emerald-700',
+                  isPositive && 'bg-success-light border-success-border hover:shadow-primary/[0.06] hover:border-success-border',
                   isNegative && 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800 hover:shadow-primary/[0.06] hover:border-rose-300 dark:hover:border-rose-700',
                   !isPositive && !isNegative && 'bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] hover:shadow-primary/[0.1] hover:border-primary/20'
                 )}
               >
                 <div className={cn(
                   'w-12 h-12 rounded-xl flex items-center justify-center mb-4',
-                  isPositive && 'bg-emerald-100 dark:bg-emerald-500/20',
+                  isPositive && 'bg-success-light',
                   isNegative && 'bg-rose-100 dark:bg-rose-500/20',
                   !isPositive && !isNegative && colors.light
                 )}>
                   <Icon className={cn(
                     'w-6 h-6',
-                    isPositive && 'text-emerald-600 dark:text-emerald-400',
+                    isPositive && 'text-success',
                     isNegative && 'text-rose-600 dark:text-rose-400',
                     !isPositive && !isNegative && colors.text
                   )} />

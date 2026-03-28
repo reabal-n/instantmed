@@ -36,7 +36,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Today</p>
-              <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
+              <p className="text-3xl font-semibold text-success">
                 {formatCurrency(revenue.today)}
               </p>
             </div>
@@ -48,7 +48,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">This Week</p>
-              <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">
+              <p className="text-3xl font-semibold text-info">
                 {formatCurrency(revenue.thisWeek)}
               </p>
             </div>
@@ -60,7 +60,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Last 30 Days</p>
-              <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">
+              <p className="text-3xl font-semibold text-info">
                 {formatCurrency(revenue.thisMonth)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">{funnel.paid} paid intakes</p>
@@ -110,21 +110,21 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Avg per Intake</p>
-            <p className="text-xl font-bold">
+            <p className="text-xl font-semibold">
               {funnel.paid > 0 ? formatCurrency(revenue.thisMonth / funnel.paid) : "$0"}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Avg per Day</p>
-            <p className="text-xl font-bold">{formatCurrency(revenue.thisMonth / 30)}</p>
+            <p className="text-xl font-semibold">{formatCurrency(revenue.thisMonth / 30)}</p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Paid Intakes</p>
-            <p className="text-xl font-bold">{funnel.paid}</p>
+            <p className="text-xl font-semibold">{funnel.paid}</p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Conversion to Pay</p>
-            <p className="text-xl font-bold">{payRate}%</p>
+            <p className="text-xl font-semibold">{payRate}%</p>
           </div>
         </div>
       </div>

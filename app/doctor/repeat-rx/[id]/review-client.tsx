@@ -93,11 +93,11 @@ interface RepeatRxReviewClientProps {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
-    pending: { label: "Pending", className: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300" },
-    approved: { label: "Script Sent", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300" },
-    script_sent: { label: "Script Sent", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300" },
-    declined: { label: "Declined", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" },
-    requires_consult: { label: "Requires Consult", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+    pending: { label: "Pending", className: "bg-info-light text-info" },
+    approved: { label: "Script Sent", className: "bg-success-light text-success" },
+    script_sent: { label: "Script Sent", className: "bg-success-light text-success" },
+    declined: { label: "Declined", className: "bg-destructive-light text-destructive" },
+    requires_consult: { label: "Requires Consult", className: "bg-warning-light text-warning" },
   }
 
   const config = statusConfig[status] || { label: status, className: "bg-muted" }
@@ -129,7 +129,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
       title={`Copy ${label || "text"}`}
     >
       {copied ? (
-        <Check className="w-3 h-3 text-green-600" />
+        <Check className="w-3 h-3 text-success" />
       ) : (
         <Copy className="w-3 h-3" />
       )}

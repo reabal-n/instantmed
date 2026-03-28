@@ -24,8 +24,8 @@ const STAT_CONFIG = {
     icon: CheckCircle2,
     value: `${SOCIAL_PROOF.certApprovalPercent}%`,
     label: 'Approval rate',
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-500/10',
+    color: 'text-success',
+    bg: 'bg-success-light',
   },
   sameDay: {
     icon: Clock,
@@ -100,7 +100,7 @@ export function DoctorCredibility({
             const config = STAT_CONFIG[key]
             return (
               <div key={key} className={cn('rounded-xl p-3', config.bg)}>
-                <div className={cn('text-lg font-bold', config.color)}>{config.value}</div>
+                <div className={cn('text-lg font-semibold', config.color)}>{config.value}</div>
                 <div className="text-xs text-muted-foreground">{config.label}</div>
               </div>
             )
@@ -121,7 +121,7 @@ export function DoctorCredibility({
           className="text-center mb-10"
         >
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Our doctors</p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
             {SOCIAL_PROOF_DISPLAY.doctorExperience}
           </h2>
           <p className="text-muted-foreground mt-2">
@@ -144,7 +144,7 @@ export function DoctorCredibility({
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3', config.bg)}>
                   <config.icon className={cn('w-5 h-5', config.color)} />
                 </div>
-                <div className={cn('text-2xl font-bold', config.color)}>{config.value}</div>
+                <div className={cn('text-2xl font-semibold', config.color)}>{config.value}</div>
                 <div className="text-sm text-muted-foreground mt-1">{config.label}</div>
               </motion.div>
             )

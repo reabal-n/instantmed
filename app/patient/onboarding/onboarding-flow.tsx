@@ -401,7 +401,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={prefersReducedMotion ? { duration: 0 } : undefined}
-                  className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
+                  className="p-4 rounded-xl bg-warning-light border border-warning-border text-sm text-warning flex items-start gap-2"
                 >
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{expiryWarning}</span>

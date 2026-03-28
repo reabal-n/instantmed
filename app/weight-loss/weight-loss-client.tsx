@@ -220,7 +220,7 @@ export function WeightLossClient() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
+                  <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
                     Our doctors can recommend TGA-approved treatment options based on your health assessment
                   </p>
@@ -235,7 +235,7 @@ export function WeightLossClient() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 className="text-lg font-bold">{treatment.name}</h3>
+                            <h3 className="text-lg font-semibold">{treatment.name}</h3>
                             {treatment.popular && (
                               <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
                                 Most Popular
@@ -300,7 +300,7 @@ export function WeightLossClient() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Who Can Use This Service?</h2>
+                  <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Who Can Use This Service?</h2>
                   <p className="text-sm text-muted-foreground">
                     Weight management treatments are suitable for adults who meet certain criteria
                   </p>
@@ -363,7 +363,7 @@ export function WeightLossClient() {
           <section className="py-12 px-4">
             <div className="max-w-4xl mx-auto">
               <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
-              <h2 className="text-2xl font-bold text-center mb-8">What patients say</h2>
+              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {weightLossTestimonials.map((t) => (
                   <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">

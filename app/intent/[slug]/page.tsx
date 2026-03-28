@@ -68,9 +68,9 @@ function renderContentBlock(block: ContentBlock) {
     return (
       <div
         key={block.id}
-        className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+        className="p-4 rounded-xl bg-warning-light/30 border border-warning-border"
       >
-        <p className="text-sm text-amber-800 dark:text-amber-200">
+        <p className="text-sm text-warning">
           <strong>Important:</strong> {block.content as string}
         </p>
       </div>
@@ -126,7 +126,7 @@ export default async function IntentPage({ params }: PageProps) {
           <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-info-light rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
@@ -135,13 +135,13 @@ export default async function IntentPage({ params }: PageProps) {
                   <Shield className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">AHPRA Registered Doctors</span>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <Clock className="w-4 h-4 text-emerald-600" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-light border border-success-border/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <Clock className="w-4 h-4 text-success" />
                   <span className="text-sm font-medium">Usually under 1 hour</span>
                 </div>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-semibold text-center text-foreground mb-6 tracking-tight">
                 {page.h1}
               </h1>
 
@@ -174,7 +174,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* Content blocks */}
           <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 What You Need to Know
               </h2>
 
@@ -194,7 +194,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
 
@@ -216,7 +216,7 @@ export default async function IntentPage({ params }: PageProps) {
           {page.links.related.length > 0 && (
             <section className="px-4 py-12 bg-muted/30">
               <div className="mx-auto max-w-4xl">
-                <h2 className="text-xl font-bold text-foreground mb-6 text-center">
+                <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
                   Related Resources
                 </h2>
                 <div className="flex flex-wrap justify-center gap-4">
@@ -275,7 +275,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* Final CTA */}
           <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Ready to get started?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">

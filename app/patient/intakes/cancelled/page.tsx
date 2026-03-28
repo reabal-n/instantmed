@@ -21,12 +21,12 @@ export default async function PaymentCancelledPage({
         <div className="max-w-lg mx-auto">
           <div className="glass-card rounded-3xl p-8 text-center">
             {/* Icon */}
-            <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center mb-6">
-              <XCircle className="w-8 h-8 text-amber-600" />
+            <div className="mx-auto w-16 h-16 rounded-full bg-warning-light/30 flex items-center justify-center mb-6">
+              <XCircle className="w-8 h-8 text-warning" />
             </div>
 
             {/* Title */}
-            <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
+            <h1 className="font-heading text-2xl font-semibold text-foreground mb-2">
               Payment not completed
             </h1>
             <p className="text-muted-foreground mb-6">
@@ -42,7 +42,7 @@ export default async function PaymentCancelledPage({
                 </p>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-success mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
                   No card has been charged. Payment is only taken when you complete checkout.
                 </p>

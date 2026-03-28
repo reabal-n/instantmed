@@ -110,19 +110,19 @@ export function PrescriptionsClient({
       
       {/* Renewal Alerts */}
       {renewalNeeded.length > 0 && (
-        <Card className="mb-6 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+        <Card className="mb-6 border-warning-border bg-warning-light/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-amber-800 dark:text-amber-200">
+            <CardTitle className="text-lg flex items-center gap-2 text-warning">
               <RefreshCw className="w-5 h-5" />
               Prescriptions Due for Renewal
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {renewalNeeded.map((rx) => (
-              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-amber-100 dark:border-amber-800/50">
+              <div key={rx.id} className="flex items-center justify-between bg-card rounded-xl p-3 border border-warning-border/50">
                 <div>
                   <p className="font-medium">{rx.medication_name}</p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                  <p className="text-sm text-warning">
                     Renews in {getDaysUntilExpiry(rx.expiry_date)} days
                   </p>
                 </div>
@@ -142,8 +142,8 @@ export function PrescriptionsClient({
         className="mb-6"
         items={[
           { value: prescriptionIntakes.length, label: "Total Requests" },
-          { value: completedIntakes.length, label: "Approved", color: "text-emerald-600" },
-          { value: pendingIntakes.length, label: "Pending", color: "text-blue-600" },
+          { value: completedIntakes.length, label: "Approved", color: "text-success" },
+          { value: pendingIntakes.length, label: "Pending", color: "text-info" },
         ]}
       />
 
@@ -195,8 +195,8 @@ export function PrescriptionsClient({
                     refId={intake.reference_number?.slice(0, 8) || intake.id.slice(0, 8)}
                     status={intake.status}
                     icon={Pill}
-                    iconClassName="w-5 h-5 text-blue-600 dark:text-blue-400"
-                    iconContainerClassName="bg-blue-50 dark:bg-blue-950/40"
+                    iconClassName="w-5 h-5 text-info"
+                    iconContainerClassName="bg-info-light"
                   />
                 )
               })}

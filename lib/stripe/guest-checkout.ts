@@ -8,6 +8,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
@@ -119,6 +120,26 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
     }
 
+    // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)
+    if (input.guestDateOfBirth) {
+      const dob = new Date(input.guestDateOfBirth)
+      if (!isNaN(dob.getTime())) {
+        const today = new Date()
+        let age = today.getFullYear() - dob.getFullYear()
+        const monthDiff = today.getMonth() - dob.getMonth()
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+          age--
+        }
+        if (age < 18) {
+          logger.warn("Guest checkout blocked: patient under 18", { category: input.category })
+          return {
+            success: false,
+            error: "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian.",
+          }
+        }
+      }
+    }
+
     // P1 FIX: Require phone for prescription category (eScript SMS delivery)
     if (input.category === "prescription" && !input.guestPhone) {
       return {
@@ -148,7 +169,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         }
       }
 
-      // KILL SWITCH: Check for blocked medications
+      // KILL SWITCH: Check for blocked medications (DB-based blocklist)
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
       const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
@@ -156,6 +177,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         return {
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+        }
+      }
+
+      // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
+      const medNameToCheck = medicationName || medicationDisplay || ""
+      if (medNameToCheck && isControlledSubstance(medNameToCheck)) {
+        logger.warn("Controlled substance blocked at guest checkout", { medication: medNameToCheck, category: input.category })
+        return {
+          success: false,
+          error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
         }
       }
     }
@@ -226,6 +257,21 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {
       return { success: false, error: "Please provide a valid email address." }
+    }
+
+    // CLINICAL AUDIT: Validate consent fields are present (CLINICAL.md §Consent Requirements)
+    const hasTermsConsent = input.answers.terms_agreed === true || input.answers.agreedToTerms === true
+    const hasAccuracyConsent = input.answers.accuracy_confirmed === true || input.answers.confirmedAccuracy === true
+    if (!hasTermsConsent || !hasAccuracyConsent) {
+      logger.warn("Guest checkout blocked: missing consent fields", {
+        hasTermsConsent,
+        hasAccuracyConsent,
+        category: input.category,
+      })
+      return {
+        success: false,
+        error: "Please agree to the terms of service and confirm your information is accurate before proceeding.",
+      }
     }
 
     const supabase = createServiceRoleClient()

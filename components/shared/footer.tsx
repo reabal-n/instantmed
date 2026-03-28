@@ -23,15 +23,15 @@ function FooterTrustBadges() {
       </div>
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <Lock className="w-3.5 h-3.5 text-success" />
           <span>SSL Encrypted</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <Shield className="w-3.5 h-3.5 text-success" />
           <span>PCI Compliant</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Award className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <Award className="w-3.5 h-3.5 text-success" />
           <span>AHPRA Doctors</span>
         </div>
         <div className="flex items-center gap-1.5">

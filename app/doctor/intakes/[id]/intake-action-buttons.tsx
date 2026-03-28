@@ -98,7 +98,7 @@ export function IntakeActionButtons({
 
           {/* Refund - show for paid intakes that haven't been refunded */}
           {paymentStatus === "paid" && (
-            <Button variant="outline" onClick={onShowRefundDialog} disabled={isPending} className="text-amber-600 border-amber-300 hover:bg-amber-50">
+            <Button variant="outline" onClick={onShowRefundDialog} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
               <CreditCard className="h-4 w-4 mr-2" />
               Issue Refund
             </Button>
@@ -116,7 +116,7 @@ export function IntakeActionButtons({
                 variant="outline"
                 onClick={onRegenerateCertificate}
                 disabled={isPending}
-                className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950/20"
+                className="text-warning border-warning-border hover:bg-warning-light"
               >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                 Regenerate Certificate

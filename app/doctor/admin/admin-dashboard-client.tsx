@@ -107,7 +107,7 @@ export function AdminDashboardClient({
               <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.total}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -115,10 +115,10 @@ export function AdminDashboardClient({
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-blue-500 shrink-0" />
+              <Clock className="h-5 w-5 text-info shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.in_queue}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.in_queue}</p>
               </div>
             </div>
           </CardContent>
@@ -126,10 +126,10 @@ export function AdminDashboardClient({
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+              <CheckCircle className="h-5 w-5 text-success shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Approved</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.approved}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.approved}</p>
               </div>
             </div>
           </CardContent>
@@ -137,10 +137,10 @@ export function AdminDashboardClient({
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <XCircle className="h-5 w-5 text-destructive shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Declined</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.declined}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.declined}</p>
               </div>
             </div>
           </CardContent>
@@ -148,10 +148,10 @@ export function AdminDashboardClient({
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <Send className="h-5 w-5 text-amber-500 shrink-0" />
+              <Send className="h-5 w-5 text-warning shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Scripts Pending</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.scripts_pending}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.scripts_pending}</p>
               </div>
             </div>
           </CardContent>
@@ -159,10 +159,10 @@ export function AdminDashboardClient({
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-amber-500 shrink-0" />
+              <TrendingUp className="h-5 w-5 text-warning shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Needs Info</p>
-                <p className="text-2xl font-bold tabular-nums mt-0.5">{stats.pending_info}</p>
+                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.pending_info}</p>
               </div>
             </div>
           </CardContent>

@@ -10,21 +10,21 @@ const trustBadges = [
   {
     name: "AHPRA-registered doctors",
     icon: BadgeCheck,
-    color: "text-emerald-600 dark:text-emerald-400",
-    iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
+    color: "text-success",
+    iconBg: "bg-success-light",
     href: "https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
   },
   {
     name: "RACGP-aligned protocols",
     icon: BookOpen,
-    color: "text-blue-600 dark:text-blue-400",
-    iconBg: "bg-blue-50 dark:bg-blue-500/10",
+    color: "text-info",
+    iconBg: "bg-info-light",
     href: "https://www.racgp.org.au/running-a-practice/practice-standards"
   },
   {
     name: "Medical Director oversight",
     icon: UserCheck,
-    color: "text-blue-600 dark:text-blue-400",
+    color: "text-info",
     iconBg: "bg-blue-50 dark:bg-blue-500/10"
   },
   {

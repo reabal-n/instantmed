@@ -211,7 +211,7 @@ export function ReconciliationClient({
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.total}</div>
+            <div className="text-2xl font-semibold">{summary.total}</div>
           </CardContent>
         </Card>
 
@@ -221,7 +221,7 @@ export function ReconciliationClient({
             <AlertTriangle className={`h-4 w-4 ${summary.mismatches > 0 ? "text-destructive" : "text-muted-foreground"}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${summary.mismatches > 0 ? "text-destructive" : ""}`}>
+            <div className={`text-2xl font-semibold ${summary.mismatches > 0 ? "text-destructive" : ""}`}>
               {summary.mismatches}
             </div>
           </CardContent>
@@ -230,10 +230,10 @@ export function ReconciliationClient({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{summary.delivered}</div>
+            <div className="text-2xl font-semibold text-success">{summary.delivered}</div>
           </CardContent>
         </Card>
 
@@ -243,7 +243,7 @@ export function ReconciliationClient({
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.pending}</div>
+            <div className="text-2xl font-semibold">{summary.pending}</div>
           </CardContent>
         </Card>
 
@@ -253,7 +253,7 @@ export function ReconciliationClient({
             <XCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${summary.failed > 0 ? "text-destructive" : ""}`}>
+            <div className={`text-2xl font-semibold ${summary.failed > 0 ? "text-destructive" : ""}`}>
               {summary.failed}
             </div>
           </CardContent>
@@ -323,7 +323,7 @@ export function ReconciliationClient({
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
                     <div className="flex flex-col items-center gap-2">
-                      <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      <CheckCircle2 className="h-8 w-8 text-success" />
                       <span className="text-muted-foreground">
                         {mismatchOnly
                           ? "No mismatches found"
@@ -365,7 +365,7 @@ export function ReconciliationClient({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className={record.age_minutes > 60 ? "text-amber-600 font-medium" : ""}>
+                        <span className={record.age_minutes > 60 ? "text-warning font-medium" : ""}>
                           {formatAge(record.age_minutes)}
                         </span>
                       </TableCell>

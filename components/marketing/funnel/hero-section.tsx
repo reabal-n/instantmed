@@ -50,7 +50,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
-              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]"
+              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15]"
             >
               {hasRotatingWords ? (
                 <>

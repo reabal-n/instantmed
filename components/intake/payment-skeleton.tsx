@@ -122,7 +122,7 @@ export function PaymentRedirectOverlay() {
           </div>
         </motion.div>
         
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           Redirecting to secure checkout...
         </h2>
         <p className="text-muted-foreground mb-8">

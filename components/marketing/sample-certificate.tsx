@@ -41,10 +41,10 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
           <div className="flex items-start justify-between border-b-2 border-cyan-500 pb-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-linear-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">IM</span>
+                <span className="text-white font-semibold text-lg">IM</span>
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 text-lg">InstantMed</h3>
+                <h3 className="font-semibold text-gray-900 text-lg">InstantMed</h3>
                 <p className="text-xs text-gray-500">Telehealth Services</p>
               </div>
             </div>
@@ -56,7 +56,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
           </div>
 
           {/* Title */}
-          <h2 className="text-center text-xl font-bold text-gray-900 tracking-wide uppercase mb-6">
+          <h2 className="text-center text-xl font-semibold text-gray-900 tracking-wide uppercase mb-6">
             Medical Certificate
           </h2>
 

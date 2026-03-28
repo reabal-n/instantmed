@@ -373,8 +373,8 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
               {selectedTemplate?.name} ({selectedTemplate?.slug})
               {isReactTemplate && (
                 <div className="flex items-center gap-1 mt-1">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  <span className="text-xs text-green-600">React template available</span>
+                  <CheckCircle className="h-3 w-3 text-success" />
+                  <span className="text-xs text-success">React template available</span>
                 </div>
               )}
             </DialogDescription>
@@ -546,7 +546,7 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                     ) : (
                       <SafeHtml
                         html={reactPreviewHtml}
-                        className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mb-4 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
+                        className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_a]:text-info [&_a]:no-underline hover:[&_a]:underline"
                       />
                     )}
                   </div>
@@ -586,7 +586,7 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                     {selectedTemplate && (
                       <SafeHtml
                         html={getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags)}
-                        className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mb-4 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
+                        className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_a]:text-info [&_a]:no-underline hover:[&_a]:underline"
                       />
                     )}
                   </div>

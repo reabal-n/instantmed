@@ -43,7 +43,7 @@ export function DetailsStep({
       className="space-y-6"
     >
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-semibold text-foreground">
           Tell us more
         </h1>
         <p className="text-muted-foreground">

@@ -317,7 +317,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
       {/* Data security reassurance */}
       <DataSecurityStrip variant="medicare" />
 
-      {error && <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-sm text-red-600 dark:text-red-400">{error}</div>}
+      {error && <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border text-sm text-destructive">{error}</div>}
 
       {expiryWarning && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-start gap-2">

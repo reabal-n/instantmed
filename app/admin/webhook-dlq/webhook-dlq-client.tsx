@@ -112,9 +112,9 @@ export function WebhookDlqClient() {
   }
 
   const getEventTypeBadge = (eventType: string) => {
-    if (eventType.includes("payment")) return "bg-emerald-100 text-emerald-700"
-    if (eventType.includes("refund")) return "bg-amber-100 text-amber-700"
-    if (eventType.includes("failed")) return "bg-red-100 text-red-700"
+    if (eventType.includes("payment")) return "bg-success-light text-success"
+    if (eventType.includes("refund")) return "bg-warning-light text-warning"
+    if (eventType.includes("failed")) return "bg-destructive-light text-destructive"
     return "bg-dusk-100 text-dusk-700"
   }
 
@@ -131,13 +131,13 @@ export function WebhookDlqClient() {
           <CardContent>
             <div className="flex items-center gap-2">
               {counts.unresolved > 0 ? (
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 text-warning" />
               ) : (
-                <CheckCircle className="h-5 w-5 text-emerald-500" />
+                <CheckCircle className="h-5 w-5 text-success" />
               )}
               <span className={cn(
-                "text-2xl font-bold",
-                counts.unresolved > 0 ? "text-amber-600" : "text-emerald-600"
+                "text-2xl font-semibold",
+                counts.unresolved > 0 ? "text-warning" : "text-success"
               )}>
                 {counts.unresolved}
               </span>
@@ -152,7 +152,7 @@ export function WebhookDlqClient() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <span className="text-2xl font-bold">{counts.total}</span>
+            <span className="text-2xl font-semibold">{counts.total}</span>
           </CardContent>
         </Card>
 
@@ -236,7 +236,7 @@ export function WebhookDlqClient() {
               ) : entries.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
-                    <CheckCircle className="h-8 w-8 mx-auto mb-2 text-emerald-500" />
+                    <CheckCircle className="h-8 w-8 mx-auto mb-2 text-success" />
                     <p className="text-muted-foreground">No failed webhooks</p>
                   </TableCell>
                 </TableRow>
@@ -254,7 +254,7 @@ export function WebhookDlqClient() {
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[200px]">
-                      <p className="text-sm text-red-600 truncate" title={entry.error_message}>
+                      <p className="text-sm text-destructive truncate" title={entry.error_message}>
                         {entry.error_message}
                       </p>
                     </TableCell>
@@ -275,12 +275,12 @@ export function WebhookDlqClient() {
                     </TableCell>
                     <TableCell>
                       {entry.resolved_at ? (
-                        <Badge className="bg-emerald-100 text-emerald-700">
+                        <Badge className="bg-success-light text-success">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Resolved
                         </Badge>
                       ) : (
-                        <Badge className="bg-amber-100 text-amber-700">
+                        <Badge className="bg-warning-light text-warning">
                           <XCircle className="h-3 w-3 mr-1" />
                           Open
                         </Badge>
@@ -361,7 +361,7 @@ export function WebhookDlqClient() {
 
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Error Message</p>
-                <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                <div className="p-3 bg-destructive-light border border-destructive-border rounded text-sm text-destructive">
                   {selectedEntry.error_message}
                 </div>
               </div>
@@ -376,7 +376,7 @@ export function WebhookDlqClient() {
               {selectedEntry.resolved_at && (
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Resolution</p>
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm">
+                  <div className="p-3 bg-success-light border border-success-border rounded text-sm">
                     <p>Resolved: {formatDate(selectedEntry.resolved_at)}</p>
                     {selectedEntry.resolution_notes && (
                       <p className="mt-1 text-muted-foreground">{selectedEntry.resolution_notes}</p>

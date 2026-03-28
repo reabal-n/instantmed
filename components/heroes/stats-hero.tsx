@@ -42,7 +42,7 @@ export function StatsHero({
           text={title}
           as="h1"
           highlightWords={highlightWords}
-          className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl justify-center"
+          className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl justify-center"
         />
         {subtitle && (
           <motion.p

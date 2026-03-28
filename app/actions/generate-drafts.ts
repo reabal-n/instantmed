@@ -24,6 +24,7 @@ import {
 import { validateClinicalNoteAgainstIntake, validateMedCertAgainstIntake } from "@/lib/ai/validation"
 import { checkAndSanitize, validateAIOutput } from "@/lib/ai/prompt-safety"
 import { normalizeServiceType, getDraftCategory, type DraftCategory } from "@/lib/constants/service-types"
+import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
 import type { ServiceType } from "@/types/db"
 import * as Sentry from "@sentry/nextjs"
 
@@ -66,6 +67,8 @@ export interface GenerateDraftsResult {
 // Produces SOAP-format clinical note for record-keeping
 const CLINICAL_NOTE_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs write SOAP-format clinical notes.
 
+${CLINICAL_SAFETY_PREAMBLE}
+
 Generate a clinical note in SOAP format based on the patient intake information provided.
 
 SOAP SECTIONS:
@@ -99,6 +102,8 @@ Do NOT include "Subjective:", "Objective:" etc in the values - we add those when
 // Prompt for med cert draft generation (JSON output)
 const MED_CERT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs draft medical certificates.
 
+${CLINICAL_SAFETY_PREAMBLE}
+
 Generate a professional medical certificate draft based on the patient information provided.
 
 IMPORTANT RULES:
@@ -127,6 +132,8 @@ OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact
 // Prompt for repeat prescription draft generation (JSON output)
 const REPEAT_RX_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs review repeat prescription requests.
 
+${CLINICAL_SAFETY_PREAMBLE}
+
 Generate a clinical summary for a repeat prescription request based on the patient intake information provided.
 
 IMPORTANT RULES:
@@ -154,6 +161,8 @@ OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact
 
 // Prompt for consultation draft generation (JSON output)
 const CONSULT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs prepare for telehealth consultations.
+
+${CLINICAL_SAFETY_PREAMBLE}
 
 Generate a clinical summary for a GP consultation request based on the patient intake information provided.
 

@@ -134,7 +134,7 @@ export function DashboardSidebar({
         <div className="px-4 py-4 mb-2">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold tracking-tight">IM</span>
+              <span className="text-sm font-semibold tracking-tight">IM</span>
             </div>
             <div>
               <span className="text-base font-semibold tracking-tight text-foreground">
@@ -296,7 +296,7 @@ export function MobileDashboardNav({
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/40">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold tracking-tight">IM</span>
+              <span className="text-sm font-semibold tracking-tight">IM</span>
             </div>
             <div>
               <span className="text-base font-semibold tracking-tight text-foreground">

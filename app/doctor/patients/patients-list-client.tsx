@@ -65,7 +65,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Patients</span>
               <Users className="h-5 w-5 text-primary shrink-0" />
             </div>
-            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">{totalPatients}</div>
+            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">{totalPatients}</div>
           </CardContent>
         </Card>
 
@@ -73,9 +73,9 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Onboarded</span>
-              <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+              <CheckCircle className="h-5 w-5 text-success shrink-0" />
             </div>
-            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">
+            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">
               {patients.filter((p) => p.onboarding_completed).length}
             </div>
           </CardContent>
@@ -85,9 +85,9 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Incomplete</span>
-              <XCircle className="h-5 w-5 text-amber-500 shrink-0" />
+              <XCircle className="h-5 w-5 text-warning shrink-0" />
             </div>
-            <div className="mt-1.5 text-2xl font-bold tabular-nums text-foreground">
+            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">
               {patients.filter((p) => !p.onboarding_completed).length}
             </div>
           </CardContent>
@@ -209,12 +209,12 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                       </TableCell>
                       <TableCell>
                         {patient.onboarding_completed ? (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
+                          <Badge variant="outline" className="bg-success-light text-success border-success-border">
                             <CheckCircle className="mr-1 h-3 w-3" />
                             Complete
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
+                          <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
                             <XCircle className="mr-1 h-3 w-3" />
                             Incomplete
                           </Badge>

@@ -158,13 +158,13 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "eligible":
-        return <Badge className="bg-amber-100 text-amber-800"><Clock className="h-3 w-3 mr-1" />Eligible</Badge>
+        return <Badge className="bg-warning-light text-warning"><Clock className="h-3 w-3 mr-1" />Eligible</Badge>
       case "processing":
-        return <Badge className="bg-blue-100 text-blue-800"><RefreshCw className="h-3 w-3 mr-1 animate-spin" />Processing</Badge>
+        return <Badge className="bg-info-light text-info"><RefreshCw className="h-3 w-3 mr-1 animate-spin" />Processing</Badge>
       case "refunded":
-        return <Badge className="bg-emerald-100 text-emerald-800"><CheckCircle className="h-3 w-3 mr-1" />Refunded</Badge>
+        return <Badge className="bg-success-light text-success"><CheckCircle className="h-3 w-3 mr-1" />Refunded</Badge>
       case "failed":
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
+        return <Badge className="bg-destructive-light text-destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>
       case "not_eligible":
         return <Badge variant="secondary"><XCircle className="h-3 w-3 mr-1" />Not Eligible</Badge>
       default:
@@ -203,9 +203,9 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.eligible}</p>
+                <p className="text-2xl font-semibold text-warning">{stats.eligible}</p>
               </div>
-              <Clock className="h-8 w-8 text-amber-500/50" />
+              <Clock className="h-8 w-8 text-warning/50" />
             </div>
           </CardContent>
         </Card>
@@ -214,9 +214,9 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Processing</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.processing}</p>
+                <p className="text-2xl font-semibold text-info">{stats.processing}</p>
               </div>
-              <RefreshCw className="h-8 w-8 text-blue-500/50" />
+              <RefreshCw className="h-8 w-8 text-info/50" />
             </div>
           </CardContent>
         </Card>
@@ -225,9 +225,9 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.refunded}</p>
+                <p className="text-2xl font-semibold text-success">{stats.refunded}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-emerald-500/50" />
+              <CheckCircle className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
@@ -236,9 +236,9 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Failed</p>
-                <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+                <p className="text-2xl font-semibold text-destructive">{stats.failed}</p>
               </div>
-              <XCircle className="h-8 w-8 text-red-500/50" />
+              <XCircle className="h-8 w-8 text-destructive/50" />
             </div>
           </CardContent>
         </Card>
@@ -247,7 +247,7 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Refunded</p>
-                <p className="text-2xl font-bold">{formatAmount(stats.totalRefunded)}</p>
+                <p className="text-2xl font-semibold">{formatAmount(stats.totalRefunded)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -343,7 +343,7 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-emerald-600 hover:text-emerald-700"
+                              className="text-success hover:text-success"
                               onClick={() => {
                                 setSelectedPayment(payment)
                                 setIsProcessDialogOpen(true)
@@ -438,11 +438,11 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-warning-light border border-warning-border">
+                <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-900">This action cannot be undone</p>
-                  <p className="text-amber-700">The refund will be processed through Stripe immediately.</p>
+                  <p className="text-warning">The refund will be processed through Stripe immediately.</p>
                 </div>
               </div>
             </div>

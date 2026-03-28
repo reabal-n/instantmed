@@ -65,7 +65,7 @@ export default function LocationsPage() {
       <main className="flex-1 pt-20">
         <section className="px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-4xl">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
             <p className="text-muted-foreground text-center max-w-xl mx-auto mb-12">
               InstantMed is available in 25+ cities and regions nationwide. No matter where you are, we&apos;ve got you covered.
             </p>

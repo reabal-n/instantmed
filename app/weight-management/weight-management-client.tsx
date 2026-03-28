@@ -145,19 +145,19 @@ export function WeightManagementClient() {
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-4 text-center">
                 <div>
-                  <div className="text-3xl font-bold mb-1">10 min</div>
+                  <div className="text-3xl font-semibold mb-1">10 min</div>
                   <div className="text-sm text-primary-foreground/80">health assessment</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-1">~2 hrs</div>
+                  <div className="text-3xl font-semibold mb-1">~2 hrs</div>
                   <div className="text-sm text-primary-foreground/80">doctor review</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-1">Same day</div>
+                  <div className="text-3xl font-semibold mb-1">Same day</div>
                   <div className="text-sm text-primary-foreground/80">script if appropriate</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-1">Monthly</div>
+                  <div className="text-3xl font-semibold mb-1">Monthly</div>
                   <div className="text-sm text-primary-foreground/80">check-ins included</div>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export function WeightManagementClient() {
           {/* What's Different */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">A different approach to weight management</h2>
+              <h2 className="text-xl font-semibold mb-8 text-center">A different approach to weight management</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   {
@@ -213,7 +213,7 @@ export function WeightManagementClient() {
           {/* Eligibility */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Is this program right for you?</h2>
+              <h2 className="text-xl font-semibold mb-6 text-center">Is this program right for you?</h2>
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="p-6 rounded-xl border bg-card">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">

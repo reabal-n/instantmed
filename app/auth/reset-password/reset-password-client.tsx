@@ -78,12 +78,12 @@ export function ResetPasswordClient() {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">Reset Your Password</h1>
+              <h1 className="text-2xl font-semibold">Reset Your Password</h1>
               <p className="text-muted-foreground mt-2">Enter your new password below</p>
             </div>
 
             {error && (
-              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300 text-sm mb-6">{error}</div>
+              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border text-destructive text-sm mb-6">{error}</div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">

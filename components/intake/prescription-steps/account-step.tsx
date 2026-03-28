@@ -51,7 +51,7 @@ export function AccountStep({
       className="space-y-6"
     >
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-semibold text-foreground">
           Your details
         </h1>
         <p className="text-muted-foreground">

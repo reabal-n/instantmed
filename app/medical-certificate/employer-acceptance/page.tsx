@@ -73,12 +73,12 @@ export default function EmployerAcceptancePage() {
           {/* Hero */}
           <section className="px-4 py-16 sm:px-6 lg:py-20">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-                <HelpCircle className="w-4 h-4 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Common Question</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border/20 mb-6">
+                <HelpCircle className="w-4 h-4 text-success" />
+                <span className="text-sm font-medium text-success">Common Question</span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
                 Yes, your employer will accept this
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -91,7 +91,7 @@ export default function EmployerAcceptancePage() {
           {/* What Makes It Valid */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What makes a certificate legitimate</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What makes a certificate legitimate</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Our certificates meet all legal requirements for Australian employers.
               </p>
@@ -99,7 +99,7 @@ export default function EmployerAcceptancePage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
                   <div className="flex items-start gap-3">
-                    <BadgeCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <BadgeCheck className="h-6 w-6 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">AHPRA Registered Doctor</h3>
                       <p className="text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ export default function EmployerAcceptancePage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
                   <div className="flex items-start gap-3">
-                    <FileCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <FileCheck className="h-6 w-6 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Medicare Provider Number</h3>
                       <p className="text-sm text-muted-foreground">
@@ -123,7 +123,7 @@ export default function EmployerAcceptancePage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
                   <div className="flex items-start gap-3">
-                    <Building2 className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <Building2 className="h-6 w-6 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Australian-Based Practice</h3>
                       <p className="text-sm text-muted-foreground">
@@ -135,7 +135,7 @@ export default function EmployerAcceptancePage() {
 
                 <div className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
                   <div className="flex items-start gap-3">
-                    <Shield className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <Shield className="h-6 w-6 text-success shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">Doctor&apos;s Signature</h3>
                       <p className="text-sm text-muted-foreground">
@@ -151,14 +151,14 @@ export default function EmployerAcceptancePage() {
           {/* Fair Work Context */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the Fair Work Act says</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the Fair Work Act says</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Australian workplace law supports the use of medical certificates from registered practitioners.
               </p>
 
               <div className="p-6 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
                 <div className="flex items-start gap-4">
-                  <Scale className="h-6 w-6 text-emerald-600 shrink-0 mt-1" />
+                  <Scale className="h-6 w-6 text-success shrink-0 mt-1" />
                   <div className="space-y-4">
                     <p className="text-sm">
                       Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave.
@@ -182,38 +182,38 @@ export default function EmployerAcceptancePage() {
           {/* Certificate Preview */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What your certificate includes</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every certificate contains the information employers need.
               </p>
 
               <div className="bg-white dark:bg-card rounded-xl border border-border/50 shadow-sm shadow-primary/[0.04] p-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Patient&apos;s full name</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Dates the patient was unfit for work</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Doctor&apos;s full name and signature</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">AHPRA registration number</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Medicare provider number</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Date of issue</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="text-sm">Practice contact details</span>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function EmployerAcceptancePage() {
           {/* What To Say */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">If your employer questions it</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">If your employer questions it</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Most employers accept online certificates without issue. If questions arise, here&apos;s what to know.
               </p>
@@ -259,7 +259,7 @@ export default function EmployerAcceptancePage() {
           {/* FAQs */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
@@ -273,9 +273,9 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-emerald-50 dark:bg-emerald-950/30">
+          <section className="px-4 py-16 bg-success-light/30">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to get your certificate?</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
                 Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
               </p>
@@ -297,15 +297,15 @@ export default function EmployerAcceptancePage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificate/work" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/work" className="text-success hover:underline">
                   Certificates for work
                 </Link>
                 {' • '}
-                <Link href="/medical-certificate/study" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/study" className="text-success hover:underline">
                   Certificates for study
                 </Link>
                 {' • '}
-                <Link href="/medical-certificate" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate" className="text-success hover:underline">
                   All certificate types
                 </Link>
               </p>

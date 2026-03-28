@@ -138,12 +138,12 @@ export function RepeatPrescriptionChecklist({
             </p>
           </div>
           {emrChecked ? (
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
+            <Badge variant="outline" className="bg-success-light text-success border-success-border">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Done
             </Badge>
           ) : hasEMRDraft && emrDraftStatus === "pending" ? (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
+            <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
               <Clock className="h-3 w-3 mr-1" />
               Pending
             </Badge>
@@ -192,7 +192,7 @@ export function RepeatPrescriptionChecklist({
             )}
           </div>
           {scriptChecked ? (
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30">
+            <Badge variant="outline" className="bg-success-light text-success border-success-border">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Sent
             </Badge>
@@ -205,7 +205,7 @@ export function RepeatPrescriptionChecklist({
 
         {/* Completion Status */}
         {intakeStatus === "completed" && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-sm">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-success-light border border-success-border text-success text-sm">
             <CheckCircle2 className="h-4 w-4" />
             <span className="font-medium">Prescription request completed</span>
           </div>

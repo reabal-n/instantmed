@@ -122,7 +122,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-info-light rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
@@ -131,7 +131,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                 {condition.name} in {cityName}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-semibold text-foreground mb-6 tracking-tight">
                 {condition.name} in {cityName}
               </h1>
 
@@ -144,8 +144,8 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                   <Shield className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">AHPRA Registered</span>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <Clock className="w-4 h-4 text-emerald-600" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-light border border-success-border/20">
+                  <Clock className="w-4 h-4 text-success" />
                   <span className="text-sm font-medium">~{condition.stats.avgTime} response</span>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           {/* Symptoms */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
@@ -191,12 +191,12 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           {/* Can We Help */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 How We Can Help
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6">
-                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
+                <div className="bg-success-light/30 border border-success-border rounded-2xl p-6">
+                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" />
                     What we can help with
                   </h3>
@@ -204,7 +204,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                     {condition.canWeHelp.yes.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300"
+                        className="flex items-start gap-2 text-success"
                       >
                         <CheckCircle2 className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
@@ -212,8 +212,8 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                     ))}
                   </ul>
                 </div>
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+                <div className="bg-warning-light/30 border border-warning-border rounded-2xl p-6">
+                  <h3 className="font-semibold text-warning mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     What needs in-person care
                   </h3>
@@ -221,7 +221,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                     {condition.canWeHelp.no.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 text-amber-700 dark:text-amber-300"
+                        className="flex items-start gap-2 text-warning"
                       >
                         <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
@@ -238,7 +238,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-primary" />
                     When to see a doctor
                   </h2>
@@ -254,24 +254,24 @@ export default async function ConditionLocationPage({ params }: PageProps) {
                   </ul>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
                     Seek emergency care if
                   </h2>
-                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                  <div className="bg-destructive-light border border-destructive-border rounded-xl p-4">
                     <ul className="space-y-3">
                       {condition.whenEmergency.map((item, i) => (
                         <li
                           key={i}
-                          className="flex items-start gap-2 text-red-700 dark:text-red-300"
+                          className="flex items-start gap-2 text-destructive"
                         >
                           <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                    <div className="mt-4 pt-4 border-t border-destructive-border">
+                      <p className="text-sm font-medium text-destructive">
                         Call 000 or go to your nearest emergency department
                       </p>
                     </div>
@@ -284,7 +284,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Common Questions About {condition.name} in {cityName}
               </h2>
               <div className="space-y-4">
@@ -304,7 +304,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
           {/* Final CTA */}
           <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Ready to get help in {cityName}?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">

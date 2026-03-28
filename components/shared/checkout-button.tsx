@@ -101,7 +101,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
                 {showLock && <Lock className="w-4 h-4" />}
                 <span className="text-lg">{label}</span>
                 {showPrice && price && (
-                  <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-bold">
+                  <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-semibold">
                     {price}
                   </span>
                 )}

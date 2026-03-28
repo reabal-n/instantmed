@@ -59,11 +59,11 @@ export function EmailVerificationGate({
       animate={{ opacity: 1, y: 0 }}
       className={className}
     >
-      <Card className="p-6 border-amber-200 bg-amber-50/50 dark:bg-amber-500/10 dark:border-amber-500/20">
+      <Card className="p-6 border-warning-border bg-warning-light">
         <div className="flex flex-col items-center text-center space-y-4">
           {/* Icon */}
-          <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-            <Mail className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+          <div className="h-12 w-12 rounded-full bg-warning-light flex items-center justify-center">
+            <Mail className="h-6 w-6 text-warning" />
           </div>
 
           {/* Message */}
@@ -82,14 +82,14 @@ export function EmailVerificationGate({
 
           {/* Status messages */}
           {resendStatus === "success" && (
-            <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center gap-2 text-sm text-success">
               <CheckCircle2 className="h-4 w-4" />
               <span>Verification email sent. Check your inbox.</span>
             </div>
           )}
 
           {resendStatus === "error" && (
-            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+            <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
               <span>{errorMessage}</span>
             </div>
@@ -103,7 +103,7 @@ export function EmailVerificationGate({
               variant="outline"
               className={cn(
                 "w-full sm:w-auto",
-                resendStatus === "success" && "border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400"
+                resendStatus === "success" && "border-success-border text-success"
               )}
             >
               {isPending ? (
@@ -162,13 +162,13 @@ export function EmailVerificationBanner({ onResend, className }: VerificationBan
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-4 p-3 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20",
+        "flex items-center justify-between gap-4 p-3 rounded-xl bg-warning-light border border-warning-border",
         className
       )}
     >
       <div className="flex items-center gap-2">
-        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-        <p className="text-sm text-amber-800 dark:text-amber-200">
+        <AlertCircle className="h-4 w-4 text-warning shrink-0" />
+        <p className="text-sm text-warning">
           <strong>Verify your email</strong> to download documents
         </p>
       </div>

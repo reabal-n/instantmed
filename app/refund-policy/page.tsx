@@ -29,7 +29,7 @@ export default function RefundPolicyPage() {
         {/* Hero */}
         <section className="pt-32 pb-10 px-4">
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
               Refund Policy
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>

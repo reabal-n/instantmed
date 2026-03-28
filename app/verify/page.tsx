@@ -25,11 +25,11 @@ export default function VerifyPage() {
         <section className="pt-28 pb-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <Badge className="mb-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-0 px-4 py-1.5">
+              <Badge className="mb-4 bg-success-light text-success border-0 px-4 py-1.5">
                 <Lock className="w-3.5 h-3.5 mr-1.5" />
                 Secure Verification
               </Badge>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
+              <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight mb-4">
                 Verify a Medical Certificate
               </h1>
               <p className="text-muted-foreground">
@@ -56,8 +56,8 @@ export default function VerifyPage() {
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3">
-                    <Shield className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-6 h-6 text-success" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">AHPRA Doctors</h3>
                   <p className="text-sm text-muted-foreground">
@@ -65,8 +65,8 @@ export default function VerifyPage() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3">
-                    <Lock className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
+                    <Lock className="w-6 h-6 text-success" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">Tamper-Proof</h3>
                   <p className="text-sm text-muted-foreground">
@@ -74,8 +74,8 @@ export default function VerifyPage() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3">
-                    <Building2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="w-6 h-6 text-success" />
                   </div>
                   <h3 className="font-medium text-foreground mb-1">Australian Business</h3>
                   <p className="text-sm text-muted-foreground">

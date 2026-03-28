@@ -302,7 +302,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Services</p>
-                <p className="text-2xl font-bold">{services.length}</p>
+                <p className="text-2xl font-semibold">{services.length}</p>
               </div>
               <Settings className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -313,11 +313,11 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-semibold text-success">
                   {services.filter(s => s.is_active).length}
                 </p>
               </div>
-              <Power className="h-8 w-8 text-emerald-500/50" />
+              <Power className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
@@ -326,7 +326,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold text-muted-foreground">
+                <p className="text-2xl font-semibold text-muted-foreground">
                   {services.filter(s => !s.is_active).length}
                 </p>
               </div>
@@ -339,7 +339,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Avg. Price</p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-semibold">
                   {formatPrice(
                     Math.round(
                       services.reduce((sum, s) => sum + s.price_cents, 0) / services.length || 0
@@ -794,7 +794,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
               {serviceToToggle?.is_active ? (
                 <PowerOff className="h-5 w-5 text-destructive" />
               ) : (
-                <Power className="h-5 w-5 text-emerald-600" />
+                <Power className="h-5 w-5 text-success" />
               )}
               {serviceToToggle?.is_active ? "Disable Service" : "Enable Service"}
             </AlertDialogTitle>

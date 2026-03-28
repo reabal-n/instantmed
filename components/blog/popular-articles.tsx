@@ -50,7 +50,7 @@ export function PopularArticles({
             >
               {/* Rank number */}
               <div className="shrink-0 w-6 h-6 rounded-full bg-muted dark:bg-white/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-muted-foreground">
+                <span className="text-xs font-semibold text-muted-foreground">
                   {index + 1}
                 </span>
               </div>

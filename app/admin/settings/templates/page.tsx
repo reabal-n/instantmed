@@ -14,7 +14,7 @@ async function TemplateStudioLoader() {
   if (!result.success || !result.data) {
     return (
       <div className="p-8 text-center">
-        <p className="text-red-600">Failed to load template data</p>
+        <p className="text-destructive">Failed to load template data</p>
         <p className="text-sm text-muted-foreground mt-2">
           {result.error || "Unknown error"}
         </p>

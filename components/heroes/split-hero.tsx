@@ -45,7 +45,7 @@ export function SplitHero({
             text={title}
             as="h1"
             highlightWords={highlightWords}
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:justify-start"
+            className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:justify-start"
           />
           <motion.p
             className="mt-6 text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0"

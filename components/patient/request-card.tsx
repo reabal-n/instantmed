@@ -58,7 +58,7 @@ export function RequestCard({
             </div>
             <div className="flex items-center gap-3">
               {isReady && (
-                <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-success">
                   <Download className="w-4 h-4" aria-hidden="true" />
                   Ready
                 </span>
