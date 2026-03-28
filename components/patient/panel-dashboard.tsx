@@ -17,7 +17,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePanel, DrawerPanel } from "@/components/panels"
-import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"

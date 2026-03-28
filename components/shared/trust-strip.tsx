@@ -14,7 +14,7 @@
  *   <TrustStrip tooltips={false} />          // Without tooltips (headers)
  */
 
-import { BadgeCheck, Lock, Shield, CheckCircle2, FileCheck } from "lucide-react"
+import { BadgeCheck, Lock, Shield, FileCheck } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 

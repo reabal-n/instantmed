@@ -1,7 +1,6 @@
 import type Stripe from "stripe"
 import { NextResponse, after } from "next/server"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
-import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import * as Sentry from "@sentry/nextjs"

@@ -1,6 +1,8 @@
+/* eslint-env serviceworker */
+/* global clients */
 /**
  * InstantMed Service Worker
- * 
+ *
  * Provides offline support for intake forms by caching critical assets
  * and serving cached responses when the network is unavailable.
  */

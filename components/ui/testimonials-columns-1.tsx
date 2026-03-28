@@ -61,11 +61,15 @@ export const TestimonialsColumn = (props: {
                         />
                       </div>
                     ) : image?.startsWith("http") ? (
-                      <img
-                        src={image}
-                        alt={name}
-                        className="h-8 w-8 rounded-full object-cover shrink-0"
-                      />
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
+                        <Image
+                          fill
+                          src={image}
+                          alt={name}
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
                     ) : (
                       <Avatar
                         className="h-8 w-8"

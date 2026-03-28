@@ -19,7 +19,6 @@ import {
   Lock,
   Shield,
   ShieldCheck,
-  CheckCircle2,
   Award,
   MapPin,
   EyeOff

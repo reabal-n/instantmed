@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { profile } = authResult
     userId = authResult.userId
 
     const supabase = createServiceRoleClient()

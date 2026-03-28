@@ -8,7 +8,6 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
-  Award,
   BadgeCheck,
   Check,
   CheckCircle2,

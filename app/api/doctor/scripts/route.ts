@@ -19,8 +19,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { profile } = authResult
-
     const status = request.nextUrl.searchParams.get("status") as "pending_send" | "sent" | "confirmed" | null
 
     const [tasks, counts] = await Promise.all([
