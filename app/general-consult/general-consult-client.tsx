@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { getTestimonialsByService } from "@/lib/data/testimonials"
 import { SplitHero } from "@/components/heroes"
 import { ProcessSteps, AccordionSection, CTABanner, ImageTextSplit } from "@/components/sections"
@@ -26,7 +27,7 @@ const CONSULT_TYPES = [
     id: "new-concern",
     title: "New Health Concern",
     subtitle: "Get assessed & treated",
-    price: 49.95,
+    price: PRICING.CONSULT,
     time: "Within 2 hours",
     icon: Stethoscope,
     description: "For new symptoms or conditions you want a doctor to assess and advise on.",
@@ -41,7 +42,7 @@ const CONSULT_TYPES = [
     id: "new-medication",
     title: "New Medication",
     subtitle: "Start a new treatment",
-    price: 49.95,
+    price: PRICING.CONSULT,
     time: "Within 2 hours",
     icon: FileText,
     description: "Need to start a new medication? A doctor will assess if it is right for you.",
@@ -56,7 +57,7 @@ const CONSULT_TYPES = [
     id: "referral",
     title: "Referral Request",
     subtitle: "Specialist or imaging",
-    price: 49.95,
+    price: PRICING.CONSULT,
     time: "Within 2 hours",
     icon: MessageCircle,
     description: "Need a referral to a specialist, pathology, or imaging? Start here.",
@@ -250,7 +251,7 @@ export default function GeneralConsultPage() {
             {/* Stats bar with price justification */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               <div className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                <div className="text-2xl font-semibold text-foreground mb-1">$49.95</div>
+                <div className="text-2xl font-semibold text-foreground mb-1">{PRICING_DISPLAY.CONSULT}</div>
                 <p className="text-xs text-muted-foreground">Flat fee</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">vs {SOCIAL_PROOF.gpPriceComplex} at a GP</p>
               </div>
@@ -548,7 +549,7 @@ export default function GeneralConsultPage() {
         {/* Final CTA — CTABanner */}
         <CTABanner
           title="Ready to speak with a doctor?"
-          subtitle="Takes 3-5 minutes to get started. $49.95 flat fee. No account required. Full refund if we can't help."
+          subtitle={`Takes 3-5 minutes to get started. ${PRICING_DISPLAY.CONSULT} flat fee. No account required. Full refund if we can't help.`}
           ctaText={isDisabled ? "Contact us" : "Start your consult"}
           ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
         />

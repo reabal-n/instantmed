@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 interface DoctorAvailabilityProps {
@@ -163,7 +164,7 @@ export function DoctorAvailability({
               onClick={onAfterHoursClick}
               className="ml-2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full hover:opacity-90 transition-opacity"
             >
-              Get it now — $39.95
+              Get it now — {PRICING_DISPLAY.MENS_HEALTH}
             </button>
           )}
         </>
