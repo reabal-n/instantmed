@@ -46,15 +46,7 @@ export {
   type CompactStepperProps,
 } from "./stepper"
 
-// Loading States
-export {
-  CardSkeleton,
-  FormSkeleton,
-  TableSkeleton,
-  type SkeletonProps,
-} from "./skeleton"
-
-// Re-export from @/components/ui for components that app code imports via @/components/uix
+// Loading States — re-export from @/components/ui
 export { Skeleton, Spinner } from "@/components/ui/skeleton"
 export { Badge } from "@/components/ui/badge"
 
