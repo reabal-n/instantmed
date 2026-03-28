@@ -8,6 +8,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
+import { readDocumentDraftEditedContent } from "@/lib/security/phi-field-wrappers"
 
 const log = createLogger("ai-drafts-db")
 
@@ -104,10 +105,10 @@ export async function upsertDraft(params: UpsertDraftParams): Promise<DocumentDr
  */
 export async function getDraftsForIntake(intakeId: string): Promise<DocumentDraft[]> {
   const supabase = getServiceClient()
-  
+
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, edited_content_enc, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
 
@@ -116,21 +117,30 @@ export async function getDraftsForIntake(intakeId: string): Promise<DocumentDraf
     return []
   }
 
-  return data as DocumentDraft[]
+  // Decrypt edited_content for each draft (prefer encrypted, fall back to plaintext)
+  const decrypted = await Promise.all(
+    data.map(async (row) => {
+      const editedContent = await readDocumentDraftEditedContent(row)
+      const { edited_content_enc: _enc, ...rest } = row
+      return { ...rest, edited_content: editedContent } as DocumentDraft
+    })
+  )
+
+  return decrypted
 }
 
 /**
  * Fetch a specific draft by intake and type
  */
 export async function getDraft(
-  intakeId: string, 
+  intakeId: string,
   type: DraftType
 ): Promise<DocumentDraft | null> {
   const supabase = getServiceClient()
-  
+
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, edited_content_enc, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("type", type)
     .single()
@@ -144,7 +154,10 @@ export async function getDraft(
     return null
   }
 
-  return data as DocumentDraft
+  // Decrypt edited_content (prefer encrypted, fall back to plaintext)
+  const editedContent = await readDocumentDraftEditedContent(data)
+  const { edited_content_enc: _enc, ...rest } = data
+  return { ...rest, edited_content: editedContent } as DocumentDraft
 }
 
 /**

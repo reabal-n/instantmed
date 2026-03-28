@@ -27,14 +27,15 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `profiles` | `medicare_number`, `date_of_birth`, `phone`, `full_name`, `address_*` | Yes (Phase 1) | Yes |
 | `intakes` | `client_ip`, `doctor_notes`, `decline_reason` | `doctor_notes` ✅ Phase 2 | Yes |
 | `intake_answers` | `answers` (JSONB), `allergy_details`, `medical_conditions`, symptom fields | All 3 ✅ Phase 2 | Yes |
-| `intake_drafts` | `draft_data` (JSONB) | No | Yes |
-| `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | No | Yes |
+| `intake_drafts` | `data` (JSONB) | `data_encrypted` ✅ Phase 3 | Yes |
+| `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | `messages_enc` ✅ Phase 3 | Yes |
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
 | `patient_notes` | `content`, `title` | `content` ✅ Phase 2 | Yes |
 | `issued_certificates` | `generated_data` (JSONB), `patient_name`, `pdf_storage_path` | `patient_name` ✅ Phase 2 | Yes |
 | `health_summary` | Clinical summary content | No | Yes |
 | `document_drafts` | `data` (JSONB), `content` (AI-generated), `edited_content` | `data` ✅ Phase 2 | Yes |
 | `documents` | `storage_path` (references PDF with PHI) | N/A (ref) | Yes |
+| `patient_health_profiles` | `allergies`, `conditions`, `current_medications`, `notes` | ⏳ Not yet | Yes |
 
 ### Encryption Status
 
@@ -50,7 +51,9 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `intakes` | `doctor_notes` | `doctor_notes_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
 | `patient_notes` | `content` | `content_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
 | `document_drafts` | `data` (JSONB) | `data_enc` | `lib/data/documents.ts` | ✅ Dual-write + decrypt-on-read |
-| `document_drafts` | `edited_content` | `edited_content_enc` | Migration only | ⏳ Column created, app-layer TBD |
+| `document_drafts` | `edited_content` | `edited_content_enc` | `app/actions/draft-approval.ts`, `lib/ai/drafts/db.ts` | ✅ Dual-write + decrypt-on-read |
+| `ai_chat_transcripts` | `messages` | `messages_enc` | `lib/chat/audit-trail.ts` | ✅ Dual-write + decrypt-on-read |
+| `intake_drafts` | `data` | `data_encrypted` | `app/api/flow/drafts/` | ✅ Dual-write + decrypt-on-read |
 | `issued_certificates` | `patient_name` | `patient_name_enc` | `lib/data/issued-certificates.ts` | ✅ Dual-write + decrypt-on-read |
 
 **RPC:** `atomicApproveCertificate()` (migration `20260311014239`) writes both `patient_name` and `patient_name_enc` via `p_patient_name_enc` parameter. App layer uses `prepareCertificatePatientNameWrite()` before calling the RPC.

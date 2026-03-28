@@ -241,7 +241,23 @@ export async function POST(req: NextRequest) {
     let aiIssues: ValidationIssue[] = []
 
     try {
-      const rawFormSummary = JSON.stringify(formData, null, 2)
+      // Strip PII/PHI fields before sending to AI — only clinical context needed
+      const PHI_KEYS_TO_STRIP = [
+        "medicareNumber", "medicare_number", "medicareIrn", "medicare_irn",
+        "dateOfBirth", "date_of_birth", "dob",
+        "fullName", "full_name", "firstName", "lastName", "first_name", "last_name",
+        "email", "phone", "mobile",
+        "addressLine1", "addressLine2", "address_line_1", "address_line_2",
+        "suburb", "postcode", "state", "address",
+        "carerPatientName", "carer_patient_name",
+        "ihiNumber", "ihi_number",
+      ]
+      const strippedFormData = Object.fromEntries(
+        Object.entries(formData).filter(([key]) =>
+          !PHI_KEYS_TO_STRIP.includes(key)
+        )
+      )
+      const rawFormSummary = JSON.stringify(strippedFormData, null, 2)
       // Sanitize form data before passing to AI prompt
       const { output: formSummary } = checkAndSanitize(rawFormSummary, { endpoint: "form-validation" })
       

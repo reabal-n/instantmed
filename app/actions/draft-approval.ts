@@ -10,6 +10,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { prepareDocumentDraftEditedContentWrite, readDocumentDraftEditedContent } from "@/lib/security/phi-field-wrappers"
 import { revalidatePath } from "next/cache"
 import crypto from "crypto"
 import * as Sentry from "@sentry/nextjs"
@@ -71,7 +72,7 @@ export async function getAIDraftsForIntake(intakeId: string): Promise<AIDraft[]>
   
   const { data, error } = await supabase
     .from("document_drafts")
-    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, input_hash, created_at, updated_at")
+    .select("id, intake_id, type, content, model, is_ai_generated, status, error, prompt_tokens, completion_tokens, generation_duration_ms, validation_errors, ground_truth_errors, approved_by, approved_at, rejected_by, rejected_at, rejection_reason, version, edited_content, edited_content_enc, input_hash, created_at, updated_at")
     .eq("intake_id", intakeId)
     .eq("is_ai_generated", true)
     .order("created_at", { ascending: false })
@@ -81,7 +82,16 @@ export async function getAIDraftsForIntake(intakeId: string): Promise<AIDraft[]>
     return []
   }
 
-  return data as AIDraft[]
+  // Decrypt edited_content for each draft
+  const decrypted = await Promise.all(
+    data.map(async (row) => {
+      const editedContent = await readDocumentDraftEditedContent(row)
+      const { edited_content_enc: _enc, ...rest } = row
+      return { ...rest, edited_content: editedContent } as AIDraft
+    })
+  )
+
+  return decrypted
 }
 
 /**
@@ -106,7 +116,7 @@ export async function approveDraft(
   // Fetch the draft to verify it exists and get intake_id
   const { data: draft, error: fetchError } = await supabase
     .from("document_drafts")
-    .select("id, intake_id, type, content, approved_at, rejected_at, input_hash, version, edited_content")
+    .select("id, intake_id, type, content, approved_at, rejected_at, input_hash, version, edited_content, edited_content_enc")
     .eq("id", draftId)
     .single()
 
@@ -162,7 +172,7 @@ export async function approveDraft(
     .update({
       approved_by: auth.profile.id,
       approved_at: new Date().toISOString(),
-      edited_content: editedContent || null,
+      ...(await prepareDocumentDraftEditedContentWrite(editedContent || null)),
       updated_at: new Date().toISOString(),
     })
     .eq("id", draftId)
