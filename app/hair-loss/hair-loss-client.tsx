@@ -317,7 +317,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
             pill="Hair Loss Treatment"
             title="Hair Loss Treatment Online"
             highlightWords={["Treatment"]}
-            subtitle="Get a doctor-led consultation for clinically-proven hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet."
+            subtitle="Get a doctor-led consultation for hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet."
           >
             <AvailabilityIndicator variant="badge" className="mb-4" />
 

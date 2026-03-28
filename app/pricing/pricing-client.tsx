@@ -42,7 +42,7 @@ const services = [
     features: [
       "E-script to your phone",
       "Any pharmacy Australia-wide",
-      "Fast turnaround",
+      "Usually under 1 hour",
       "SMS token delivery",
     ],
     popular: false,

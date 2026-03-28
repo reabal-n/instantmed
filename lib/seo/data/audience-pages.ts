@@ -38,13 +38,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Nurses & Healthcare Workers",
     h1: "Medical Certificates for Nurses",
     heroSubtext:
-      "Hospital shifts don't match GP hours. Get your medical certificate in 15 minutes — 8am-10pm, 7 days. Accepted by all healthcare employers.",
+      "Hospital shifts don't match GP hours. Get your medical certificate online — 8am-10pm, 7 days. Accepted by all healthcare employers.",
     heroTagline: "Works around your roster • Hospitals accept • AHPRA doctors",
     icon: Stethoscope,
     metadata: {
       title: "Medical Certificates for Nurses | Healthcare Workers | InstantMed",
       description:
-        "Nurses and healthcare workers: get a medical certificate without leaving home. 15-minute turnaround. Accepted by hospitals and aged care. 8am-10pm, 7 days.",
+        "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, usually under 1 hour. Accepted by hospitals and aged care. 8am-10pm, 7 days.",
       keywords: [
         "medical certificate nurses",
         "nurse sick certificate",
@@ -81,8 +81,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Sarah M.", role: "RN, Melbourne", quote: "Night shift then sick — got my cert at 7am before I even slept. Lifesaver." },
-      { name: "James L.", role: "Aged care, Brisbane", quote: "No way I could get to a GP between shifts. This was so easy." },
+      { name: "Sarah M.", role: "Melbourne", quote: "Night shift then sick — got my cert at 7am before I even went to sleep." },
+      { name: "James L.", role: "Brisbane", quote: "Couldn't get to a clinic between shifts. Did it on my phone instead." },
     ],
   },
   teachers: {
@@ -90,13 +90,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Teachers & Education Staff",
     h1: "Medical Certificates for Teachers",
     heroSubtext:
-      "School hours = GP hours. Get your medical certificate in 15 minutes without leaving work. Accepted by DET, Catholic, and independent schools.",
-    heroTagline: "No relief needed to see a doctor • All schools accept • 15 min",
+      "School hours = GP hours. Get your medical certificate online without leaving work. Accepted by DET, Catholic, and independent schools.",
+    heroTagline: "No relief needed to see a doctor • All schools accept • Usually under 1 hour",
     icon: GraduationCap,
     metadata: {
       title: "Medical Certificates for Teachers | Education Staff | InstantMed",
       description:
-        "Teachers: get a medical certificate without taking time off. 15-minute turnaround. Accepted by all Australian schools. Complete during lunch or after school.",
+        "Teachers: get a medical certificate without taking time off. Doctor-reviewed, usually under 1 hour. Accepted by all Australian schools. Complete during lunch or after school.",
       keywords: [
         "medical certificate teachers",
         "teacher sick certificate",
@@ -133,8 +133,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Emma T.", role: "Primary teacher, Sydney", quote: "Did it during lunch. Had my cert before afternoon class. So much easier than a GP visit." },
-      { name: "David K.", role: "High school, Perth", quote: "DET accepted it no problem. Saved me a half-day of leave." },
+      { name: "Emma T.", role: "Sydney", quote: "Did it during lunch. Had my cert before afternoon class." },
+      { name: "David K.", role: "Perth", quote: "School accepted it no problem. Didn't have to take a half-day off." },
     ],
   },
   hospitality: {
@@ -142,13 +142,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Hospitality Workers",
     h1: "Medical Certificates for Hospitality",
     heroSubtext:
-      "Chefs, waitstaff, hotel workers — your hours don't match GP clinics. Get your certificate in 15 minutes, 8am-10pm, 7 days.",
-    heroTagline: "Works around your roster • Restaurants & hotels accept • Fast",
+      "Chefs, waitstaff, hotel workers — your hours don't match GP clinics. Get your certificate online, 8am-10pm, 7 days.",
+    heroTagline: "Works around your roster • Restaurants & hotels accept • 7 days",
     icon: Coffee,
     metadata: {
       title: "Medical Certificates for Hospitality Workers | InstantMed",
       description:
-        "Hospitality workers: get a medical certificate without missing a shift to see a GP. 15-minute turnaround. Accepted by restaurants, hotels, venues.",
+        "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed, usually under 1 hour. Accepted by restaurants, hotels, venues.",
       keywords: [
         "medical certificate hospitality",
         "chef sick certificate",
@@ -167,7 +167,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I need it before my evening shift?",
-        a: "Submit in the morning or afternoon. Most certificates are issued within 15 minutes during operating hours.",
+        a: "Submit in the morning or afternoon. Most certificates are issued withonline during operating hours.",
       },
     ],
     whyChoose: [
@@ -185,8 +185,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Marcus P.", role: "Chef, Melbourne", quote: "Hospitality hours make GP visits impossible. This saved me." },
-      { name: "Sophie R.", role: "Waitstaff, Brisbane", quote: "Got sick on a Saturday. Had my cert before my Sunday shift. Perfect." },
+      { name: "Marcus P.", role: "Melbourne", quote: "My hours don't line up with clinic hours at all. This actually works around my roster." },
+      { name: "Sophie R.", role: "Brisbane", quote: "Got sick on a Saturday. Had my cert before my Sunday shift." },
     ],
   },
   retail: {
@@ -194,13 +194,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Retail Workers",
     h1: "Medical Certificates for Retail",
     heroSubtext:
-      "Supermarkets, shops, warehouses — get your medical certificate in 15 minutes. No need to miss work to see a GP. 8am-10pm, 7 days.",
-    heroTagline: "Works around your roster • All retailers accept • 15 min",
+      "Supermarkets, shops, warehouses — get your medical certificate online. No need to miss work to see a GP. 8am-10pm, 7 days.",
+    heroTagline: "Works around your roster • All retailers accept • Usually under 1 hour",
     icon: ShoppingBag,
     metadata: {
       title: "Medical Certificates for Retail Workers | InstantMed",
       description:
-        "Retail workers: get a medical certificate without a clinic visit. 15-minute turnaround. Accepted by supermarkets, shops, and warehouses.",
+        "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed, usually under 1 hour. Accepted by supermarkets, shops, and warehouses.",
       keywords: [
         "medical certificate retail",
         "retail worker sick certificate",
@@ -225,7 +225,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         title: "Quick and simple",
-        desc: "2-minute form, 15-minute review. Certificate to your email.",
+        desc: "2-minute form, doctor review. Certificate to your email.",
       },
       {
         title: "All employers accept",
@@ -233,8 +233,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Emma T.", role: "Retail manager, Brisbane", quote: "Got sick on a Sunday. Had my cert to HR before Monday. No stress." },
-      { name: "Liam S.", role: "Warehouse, Sydney", quote: "Early shift meant I could never see a GP. This fixed that." },
+      { name: "Emma T.", role: "Brisbane", quote: "Got sick on a Sunday. Had my cert to HR before Monday morning." },
+      { name: "Liam S.", role: "Sydney", quote: "Early shifts meant I could never make it to a clinic. Did it from my phone instead." },
     ],
   },
   "office-workers": {
@@ -242,13 +242,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Office Workers",
     h1: "Medical Certificates for Office Workers",
     heroSubtext:
-      "Desk job doesn't mean you have time for a GP visit. Get your medical certificate in 15 minutes from your desk or home. Accepted by all employers.",
-    heroTagline: "From your desk or home • 15 min • All employers accept",
+      "Desk job doesn't mean you have time for a GP visit. Get your medical certificate online from your desk or home. Accepted by all employers.",
+    heroTagline: "From your desk or home • Usually under 1 hour • All employers accept",
     icon: Briefcase,
     metadata: {
       title: "Medical Certificates for Office Workers | InstantMed",
       description:
-        "Office workers: get a medical certificate without leaving work or home. 15-minute turnaround. Accepted by corporate and government employers.",
+        "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed, usually under 1 hour. Accepted by corporate and government employers.",
       keywords: [
         "medical certificate office workers",
         "corporate sick certificate",
@@ -281,8 +281,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Sarah L.", role: "Marketing, Melbourne", quote: "Did it from my desk at lunch. HR accepted it straight away." },
-      { name: "Tom W.", role: "Public servant, Canberra", quote: "APS accepted it no questions. Way easier than booking a GP." },
+      { name: "Sarah L.", role: "Melbourne", quote: "Did it from my desk at lunch. HR accepted it straight away." },
+      { name: "Tom W.", role: "Canberra", quote: "Employer accepted it, no questions. Didn't have to take time off to get it." },
     ],
   },
   parents: {
@@ -290,13 +290,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Parents",
     h1: "Medical Certificates for Parents",
     heroSubtext:
-      "When your child is sick, you need carer's leave — and sometimes a certificate. Get documentation for school or work in 15 minutes. No need to take a sick child to a clinic.",
+      "When your child is sick, you need carer's leave — and sometimes a certificate. Get documentation for school or work online. No need to take a sick child to a clinic.",
     heroTagline: "Carer's leave • School absence • No clinic visit needed",
     icon: Users,
     metadata: {
       title: "Medical Certificates for Parents | Carer's Leave | InstantMed",
       description:
-        "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. 15-minute turnaround.",
+        "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. Doctor-reviewed, usually under 1 hour.",
       keywords: [
         "medical certificate parents",
         "carers leave certificate",
@@ -333,8 +333,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Jessica M.", role: "Parent, Sydney", quote: "Kid was too sick for school. Got the cert without dragging her to a clinic. So much easier." },
-      { name: "Chris D.", role: "Parent, Adelaide", quote: "Needed carer's leave for work. Sorted in 15 minutes. HR accepted it." },
+      { name: "Jessica M.", role: "Sydney", quote: "Kid was too sick for school. Got the cert without dragging her to a clinic." },
+      { name: "Chris D.", role: "Adelaide", quote: "Needed carer's leave for work. Sorted it online, HR accepted it." },
     ],
   },
   "remote-workers": {
@@ -342,13 +342,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Remote Workers",
     h1: "Medical Certificates for Remote Workers",
     heroSubtext:
-      "Work from home? Live regionally? Get your medical certificate without leaving the house. 15-minute turnaround. Accepted by all employers.",
+      "Work from home? Live regionally? Get your medical certificate without leaving the house. Doctor-reviewed, usually under 1 hour. Accepted by all employers.",
     heroTagline: "From anywhere • No commute • All employers accept",
     icon: Laptop,
     metadata: {
       title: "Medical Certificates for Remote Workers | InstantMed",
       description:
-        "Remote workers: get a medical certificate from home. No clinic visit, no commute. 15-minute turnaround. Works for WFH and regional workers.",
+        "Remote workers: get a medical certificate from home. No clinic visit, no commute. Doctor-reviewed, usually under 1 hour. Works for WFH and regional workers.",
       keywords: [
         "medical certificate remote workers",
         "work from home sick certificate",
@@ -385,8 +385,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Rachel K.", role: "Remote worker, Byron Bay", quote: "Regional GP wait was 2 weeks. Got my cert in 15 minutes. Game changer." },
-      { name: "Alex T.", role: "WFH, Melbourne", quote: "Sick but needed a cert. Did it from bed. So easy." },
+      { name: "Rachel K.", role: "Byron Bay", quote: "Couldn't get a local appointment for ages. Did it online from home." },
+      { name: "Alex T.", role: "Melbourne", quote: "Sick and needed a cert. Did it from bed without getting up." },
     ],
   },
   "gig-workers": {
@@ -394,13 +394,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Gig & Contract Workers",
     h1: "Medical Certificates for Gig Workers",
     heroSubtext:
-      "Uber, Deliveroo, Airtasker — when you're sick you need documentation. Get your medical certificate in 15 minutes. No appointments, no waiting.",
-    heroTagline: "No appointments • 15 min • Platforms accept",
+      "Uber, Deliveroo, Airtasker — when you're sick you need documentation. Get your medical certificate online. No appointments, no waiting.",
+    heroTagline: "No appointments • Usually under 1 hour • Platforms accept",
     icon: Car,
     metadata: {
       title: "Medical Certificates for Gig Workers | InstantMed",
       description:
-        "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. 15-minute turnaround.",
+        "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. Doctor-reviewed, usually under 1 hour.",
       keywords: [
         "medical certificate gig workers",
         "uber driver sick certificate",
@@ -437,8 +437,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     testimonials: [
-      { name: "Jake M.", role: "Uber driver, Sydney", quote: "Couldn't work for 2 days. Got my cert, sent to Uber. Sorted." },
-      { name: "Mia L.", role: "Deliveroo, Brisbane", quote: "No sick leave but needed to document. This was fast and easy." },
+      { name: "Jake M.", role: "Sydney", quote: "Couldn't work for 2 days. Got my cert and sent it through. Sorted." },
+      { name: "Mia L.", role: "Brisbane", quote: "No sick leave so I needed documentation. Simple process, doctor was thorough." },
     ],
   },
 }

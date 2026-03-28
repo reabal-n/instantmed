@@ -68,6 +68,9 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://instantmed.com.au"),
   alternates: {
     canonical: "/",
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
   },
   openGraph: {
     type: "website",

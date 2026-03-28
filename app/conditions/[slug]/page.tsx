@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!condition) return {}
 
   const title = `${condition.name} | Online Doctor Assessment | InstantMed`
-  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Fast, confidential telehealth.`
+  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Confidential telehealth.`
 
   return {
     title,
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ],
     openGraph: {
       title: `${condition.name} - Online Doctor Assessment | InstantMed`,
-      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Australian doctors available now.`,
+      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Assessed by AHPRA-registered Australian doctors.`,
       url: `https://instantmed.com.au/conditions/${slug}`,
     },
     alternates: {

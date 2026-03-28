@@ -164,7 +164,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "anxiety",
     citySlug: "sydney",
     localIntro:
-      "Sydney's pace, commute pressures, and competitive work culture can exacerbate anxiety. If you're having an overwhelming day and need a medical certificate without explaining yourself in a crowded clinic, InstantMed offers confidential assessment from home. Describe your situation, get reviewed by a doctor, and receive your certificate via email — discreet and fast.",
+      "Sydney's pace, commute pressures, and competitive work culture can exacerbate anxiety. If you're having an overwhelming day and need a medical certificate without explaining yourself in a crowded clinic, InstantMed offers confidential assessment from home. Describe your situation, get reviewed by a doctor, and receive your certificate via email — discreet and confidential.",
     localFaqs: [
       {
         q: "Can I get an anxiety certificate in Sydney confidentially?",

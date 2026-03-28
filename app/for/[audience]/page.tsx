@@ -160,6 +160,9 @@ export default async function AudiencePage({ params }: PageProps) {
                     </div>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Individual experiences may vary. All requests are subject to doctor assessment.
+                </p>
               </div>
             </div>
           </section>

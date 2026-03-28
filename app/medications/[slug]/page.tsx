@@ -1,7 +1,6 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertTriangle, Pill, Clock, FileText } from "lucide-react"
+import { AlertTriangle, Pill, Clock, FileText } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -401,15 +400,6 @@ export default async function MedicationPage({ params }: PageProps) {
               </div>
 
               <p className="text-muted-foreground mb-6">{med.description}</p>
-
-              {med.prescribable && (
-                <Link href={`/request?service=prescription&medication=${slug}`}>
-                  <Button size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                    Request This Medication
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-              )}
             </div>
           </section>
 

@@ -43,16 +43,16 @@ export function AboutClient() {
         {/* Our Story */}
         <ImageTextSplit
           title="Our Story"
-          description="InstantMed was born from frustration. We were tired of waiting weeks for GP appointments, taking half-days off work for simple script renewals, and dealing with the endless paperwork that comes with traditional healthcare."
+          description="InstantMed was built to make everyday healthcare simpler. We believe getting a medical certificate or renewing a prescription shouldn't require taking half a day off work or sitting in a waiting room when you're already unwell."
           imageSrc="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=800&q=80"
           imageAlt="Modern telehealth consultation"
           imagePosition="left"
         >
           <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
             <p>
-              We asked ourselves: why can&apos;t getting a medical certificate or prescription be as simple as
-              ordering food online? Why do you need to sit in a waiting room for 45 minutes when a doctor can
-              review your request in minutes?
+              We asked ourselves: why can&apos;t straightforward healthcare be more accessible? For
+              things like medical certificates and repeat prescriptions, there&apos;s a better way — one
+              that respects your time without compromising on care.
             </p>
             <p>
               So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors

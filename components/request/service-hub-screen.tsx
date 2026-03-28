@@ -117,8 +117,12 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
     const prefs = getPreferences()
     if (prefs.lastServiceType) {
       setLastServiceType(prefs.lastServiceType)
+      posthog?.capture("returning_user", {
+        last_service: prefs.lastServiceType,
+        has_drafts: allDrafts.length > 0,
+      })
     }
-  }, [])
+  }, [posthog])
 
   // Handle draft resume for a specific service
   const handleResumeDraft = useCallback((draftToResume: DraftData) => {

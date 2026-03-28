@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { sendEmployerEmail } from "@/app/actions/send-employer-email"
+import { capture } from "@/lib/analytics/capture"
 
 interface SendToEmployerDialogProps {
   intakeId: string
@@ -65,6 +66,7 @@ export function SendToEmployerDialog({
       if (result.success) {
         setSuccess(true)
         setRemainingSends(result.remainingSends ?? null)
+        capture("certificate_emailed_employer", { intake_id: intakeId })
         onSuccess?.()
       } else {
         setError(result.error || "Failed to send email")

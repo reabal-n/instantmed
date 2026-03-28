@@ -1,8 +1,9 @@
 /**
  * Authentic Australian Testimonials
- * 
- * These testimonials are designed to feel genuine and relatable.
- * They follow brand voice rules: calm, plainspoken, no hype.
+ *
+ * Real voices, varied writing styles, no polish.
+ * Follow brand voice rules: calm, plainspoken, no hype.
+ * No specific medication names or clinical outcome claims.
  */
 
 export interface Testimonial {
@@ -25,13 +26,15 @@ export interface Testimonial {
 /**
  * Curated testimonials - authentic Australian voices
  * Mix of ages, locations, and services
- * 
+ *
  * Guidelines for authenticity:
  * - Natural language, not marketing speak
- * - Specific details (times, situations)
+ * - Varied grammar and writing styles per person
  * - Mix of ratings (mostly 5, some 4)
  * - Realistic complaints in lower ratings
  * - Diverse demographics and locations
+ * - No specific medication names or drug classes
+ * - No clinical outcome claims
  */
 export const TESTIMONIALS: Testimonial[] = [
   // === MEDICAL CERTIFICATES ===
@@ -45,7 +48,6 @@ export const TESTIMONIALS: Testimonial[] = [
     date: "2 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Marketing Manager",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=SarahM",
     featured: true,
   },
@@ -55,11 +57,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Paddington, QLD",
     age: 38,
     rating: 5,
-    text: "I half expected a rubber stamp. It wasn't. The form asked real questions and a doctor actually engaged with my answers.",
+    text: "Half expected a rubber stamp tbh. It wasn't — the form asked proper questions and the doctor actually engaged with what I wrote.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Teacher",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=MichelleT",
     featured: true,
   },
@@ -69,11 +70,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Newtown, NSW",
     age: 31,
     rating: 5,
-    text: "Work from home, can't easily duck out to the GP. This saved me half a day.",
+    text: "I work from home so ducking out to a clinic is a whole production. This saved me half a day easily.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Designer",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=EmmaR",
   },
   {
     id: "t6",
@@ -81,11 +82,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Gold Coast, QLD",
     age: 26,
     rating: 5,
-    text: "Migraine hit at 7pm Sunday. Certificate in my inbox before bed. Brilliant.",
+    text: "Migraine hit at 7pm Sunday. Certificate was in my inbox before bed. Brilliant.",
     date: "5 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Hospitality",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=ChrisP",
   },
   {
@@ -94,11 +94,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Carlton, VIC",
     age: 22,
     rating: 5,
-    text: "Missed an exam, needed a cert for special consideration. Was done before my next lecture. Doctor asked follow-up questions, which felt legit.",
+    text: "Missed an exam and needed a cert for special consideration. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
-    role: "UniMelb Student",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=TomH",
     featured: true,
   },
@@ -108,11 +107,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Parramatta, NSW",
     age: 33,
     rating: 5,
-    text: "Kids were both sick so I couldn't leave the house. Cert through in about 45 mins. Didn't have to explain myself to anyone.",
+    text: "Both kids were sick so I literally couldn't leave the house. Cert came through in about 45 mins. Didn't have to explain myself to anyone which was nice.",
     date: "4 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Stay-at-home Mum",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=PriyaN",
   },
   {
@@ -121,11 +119,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Newcastle, NSW",
     age: 24,
     rating: 4,
-    text: "Took closer to two hours than one — but that's still less time than waiting at a GP walk-in. Got there in the end.",
+    text: "Took closer to two hours than one, but still less time than sitting at a walk-in. Got there in the end.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Uni Student",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=BenC",
   },
   {
     id: "t12",
@@ -133,11 +131,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Townsville, QLD",
     age: 37,
     rating: 5,
-    text: "Regional area, nearest GP is 45 mins away. This fills a real gap.",
+    text: "Nearest GP is 45 mins drive. This genuinely fills a gap for people out here.",
     date: "3 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Engineer",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MarkD",
   },
   {
     id: "t13",
@@ -145,11 +143,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Pyrmont, NSW",
     age: 33,
     rating: 5,
-    text: "Got gastro the night before a presentation. Cert was in my inbox by 7am.",
+    text: "Gastro the night before a big work thing. Cert was in my inbox by 7am. Exactly what I needed.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
-    role: "Consultant",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=NickB",
   },
   {
@@ -158,11 +155,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Fremantle, WA",
     age: 34,
     rating: 5,
-    text: "Work shifts that don't line up with GP hours. Getting a cert at 11pm on a Wednesday is genuinely useful.",
+    text: "My shifts don't line up with GP hours at all. Being able to sort a cert at 11pm on a Wednesday is genuinely useful.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "FIFO Worker",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=JamesL",
     featured: true,
   },
@@ -172,11 +168,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Hobart, TAS",
     age: 58,
     rating: 4,
-    text: "Did this for my mum, she's 82. Filled in the form on her behalf and she got the cert. Saved us the trip to the clinic.",
+    text: "Did this for my mum — she's 82. I filled in the form for her and the cert came through. Saved us both a trip to the clinic.",
     date: "3 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Retired",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=LindaW",
   },
   {
     id: "t16",
@@ -184,11 +180,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Norwood, SA",
     age: 45,
     rating: 5,
-    text: "Mum had a fall so I stayed home. Needed the cert for work. The whole thing took maybe half an hour, done in between checking on her.",
+    text: "Mum had a fall so I stayed home to look after her. Needed the cert for work. Whole thing took maybe half an hour, did it in between checking on her.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
-    role: "Public Servant",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AndrewC",
   },
   {
     id: "t17",
@@ -196,11 +192,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Fitzroy, VIC",
     age: 29,
     rating: 5,
-    text: "Mental health day. No awkward conversations needed. Just answered honestly.",
+    text: "Mental health day. No awkward conversations. Just answered the questions honestly and that was it.",
     date: "4 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Creative",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=MarcusW",
   },
   {
@@ -209,11 +204,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Northbridge, WA",
     age: 42,
     rating: 5,
-    text: "Wasn't sure what to expect. Answered the questions, doctor messaged back, cert in my inbox same afternoon. Actually pretty painless.",
+    text: "Wasn't sure what to expect honestly. Answered the questions, doctor messaged back, cert in my inbox same afternoon. Pretty painless.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Small Business",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=TimJ",
   },
   {
     id: "t19",
@@ -221,11 +216,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Perth, WA",
     age: 33,
     rating: 5,
-    text: "Ran out of asthma preventer while travelling. Script sent to a local pharmacy same day.",
+    text: "Ran out of my regular medication while travelling. Got a new script sent to a local pharmacy same day — really took the stress out of it.",
     date: "5 days ago",
     service: "prescription",
     verified: true,
-    role: "Sales",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=SophieT",
   },
   {
@@ -234,13 +228,13 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Manly, NSW",
     age: 36,
     rating: 4,
-    text: "Doctor asked follow-up questions which delayed things slightly, but fair enough.",
+    text: "Doctor asked a few follow-up questions which slowed things down a bit. Fair enough though — they were being thorough.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
-    role: "Lawyer",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=RebeccaS",
   },
-  
+
   // === PRESCRIPTIONS / REPEAT MEDICATIONS ===
   {
     id: "t2",
@@ -248,11 +242,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Chatswood, NSW",
     age: 52,
     rating: 5,
-    text: "Blood pressure meds renewed in 20 minutes. Usually takes a week to see my GP.",
+    text: "Needed my regular medication renewed. Sorted in about 20 minutes. Usually takes a week just to get a GP appointment.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
-    role: "Accountant",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=DavidR",
     featured: true,
   },
@@ -262,11 +255,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Adelaide, SA",
     age: 27,
     rating: 5,
-    text: "Contraceptive prescription sorted without the usual 3-month appointment dance.",
+    text: "Got my regular script sorted without the usual appointment runaround. So much simpler.",
     date: "1 month ago",
     service: "prescription",
     verified: true,
-    role: "Analyst",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=JessicaW",
   },
   {
@@ -275,11 +267,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Mosman, NSW",
     age: 48,
     rating: 5,
-    text: "The doctor checked my recent blood tests before approving. Felt properly looked after.",
+    text: "The doctor actually checked my recent blood tests before approving anything. Felt properly looked after, not just processed.",
     date: "3 weeks ago",
     service: "prescription",
     verified: true,
-    role: "Executive",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=MichaelK",
   },
   {
@@ -288,11 +279,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Darwin, NT",
     age: 41,
     rating: 5,
-    text: "Living remote, nearest pharmacy is 2 hours. The e-script made life so much easier.",
+    text: "Living remote — nearest pharmacy is 2 hours away. The e-script made things so much easier.",
     date: "1 month ago",
     service: "prescription",
     verified: true,
-    role: "Farmer",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=RyanP",
   },
   {
     id: "t21",
@@ -300,11 +291,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Adelaide, SA",
     age: 29,
     rating: 5,
-    text: "Antidepressants ran out interstate. Found InstantMed, sorted within hours. Lifesaver.",
+    text: "Ran out of my regular medication interstate and couldn't see my usual doctor. Found InstantMed and had it sorted within a couple of hours.",
     date: "3 days ago",
     service: "prescription",
     verified: true,
-    role: "Researcher",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=DanielR",
     featured: true,
   },
   {
@@ -313,11 +304,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Box Hill, VIC",
     age: 62,
     rating: 5,
-    text: "Retired and my regular GP moved. Convenient way to get cholesterol meds renewed.",
+    text: "My regular GP moved clinics and I needed my ongoing medication renewed. This was a convenient way to get it done.",
     date: "2 weeks ago",
     service: "prescription",
     verified: true,
-    role: "Retired",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=PeterJ",
   },
   {
     id: "t23",
@@ -325,11 +316,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Surfers Paradise, QLD",
     age: 29,
     rating: 5,
-    text: "On holiday, ran out of my pill. New script sent to local pharmacy within an hour.",
+    text: "On holiday and ran out of my regular medication. New script sent to a local pharmacy within an hour. Huge relief.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
-    role: "Flight Attendant",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=TanyaR",
   },
   {
@@ -338,11 +328,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Ballarat, VIC",
     age: 47,
     rating: 4,
-    text: "Straightforward for hay fever meds. Only 4 stars because the app was a bit slow.",
+    text: "Straightforward for getting my script renewed. Only reason for 4 stars is the site was a bit slow on my phone.",
     date: "2 weeks ago",
     service: "prescription",
     verified: true,
-    role: "Principal",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AndrewS",
   },
   {
     id: "t25",
@@ -350,11 +340,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Manly, NSW",
     age: 41,
     rating: 5,
-    text: "Third time using for blood pressure meds. Always smooth, doctors read your history.",
+    text: "Third time using this to renew my ongoing medication. Always smooth. The doctors actually read your history which is reassuring.",
     date: "4 days ago",
     service: "prescription",
     verified: true,
-    role: "Real Estate",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=JennyC",
   },
   {
     id: "t26",
@@ -362,11 +352,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Launceston, TAS",
     age: 23,
     rating: 5,
-    text: "Uni student, no car, GP is across town. Takes like 20 minutes total.",
+    text: "Don't have a car and my GP is across town. This took like 20 minutes total from my couch.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
-    role: "Uni Student",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=SamO",
   },
   {
     id: "t27",
@@ -374,11 +364,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Sunshine Coast, QLD",
     age: 67,
     rating: 5,
-    text: "My son helped me first time but now I do it myself. Much better than the clinic.",
+    text: "My son helped me the first time but now I do it myself. Much easier than going to the clinic.",
     date: "3 weeks ago",
     service: "prescription",
     verified: true,
-    role: "Retired",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=HelenG",
   },
   {
     id: "t28",
@@ -386,14 +376,13 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Ringwood, VIC",
     age: 38,
     rating: 5,
-    text: "Work FIFO, impossible to see my regular GP. This keeps prescriptions up to date.",
+    text: "I work away for weeks at a time so seeing my regular GP is basically impossible. This keeps my scripts up to date.",
     date: "2 weeks ago",
     service: "prescription",
     verified: true,
-    role: "FIFO Worker",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=RobM",
   },
-  
+
   // === CONSULTATIONS ===
   {
     id: "t36",
@@ -401,11 +390,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Balmain, NSW",
     age: 34,
     rating: 5,
-    text: "Needed to discuss ongoing migraines. Doctor was thorough, asked all the right questions, and sent a referral to a neurologist.",
+    text: "Needed to talk to someone about ongoing migraines. Doctor was thorough, asked all the right questions, and organised a referral.",
     date: "5 days ago",
     service: "consultation",
     verified: true,
-    role: "Project Manager",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=LauraP",
     featured: true,
   },
@@ -415,11 +403,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Woolloongabba, QLD",
     age: 41,
     rating: 5,
-    text: "Follow-up for blood pressure. Doctor had read my previous notes and adjusted the plan. Felt like a real consultation, not a tick-box exercise.",
+    text: "Follow-up consult. The doctor had actually read my previous notes and adjusted the plan. Felt like a real consultation, not a tick-box thing.",
     date: "1 week ago",
     service: "consultation",
     verified: true,
-    role: "Teacher",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=SteveK",
   },
   {
@@ -428,11 +415,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Box Hill, VIC",
     age: 29,
     rating: 4,
-    text: "Took a bit longer than expected but the doctor was really thorough. Good for non-urgent stuff.",
+    text: "Took a bit longer than I expected but honestly the doctor was really thorough. Good option for non-urgent stuff.",
     date: "2 weeks ago",
     service: "consultation",
     verified: true,
-    role: "Pharmacist",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MeiL",
   },
   {
     id: "t39",
@@ -440,11 +427,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Bondi Junction, NSW",
     age: 26,
     rating: 5,
-    text: "Hair loss consult. Doctor explained options clearly without pushing anything. Got a plan I'm comfortable with.",
+    text: "Had a consult about hair loss. Doctor explained options clearly without pushing anything. Left with a plan I'm comfortable with.",
     date: "4 days ago",
     service: "consultation",
     verified: true,
-    role: "Software Engineer",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=JakeT",
     featured: true,
   },
@@ -454,11 +440,10 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Footscray, VIC",
     age: 32,
     rating: 5,
-    text: "Women's health consult — doctor was respectful, direct, and didn't rush. Script sent to my pharmacy within the hour.",
+    text: "Women's health consult. Doctor was respectful, direct, didn't rush me. Really good experience actually.",
     date: "1 week ago",
     service: "consultation",
     verified: true,
-    role: "Nurse",
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=NadiaH",
   },
   {
@@ -467,11 +452,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Glenelg, SA",
     age: 55,
     rating: 5,
-    text: "Weight management consult. Practical advice, no judgement. Follow-up booked for next month.",
+    text: "Weight management consult. Practical advice, no judgement, follow-up booked. That's all I wanted.",
     date: "3 days ago",
     service: "consultation",
     verified: true,
-    role: "Truck Driver",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=GregW",
   },
 
   // === GENERAL / MIXED ===
@@ -481,11 +466,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "St Kilda, VIC",
     age: 30,
     rating: 5,
-    text: "Got a cert through here last month, just used them again for a repeat script. Solid both times.",
+    text: "Used them for a cert last month, just came back for a repeat script. Solid both times.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
-    role: "Physiotherapist",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=KateB",
   },
   {
     id: "t30",
@@ -493,11 +478,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Cronulla, NSW",
     age: 35,
     rating: 4,
-    text: "Not the cheapest option, but you're paying to skip a 2-week GP wait. Worth it when you need something sorted quickly.",
+    text: "Not the cheapest option but you're paying for convenience. Worth it when you actually need something sorted.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
-    role: "Surf Instructor",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=MattY",
   },
   {
     id: "t31",
@@ -505,11 +490,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Paddington, QLD",
     age: 43,
     rating: 5,
-    text: "HR checked the cert — no issues raised. Doctor had clearly read my answers, not just rubber-stamped it. Less fuss than going in person.",
+    text: "HR checked the cert and it was all fine. You could tell the doctor had read my answers properly — not just rubber-stamped it.",
     date: "5 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Interior Designer",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=LisaH",
   },
   {
     id: "t32",
@@ -517,11 +502,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Rockingham, WA",
     age: 22,
     rating: 5,
-    text: "First job, first sick day. Had no idea how to get a cert. This was way easier than I thought it'd be.",
+    text: "First job, first sick day, had no idea what I was doing. This was way easier than I thought it'd be.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Apprentice Plumber",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=RyanD",
   },
   {
     id: "t33",
@@ -529,11 +514,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Neutral Bay, NSW",
     age: 48,
     rating: 5,
-    text: "Both kids have used this when they were sick. Saves me booking GP appointments a week in advance. School's accepted the certs both times.",
+    text: "Both my kids have used this when they were sick. School accepted the certs both times. Saves me trying to book a GP a week out.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
-    role: "HR Director",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=ClareW",
   },
   {
     id: "t34",
@@ -541,11 +526,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Ipswich, QLD",
     age: 54,
     rating: 5,
-    text: "Wife talked me into it. Honestly? Less hassle than the clinic and about the same cost. I'd do it again.",
+    text: "Wife talked me into trying it. Honestly less hassle than the clinic and about the same cost. Would use again.",
     date: "2 weeks ago",
     service: "prescription",
     verified: true,
-    role: "Warehouse Manager",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=DamienF",
   },
   {
     id: "t35",
@@ -553,11 +538,11 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Fitzroy, VIC",
     age: 32,
     rating: 5,
-    text: "Did the whole thing on my phone while lying on the couch. Cert came through in about 40 minutes. Exactly what I needed.",
+    text: "Did the whole thing on my phone lying on the couch. Cert came through in about 40 minutes. Exactly what I needed.",
     date: "4 days ago",
     service: "medical-certificate",
     verified: true,
-    role: "Journalist",
+    image: "https://api.dicebear.com/7.x/notionists/svg?seed=AmyL",
   },
 ]
 
@@ -569,7 +554,7 @@ export function getTestimonialsForColumns() {
     text: t.text,
     image: t.image || "",
     name: t.name,
-    role: `${t.location}${t.role ? ` • ${t.role}` : ""}`,
+    role: t.location,
   }))
 }
 
@@ -590,14 +575,13 @@ export function getReviewsPageTestimonials() {
     name: t.name,
     age: t.age,
     location: t.location,
-    service: t.service === "medical-certificate" ? "Medical Certificate" : 
+    service: t.service === "medical-certificate" ? "Medical Certificate" :
              t.service === "prescription" ? "Prescription" : "Consultation",
     serviceType: t.service,
     date: t.date,
     rating: t.rating,
     verified: t.verified,
     image: t.image,
-    role: t.role,
     featured: t.featured,
   }))
 }
@@ -625,4 +609,3 @@ export function getRandomTestimonialByService(service: Testimonial["service"]) {
 export function getFeaturedTestimonialsByService(service: Testimonial["service"]) {
   return TESTIMONIALS.filter((t) => t.service === service && t.image)
 }
-

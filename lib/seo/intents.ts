@@ -32,8 +32,8 @@ export const intentPages: IntentPage[] = [
   {
     slug: 'same-day-medical-certificate',
     type: 'intent',
-    title: 'Same Day Medical Certificate Online | Get It Within Hours | InstantMed',
-    description: 'Need a medical certificate today? Get one within 1-24 hours from Australian doctors. Valid for employers and universities. From $19.95.',
+    title: 'Same Day Medical Certificate Online | Doctor Reviewed | InstantMed',
+    description: 'Need a medical certificate today? Reviewed by Australian doctors, valid for employers and universities. From $19.95.',
     h1: 'Same Day Medical Certificate — Reviewed & Valid',
     content: {
       intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors can issue valid medical certificates within hours, delivered straight to your email. Submit from home — no waiting rooms.',
@@ -117,7 +117,7 @@ export const intentPages: IntentPage[] = [
       serviceType: 'medical-certificate',
     },
     conversion: {
-      primaryCTA: 'Get Medical Certificate Now',
+      primaryCTA: 'Get Started',
       ctaUrl: '/request?service=med-cert',
       secondaryCTA: 'Learn More About Our Service',
       secondaryCTAUrl: '/medical-certificate',
@@ -127,8 +127,8 @@ export const intentPages: IntentPage[] = [
   {
     slug: 'uti-treatment-online',
     type: 'intent',
-    title: 'UTI Treatment Online Australia | Same Day Antibiotics | InstantMed',
-    description: 'Burning when you pee? Get UTI treatment online from Australian doctors. Same-day antibiotic treatment if appropriate. From $29.95.',
+    title: 'UTI Treatment Online Australia | Doctor Assessed | InstantMed',
+    description: 'Burning when you pee? Get assessed for UTI treatment online by Australian doctors. Doctor-reviewed, same-day where appropriate. From $29.95.',
     h1: 'UTI Treatment Online — Relief When You Need It',
     content: {
       intro: 'Urinary tract infections are uncomfortable, urgent, and need quick treatment. Our Australian doctors can assess your symptoms online and prescribe antibiotics if appropriate, with your e-script sent to your phone within hours.',
@@ -464,16 +464,16 @@ export const intentPages: IntentPage[] = [
   {
     slug: 'emergency-contraception-online',
     type: 'intent',
-    title: 'Emergency Contraception Online Australia | Plan B | InstantMed',
-    description: 'Need emergency contraception (morning after pill)? Get it prescribed online from Australian doctors. E-script within hours.',
-    h1: 'Emergency Contraception — Same-Day Online Access',
+    title: 'Emergency Contraception Online Australia | Doctor Assessed | InstantMed',
+    description: 'Need emergency contraception? Get assessed and prescribed online by Australian doctors. E-script sent to your phone.',
+    h1: 'Emergency Contraception — Online Doctor Assessment',
     content: {
       intro: 'Emergency contraception (the "morning after pill") can prevent pregnancy after unprotected sex or contraceptive failure. Time is critical — it\'s most effective when taken as soon as possible.',
       uniqueBlocks: [
         {
           id: 'how-it-works',
           type: 'text',
-          content: 'Emergency contraceptive pills work by delaying or preventing ovulation. Levonorgestrel (Plan B) works best within 72 hours but can be used up to 120 hours (5 days) after unprotected sex. Ulipristal (EllaOne) is more effective and works up to 120 hours. The sooner you take it, the more effective it is.',
+          content: 'Emergency contraceptive pills work by delaying or preventing ovulation. There are two main types — one works best within 72 hours, and a more effective option works up to 120 hours (5 days) after unprotected sex. Your doctor will recommend the most appropriate option. The sooner you take it, the more effective it is.',
         },
         {
           id: 'what-we-need-to-know',
@@ -497,9 +497,9 @@ export const intentPages: IntentPage[] = [
       keywords: [
         'emergency contraception online',
         'morning after pill online',
-        'plan b online australia',
-        'emergency contraceptive pill',
-        'levonorgestrel online',
+        'emergency contraceptive pill online',
+        'emergency contraception australia',
+        'morning after pill doctor online',
       ],
       lastModified: new Date('2026-01-03'),
     },
@@ -511,7 +511,7 @@ export const intentPages: IntentPage[] = [
         },
         {
           question: 'Is it too late if it\'s been 3 days?',
-          answer: 'No — levonorgestrel works up to 72 hours (best) and ulipristal works up to 120 hours (5 days). However, effectiveness decreases with time, so take it as soon as possible.',
+          answer: 'No — one option works up to 72 hours and another up to 120 hours (5 days). However, effectiveness decreases with time, so seek assessment as soon as possible. Your doctor will advise which option is appropriate.',
         },
         {
           question: 'Will emergency contraception affect my period?',
@@ -528,10 +528,9 @@ export const intentPages: IntentPage[] = [
       searchQuery: 'emergency contraception online',
       alternateQueries: [
         'morning after pill online',
-        'plan b online',
         'emergency contraceptive pill',
-        'levonorgestrel online',
-        'ella one online',
+        'emergency contraception australia',
+        'morning after pill doctor',
       ],
       userNeed: 'Get emergency contraception fast to prevent pregnancy',
       urgency: 'immediate',

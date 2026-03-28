@@ -396,19 +396,19 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     subtitle: 'Real reviews from Australians who\'ve used our service',
     reviews: [
       {
-        text: 'Needed my blood pressure meds renewed. Usually takes a week to see my doctor. This took 20 minutes. Got the eScript on my phone and picked it up same day.',
+        text: 'Needed my regular medication renewed. Sorted in about 20 minutes. Got the eScript on my phone and picked it up same day.',
         author: 'David R.',
         location: 'Gold Coast',
         rating: 5,
       },
       {
-        text: 'So convenient for renewing my regular contraceptive. The doctor asked good questions and I felt confident in the process.',
+        text: 'Got my ongoing script renewed without the usual appointment runaround. Doctor asked good questions and I felt confident in the process.',
         author: 'Jessica W.',
         location: 'Adelaide',
         rating: 5,
       },
       {
-        text: 'Living remote, nearest doctor is 2 hours away. This service is a game changer for my regular medications.',
+        text: 'Living remote, nearest doctor is 2 hours away. Really convenient for renewing my regular medications.',
         author: 'Ryan P.',
         location: 'Darwin',
         rating: 5,
@@ -444,7 +444,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   },
 
   finalCta: {
-    headline: 'Don\'t wait a week for a 5-minute renewal.',
+    headline: 'Your regular medication, renewed from home.',
     subheadline: 'Answer a few questions. A doctor reviews it. Sent to your phone, same day.',
     ctaText: 'Renew your medication',
   },
@@ -694,7 +694,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
 
   finalCta: {
-    headline: 'Why wait days for a GP appointment?',
+    headline: 'Talk to a doctor from home',
     subheadline: 'Start with a quick questionnaire. A doctor reviews and typically calls within 2 hours.',
     ctaText: 'Talk to a doctor today',
   },

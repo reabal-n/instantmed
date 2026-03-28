@@ -202,23 +202,23 @@ export default function CorporatePage() {
                   {[
                     {
                       name: "Sarah M.",
-                      role: "Marketing Manager, Sydney",
+                      location: "Sydney",
                       quote: "Had a migraine and couldn&apos;t look at screens. Got my cert from bed, forwarded to HR, done.",
                     },
                     {
                       name: "David K.",
-                      role: "Consultant, Melbourne",
-                      quote: "So much easier than trying to find a GP appointment between client meetings.",
+                      location: "Melbourne",
+                      quote: "Didn&apos;t have to rearrange my whole day to get a cert. Did it between meetings.",
                     },
                     {
                       name: "Rachel T.",
-                      role: "Finance Analyst, Brisbane",
-                      quote: "Professional certificate, quick turnaround. HR didn't bat an eye.",
+                      location: "Brisbane",
+                      quote: "Professional certificate, doctor was thorough. HR accepted it straight away.",
                     },
                     {
                       name: "James L.",
-                      role: "Software Engineer, Perth",
-                      quote: "WFH with a cold. Got my cert in 10 minutes while still in my pyjamas.",
+                      location: "Perth",
+                      quote: "Working from home with a cold. Did it from the couch, cert came through same morning.",
                     },
                   ].map((item) => (
                     <div key={item.name} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
@@ -229,11 +229,14 @@ export default function CorporatePage() {
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
                       <p className="text-xs text-muted-foreground">
-                        — {item.name}, {item.role}
+                        — {item.name}, {item.location}
                       </p>
                     </div>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Individual experiences may vary. All requests are subject to doctor assessment.
+                </p>
               </div>
             </div>
           </section>

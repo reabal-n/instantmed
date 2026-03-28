@@ -24,6 +24,7 @@ import {
 import { formatIntakeStatus } from "@/lib/format-intake"
 import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
 import { COPY } from "@/lib/microcopy/universal"
+import { capture } from "@/lib/analytics/capture"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
@@ -446,11 +447,15 @@ export function IntakeDetailClient({
                         </p>
                       </div>
                       <Button asChild size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
-                        <a 
-                          href={document.pdf_url} 
-                          target="_blank" 
+                        <a
+                          href={document.pdf_url}
+                          target="_blank"
                           rel="noopener noreferrer"
                           download
+                          onClick={() => capture("certificate_downloaded", {
+                            intake_id: intake.id,
+                            service_type: intake.service?.type,
+                          })}
                         >
                           <Download className="h-4 w-4 mr-2" />
                           Download PDF

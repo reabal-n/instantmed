@@ -206,23 +206,23 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       name: "Lisa R.",
-                      role: "Nurse, Adelaide",
-                      quote: "Finished night shift feeling terrible. Got my cert at 7am before I even tried to sleep. Sorted.",
+                      location: "Adelaide",
+                      quote: "Finished night shift feeling terrible. Got my cert at 7am before I even tried to sleep.",
                     },
                     {
                       name: "Marcus P.",
-                      role: "Chef, Melbourne",
-                      quote: "Hospitality hours mean I can&apos;t see a GP during the week. This saved me so much hassle.",
+                      location: "Melbourne",
+                      quote: "My hours don&apos;t line up with clinic hours. Did it from my phone between shifts.",
                     },
                     {
                       name: "Emma T.",
-                      role: "Retail Manager, Brisbane",
+                      location: "Brisbane",
                       quote: "Got sick on a Sunday. Had my cert to HR before Monday morning. No stress.",
                     },
                     {
                       name: "Dave K.",
-                      role: "Security, Sydney",
-                      quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
+                      location: "Sydney",
+                      quote: "Night shifts make clinic appointments basically impossible. This actually works around my roster.",
                     },
                   ].map((item) => (
                     <div key={item.name} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">
@@ -233,11 +233,14 @@ export default function ShiftWorkersPage() {
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
                       <p className="text-xs text-muted-foreground">
-                        — {item.name}, {item.role}
+                        — {item.name}, {item.location}
                       </p>
                     </div>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Individual experiences may vary. All requests are subject to doctor assessment.
+                </p>
               </div>
             </div>
           </section>

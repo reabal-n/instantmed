@@ -4,7 +4,7 @@ import { HairLossClient } from "./hair-loss-client"
 export const metadata: Metadata = {
   title: "Hair Loss Treatment Online | Doctor-Led Consultation",
   description:
-    "Get a doctor-led consultation for clinically-proven hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet.",
+    "Get a doctor-led consultation for hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet.",
   keywords: [
     "hair loss treatment australia",
     "hair loss treatment online",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hair Loss Treatment Online | InstantMed",
     description:
-      "Doctor-led consultation for clinically-proven hair loss treatment. AHPRA-registered Australian doctors.",
+      "Doctor-led hair loss consultation. Assessed by AHPRA-registered Australian doctors.",
     url: "https://instantmed.com.au/hair-loss",
   },
   twitter: {

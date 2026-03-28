@@ -50,6 +50,9 @@ export function TestimonialsSection({
         subtitle={subtitle}
         className="py-0 my-0"
       />
+      <p className="text-xs text-muted-foreground text-center mt-4 px-4">
+        Individual experiences may vary. All requests are subject to doctor assessment.
+      </p>
     </section>
   )
 }
