@@ -23,20 +23,23 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
 
   const decrypted: Record<string, unknown> = { ...profile }
 
-  // Decrypt medicare_number
+  // Decrypt medicare_number (encrypted preferred, plaintext fallback for pre-backfill records)
   if (profile.medicare_number_encrypted) {
     try {
       decrypted.medicare_number = decryptField<string>(
         profile.medicare_number_encrypted as string
       )
     } catch (error) {
-      // P0 FIX: Log error with context and throw - do not silently use plaintext
       logger.error("PHI decryption failed for medicare_number", {
         profileId: profile.id,
         hasPlaintext: !!profile.medicare_number,
       }, toError(error))
       throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
+  } else if (profile.medicare_number) {
+    // Plaintext fallback — 1 pre-encryption record needs backfill
+    // Remove this branch after running: pnpm encrypt:backfill
+    decrypted.medicare_number = profile.medicare_number
   }
 
   // Decrypt date_of_birth
@@ -91,15 +94,12 @@ function encryptProfilePhi<T extends Record<string, unknown>>(
 
   const encrypted: Record<string, unknown> = { ...data }
 
-  // Encrypt medicare_number
+  // Encrypt medicare_number — write encrypted only (no more plaintext dual-write)
   if (data.medicare_number) {
     encrypted.medicare_number_encrypted = encryptField(data.medicare_number)
-    // TODO(security): Remove plaintext medicare_number column by 2026-06-01.
-    // The encrypted column has been live since launch. After this deadline:
-    //   1. Drop the `medicare_number` column from `profiles` table
-    //   2. Remove all plaintext reads/writes in this file
-    //   3. Update Supabase RLS policies referencing the column
-    // Tracking: This dual-write exists for rollback safety only.
+    // Clear plaintext on write — existing plaintext will be read as fallback
+    // until the column is dropped (planned: 2026-06-01 after backfill confirmed)
+    encrypted.medicare_number = null
   }
 
   // Encrypt date_of_birth
