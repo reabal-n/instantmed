@@ -97,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {isInvalid && errorMessage && (
-          <p id={errorId} className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+          <p id={errorId} className="mt-1.5 text-xs text-destructive">
             {errorMessage}
           </p>
         )}

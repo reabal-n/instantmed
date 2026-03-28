@@ -381,7 +381,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
             <div>
               <p className={cn(
                 "font-medium text-sm",
-                callCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-blue-700 dark:text-blue-400"
+                callCompleted ? "text-success" : "text-info"
               )}>
                 {callCompleted ? "Phone Consultation Completed" : "Phone Consultation Required"}
               </p>

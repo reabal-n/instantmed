@@ -146,7 +146,7 @@ export function ServicePicker() {
                     {/* Temporarily unavailable badge */}
                     {disabled && (
                       <div className="absolute -top-3 left-4 right-4 z-20">
-                        <div className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                        <div className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 dark:bg-amber-950/50 text-warning text-xs font-medium">
                           <AlertCircle className="h-3 w-3" />
                           Temporarily unavailable
                         </div>

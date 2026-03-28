@@ -86,14 +86,34 @@
 }
 ```
 
+### Semantic Tint Tokens
+
+Every semantic color has light background, border, and text variants. These handle dark mode automatically via CSS variables — no need for explicit `dark:` overrides.
+
+```css
+/* Available for each semantic: success, warning, destructive, info */
+bg-{semantic}-light    /* Light tinted background (alerts, badges, pills) */
+border-{semantic}-border /* Subtle tinted border */
+text-{semantic}         /* Status text color */
+
+/* Trust signals */
+bg-trust-bg  border-trust-border  text-trust-text
+
+/* Service type tokens */
+text-service-medcert  text-service-rx  text-service-hair  text-service-weight  text-service-referral
+```
+
+**Usage:** Always prefer semantic tokens over raw Tailwind palette colors. Use `bg-success-light` not `bg-green-50`, `text-destructive` not `text-red-600`, etc. Third-party brand colors (Stripe, social media) are exceptions.
+
 ### Rules
 
 - Light mode is default. Dark mode ("Quiet Night Sky") supported site-wide — marketing, SEO pages, and app shell.
 - Page backgrounds use warm ivory (`--bg`). Card surfaces use pure white (`--surface`) for contrast.
-- **Prohibited:** purple/violet (except `--service-referral`), neon, dark navy on marketing pages.
+- **Prohibited:** purple/violet (except `--service-referral` and AI indicators in internal portals), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
-- Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces.
+- Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces. Exception: `dark:shadow-black/40` on image containers.
 - Semantic colors convey status. Never use decoratively.
+- **No raw Tailwind palette colors** for status states. Use semantic tokens (`bg-success-light`, `text-warning`, `border-destructive-border`). Raw colors (`bg-green-50`, `text-red-600`) are only for decorative/distinct-hue needs (charts, avatars, brand colors).
 
 ---
 
@@ -222,7 +242,8 @@ className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06]
 `backdrop-blur` is **only** permitted on functional overlays:
 - Sticky mobile CTA bars (`backdrop-blur-lg`)
 - Mobile navigation menus
-- Modal overlays
+- Modal/dialog overlays
+- Popovers, dropdowns, selects
 
 Never on content cards, sections, or marketing surfaces.
 
@@ -417,7 +438,11 @@ className="bg-white dark:bg-card border border-border
 | 400ms | Page section entrance, modal open |
 | 500ms | Hero entrance — hard ceiling |
 
-No bounce. No elastic. Max scale: 1.02x. Patients don't need theatrics.
+No bounce. No elastic. Patients don't need theatrics.
+
+**Scale limits:**
+- **Interactive (hover/press):** Max 1.02x. `whileTap={{ scale: 0.98 }}` for press.
+- **Non-interactive (loaders, background blobs, pulse effects):** No hard limit — these are decorative and not user-triggered.
 
 ### Framer Motion Patterns
 
@@ -455,8 +480,12 @@ const prefersReducedMotion = useReducedMotion()
 // CORRECT: empty object disables animation
 initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
 
-// WRONG: false is not valid for initial prop
+// WRONG on motion.div: false is not valid for initial prop
 initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}  // DO NOT USE
+
+// NOTE: AnimatePresence initial={false} IS valid — it means "don't animate on first mount"
+// Only motion.div/motion.section initial={false} is wrong
+```
 ```
 
 ### Rules
@@ -552,7 +581,9 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 | Squircle / rounded corners | Any sharp geometry |
 | Source Sans 3 for everything | Inter, Roboto, serif, decorative |
 | `scale: 0.98` on press | `scale: 0.95` — too aggressive |
-| `initial={{}}` for reduced motion | `initial={false}` — invalid prop |
+| `initial={{}}` for reduced motion on `motion.*` | `motion.div initial={false}` — invalid (`AnimatePresence initial={false}` is fine) |
+| `bg-success-light`, `text-warning`, `border-destructive-border` | `bg-green-50`, `text-amber-600`, `border-red-200` — raw palette colors |
+| `font-semibold` (600) max weight | `font-bold` (700) or `font-extrabold` (800) |
 | `viewport={{ once: true }}` always | Animating on every scroll pass |
 | Product mockups as section anchors | Illustration-only grids |
 | 48px min tap target on mobile | Small hit areas on patient forms |

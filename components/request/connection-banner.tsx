@@ -30,19 +30,19 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
           exit={{ opacity: 0, height: 0 }}
           className={className}
         >
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning-light border-b border-warning-border">
             <div className="flex items-center gap-2">
               <WifiOff className="w-4 h-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              <span className="text-sm font-medium text-warning">
                 You&apos;re offline
               </span>
               {pendingCount > 0 && (
-                <span className="text-xs text-amber-600 dark:text-amber-400">
+                <span className="text-xs text-warning">
                   • {pendingCount} change{pendingCount !== 1 ? 's' : ''} saved locally
                 </span>
               )}
             </div>
-            <span className="text-xs text-amber-600 dark:text-amber-400">
+            <span className="text-xs text-warning">
               Changes will sync when back online
             </span>
           </div>
@@ -56,7 +56,7 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
           exit={{ opacity: 0, height: 0 }}
           className={className}
         >
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-info-light border-b border-info-border">
             <div className="flex items-center gap-2">
               <CloudOff className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
@@ -104,17 +104,17 @@ export function ConnectionIndicator() {
       {!isOnline ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-500/20">
           <WifiOff className="w-3 h-3 text-amber-600" />
-          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Offline</span>
+          <span className="text-xs font-medium text-warning">Offline</span>
         </div>
       ) : isSyncing ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
           <RefreshCw className="w-3 h-3 text-blue-600 animate-spin" />
-          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Syncing</span>
+          <span className="text-xs font-medium text-info">Syncing</span>
         </div>
       ) : pendingCount > 0 ? (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
           <CloudOff className="w-3 h-3 text-blue-600" />
-          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{pendingCount}</span>
+          <span className="text-xs font-medium text-info">{pendingCount}</span>
         </div>
       ) : null}
     </div>

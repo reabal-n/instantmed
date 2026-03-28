@@ -263,7 +263,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
 
       {/* Emergency symptom warning */}
       {emergencyWarning.isEmergency && (
-        <Alert variant="destructive" className="border-red-300 dark:border-red-800">
+        <Alert variant="destructive" className="border-destructive-border">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Emergency symptoms detected</AlertTitle>
           <AlertDescription className="space-y-3">
@@ -279,7 +279,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
                 <li>Call <strong>Lifeline 13 11 14</strong> for crisis support</li>
               </ul>
             </div>
-            <div className="flex items-center gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+            <div className="flex items-center gap-3 pt-2 border-t border-destructive-border">
               <Switch
                 id="emergency-ack"
                 checked={emergencyWarningAcknowledged === true}

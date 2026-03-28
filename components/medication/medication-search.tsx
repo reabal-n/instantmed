@@ -255,7 +255,7 @@ export function MedicationSearch({
               </div>
 
               {selectedMed.warnings.length > 0 && (
-                <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2 mt-3">
+                <p className="text-xs text-warning bg-warning-light border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2 mt-3">
                   <AlertCircle className="w-3 h-3 inline mr-1" />
                   {selectedMed.warnings[0]}
                 </p>

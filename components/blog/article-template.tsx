@@ -56,17 +56,17 @@ function CalloutBox({ variant, content }: { variant: ArticleSection['variant'], 
   const config = {
     info: {
       icon: Info,
-      bg: 'bg-blue-50 dark:bg-blue-950/30',
-      border: 'border-blue-200 dark:border-blue-800',
-      iconColor: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-info-light',
+      border: 'border-info-border',
+      iconColor: 'text-info',
       textColor: 'text-blue-800 dark:text-blue-200'
     },
     warning: {
       icon: AlertTriangle,
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      border: 'border-amber-200 dark:border-amber-800',
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      textColor: 'text-amber-800 dark:text-amber-200'
+      bg: 'bg-warning-light',
+      border: 'border-warning-border',
+      iconColor: 'text-warning',
+      textColor: 'text-warning'
     },
     tip: {
       icon: Lightbulb,
@@ -309,7 +309,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
         </div>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-info-light border border-info-border">
           <Shield className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-medium text-blue-700 dark:text-blue-300">AHPRA Verified</span>
+          <span className="text-xs font-medium text-info">AHPRA Verified</span>
         </div>
       </div>
 
@@ -325,14 +325,14 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </div>
 
       {/* Medical disclaimer */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-10">
+      <div className="bg-warning-light border border-warning-border rounded-xl p-4 mb-10">
         <div className="flex gap-3">
           <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
+            <p className="text-sm font-medium text-warning mb-1">
               Medical Information Disclaimer
             </p>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
+            <p className="text-sm text-warning">
               This article is for general information only and does not constitute medical advice. 
               All treatment decisions are made by an AHPRA-registered doctor after reviewing your individual circumstances.
             </p>

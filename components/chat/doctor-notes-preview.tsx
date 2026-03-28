@@ -59,7 +59,7 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
             {summary.map((line, idx) => (
               <div key={idx} className={cn(
                 "flex gap-2",
-                line.isFlag && "text-amber-600 dark:text-amber-400"
+                line.isFlag && "text-warning"
               )}>
                 <span className="text-muted-foreground">•</span>
                 <span>
@@ -70,7 +70,7 @@ export function DoctorNotesPreview({ serviceType, collectedData, flags = [] }: D
             ))}
             {flags.length > 0 && (
               <div className="pt-2 border-t border-border mt-2">
-                <p className="text-xs text-amber-600 dark:text-amber-400">
+                <p className="text-xs text-warning">
                   ⚠️ {flags.length} item{flags.length > 1 ? 's' : ''} flagged for review
                 </p>
               </div>

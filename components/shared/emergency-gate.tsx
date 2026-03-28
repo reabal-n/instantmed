@@ -52,7 +52,7 @@ export function EmergencyGate({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Compact safety notice */}
-      <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50/80 dark:bg-amber-950/20 p-4">
+      <div className="rounded-xl border border-warning-border/50 bg-amber-50/80 dark:bg-amber-950/20 p-4">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
             <AlertTriangle className="w-4.5 h-4.5 text-amber-600" />
@@ -117,7 +117,7 @@ export function EmergencyGate({
           "w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200",
           "flex items-center gap-3",
           acknowledged
-            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+            ? "border-emerald-500 bg-success-light"
             : "border-border hover:border-primary/40 cursor-pointer"
         )}
       >

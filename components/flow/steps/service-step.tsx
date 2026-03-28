@@ -84,7 +84,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                 'relative text-left w-full rounded-xl border-2 p-4 transition-all duration-200',
                 'hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600',
                 isSelected
-                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+                  ? 'border-emerald-500 bg-success-light shadow-lg shadow-emerald-500/10'
                   : 'border-border bg-white dark:bg-white/5 dark:border-white/10 hover:bg-muted/50 dark:hover:bg-white/10'
               )}
             >
@@ -136,7 +136,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                         className={cn(
                           'inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full',
                           isSelected
-                            ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                            ? 'bg-success-light text-success'
                             : 'bg-muted text-muted-foreground'
                         )}
                       >

@@ -55,7 +55,7 @@ const outcomeConfig: Record<
   },
   REQUIRES_CALL: {
     icon: Phone,
-    bgColor: 'bg-blue-50 dark:bg-blue-500/10',
+    bgColor: 'bg-info-light',
     iconColor: 'text-primary',
     borderColor: 'border-primary',
   },
@@ -195,7 +195,7 @@ export function SafetyCheckStep({
       <FlowContent title="Checking your information" description="">
         <div className="flex flex-col items-center justify-center py-12">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
               <Shield className="w-8 h-8 text-emerald-600 animate-pulse" />
             </div>
             <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-white/10 shadow-md flex items-center justify-center">
@@ -404,7 +404,7 @@ export function SafetyCheckStep({
               complete your consultation.
             </p>
 
-            <div className="mt-8 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-primary max-w-sm mx-auto">
+            <div className="mt-8 p-4 rounded-xl bg-info-light border border-primary max-w-sm mx-auto">
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary" />
                 <div className="text-left">

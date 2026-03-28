@@ -45,7 +45,7 @@ const STAT_CONFIG = {
     icon: TrendingUp,
     value: `${SOCIAL_PROOF.averageRating}/5`,
     label: 'patient rating',
-    color: 'text-amber-600 dark:text-amber-400',
+    color: 'text-warning',
     bg: 'bg-amber-500/10',
   },
 } as const

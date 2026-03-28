@@ -324,9 +324,9 @@ export function CertificatePreviewDialog({
 
           {/* Edit indicator */}
           {hasEdits && (
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-              <Edit3 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning-light border border-warning-border">
+              <Edit3 className="h-3.5 w-3.5 text-warning shrink-0" />
+              <span className="text-sm font-medium text-warning">
                 You&apos;ve made edits — changes will be recorded in the audit trail.
               </span>
             </div>

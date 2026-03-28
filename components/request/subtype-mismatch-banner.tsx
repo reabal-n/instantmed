@@ -30,10 +30,10 @@ export function SubtypeMismatchBanner({
   const urlLabel = SUBTYPE_LABELS[urlSubtype] || urlSubtype
 
   return (
-    <Alert className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+    <Alert className="mb-4 border-warning-border bg-warning-light">
       <AlertTriangle className="w-4 h-4 text-amber-600" />
       <AlertDescription className="flex flex-col gap-3">
-        <span className="text-sm text-amber-700 dark:text-amber-300">
+        <span className="text-sm text-warning">
           You have an unfinished <strong>{draftLabel}</strong> consult.
           You selected <strong>{urlLabel}</strong>.
         </span>

@@ -188,14 +188,14 @@ function ClinicalNoteDiffView({
       case 'added':
         return (
           <div key={index} className={`${baseClass} bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200 border-l-2 border-emerald-500`}>
-            <span className="select-none text-emerald-600 dark:text-emerald-400 mr-2">+</span>
+            <span className="select-none text-success mr-2">+</span>
             {line.content || ' '}
           </div>
         )
       case 'removed':
         return (
           <div key={index} className={`${baseClass} bg-red-100 text-red-900 dark:bg-red-500/20 dark:text-red-200 border-l-2 border-red-500`}>
-            <span className="select-none text-red-600 dark:text-red-400 mr-2">−</span>
+            <span className="select-none text-destructive mr-2">−</span>
             {line.content || ' '}
           </div>
         )

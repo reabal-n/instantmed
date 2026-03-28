@@ -91,7 +91,7 @@ export function DoctorOnboardingBanner() {
           {incompleteSteps.length > 0 && incompleteSteps[0].href && (
             <Link
               href={incompleteSteps[0].href}
-              className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-amber-800 dark:text-amber-200 hover:underline"
+              className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-warning hover:underline"
             >
               Continue setup <ArrowRight className="h-3 w-3" />
             </Link>

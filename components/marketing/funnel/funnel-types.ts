@@ -193,9 +193,9 @@ export const colorClasses = {
   },
   blue: {
     gradient: 'from-blue-500 to-sky-600',
-    light: 'bg-blue-50 dark:bg-blue-950/30',
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800',
+    light: 'bg-info-light',
+    text: 'text-info',
+    border: 'border-info-border',
     button: 'bg-blue-600 hover:bg-blue-700',
     ring: 'ring-blue-500/20',
   },

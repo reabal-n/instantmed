@@ -127,10 +127,10 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
           <div className="flex gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <AlertTitle className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              <AlertTitle className="text-sm font-medium text-warning">
                 This service is for repeat prescriptions only
               </AlertTitle>
-              <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
+              <AlertDescription className="text-sm text-warning">
                 If you&apos;ve never been prescribed this medication before, you&apos;ll need a doctor consultation first.
               </AlertDescription>
             </div>

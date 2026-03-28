@@ -167,7 +167,7 @@ export function DashboardSidebar({
         {/* Admin Navigation */}
         {variant === "doctor" && isAdmin && (
           <nav className="flex flex-col gap-0.5 px-3 mt-4">
-            <p className="px-3 mb-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">Admin</p>
+            <p className="px-3 mb-1.5 text-xs font-medium text-warning uppercase tracking-wider">Admin</p>
             {adminNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
               return (

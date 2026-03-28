@@ -380,7 +380,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
       {showEatingDisorderWarning && (
         <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
           <AlertTriangle className="w-4 h-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+          <AlertDescription className="text-xs text-warning">
             Thank you for sharing. The doctor will discuss this with you during your call to ensure any treatment is appropriate and safe for you.
           </AlertDescription>
         </Alert>

@@ -210,7 +210,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   handleSignOut()
                 }}
                 disabled={isLoggingOut}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 transition-all"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-destructive-light hover:bg-destructive-light text-destructive transition-all"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>

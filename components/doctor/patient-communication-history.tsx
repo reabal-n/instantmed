@@ -91,13 +91,13 @@ export function PatientCommunicationHistory({
       return <Badge className="bg-success-light text-success border-success-border">Opened</Badge>
     }
     if (email.delivered_at) {
-      return <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">Delivered</Badge>
+      return <Badge className="bg-info-light text-info border-blue-200 dark:border-blue-500/20">Delivered</Badge>
     }
     if (email.status === "failed") {
       return <Badge variant="destructive">Failed</Badge>
     }
     if (email.sent_at) {
-      return <Badge className="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20">Sent</Badge>
+      return <Badge className="bg-warning-light text-warning border-warning-border">Sent</Badge>
     }
     return <Badge variant="secondary">Pending</Badge>
   }
