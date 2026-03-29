@@ -234,8 +234,7 @@ export async function retryOutboxEmail(
       const result = await sendFromOutboxRow(claim.row as OutboxRow)
       
       revalidatePath("/admin/email-hub")
-      revalidatePath("/admin/ops/email-outbox")
-      
+
       if (result.success) {
         return { success: true }
       } else {
@@ -257,10 +256,9 @@ export async function retryOutboxEmail(
       }
 
       log.info("Email reset to pending for dispatcher", { outboxId })
-      
+
       revalidatePath("/admin/email-hub")
-      revalidatePath("/admin/ops/email-outbox")
-      
+
       return { success: true }
     }
   } catch (error) {
