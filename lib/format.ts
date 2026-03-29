@@ -76,3 +76,59 @@ export function calculateAge(dob: string | null | undefined): number | null {
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--
   return age
 }
+
+/**
+ * Format a whole-dollar AUD amount for display (e.g. 12345 → "$12,345").
+ * Use this for revenue/KPI dashboards. For exact invoice amounts use formatCurrency(cents).
+ */
+export function formatAUD(dollars: number): string {
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(dollars)
+}
+
+/**
+ * Format a past timestamp as a human-readable relative string.
+ * e.g. "2 minutes ago", "3 hours ago", "2 days ago"
+ */
+export function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffMins < 1) return "just now"
+  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`
+  return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`
+}
+
+/**
+ * Format a duration in minutes as a short age string.
+ * e.g. 45 → "45 min", 90 → "1h 30 min"
+ */
+export function formatAge(minutes: number): string {
+  if (minutes < 60) return `${Math.round(minutes)} min`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = Math.round(minutes % 60)
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes} min` : `${hours}h`
+}
+
+/**
+ * Format a nullable duration in minutes as a compact string.
+ * e.g. null → "—", 45 → "45m", 90 → "1h 30m", 1500 → "1d 1h"
+ */
+export function formatMinutes(minutes: number | null): string {
+  if (minutes === null) return "—"
+  if (minutes < 60) return `${Math.round(minutes)}m`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = Math.round(minutes % 60)
+  if (hours < 24) return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+  const days = Math.floor(hours / 24)
+  const remainingHours = hours % 24
+  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`
+}
