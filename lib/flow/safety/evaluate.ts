@@ -53,7 +53,7 @@ function getDerivedValue(
   answers: Record<string, unknown>
 ): unknown {
   const [field1, field2] = derivedFrom.fields
-  const val1 = answers[field1]
+  const val1 = field1 === 'today' ? 'today' : answers[field1]
   const val2 = field2 === 'today' ? 'today' : answers[field2]
 
   switch (derivedFrom.type) {

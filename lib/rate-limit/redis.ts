@@ -87,6 +87,19 @@ export const rateLimitConfigs = {
     label: "upload",
   },
 
+  /** AI endpoints: 30 requests per minute per user (protects LLM spend) */
+  ai: {
+    limiter: redis
+      ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(30, "1 m"),
+          analytics: true,
+          prefix: "ratelimit:ai",
+        })
+      : null,
+    label: "ai",
+  },
+
   /** Webhooks: 1000 per minute (high volume) */
   webhook: {
     limiter: redis

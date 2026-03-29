@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, HelpCircle } from "lucide-react"
@@ -595,6 +596,7 @@ export default async function CityPage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
+        <ContentPageTracker pageType="location" slug={city} />
 
         <main className="flex-1 pt-20">
           {/* Hero */}

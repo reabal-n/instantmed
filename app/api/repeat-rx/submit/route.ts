@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { rateLimit } from "@/lib/rate-limit/limiter"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { z } from "zod"
@@ -48,25 +48,18 @@ const repeatRxSubmitSchema = z.object({
  * Eligibility rules engine removed - doctor reviews all requests directly
  * and sends script via Parchment.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Get client IP for rate limiting
+    // Rate limiting
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
+    // Get client IP for audit logging
     const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
     const userAgent = request.headers.get("user-agent") || "unknown"
 
     // Get user session
     const { userId } = await auth()
-
-    // Apply rate limiting (use userId if authenticated, IP otherwise)
-    const rateLimitKey = userId || `ip:${ipAddress}`
-    const rateLimitResult = await rateLimit(rateLimitKey, '/api/repeat-rx/submit')
-    if (!rateLimitResult.allowed) {
-      log.warn("[Repeat Rx Submit] Rate limit exceeded", { rateLimitKey })
-      return NextResponse.json(
-        { error: "Too many requests. Please wait a few minutes before trying again." },
-        { status: 429, headers: { 'Retry-After': '300' } }
-      )
-    }
 
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError

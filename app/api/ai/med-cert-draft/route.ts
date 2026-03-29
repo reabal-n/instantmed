@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const { userId: clerkUserId } = await auth()
     
     if (clerkUserId) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId)
+      const rateLimitResponse = await applyRateLimit(request, 'ai', clerkUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }

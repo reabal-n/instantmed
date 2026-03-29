@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Rate limit validation requests
     const rateLimitResponse = await applyRateLimit(
       request,
-      'standard',
+      'ai',
       clerkUserId || undefined
     )
     if (rateLimitResponse) {

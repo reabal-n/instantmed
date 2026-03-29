@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkAndIncrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
 
@@ -7,12 +7,12 @@ const log = createLogger("pbs-search")
 
 /**
  * PBS Medication Search - Reference Only
- * 
+ *
  * This endpoint provides read-only search against the PBS (Pharmaceutical Benefits Scheme)
  * API for patient medication recall purposes only.
- * 
+ *
  * NOT for: recommendations, prescribing, eligibility, clinical decisions
- * 
+ *
  * See: CLINICAL.md → Medication Search Rules
  * See: ARCHITECTURE.md → Prescription Workflow
  */
@@ -26,31 +26,8 @@ interface MedicationSearchResult {
 }
 
 export async function GET(request: NextRequest) {
-  const ip = await getClientIP()
-  
-  // Atomic check-and-increment to prevent race conditions
-  const rateLimitResult = await checkAndIncrementRateLimit(
-    ip,
-    "ip",
-    "/api/medications/search",
-    { maxRequests: 30, windowMs: 60 * 1000 }
-  )
-
-  if (!rateLimitResult.allowed) {
-    log.warn("Rate limit exceeded for PBS search", { ip })
-    return NextResponse.json(
-      {
-        error: "Too many requests. Please try again later.",
-        retryAfter: rateLimitResult.retryAfter,
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(rateLimitResult.retryAfter || 60),
-        },
-      }
-    )
-  }
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
 
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()

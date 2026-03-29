@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
@@ -67,6 +68,7 @@ export default async function AudiencePage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
+        <ContentPageTracker pageType="audience" slug={audience} />
 
         <main className="flex-1 pt-20">
           {/* Hero */}

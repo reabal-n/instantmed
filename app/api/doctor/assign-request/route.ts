@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { requireApiRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
@@ -6,6 +7,11 @@ import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("assign-intake")
+
+const assignRequestSchema = z.object({
+  intake_id: z.string().uuid(),
+  doctor_id: z.string().uuid(),
+})
 
 export async function POST(request: NextRequest) {
   let userId: string | null = null
@@ -26,11 +32,18 @@ export async function POST(request: NextRequest) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    const { intake_id, doctor_id } = await request.json()
-
-    if (!intake_id || !doctor_id) {
-      return NextResponse.json({ error: "intake_id and doctor_id required" }, { status: 400 })
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
     }
+
+    const parsed = assignRequestSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "intake_id and doctor_id required (valid UUIDs)" }, { status: 400 })
+    }
+    const { intake_id, doctor_id } = parsed.data
 
     // SECURITY: Validate that doctor_id is an actual doctor profile
     const { data: doctorProfile } = await supabase

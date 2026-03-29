@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { checkAndIncrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 
@@ -10,30 +10,8 @@ function escapeIlike(input: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  // Atomic rate limiting — single check-and-increment to prevent TOCTOU races
-  const ip = await getClientIP()
-  const rateLimitResult = await checkAndIncrementRateLimit(
-    ip,
-    "ip",
-    "/api/medications",
-    { maxRequests: 30, windowMs: 60 * 1000 } // 30 requests per minute
-  )
-
-  if (!rateLimitResult.allowed) {
-    log.warn('Rate limit exceeded for medications search', { ip })
-    return NextResponse.json(
-      {
-        error: "Too many requests. Please try again later.",
-        retryAfter: rateLimitResult.retryAfter
-      },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(rateLimitResult.retryAfter || 60)
-        }
-      }
-    )
-  }
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
 
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()
