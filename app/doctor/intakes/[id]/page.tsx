@@ -5,6 +5,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
+import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { calculateAge } from "@/lib/format"
 
 export const metadata = { title: "Review Intake" }
@@ -38,13 +39,13 @@ export default async function DoctorIntakeDetailPage({
   const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Fetch AI drafts and next intake ID in parallel
-  const [aiDrafts, nextIntakeId, medCertDraft] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection] = await Promise.all([
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
-    // Pre-fetch or create med cert draft if it's a med cert service
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
       ? getOrCreateMedCertDraftForIntake(id)
       : Promise.resolve(null),
+    getPendingDateCorrection(id),
   ])
 
   // Mask Medicare number
@@ -68,6 +69,7 @@ export default async function DoctorIntakeDetailPage({
       aiDrafts={aiDrafts}
       nextIntakeId={nextIntakeId}
       draftId={medCertDraft?.id || null}
+      pendingCorrection={pendingCorrection}
     />
   )
 }

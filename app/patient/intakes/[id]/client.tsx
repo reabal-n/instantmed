@@ -27,6 +27,10 @@ import { COPY } from "@/lib/microcopy/universal"
 import { capture } from "@/lib/analytics/capture"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
+import { requestDateCorrection } from "@/app/actions/request-date-correction"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
@@ -226,11 +230,39 @@ export function IntakeDetailClient({
     })
   }
 
+  // Date correction request
+  const [showDateCorrection, setShowDateCorrection] = useState(false)
+  const [correctionStartDate, setCorrectionStartDate] = useState("")
+  const [correctionEndDate, setCorrectionEndDate] = useState("")
+  const [correctionReason, setCorrectionReason] = useState("")
+  const [correctionSubmitted, setCorrectionSubmitted] = useState(false)
+
+  const handleRequestDateCorrection = () => {
+    setActionError(null)
+    startTransition(async () => {
+      const result = await requestDateCorrection({
+        intakeId: intake.id,
+        requestedStartDate: correctionStartDate,
+        requestedEndDate: correctionEndDate,
+        reason: correctionReason,
+      })
+      if (!result.success) {
+        setActionError(result.error || "Failed to submit correction request")
+      } else {
+        setCorrectionSubmitted(true)
+        setShowDateCorrection(false)
+      }
+    })
+  }
+
   // Check if cancellation is allowed (only unpaid requests)
   const canCancel = ["draft", "pending_payment"].includes(intake.status)
-  
+
   // Check if resend is available
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
+
+  // Check if date correction is available (approved med certs)
+  const canRequestCorrection = ["approved", "completed"].includes(intake.status) && isMedCert && !correctionSubmitted
 
   const getStatusIcon = (status: string) => {
     const config = INTAKE_STATUS[status as StatusKey]
@@ -487,6 +519,23 @@ export function IntakeDetailClient({
                           </Button>
                         )}
                         
+                        {/* Request Date Change */}
+                        {canRequestCorrection && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowDateCorrection(true)}
+                          >
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Request Date Change
+                          </Button>
+                        )}
+                        {correctionSubmitted && (
+                          <p className="text-xs text-amber-600 w-full">
+                            Date correction submitted — your doctor will review and resend the updated certificate.
+                          </p>
+                        )}
+
                         {/* Send to Employer - Only for med_certs */}
                         {intake.service?.type === "med_certs" && (
                           <SendToEmployerDialog
@@ -583,6 +632,60 @@ export function IntakeDetailClient({
           </div>
         </CardContent>
       </Card>
+
+      {/* Date Correction Dialog */}
+      {showDateCorrection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-lg">Request Date Change</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Submit your corrected dates below. Your doctor will review and resend an updated certificate.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Start Date</Label>
+                  <Input
+                    type="date"
+                    value={correctionStartDate}
+                    onChange={(e) => setCorrectionStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>End Date</Label>
+                  <Input
+                    type="date"
+                    value={correctionEndDate}
+                    onChange={(e) => setCorrectionEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Reason for change</Label>
+                <Textarea
+                  placeholder="e.g. I need the certificate for different dates..."
+                  value={correctionReason}
+                  onChange={(e) => setCorrectionReason(e.target.value)}
+                  className="min-h-[60px]"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowDateCorrection(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleRequestDateCorrection}
+                  disabled={isPending || !correctionStartDate || !correctionEndDate || !correctionReason.trim()}
+                >
+                  {isPending ? "Submitting..." : "Submit Request"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

@@ -46,6 +46,7 @@ import {
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { approveDateCorrection } from "@/app/actions/request-date-correction"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
@@ -60,6 +61,15 @@ import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescrip
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 import { toast } from "sonner"
 
+interface PendingCorrection {
+  id: string
+  requestedStartDate: string
+  requestedEndDate: string
+  reason: string
+  patientName: string
+  createdAt: string
+}
+
 interface IntakeDetailClientProps {
   intake: IntakeWithDetails
   patientAge: number | null
@@ -69,6 +79,7 @@ interface IntakeDetailClientProps {
   aiDrafts?: AIDraft[]
   nextIntakeId?: string | null
   draftId?: string | null
+  pendingCorrection?: PendingCorrection | null
 }
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
@@ -166,6 +177,7 @@ export function IntakeDetailClient({
   aiDrafts = [],
   nextIntakeId,
   draftId,
+  pendingCorrection,
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -529,6 +541,19 @@ export function IntakeDetailClient({
     })
   }
 
+  const handleApproveDateCorrection = () => {
+    if (!pendingCorrection) return
+    startTransition(async () => {
+      const result = await approveDateCorrection(pendingCorrection.id, intake.id)
+      if (result.success) {
+        toast.success("Date correction approved — use Edit & Resend to generate the updated certificate")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to approve correction")
+      }
+    })
+  }
+
   const handleResendCertificate = () => {
     startTransition(async () => {
       const result = await resendCertificateAdmin(intake.id)
@@ -838,6 +863,34 @@ export function IntakeDetailClient({
                   </Link>
                 )
               })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pending Date Correction Request from Patient */}
+      {pendingCorrection && (
+        <Card className="border-blue-300 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10">
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-blue-700 dark:text-blue-400 flex items-center gap-2 text-base">
+              <Calendar className="h-4 w-4" />
+              Date Correction Requested
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm space-y-1 text-blue-800 dark:text-blue-300">
+              <p>Patient requested dates: <strong>{pendingCorrection.requestedStartDate}</strong> to <strong>{pendingCorrection.requestedEndDate}</strong></p>
+              <p>Reason: {pendingCorrection.reason}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleApproveDateCorrection} disabled={isPending}>
+                {isPending ? "Approving..." : "Approve & Update Dates"}
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link href={`/doctor/intakes/${intake.id}/document`}>
+                  Edit & Resend
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
