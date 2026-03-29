@@ -540,12 +540,44 @@ export function IntakeDetailClient({
         reason: "Doctor requested regeneration"
       })
       if (result.success) {
-        toast.success("Certificate regeneration initiated")
+        toast.success("Certificate regenerated and resent to patient")
         router.refresh()
       } else {
         toast.error(result.error || "Failed to regenerate certificate")
       }
     })
+  }
+
+  const [isViewingCert, setIsViewingCert] = useState(false)
+  const [certPdfUrl, setCertPdfUrl] = useState<string | null>(null)
+
+  const handleViewCertificate = async () => {
+    setIsViewingCert(true)
+    try {
+      const previewResult = await fetchCertPreviewDataAction(intake.id, draftId || "")
+      if (!previewResult.success || !previewResult.data) {
+        toast.error(previewResult.error || "Certificate data not available")
+        return
+      }
+      const { generatePreviewPdfAction } = await import("./document/actions")
+      const pdfResult = await generatePreviewPdfAction({
+        patientName: previewResult.data.patientName,
+        patientDob: previewResult.data.patientDob,
+        certificateType: previewResult.data.certificateType,
+        startDate: previewResult.data.startDate,
+        endDate: previewResult.data.endDate,
+        consultDate: previewResult.data.consultDate,
+      })
+      if (pdfResult.success && pdfResult.pdfDataUrl) {
+        setCertPdfUrl(pdfResult.pdfDataUrl)
+      } else {
+        toast.error(pdfResult.error || "Failed to render certificate")
+      }
+    } catch {
+      toast.error("Failed to load certificate")
+    } finally {
+      setIsViewingCert(false)
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -905,10 +937,14 @@ export function IntakeDetailClient({
               </Button>
             )}
 
-            {/* Resend Certificate - show for approved med certs */}
-            {["approved", "completed"].includes(intake.status) && 
+            {/* Certificate actions - show for approved med certs */}
+            {["approved", "completed"].includes(intake.status) &&
              (intake.category === "medical_certificate" || intake.category === "med_certs") && (
               <>
+                <Button variant="outline" onClick={handleViewCertificate} disabled={isPending || isViewingCert}>
+                  {isViewingCert ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
+                  View Certificate
+                </Button>
                 <Button variant="outline" onClick={handleResendCertificate} disabled={isPending}>
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
                   Resend Certificate
@@ -1034,6 +1070,26 @@ export function IntakeDetailClient({
           onConfirm={handleCertPreviewConfirm}
           isPending={isPending}
         />
+      )}
+
+      {/* Certificate PDF Viewer */}
+      {certPdfUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-sm">Certificate Preview</h3>
+              <Button variant="ghost" size="sm" onClick={() => setCertPdfUrl(null)}>
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </div>
+            <iframe src={certPdfUrl} className="flex-1 w-full" title="Certificate Preview" />
+            <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border">
+              <Button variant="outline" onClick={() => setCertPdfUrl(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
