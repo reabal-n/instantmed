@@ -48,7 +48,7 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/repeat-rx", label: "Repeat Rx", icon: Pill },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/doctor/admin", label: "All Requests", icon: FileText },
+  { href: "/admin", label: "All Requests", icon: FileText },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]

@@ -91,7 +91,7 @@ const doctorMoreItems: NavItem[] = [
   {
     label: "All Requests",
     icon: Shield,
-    href: "/doctor/admin",
+    href: "/admin",
   },
   {
     label: "Analytics",
