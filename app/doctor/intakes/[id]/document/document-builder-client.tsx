@@ -21,9 +21,11 @@ import {
   Heart,
   AlertTriangle,
   Brain,
+  Eye,
+  X,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
+import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction, generatePreviewPdfAction } from "./actions"
 
 interface AIDrafts {
   clinicalNote: Record<string, unknown> | null
@@ -75,6 +77,8 @@ export function DocumentBuilderClient({
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isPreviewing, setIsPreviewing] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error" | "warning"; text: string } | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -127,6 +131,31 @@ export function DocumentBuilderClient({
       }
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handlePreview = async () => {
+    setIsPreviewing(true)
+    setActionMessage(null)
+    try {
+      const certTypeMap: Record<string, "work" | "study" | "carer"> = { work: "work", uni: "study", carer: "carer" }
+      const result = await generatePreviewPdfAction({
+        patientName: formData.patientName,
+        patientDob: formData.dob || null,
+        certificateType: certTypeMap[certType] || "work",
+        startDate: formData.dateFrom,
+        endDate: formData.dateTo,
+        consultDate: new Date().toISOString().split("T")[0],
+      })
+      if (result.success && result.pdfDataUrl) {
+        setPreviewUrl(result.pdfDataUrl)
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to generate preview" })
+      }
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to generate preview" })
+    } finally {
+      setIsPreviewing(false)
     }
   }
 
@@ -397,6 +426,17 @@ export function DocumentBuilderClient({
 
         <Button
           type="button"
+          variant="outline"
+          onClick={handlePreview}
+          disabled={isPreviewing || isGenerating || isSaving || !formData.patientName.trim() || !formData.dateFrom || !formData.dateTo}
+          data-testid="preview-button"
+        >
+          {isPreviewing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
+          Preview PDF
+        </Button>
+
+        <Button
+          type="button"
           onClick={handleGenerateAndApprove}
           disabled={isGenerating || isSaving || !formData.reason.trim() || !hasCredentials}
           className="bg-emerald-600 hover:bg-emerald-700"
@@ -410,6 +450,38 @@ export function DocumentBuilderClient({
           Generate Certificate & Approve
         </Button>
       </div>
+
+      {/* PDF Preview Modal */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-sm">Certificate Preview</h3>
+              <Button variant="ghost" size="sm" onClick={() => setPreviewUrl(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <iframe
+              src={previewUrl}
+              className="flex-1 w-full"
+              title="Certificate Preview"
+            />
+            <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border">
+              <Button variant="outline" onClick={() => setPreviewUrl(null)}>
+                Close & Edit
+              </Button>
+              <Button
+                onClick={() => { setPreviewUrl(null); handleGenerateAndApprove() }}
+                className="bg-emerald-600 hover:bg-emerald-700"
+                disabled={!hasCredentials}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve & Send
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
