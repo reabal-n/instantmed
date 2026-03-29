@@ -182,7 +182,8 @@ export function IntakeDetailClient({
   const [actionError, setActionError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
   
-  const service = intake.service as { name?: string; short_name?: string } | undefined
+  const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
+  const isMedCert = (service?.type || "").toLowerCase().includes("cert")
 
   // Handle status updates from IntakeStatusTracker (single realtime subscription)
   const handleStatusChange = (newStatus: IntakeStatus) => {

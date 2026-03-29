@@ -13,4 +13,6 @@ export interface QueueClientProps {
   identityComplete?: boolean
   pagination?: PaginationInfo
   aiApprovedIntakes?: IntakeWithPatient[]
+  recentlyCompleted?: IntakeWithPatient[]
+  todayEarnings?: number
 }

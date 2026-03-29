@@ -1732,3 +1732,59 @@ export async function getPatientDashboardData(patientId: string): Promise<{
     error: fetchError,
   }
 }
+
+// ============================================
+// DOCTOR DASHBOARD — RECENTLY COMPLETED & EARNINGS
+// ============================================
+
+/**
+ * Get recently completed intakes (approved/declined today) for the doctor dashboard.
+ */
+export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<IntakeWithPatient[]> {
+  const supabase = createServiceRoleClient()
+  const limit = opts.limit || 8
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      *,
+      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, clerk_user_id),
+      service:services!service_id(id, slug, name, type, short_name)
+    `)
+    .in("status", ["approved", "declined", "completed"])
+    .gte("reviewed_at", todayStart.toISOString())
+    .order("reviewed_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    logger.error("Failed to fetch recently completed intakes", { error: error.message })
+    return []
+  }
+
+  return (data || []) as unknown as IntakeWithPatient[]
+}
+
+/**
+ * Get today's total earnings from approved intakes.
+ */
+export async function getTodayEarnings(): Promise<number> {
+  const supabase = createServiceRoleClient()
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("amount_cents")
+    .in("status", ["approved", "completed"])
+    .eq("payment_status", "paid")
+    .gte("reviewed_at", todayStart.toISOString())
+
+  if (error) {
+    logger.error("Failed to fetch today's earnings", { error: error.message })
+    return 0
+  }
+
+  return (data || []).reduce((sum, row) => sum + (row.amount_cents || 0), 0)
+}

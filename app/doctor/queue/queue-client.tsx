@@ -71,6 +71,8 @@ export function QueueClient({
   identityComplete = true,
   pagination,
   aiApprovedIntakes = [],
+  recentlyCompleted = [],
+  todayEarnings: _todayEarnings,
 }: QueueClientProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
@@ -88,6 +90,7 @@ export function QueueClient({
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
+  const [statusFilter, setStatusFilter] = useState<"all" | "review" | "pending_info" | "scripts">("all")
   const [isPending, startTransition] = useTransition()
   const [declineDialog, setDeclineDialog] = useState<string | null>(null)
   const [declineReasonCode, setDeclineReasonCode] = useState("")
@@ -380,6 +383,12 @@ export function QueueClient({
   }, [intakes, hasRedFlags])
 
   const filteredIntakes = sortedIntakes.filter((r) => {
+    // Status filter
+    if (statusFilter === "review" && !["paid", "in_review"].includes(r.status)) return false
+    if (statusFilter === "pending_info" && r.status !== "pending_info") return false
+    if (statusFilter === "scripts" && r.status !== "awaiting_script") return false
+
+    // Search filter
     if (!debouncedSearch.trim()) return true
     const query = debouncedSearch.toLowerCase()
     const service = r.service as { name?: string; type?: string } | undefined
@@ -389,6 +398,48 @@ export function QueueClient({
       formatServiceType(service?.type || "").toLowerCase().includes(query)
     )
   })
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't capture when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      const currentIndex = expandedId ? filteredIntakes.findIndex(r => r.id === expandedId) : -1
+
+      switch (e.key) {
+        case "j": // Next case
+          e.preventDefault()
+          if (currentIndex < filteredIntakes.length - 1) {
+            setExpandedId(filteredIntakes[currentIndex + 1].id)
+          } else if (filteredIntakes.length > 0 && currentIndex === -1) {
+            setExpandedId(filteredIntakes[0].id)
+          }
+          break
+        case "k": // Previous case
+          e.preventDefault()
+          if (currentIndex > 0) {
+            setExpandedId(filteredIntakes[currentIndex - 1].id)
+          }
+          break
+        case "Enter": // Open review panel
+          if (expandedId) {
+            e.preventDefault()
+            openReviewPanel(expandedId)
+          }
+          break
+        case "Escape": // Collapse
+          if (expandedId) {
+            e.preventDefault()
+            setExpandedId(null)
+          }
+          break
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [expandedId, filteredIntakes, openReviewPanel])
 
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
@@ -514,7 +565,40 @@ export function QueueClient({
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.refresh()}>
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
+          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground/50 bg-muted/30 rounded border border-border/30">
+            j/k
+          </kbd>
         </div>
+      </div>
+
+      {/* Status Filter Tabs */}
+      <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+        {([
+          { key: "all", label: "All" },
+          { key: "review", label: "Needs Review" },
+          { key: "pending_info", label: "Pending Info" },
+          { key: "scripts", label: "Scripts" },
+        ] as const).map(tab => {
+          const count = tab.key === "all" ? intakes.length
+            : tab.key === "review" ? intakes.filter(r => ["paid", "in_review"].includes(r.status)).length
+            : tab.key === "pending_info" ? intakes.filter(r => r.status === "pending_info").length
+            : intakes.filter(r => r.status === "awaiting_script").length
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setStatusFilter(tab.key)}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                statusFilter === tab.key
+                  ? "bg-white dark:bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+              {count > 0 && <span className="ml-1.5 tabular-nums">({count})</span>}
+            </button>
+          )
+        })}
       </div>
 
       {/* Queue List */}
@@ -746,6 +830,43 @@ export function QueueClient({
                       Revoke
                     </Button>
                   </div>
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recently Completed Today */}
+      {recentlyCompleted.length > 0 && (
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-success" />
+              <h3 className="text-sm font-semibold text-foreground">Completed Today ({recentlyCompleted.length})</h3>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-1.5">
+            {recentlyCompleted.slice(0, 5).map((intake) => {
+              const svc = intake.service as { short_name?: string; type?: string } | undefined
+              return (
+                <div
+                  key={intake.id}
+                  className="flex items-center justify-between gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />
+                    <Badge variant="outline" className="text-xs">
+                      {svc?.short_name || "Request"}
+                    </Badge>
+                    <Badge className={cn("text-xs", intake.status === "approved" ? "bg-success-light text-success border-success-border" : "bg-destructive/10 text-destructive border-destructive/20")}>
+                      {intake.status === "approved" ? "Approved" : "Declined"}
+                    </Badge>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {intake.reviewed_at ? new Date(intake.reviewed_at).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" }) : ""}
+                  </span>
                 </div>
               )
             })}

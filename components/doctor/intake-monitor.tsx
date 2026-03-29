@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Users,
   Sparkles,
+  DollarSign,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -32,6 +33,7 @@ export interface IntakeMonitorStats {
   // AI auto-approval metrics
   aiApprovedToday?: number
   aiRevokedToday?: number
+  todayEarnings?: number
 }
 
 interface IntakeMonitorProps {
@@ -181,6 +183,20 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
 
         {/* Secondary Row */}
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
+          {/* Earnings */}
+          {stats.todayEarnings != null && stats.todayEarnings > 0 && (
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="text-sm font-medium text-success tabular-nums">
+                ${(stats.todayEarnings / 100).toFixed(2)}
+              </span>
+              <span className="text-xs text-muted-foreground">today</span>
+            </div>
+          )}
+          {stats.todayEarnings != null && stats.todayEarnings > 0 && (
+            <div className="h-3.5 w-px bg-border/60" />
+          )}
+
           <div className="flex items-center gap-1.5">
             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">

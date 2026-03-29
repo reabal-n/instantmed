@@ -1,5 +1,5 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics } from "@/lib/data/intakes"
+import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics, getRecentlyCompletedIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { QueueClient } from "../queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
@@ -35,6 +35,8 @@ export default async function DoctorDashboardPage({
     getDoctorIdentity(profile.id),
     getAIApprovedIntakes({ limit: 20 }),
     getAutoApprovalMetrics(),
+    getRecentlyCompletedIntakes({ limit: 8 }),
+    getTodayEarnings(),
   ])
 
   const queueResult = results[0].status === "fulfilled"
@@ -55,11 +57,13 @@ export default async function DoctorDashboardPage({
   const autoApprovalMetrics = results[5].status === "fulfilled"
     ? results[5].value
     : null
+  const recentlyCompleted = results[6].status === "fulfilled" ? results[6].value : []
+  const todayEarnings = results[7].status === "fulfilled" ? results[7].value : 0
 
   // Log failures for monitoring
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      const names = ["queue", "monitoring", "sla", "identity", "ai-approved", "ai-metrics"]
+      const names = ["queue", "monitoring", "sla", "identity", "ai-approved", "ai-metrics", "recently-completed", "today-earnings"]
       log.error(`Failed to fetch ${names[index]} data`, { profileId: profile.id }, result.reason)
     }
   })
@@ -70,6 +74,7 @@ export default async function DoctorDashboardPage({
     slaApproaching: slaData.approaching,
     aiApprovedToday: autoApprovalMetrics?.todayApproved,
     aiRevokedToday: autoApprovalMetrics?.todayRevoked,
+    todayEarnings,
   }
 
   const identityComplete = isDoctorIdentityComplete(doctorIdentity)
@@ -112,6 +117,8 @@ export default async function DoctorDashboardPage({
             total: queueResult.total,
           }}
           aiApprovedIntakes={aiApprovedIntakes}
+          recentlyCompleted={recentlyCompleted}
+          todayEarnings={todayEarnings}
         />
       </DashboardErrorBoundary>
     </div>
