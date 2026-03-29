@@ -493,7 +493,7 @@ export async function getAIApprovedIntakes(
 
   // Fetch soft flags from audit log for these intakes
   const intakeIds = (data || []).map(r => r.id)
-  let softFlagsMap: Record<string, string[]> = {}
+  const softFlagsMap: Record<string, string[]> = {}
   if (intakeIds.length > 0) {
     const { data: auditRows } = await supabase
       .from("ai_audit_log")
