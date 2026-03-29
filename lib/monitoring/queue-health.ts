@@ -32,12 +32,23 @@ const SLA_BREACH_MINUTES = parseInt(process.env.SLA_BREACH_MINUTES || "60", 10)
 export async function getQueueHealth(): Promise<QueueHealthMetrics> {
   const supabase = createServiceRoleClient()
   
-  // Get all pending requests
+  // Get all pending requests, excluding test/E2E records
+  // Joins profiles to filter out known test email domains so dev seeds never breach SLA
   const { data: pendingRequests } = await supabase
     .from("intakes")
-    .select("id, created_at, is_priority")
+    .select("id, created_at, is_priority, patient:profiles!patient_id(email)")
     .in("status", ["paid", "in_review", "pending_info"])
     .order("created_at", { ascending: true })
+    .then(res => ({
+      ...res,
+      data: res.data?.filter(r => {
+        const email: string = (Array.isArray(r.patient) ? r.patient[0]?.email : (r.patient as { email?: string } | null)?.email) ?? ""
+        return !email.includes("mailinator.com") &&
+               !email.includes("mail.fakedata.pro") &&
+               !email.includes("@test.instantmed.com.au") &&
+               !r.id.startsWith("e2e0000")
+      }) ?? null,
+    }))
   
   if (!pendingRequests || pendingRequests.length === 0) {
     return {
