@@ -18,7 +18,7 @@ import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { sendTelegramAlert } from "@/lib/notifications/telegram"
+import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import type { CertReviewData } from "@/types/db"
 
 const log = createLogger("auto-approval-pipeline")
@@ -370,11 +370,6 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       }
 
       await releaseSystemClaim(supabase, intakeId)
-
-      // Notify doctor via Telegram that a request needs manual review
-      const alertMsg = `*Manual Review Required*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. needs doctor review\\.\nReason: ${eligibility.reason.replace(/[._>#+\-=|{!}()]/g, "\\$&")}`
-      sendTelegramAlert(alertMsg).catch(() => {})
-
       trackOutcome("not_eligible", eligibility.reason, { flags: eligibility.disqualifyingFlags })
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }
@@ -514,7 +509,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     })
     await releaseSystemClaim(supabase, intakeId)
 
-    const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${(approvalResult.error || "Unknown").replace(/[._>#+\-=|{!}()]/g, "\\$&")}`
+    const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${escapeMarkdownValue(approvalResult.error || "Unknown")}`
     sendTelegramAlert(alertMsg).catch(() => {})
 
     trackOutcome("failed", "pipeline_error", { error: approvalResult.error })

@@ -65,7 +65,7 @@ test.describe("Ops Navigation Visibility", () => {
     expect(loginResult.success).toBe(true)
 
     // Navigate to ops page
-    await page.goto("/doctor/admin/ops")
+    await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
     // Verify external tools section exists

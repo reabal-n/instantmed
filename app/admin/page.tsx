@@ -1,6 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
-import { AdminDashboardClient } from "@/app/doctor/admin/admin-dashboard-client"
+import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
 import type { IntakeWithPatient } from "@/types/db"
 
 export const dynamic = "force-dynamic"

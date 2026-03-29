@@ -23,7 +23,7 @@ test.describe("Email Outbox Admin Viewer", () => {
 
   test("email outbox page loads and renders table", async ({ page }) => {
     // Navigate to the email outbox admin page
-    await page.goto("/doctor/admin/email-outbox")
+    await page.goto("/admin/email-hub")
     await waitForPageLoad(page)
 
     // Verify page title/heading is visible
@@ -43,7 +43,7 @@ test.describe("Email Outbox Admin Viewer", () => {
   })
 
   test("email outbox shows stats cards", async ({ page }) => {
-    await page.goto("/doctor/admin/email-outbox")
+    await page.goto("/admin/email-hub")
     await waitForPageLoad(page)
 
     // Stats cards should be visible
@@ -53,7 +53,7 @@ test.describe("Email Outbox Admin Viewer", () => {
   })
 
   test("email outbox filter controls are present", async ({ page }) => {
-    await page.goto("/doctor/admin/email-outbox")
+    await page.goto("/admin/email-hub")
     await waitForPageLoad(page)
 
     // Filter section should be visible
@@ -69,7 +69,7 @@ test.describe("Email Outbox Admin Viewer", () => {
 
   test("email outbox handles empty state", async ({ page }) => {
     // Navigate with a filter that likely returns no results
-    await page.goto("/doctor/admin/email-outbox?intake_id=00000000-0000-0000-0000-000000000000")
+    await page.goto("/admin/email-hub?intake_id=00000000-0000-0000-0000-000000000000")
     await waitForPageLoad(page)
 
     // Should show "No emails found" or similar empty state
@@ -78,7 +78,7 @@ test.describe("Email Outbox Admin Viewer", () => {
   })
 
   test("clicking row opens detail modal", async ({ page }) => {
-    await page.goto("/doctor/admin/email-outbox")
+    await page.goto("/admin/email-hub")
     await waitForPageLoad(page)
 
     // Wait for table to load
@@ -122,7 +122,7 @@ test.describe("Email Outbox Admin Viewer", () => {
     await context.clearCookies()
 
     // Try to access the page directly
-    const response = await page.goto("/doctor/admin/email-outbox")
+    const response = await page.goto("/admin/email-hub")
 
     // Should redirect to sign-in or return 401/403
     // Check if we're redirected away from the admin page

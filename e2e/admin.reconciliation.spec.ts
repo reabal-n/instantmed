@@ -23,7 +23,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
 
   test("reconciliation page loads and renders table", async ({ page }) => {
     // Navigate to the reconciliation admin page
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Verify page title/heading is visible
@@ -43,7 +43,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("reconciliation shows summary stats cards", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Stats cards should be visible
@@ -55,7 +55,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("mismatch only toggle exists and works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Mismatch toggle should be visible
@@ -77,7 +77,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("reconciliation handles empty state gracefully", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Check for either data rows or empty state message
@@ -96,7 +96,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("category filter is present", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Category filter should be visible
@@ -104,7 +104,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("refresh button works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Find and click refresh button
@@ -120,7 +120,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
   })
 
   test("delivery status guide is displayed", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await waitForPageLoad(page)
 
     // Delivery status guide section should be visible
@@ -136,7 +136,7 @@ test.describe("Payments Reconciliation Dashboard", () => {
     await context.clearCookies()
 
     // Try to access the page directly
-    const response = await page.goto("/doctor/admin/ops/reconciliation")
+    const response = await page.goto("/admin/ops/reconciliation")
 
     // Should redirect to sign-in or return 401/403
     const currentUrl = page.url()

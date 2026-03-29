@@ -10,7 +10,16 @@ function getToken() { return process.env.TELEGRAM_BOT_TOKEN }
 function getChatId() { return process.env.TELEGRAM_CHAT_ID }
 
 export function escapeMarkdown(text: string): string {
-  return text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, "\\$1")
+  return text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, "\\$&")
+}
+
+/**
+ * Escape dynamic text for use inside a MarkdownV2 template that already
+ * contains intentional formatting (e.g. *bold*).  Escapes everything
+ * EXCEPT `*` and `\` (assumed to be pre-escaped by the caller).
+ */
+export function escapeMarkdownValue(text: string): string {
+  return text.replace(/[_[\]()~`>#+\-=|{}.!]/g, "\\$&")
 }
 
 /**
@@ -205,7 +214,7 @@ export async function editTelegramMessage(
   if (!token) return
 
   try {
-    await fetch(`${TELEGRAM_API}/bot${token}/editMessageText`, {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/editMessageText`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -215,8 +224,12 @@ export async function editTelegramMessage(
         parse_mode: "MarkdownV2",
       }),
     })
-  } catch {
-    log.error("Failed to edit Telegram message")
+    if (!response.ok) {
+      const body = await response.text()
+      log.error("Failed to edit Telegram message", { status: response.status, body })
+    }
+  } catch (error) {
+    log.error("Failed to edit Telegram message", {}, error instanceof Error ? error : new Error(String(error)))
   }
 }
 
@@ -231,7 +244,7 @@ export async function answerCallbackQuery(
   if (!token) return
 
   try {
-    await fetch(`${TELEGRAM_API}/bot${token}/answerCallbackQuery`, {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/answerCallbackQuery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -240,8 +253,12 @@ export async function answerCallbackQuery(
         show_alert: false,
       }),
     })
-  } catch {
-    log.error("Failed to answer callback query")
+    if (!response.ok) {
+      const body = await response.text()
+      log.error("Failed to answer callback query", { status: response.status, body })
+    }
+  } catch (error) {
+    log.error("Failed to answer callback query", {}, error instanceof Error ? error : new Error(String(error)))
   }
 }
 
@@ -254,7 +271,7 @@ export async function sendTelegramAlert(message: string): Promise<void> {
   if (!token || !chatId) return
 
   try {
-    await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -264,7 +281,11 @@ export async function sendTelegramAlert(message: string): Promise<void> {
         disable_web_page_preview: true,
       }),
     })
-  } catch {
-    log.error("Telegram alert failed")
+    if (!response.ok) {
+      const body = await response.text()
+      log.error("Telegram alert failed", { status: response.status, body })
+    }
+  } catch (error) {
+    log.error("Telegram alert failed", {}, error instanceof Error ? error : new Error(String(error)))
   }
 }

@@ -1,19 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
-// Admin route redirects: consolidate /doctor/admin/* into /admin/*
-// Note: /doctor/admin itself is NOT redirected - it's the "All Requests" page for doctors
-// Redirect /doctor/admin/* ops routes to their canonical /admin/* paths.
-// Note: /doctor/admin/email-outbox is NOT redirected -- it IS the canonical outbox page.
-// Note: /doctor/admin itself is NOT redirected -- it's the "All Requests" page for doctors.
-const adminRedirects: Record<string, string> = {
-  '/doctor/admin/ops': '/admin/ops',
-  '/doctor/admin/ops/intakes-stuck': '/admin/ops/intakes-stuck',
-  '/doctor/admin/ops/reconciliation': '/admin/ops/reconciliation',
-  '/doctor/admin/ops/doctors': '/admin/ops/doctors',
-  '/doctor/admin/emails': '/admin/emails',
-}
-
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
   '/patient(.*)',
@@ -85,12 +72,6 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // Handle admin consolidation redirects
-  const redirectTo = adminRedirects[pathname]
-  if (redirectTo) {
-    return NextResponse.redirect(new URL(redirectTo, req.url), 308)
-  }
-  
   // Skip Clerk auth for E2E tests with valid test cookie
   if (hasE2EAuthBypass(req)) {
     return // Allow through without Clerk auth

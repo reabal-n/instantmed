@@ -124,7 +124,7 @@ test.describe("Feature Flags - Kill Switches", () => {
 
     test("admin can view feature flag status", async ({ page }) => {
       // Navigate to admin settings or config page
-      await page.goto("/doctor/admin")
+      await page.goto("/admin")
       await waitForPageLoad(page)
 
       // Admin dashboard should load

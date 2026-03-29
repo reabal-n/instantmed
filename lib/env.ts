@@ -83,6 +83,7 @@ const serverEnvSchema = z.object({
   // Telegram alerts
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
 
   // Cron job authentication
   CRON_SECRET: z.string().optional(),

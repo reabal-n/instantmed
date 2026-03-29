@@ -108,7 +108,6 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
       log.info("Email retry successful via outbox", { certificateId, outboxId: emailResult.outboxId })
 
       revalidatePath("/admin/email-hub")
-      revalidatePath("/doctor/admin/email-outbox")
       return { success: true }
     } else {
       await updateEmailStatus(certificateId, "failed", {
@@ -234,7 +233,7 @@ export async function retryOutboxEmail(
       
       const result = await sendFromOutboxRow(claim.row as OutboxRow)
       
-      revalidatePath("/doctor/admin/email-outbox")
+      revalidatePath("/admin/email-hub")
       revalidatePath("/admin/ops/email-outbox")
       
       if (result.success) {
@@ -259,7 +258,7 @@ export async function retryOutboxEmail(
 
       log.info("Email reset to pending for dispatcher", { outboxId })
       
-      revalidatePath("/doctor/admin/email-outbox")
+      revalidatePath("/admin/email-hub")
       revalidatePath("/admin/ops/email-outbox")
       
       return { success: true }

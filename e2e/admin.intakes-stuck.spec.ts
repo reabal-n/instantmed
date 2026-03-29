@@ -23,7 +23,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
 
   test("stuck intakes page loads and renders table", async ({ page }) => {
     // Navigate to the stuck intakes admin page
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Verify page title/heading is visible
@@ -44,7 +44,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("stuck intakes shows stats cards", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Stats cards should be visible
@@ -56,7 +56,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("stuck intakes filter controls are present", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Filter section should be visible
@@ -73,7 +73,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("stuck intakes handles empty state", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Check for either data rows or empty state message
@@ -92,7 +92,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("refresh button works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Find and click refresh button
@@ -108,7 +108,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("clicking stats card applies filter", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // Click on the "Paid, No Review" card
@@ -126,7 +126,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
   })
 
   test("SLA thresholds legend is displayed", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/intakes-stuck")
+    await page.goto("/admin/ops/intakes-stuck")
     await waitForPageLoad(page)
 
     // SLA thresholds section should be visible
@@ -143,7 +143,7 @@ test.describe("Stuck Intakes Admin Viewer", () => {
     await context.clearCookies()
 
     // Try to access the page directly
-    const response = await page.goto("/doctor/admin/ops/intakes-stuck")
+    const response = await page.goto("/admin/ops/intakes-stuck")
 
     // Should redirect to sign-in or return 401/403
     const currentUrl = page.url()

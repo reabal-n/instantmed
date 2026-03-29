@@ -12,14 +12,39 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { Redis } from "@upstash/redis"
 import { checkQueueHealthAndAlert } from "@/lib/monitoring/queue-health"
 import { checkDoctorActivityAndAlert } from "@/lib/monitoring/doctor-activity"
 import { checkDeliveryHealthAndAlert } from "@/lib/monitoring/delivery-tracking"
 import { getAIHealthMetrics } from "@/lib/monitoring/ai-health"
 import { recordCronHeartbeat, checkCronHeartbeats } from "@/lib/monitoring/cron-heartbeat"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { sendTelegramAlert } from "@/lib/notifications/telegram"
+import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import * as Sentry from "@sentry/nextjs"
+
+// Alert deduplication: suppress repeated alerts for the same condition within this window.
+// Health-check runs every 5 min; 25-min TTL means at most one alert per ~25 min per type.
+const ALERT_DEDUP_TTL_SECONDS = 25 * 60
+
+/**
+ * Send a Telegram alert only if we haven't sent the same alert type recently.
+ * Uses Redis SET NX EX as a distributed lock. Fails open (sends) if Redis is unavailable.
+ */
+async function sendDedupedAlert(redis: Redis | null, key: string, message: string): Promise<void> {
+  if (redis) {
+    try {
+      // Returns "OK" if key was set (first alert), null if key already existed (suppress)
+      const set = await redis.set(key, "1", { nx: true, ex: ALERT_DEDUP_TTL_SECONDS })
+      if (set === null) return // already alerted recently
+    } catch {
+      // Redis unavailable — fail open and send the alert
+    }
+  }
+  await sendTelegramAlert(message)
+}
+
+const isRedisConfigured = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
+const redis: Redis | null = isRedisConfigured ? Redis.fromEnv() : null
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -104,21 +129,29 @@ export async function GET(request: NextRequest) {
     results.healthy = isHealthy
     results.status = isHealthy ? "ok" : "degraded"
 
-    // Push critical alerts to Telegram for real-time doctor/ops visibility
-    const alerts: string[] = []
+    // Push critical alerts to Telegram for real-time doctor/ops visibility.
+    // Each alert type is deduplicated via Redis — at most one per 25 minutes.
+    const esc = escapeMarkdownValue
+    const alertPromises: Promise<void>[] = []
+
     if (queueHealth.slaBreached) {
-      alerts.push(`🚨 SLA BREACH: ${queueHealth.queueSize} items in queue, oldest ${queueHealth.oldestRequestAgeMinutes}min`)
+      const msg = `*InstantMed Health Alert*\n\n🚨 SLA BREACH: ${queueHealth.queueSize} items in queue, oldest ${queueHealth.oldestRequestAgeMinutes}min`
+      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:sla_breach", msg).catch(() => {}))
     }
     if (doctorActivity.isBusinessHours && !doctorActivity.hasRecentActivity) {
-      alerts.push(`⚠️ No doctor activity for ${doctorActivity.lastActivityMinutes}min during business hours`)
+      const inactiveMin = Number.isFinite(doctorActivity.lastActivityMinutes)
+        ? `${doctorActivity.lastActivityMinutes}min`
+        : "unknown \\(no activity recorded\\)"
+      const msg = `*InstantMed Health Alert*\n\n⚠️ No doctor activity for ${inactiveMin} during business hours`
+      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:doctor_inactive", msg).catch(() => {}))
     }
     if (!cronHealth.healthy && cronHealth.overdue.length > 0) {
-      alerts.push(`⚠️ ${cronHealth.overdue.length} cron jobs overdue: ${cronHealth.overdue.map(o => o.jobName).join(", ")}`)
+      const names = cronHealth.overdue.map(o => esc(o.jobName)).join(", ")
+      const msg = `*InstantMed Health Alert*\n\n⚠️ ${cronHealth.overdue.length} cron jobs overdue: ${names}`
+      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:cron_overdue", msg).catch(() => {}))
     }
-    if (alerts.length > 0) {
-      const msg = `*InstantMed Health Alert*\n\n${alerts.join("\n\n")}`.replace(/[._>#+\-=|{!}()]/g, "\\$&")
-      await sendTelegramAlert(msg).catch(() => {})
-    }
+
+    await Promise.all(alertPromises)
 
     return NextResponse.json(results)
     

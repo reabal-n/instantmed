@@ -23,7 +23,7 @@ test.describe("Doctor Ops Dashboard", () => {
 
   test("doctor ops page loads and renders table", async ({ page }) => {
     // Navigate to the doctor ops admin page
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Verify page title/heading is visible
@@ -43,7 +43,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("doctor ops shows summary stats cards", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Stats cards should be visible
@@ -54,7 +54,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("doctor ops handles empty state gracefully", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Check for either data rows or empty state message
@@ -73,7 +73,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("date range toggle works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Find the 30 days button and click it
@@ -93,7 +93,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("column sorting works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Click on "Doctor" column header to sort
@@ -109,7 +109,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("refresh button works", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Find and click refresh button
@@ -125,7 +125,7 @@ test.describe("Doctor Ops Dashboard", () => {
   })
 
   test("metrics guide is displayed", async ({ page }) => {
-    await page.goto("/doctor/admin/ops/doctors")
+    await page.goto("/admin/ops/doctors")
     await waitForPageLoad(page)
 
     // Metrics guide section should be visible
@@ -141,7 +141,7 @@ test.describe("Doctor Ops Dashboard", () => {
     await context.clearCookies()
 
     // Try to access the page directly
-    const response = await page.goto("/doctor/admin/ops/doctors")
+    const response = await page.goto("/admin/ops/doctors")
 
     // Should redirect to sign-in or return 401/403
     const currentUrl = page.url()

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyIntakeAction, answerCallbackQuery, editTelegramMessage, escapeMarkdown } from "@/lib/notifications/telegram"
 
@@ -8,13 +9,35 @@ const log = createLogger("telegram-webhook")
  * Telegram Bot Webhook — handles inline button callbacks.
  * Only processes "approve" actions for med cert intakes.
  *
- * Security: each approve button has an HMAC signature derived from the bot token.
- * Only our server can generate valid signatures.
+ * Security:
+ * 1. X-Telegram-Bot-Api-Secret-Token header verified against TELEGRAM_WEBHOOK_SECRET
+ * 2. chat_id verified against TELEGRAM_CHAT_ID (fail-closed if unset)
+ * 3. HMAC signature on each callback action — only our server can generate valid signatures
  */
 export async function POST(req: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN
   if (!token) {
-    return NextResponse.json({ error: "Not configured" }, { status: 500 })
+    // Return 200 to prevent Telegram from retrying undeliverable webhooks
+    log.warn("Telegram webhook received but TELEGRAM_BOT_TOKEN not configured")
+    return NextResponse.json({ ok: true })
+  }
+
+  // 1. Verify request origin via webhook secret header
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET
+  const secretHeader = req.headers.get("x-telegram-bot-api-secret-token") ?? ""
+  if (webhookSecret) {
+    let valid = false
+    try {
+      valid =
+        secretHeader.length === webhookSecret.length &&
+        timingSafeEqual(Buffer.from(secretHeader), Buffer.from(webhookSecret))
+    } catch {
+      valid = false
+    }
+    if (!valid) {
+      log.warn("Telegram webhook secret mismatch")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
   }
 
   let body: Record<string, unknown>
@@ -36,9 +59,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   }
 
-  // Verify the callback is from the authorized chat
+  // 2. Verify the callback is from the authorized chat (fail-closed: reject if TELEGRAM_CHAT_ID unset)
   const authorizedChatId = process.env.TELEGRAM_CHAT_ID
-  if (authorizedChatId && String(callbackQuery.message.chat.id) !== authorizedChatId) {
+  if (!authorizedChatId || String(callbackQuery.message.chat.id) !== authorizedChatId) {
     log.warn("Telegram callback from unauthorized chat", { chatId: callbackQuery.message.chat.id })
     await answerCallbackQuery(callbackQuery.id, "Unauthorized")
     return NextResponse.json({ ok: true })

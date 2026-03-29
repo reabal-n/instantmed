@@ -154,7 +154,7 @@ test.describe("Decline Flow - Admin Panel", () => {
     testIntakeId = intakeResult.intakeId
 
     // Navigate to admin dashboard
-    await page.goto("/doctor/admin")
+    await page.goto("/admin")
     await page.waitForLoadState("networkidle")
 
     // Search for the test intake
@@ -204,7 +204,7 @@ test.describe("Decline Flow - Email Outbox Verification", () => {
     testIntakeId = intakeResult.intakeId
 
     // Navigate to email outbox admin page
-    await page.goto("/doctor/admin/email-outbox")
+    await page.goto("/admin/email-hub")
     await page.waitForLoadState("networkidle")
 
     // Page should load
@@ -259,7 +259,7 @@ test.describe("Decline Flow - Reconciliation Integration", () => {
     testIntakeId = intakeResult.intakeId
 
     // Navigate to reconciliation panel
-    await page.goto("/doctor/admin/ops/reconciliation")
+    await page.goto("/admin/ops/reconciliation")
     await page.waitForLoadState("networkidle")
 
     // Page should load

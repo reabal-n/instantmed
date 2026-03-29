@@ -173,7 +173,7 @@ test.describe("Admin — Audit Logs", () => {
   })
 
   test("audit logs page loads", async ({ page }) => {
-    await page.goto("/doctor/admin/audit-logs")
+    await page.goto("/admin/audit")
     await waitForPageLoad(page)
 
     await expect(
@@ -182,7 +182,7 @@ test.describe("Admin — Audit Logs", () => {
   })
 
   test("audit logs shows search functionality", async ({ page }) => {
-    await page.goto("/doctor/admin/audit-logs")
+    await page.goto("/admin/audit")
     await waitForPageLoad(page)
 
     // Should have a search input

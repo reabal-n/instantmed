@@ -20,7 +20,7 @@ test.describe("Ops Index Page", () => {
   })
 
   test("page loads and displays all ops cards", async ({ page }) => {
-    await page.goto("/doctor/admin/ops")
+    await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
     // Page title
@@ -45,7 +45,7 @@ test.describe("Ops Index Page", () => {
 
   test("navigate to each ops page and verify headers load", async ({ page }) => {
     // Start at ops index
-    await page.goto("/doctor/admin/ops")
+    await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
     // Email Outbox (using stable data-testid)
@@ -86,7 +86,7 @@ test.describe("Ops Index Page", () => {
   })
 
   test("sidebar ops navigation is visible", async ({ page }) => {
-    await page.goto("/doctor/admin/ops")
+    await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
     // Verify sidebar ops section exists (on desktop)
