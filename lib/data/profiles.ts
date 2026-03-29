@@ -277,10 +277,7 @@ export async function updateProfile(
     .single()
 
   if (error || !data) {
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.error("Error updating profile:", error)
-    }
+    logger.error("Error updating profile", { profileId }, error instanceof Error ? error : new Error(String(error)))
     return null
   }
 
@@ -346,10 +343,7 @@ export async function completeOnboarding(
     .single()
 
   if (error || !profile) {
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.error("Error completing onboarding:", error)
-    }
+    logger.error("Error completing onboarding", { profileId }, error instanceof Error ? error : new Error(String(error)))
     return null
   }
 
