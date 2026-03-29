@@ -1,0 +1,227 @@
+import { NextRequest, NextResponse } from "next/server"
+import { requireApiRole } from "@/lib/auth"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+import { refundIfEligible } from "@/lib/stripe/refunds"
+import { logTriageApproved, logTriageDeclined } from "@/lib/audit/compliance-audit"
+import type { RequestType } from "@/lib/audit/compliance-audit"
+import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { z } from "zod"
+
+const log = createLogger("bulk-action")
+
+// Valid statuses that can be transitioned from
+const ACTIONABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info"]
+
+// Map category to RequestType
+function getRequestType(category: string | null): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (category === "prescription") return "repeat_rx"
+  return "intake"
+}
+
+const bulkActionSchema = z.object({
+  intake_ids: z.array(z.string().uuid()).min(1).max(50),
+  action: z.enum(["approve", "decline"]),
+  notes: z.string().max(5000).optional(),
+  doctor_id: z.string().uuid().optional(),
+})
+
+interface BulkActionResult {
+  id: string
+  success: boolean
+  error?: string
+  previousStatus?: string
+  refundResult?: {
+    refunded: boolean
+    reason: string
+  }
+}
+
+export async function POST(request: NextRequest) {
+  let clerkUserId: string | null = null
+
+  try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
+    // CSRF protection for session-based requests
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
+    const authResult = await requireApiRole(["doctor", "admin"])
+    if (!authResult) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { userId, profile } = authResult
+    clerkUserId = userId
+
+    const supabase = createServiceRoleClient()
+
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
+    }
+
+    const parsed = bulkActionSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid request" }, { status: 400 })
+    }
+    const { intake_ids, action, notes, doctor_id } = parsed.data
+
+    const timestamp = new Date().toISOString()
+    const results: BulkActionResult[] = []
+
+    // Process each intake with proper validation
+    for (const id of intake_ids) {
+      try {
+        // STEP 1: Fetch current intake status (prevents race conditions)
+        const { data: intake, error: fetchError } = await supabase
+          .from("intakes")
+          .select("id, status, patient_id, category")
+          .eq("id", id)
+          .single()
+
+        if (fetchError || !intake) {
+          results.push({ id, success: false, error: "Intake not found" })
+          continue
+        }
+
+        // STEP 2: Check if already processed (idempotency)
+        if (intake.status === "approved" || intake.status === "declined" || intake.status === "completed") {
+          results.push({
+            id,
+            success: false,
+            error: `Intake already ${intake.status}`,
+            previousStatus: intake.status,
+          })
+          continue
+        }
+
+        // STEP 3: Validate status can be transitioned
+        if (!ACTIONABLE_STATUSES.includes(intake.status)) {
+          results.push({
+            id,
+            success: false,
+            error: `Cannot ${action} intake with status '${intake.status}'`,
+            previousStatus: intake.status,
+          })
+          continue
+        }
+
+        // STEP 3.5: BLOCK bulk approval for med certs - they MUST go through document builder
+        // Med certs require PDF generation and email sending which can't be done in bulk
+        if (action === "approve" && (intake.category === "medical_certificate" || intake.category === "med_certs")) {
+          results.push({
+            id,
+            success: false,
+            error: "Medical certificates cannot be bulk approved. Use the document builder to generate PDFs individually.",
+            previousStatus: intake.status,
+          })
+          continue
+        }
+
+        // STEP 4: Perform atomic update with status check
+        const newStatus = action === "approve" ? "approved" : "declined"
+        const { data: updated, error: updateError } = await supabase
+          .from("intakes")
+          .update({
+            status: newStatus,
+            doctor_notes: notes,
+            reviewing_doctor_id: doctor_id || profile.id,
+            reviewed_by: profile.id,
+            reviewed_at: timestamp,
+            updated_at: timestamp,
+          })
+          .eq("id", id)
+          .in("status", ACTIONABLE_STATUSES) // Only update if still actionable
+          .select("id, status")
+          .single()
+
+        if (updateError || !updated) {
+          results.push({
+            id,
+            success: false,
+            error: "Update failed - status may have changed",
+            previousStatus: intake.status,
+          })
+          continue
+        }
+
+        // STEP 5: Log compliance event
+        const requestType = getRequestType(intake.category)
+        const auditMetadata = {
+          previousStatus: intake.status,
+          newStatus,
+          bulkAction: true,
+          notes: notes ? notes.substring(0, 200) : undefined,
+        }
+
+        if (action === "approve") {
+          await logTriageApproved(id, requestType, profile.id, auditMetadata).catch((err) => {
+            log.warn("Failed to log compliance event", { intakeId: id }, err)
+          })
+        } else {
+          await logTriageDeclined(id, requestType, profile.id, notes || "Declined via bulk action").catch((err) => {
+            log.warn("Failed to log compliance event", { intakeId: id }, err)
+          })
+        }
+
+        // STEP 6: Process refund for declines
+        let refundResult = null
+        if (action === "decline") {
+          try {
+            refundResult = await refundIfEligible(id, clerkUserId)
+          } catch (refundError) {
+            log.error("Refund processing failed in bulk action", { intakeId: id }, refundError)
+            refundResult = { refunded: false, reason: "Refund processing error" }
+          }
+        }
+
+        results.push({
+          id,
+          success: true,
+          previousStatus: intake.status,
+          refundResult: refundResult ? {
+            refunded: refundResult.refunded,
+            reason: refundResult.reason,
+          } : undefined,
+        })
+
+      } catch (itemError) {
+        log.error("Error processing intake in bulk action", { intakeId: id }, itemError)
+        results.push({ id, success: false, error: "Processing error" })
+      }
+    }
+
+    const successful = results.filter((r) => r.success).length
+    const failed = results.filter((r) => !r.success)
+
+    log.info("Bulk action completed", {
+      action,
+      total: intake_ids.length,
+      successful,
+      failed: failed.length,
+      actorId: profile.id,
+    })
+
+    return NextResponse.json({
+      success: true,
+      updated: successful,
+      failed: failed.length,
+      results,
+    })
+  } catch (error) {
+    log.error("Bulk action failed", { clerkUserId }, error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}

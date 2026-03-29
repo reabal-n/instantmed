@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
 import {
@@ -109,6 +110,7 @@ export default async function IntentPage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
+        <ContentPageTracker pageType="intent" slug={slug} />
 
         <main className="flex-1 pt-20">
           <div className="px-4 pt-6">

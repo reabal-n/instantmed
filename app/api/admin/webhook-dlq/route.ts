@@ -21,9 +21,7 @@ export async function GET(request: NextRequest) {
     if (!authResult || !["admin"].includes(authResult.profile.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const { profile } = authResult
-
-    const _adminId = profile.id // Used for audit logging below
+    const { profile: _profile } = authResult
     const searchParams = request.nextUrl.searchParams
     const showResolved = searchParams.get("resolved") === "true"
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100)

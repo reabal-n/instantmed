@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { requireApiRole } from "@/lib/auth"
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+
+const logViewDurationSchema = z.object({
+  intakeId: z.string().uuid(),
+  durationMs: z.number().int().min(0).max(86400000), // max 24 hours
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,11 +25,11 @@ export async function POST(request: NextRequest) {
     if (csrfError) return csrfError
 
     const body = await request.json()
-    const { intakeId, durationMs } = body
-
-    if (!intakeId || typeof durationMs !== "number") {
+    const parsed = logViewDurationSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }
+    const { intakeId, durationMs } = parsed.data
 
     // Get service type for the intake
     const supabase = createServiceRoleClient()

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // Rate limiting BEFORE auth - protect against unauthenticated abuse
-    const ipRateLimitResponse = await applyRateLimit(request, 'sensitive')
+    const ipRateLimitResponse = await applyRateLimit(request, 'ai')
     if (ipRateLimitResponse) {
       return ipRateLimitResponse
     }

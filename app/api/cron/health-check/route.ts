@@ -18,6 +18,7 @@ import { checkDeliveryHealthAndAlert } from "@/lib/monitoring/delivery-tracking"
 import { getAIHealthMetrics } from "@/lib/monitoring/ai-health"
 import { recordCronHeartbeat, checkCronHeartbeats } from "@/lib/monitoring/cron-heartbeat"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { sendTelegramAlert } from "@/lib/notifications/telegram"
 import * as Sentry from "@sentry/nextjs"
 
 export const runtime = "nodejs"
@@ -102,7 +103,23 @@ export async function GET(request: NextRequest) {
     
     results.healthy = isHealthy
     results.status = isHealthy ? "ok" : "degraded"
-    
+
+    // Push critical alerts to Telegram for real-time doctor/ops visibility
+    const alerts: string[] = []
+    if (queueHealth.slaBreached) {
+      alerts.push(`🚨 SLA BREACH: ${queueHealth.queueSize} items in queue, oldest ${queueHealth.oldestRequestAgeMinutes}min`)
+    }
+    if (doctorActivity.isBusinessHours && !doctorActivity.hasRecentActivity) {
+      alerts.push(`⚠️ No doctor activity for ${doctorActivity.lastActivityMinutes}min during business hours`)
+    }
+    if (!cronHealth.healthy && cronHealth.overdue.length > 0) {
+      alerts.push(`⚠️ ${cronHealth.overdue.length} cron jobs overdue: ${cronHealth.overdue.map(o => o.jobName).join(", ")}`)
+    }
+    if (alerts.length > 0) {
+      const msg = `*InstantMed Health Alert*\n\n${alerts.join("\n\n")}`.replace(/[._>#+\-=|{!}()]/g, "\\$&")
+      await sendTelegramAlert(msg).catch(() => {})
+    }
+
     return NextResponse.json(results)
     
   } catch (error) {

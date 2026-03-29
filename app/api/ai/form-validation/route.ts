@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
   try {
     // P1 FIX: Add rate limiting for Edge endpoint (IP-based for unauthenticated)
     const clientId = getClientIdentifier(req)
-    const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
+    const rateLimitResponse = await applyRateLimit(req, "ai", clientId)
     if (rateLimitResponse) {
       return rateLimitResponse
     }

@@ -16,12 +16,13 @@ import {
 } from "@/lib/audit/compliance-audit"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { toError } from "@/lib/errors"
+import { z } from "zod"
 
-interface DecisionPayload {
-  decision: ClinicianDecision
-  decisionReason: string
-  clinicalNotes?: string | null
-}
+const decisionSchema = z.object({
+  decision: z.enum(["approved", "declined", "requires_consult", "needs_call"]),
+  decisionReason: z.string().min(1, "Decision reason is required").max(2000).trim(),
+  clinicalNotes: z.string().max(5000).nullable().optional(),
+})
 
 /**
  * POST /api/repeat-rx/[id]/decision
@@ -39,22 +40,22 @@ export async function POST(
     }
 
     const { id } = await params
-    const body = await request.json() as DecisionPayload
-    
-    // Validate required fields
-    if (!body.decision) {
+
+    let rawBody
+    try {
+      rawBody = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
+    }
+
+    const parsed = decisionSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Decision is required" },
+        { error: parsed.error.issues[0]?.message || "Invalid request" },
         { status: 400 }
       )
     }
-    
-    if (!body.decisionReason?.trim()) {
-      return NextResponse.json(
-        { error: "Decision reason is required" },
-        { status: 400 }
-      )
-    }
+    const body = parsed.data
     
     // Get authenticated clinician
     const { userId } = await auth()

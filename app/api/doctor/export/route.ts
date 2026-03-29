@@ -4,26 +4,6 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
-interface _IntakeRow {
-  id: string
-  service_id: string
-  status: string
-  is_priority: boolean
-  doctor_notes: string | null
-  created_at: string
-  updated_at: string
-  patient: {
-    full_name: string | null
-    date_of_birth: string | null
-    phone: string | null
-    suburb: string | null
-    state: string | null
-  }[] | null
-  service: {
-    name: string
-    type: string
-  }[] | null
-}
 
 export async function GET(request: NextRequest) {
   try {

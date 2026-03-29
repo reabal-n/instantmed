@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, User, Clock, Calendar } from "lucide-react"
@@ -324,6 +325,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <div className="flex min-h-screen flex-col">
           <Navbar variant="marketing" />
+        <ContentPageTracker pageType="blog" slug={slug} />
 
           <main className="flex-1 pt-24 pb-16">
             <div className="px-4">
@@ -375,6 +377,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
+        <ContentPageTracker pageType="blog" slug={slug} />
 
         <main className="flex-1 pt-24">
           <article className="px-4 py-12">

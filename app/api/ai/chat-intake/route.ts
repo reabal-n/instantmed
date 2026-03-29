@@ -251,13 +251,13 @@ export async function POST(request: NextRequest) {
     const { userId: clerkUserId } = await auth()
     
     if (clerkUserId) {
-      const rateLimitResponse = await applyRateLimit(request, 'standard', clerkUserId)
+      const rateLimitResponse = await applyRateLimit(request, 'ai', clerkUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }
     } else {
       // Rate limit anonymous users by IP to prevent abuse
-      const rateLimitResponse = await applyRateLimit(request, 'standard')
+      const rateLimitResponse = await applyRateLimit(request, 'ai')
       if (rateLimitResponse) {
         return rateLimitResponse
       }

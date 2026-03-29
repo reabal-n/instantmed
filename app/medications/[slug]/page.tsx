@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { AlertTriangle, Pill, Clock, FileText } from "lucide-react"
 import Link from "next/link"
@@ -372,6 +373,7 @@ export default async function MedicationPage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col bg-hero">
         <Navbar variant="marketing" />
+        <ContentPageTracker pageType="medication" slug={slug} serviceRecommendation="prescription" />
 
         <main className="flex-1 pt-24">
           {/* Hero */}

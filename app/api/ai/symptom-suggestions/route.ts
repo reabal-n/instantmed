@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     // Rate limiting (IP-based for unauthenticated)
     const clientId = getClientIdentifier(req)
-    const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
+    const rateLimitResponse = await applyRateLimit(req, "ai", clientId)
     if (rateLimitResponse) {
       return rateLimitResponse
     }
