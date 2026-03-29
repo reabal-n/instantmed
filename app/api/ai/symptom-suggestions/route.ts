@@ -5,6 +5,7 @@ import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { SYMPTOM_SUGGESTIONS_PROMPT, CONTEXT_PROMPTS, FALLBACK_RESPONSES } from "@/lib/ai/prompts"
 import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { recordAIRequest } from "@/lib/monitoring/ai-health"
 
 export const runtime = "edge"
 
@@ -75,6 +76,7 @@ The patient has started typing: "${sanitizedInput}"`
     // Get model with creative configuration (higher temperature for variety)
     const { model, temperature } = getModelWithConfig('creative')
 
+    const aiStartTime = Date.now()
     const { text } = await generateText({
       model,
       prompt,
@@ -100,6 +102,9 @@ The patient has started typing: "${sanitizedInput}"`
       suggestions = FALLBACK_RESPONSES.symptomSuggestions
     }
 
+    // Record successful AI request
+    recordAIRequest({ endpoint: "symptom-suggestions", success: true, latencyMs: Date.now() - aiStartTime })
+
     // Cache successful response
     if (suggestions.length > 0) {
       await setCachedResponse('symptomSuggestions', normalizedInput, suggestions, cacheContext)
@@ -107,10 +112,11 @@ The patient has started typing: "${sanitizedInput}"`
 
     return NextResponse.json({ suggestions })
   } catch {
+    recordAIRequest({ endpoint: "symptom-suggestions", success: false, latencyMs: 0, errorType: "model_error" })
     // Return fallback suggestions on error
-    return NextResponse.json({ 
+    return NextResponse.json({
       suggestions: FALLBACK_RESPONSES.symptomSuggestions,
-      fallback: true 
+      fallback: true
     })
   }
 }

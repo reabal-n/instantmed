@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
+import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
 
 /**
  * P1 FIX: Resend Webhook Handler
@@ -351,6 +352,17 @@ export async function POST(request: NextRequest) {
     // Reset bounce flag if email delivered successfully
     if (eventType === "email.delivered") {
       await resetPatientEmailBounce(supabase, data.to?.[0])
+    }
+
+    // Track delivery status in monitoring system
+    if (eventType === "email.delivered") {
+      updateDeliveryStatus(data.email_id, "delivered").catch(() => {})
+    } else if (eventType === "email.bounced") {
+      updateDeliveryStatus(data.email_id, "bounced", { bounceType: "hard" }).catch(() => {})
+    } else if (eventType === "email.complained") {
+      updateDeliveryStatus(data.email_id, "failed", { errorMessage: "Complaint received" }).catch(() => {})
+    } else if (eventType === "email.opened") {
+      updateDeliveryStatus(data.email_id, "opened").catch(() => {})
     }
 
     // Update email outbox

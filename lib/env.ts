@@ -80,6 +80,10 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
 
+  // Telegram alerts
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_CHAT_ID: z.string().optional(),
+
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
   OPS_CRON_SECRET: z.string().optional(),
@@ -159,6 +163,11 @@ function validateServerEnv() {
 
 // Validate on module load (fails build if invalid)
 const validatedEnv = validateServerEnv()
+
+if (!validatedEnv.TELEGRAM_BOT_TOKEN || !validatedEnv.TELEGRAM_CHAT_ID) {
+  // eslint-disable-next-line no-console
+  console.warn("[env] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — real-time alerts disabled")
+}
 
 // ============================================
 // SERVER-ONLY ENVIRONMENT VARIABLES

@@ -4,8 +4,16 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { prepareIntakeDraftDataWrite, readIntakeDraftData } from "@/lib/security/phi-field-wrappers"
+import { z } from "zod"
 
 const logger = createLogger("flow-drafts-api")
+
+const updateDraftSchema = z.object({
+  sessionId: z.string().min(1, "sessionId is required"),
+  currentStep: z.string().optional(),
+  currentGroupIndex: z.number().int().min(0).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+})
 
 /**
  * Verify draft ownership: sessionId must match, and if user is authenticated
@@ -141,8 +149,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (csrfError) return csrfError
 
     const { draftId } = await context.params
-    const body = await request.json()
-    const { sessionId, currentStep, currentGroupIndex, data } = body
     const { userId: clerkUserId } = await auth()
 
     if (!draftId) {
@@ -152,13 +158,22 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // sessionId is required for draft ownership verification
-    if (!sessionId) {
+    let rawBody
+    try {
+      rawBody = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
+    }
+
+    const parsed = updateDraftSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "sessionId is required" },
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
+
+    const { sessionId, currentStep, currentGroupIndex, data } = parsed.data
 
     const supabase = createServiceRoleClient()
 

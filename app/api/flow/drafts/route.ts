@@ -5,8 +5,15 @@ import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { prepareIntakeDraftDataWrite } from "@/lib/security/phi-field-wrappers"
+import { z } from "zod"
 
 const logger = createLogger("flow-drafts-api")
+
+const createDraftSchema = z.object({
+  sessionId: z.string().min(1, "sessionId is required"),
+  serviceSlug: z.string().min(1, "serviceSlug is required"),
+  initialData: z.record(z.string(), z.unknown()).optional(),
+})
 
 /**
  * POST /api/flow/drafts
@@ -26,20 +33,22 @@ export async function POST(request: NextRequest) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    let body
+    let rawBody
     try {
-      body = await request.json()
+      rawBody = await request.json()
     } catch {
       return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
     }
-    const { sessionId, serviceSlug, initialData } = body
 
-    if (!sessionId || !serviceSlug) {
+    const parsed = createDraftSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "sessionId and serviceSlug are required" },
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
+
+    const { sessionId, serviceSlug, initialData } = parsed.data
 
     const supabase = createServiceRoleClient()
 

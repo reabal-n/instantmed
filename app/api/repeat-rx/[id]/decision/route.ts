@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
@@ -15,6 +15,7 @@ import {
   logExternalPrescribingIndicated,
 } from "@/lib/audit/compliance-audit"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { toError } from "@/lib/errors"
 import { z } from "zod"
 
@@ -29,7 +30,7 @@ const decisionSchema = z.object({
  * Submit a clinician decision for a repeat prescription request
  */
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -38,6 +39,9 @@ export async function POST(
     if (csrfError) {
       return csrfError
     }
+
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
 
     const { id } = await params
 

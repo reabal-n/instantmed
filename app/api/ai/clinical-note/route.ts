@@ -9,6 +9,7 @@ import { checkPromptInjection } from "@/lib/ai/prompt-safety"
 import { CLINICAL_NOTE_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { calculateConfidence } from "@/lib/ai/confidence"
+import { recordAIRequest, AI_ENDPOINTS } from "@/lib/monitoring/ai-health"
 
 const log = createLogger("ai-clinical-note")
 
@@ -130,6 +131,9 @@ export async function POST(request: NextRequest) {
     // Clear timeout after stream completes
     clearTimeout(timeout)
 
+    // Record successful AI request (time-to-first-token)
+    recordAIRequest({ endpoint: AI_ENDPOINTS.CLINICAL_NOTE, success: true, latencyMs: Date.now() - startTime })
+
     // Collect full text from stream
     const text = await result.text
     const responseTime = Date.now() - startTime
@@ -209,8 +213,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    recordAIRequest({ endpoint: AI_ENDPOINTS.CLINICAL_NOTE, success: false, latencyMs: Date.now() - startTime, errorType: "model_error" })
     log.error("Error generating clinical note", { error })
-    
+
     // Return fallback on error
     return NextResponse.json({
       success: true,

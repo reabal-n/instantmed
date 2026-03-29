@@ -128,7 +128,11 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       capture_pageleave: true,
       capture_exceptions: true,
       autocapture: true,
-      disable_session_recording: true,  // Saves ~88 KiB + main-thread time (PageSpeed)
+      disable_session_recording: false,  // Enabled for checkout drop-off analysis
+      session_recording: {
+        maskAllInputs: true,          // PHI protection — mask all form inputs
+        maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements
+      },
       debug: process.env.NODE_ENV === "development",
     });
   }).catch(() => {

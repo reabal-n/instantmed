@@ -3,7 +3,20 @@ import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/s
 import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
 import { timingSafeEqual } from "crypto"
+import { z } from "zod"
+
 const log = createLogger("route")
+
+const sendStatusEmailSchema = z.object({
+  intakeId: z.string().min(1).optional(),
+  requestId: z.string().min(1).optional(),
+  status: z.string().min(1, "Status is required"),
+  doctorName: z.string().optional(),
+  declineReason: z.string().optional(),
+}).refine(
+  (data) => data.intakeId || data.requestId,
+  { message: "Either intakeId or requestId is required" }
+)
 
 /**
  * Timing-safe secret comparison to prevent timing attacks
@@ -39,13 +52,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
-    const intakeId = body.intakeId || body.requestId // backward compat
-    const { status, doctorName, declineReason } = body
-
-    if (!intakeId || !status) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    let rawBody
+    try {
+      rawBody = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
     }
+
+    const parsed = sendStatusEmailSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    const intakeId = (parsed.data.intakeId || parsed.data.requestId)! // backward compat — refine guarantees one exists
+    const { status, doctorName, declineReason } = parsed.data
 
     // Map status to template type
     let templateType: EmailTemplateType | null = null
