@@ -45,7 +45,6 @@ export async function regenerateCertificateAction(
         id,
         status,
         patient_id,
-        service,
         reviewed_by,
         patient:profiles!patient_id(
           id,
