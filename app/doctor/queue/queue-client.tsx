@@ -710,7 +710,7 @@ export function QueueClient({
                         <Sparkles className="w-3 h-3 mr-1" />
                         AI approved
                       </Badge>
-                      {(intake as Record<string, unknown>).soft_flags && (
+                      {!!(intake as Record<string, unknown>).soft_flags && (
                         <Badge variant="outline" className="text-xs border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400">
                           Flagged for review
                         </Badge>
