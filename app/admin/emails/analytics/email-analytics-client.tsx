@@ -34,6 +34,7 @@ import {
   Legend,
 } from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
+import { formatTimeAgo } from "@/lib/format"
 
 interface EmailAnalytics {
   summary: {
@@ -67,19 +68,6 @@ function formatTemplateName(template: string): string {
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
-}
-
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMins / 60)
-  const diffDays = Math.floor(diffHours / 24)
-
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
 }
 
 function getStatusBadge(status: string) {

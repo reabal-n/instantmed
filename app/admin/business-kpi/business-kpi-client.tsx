@@ -22,6 +22,7 @@ import {
   Loader2,
   Shield,
 } from "lucide-react"
+import { formatAUD, formatMinutes } from "@/lib/format"
 
 // ============================================================================
 // TYPES
@@ -75,17 +76,6 @@ interface KPIData {
 // ============================================================================
 // HELPERS
 // ============================================================================
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
-}
-
-function formatMinutes(mins: number): string {
-  if (mins < 60) return `${mins}m`
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return m > 0 ? `${h}h ${m}m` : `${h}h`
-}
 
 const readinessLabels: Record<string, string> = {
   hasRevenue: "Revenue flowing",
@@ -176,7 +166,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-5 pb-5">
-            <div className="text-2xl font-semibold">{formatCurrency(data.revenue.thisMonth)}</div>
+            <div className="text-2xl font-semibold">{formatAUD(data.revenue.thisMonth)}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               {data.revenue.weeklyTrend >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-success" />
@@ -189,7 +179,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
               <span>vs last week</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Today: {formatCurrency(data.revenue.today)} | This week: {formatCurrency(data.revenue.thisWeek)}
+              Today: {formatAUD(data.revenue.today)} | This week: {formatAUD(data.revenue.thisWeek)}
             </p>
           </CardContent>
         </Card>
@@ -284,7 +274,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
           <CardContent className="px-5 pb-5">
             <div className="text-2xl font-semibold">{data.refunds.rate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(data.refunds.totalMonth)} refunded this month
+              {formatAUD(data.refunds.totalMonth)} refunded this month
             </p>
           </CardContent>
         </Card>
@@ -316,7 +306,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
                       />
                     </div>
                     <span className="w-14 text-right font-mono text-muted-foreground">
-                      {day.revenue > 0 ? formatCurrency(day.revenue) : "-"}
+                      {day.revenue > 0 ? formatAUD(day.revenue) : "-"}
                     </span>
                   </div>
                 )

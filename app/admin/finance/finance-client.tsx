@@ -29,6 +29,7 @@ import {
   Line,
 } from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
+import { formatCurrency } from "@/lib/format"
 
 interface FinanceData {
   summary: {
@@ -79,15 +80,6 @@ interface FinanceDashboardClientProps {
 }
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount / 100)
-}
 
 function formatServiceType(type: string): string {
   const labels: Record<string, string> = {
