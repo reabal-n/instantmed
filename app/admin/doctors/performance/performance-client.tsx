@@ -32,6 +32,7 @@ import {
   ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
+import { formatMinutes } from "@/lib/format"
 
 interface DoctorMetrics {
   id: string
@@ -52,10 +53,7 @@ interface DoctorPerformanceClientProps {
 
 
 function formatResponseTime(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)}m`
-  const hours = Math.floor(minutes / 60)
-  const mins = Math.round(minutes % 60)
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+  return formatMinutes(minutes)
 }
 
 

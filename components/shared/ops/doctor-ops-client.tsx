@@ -25,6 +25,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { RefreshCcw, ArrowUpDown, ArrowUp, ArrowDown, Users, ArrowLeft } from "lucide-react"
 import type { DoctorMetrics, DateRange, SortField, SortDirection } from "@/lib/data/doctor-ops"
+import { formatMinutes } from "@/lib/format"
 
 // ============================================================================
 // PROPS
@@ -42,16 +43,6 @@ interface DoctorOpsClientProps {
 // ============================================================================
 // HELPERS
 // ============================================================================
-
-function formatMinutes(minutes: number | null): string {
-  if (minutes === null) return "—"
-  if (minutes < 60) return `${Math.round(minutes)}m`
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = Math.round(minutes % 60)
-  if (hours < 24) return `${hours}h ${remainingMinutes}m`
-  const days = Math.floor(hours / 24)
-  return `${days}d ${hours % 24}h`
-}
 
 function getTimeColor(minutes: number | null, threshold: number): string {
   if (minutes === null) return ""

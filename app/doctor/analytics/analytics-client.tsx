@@ -37,6 +37,7 @@ import {
   Calendar,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatMinutes } from "@/lib/format"
 
 export interface PaginationInfo {
   days: number
@@ -93,13 +94,6 @@ function formatServiceType(type: string): string {
     other: "Other",
   }
   return labels[type] || type
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
 const DATE_RANGE_OPTIONS = [

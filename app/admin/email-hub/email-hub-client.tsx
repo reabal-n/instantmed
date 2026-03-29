@@ -26,6 +26,7 @@ import {
   Loader2,
 } from "lucide-react"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
+import { formatTimeAgo } from "@/lib/format"
 
 // Email type display names
 const emailTypeLabels: Record<string, string> = {
@@ -48,21 +49,6 @@ const emailTypeLabels: Record<string, string> = {
   consult_approved: "Consult Approved",
   guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
-}
-
-// Format relative time
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return "just now"
-  if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`
-  return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`
 }
 
 // Sanitize email for display
@@ -357,7 +343,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                         <div>
                           <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
                           <p className="text-xs text-muted-foreground">
-                            {sanitizeEmail(item.toEmail)} • {formatRelativeTime(item.createdAt)}
+                            {sanitizeEmail(item.toEmail)} • {formatTimeAgo(item.createdAt)}
                           </p>
                           {item.errorMessage && (
                             <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
@@ -493,7 +479,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                         <div>
                           <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
                           <p className="text-xs text-muted-foreground">
-                            {sanitizeEmail(item.toEmail)} -- {formatRelativeTime(item.createdAt)}
+                            {sanitizeEmail(item.toEmail)} -- {formatTimeAgo(item.createdAt)}
                           </p>
                           {item.errorMessage && (
                             <p className="text-xs text-destructive mt-1 truncate max-w-md">{item.errorMessage}</p>

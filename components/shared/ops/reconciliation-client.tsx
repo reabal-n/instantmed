@@ -44,6 +44,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import type { ReconciliationRecord, DeliveryStatus } from "@/lib/data/reconciliation"
+import { formatAge } from "@/lib/format"
 
 // ============================================================================
 // PROPS
@@ -68,15 +69,6 @@ interface ReconciliationClientProps {
 // ============================================================================
 // HELPERS
 // ============================================================================
-
-function formatAge(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)} min`
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = Math.round(minutes % 60)
-  if (hours < 24) return `${hours}h ${remainingMinutes}m`
-  const days = Math.floor(hours / 24)
-  return `${days}d ${hours % 24}h`
-}
 
 function getDeliveryStatusBadge(status: DeliveryStatus): {
   variant: "default" | "secondary" | "destructive" | "outline"

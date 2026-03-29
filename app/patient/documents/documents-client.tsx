@@ -14,7 +14,7 @@ import {
   ChevronRight,
   FolderOpen,
 } from "lucide-react"
-import { formatDate } from "@/lib/format"
+import { formatDate, formatCurrency } from "@/lib/format"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PatientErrorAlert } from "@/components/patient/error-alert"
 
@@ -45,13 +45,6 @@ interface DocumentsClientProps {
   error?: string | null
 }
 
-
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-  }).format(cents / 100)
-}
 
 export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const { certificates, receipts } = documents

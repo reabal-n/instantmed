@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge"
 import { Snippet } from "@/components/uix"
 import { RefreshCcw, ExternalLink, AlertTriangle, Clock, Mail, CheckCircle2, ArrowLeft } from "lucide-react"
 import type { StuckIntake, StuckCounts, StuckReason } from "@/lib/data/intake-ops"
+import { formatAge } from "@/lib/format"
 
 // ============================================================================
 // PROPS
@@ -73,20 +74,6 @@ const REASON_ICONS: Record<StuckReason, React.ReactNode> = {
   review_timeout: <AlertTriangle className="h-4 w-4" />,
   delivery_pending: <Mail className="h-4 w-4" />,
   delivery_failed: <AlertTriangle className="h-4 w-4 text-destructive" />,
-}
-
-function formatAge(minutes: number): string {
-  if (minutes < 60) {
-    return `${Math.round(minutes)} min`
-  }
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = Math.round(minutes % 60)
-  if (hours < 24) {
-    return `${hours}h ${remainingMinutes}m`
-  }
-  const days = Math.floor(hours / 24)
-  const remainingHours = hours % 24
-  return `${days}d ${remainingHours}h`
 }
 
 function getReasonBadgeVariant(reason: StuckReason): "default" | "secondary" | "destructive" | "outline" {

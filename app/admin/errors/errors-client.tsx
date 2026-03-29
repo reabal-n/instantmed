@@ -35,6 +35,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react"
+import { formatTimeAgo } from "@/lib/format"
 
 interface ErrorMonitoringClientProps {
   sentryOrgSlug: string
@@ -93,19 +94,6 @@ const MOCK_ISSUES: SentryIssue[] = [
     isRegression: false,
   },
 ]
-
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMins / 60)
-  const diffDays = Math.floor(diffHours / 24)
-
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
-}
 
 function getLevelBadge(level: SentryIssue["level"]) {
   const styles = {
