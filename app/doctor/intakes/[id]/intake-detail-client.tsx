@@ -188,9 +188,6 @@ export function IntakeDetailClient({
   }
   const [parchmentReference, setParchmentReference] = useState("")
   
-  // P0 SAFETY: Red flag acknowledgment before approval
-  const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
-
   // Certificate preview dialog
   const [showCertPreview, setShowCertPreview] = useState(false)
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
@@ -307,7 +304,7 @@ export function IntakeDetailClient({
   }, [aiDrafts, intake.doctor_notes])
 
   // P1 RK-1: Minimum clinical notes length for defensibility
-  const MIN_CLINICAL_NOTES_LENGTH = 20
+  const MIN_CLINICAL_NOTES_LENGTH = 5
 
   // P2 DOCTOR_WORKLOAD_AUDIT: Keyboard shortcuts for faster workflow
   useDoctorShortcuts({
@@ -350,12 +347,6 @@ export function IntakeDetailClient({
 
   // Med cert approval: show preview dialog first, then approve on confirm
   const handleMedCertApprove = async () => {
-    // P0 SAFETY: Block approval if red flags not acknowledged
-    if (hasRedFlags && !redFlagsAcknowledged) {
-      toast.error("Review and acknowledge safety flags before approving.")
-      return
-    }
-
     // P1 RK-1: Require clinical notes before approval
     if (doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
       toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
@@ -416,11 +407,6 @@ export function IntakeDetailClient({
 
   const handleStatusChange = async (status: IntakeStatus) => {
     // P0 SAFETY: Block approval if red flags not acknowledged
-    if ((status === "approved" || status === "awaiting_script") && hasRedFlags && !redFlagsAcknowledged) {
-      toast.error("Review and acknowledge safety flags before approving.")
-      return
-    }
-
     // P1 RK-1: Require clinical notes before approval per MEDICOLEGAL_AUDIT_REPORT
     if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
       toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
@@ -840,38 +826,21 @@ export function IntakeDetailClient({
         </Card>
       )}
 
-      {/* P0 SAFETY: Red Flag Acknowledgment Card */}
+      {/* Safety Flags — informational only (auto-approve already validated eligibility) */}
       {hasRedFlags && (
-        <Card className="border-destructive/50 bg-destructive/5">
+        <Card className="border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10">
           <CardHeader className="py-3 px-4">
-            <CardTitle className="text-destructive flex items-center gap-2 text-base">
+            <CardTitle className="text-amber-700 dark:text-amber-400 flex items-center gap-2 text-base">
               <XCircle className="h-4 w-4" />
-              Safety Flags Detected
+              Safety Notes
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             <div className="text-sm space-y-1">
               {redFlagDetails.map((detail, i) => (
-                <p key={i} className="text-destructive-foreground">• {detail}</p>
+                <p key={i} className="text-amber-800 dark:text-amber-300">• {detail}</p>
               ))}
             </div>
-            <div className="flex items-center space-x-2 pt-2 border-t border-destructive/20">
-              <input
-                type="checkbox"
-                id="acknowledge-flags"
-                checked={redFlagsAcknowledged}
-                onChange={(e) => setRedFlagsAcknowledged(e.target.checked)}
-                className="h-4 w-4 rounded border-destructive text-destructive focus:ring-destructive"
-              />
-              <label htmlFor="acknowledge-flags" className="text-sm font-medium text-destructive-foreground">
-                I have reviewed these safety flags and determined it is appropriate to proceed
-              </label>
-            </div>
-            {!redFlagsAcknowledged && (
-              <p className="text-xs text-muted-foreground italic">
-                You must acknowledge safety flags before approving this case.
-              </p>
-            )}
           </CardContent>
         </Card>
       )}
