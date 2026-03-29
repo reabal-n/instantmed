@@ -7,7 +7,7 @@ import type { AustralianState } from "@/types/db"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
-import { verifyAddress } from "@/lib/addressfinder/server"
+import { verifyAddress } from "@/lib/google-places/geocoding"
 import { encryptIfNeeded } from "@/lib/security/encryption"
 
 type ActionResult = {

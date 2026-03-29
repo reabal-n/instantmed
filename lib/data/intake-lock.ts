@@ -37,8 +37,6 @@ export async function acquireIntakeLock(
 ): Promise<LockResult> {
   const supabase = createServiceRoleClient()
   const now = new Date()
-  const _expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS) // Reserved for future lock metadata
-
   try {
     // Check for existing active lock (check both reviewing_doctor_id and claimed_by)
     const { data: intake } = await supabase

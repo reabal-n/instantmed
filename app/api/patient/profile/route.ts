@@ -3,6 +3,19 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { revalidatePath } from "next/cache"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { z } from "zod"
+
+const profileUpdateSchema = z.object({
+  full_name: z.string().min(1).max(200).optional(),
+  phone: z.string().max(20).optional().nullable(),
+  street_address: z.string().max(500).optional(),
+  address_line1: z.string().max(500).optional(),
+  suburb: z.string().max(200).optional(),
+  state: z.string().max(50).optional(),
+  postcode: z.string().max(10).optional(),
+  date_of_birth: z.string().max(20).optional().nullable(),
+  consent_myhr: z.boolean().optional(),
+})
 
 export async function PATCH(request: Request) {
   try {
@@ -17,12 +30,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    let body
+    let rawBody
     try {
-      body = await request.json()
+      rawBody = await request.json()
     } catch {
       return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
     }
+
+    const parsed = profileUpdateSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
+        { status: 400 }
+      )
+    }
+
     const {
       full_name,
       phone,
@@ -33,7 +55,7 @@ export async function PATCH(request: Request) {
       postcode,
       date_of_birth,
       consent_myhr,
-    } = body
+    } = parsed.data
 
     // Build update object with only provided fields
     const updateData: Record<string, unknown> = {

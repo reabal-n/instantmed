@@ -9,12 +9,13 @@ import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { toError } from "@/lib/errors"
+import { z } from "zod"
 
 const logger = createLogger("api-retry-payment")
 
-interface RetryPaymentRequest {
-  invoiceId: string
-}
+const retryPaymentSchema = z.object({
+  invoiceId: z.string().min(1, "Invoice ID is required"),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,15 +32,22 @@ export async function POST(request: NextRequest) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    const body: RetryPaymentRequest = await request.json()
-    const { invoiceId } = body
+    let rawBody
+    try {
+      rawBody = await request.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 })
+    }
 
-    if (!invoiceId) {
+    const parsed = retryPaymentSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invoice ID is required" },
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
+
+    const { invoiceId } = parsed.data
 
     const supabase = createServiceRoleClient()
 

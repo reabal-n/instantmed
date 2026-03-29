@@ -17,6 +17,7 @@ import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 
 // ============================================
 // TYPES
@@ -562,6 +563,17 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         messageId: data.id,
         attempts: attempt + 1,
       })
+
+      // Record delivery for health monitoring
+      recordDeliverySent({
+        messageId: data.id,
+        requestId: intakeId,
+        patientId,
+        channel: "email",
+        templateType: emailType,
+        providerId: data.id,
+        recipient: to,
+      }).catch(() => {}) // Non-blocking
 
       // TWO-PHASE WRITE: Update existing row to sent
       if (outboxId) {

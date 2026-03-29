@@ -4,6 +4,7 @@ import { getDefaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
+import { recordAIRequest } from "@/lib/monitoring/ai-health"
 import { z } from "zod"
 
 export const runtime = "edge"
@@ -19,8 +20,6 @@ const validationRequestSchema = z.object({
   formType: z.enum(["med_cert", "repeat_rx", "consult"]),
   formData: z.record(z.string(), z.unknown()),
 })
-
-type _ValidationRequest = z.infer<typeof validationRequestSchema>
 
 interface ValidationIssue {
   field: string
@@ -78,8 +77,6 @@ function runRuleBasedValidation(
     // Duration vs symptom description length check
     const duration = formData.duration as string
     const symptomDescription = String(formData.symptomDescription || "")
-    const _selectedSymptoms = (formData.selectedSymptoms as string[]) || []
-    
     // Extended leave (>3 days) should have more detailed description
     if (["4-7", "1-2weeks", "specific"].includes(duration)) {
       if (symptomDescription.length < 30) {
@@ -283,6 +280,7 @@ Return a JSON array of issues found. Each issue should have:
 If no issues found, return an empty array [].
 Return ONLY the JSON array, nothing else.`
 
+      const aiStartTime = Date.now()
       const { text } = await generateText({
         model: getDefaultModel(),
         prompt,
@@ -291,16 +289,20 @@ Return ONLY the JSON array, nothing else.`
       // Parse AI response
       const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
       const parsed = JSON.parse(cleaned)
-      
+
       if (Array.isArray(parsed)) {
-        aiIssues = parsed.filter((i): i is ValidationIssue => 
+        aiIssues = parsed.filter((i): i is ValidationIssue =>
           i && typeof i === "object" && i.field && i.message
         ).map(i => ({
           ...i,
           severity: i.severity === "error" ? "warning" : i.severity, // Downgrade AI errors to warnings
         }))
       }
+
+      // Record successful AI request
+      recordAIRequest({ endpoint: "form-validation", success: true, latencyMs: Date.now() - aiStartTime })
     } catch {
+      recordAIRequest({ endpoint: "form-validation", success: false, latencyMs: 0, errorType: "model_error" })
       // AI validation failed, continue with rule-based results only
     }
 
