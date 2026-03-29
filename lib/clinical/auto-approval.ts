@@ -16,6 +16,7 @@ export interface AutoApprovalEligibility {
   eligible: boolean
   reason: string
   disqualifyingFlags: string[]
+  softFlags: string[]
 }
 
 interface DraftInfo {
@@ -28,15 +29,14 @@ interface PatientInfo {
 }
 
 // ============================================================================
-// ADDITIONAL SAFETY KEYWORD LISTS
-// These catch conditions that are technically safe (no emergency/red flag)
-// but are inappropriate for auto-approval without doctor review.
+// HARD-BLOCK KEYWORD LISTS
+// Always block auto-approval regardless of co-symptoms.
 // ============================================================================
 
 const MENTAL_HEALTH_KEYWORDS = [
-  "anxiety", "anxious", "depression", "depressed", "mental health", "stress leave",
-  "panic", "panic attack", "psychiatric", "ptsd", "bipolar", "psychosis", "eating disorder",
-  "burnout", "mental breakdown", "nervous breakdown", "ocd",
+  "depression", "depressed", "mental health", "stress leave",
+  "psychiatric", "ptsd", "bipolar", "psychosis", "eating disorder",
+  "mental breakdown", "nervous breakdown", "ocd",
   // Defense-in-depth: also caught by checkEmergencySymptoms, but listed here
   // so they're caught even if the check order changes
   "suicidal", "suicide", "self harm", "self-harm", "selfharm", "overdose",
@@ -44,24 +44,43 @@ const MENTAL_HEALTH_KEYWORDS = [
 ]
 
 const INJURY_KEYWORDS = [
-  "accident", "injury", "injured", "workers comp", "workers compensation",
-  "work cover", "workcover", "broken", "fracture", "fractured", "fall",
+  "injury", "injured", "workers comp", "workers compensation",
+  "work cover", "workcover", "broken", "fracture", "fractured",
   "collision", "assault", "surgery", "surgical", "post-operative",
-  "post-op", "wound", "laceration", "sprain", "concussion",
-  "whiplash", "dislocation", "dislocated", "burn", "stitches",
+  "post-op", "wound", "laceration", "concussion",
+  "whiplash", "dislocation", "dislocated", "burns", "burn injury", "severe burn", "stitches",
 ]
 
 const CHRONIC_CONDITION_KEYWORDS = [
-  "chronic", "ongoing condition", "flare up", "flare-up", "flareup", "relapse",
+  "chronic", "ongoing condition", "relapse",
   "long-term", "long term", "recurring", "fibromyalgia", "crohn",
   "lupus", "multiple sclerosis", "ms flare", "rheumatoid",
-  "endometriosis", "celiac", "ibs", "irritable bowel",
+  "endometriosis", "celiac",
 ]
 
 const PREGNANCY_KEYWORDS = [
   "pregnant", "pregnancy", "morning sickness", "miscarriage",
   "hyperemesis", "prenatal", "antenatal", "gestational",
   "trimester", "maternity",
+]
+
+// ============================================================================
+// SOFT-BLOCK KEYWORD LISTS
+// Only block when the keyword is the patient's sole symptom (no co-symptoms).
+// If the patient has 2+ structured symptoms, these are recorded as soft flags
+// for doctor batch review but do NOT prevent auto-approval.
+// ============================================================================
+
+const SOFT_BLOCK_MENTAL_HEALTH = [
+  "anxiety", "anxious", "panic", "panic attack", "burnout", "stress",
+]
+
+const SOFT_BLOCK_INJURY = [
+  "accident", "fall", "sprain",
+]
+
+const SOFT_BLOCK_CHRONIC = [
+  "flare up", "flare-up", "flareup", "ibs", "irritable bowel",
 ]
 
 // ============================================================================
@@ -188,10 +207,11 @@ export function evaluateAutoApprovalEligibility(
   options?: { maxDurationDays?: number },
 ): AutoApprovalEligibility {
   const flags: string[] = []
+  const softFlags: string[] = []
 
   // 1. Service type check
   if (intake.service_type !== "med_certs") {
-    return { eligible: false, reason: "Not a medical certificate service", disqualifyingFlags: ["wrong_service_type"] }
+    return { eligible: false, reason: "Not a medical certificate service", disqualifyingFlags: ["wrong_service_type"], softFlags: [] }
   }
 
   // 2. Age check — minors (under 18) always require doctor review
@@ -213,43 +233,78 @@ export function evaluateAutoApprovalEligibility(
   // Extract symptom text for all keyword checks
   const symptomText = extractSymptomText(answers)
 
-  // 2. Emergency symptoms
+  // Co-symptom detection: if patient selected 2+ structured symptoms,
+  // soft-block keywords are recorded as soft flags instead of hard blocks
+  const symptomCount = Array.isArray(answers?.symptoms) ? (answers.symptoms as unknown[]).length : 0
+  const hasCoSymptoms = symptomCount >= 2
+
+  // 3. Emergency symptoms (always hard-block)
   const emergencyResult = checkEmergencySymptoms(symptomText)
   if (emergencyResult.isEmergency) {
     flags.push(`emergency: ${emergencyResult.matchedKeywords.join(", ")}`)
   }
 
-  // 3. Red flag patterns
+  // 4. Red flag patterns (always hard-block)
   const redFlags = checkRedFlagPatterns(symptomText)
   if (redFlags.length > 0) {
     flags.push(`red_flags: ${redFlags.map(f => f.code).join(", ")}`)
   }
 
-  // 4. Mental health keywords
+  // 5. Mental health keywords — hard-block list (always block)
   const mentalHealthMatches = containsKeywords(symptomText, MENTAL_HEALTH_KEYWORDS)
   if (mentalHealthMatches.length > 0) {
     flags.push(`mental_health: ${mentalHealthMatches.join(", ")}`)
   }
 
-  // 5. Injury keywords
+  // 5b. Mental health soft-block keywords (co-symptom aware)
+  const softMentalHealthMatches = containsKeywords(symptomText, SOFT_BLOCK_MENTAL_HEALTH)
+  if (softMentalHealthMatches.length > 0) {
+    if (hasCoSymptoms) {
+      softFlags.push(...softMentalHealthMatches.map(k => `${k}_co_symptom`))
+    } else {
+      flags.push(`mental_health: ${softMentalHealthMatches.join(", ")}`)
+    }
+  }
+
+  // 6. Injury keywords — hard-block list (always block)
   const injuryMatches = containsKeywords(symptomText, INJURY_KEYWORDS)
   if (injuryMatches.length > 0) {
     flags.push(`injury: ${injuryMatches.join(", ")}`)
   }
 
-  // 6. Chronic condition keywords
+  // 6b. Injury soft-block keywords (co-symptom aware)
+  const softInjuryMatches = containsKeywords(symptomText, SOFT_BLOCK_INJURY)
+  if (softInjuryMatches.length > 0) {
+    if (hasCoSymptoms) {
+      softFlags.push(...softInjuryMatches.map(k => `${k}_co_symptom`))
+    } else {
+      flags.push(`injury: ${softInjuryMatches.join(", ")}`)
+    }
+  }
+
+  // 7. Chronic condition keywords — hard-block list (always block)
   const chronicMatches = containsKeywords(symptomText, CHRONIC_CONDITION_KEYWORDS)
   if (chronicMatches.length > 0) {
     flags.push(`chronic: ${chronicMatches.join(", ")}`)
   }
 
-  // 7. Pregnancy keywords
+  // 7b. Chronic soft-block keywords (co-symptom aware)
+  const softChronicMatches = containsKeywords(symptomText, SOFT_BLOCK_CHRONIC)
+  if (softChronicMatches.length > 0) {
+    if (hasCoSymptoms) {
+      softFlags.push(...softChronicMatches.map(k => `${k}_co_symptom`))
+    } else {
+      flags.push(`chronic: ${softChronicMatches.join(", ")}`)
+    }
+  }
+
+  // 8. Pregnancy keywords (always hard-block)
   const pregnancyMatches = containsKeywords(symptomText, PREGNANCY_KEYWORDS)
   if (pregnancyMatches.length > 0) {
     flags.push(`pregnancy: ${pregnancyMatches.join(", ")}`)
   }
 
-  // 8. Duration check (1-N days, configurable via admin dashboard, hard-capped at 3)
+  // 9. Duration check (1-N days, configurable via admin dashboard, hard-capped at 3)
   const maxDuration = Math.min(options?.maxDurationDays ?? 3, 3)
   const durationDays = extractDurationDays(answers)
   if (durationDays === null) {
@@ -260,12 +315,10 @@ export function evaluateAutoApprovalEligibility(
     flags.push("duration_invalid")
   }
 
-  // 9. Backdating check (start date should not be > 1 day in the past)
+  // 10. Backdating check (start date should not be > 1 day in the past)
   const startDateStr = extractStartDate(answers)
   if (startDateStr) {
-    // Parse date-only string as UTC (YYYY-MM-DD from forms is always UTC midnight)
     const startDate = new Date(startDateStr)
-    // Compare against UTC midnight boundaries for consistency
     const todayUtc = new Date()
     const todayDateStr = todayUtc.toISOString().split("T")[0]
     const oneDayAgoUtc = new Date(todayDateStr)
@@ -276,19 +329,18 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // 10. Symptom text must be substantive (not empty/generic)
-  // Auto-approved certs must have a real medical reason, not a placeholder
+  // 11. Symptom text must be substantive (not empty/generic)
   if (!symptomText || symptomText.trim().length < 5) {
     flags.push("empty_symptom_text")
   }
 
-  // 11. AI draft exists and is ready
+  // 12. AI draft exists and is ready
   if (!drafts.clinicalNote) {
     flags.push("missing_clinical_note_draft")
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 12. AI draft doesn't require review
+    // 13. AI draft doesn't require review
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
       flags.push(`draft_requires_review: ${draftFlags.flagReason || "unspecified"}`)
@@ -301,6 +353,7 @@ export function evaluateAutoApprovalEligibility(
       eligible: false,
       reason: `Disqualified: ${flags[0]}`,
       disqualifyingFlags: flags,
+      softFlags,
     }
   }
 
@@ -308,5 +361,6 @@ export function evaluateAutoApprovalEligibility(
     eligible: true,
     reason: "All checks passed — standard med cert, no flags, clean draft",
     disqualifyingFlags: [],
+    softFlags,
   }
 }

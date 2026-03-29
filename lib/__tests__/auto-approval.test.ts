@@ -132,6 +132,7 @@ describe("evaluateAutoApprovalEligibility", () => {
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
+    expect(result.softFlags).toHaveLength(0)
   })
 
   it("approves clean 3-day cert", () => {
@@ -200,10 +201,20 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
   })
 
-  it("rejects intake with 'anxiety'", () => {
+  it("approves 'anxiety' as co-symptom (default makeAnswers has 2 symptoms)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Severe anxiety making it hard to work" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("anxiety_co_symptom")
+  })
+
+  it("blocks 'anxiety' as sole symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptoms: ["Anxiety"], symptomDetails: "Severe anxiety making it hard to work" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(false)
@@ -212,10 +223,20 @@ describe("evaluateAutoApprovalEligibility", () => {
 
   // ---- Injury ----
 
-  it("rejects intake with injury keyword 'accident'", () => {
+  it("approves 'accident' as co-symptom (default makeAnswers has 2 symptoms)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Had a car accident yesterday, back is sore" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("accident_co_symptom")
+  })
+
+  it("blocks 'accident' as sole symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptoms: ["Back pain"], symptomDetails: "Had a car accident yesterday" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(false)
@@ -234,14 +255,24 @@ describe("evaluateAutoApprovalEligibility", () => {
 
   // ---- Chronic ----
 
-  it("rejects intake with chronic condition keyword", () => {
+  it("blocks 'chronic' hard-block keyword even with co-symptoms", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
-      makeAnswers({ symptomDetails: "Chronic back pain flare up" }),
+      makeAnswers({ symptomDetails: "Chronic back pain" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(false)
     expect(result.disqualifyingFlags.some(f => f.includes("chronic"))).toBe(true)
+  })
+
+  it("approves 'flare up' as co-symptom (default makeAnswers has 2 symptoms)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Back pain flare up" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("flare up_co_symptom")
   })
 
   // ---- Pregnancy ----
@@ -452,14 +483,14 @@ describe("evaluateAutoApprovalEligibility", () => {
 
   // ---- Expanded keyword coverage ----
 
-  it("rejects intake with 'anxious' keyword", () => {
+  it("approves 'anxious' as co-symptom (default makeAnswers has 2 symptoms)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Feeling very anxious and can't sleep" }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("anxious_co_symptom")
   })
 
   it("rejects intake with 'selfharm' (no space)", () => {
@@ -583,5 +614,124 @@ describe("evaluateAutoApprovalEligibility", () => {
       { date_of_birth: "1990-01-15" },
     )
     expect(result4.eligible).toBe(false)
+  })
+
+  // ---- Co-symptom logic: Mikayla Bessell scenario ----
+
+  it("approves anxiety + multiple physical symptoms (Mikayla's case)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Anxiety", "Nausea", "Period pain", "Back pain", "Fatigue", "Fever", "Other"],
+        symptomDetails: "Body chills. Feeling faint.",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("anxiety_co_symptom")
+  })
+
+  it("approves 'panic' as co-symptom alongside physical symptoms", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Panic", "Headache", "Fatigue"],
+        symptomDetails: "Headache and tired",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("panic_co_symptom")
+  })
+
+  it("approves 'burnout' as co-symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Burnout", "Fatigue", "Headache"],
+        symptomDetails: "Exhausted and headaches",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("burnout_co_symptom")
+  })
+
+  it("approves 'fall' as co-symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Back pain", "Bruising"],
+        symptomDetails: "Had a fall yesterday",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("fall_co_symptom")
+  })
+
+  it("approves 'sprain' as co-symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Ankle pain", "Swelling"],
+        symptomDetails: "Sprained ankle at gym",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("sprain_co_symptom")
+  })
+
+  it("approves 'ibs' as co-symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Gastro", "Nausea"],
+        symptomDetails: "IBS acting up with nausea",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("ibs_co_symptom")
+  })
+
+  it("still blocks 'stress leave' even as co-symptom (hard-blocked)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Fatigue", "Headache"],
+        symptomDetails: "Need stress leave from work",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+  })
+
+  it("still blocks 'depression' even as co-symptom (hard-blocked)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Depression", "Fatigue", "Headache"],
+        symptomDetails: "Feeling depressed and tired",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+  })
+
+  it("still blocks 'workers comp' even as co-symptom (hard-blocked)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptoms: ["Back pain", "Neck pain"],
+        symptomDetails: "Need for workers comp claim",
+      }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
   })
 })

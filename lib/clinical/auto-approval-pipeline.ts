@@ -138,6 +138,28 @@ async function releaseSystemClaim(
 }
 
 // ============================================================================
+// DETERMINISTIC FAILURE DETECTION
+// ============================================================================
+
+/**
+ * Failure reasons that will never change on retry — the intake's answers
+ * and patient data don't change, so re-evaluating is wasteful.
+ * Non-deterministic failures (rate limit, daily cap, no doctor, pipeline error)
+ * should continue retrying.
+ */
+const DETERMINISTIC_FAILURE_PREFIXES = [
+  "emergency:", "patient_under_18", "wrong_service_type",
+  "mental_health:", "injury:", "chronic:", "pregnancy:",
+  "empty_symptom_text", "backdated_too_far",
+]
+
+function isDeterministicFailure(flags: string[]): boolean {
+  return flags.some(flag =>
+    DETERMINISTIC_FAILURE_PREFIXES.some(prefix => flag.startsWith(prefix))
+  )
+}
+
+// ============================================================================
 // MAIN PIPELINE
 // ============================================================================
 
@@ -284,6 +306,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // Log eligibility decision regardless of outcome
     await logAutoApprovalAudit(supabase, intakeId, eligibility.eligible, eligibility.reason, {
       disqualifyingFlags: eligibility.disqualifyingFlags,
+      softFlags: eligibility.softFlags,
       service_slug: service.slug,
       duration_days: extractDurationDays(answersData),
     })
@@ -294,6 +317,22 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         reason: eligibility.reason,
         flags: eligibility.disqualifyingFlags,
       })
+
+      // Mark deterministic failures so the retry cron stops re-evaluating
+      if (isDeterministicFailure(eligibility.disqualifyingFlags)) {
+        try {
+          await supabase
+            .from("intakes")
+            .update({
+              auto_approval_skipped: true,
+              auto_approval_skip_reason: eligibility.reason,
+            })
+            .eq("id", intakeId)
+        } catch (err) {
+          log.warn("Failed to set auto_approval_skipped (non-fatal)", { intakeId, error: err })
+        }
+      }
+
       await releaseSystemClaim(supabase, intakeId)
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }

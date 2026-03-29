@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       .eq("status", "paid")
       .is("claimed_by", null)
       .eq("ai_approved", false)
+      .eq("auto_approval_skipped", false)
       .lt("paid_at", delayAgo)
       .gt("paid_at", sixtyMinAgo)
       .order("paid_at", { ascending: true })

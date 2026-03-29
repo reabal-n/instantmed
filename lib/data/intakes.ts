@@ -491,10 +491,33 @@ export async function getAIApprovedIntakes(
     return []
   }
 
+  // Fetch soft flags from audit log for these intakes
+  const intakeIds = (data || []).map(r => r.id)
+  let softFlagsMap: Record<string, string[]> = {}
+  if (intakeIds.length > 0) {
+    const { data: auditRows } = await supabase
+      .from("ai_audit_log")
+      .select("intake_id, metadata")
+      .in("intake_id", intakeIds)
+      .eq("action", "auto_approve")
+      .not("metadata->softFlags", "is", null)
+      .order("created_at", { ascending: false })
+
+    if (auditRows) {
+      for (const row of auditRows) {
+        const meta = row.metadata as { softFlags?: string[] } | null
+        if (meta?.softFlags?.length && !softFlagsMap[row.intake_id]) {
+          softFlagsMap[row.intake_id] = meta.softFlags
+        }
+      }
+    }
+  }
+
   const unwrapped = (data || []).map(row => ({
     ...row,
     patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
     service: Array.isArray(row.service) ? row.service[0] : row.service,
+    soft_flags: softFlagsMap[row.id] || null,
   }))
   return unwrapped.filter((r) => r.patient !== null) as unknown as IntakeWithPatient[]
 }
