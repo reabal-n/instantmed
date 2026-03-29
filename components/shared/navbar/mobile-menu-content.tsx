@@ -111,7 +111,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Admin", href: "/doctor/admin", icon: <Settings className="h-5 w-5" /> }}
+          item={{ label: "Admin", href: "/admin", icon: <Settings className="h-5 w-5" /> }}
           index={2}
           onClose={onClose}
         />

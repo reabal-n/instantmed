@@ -232,7 +232,7 @@ export function UserMenu({
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => router.push("/doctor/admin")}
+              onClick={() => router.push("/admin")}
             >
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4" aria-hidden="true" />

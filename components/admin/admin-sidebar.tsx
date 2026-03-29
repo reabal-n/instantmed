@@ -26,7 +26,6 @@ import {
   ChevronDown,
   Bug,
   Webhook,
-  Gauge,
   PenTool,
   Mailbox,
   Menu,
@@ -67,7 +66,6 @@ const analyticsNavItems: NavItem[] = [
   { href: "/admin/business-kpi", label: "Business KPIs", icon: BarChart3 },
   { href: "/admin/finance", label: "Finance", icon: DollarSign },
   { href: "/admin/ops", label: "Operations", icon: Activity },
-  { href: "/admin/performance", label: "Performance", icon: Gauge },
   { href: "/admin/compliance", label: "Compliance", icon: ShieldCheck },
 ]
 

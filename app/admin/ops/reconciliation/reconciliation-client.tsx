@@ -396,7 +396,7 @@ export function ReconciliationClient({
                               Intake
                             </Button>
                           </Link>
-                          <Link href={`/doctor/admin/email-outbox?intake_id=${record.intake_id}`}>
+                          <Link href={`/admin/email-hub?intake_id=${record.intake_id}`}>
                             <Button variant="ghost" size="sm">
                               Emails
                             </Button>
