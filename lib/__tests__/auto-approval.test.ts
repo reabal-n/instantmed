@@ -162,7 +162,7 @@ describe("evaluateAutoApprovalEligibility", () => {
       makeReadyDraft()
     )
     expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags).toContain("wrong_service_type")
+    expect(result.disqualifyingFlags).toContain("service_type_mismatch")
   })
 
   // ---- Emergency ----

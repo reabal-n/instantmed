@@ -200,18 +200,23 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
  * 13. AI draft flags.requiresReview === false
  */
 export function evaluateAutoApprovalEligibility(
-  intake: { service_type: string; subtype: string | null },
+  intake: { service_type: string; subtype?: string | null },
   answers: Record<string, unknown> | null,
   drafts: { clinicalNote: DraftInfo | null },
   patient?: PatientInfo | null,
-  options?: { maxDurationDays?: number },
+  options?: { maxDurationDays?: number; previousApprovalCount?: number },
 ): AutoApprovalEligibility {
   const flags: string[] = []
   const softFlags: string[] = []
 
-  // 1. Service type check
+  // Service-type mismatch: only med certs are eligible for auto-approval
   if (intake.service_type !== "med_certs") {
-    return { eligible: false, reason: "Not a medical certificate service", disqualifyingFlags: ["wrong_service_type"], softFlags: [] }
+    return {
+      eligible: false,
+      reason: `Service type ${intake.service_type} is not eligible for auto-approval`,
+      disqualifyingFlags: ["service_type_mismatch"],
+      softFlags: [],
+    }
   }
 
   // 2. Age check — minors (under 18) always require doctor review
@@ -344,6 +349,29 @@ export function evaluateAutoApprovalEligibility(
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
       flags.push(`draft_requires_review: ${draftFlags.flagReason || "unspecified"}`)
+    }
+  }
+
+  // TUNING: For 1-day certificates with mild common symptoms, allow auto-approval
+  // even if soft-block keywords are present. These are the most common and lowest-risk requests.
+  const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softFlags.includes(f))
+  if (hasOnlySoftFlags && durationDays === 1) {
+    return {
+      eligible: true,
+      reason: "1-day certificate with mild symptoms — auto-approved",
+      disqualifyingFlags: [],
+      softFlags: flags,
+    }
+  }
+
+  // TRUST: Returning patients with prior successful auto-approvals get relaxed thresholds
+  const previousApprovals = options?.previousApprovalCount ?? 0
+  if (previousApprovals >= 2 && hasOnlySoftFlags) {
+    return {
+      eligible: true,
+      reason: `Returning patient (${previousApprovals} prior approvals) with soft flags only`,
+      disqualifyingFlags: [],
+      softFlags: flags,
     }
   }
 

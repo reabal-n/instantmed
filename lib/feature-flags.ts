@@ -119,6 +119,8 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.auto_approve_daily_cap = typeof row.value === "number" ? row.value : 50
       } else if (row.key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
         flags.auto_approve_max_duration_days = typeof row.value === "number" ? Math.min(row.value, 3) : 3
+      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DRY_RUN) {
+        flags.auto_approve_dry_run = row.value === true
       }
     }
 

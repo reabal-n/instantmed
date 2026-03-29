@@ -17,6 +17,8 @@ import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import * as Sentry from "@sentry/nextjs"
+import { getPostHogClient } from "@/lib/posthog-server"
+import { sendTelegramAlert } from "@/lib/notifications/telegram"
 import type { CertReviewData } from "@/types/db"
 
 const log = createLogger("auto-approval-pipeline")
@@ -148,7 +150,7 @@ async function releaseSystemClaim(
  * should continue retrying.
  */
 const DETERMINISTIC_FAILURE_PREFIXES = [
-  "emergency:", "patient_under_18", "wrong_service_type",
+  "emergency:", "patient_under_18", "wrong_service_type", "service_type_mismatch",
   "mental_health:", "injury:", "chronic:", "pregnancy:",
   "empty_symptom_text", "backdated_too_far",
 ]
@@ -173,11 +175,31 @@ function isDeterministicFailure(flags: string[]): boolean {
 export async function attemptAutoApproval(intakeId: string): Promise<AutoApprovalResult> {
   const startTime = Date.now()
 
+  const trackOutcome = (outcome: string, reason: string, extra?: Record<string, unknown>) => {
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: "system-auto-approve",
+        event: "auto_approval_outcome",
+        properties: {
+          intake_id: intakeId,
+          outcome, // "approved", "skipped", "failed", "rate_limited", "not_eligible", "dry_run"
+          reason,
+          duration_ms: Date.now() - startTime,
+          ...extra,
+        },
+      })
+    } catch { /* non-blocking */ }
+  }
+
   // 1. Feature flag check (DB-backed, togglable from admin dashboard)
   const featureFlags = await getFeatureFlags()
   if (!featureFlags.ai_auto_approve_enabled) {
+    trackOutcome("skipped", "feature_disabled")
     return { success: true, autoApproved: false, reason: "Feature disabled" }
   }
+
+  const isDryRun = featureFlags.auto_approve_dry_run
 
   // 1b. System-level rate limiting (configurable via admin dashboard)
   const rateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
@@ -191,6 +213,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
+    trackOutcome("rate_limited", "burst_limit")
     return { success: true, autoApproved: false, reason: "Rate limit exceeded" }
   }
 
@@ -206,6 +229,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
+    trackOutcome("rate_limited", "daily_cap")
     return { success: true, autoApproved: false, reason: "Daily cap exceeded" }
   }
 
@@ -245,10 +269,12 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const serviceRaw = intake.service as unknown
     const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { id: string; slug: string; name: string; type: string } | null
     if (!service || service.type !== "med_certs") {
+      trackOutcome("skipped", "not_med_cert")
       return { success: true, autoApproved: false, reason: "Not a med cert service" }
     }
 
     if (intake.status !== "paid") {
+      trackOutcome("skipped", "wrong_status", { status: intake.status })
       return { success: true, autoApproved: false, reason: `Intake status is ${intake.status}, not paid` }
     }
 
@@ -267,6 +293,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     if (claimError || !claimRows || claimRows.length === 0) {
       log.info("Auto-approval: could not claim intake (likely claimed by doctor)", { intakeId })
+      trackOutcome("skipped", "already_claimed")
       return { success: true, autoApproved: false, reason: "Intake already claimed by doctor" }
     }
 
@@ -290,6 +317,15 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const patientRaw = intake.patient as unknown
     const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { date_of_birth: string | null } | null
 
+    // Count previous successful auto-approvals for this patient (trust building)
+    const patientId = intake.patient_id
+    const { count: previousApprovalCount } = await supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("patient_id", patientId)
+      .eq("ai_approved", true)
+      .eq("status", "approved")
+
     // 7. Evaluate eligibility (with configurable max duration from admin settings)
     const eligibility = evaluateAutoApprovalEligibility(
       { service_type: service.type, subtype: intake.subtype },
@@ -300,7 +336,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           : null,
       },
       patientInfo,
-      { maxDurationDays: featureFlags.auto_approve_max_duration_days },
+      { maxDurationDays: featureFlags.auto_approve_max_duration_days, previousApprovalCount: previousApprovalCount ?? 0 },
     )
 
     // Log eligibility decision regardless of outcome
@@ -334,28 +370,52 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       }
 
       await releaseSystemClaim(supabase, intakeId)
+
+      // Notify doctor via Telegram that a request needs manual review
+      const alertMsg = `*Manual Review Required*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. needs doctor review\\.\nReason: ${eligibility.reason.replace(/[._>#+\-=|{!}()]/g, "\\$&")}`
+      sendTelegramAlert(alertMsg).catch(() => {})
+
+      trackOutcome("not_eligible", eligibility.reason, { flags: eligibility.disqualifyingFlags })
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }
 
-    // 8. Get platform doctor (earliest-registered with valid credentials)
-    const { data: doctor, error: doctorError } = await supabase
+    // 8. Round-robin doctor selection: pick the doctor with fewest recent approvals
+    const { data: doctors, error: doctorError } = await supabase
       .from("profiles")
       .select("id, full_name, provider_number, ahpra_number")
       .eq("role", "doctor")
+      .eq("ahpra_verified", true)
       .not("provider_number", "is", null)
       .not("ahpra_number", "is", null)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .single()
 
-    if (doctorError || !doctor || !doctor.provider_number || !doctor.ahpra_number) {
+    if (doctorError || !doctors || doctors.length === 0) {
       log.error("Auto-approval: no available doctor with credentials", { intakeId, error: doctorError?.message })
       Sentry.captureMessage("Auto-approval failed: no doctor with credentials available", {
         level: "error",
         tags: { subsystem: "auto-approval", intake_id: intakeId },
       })
       await releaseSystemClaim(supabase, intakeId)
+      trackOutcome("failed", "no_doctor")
       return { success: false, autoApproved: false, reason: "No doctor available", error: "No doctor with credentials found" }
+    }
+
+    // If only one doctor, use them directly
+    let doctor = doctors[0]
+    if (doctors.length > 1) {
+      // Pick the doctor with fewest approvals in the last 24 hours
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const doctorCounts = await Promise.all(
+        doctors.map(async (d) => {
+          const { count } = await supabase
+            .from("intakes")
+            .select("id", { count: "exact", head: true })
+            .eq("reviewed_by", d.id)
+            .gte("reviewed_at", oneDayAgo)
+          return { doctor: d, count: count ?? 0 }
+        })
+      )
+      doctorCounts.sort((a, b) => a.count - b.count)
+      doctor = doctorCounts[0].doctor
     }
 
     // 9. Build review data from answers
@@ -363,10 +423,23 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     if (!reviewData) {
       log.warn("Auto-approval: could not build review data from answers", { intakeId })
       await releaseSystemClaim(supabase, intakeId)
+      trackOutcome("failed", "no_review_data")
       return { success: false, autoApproved: false, reason: "Could not build review data", error: "Missing answer data" }
     }
 
-    // 10. Execute the approval pipeline
+    // 10. Dry-run check — evaluate but don't issue
+    if (isDryRun) {
+      log.info("Auto-approval DRY RUN: would have approved", {
+        intakeId,
+        doctorId: doctor.id,
+        reviewData,
+      })
+      trackOutcome("dry_run", "would_approve", { doctor_id: doctor.id })
+      await releaseSystemClaim(supabase, intakeId)
+      return { success: true, autoApproved: false, reason: "Dry run — would have approved" }
+    }
+
+    // 11. Execute the approval pipeline
     log.info("Auto-approval: executing approval pipeline", { intakeId, doctorId: doctor.id })
 
     const approvalResult = await executeCertApproval({
@@ -419,6 +492,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         email_sent: approvalResult.emailSent,
       })
 
+      trackOutcome("approved", "auto_approved", { certificate_id: approvalResult.certificateId })
+
       // Record rate-limit actions so the DB-backed counter increments
       await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve", { intakeId })
       await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve_daily", { intakeId })
@@ -439,6 +514,10 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     })
     await releaseSystemClaim(supabase, intakeId)
 
+    const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${(approvalResult.error || "Unknown").replace(/[._>#+\-=|{!}()]/g, "\\$&")}`
+    sendTelegramAlert(alertMsg).catch(() => {})
+
+    trackOutcome("failed", "pipeline_error", { error: approvalResult.error })
     return {
       success: false,
       autoApproved: false,
@@ -457,6 +536,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // Release claim on unexpected errors
     await releaseSystemClaim(supabase, intakeId)
 
+    trackOutcome("failed", "unexpected_error", { error: errorMessage })
     return {
       success: false,
       autoApproved: false,

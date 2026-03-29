@@ -41,6 +41,7 @@ export const FLAG_KEYS = {
   AUTO_APPROVE_RATE_LIMIT_5MIN: "auto_approve_rate_limit_5min",
   AUTO_APPROVE_DAILY_CAP: "auto_approve_daily_cap",
   AUTO_APPROVE_MAX_DURATION_DAYS: "auto_approve_max_duration_days",
+  AUTO_APPROVE_DRY_RUN: "auto_approve_dry_run",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -81,6 +82,7 @@ export interface FeatureFlags {
   auto_approve_rate_limit_5min: number
   auto_approve_daily_cap: number
   auto_approve_max_duration_days: number
+  auto_approve_dry_run: boolean
 }
 
 // ============================================================================
@@ -126,6 +128,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   auto_approve_rate_limit_5min: 10,
   auto_approve_daily_cap: 50,
   auto_approve_max_duration_days: 3,
+  auto_approve_dry_run: false,
 }
 
 // ============================================================================
@@ -256,6 +259,10 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     auto_approve_max_duration_days: {
       label: "Auto-Approve Max Duration (days)",
       description: "Maximum certificate duration (in days) eligible for auto-approval. Certs longer than this require doctor review.",
+    },
+    auto_approve_dry_run: {
+      label: "Auto-Approve Dry Run",
+      description: "When enabled, auto-approval evaluates eligibility but does not issue certificates. Logs what would have been approved.",
     },
   }
   return info[key]

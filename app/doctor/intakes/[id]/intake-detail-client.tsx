@@ -553,8 +553,11 @@ export function IntakeDetailClient({
         return
       }
       const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      setCertPdfUrl(url)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setCertPdfUrl(reader.result as string)
+      }
+      reader.readAsDataURL(blob)
     } catch {
       toast.error("Failed to load certificate")
     } finally {

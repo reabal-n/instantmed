@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
     // Find email log by provider_message_id
     const { data: emailLog, error: findError } = await supabase
       .from("email_outbox")
-      .select("id, status, delivery_status")
+      .select("id, status, delivery_status, certificate_id")
       .eq("provider_message_id", data.email_id)
       .maybeSingle()
 
@@ -363,6 +363,16 @@ export async function POST(request: NextRequest) {
       updateDeliveryStatus(data.email_id, "failed", { errorMessage: "Complaint received" }).catch(() => {})
     } else if (eventType === "email.opened") {
       updateDeliveryStatus(data.email_id, "opened").catch(() => {})
+
+      // Track certificate email opens for delivery confirmation
+      if (emailLog?.certificate_id) {
+        supabase
+          .from("issued_certificates")
+          .update({ email_opened_at: new Date().toISOString() })
+          .eq("id", emailLog.certificate_id)
+          .is("email_opened_at", null) // Only set once
+          .then(() => {}, () => {})
+      }
     }
 
     // Update email outbox

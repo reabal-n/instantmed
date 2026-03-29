@@ -59,7 +59,7 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">
-              Reviewed within 1–2 hours, most days.
+              Most medical certificates are delivered within 5 minutes. Other requests are typically reviewed within 1–2 hours.
             </p>
           </div>
         </div>
