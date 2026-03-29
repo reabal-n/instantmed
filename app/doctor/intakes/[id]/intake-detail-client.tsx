@@ -46,7 +46,6 @@ import {
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
-import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
@@ -199,12 +198,20 @@ export function IntakeDetailClient({
   // P0 SAFETY: Detect red flags that require acknowledgment before approval
   const intakeAnswers = intake.answers?.answers as Record<string, unknown> | undefined
 
-  // Helper: check if a value is actually concerning (not "None", "No", "mild", etc.)
+  // Helper: check if a value is actually concerning (not empty, "None", "No", "mild", etc.)
   const isConcerningValue = (val: unknown): boolean => {
     if (!val) return false
+    if (Array.isArray(val)) return val.filter(v => v && String(v).trim()).length > 0
     const str = String(val).toLowerCase().trim()
-    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "mild", "moderate", "low", "minimal", "minor"])
+    if (!str) return false
+    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "mild", "moderate", "low", "minimal", "minor", "[]"])
     return !benign.has(str)
+  }
+
+  // Format a flag value for display (handle arrays and strings)
+  const formatFlagValue = (val: unknown): string => {
+    if (Array.isArray(val)) return val.filter(v => v && String(v).trim()).join(", ")
+    return String(val)
   }
 
   const hasRedFlags = Boolean(
@@ -214,8 +221,8 @@ export function IntakeDetailClient({
     intake.requires_live_consult
   )
   const redFlagDetails = [
-    isConcerningValue(intakeAnswers?.red_flags_detected) && `Red flags: ${intakeAnswers?.red_flags_detected}`,
-    isConcerningValue(intakeAnswers?.emergency_symptoms) && `Emergency symptoms: ${intakeAnswers?.emergency_symptoms}`,
+    isConcerningValue(intakeAnswers?.red_flags_detected) && `Red flags: ${formatFlagValue(intakeAnswers?.red_flags_detected)}`,
+    isConcerningValue(intakeAnswers?.emergency_symptoms) && `Emergency symptoms: ${formatFlagValue(intakeAnswers?.emergency_symptoms)}`,
     intake.risk_tier === "high" && "High risk tier",
     intake.requires_live_consult && "Requires live consult",
   ].filter(Boolean) as string[]
@@ -533,46 +540,21 @@ export function IntakeDetailClient({
     })
   }
 
-  const handleRegenerateCertificate = () => {
-    startTransition(async () => {
-      const result = await regenerateCertificateAction({
-        intakeId: intake.id,
-        reason: "Doctor requested regeneration"
-      })
-      if (result.success) {
-        toast.success("Certificate regenerated and resent to patient")
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to regenerate certificate")
-      }
-    })
-  }
-
   const [isViewingCert, setIsViewingCert] = useState(false)
   const [certPdfUrl, setCertPdfUrl] = useState<string | null>(null)
 
+  // View the ACTUAL stored certificate PDF (what the patient received)
   const handleViewCertificate = async () => {
     setIsViewingCert(true)
     try {
-      const previewResult = await fetchCertPreviewDataAction(intake.id, draftId || "")
-      if (!previewResult.success || !previewResult.data) {
-        toast.error(previewResult.error || "Certificate data not available")
+      const response = await fetch(`/api/doctor/certificates/${intake.id}/download`)
+      if (!response.ok) {
+        toast.error("Certificate not available — it may not have been generated yet")
         return
       }
-      const { generatePreviewPdfAction } = await import("./document/actions")
-      const pdfResult = await generatePreviewPdfAction({
-        patientName: previewResult.data.patientName,
-        patientDob: previewResult.data.patientDob,
-        certificateType: previewResult.data.certificateType,
-        startDate: previewResult.data.startDate,
-        endDate: previewResult.data.endDate,
-        consultDate: previewResult.data.consultDate,
-      })
-      if (pdfResult.success && pdfResult.pdfDataUrl) {
-        setCertPdfUrl(pdfResult.pdfDataUrl)
-      } else {
-        toast.error(pdfResult.error || "Failed to render certificate")
-      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setCertPdfUrl(url)
     } catch {
       toast.error("Failed to load certificate")
     } finally {
@@ -945,18 +927,15 @@ export function IntakeDetailClient({
                   {isViewingCert ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   View Certificate
                 </Button>
+                <Button variant="outline" asChild>
+                  <Link href={`/doctor/intakes/${intake.id}/document`}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Edit & Resend
+                  </Link>
+                </Button>
                 <Button variant="outline" onClick={handleResendCertificate} disabled={isPending}>
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
-                  Resend Certificate
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={handleRegenerateCertificate} 
-                  disabled={isPending}
-                  className="text-warning border-warning-border hover:bg-warning-light"
-                >
-                  {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
-                  Regenerate Certificate
+                  Resend Email
                 </Button>
               </>
             )}

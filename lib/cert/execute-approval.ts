@@ -215,16 +215,6 @@ export async function executeCertApproval(
 
   const patientDob = patient.date_of_birth || null
 
-  // Extract carer details if certificate type is "carer"
-  let _carerPersonName: string | undefined
-  let _carerRelationship: string | undefined
-  if (certificateType === "carer" && answersData) {
-    _carerPersonName = (answersData.carer_patient_name as string | undefined) ||
-                     (answersData.carerPatientName as string | undefined)
-    _carerRelationship = (answersData.carer_relationship as string | undefined) ||
-                       (answersData.carerRelationship as string | undefined)
-  }
-
   const verificationCode = generateVerificationCode(certificateNumber)
 
   // 3. Generate PDF
