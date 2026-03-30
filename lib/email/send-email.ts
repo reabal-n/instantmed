@@ -54,6 +54,7 @@ export type EmailType =
   | "request_received"
   | "referral_credit"
   | "refund_issued"
+  | "still_reviewing"
 
 interface SendEmailParams {
   to: string

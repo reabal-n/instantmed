@@ -9,6 +9,18 @@ import { getFeatureFlags } from "@/lib/feature-flags"
 
 const logger = createLogger("cron-retry-auto-approval")
 
+function formatRequestType(category: string | null, subtype: string | null): string {
+  if (category === "medical_certificate") return "medical certificate"
+  if (category === "prescription") return "prescription"
+  if (category === "consult") return "general consultation"
+  if (category === "referral") {
+    if (subtype === "imaging") return "imaging referral"
+    if (subtype === "pathology") return "pathology referral"
+    return "referral"
+  }
+  return "request"
+}
+
 /**
  * GET /api/cron/retry-auto-approval
  *
@@ -37,7 +49,77 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceRoleClient()
 
   try {
-    // Find med cert intakes that are:
+    // -----------------------------------------------------------------------
+    // Send "still reviewing" emails for intakes 45+ min old without one sent
+    // -----------------------------------------------------------------------
+    const fortyFiveMinAgo = new Date(Date.now() - 45 * 60 * 1000).toISOString()
+    const { data: followUpCandidates } = await supabase
+      .from("intakes")
+      .select(`
+        id, patient_id, category, subtype,
+        patient:profiles!patient_id(full_name, email)
+      `)
+      .eq("status", "paid")
+      .is("follow_up_sent_at", null)
+      .lt("paid_at", fortyFiveMinAgo)
+      .not("patient_id", "is", null)
+      .limit(20)
+
+    if (followUpCandidates && followUpCandidates.length > 0) {
+      const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
+        await Promise.all([
+          import("@/lib/email/send-email"),
+          import("@/components/email/templates/still-reviewing"),
+          import("react"),
+        ])
+
+      await Promise.allSettled(
+        followUpCandidates.map(async (intake) => {
+          const patientRaw = intake.patient as
+            | { full_name: string; email: string }[]
+            | { full_name: string; email: string }
+            | null
+          const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
+          if (!patient?.email) return
+
+          const requestType = formatRequestType(
+            intake.category as string | null,
+            intake.subtype as string | null,
+          )
+
+          try {
+            await sendEmail({
+              to: patient.email,
+              toName: patient.full_name || undefined,
+              subject: stillReviewingSubject(requestType),
+              template: React.createElement(StillReviewingEmail, {
+                patientName: patient.full_name || "there",
+                requestType,
+                requestId: intake.id,
+              }),
+              emailType: "still_reviewing",
+              intakeId: intake.id,
+              patientId: intake.patient_id ?? undefined,
+            })
+            // Mark sent so we don't send twice
+            await supabase
+              .from("intakes")
+              .update({ follow_up_sent_at: new Date().toISOString() })
+              .eq("id", intake.id)
+          } catch (err) {
+            logger.error(
+              "Failed to send still-reviewing email",
+              { intakeId: intake.id },
+              err as Error,
+            )
+          }
+        }),
+      )
+    }
+
+    // -----------------------------------------------------------------------
+    // Auto-approval: find med cert intakes eligible for AI review
+    // -----------------------------------------------------------------------
     // - status = 'paid' (not yet approved)
     // - unclaimed (no doctor or system has claimed them)
     // - paid after configurable delay (admin setting) to 60 minutes ago
