@@ -40,19 +40,14 @@ export async function GET(request: NextRequest) {
 
   await recordCronHeartbeat("retry-auto-approval")
 
-  // Quick bail if feature flag is off
-  const flags = await getFeatureFlags()
-  if (!flags.ai_auto_approve_enabled) {
-    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled" })
-  }
-
   const supabase = createServiceRoleClient()
 
+  // -----------------------------------------------------------------------
+  // Send "still reviewing" emails — runs regardless of auto-approval flag
+  // -----------------------------------------------------------------------
   try {
-    // -----------------------------------------------------------------------
-    // Send "still reviewing" emails for intakes 45+ min old without one sent
-    // -----------------------------------------------------------------------
     const fortyFiveMinAgo = new Date(Date.now() - 45 * 60 * 1000).toISOString()
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
     const { data: followUpCandidates } = await supabase
       .from("intakes")
       .select(`
@@ -62,6 +57,7 @@ export async function GET(request: NextRequest) {
       .eq("status", "paid")
       .is("follow_up_sent_at", null)
       .lt("paid_at", fortyFiveMinAgo)
+      .gt("paid_at", fourHoursAgo)
       .not("patient_id", "is", null)
       .limit(20)
 
@@ -116,7 +112,18 @@ export async function GET(request: NextRequest) {
         }),
       )
     }
+  } catch (followUpError) {
+    logger.error("Error in still-reviewing follow-up block", {}, followUpError as Error)
+    // Don't return early — auto-approval should still run
+  }
 
+  // Quick bail if feature flag is off
+  const flags = await getFeatureFlags()
+  if (!flags.ai_auto_approve_enabled) {
+    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled" })
+  }
+
+  try {
     // -----------------------------------------------------------------------
     // Auto-approval: find med cert intakes eligible for AI review
     // -----------------------------------------------------------------------
