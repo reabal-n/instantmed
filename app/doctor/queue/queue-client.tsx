@@ -382,6 +382,22 @@ export function QueueClient({
             setExpandedId(null)
           }
           break
+        case "a": // Approve (or open review for med certs)
+          if (expandedId) {
+            e.preventDefault()
+            const intake = filteredIntakes.find((r) => r.id === expandedId)
+            if (intake) {
+              const service = intake.service as { type?: string } | undefined
+              handleApprove(intake.id, service?.type)
+            }
+          }
+          break
+        case "d": // Open decline dialog
+          if (expandedId) {
+            e.preventDefault()
+            setDeclineDialog(expandedId)
+          }
+          break
       }
     }
 

@@ -90,9 +90,17 @@ export default async function DoctorDashboardPage({
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>
         </div>
-        <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-muted-foreground/70 bg-muted/40 rounded border border-border/40">
-          <span className="text-foreground/60">⌘</span>?
-        </kbd>
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/60 font-mono">
+          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">j</kbd>
+          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">k</kbd>
+          <span className="text-muted-foreground/40">navigate</span>
+          <span className="mx-1 text-muted-foreground/20">·</span>
+          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">a</kbd>
+          <span className="text-muted-foreground/40">approve</span>
+          <span className="mx-1 text-muted-foreground/20">·</span>
+          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">d</kbd>
+          <span className="text-muted-foreground/40">decline</span>
+        </div>
       </div>
 
       {/* Identity Incomplete Banner */}
