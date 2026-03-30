@@ -33,6 +33,8 @@ export interface IntakeMonitorStats {
   // AI auto-approval metrics
   aiApprovedToday?: number
   aiRevokedToday?: number
+  aiAttemptedToday?: number
+  aiIneligibleToday?: number
   todayEarnings?: number
 }
 
@@ -106,6 +108,12 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
 
   const approvalRate = stats.approvedToday + stats.declinedToday > 0
     ? Math.round((stats.approvedToday / (stats.approvedToday + stats.declinedToday)) * 100)
+    : null
+
+  // AI auto-approval hit rate: approved / eligible (attempted - ineligible)
+  const aiEligibleAttempts = (stats.aiAttemptedToday ?? 0) - (stats.aiIneligibleToday ?? 0)
+  const aiHitRate = aiEligibleAttempts > 0
+    ? Math.round(((stats.aiApprovedToday ?? 0) / aiEligibleAttempts) * 100)
     : null
 
   const queueHealthy = stats.queueSize < 10
@@ -227,15 +235,18 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
             )}
           </div>
 
-          {(stats.aiApprovedToday != null && stats.aiApprovedToday > 0) && (
+          {(stats.aiApprovedToday != null && (stats.aiAttemptedToday ?? 0) > 0) && (
             <>
               <div className="h-3.5 w-px bg-border/60" />
-              <div className="flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-violet-500" />
-                <span className="text-xs text-muted-foreground">
-                  {stats.aiApprovedToday} AI
-                  {stats.aiRevokedToday ? ` · ${stats.aiRevokedToday} revoked` : ""}
-                </span>
+              <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>{stats.aiApprovedToday} AI approved</span>
+                {aiHitRate !== null && (
+                  <span className="text-muted-foreground">({aiHitRate}% hit rate)</span>
+                )}
+                {stats.aiRevokedToday ? (
+                  <span className="text-muted-foreground">· {stats.aiRevokedToday} revoked</span>
+                ) : null}
               </div>
             </>
           )}

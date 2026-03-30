@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireApiRole } from "@/lib/auth"
-import { getIntakeMonitoringStats, getSlaBreachIntakes } from "@/lib/data/intakes"
+import { getIntakeMonitoringStats, getSlaBreachIntakes, getAutoApprovalMetrics } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
 
@@ -16,16 +16,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch stats and SLA data in parallel
-    const [stats, slaData] = await Promise.all([
+    // Fetch stats, SLA data, and auto-approval metrics in parallel
+    const [stats, slaData, autoApprovalMetrics] = await Promise.all([
       getIntakeMonitoringStats(),
       getSlaBreachIntakes(),
+      getAutoApprovalMetrics(),
     ])
 
     return NextResponse.json({
       ...stats,
       slaBreached: slaData.breached,
       slaApproaching: slaData.approaching,
+      aiApprovedToday: autoApprovalMetrics?.todayApproved,
+      aiRevokedToday: autoApprovalMetrics?.todayRevoked,
+      aiAttemptedToday: autoApprovalMetrics?.todayAttempted,
+      aiIneligibleToday: autoApprovalMetrics?.todayIneligible,
     })
   } catch {
     return NextResponse.json(

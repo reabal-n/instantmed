@@ -74,6 +74,8 @@ export default async function DoctorDashboardPage({
     slaApproaching: slaData.approaching,
     aiApprovedToday: autoApprovalMetrics?.todayApproved,
     aiRevokedToday: autoApprovalMetrics?.todayRevoked,
+    aiAttemptedToday: autoApprovalMetrics?.todayAttempted,
+    aiIneligibleToday: autoApprovalMetrics?.todayIneligible,
     todayEarnings,
   }
 
