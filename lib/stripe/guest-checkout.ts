@@ -40,6 +40,12 @@ interface GuestCheckoutInput {
   guestDateOfBirth?: string
   guestPhone?: string // Required for prescription category (eScript SMS delivery)
   serviceSlug?: string
+  attribution?: {
+    utm_source?: string
+    utm_medium?: string
+    utm_campaign?: string
+    referrer?: string
+  }
 }
 
 interface CheckoutResult {
@@ -421,6 +427,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         idempotency_key: guestIdempotencyKey,
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
+        // Attribution: store UTM params for payment attribution in PostHog
+        utm_source: input.attribution?.utm_source || null,
+        utm_medium: input.attribution?.utm_medium || null,
+        utm_campaign: input.attribution?.utm_campaign || null,
       })
       .select("id")
       .single()

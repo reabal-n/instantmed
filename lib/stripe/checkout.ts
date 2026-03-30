@@ -43,6 +43,12 @@ interface CreateCheckoutInput {
   serviceSlug?: string // Service slug to look up service_id
   idempotencyKey: string // P1 FIX: Required - client-generated key to prevent duplicate submissions
   chatSessionId?: string // Session ID from AI chat flow for transcript linking
+  attribution?: {
+    utm_source?: string
+    utm_medium?: string
+    utm_campaign?: string
+    referrer?: string
+  }
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -444,6 +450,10 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       subtype: input.subtype,
       idempotency_key: input.idempotencyKey, // P1 FIX: Always required
       stripe_price_id: priceId || null, // Store for retry pricing consistency
+      // Attribution: store UTM params for payment attribution in PostHog
+      utm_source: input.attribution?.utm_source || null,
+      utm_medium: input.attribution?.utm_medium || null,
+      utm_campaign: input.attribution?.utm_campaign || null,
     }
 
     const { data: intake, error: intakeError } = await supabase

@@ -293,19 +293,30 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     })
 
     // Track funnel: payment completed
-    // Fetch clerk_user_id early so server-side PostHog distinctId matches client-side
+    // Fetch clerk_user_id so server-side PostHog distinctId matches client-side identify()
     const { data: phProfile } = await supabase
       .from("profiles")
       .select("clerk_user_id")
       .eq("id", patientId)
       .maybeSingle()
 
+    // Fetch attribution data stored on the intake at checkout time
+    const { data: intakeAttribution } = await supabase
+      .from("intakes")
+      .select("utm_source, utm_medium, utm_campaign, category, subtype")
+      .eq("id", intakeId)
+      .maybeSingle()
+
+    // Use clerk_user_id as primary distinctId (matches client-side posthog.identify)
+    // Fall back to patientId for guest checkouts without Clerk accounts
+    const posthogDistinctId = phProfile?.clerk_user_id || patientId || intakeId
+
     trackIntakeFunnelStep({
       step: "payment_completed",
       intakeId: intakeId!,
       serviceSlug: session.metadata?.service_slug || "unknown",
       serviceType: session.metadata?.category || session.metadata?.service_type || "unknown",
-      userId: phProfile?.clerk_user_id || patientId || undefined,
+      userId: posthogDistinctId,
       metadata: { amount_cents: session.amount_total },
     })
 
@@ -316,16 +327,42 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       data: { intakeId, paymentIntentId, stripeCustomerId },
     })
 
-    // Track payment confirmed in PostHog
+    // Track payment confirmed in PostHog with full attribution
     try {
       const posthog = getPostHogClient()
+
+      // Alias patientId (Supabase UUID) → clerk_user_id so PostHog merges person records
+      if (phProfile?.clerk_user_id && patientId && phProfile.clerk_user_id !== patientId) {
+        posthog.alias({
+          distinctId: phProfile.clerk_user_id,
+          alias: patientId,
+        })
+      }
+
       posthog.capture({
-        distinctId: patientId || intakeId,
+        distinctId: posthogDistinctId,
         event: "webhook_payment_confirmed",
         properties: {
           intake_id: intakeId,
           amount_cents: session.amount_total,
           payment_method: session.payment_method_types?.[0],
+          service_category: intakeAttribution?.category || session.metadata?.category,
+          service_subtype: intakeAttribution?.subtype || session.metadata?.service_slug,
+          // Attribution — how this customer found us
+          utm_source: intakeAttribution?.utm_source || null,
+          utm_medium: intakeAttribution?.utm_medium || null,
+          utm_campaign: intakeAttribution?.utm_campaign || null,
+          // Person properties: $set_once for first-touch, $set for last-touch
+          $set_once: {
+            initial_utm_source: intakeAttribution?.utm_source || undefined,
+            initial_utm_medium: intakeAttribution?.utm_medium || undefined,
+            initial_utm_campaign: intakeAttribution?.utm_campaign || undefined,
+            first_payment_at: new Date().toISOString(),
+          },
+          $set: {
+            last_payment_at: new Date().toISOString(),
+            last_service: intakeAttribution?.category || session.metadata?.category,
+          },
         },
       })
     } catch { /* non-blocking */ }

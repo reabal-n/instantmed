@@ -123,11 +123,21 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         confirmedAccuracy: true,
         telehealthConsentGiven: true,
       }
+      // Capture UTM params + referrer for payment attribution
+      const params = new URLSearchParams(window.location.search)
+      const attribution = {
+        utm_source: params.get('utm_source') || undefined,
+        utm_medium: params.get('utm_medium') || undefined,
+        utm_campaign: params.get('utm_campaign') || undefined,
+        referrer: document.referrer || undefined,
+      }
+
       const result = await createCheckoutFromUnifiedFlow({
         serviceType,
         answers: answersWithConsents,
         identity,
         chatSessionId: chatSessionId || undefined,
+        attribution,
       })
 
       if (!result.success) {

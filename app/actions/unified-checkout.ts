@@ -31,6 +31,12 @@ interface UnifiedCheckoutInput {
     phone?: string
   }
   chatSessionId?: string // Session ID from AI chat flow for transcript linking
+  attribution?: {
+    utm_source?: string
+    utm_medium?: string
+    utm_campaign?: string
+    referrer?: string
+  }
 }
 
 interface CheckoutResult {
@@ -179,7 +185,7 @@ function validateAnswersServerSide(
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity, chatSessionId } = input
+  const { serviceType, answers, identity, chatSessionId, attribution } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
@@ -220,6 +226,7 @@ export async function createCheckoutFromUnifiedFlow(
         .digest("hex")
         .slice(0, 32),
       chatSessionId, // Pass chat session ID for transcript linking
+      attribution,
     })
   } else {
     // Guest checkout - requires identity info
@@ -247,6 +254,7 @@ export async function createCheckoutFromUnifiedFlow(
       guestName: identity.fullName,
       guestDateOfBirth: identity.dateOfBirth,
       guestPhone: identity.phone,
+      attribution,
     })
   }
 }
