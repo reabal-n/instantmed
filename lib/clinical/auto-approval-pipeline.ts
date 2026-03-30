@@ -49,20 +49,20 @@ function buildReviewDataFromAnswers(
 ): CertReviewData | null {
   if (!answers) return null
 
-  const today = new Date().toISOString().split("T")[0]!
+  // Use AEST date — UTC can be a day ahead/behind in Australia
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
 
-  // Determine start date
-  let startDate = (answers.start_date as string) || today
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
-    startDate = today
-  }
+  // Determine start date — check both camelCase (new flow) and snake_case (legacy)
+  const rawStartDate = (answers.startDate as string) || (answers.start_date as string) || today
+  let startDate = /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : today
 
-  // Determine end date from duration
+  // Determine end date from duration using pure string arithmetic to avoid
+  // timezone pitfalls with new Date() (which parses YYYY-MM-DD as UTC midnight)
   const durationDays = extractDurationDays(answers) || getAbsenceDays(answers)
-  const start = new Date(startDate)
-  const end = new Date(start)
-  end.setDate(end.getDate() + durationDays - 1)
-  const endDate = end.toISOString().split("T")[0]!
+  const [y, m, d] = startDate.split("-").map(Number)
+  const startUtcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0)) // noon UTC avoids DST edge
+  startUtcNoon.setUTCDate(startUtcNoon.getUTCDate() + durationDays - 1)
+  const endDate = startUtcNoon.toISOString().slice(0, 10) // YYYY-MM-DD
 
   // Medical reason from symptom details or structured symptoms
   let medicalReason = ""
@@ -80,7 +80,7 @@ function buildReviewDataFromAnswers(
 
   return {
     doctorName,
-    consultDate: today,
+    consultDate: today, // AEST date — set above
     startDate,
     endDate,
     medicalReason,
@@ -195,11 +195,19 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   // 1. Feature flag check (DB-backed, togglable from admin dashboard)
   const featureFlags = await getFeatureFlags()
   if (!featureFlags.ai_auto_approve_enabled) {
+    log.warn(
+      "Auto-approval feature flag is OFF — intake will remain in doctor queue. " +
+      "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
+      { intakeId },
+    )
     trackOutcome("skipped", "feature_disabled")
     return { success: true, autoApproved: false, reason: "Feature disabled" }
   }
 
   const isDryRun = featureFlags.auto_approve_dry_run
+  if (isDryRun) {
+    log.info("Auto-approval running in DRY RUN mode — will evaluate but NOT issue certificates", { intakeId })
+  }
 
   // 1b. System-level rate limiting (configurable via admin dashboard)
   const rateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
@@ -378,7 +386,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const { data: doctors, error: doctorError } = await supabase
       .from("profiles")
       .select("id, full_name, provider_number, ahpra_number")
-      .eq("role", "doctor")
+      .in("role", ["doctor", "admin"])
       .eq("ahpra_verified", true)
       .not("provider_number", "is", null)
       .not("ahpra_number", "is", null)

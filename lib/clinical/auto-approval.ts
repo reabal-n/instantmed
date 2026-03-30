@@ -165,10 +165,17 @@ export function extractDurationDays(answers: Record<string, unknown> | null): nu
 
 /**
  * Extract start date from answers. Returns ISO date string or null.
+ * Checks both camelCase (unified flow) and snake_case (legacy flow).
  */
 export function extractStartDate(answers: Record<string, unknown> | null): string | null {
   if (!answers) return null
 
+  // Unified flow uses camelCase
+  if (typeof answers.startDate === "string" && answers.startDate) {
+    return answers.startDate
+  }
+
+  // Legacy flow uses snake_case
   if (typeof answers.start_date === "string" && answers.start_date) {
     return answers.start_date
   }
@@ -321,15 +328,15 @@ export function evaluateAutoApprovalEligibility(
   }
 
   // 10. Backdating check (start date should not be > 1 day in the past)
+  // Use AEST dates — UTC can be a full day behind in Australia, making this check too strict
   const startDateStr = extractStartDate(answers)
   if (startDateStr) {
     const startDate = new Date(startDateStr)
-    const todayUtc = new Date()
-    const todayDateStr = todayUtc.toISOString().split("T")[0]
-    const oneDayAgoUtc = new Date(todayDateStr)
-    oneDayAgoUtc.setUTCDate(oneDayAgoUtc.getUTCDate() - 1)
+    const todayAest = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
+    const oneDayAgo = new Date(todayAest)
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1)
 
-    if (startDate < oneDayAgoUtc) {
+    if (startDate < oneDayAgo) {
       flags.push("backdated_too_far")
     }
   }

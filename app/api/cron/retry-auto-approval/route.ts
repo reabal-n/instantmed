@@ -120,7 +120,11 @@ export async function GET(request: NextRequest) {
   // Quick bail if feature flag is off
   const flags = await getFeatureFlags()
   if (!flags.ai_auto_approve_enabled) {
-    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled" })
+    logger.warn(
+      "Auto-approval feature flag is OFF — skipping all auto-approval processing. " +
+      "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
+    )
+    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled via feature flag" })
   }
 
   try {
@@ -132,7 +136,9 @@ export async function GET(request: NextRequest) {
     // - paid after configurable delay (admin setting) to 60 minutes ago
     const delayMinutes = Math.max(1, flags.auto_approve_delay_minutes)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
-    const sixtyMinAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    // Extend retry window to 8 hours — intakes stuck from transient errors (rate limits,
+    // timeouts, slow AI draft gen) must still be auto-approved, not silently dropped to queue.
+    const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 
     const { data: eligibleIntakes, error: fetchError } = await supabase
       .from("intakes")
@@ -146,7 +152,7 @@ export async function GET(request: NextRequest) {
       .eq("ai_approved", false)
       .eq("auto_approval_skipped", false)
       .lt("paid_at", delayAgo)
-      .gt("paid_at", sixtyMinAgo)
+      .gt("paid_at", eightHoursAgo)
       .order("paid_at", { ascending: true })
       .limit(5)
 

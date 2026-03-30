@@ -1,441 +1,434 @@
 /**
  * Admin Email Preview System
- * 
- * Provides template preview functionality for the admin dashboard
- * without using react-dom/server to avoid build issues.
+ *
+ * Renders the ACTUAL React Email templates used in production,
+ * so admin preview matches what patients receive exactly.
  */
 
 import "server-only"
+import * as React from "react"
+import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { createLogger } from "@/lib/observability/logger"
+
+// ── Template imports ──
+import { WelcomeEmail } from "@/components/email/templates/welcome"
+import { MedCertPatientEmail } from "@/components/email/templates/med-cert-patient"
+import { MedCertEmployerEmail } from "@/components/email/templates/med-cert-employer"
+import { ScriptSentEmail } from "@/components/email/templates/script-sent"
+import { RequestDeclinedEmail } from "@/components/email/templates/request-declined"
+import { StillReviewingEmail } from "@/components/email/templates/still-reviewing"
+import { IntakeSubmittedEmail } from "@/components/email/templates/intake-submitted"
+import { ConsultApprovedEmail } from "@/components/email/templates/consult-approved"
+import { RequestReceivedEmail } from "@/components/email/templates/request-received"
+import { NeedsMoreInfoEmail } from "@/components/email/templates/needs-more-info"
+import { EdApprovedEmail } from "@/components/email/templates/ed-approved"
+import { HairLossApprovedEmail } from "@/components/email/templates/hair-loss-approved"
+import { WeightLossApprovedEmail } from "@/components/email/templates/weight-loss-approved"
+import { WomensHealthApprovedEmail } from "@/components/email/templates/womens-health-approved"
+import { PrescriptionApprovedEmail } from "@/components/email/templates/prescription-approved"
+import { PaymentConfirmedEmail } from "@/components/email/templates/payment-confirmed"
+import { PaymentReceiptEmail } from "@/components/email/templates/payment-receipt"
+import { PaymentFailedEmail } from "@/components/email/templates/payment-failed"
+import { PaymentRetryEmail } from "@/components/email/templates/payment-retry"
+import { RefundIssuedEmail } from "@/components/email/templates/refund-issued"
+import { AbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
+import { RepeatRxReminderEmail } from "@/components/email/templates/repeat-rx-reminder"
+import { ReferralCreditEmail } from "@/components/email/templates/referral-credit"
+import { GuestCompleteAccountEmail } from "@/components/email/templates/guest-complete-account"
+import { VerificationCodeEmail } from "@/components/email/templates/verification-code"
 
 const log = createLogger("admin-email-preview")
 
 // ============================================================================
-// TEMPLATE PREVIEW DATA
+// TEMPLATE REGISTRY
 // ============================================================================
 
 interface PreviewTemplate {
   slug: string
   name: string
   subject: string
-  htmlTemplate: string
   availableTags: string[]
   sampleData: Record<string, string>
+  render: (data: Record<string, string>) => React.ReactElement
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 const PREVIEW_TEMPLATES: PreviewTemplate[] = [
-  {
-    slug: "med_cert_patient",
-    name: "Medical Certificate - Patient",
-    subject: "Your medical certificate is ready 🎉",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
-    .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>InstantMed</h1>
-    </div>
-    <div class="content">
-      <h2>Your medical certificate is ready</h2>
-      <p>Hi {{patientName}},</p>
-      <p>Your <strong>Medical Certificate — {{certType}}</strong> has been reviewed and approved by one of our doctors. You can download it from your dashboard.</p>
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
-      </p>
-      {{#verificationCode}}
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
-        <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534; font-weight: 600;">Verification Code</p>
-        <p style="margin: 0; font-size: 20px; font-family: monospace; font-weight: bold; color: #15803d; letter-spacing: 2px;">{{verificationCode}}</p>
-        <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">You can verify this certificate at {{appUrl}}/verify</p>
-      </div>
-      {{/verificationCode}}
-      <h3>What happens next?</h3>
-      <ul>
-        <li>Download your certificate from your dashboard</li>
-        <li>Forward it to your employer, university, or relevant institution</li>
-        <li>Keep a copy for your records</li>
-      </ul>
-      <p style="margin-top: 24px;">Best regards,<br>The InstantMed Team</p>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["patientName", "dashboardUrl", "verificationCode", "certType", "appUrl"],
-    sampleData: {
-      patientName: "John Smith",
-      dashboardUrl: "https://instantmed.com.au/dashboard",
-      verificationCode: "ABC12345",
-      certType: "Medical Certificate",
-      appUrl: "https://instantmed.com.au",
-    },
-  },
-  {
-    slug: "med_cert_employer",
-    name: "Medical Certificate - Employer",
-    subject: "Medical Certificate for {{patientName}}",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px 24px; margin: 24px; text-align: center; }
-    .content { padding: 0 24px 32px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header-banner">
-      <p style="margin: 0; font-size: 14px; color: #166534; font-weight: 600;">Medical Certificate</p>
-      <p style="margin: 4px 0 0 0; font-size: 18px; color: #1f2937; font-weight: 600;">{{patientName}}</p>
-      {{#certStartDate}}{{#certEndDate}}<p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">{{certStartDate}} — {{certEndDate}}</p>{{/certEndDate}}{{/certStartDate}}
-    </div>
-    <div class="content">
-      <p>{{greeting}}</p>
-      <p><strong>{{patientName}}</strong> has requested that we forward their medical certificate to you. This certificate was issued by a registered Australian doctor through InstantMed's telehealth service.</p>
-      {{#patientNote}}
-      <div style="background: #f9fafb; border-left: 4px solid #3B82F6; padding: 16px; margin: 20px 0;">
-        <p style="margin: 0 0 8px 0; font-weight: 600;">Note from {{patientName}}</p>
-        <p style="margin: 0; font-style: italic;">"{{patientNote}}"</p>
-      </div>
-      {{/patientNote}}
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{downloadUrl}}" class="button">Download Certificate (PDF)</a>
-      </p>
-      <p style="text-align: center; margin: 16px 0; font-size: 12px; color: #6b7280;">This link expires in {{expiresInDays}} days for security.</p>
-      {{#verificationCode}}
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
-        <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534; font-weight: 600;">Certificate Verification</p>
-        <p style="margin: 0; font-size: 20px; font-family: monospace; font-weight: bold; color: #15803d; letter-spacing: 2px;">{{verificationCode}}</p>
-        <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">You can verify the authenticity of this certificate at {{appUrl}}/verify</p>
-      </div>
-      {{/verificationCode}}
-      <h3>About InstantMed</h3>
-      <p style="font-size: 12px; color: #6b7280; margin: 0;">InstantMed is an Australian telehealth service. All medical certificates are issued by AHPRA-registered doctors and include verification codes for authenticity checks. If you have questions about this certificate, please contact us at {{appUrl}}/contact.</p>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["employerName", "companyName", "patientName", "downloadUrl", "expiresInDays", "verificationCode", "patientNote", "certStartDate", "certEndDate", "appUrl"],
-    sampleData: {
-      employerName: "John Manager",
-      companyName: "Acme Corp",
-      patientName: "John Smith",
-      downloadUrl: "https://instantmed.com.au/download/ABC123",
-      expiresInDays: "7",
-      verificationCode: "ABC12345",
-      patientNote: "Please find attached my medical certificate",
-      certStartDate: "2024-01-15",
-      certEndDate: "2024-01-20",
-      appUrl: "https://instantmed.com.au",
-    },
-  },
+  // ── Patient Lifecycle ──
   {
     slug: "welcome",
     name: "Welcome Email",
     subject: "Welcome to InstantMed",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
-    .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>InstantMed</h1>
-    </div>
-    <div class="content">
-      <h2>Welcome to InstantMed!</h2>
-      <p>Hi {{patientName}},</p>
-      <p>Welcome to InstantMed! We're here to make healthcare simple and accessible. Get started with your first consult today.</p>
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{dashboardUrl}}" class="button">Get Started</a>
-      </p>
-      <h3>What we offer:</h3>
-      <ul>
-        <li>Quick online consultations with Australian doctors</li>
-        <li>Medical certificates and eScripts</li>
-        <li>No appointment needed - consult on your schedule</li>
-        <li>Secure and confidential service</li>
-      </ul>
-      <p style="margin-top: 24px;">We look forward to helping you with your healthcare needs.</p>
-      <p>Best regards,<br>The InstantMed Team</p>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["patientName", "dashboardUrl", "appUrl"],
-    sampleData: {
-      patientName: "John Smith",
-      dashboardUrl: "https://instantmed.com.au/dashboard",
-      appUrl: "https://instantmed.com.au",
-    },
+    availableTags: ["patientName"],
+    sampleData: { patientName: "Sarah Johnson" },
+    render: (d) => React.createElement(WelcomeEmail, { patientName: d.patientName, appUrl: APP_URL }),
   },
   {
-    slug: "payment_receipt",
-    name: "Payment Receipt",
-    subject: "Payment confirmed — {{serviceName}}",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
-    .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-    .receipt-table { width: 100%; border-collapse: collapse; }
-    .receipt-table td { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
-    .receipt-label { color: #6b7280; }
-    .receipt-value { text-align: right; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>InstantMed</h1>
-    </div>
-    <div class="content">
-      <h2>Payment confirmed</h2>
-      <p>Hi {{patientName}},</p>
-      <p>We've received your payment of <strong>{{amount}}</strong> for <strong>{{serviceName}}</strong>. A doctor will review your request shortly.</p>
-      <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 24px 0;">
-        <h3 style="margin: 0 0 12px 0;">Receipt Details</h3>
-        <table class="receipt-table">
-          <tr><td class="receipt-label">Service</td><td class="receipt-value">{{serviceName}}</td></tr>
-          <tr><td class="receipt-label">Amount</td><td class="receipt-value">{{amount}}</td></tr>
-          <tr><td class="receipt-label">Reference</td><td class="receipt-value" style="font-family: monospace; font-size: 13px;">{{intakeRef}}</td></tr>
-          <tr><td class="receipt-label">Date</td><td class="receipt-value">{{paidAt}}</td></tr>
-        </table>
-      </div>
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{dashboardUrl}}" class="button">Track Your Request</a>
-      </p>
-      <p style="font-size: 13px; color: #6b7280;">This receipt is for your records. You can view your request status on your <a href="{{dashboardUrl}}" style="color: #3B82F6;">dashboard</a>.</p>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["patientName", "serviceName", "amount", "intakeRef", "paidAt", "dashboardUrl", "appUrl"],
-    sampleData: {
-      patientName: "John Smith",
-      serviceName: "Medical Certificate",
-      amount: "$19.95",
-      intakeRef: "INT-2024-ABC123",
-      paidAt: "2 Feb 2026",
-      dashboardUrl: "https://instantmed.com.au/patient",
-      appUrl: "https://instantmed.com.au",
-    },
+    slug: "guest_complete_account",
+    name: "Guest Complete Account",
+    subject: "Set up your account to track your request",
+    availableTags: ["patientName", "requestType", "intakeId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "Medical Certificate", intakeId: "abc-123" },
+    render: (d) => React.createElement(GuestCompleteAccountEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      intakeId: d.intakeId,
+      completeAccountUrl: `${APP_URL}/auth/complete-account?intake=${d.intakeId}`,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "verification_code",
+    name: "Verification Code",
+    subject: "Your InstantMed verification code",
+    availableTags: ["code"],
+    sampleData: { code: "847291" },
+    render: (d) => React.createElement(VerificationCodeEmail, {
+      code: d.code,
+      requestedFrom: "Chrome on macOS",
+      requestedAt: "30 March 2026, 2:15 PM AEST",
+      appUrl: APP_URL,
+    }),
+  },
+
+  // ── Request Flow ──
+  {
+    slug: "intake_submitted",
+    name: "Intake Submitted",
+    subject: "Your request is being reviewed",
+    availableTags: ["patientName", "requestType", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123" },
+    render: (d) => React.createElement(IntakeSubmittedEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "request_received",
+    name: "Request Received (Payment Confirmed)",
+    subject: "Your request is with a doctor now",
+    availableTags: ["patientName", "requestType", "amount", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", amount: "$29.95", requestId: "abc-123" },
+    render: (d) => React.createElement(RequestReceivedEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      amount: d.amount,
+      requestId: d.requestId,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "still_reviewing",
+    name: "Still Reviewing",
+    subject: "Still reviewing your request — thanks for your patience",
+    availableTags: ["patientName", "requestType", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123" },
+    render: (d) => React.createElement(StillReviewingEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "needs_more_info",
+    name: "Needs More Info",
+    subject: "Quick question about your request",
+    availableTags: ["patientName", "requestType", "requestId", "doctorMessage"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123", doctorMessage: "Could you please clarify how long you've been experiencing these symptoms?" },
+    render: (d) => React.createElement(NeedsMoreInfoEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      doctorMessage: d.doctorMessage,
+      appUrl: APP_URL,
+    }),
+  },
+
+  // ── Approvals ──
+  {
+    slug: "med_cert_patient",
+    name: "Medical Certificate (Patient)",
+    subject: "Your medical certificate is ready",
+    availableTags: ["patientName", "verificationCode", "certType"],
+    sampleData: { patientName: "Sarah Johnson", verificationCode: "MC-ABC123-XYZ", certType: "work" },
+    render: (d) => React.createElement(MedCertPatientEmail, {
+      patientName: d.patientName,
+      downloadUrl: `${APP_URL}/api/download/mock-signed-url`,
+      dashboardUrl: `${APP_URL}/patient/intakes/abc-123`,
+      verificationCode: d.verificationCode,
+      certType: (d.certType as "work" | "study" | "carer") || "work",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "med_cert_employer",
+    name: "Medical Certificate (Employer)",
+    subject: "Medical Certificate",
+    availableTags: ["employerName", "companyName", "patientName", "verificationCode"],
+    sampleData: { employerName: "John Smith", companyName: "Acme Corporation", patientName: "Sarah Johnson", verificationCode: "MC-ABC123-XYZ" },
+    render: (d) => React.createElement(MedCertEmployerEmail, {
+      employerName: d.employerName,
+      companyName: d.companyName,
+      patientName: d.patientName,
+      downloadUrl: `${APP_URL}/api/download/mock-signed-url`,
+      expiresInDays: 7,
+      verificationCode: d.verificationCode,
+      patientNote: "Please find my medical certificate attached.",
+      certStartDate: "26 January 2026",
+      certEndDate: "28 January 2026",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "consult_approved",
+    name: "Consultation Approved",
+    subject: "Your consultation has been reviewed",
+    availableTags: ["patientName", "doctorNotes"],
+    sampleData: { patientName: "Sarah Johnson", doctorNotes: "Based on your consultation, I've reviewed your symptoms and medical history." },
+    render: (d) => React.createElement(ConsultApprovedEmail, {
+      patientName: d.patientName,
+      requestId: "abc-123",
+      doctorNotes: d.doctorNotes,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "prescription_approved",
+    name: "Prescription Approved",
+    subject: "Your prescription has been approved",
+    availableTags: ["patientName", "medicationName"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Amoxicillin 500mg" },
+    render: (d) => React.createElement(PrescriptionApprovedEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      intakeId: "abc-123",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "script_sent",
+    name: "Script Sent",
+    subject: "Your eScript has been sent",
+    availableTags: ["patientName", "escriptReference"],
+    sampleData: { patientName: "Sarah Johnson", escriptReference: "ES-2024-001234" },
+    render: (d) => React.createElement(ScriptSentEmail, {
+      patientName: d.patientName,
+      requestId: "abc-123",
+      escriptReference: d.escriptReference,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "ed_approved",
+    name: "ED Consultation Approved",
+    subject: "Your ED consultation has been reviewed",
+    availableTags: ["patientName", "medicationName"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Sildenafil 50mg" },
+    render: (d) => React.createElement(EdApprovedEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      requestId: "abc-123",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "hair_loss_approved",
+    name: "Hair Loss Approved",
+    subject: "Your hair loss treatment has been approved",
+    availableTags: ["patientName", "medicationName"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Finasteride 1mg" },
+    render: (d) => React.createElement(HairLossApprovedEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      requestId: "abc-123",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "weight_loss_approved",
+    name: "Weight Loss Approved",
+    subject: "Your weight loss treatment has been approved",
+    availableTags: ["patientName", "medicationName"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Semaglutide 0.25mg" },
+    render: (d) => React.createElement(WeightLossApprovedEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      requestId: "abc-123",
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "womens_health_approved",
+    name: "Women's Health Approved",
+    subject: "Your women's health treatment has been approved",
+    availableTags: ["patientName", "medicationName", "treatmentType"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Levonorgestrel 1.5mg", treatmentType: "contraception" },
+    render: (d) => React.createElement(WomensHealthApprovedEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      treatmentType: d.treatmentType,
+      requestId: "abc-123",
+      appUrl: APP_URL,
+    }),
   },
   {
     slug: "request_declined",
     name: "Request Declined",
-    subject: "Update on your {{serviceName}} request",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
-    .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>InstantMed</h1>
-    </div>
-    <div class="content">
-      <h2>Update on your request</h2>
-      <p>Hi {{patientName}},</p>
-      <p>Unfortunately, our doctor was unable to approve your <strong>{{serviceName}}</strong> request at this time.</p>
-      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
-        <p style="margin: 0 0 8px 0; font-weight: 600; color: #991b1b;">Reason</p>
-        <p style="margin: 0; color: #7f1d1d;">{{declineReason}}</p>
-      </div>
-      {{#recommendations}}
-      <h3>Doctor's recommendations</h3>
-      <p>{{recommendations}}</p>
-      {{/recommendations}}
-      <p>A full refund of <strong>{{amount}}</strong> will be processed automatically within 3-5 business days.</p>
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
-      </p>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["patientName", "serviceName", "declineReason", "recommendations", "amount", "dashboardUrl", "appUrl"],
-    sampleData: {
-      patientName: "John Smith",
-      serviceName: "Medical Certificate",
-      declineReason: "Insufficient information provided for assessment.",
-      recommendations: "Please visit your local GP for an in-person consultation.",
-      amount: "$19.95",
-      dashboardUrl: "https://instantmed.com.au/patient",
-      appUrl: "https://instantmed.com.au",
-    },
+    subject: "Update on your request",
+    availableTags: ["patientName", "requestType", "reason"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "Medical Certificate", reason: "After reviewing your request, a telehealth consultation alone is not suitable. We recommend seeing your regular GP in person." },
+    render: (d) => React.createElement(RequestDeclinedEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: "abc-123",
+      reason: d.reason,
+      appUrl: APP_URL,
+    }),
+  },
+
+  // ── Payments ──
+  {
+    slug: "payment_confirmed",
+    name: "Payment Confirmed",
+    subject: "Payment confirmed",
+    availableTags: ["patientName", "requestType", "amount"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", amount: "$29.95" },
+    render: (d) => React.createElement(PaymentConfirmedEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      amount: d.amount,
+      requestId: "abc-123",
+      appUrl: APP_URL,
+    }),
   },
   {
-    slug: "script_sent",
-    name: "Prescription Sent",
-    subject: "Your eScript is ready",
-    htmlTemplate: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstantMed</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: white; }
-    .header { background: #3B82F6; color: white; padding: 24px; text-align: center; }
-    .content { padding: 32px 24px; }
-    .button { display: inline-block; background: #3B82F6; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
-    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>InstantMed</h1>
-    </div>
-    <div class="content">
-      <h2>Your eScript is ready</h2>
-      <p>Hi {{patientName}},</p>
-      <p>Your doctor has approved your prescription for <strong>{{medicationName}}</strong>. An eScript token has been sent to your nominated pharmacy or is available on your dashboard.</p>
-      <p style="text-align: center; margin: 24px 0;">
-        <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
-      </p>
-      <h3>How to fill your eScript</h3>
-      <ul>
-        <li>Visit any pharmacy in Australia</li>
-        <li>Show your eScript token (check your SMS or dashboard)</li>
-        <li>The pharmacist will dispense your medication</li>
-      </ul>
-    </div>
-    <div class="footer">
-      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
-      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
-    </div>
-  </div>
-</body>
-</html>
-    `,
-    availableTags: ["patientName", "medicationName", "dashboardUrl", "appUrl"],
-    sampleData: {
-      patientName: "John Smith",
-      medicationName: "Amoxicillin 500mg",
-      dashboardUrl: "https://instantmed.com.au/patient",
-      appUrl: "https://instantmed.com.au",
-    },
+    slug: "payment_receipt",
+    name: "Payment Receipt",
+    subject: "Payment receipt",
+    availableTags: ["patientName", "serviceName", "amount", "intakeRef", "paidAt"],
+    sampleData: { patientName: "Sarah Johnson", serviceName: "Medical Certificate (2 Day)", amount: "$29.95", intakeRef: "IM-20260330-00847", paidAt: "30 Mar 2026, 2:15 PM" },
+    render: (d) => React.createElement(PaymentReceiptEmail, {
+      patientName: d.patientName,
+      serviceName: d.serviceName,
+      amount: d.amount,
+      intakeRef: d.intakeRef,
+      paidAt: d.paidAt,
+      dashboardUrl: `${APP_URL}/patient/intakes/abc-123`,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "payment_failed",
+    name: "Payment Failed",
+    subject: "There was a hiccup with your payment",
+    availableTags: ["patientName", "serviceName", "failureReason"],
+    sampleData: { patientName: "Sarah Johnson", serviceName: "medical certificate", failureReason: "Your card was declined." },
+    render: (d) => React.createElement(PaymentFailedEmail, {
+      patientName: d.patientName,
+      serviceName: d.serviceName,
+      failureReason: d.failureReason,
+      retryUrl: `${APP_URL}/patient/intakes/abc-123/retry-payment`,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "payment_retry",
+    name: "Payment Retry",
+    subject: "Your payment needs another go",
+    availableTags: ["patientName", "requestType", "amount"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", amount: "$29.95" },
+    render: (d) => React.createElement(PaymentRetryEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      amount: d.amount,
+      paymentUrl: `${APP_URL}/patient/intakes/abc-123/retry-payment`,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "refund_issued",
+    name: "Refund Issued",
+    subject: "Your refund has been processed",
+    availableTags: ["patientName", "requestType", "amountFormatted"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", amountFormatted: "$29.95" },
+    render: (d) => React.createElement(RefundIssuedEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: "abc-123",
+      amountFormatted: d.amountFormatted,
+      appUrl: APP_URL,
+    }),
+  },
+
+  // ── Engagement ──
+  {
+    slug: "abandoned_checkout",
+    name: "Abandoned Checkout",
+    subject: "Your request is ready when you are",
+    availableTags: ["patientName", "serviceName"],
+    sampleData: { patientName: "Sarah Johnson", serviceName: "medical certificate" },
+    render: (d) => React.createElement(AbandonedCheckoutEmail, {
+      patientName: d.patientName,
+      serviceName: d.serviceName,
+      resumeUrl: `${APP_URL}/request?resume=abc-123`,
+      hoursAgo: 2,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "repeat_rx_reminder",
+    name: "Repeat Rx Reminder",
+    subject: "Time to reorder your medication?",
+    availableTags: ["patientName", "medicationName"],
+    sampleData: { patientName: "Sarah Johnson", medicationName: "Amoxicillin 500mg" },
+    render: (d) => React.createElement(RepeatRxReminderEmail, {
+      patientName: d.patientName,
+      medicationName: d.medicationName,
+      reorderUrl: `${APP_URL}/request?service=repeat-prescription`,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "referral_credit",
+    name: "Referral Credit",
+    subject: "You've earned a $5.00 credit!",
+    availableTags: ["patientName", "creditAmount", "friendName"],
+    sampleData: { patientName: "Sarah Johnson", creditAmount: "$5.00", friendName: "Tom Wilson" },
+    render: (d) => React.createElement(ReferralCreditEmail, {
+      patientName: d.patientName,
+      creditAmount: d.creditAmount,
+      friendName: d.friendName,
+      appUrl: APP_URL,
+    }),
   },
 ]
 
 // ============================================================================
-// PREVIEW FUNCTIONS
+// PUBLIC API
 // ============================================================================
 
-/**
- * Get all available preview templates
- */
-export function getAllPreviewTemplates(): PreviewTemplate[] {
-  return PREVIEW_TEMPLATES
+export function getAllPreviewTemplates() {
+  return PREVIEW_TEMPLATES.map(({ slug, name, availableTags }) => ({ slug, name, availableTags }))
 }
 
-/**
- * Get preview template by slug
- */
 export function getPreviewTemplate(slug: string): PreviewTemplate | null {
-  return PREVIEW_TEMPLATES.find(t => t.slug === slug) || null
+  return PREVIEW_TEMPLATES.find((t) => t.slug === slug) || null
 }
 
-/**
- * Get available tags for a template
- */
 export function getPreviewTemplateTags(slug: string): string[] {
-  const template = getPreviewTemplate(slug)
-  return template?.availableTags || []
+  return getPreviewTemplate(slug)?.availableTags || []
 }
 
-/**
- * Get sample data for a template
- */
 export function getPreviewTemplateSampleData(slug: string): Record<string, string> {
-  const template = getPreviewTemplate(slug)
-  return template?.sampleData || {}
+  return getPreviewTemplate(slug)?.sampleData || {}
 }
 
 /**
- * Render template with data
+ * Render a template with custom data. Returns the actual React Email HTML.
  */
 export function renderPreviewTemplate(
   slug: string,
@@ -448,46 +441,25 @@ export function renderPreviewTemplate(
   }
 
   try {
-    // Merge with sample data
     const mergedData = { ...template.sampleData, ...data }
-    
-    // Render subject
-    let subject = template.subject
-    for (const [key, value] of Object.entries(mergedData)) {
-      subject = subject.replace(new RegExp(`{{${key}}}`, "g"), value)
-    }
-    
-    // Add test prefix
+    const element = template.render(mergedData)
+
+    // renderEmailToHtml is async — but this function is sync for backward compat.
+    // Use renderToStaticMarkup directly (same as renderEmailToHtml but sync).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ReactDOMServer = require("react-dom/server")
+    let html: string = `<!DOCTYPE html>${ReactDOMServer.renderToStaticMarkup(element)}`
+
+    let subject = options.isTest ? `[TEST] ${template.subject}` : template.subject
+
     if (options.isTest) {
-      subject = `[TEST] ${subject}`
-    }
-    
-    // Render HTML with simple template replacement
-    let html = template.htmlTemplate
-    
-    // Replace simple variables
-    for (const [key, value] of Object.entries(mergedData)) {
-      html = html.replace(new RegExp(`{{${key}}}`, "g"), value)
-    }
-    
-    // Handle conditional blocks (simple implementation)
-    html = html.replace(/{{#(\w+)}}([\s\S]*?){{\/\1}}/g, (match, key, content) => {
-      return mergedData[key] ? content : ""
-    })
-    
-    // Add test banner
-    if (options.isTest) {
-      const testBanner = `
-        <div style="background-color: #f59e0b; color: white; padding: 12px; text-align: center; margin-bottom: 20px; font-weight: bold; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          ⚠️ THIS IS A TEST EMAIL - Template: ${template.name}
-        </div>
-      `
+      const testBanner = `<div style="background-color:#f59e0b;color:white;padding:12px;text-align:center;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">THIS IS A TEST EMAIL — Template: ${template.name}</div>`
       html = html.replace(/<body[^>]*>/i, (match) => `${match}${testBanner}`)
     }
-    
+
     return { subject, html }
   } catch (error) {
     log.error("Failed to render preview template", { slug }, error instanceof Error ? error : undefined)
-    return { subject: "", html: "", error: "Failed to render template" }
+    return { subject: "", html: "", error: `Failed to render template: ${error instanceof Error ? error.message : String(error)}` }
   }
 }

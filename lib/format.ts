@@ -11,6 +11,7 @@ export function formatDate(date: string | Date): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Australia/Sydney",
   })
 }
 
@@ -23,6 +24,7 @@ export function formatDateTime(date: string | Date): string {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: "Australia/Sydney",
   })
 }
 
@@ -32,7 +34,15 @@ export function formatDateLong(date: string | Date): string {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Australia/Sydney",
   })
+}
+
+/** Add N days to a date string and return as ISO date string (YYYY-MM-DD) */
+export function addDays(date: string | Date, days: number): string {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split("T")[0]!
 }
 
 /** "12/03/2026" — DD/MM/YYYY for certificates, DOB, issue date */
@@ -41,6 +51,7 @@ export function formatShortDate(date: string | Date): string {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "Australia/Sydney",
   })
 }
 
