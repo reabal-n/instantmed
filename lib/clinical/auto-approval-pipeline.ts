@@ -54,7 +54,7 @@ function buildReviewDataFromAnswers(
 
   // Determine start date — check both camelCase (new flow) and snake_case (legacy)
   const rawStartDate = (answers.startDate as string) || (answers.start_date as string) || today
-  let startDate = /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : today
+  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : today
 
   // Determine end date from duration using pure string arithmetic to avoid
   // timezone pitfalls with new Date() (which parses YYYY-MM-DD as UTC midnight)

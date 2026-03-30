@@ -53,11 +53,10 @@ import { calculateAge } from "@/lib/format"
 import type { IntakeWithPatient } from "@/types/db"
 import type { PaginationInfo } from "./types"
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
-import { updateStatusAction } from "./actions"
 
 export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
-  intakes: IntakeWithPatient[]
+  intakes?: IntakeWithPatient[]
   expandedId: string | null
   onToggleExpand: (id: string) => void
   isPending: boolean
@@ -112,7 +111,7 @@ export interface QueueTableProps {
 
 export function QueueTable({
   filteredIntakes,
-  intakes,
+  intakes: _intakes,
   expandedId,
   onToggleExpand,
   isPending,

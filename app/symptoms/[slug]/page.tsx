@@ -17,7 +17,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
-import { symptoms, type SymptomData } from "@/lib/seo/data/symptoms"
+import { symptoms } from "@/lib/seo/data/symptoms"
 
 interface PageProps {
   params: Promise<{ slug: string }>

@@ -7,7 +7,6 @@
 
 import "server-only"
 import * as React from "react"
-import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { createLogger } from "@/lib/observability/logger"
 
 // ── Template imports ──
@@ -450,7 +449,7 @@ export function renderPreviewTemplate(
     const ReactDOMServer = require("react-dom/server")
     let html: string = `<!DOCTYPE html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-    let subject = options.isTest ? `[TEST] ${template.subject}` : template.subject
+    const subject = options.isTest ? `[TEST] ${template.subject}` : template.subject
 
     if (options.isTest) {
       const testBanner = `<div style="background-color:#f59e0b;color:white;padding:12px;text-align:center;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">THIS IS A TEST EMAIL — Template: ${template.name}</div>`

@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { INTAKE_STATUS } from "@/lib/status"
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
