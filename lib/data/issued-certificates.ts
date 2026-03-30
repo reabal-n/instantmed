@@ -61,6 +61,8 @@ export interface IssuedCertificate {
   email_failed_at: string | null
   email_failure_reason: string | null
   email_retry_count: number
+  email_opened_at: string | null
+  resend_count: number
   revoked_at: string | null
   revoked_by: string | null
   revocation_reason: string | null
@@ -121,7 +123,7 @@ export async function findExistingCertificate(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
     .in("status", ["valid", "expired"])
     .order("created_at", { ascending: false })
@@ -151,7 +153,7 @@ export async function findByIdempotencyKey(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("idempotency_key", idempotencyKey)
     .maybeSingle()
 
@@ -564,7 +566,7 @@ export async function getCertificateById(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("id", certificateId)
     .single()
 
@@ -589,7 +591,7 @@ export async function getCertificateByVerificationCode(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("verification_code", verificationCode)
     .maybeSingle()
 
@@ -614,7 +616,7 @@ export async function getCertificateByRef(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("certificate_ref", certificateRef)
     .maybeSingle()
 
@@ -638,7 +640,7 @@ export async function getPatientCertificates(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
@@ -668,7 +670,7 @@ export async function getCertificateForIntake(
   // Only revoked certificates are excluded.
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
     .in("status", ["valid", "expired"])
     .order("created_at", { ascending: false })
@@ -745,7 +747,7 @@ export async function getFailedEmailDeliveries(
 
   const { data, error } = await supabase
     .from("issued_certificates")
-    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
+    .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .not("email_failed_at", "is", null)
     .is("email_sent_at", null)
     .lt("email_retry_count", 3)

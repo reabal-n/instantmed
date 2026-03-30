@@ -133,6 +133,13 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
         await updateEmailStatus(certificate.id, "sent", {
           deliveryId: emailResult.messageId,
         })
+
+        // Increment resend_count — tracks doctor-initiated resends, separate from email_retry_count
+        await supabase
+          .from("issued_certificates")
+          .update({ resend_count: (certificate.resend_count ?? 0) + 1 })
+          .eq("id", certificate.id)
+
         await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
           resend_reason: "manual_admin_resend",
           resend_by_name: profile.full_name,

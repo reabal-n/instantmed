@@ -11,6 +11,12 @@ export interface ReviewData {
   aiDrafts: AIDraft[]
   nextIntakeId: string | null
   draftId: string | null
+  certificate?: {
+    id: string
+    email_sent_at: string | null
+    email_opened_at: string | null
+    resend_count: number
+  } | null
 }
 
 export interface IntakeReviewContextValue {

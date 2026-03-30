@@ -8,13 +8,14 @@ import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, RefreshCw, Loader2 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { regenerateDrafts } from "@/app/actions/draft-approval"
+import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import { usePanel } from "@/components/panels/panel-provider"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
@@ -71,6 +72,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [isResending, setIsResending] = useState(false)
 
   // Lock warning
   const [lockWarning, setLockWarning] = useState<string | null>(null)
@@ -356,6 +358,20 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     })
   }
 
+  const handleResend = async () => {
+    if (!intake) return
+    setIsResending(true)
+    const result = await resendCertificateAdmin(intake.id)
+    setIsResending(false)
+    if (result.success) {
+      toast.success("Certificate email resent to patient")
+      const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
+      if (res.ok) setData(await res.json())
+    } else {
+      toast.error(result.error || "Failed to resend certificate")
+    }
+  }
+
   // Keyboard shortcuts
   useDoctorShortcuts({
     onApprove: () => {
@@ -490,6 +506,54 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
             <SafetyFlagsCard />
             <ClinicalNotesEditor />
             <IntakeActionButtons />
+
+            {/* Certificate delivery status — only for approved/completed med certs */}
+            {data?.certificate && (intake.status === "approved" || intake.status === "completed") && (
+              <div className="rounded-xl border bg-card p-4 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-foreground">Certificate delivery</span>
+                    {data.certificate.email_opened_at ? (
+                      <Badge className="bg-success-light text-success border-success-border text-xs">
+                        Opened by patient
+                      </Badge>
+                    ) : data.certificate.email_sent_at ? (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        Sent — not yet opened
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        Pending delivery
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs shrink-0"
+                    disabled={isResending || (data.certificate.resend_count ?? 0) >= 3}
+                    onClick={handleResend}
+                    title={(data.certificate.resend_count ?? 0) >= 3 ? "Maximum resends reached" : undefined}
+                  >
+                    {isResending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                    )}
+                    {(data.certificate.resend_count ?? 0) > 0
+                      ? `Resent (${data.certificate.resend_count})`
+                      : "Resend"}
+                  </Button>
+                </div>
+                {data.certificate.email_opened_at && (
+                  <p className="text-xs text-muted-foreground">
+                    Opened {new Date(data.certificate.email_opened_at).toLocaleString("en-AU", {
+                      day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+                    })}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </IntakeReviewProvider>
       </SheetPanel>

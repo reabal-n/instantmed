@@ -5,6 +5,7 @@ import { getIntakeWithDetails, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
+import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 
 /**
  * GET /api/doctor/intakes/[id]/review-data
@@ -40,11 +41,14 @@ export async function GET(
   const serviceType = (intake.service as { type?: string } | undefined)?.type
 
   // Parallel fetches
-  const [aiDrafts, nextIntakeId, medCertDraft] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, certificate] = await Promise.all([
     getAIDraftsForIntake(intakeId),
     getNextQueueIntakeId(intakeId),
     serviceType === "med_certs"
       ? getOrCreateMedCertDraftForIntake(intakeId)
+      : Promise.resolve(null),
+    intake.status === "approved" || intake.status === "completed"
+      ? getCertificateForIntake(intakeId)
       : Promise.resolve(null),
   ])
 
@@ -77,5 +81,11 @@ export async function GET(
     aiDrafts,
     nextIntakeId,
     draftId: medCertDraft?.id || null,
+    certificate: certificate ? {
+      id: certificate.id,
+      email_sent_at: certificate.email_sent_at ?? null,
+      email_opened_at: certificate.email_opened_at ?? null,
+      resend_count: certificate.resend_count ?? 0,
+    } : null,
   })
 }
