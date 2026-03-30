@@ -465,7 +465,14 @@ export function IntakeDetailClient({
   const [isViewingCert, setIsViewingCert] = useState(false)
   const [certPdfUrl, setCertPdfUrl] = useState<string | null>(null)
 
+  // Clean up blob URL when viewer closes
+  const handleCloseCertPdf = () => {
+    if (certPdfUrl) URL.revokeObjectURL(certPdfUrl)
+    setCertPdfUrl(null)
+  }
+
   // View the ACTUAL stored certificate PDF (what the patient received)
+  // Uses blob: URL instead of data: URL — browsers block data: URLs in iframes
   const handleViewCertificate = async () => {
     setIsViewingCert(true)
     try {
@@ -475,11 +482,8 @@ export function IntakeDetailClient({
         return
       }
       const blob = await response.blob()
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setCertPdfUrl(reader.result as string)
-      }
-      reader.readAsDataURL(blob)
+      const blobUrl = URL.createObjectURL(blob)
+      setCertPdfUrl(blobUrl)
     } catch {
       toast.error("Failed to load certificate")
     } finally {
@@ -511,7 +515,7 @@ export function IntakeDetailClient({
         setShowCertPreview={setShowCertPreview}
         certPreviewData={certPreviewData}
         certPdfUrl={certPdfUrl}
-        setCertPdfUrl={setCertPdfUrl}
+        onCloseCertPdf={handleCloseCertPdf}
         pendingCorrection={pendingCorrection}
         onMedCertApprove={handleMedCertApprove}
         onStatusChange={handleStatusChange}

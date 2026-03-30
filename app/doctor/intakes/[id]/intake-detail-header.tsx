@@ -121,7 +121,7 @@ interface IntakeDetailHeaderProps {
   setShowCertPreview: (val: boolean) => void
   certPreviewData: CertificatePreviewData | null
   certPdfUrl: string | null
-  setCertPdfUrl: (val: string | null) => void
+  onCloseCertPdf: () => void
   pendingCorrection: PendingCorrection | null | undefined
   onMedCertApprove: () => void
   onStatusChange: (status: IntakeStatus) => void
@@ -156,7 +156,7 @@ export function IntakeDetailHeader({
   setShowCertPreview,
   certPreviewData,
   certPdfUrl,
-  setCertPdfUrl,
+  onCloseCertPdf,
   pendingCorrection,
   onMedCertApprove,
   onStatusChange,
@@ -424,13 +424,13 @@ export function IntakeDetailHeader({
           <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="font-semibold text-sm">Certificate Preview</h3>
-              <Button variant="ghost" size="sm" onClick={() => setCertPdfUrl(null)}>
+              <Button variant="ghost" size="sm" onClick={onCloseCertPdf}>
                 <XCircle className="h-4 w-4" />
               </Button>
             </div>
             <iframe src={certPdfUrl} className="flex-1 w-full" title="Certificate Preview" />
             <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border">
-              <Button variant="outline" onClick={() => setCertPdfUrl(null)}>
+              <Button variant="outline" onClick={onCloseCertPdf}>
                 Close
               </Button>
             </div>
