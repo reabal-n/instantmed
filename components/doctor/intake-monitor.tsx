@@ -113,7 +113,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
   // AI auto-approval hit rate: approved / eligible (attempted - ineligible)
   const aiEligibleAttempts = (stats.aiAttemptedToday ?? 0) - (stats.aiIneligibleToday ?? 0)
   const aiHitRate = aiEligibleAttempts > 0
-    ? Math.round(((stats.aiApprovedToday ?? 0) / aiEligibleAttempts) * 100)
+    ? Math.min(100, Math.round(((stats.aiApprovedToday ?? 0) / aiEligibleAttempts) * 100))
     : null
 
   const queueHealthy = stats.queueSize < 10

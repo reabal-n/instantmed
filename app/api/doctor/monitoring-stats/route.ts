@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireApiRole } from "@/lib/auth"
-import { getIntakeMonitoringStats, getSlaBreachIntakes, getAutoApprovalMetrics } from "@/lib/data/intakes"
+import { getIntakeMonitoringStats, getSlaBreachIntakes, getAutoApprovalMetrics, getTodayEarnings } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
 
@@ -17,10 +17,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch stats, SLA data, and auto-approval metrics in parallel
-    const [stats, slaData, autoApprovalMetrics] = await Promise.all([
+    const [stats, slaData, autoApprovalMetrics, todayEarnings] = await Promise.all([
       getIntakeMonitoringStats(),
       getSlaBreachIntakes(),
       getAutoApprovalMetrics(),
+      getTodayEarnings(),
     ])
 
     return NextResponse.json({
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
       aiRevokedToday: autoApprovalMetrics?.todayRevoked,
       aiAttemptedToday: autoApprovalMetrics?.todayAttempted,
       aiIneligibleToday: autoApprovalMetrics?.todayIneligible,
+      todayEarnings,
     })
   } catch {
     return NextResponse.json(
