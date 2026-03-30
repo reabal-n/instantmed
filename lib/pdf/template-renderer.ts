@@ -43,6 +43,7 @@ export interface TemplatePdfInput {
   consultationDate: string // formatted display string e.g. "18 February 2026"
   startDate: string        // formatted display string
   endDate: string          // formatted display string
+  returnDate: string       // formatted display string — day after endDate (when patient returns)
   certificateRef: string   // IM-WORK-20260218-00847
   issueDate: string        // formatted date for header e.g. "18/02/2026"
 }
@@ -165,17 +166,17 @@ function getReturnText(input: TemplatePdfInput): string {
       if (isSingleDay) {
         return `They are advised to rest and recover and are expected to return to work the following day.`
       }
-      return `They are advised to rest and recover during this period and are expected to return to work on ${input.endDate}, or earlier if symptoms resolve.`
+      return `They are advised to rest and recover during this period and are expected to return to work on ${input.returnDate}, or earlier if symptoms resolve.`
     case "study":
       if (isSingleDay) {
         return `They require rest and recovery and are expected to resume academic activities the following day. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
       }
-      return `They require this period for rest and recovery and are expected to resume academic activities on ${input.endDate}, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
+      return `They require this period for rest and recovery and are expected to resume academic activities on ${input.returnDate}, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
     case "carer":
       if (isSingleDay) {
         return `They are expected to return to work the following day, subject to the dependent's recovery.`
       }
-      return `They are expected to return to work on ${input.endDate}, subject to the dependent's recovery.`
+      return `They are expected to return to work on ${input.returnDate}, subject to the dependent's recovery.`
   }
 }
 

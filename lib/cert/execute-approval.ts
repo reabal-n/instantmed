@@ -23,7 +23,7 @@ import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
-import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 // ============================================================================
 // TYPES
@@ -237,6 +237,7 @@ export async function executeCertApproval(
     consultationDate: formatDateLong(generatedAt.split("T")[0]!),
     startDate: formatDateLong(reviewData.startDate),
     endDate: formatDateLong(reviewData.endDate),
+    returnDate: formatDateLong(addDays(reviewData.endDate, 1)),
     certificateRef,
     issueDate: formatShortDate(generatedAt.split("T")[0]!),
   })

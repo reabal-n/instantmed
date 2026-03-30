@@ -23,8 +23,8 @@ import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/tele
 import * as Sentry from "@sentry/nextjs"
 
 // Alert deduplication: suppress repeated alerts for the same condition within this window.
-// Health-check runs every 5 min; 25-min TTL means at most one alert per ~25 min per type.
-const ALERT_DEDUP_TTL_SECONDS = 25 * 60
+// Health-check runs every 5 min; 2-hour TTL means at most one alert per ~2 hours per type.
+const ALERT_DEDUP_TTL_SECONDS = 2 * 60 * 60
 
 /**
  * Send a Telegram alert only if we haven't sent the same alert type recently.

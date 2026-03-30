@@ -10,7 +10,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { logger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 /**
  * Fetch the draft data for certificate preview before approval.
@@ -100,14 +100,34 @@ export async function fetchCertPreviewDataAction(
 
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
 
+    // If the non-AI draft is missing dates (e.g. unique constraint caused the race condition
+    // handler to return the AI draft with empty data{}), fall back to the AI draft's content field.
+    let aiStartDate: string | null = null
+    let aiEndDate: string | null = null
+    if (!draftData?.date_from || !draftData?.date_to) {
+      try {
+        const { data: aiDraft } = await supabase
+          .from("document_drafts")
+          .select("content")
+          .eq("intake_id", intakeId)
+          .eq("type", "med_cert")
+          .eq("is_ai_generated", true)
+          .eq("status", "ready")
+          .maybeSingle()
+        const aiContent = aiDraft?.content as Record<string, unknown> | null
+        if (typeof aiContent?.startDate === "string") aiStartDate = aiContent.startDate
+        if (typeof aiContent?.endDate === "string") aiEndDate = aiContent.endDate
+      } catch { /* non-blocking */ }
+    }
+
     return {
       success: true,
       data: {
         patientName: patient?.full_name || draftData?.patient_name || "Unknown",
         patientDob: patient?.date_of_birth || draftData?.dob || null,
         certificateType: certSubtype as "work" | "study" | "carer",
-        startDate: draftData?.date_from || today,
-        endDate: draftData?.date_to || today,
+        startDate: draftData?.date_from || aiStartDate || today,
+        endDate: draftData?.date_to || aiEndDate || today,
         medicalReason: draftData?.reason || draftData?.reason_summary || "Medical Illness",
         doctorName: doctorProfile?.full_name || "Dr.",
         providerNumber: doctorProfile?.provider_number || "",
@@ -400,6 +420,7 @@ export async function generatePreviewPdfAction(
       consultationDate: formatDateLong(previewData.consultDate),
       startDate: formatDateLong(previewData.startDate),
       endDate: formatDateLong(previewData.endDate),
+      returnDate: formatDateLong(addDays(previewData.endDate, 1)),
       certificateRef,
       issueDate: formatShortDate(previewData.consultDate),
     })

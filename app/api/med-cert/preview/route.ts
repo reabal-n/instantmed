@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
       consultationDate: formatDateLong(today),
       startDate: formatDateLong(draftData.date_from),
       endDate: formatDateLong(draftData.date_to),
+      returnDate: formatDateLong(addDays(draftData.date_to, 1)),
       certificateRef,
       issueDate: formatShortDate(today),
     })

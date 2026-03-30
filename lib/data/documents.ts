@@ -276,7 +276,8 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
         .select("id, intake_id, type, subtype, data, data_enc, created_at, updated_at")
         .eq("intake_id", intakeId)
         .eq("type", "med_cert")
-        .single()
+        .or("is_ai_generated.is.null,is_ai_generated.eq.false")
+        .maybeSingle()
       if (!raceDraft) return null
       const raceDecrypted = await readDocumentDraftData(raceDraft)
       const { data_enc: _raceEnc, ...raceWithoutEnc } = raceDraft

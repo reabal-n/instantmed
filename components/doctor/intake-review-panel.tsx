@@ -8,7 +8,7 @@ import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ExternalLink, RefreshCw, Loader2 } from "lucide-react"
+import { ExternalLink, RefreshCw, Loader2, FileText } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
@@ -73,6 +73,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isResending, setIsResending] = useState(false)
+  const [isViewingCert, setIsViewingCert] = useState(false)
 
   // Lock warning
   const [lockWarning, setLockWarning] = useState<string | null>(null)
@@ -372,6 +373,27 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     }
   }
 
+  const handleViewCertificate = async () => {
+    if (!intake) return
+    setIsViewingCert(true)
+    try {
+      const res = await fetch(`/api/doctor/certificates/${intake.id}/download`)
+      if (!res.ok) {
+        toast.error("Certificate not found")
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      window.open(url, "_blank")
+      // Revoke after a short delay to allow the tab to load
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+    } catch {
+      toast.error("Failed to load certificate")
+    } finally {
+      setIsViewingCert(false)
+    }
+  }
+
   // Keyboard shortcuts
   useDoctorShortcuts({
     onApprove: () => {
@@ -527,23 +549,39 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       </Badge>
                     )}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs shrink-0"
-                    disabled={isResending || (data.certificate.resend_count ?? 0) >= 3}
-                    onClick={handleResend}
-                    title={(data.certificate.resend_count ?? 0) >= 3 ? "Maximum resends reached" : undefined}
-                  >
-                    {isResending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                    ) : (
-                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                    )}
-                    {(data.certificate.resend_count ?? 0) > 0
-                      ? `Resent (${data.certificate.resend_count})`
-                      : "Resend"}
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      disabled={isViewingCert}
+                      onClick={handleViewCertificate}
+                    >
+                      {isViewingCert ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                      ) : (
+                        <FileText className="h-3.5 w-3.5 mr-1" />
+                      )}
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      disabled={isResending || (data.certificate.resend_count ?? 0) >= 3}
+                      onClick={handleResend}
+                      title={(data.certificate.resend_count ?? 0) >= 3 ? "Maximum resends reached" : undefined}
+                    >
+                      {isResending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                      )}
+                      {(data.certificate.resend_count ?? 0) > 0
+                        ? `Resent (${data.certificate.resend_count})`
+                        : "Resend"}
+                    </Button>
+                  </div>
                 </div>
                 {data.certificate.email_opened_at && (
                   <p className="text-xs text-muted-foreground">
