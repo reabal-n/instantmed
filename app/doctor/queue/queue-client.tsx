@@ -211,7 +211,7 @@ export function QueueClient({
     return hours > 0 ? `${hours}h ${diffMins % 60}m left` : `${diffMins}m left`
   }
 
-  const handleApprove = async (intakeId: string, serviceType?: string | null) => {
+  const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === "med_certs") {
       // Open review panel — doctor uses the certificate preview dialog there
       openReviewPanel(intakeId)
@@ -234,7 +234,7 @@ export function QueueClient({
         toast.error(result.error || "Failed to approve")
       }
     })
-  }
+  }, [openReviewPanel, startTransition])
 
   // Lazy-load decline templates only when dialog opens
   useEffect(() => {

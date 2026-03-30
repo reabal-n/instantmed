@@ -325,7 +325,13 @@ describe("evaluateAutoApprovalEligibility", () => {
   })
 
   it("allows start date yesterday (1 day back)", () => {
-    const yesterday = new Date()
+    // Mirror production logic: "today" is determined in AEST, then subtract 1 day
+    const todayAest = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
+    const oneDayAgo = new Date(todayAest)
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1)
+    // This is exactly on the boundary — should NOT be flagged
+    // Use the AEST-based yesterday to avoid UTC/AEST date boundary flakiness
+    const yesterday = new Date(todayAest)
     yesterday.setDate(yesterday.getDate() - 1)
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
