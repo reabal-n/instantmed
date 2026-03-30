@@ -403,7 +403,7 @@ export function QueueClient({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [expandedId, filteredIntakes, openReviewPanel])
+  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove])
 
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
