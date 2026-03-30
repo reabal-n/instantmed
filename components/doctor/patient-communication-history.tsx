@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { formatDateTime } from "@/lib/format"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -104,13 +105,7 @@ export function PatientCommunicationHistory({
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null
-    return new Date(dateString).toLocaleString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    return formatDateTime(dateString)
   }
 
   if (emails.length === 0) {

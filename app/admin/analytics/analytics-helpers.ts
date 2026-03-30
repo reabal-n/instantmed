@@ -48,30 +48,5 @@ export const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#
 
 export type TabKey = "overview" | "funnel" | "revenue" | "queue"
 
-export function formatServiceType(type: string): string {
-  const labels: Record<string, string> = {
-    med_certs: "Medical Certificates",
-    repeat_rx: "Repeat Prescriptions",
-    consults: "Consultations",
-    referrals: "Referrals",
-    unknown: "Other",
-  }
-  return labels[type] || type
-}
+export { formatServiceType } from "@/lib/format-service"
 
-export function formatMinutes(minutes: number | null): string {
-  if (minutes === null) return "N/A"
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-}
-
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}

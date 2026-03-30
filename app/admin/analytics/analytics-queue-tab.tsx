@@ -21,7 +21,8 @@ import {
   ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
-import { type AnalyticsData, formatMinutes } from "./analytics-helpers"
+import { type AnalyticsData } from "./analytics-helpers"
+import { formatMinutes } from "@/lib/format"
 
 export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
   const { dailyData, queueHealth, overview } = analytics

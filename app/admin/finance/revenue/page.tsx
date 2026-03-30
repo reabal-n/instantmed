@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { formatCurrency } from "@/lib/format"
 import { DollarSign, TrendingUp, Users, CreditCard } from "lucide-react"
 
 export const dynamic = "force-dynamic"
@@ -47,9 +48,6 @@ export default async function RevenueAnalyticsPage() {
 
   const sumCents = (items: { amount_cents: number }[] | null) =>
     (items || []).reduce((sum, i) => sum + (i.amount_cents || 0), 0)
-
-  const formatAUD = (cents: number) =>
-    `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2 })}`
 
   const todayRevenue = sumCents(todayPaid)
   const weekRevenue = sumCents(weekPaid)
@@ -106,7 +104,7 @@ export default async function RevenueAnalyticsPage() {
                 </span>
               </div>
               <p className="mt-2 text-2xl font-semibold">
-                {formatAUD(stat.value)}
+                {formatCurrency(stat.value)}
               </p>
             </div>
           )
@@ -140,7 +138,7 @@ export default async function RevenueAnalyticsPage() {
                 <span className="font-medium capitalize">
                   {category.replace(/_/g, " ")}
                 </span>
-                <span className="font-semibold">{formatAUD(cents)}</span>
+                <span className="font-semibold">{formatCurrency(cents)}</span>
               </div>
             ))}
         </div>

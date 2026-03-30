@@ -8,6 +8,7 @@ import type {
 } from "@/types/certificate-template"
 
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { formatDateLong } from "@/lib/format"
 
 // Import constants directly to avoid type issues
 const MARGIN_VALUES_MAP = {
@@ -66,15 +67,6 @@ export function CertificatePreview({
     email: CONTACT_EMAIL,
     footer_disclaimer: "This medical certificate was issued via InstantMed telehealth services.",
     logo_storage_path: null,
-  }
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
   }
 
   return (
@@ -225,7 +217,7 @@ export function CertificatePreview({
               </span>
             </div>
             <div style={{ fontWeight: 500 }}>
-              {formatDate(previewData.patientDob)}
+              {formatDateLong(previewData.patientDob)}
             </div>
           </div>
         </section>
@@ -250,7 +242,7 @@ export function CertificatePreview({
               </span>
             </div>
             <div style={{ fontWeight: 500 }}>
-              {formatDate(previewData.issueDate)}
+              {formatDateLong(previewData.issueDate)}
             </div>
             <div>
               <span style={{ color: styles.colors.secondary }}>
@@ -258,7 +250,7 @@ export function CertificatePreview({
               </span>
             </div>
             <div style={{ fontWeight: 500 }}>
-              {formatDate(previewData.startDate)}
+              {formatDateLong(previewData.startDate)}
             </div>
             <div>
               <span style={{ color: styles.colors.secondary }}>
@@ -266,7 +258,7 @@ export function CertificatePreview({
               </span>
             </div>
             <div style={{ fontWeight: 500 }}>
-              {formatDate(previewData.endDate)}
+              {formatDateLong(previewData.endDate)}
             </div>
             <div>
               <span style={{ color: styles.colors.secondary }}>Duration:</span>

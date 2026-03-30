@@ -14,7 +14,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
-import { type AnalyticsData, formatCurrency } from "./analytics-helpers"
+import { type AnalyticsData } from "./analytics-helpers"
+import { formatAUD } from "@/lib/format"
 
 export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData }) {
   const { funnel, dailyData, revenue } = analytics
@@ -37,7 +38,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
             <div>
               <p className="text-sm text-muted-foreground font-medium">Today</p>
               <p className="text-3xl font-semibold text-success">
-                {formatCurrency(revenue.today)}
+                {formatAUD(revenue.today)}
               </p>
             </div>
             <DollarSign className="h-8 w-8 text-emerald-400" />
@@ -49,7 +50,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
             <div>
               <p className="text-sm text-muted-foreground font-medium">This Week</p>
               <p className="text-3xl font-semibold text-info">
-                {formatCurrency(revenue.thisWeek)}
+                {formatAUD(revenue.thisWeek)}
               </p>
             </div>
             <TrendingUp className="h-8 w-8 text-blue-400" />
@@ -61,7 +62,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
             <div>
               <p className="text-sm text-muted-foreground font-medium">Last 30 Days</p>
               <p className="text-3xl font-semibold text-info">
-                {formatCurrency(revenue.thisMonth)}
+                {formatAUD(revenue.thisMonth)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">{funnel.paid} paid intakes</p>
             </div>
@@ -91,7 +92,7 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
                 tickFormatter={(v) => `$${v}`}
                 allowDecimals={false}
               />
-              <Tooltip formatter={(value) => [formatCurrency(Number(value ?? 0)), "Revenue"]} />
+              <Tooltip formatter={(value) => [formatAUD(Number(value ?? 0)), "Revenue"]} />
               <Area
                 type="monotone"
                 dataKey="Revenue"
@@ -111,12 +112,12 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Avg per Intake</p>
             <p className="text-xl font-semibold">
-              {funnel.paid > 0 ? formatCurrency(revenue.thisMonth / funnel.paid) : "$0"}
+              {funnel.paid > 0 ? formatAUD(revenue.thisMonth / funnel.paid) : "$0"}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Avg per Day</p>
-            <p className="text-xl font-semibold">{formatCurrency(revenue.thisMonth / 30)}</p>
+            <p className="text-xl font-semibold">{formatAUD(revenue.thisMonth / 30)}</p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Paid Intakes</p>

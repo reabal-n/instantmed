@@ -18,6 +18,7 @@ import {
   DollarSign,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatMinutes } from "@/lib/format"
 
 export interface IntakeMonitorStats {
   todaySubmissions: number
@@ -41,17 +42,6 @@ export interface IntakeMonitorStats {
 interface IntakeMonitorProps {
   initialStats: IntakeMonitorStats
   refreshInterval?: number
-}
-
-function formatDuration(minutes: number | null): string {
-  if (minutes === null) return "--"
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  if (hours < 24) return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-  const days = Math.floor(hours / 24)
-  const remainingHours = hours % 24
-  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`
 }
 
 function StatCell({ label, value, icon: Icon, variant = "default" }: {
@@ -160,13 +150,13 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           />
           <StatCell
             label="Avg Time"
-            value={formatDuration(stats.avgReviewTimeMinutes)}
+            value={formatMinutes(stats.avgReviewTimeMinutes)}
             icon={Clock}
             variant={avgTimeHealthy ? "default" : "warning"}
           />
           <StatCell
             label="Oldest"
-            value={formatDuration(stats.oldestInQueueMinutes)}
+            value={formatMinutes(stats.oldestInQueueMinutes)}
             icon={AlertCircle}
           />
         </div>

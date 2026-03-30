@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatMinutes } from "@/lib/format"
+import { formatServiceType } from "@/lib/format-service"
 
 export interface PaginationInfo {
   days: number
@@ -84,16 +85,6 @@ function TrendBadge({ value, suffix = "%" }: { value: number; suffix?: string })
       {isPositive ? "+" : ""}{value}{suffix}
     </div>
   )
-}
-
-function formatServiceType(type: string): string {
-  const labels: Record<string, string> = {
-    med_certs: "Medical Certificates",
-    repeat_rx: "Repeat Scripts",
-    consults: "Consultations",
-    other: "Other",
-  }
-  return labels[type] || type
 }
 
 const DATE_RANGE_OPTIONS = [

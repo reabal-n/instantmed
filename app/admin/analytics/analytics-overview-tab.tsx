@@ -23,7 +23,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
-import { type AnalyticsData, COLORS, formatServiceType, formatMinutes, formatCurrency } from "./analytics-helpers"
+import { type AnalyticsData, COLORS, formatServiceType } from "./analytics-helpers"
+import { formatMinutes, formatAUD } from "@/lib/format"
 
 export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }) {
   const { dailyData, serviceTypes, revenue, queueHealth, overview } = analytics
@@ -65,7 +66,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
         />
         <GlassStatCard
           label="Month Revenue"
-          value={formatCurrency(revenue.thisMonth)}
+          value={formatAUD(revenue.thisMonth)}
           icon={<DollarSign className="h-5 w-5" />}
           status="success"
         />
@@ -95,7 +96,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
         </div>
         <div className="dashboard-card rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Revenue</p>
-          <p className="text-2xl font-semibold tabular-nums text-success">{formatCurrency(revenue.today)}</p>
+          <p className="text-2xl font-semibold tabular-nums text-success">{formatAUD(revenue.today)}</p>
         </div>
       </div>
 
