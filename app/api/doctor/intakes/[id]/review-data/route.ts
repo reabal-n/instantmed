@@ -47,7 +47,7 @@ export async function GET(
     serviceType === "med_certs"
       ? getOrCreateMedCertDraftForIntake(intakeId)
       : Promise.resolve(null),
-    intake.status === "approved" || intake.status === "completed"
+    serviceType === "med_certs" && (intake.status === "approved" || intake.status === "completed")
       ? getCertificateForIntake(intakeId)
       : Promise.resolve(null),
   ])

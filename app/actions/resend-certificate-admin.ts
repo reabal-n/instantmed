@@ -80,8 +80,10 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
     
     // If found in issued_certificates, use the new flow
     if (certificate) {
-      // Increment retry count
-      await incrementEmailRetry(certificate.id)
+      // Server-side throttle: max 3 doctor-initiated resends
+      if ((certificate.resend_count ?? 0) >= 3) {
+        return { success: false, error: "Maximum resends reached. Contact support if the patient still hasn't received their certificate." }
+      }
 
       // Send email using the same approach as initial approval
       const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
@@ -134,11 +136,18 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
           deliveryId: emailResult.messageId,
         })
 
-        // Increment resend_count — tracks doctor-initiated resends, separate from email_retry_count
-        await supabase
-          .from("issued_certificates")
-          .update({ resend_count: (certificate.resend_count ?? 0) + 1 })
-          .eq("id", certificate.id)
+        // Increment retry count + doctor resend count; clear email_opened_at so
+        // the Resend webhook can re-record when the patient opens the resent email
+        await Promise.all([
+          incrementEmailRetry(certificate.id),
+          supabase
+            .from("issued_certificates")
+            .update({
+              resend_count: (certificate.resend_count ?? 0) + 1,
+              email_opened_at: null,
+            })
+            .eq("id", certificate.id),
+        ])
 
         await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
           resend_reason: "manual_admin_resend",
