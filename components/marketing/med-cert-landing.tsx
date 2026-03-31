@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
@@ -12,10 +11,8 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
-  CreditCard,
   FileText,
   AlertCircle,
-  HelpCircle,
   PhoneOff,
   Users,
   Clock,
@@ -67,10 +64,11 @@ const ExitIntentOverlay = dynamic(
 // DATA
 // =============================================================================
 
-const ROTATING_WORDS = [
-  "reviewed by a real Australian doctor.",
-  "accepted everywhere.",
-  "no appointment needed.",
+const ROTATING_BADGES = [
+  "Accepted by all employers",
+  "No appointment needed",
+  "Same day delivery",
+  "Full refund if we can't help",
 ]
 
 const HOW_IT_WORKS_STEPS = [
@@ -105,11 +103,9 @@ const CERTIFICATE_FEATURES = [
 ]
 
 const PRICING_FEATURES = [
-  "Accepted by all Australian employers",
+  "Accepted by all Australian employers and universities",
   "Reviewed by an AHPRA-registered GP",
   "Secure PDF delivered to your inbox",
-  "Doctor\u2019s name & provider number on every cert",
-  "Message your doctor if you have questions",
   "Covers work, uni, or carer\u2019s leave",
 ]
 
@@ -147,7 +143,7 @@ function Breadcrumbs() {
 
 /** Animated number counter using NumberFlow when available */
 function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
-  const [displayed, setDisplayed] = useState(0)
+  const [displayed, setDisplayed] = useState(value) // init to real value — no flash on load
   const [hasAnimated, setHasAnimated] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
   const prefersReducedMotion = useReducedMotion()
@@ -156,22 +152,28 @@ function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: 
     const el = ref.current
     if (!el || hasAnimated) return
 
+    // If already in the viewport on mount, mark done — no animation needed
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setHasAnimated(true)
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setHasAnimated(true)
           observer.disconnect()
 
-          if (prefersReducedMotion) {
-            setDisplayed(value)
-            return
-          }
+          if (prefersReducedMotion) return // already showing real value
 
+          // Count up from 0
+          setDisplayed(0)
           const duration = 1200
           const start = performance.now()
           const animate = (now: number) => {
             const progress = Math.min((now - start) / duration, 1)
-            const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3)
             setDisplayed(eased * value)
             if (progress < 1) requestAnimationFrame(animate)
           }
@@ -238,15 +240,33 @@ function SocialProofStrip() {
   )
 }
 
+const EMPLOYER_NAMES = [
+  "Woolworths", "Coles", "ANZ", "Commonwealth Bank", "Telstra",
+  "BHP", "NAB", "Westpac", "Qantas", "Bunnings",
+]
+
 /** Employer acceptance callout — thin strip between stats and how-it-works */
 function EmployerCalloutStrip() {
   return (
     <div className="bg-success/5 border-y border-success/15">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-3">
-        <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
+        <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 mb-3">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities — identical to an in-person GP certificate
         </p>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {EMPLOYER_NAMES.map((name) => (
+            <span
+              key={name}
+              className="text-[11px] font-medium text-success/70 dark:text-success/60 px-2.5 py-1 rounded-full border border-success/20 bg-success/5 dark:bg-success/10"
+            >
+              {name}
+            </span>
+          ))}
+          <span className="text-[11px] font-medium text-success/50 px-2.5 py-1 rounded-full border border-success/10 bg-success/5">
+            + more
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -289,13 +309,13 @@ function HeroSection({
               Medical certificates,{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
-                <RotatingText texts={ROTATING_WORDS} interval={3500} />
+                reviewed by a real Australian doctor.
               </span>
             </motion.h1>
 
             {/* Subheadline */}
             <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
+              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-4 leading-relaxed text-balance"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
@@ -303,6 +323,19 @@ function HeroSection({
               Valid for work, uni, or carer&apos;s leave. Reviewed by an
               AHPRA-registered GP and delivered straight to your inbox.
             </motion.p>
+
+            {/* Rotating secondary proof badge */}
+            <motion.div
+              className="flex justify-center lg:justify-start mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+            >
+              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <RotatingText texts={ROTATING_BADGES} interval={3000} />
+              </div>
+            </motion.div>
 
             {/* CTA */}
             <motion.div
@@ -356,12 +389,6 @@ function HeroSection({
                   No call required
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-                <CreditCard className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                <span>
-                  No account required &middot; Full refund if not approved
-                </span>
-              </p>
             </motion.div>
 
             {/* Secondary anchor CTA */}
@@ -579,16 +606,11 @@ function DoctorProfileSection() {
           transition={{ duration: 0.5 }}
           className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6"
         >
-          {/* Avatar */}
+          {/* Icon */}
           <div className="shrink-0">
-            <Image
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=ReabalNajjar"
-              alt="Dr. Reabal Najjar"
-              width={72}
-              height={72}
-              className="rounded-full bg-primary/10"
-              unoptimized
-            />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="w-7 h-7 text-primary" />
+            </div>
           </div>
 
           {/* Details */}
@@ -597,16 +619,12 @@ function DoctorProfileSection() {
               <BadgeCheck className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-medium text-primary">AHPRA Verified</span>
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-0.5">
-              Dr. Reabal Najjar
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              AHPRA-registered GPs
             </h3>
-            <p className="text-sm text-muted-foreground mb-0.5">BHSc, MD, AFHEA</p>
-            <p className="text-xs text-muted-foreground/60 mb-4">
-              AHPRA registration: MED0002576546
-            </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {SOCIAL_PROOF.doctorCombinedYears}+ years of GP experience. Every request is
-              reviewed and approved by a registered doctor — no automated
+              reviewed and approved by a registered Australian doctor — no automated
               clinical decisions.
             </p>
           </div>
@@ -632,13 +650,6 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 dark:bg-white/[0.06] border border-border/50 mb-6">
-            <HelpCircle className="h-4 w-4 text-foreground/40 dark:text-foreground/50" />
-            <span className="text-sm font-medium text-muted-foreground">
-              FAQ
-            </span>
-          </div>
-
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4 tracking-tight">
             Common questions
           </h2>
@@ -647,9 +658,10 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
           </p>
         </motion.div>
 
-        {/* Accordion */}
+        {/* Accordion — flat style, no double containers */}
         <FAQList
           items={MED_CERT_FAQ}
+          itemClassName="border-b border-border/40 last:border-b-0 first:border-t first:border-t-border/40 rounded-none bg-transparent shadow-none px-0 hover:border-border/40 hover:shadow-none"
           onValueChange={(value) => {
             if (value && onFAQOpen) {
               const idx = parseInt(value, 10)
@@ -873,9 +885,6 @@ export function MedCertLanding() {
 
         <Navbar variant="marketing" />
 
-        {/* Breadcrumb navigation */}
-        <Breadcrumbs />
-
         <main className="relative">
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
@@ -898,6 +907,9 @@ export function MedCertLanding() {
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
 
+          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
+          <LimitationsSection />
+
           {/* 4. Pricing with comparison table */}
           <PricingSection
             title="One flat fee. Save ~$50 vs a GP."
@@ -905,8 +917,6 @@ export function MedCertLanding() {
             price={PRICING.MED_CERT}
             originalPrice="~$72"
             features={PRICING_FEATURES}
-            refundNote={`Full refund if we can't help (minus ${SOCIAL_PROOF_DISPLAY.adminFee} admin fee)`}
-            medicareNote="Medicare rebates do not apply to telehealth consultations"
             ctaText={
               isDisabled
                 ? "Contact us"
@@ -930,9 +940,6 @@ export function MedCertLanding() {
           {/* 6. FAQ */}
           <FaqCtaSection onFAQOpen={handleFAQOpen} />
 
-          {/* Honest limitations — reduces bad-fit conversions */}
-          <LimitationsSection />
-
           {/* 7. Final CTA */}
           <FinalCtaSection onCTAClick={handleFinalCTA} />
         </main>
@@ -951,7 +958,7 @@ export function MedCertLanding() {
           />
         )}
 
-        {/* Sticky mobile CTA — appears after hero CTA scrolls out of view */}
+        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
@@ -980,6 +987,43 @@ export function MedCertLanding() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
+          </div>
+        </motion.div>
+
+        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        <motion.div
+          className="hidden lg:block fixed top-0 left-0 right-0 z-40"
+          initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}
+          animate={prefersReducedMotion
+            ? { opacity: showStickyCTA ? 1 : 0 }
+            : { y: showStickyCTA ? 0 : -60, opacity: showStickyCTA ? 1 : 0 }
+          }
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          aria-hidden={!showStickyCTA}
+        >
+          <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
+            <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
+              <p className="text-sm text-muted-foreground hidden xl:block">
+                Medical Certificate · Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST · 7 days
+              </p>
+              <div className="flex items-center gap-3 ml-auto">
+                <span className="text-sm text-muted-foreground">
+                  From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span>
+                </span>
+                <Button
+                  asChild
+                  size="sm"
+                  className="h-9 px-5 font-semibold shadow-sm shadow-primary/20"
+                  disabled={isDisabled}
+                  onClick={handleStickyCTA}
+                >
+                  <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
+                    {isDisabled ? "Contact us" : "Get your certificate"}
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

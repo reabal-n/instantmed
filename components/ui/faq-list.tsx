@@ -39,6 +39,8 @@ interface FAQListProps {
   className?: string
   /** Whether to animate items on scroll */
   animate?: boolean
+  /** Override per-item className (replaces default card styling) */
+  itemClassName?: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,9 +62,11 @@ export function FAQList({
   onValueChange,
   className,
   animate: animateProp,
+  itemClassName: itemClassNameProp,
 }: FAQListProps) {
   const prefersReducedMotion = useReducedMotion()
   const shouldAnimate = animateProp !== false && !prefersReducedMotion
+  const resolvedItemClassName = itemClassNameProp ?? itemClassName
 
   // Flat list mode
   if (items && !groups) {
@@ -84,7 +88,7 @@ export function FAQList({
           >
             <AccordionItem
               value={index.toString()}
-              className={itemClassName}
+              className={resolvedItemClassName}
             >
               <AccordionTrigger className="text-foreground py-5">
                 <span className="font-medium text-foreground text-left">

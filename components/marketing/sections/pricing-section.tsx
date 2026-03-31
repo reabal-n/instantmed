@@ -30,10 +30,10 @@ export interface PricingSectionProps {
   originalPrice?: number | string
   /** Feature bullet list */
   features: string[]
-  /** Refund policy note */
-  refundNote: string
-  /** Medicare note */
-  medicareNote: string
+  /** Refund policy note (optional) */
+  refundNote?: string
+  /** Medicare note (optional) */
+  medicareNote?: string
   /** CTA button text */
   ctaText: string
   /** CTA button href */
@@ -129,25 +129,28 @@ export function PricingSection({
             100% refund if we can&apos;t help
           </div>
           <p className="mt-2 text-xs text-muted-foreground">No account required</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay'].map((m) => (
-              <span key={m} className="text-xs text-muted-foreground/50 px-1.5 py-0.5 rounded bg-background/50 border border-border/30">
-                {m}
-              </span>
-            ))}
-          </div>
+          <p className="mt-1.5 text-[11px] text-muted-foreground/50 flex items-center justify-center gap-1">
+            <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Secured by Stripe · 256-bit SSL
+          </p>
 
-          {/* Notes */}
-          <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-            <p className="flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              {refundNote}
-            </p>
-            <p className="flex items-center justify-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              {medicareNote}
-            </p>
-          </div>
+          {/* Optional footnotes */}
+          {(refundNote || medicareNote) && (
+            <div className="mt-6 space-y-2 text-xs text-muted-foreground/70">
+              {refundNote && (
+                <p className="flex items-center justify-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                  {refundNote}
+                </p>
+              )}
+              {medicareNote && (
+                <p className="flex items-center justify-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  {medicareNote}
+                </p>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {/* Comparison Table — optional */}
@@ -219,7 +222,7 @@ const comparisonRows: Array<{
 }> = [
   { label: 'Cost †', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
   { label: 'Turnaround *', instant: '~38 min avg', gp: 'Requires booking', walkin: '2–4 hours', instantHighlight: true },
-  { label: 'Leave your couch?', instant: false, gp: true, walkin: true, instantHighlight: true },
+  { label: 'No waiting room visit', instant: true, gp: false, walkin: false, instantHighlight: true },
   { label: 'Employer accepted', instant: true, gp: true, walkin: true },
   { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },
   { label: 'Open 7 days', instant: true, gp: 'Sometimes', walkin: 'Varies', instantHighlight: true },

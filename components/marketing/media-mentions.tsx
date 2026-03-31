@@ -49,34 +49,38 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
 
   if (variant === 'strip') {
     return (
-      <div className={cn('py-8', className)}>
+      <div className={cn('py-10', className)}>
         <div className="container mx-auto px-4">
-          <p className="text-xs text-muted-foreground text-center mb-6 uppercase tracking-wider">
+          <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
             Regulated by
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-            {visiblePartners.map((partner) => (
+          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+            {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
-                initial={prefersReducedMotion ? {} : { opacity: 0 }}
-                whileInView={{ opacity: 1 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity"
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.08, duration: 0.35 }}
+                className="flex flex-col items-center gap-2 group"
                 title={partner.description}
               >
-                <Image
-                  src={partner.logo}
-                  alt={partner.description}
-                  width={partner.width}
-                  height={32}
-                  unoptimized
-                  className={cn(
-                    "h-7 w-auto object-contain",
-                    partner.isSvg
-                      ? "dark:brightness-0 dark:invert"
-                      : "rounded dark:bg-white/90 dark:p-0.5"
-                  )}
-                />
+                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-5 py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
+                  <Image
+                    src={partner.logo}
+                    alt={partner.description}
+                    width={partner.width}
+                    height={40}
+                    unoptimized
+                    className={cn(
+                      "h-9 w-auto object-contain",
+                      partner.isSvg
+                        ? "dark:brightness-0 dark:invert"
+                        : "rounded dark:bg-white/90 dark:p-0.5"
+                    )}
+                  />
+                </div>
+                <span className="text-[10px] text-muted-foreground/50 font-medium tracking-wide uppercase">{partner.name}</span>
               </motion.div>
             ))}
           </div>
