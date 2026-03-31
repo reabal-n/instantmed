@@ -30,6 +30,12 @@ export interface AudiencePageConfig {
   faqs: Array<{ q: string; a: string }>
   whyChoose: Array<{ title: string; desc: string }>
   testimonials: Array<{ name: string; role: string; quote: string }>
+  /** Industry-specific context — 2-3 paragraphs of workplace health insight */
+  industryContext?: string[]
+  /** Common conditions for this workforce */
+  commonConditions?: Array<{ name: string; slug: string; why: string }>
+  /** Workplace rights and entitlements relevant to this audience */
+  workplaceRights?: string[]
 }
 
 export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
@@ -84,6 +90,25 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       { name: "Sarah M.", role: "Melbourne", quote: "Night shift then sick — got my cert at 7am before I even went to sleep." },
       { name: "James L.", role: "Brisbane", quote: "Couldn't get to a clinic between shifts. Did it on my phone instead." },
     ],
+    industryContext: [
+      "Nursing and healthcare work involves 12-hour shifts, rotating rosters, and exposure to infectious patients — making nurses among the most likely workers to need medical certificates. Yet standard GP clinics are closed during many of the hours nurses actually work. Telehealth fills this gap by providing doctor access at 8am when you come off a night shift, or at 9pm before an early start.",
+      "Healthcare employers are among the most rigorous about requiring valid medical documentation for absences. Our certificates are issued by AHPRA-registered doctors and include all the details your HR department requires: doctor's name, provider number, dates of unfitness, and clinic details. They meet the same legal standard as any in-person GP certificate.",
+      "Nurses and healthcare workers also face unique occupational health considerations — needle-stick injuries, patient aggression, and workplace stress all fall outside what telehealth can assess. For these, you need your workplace OHS process. But for common illnesses like gastro (with its mandatory 48-hour exclusion), cold and flu, or mental health days, telehealth is the practical choice.",
+    ],
+    commonConditions: [
+      { name: "Gastroenteritis", slug: "gastro", why: "48-hour workplace exclusion required for healthcare workers — certificate documents compliance" },
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "High exposure risk from patients, plus duty not to attend work while infectious" },
+      { name: "Back Pain", slug: "back-pain", why: "Manual patient handling is one of the leading causes of back injury in nursing" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Burnout rates among nurses are significantly higher than the general workforce" },
+      { name: "COVID-19", slug: "covid-19", why: "Healthcare workers face higher exposure risk and strict return-to-work protocols" },
+    ],
+    workplaceRights: [
+      "Under the Fair Work Act, you are entitled to 10 days of paid personal/carer's leave per year (pro-rata for part-time)",
+      "Your employer can request a medical certificate but cannot demand to know your specific diagnosis",
+      "Certificates from telehealth services are legally equivalent to in-person GP certificates",
+      "Healthcare enterprise agreements often provide additional sick leave beyond the NES minimum",
+      "If you are a casual nurse, you can still use InstantMed — you are not entitled to paid leave but may need documentation for regular shifts",
+    ],
   },
   teachers: {
     slug: "teachers",
@@ -135,6 +160,25 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     testimonials: [
       { name: "Emma T.", role: "Sydney", quote: "Did it during lunch. Had my cert before afternoon class." },
       { name: "David K.", role: "Perth", quote: "School accepted it no problem. Didn't have to take a half-day off." },
+    ],
+    industryContext: [
+      "Teachers are frequently exposed to every virus circulating in the community — classrooms are enclosed spaces with limited ventilation and dozens of children who don't always cover their coughs. Most teachers report catching 3-5 illnesses per year, significantly more than the average adult. Despite this, getting a same-day GP appointment can mean missing a full day of school and disrupting lesson plans.",
+      "The teaching profession also carries significant mental health demands. The Australian Principal Association reports that over 40% of school leaders experience burnout, and classroom teachers face similar pressures from workload, behaviour management, and administrative demands. A mental health day is a legitimate use of personal leave, and our certificates support this without requiring you to disclose your specific condition.",
+      "For teachers employed under the Australian Education Union or state education department agreements, sick leave entitlements are typically generous (10-15 days per year). However, many schools request a certificate from day one of absence to arrange relief teachers. Telehealth lets you get your certificate before 8am — before the relief desk even opens.",
+    ],
+    commonConditions: [
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "Classroom exposure makes teachers one of the highest-risk groups for respiratory infections" },
+      { name: "Sore Throat", slug: "sore-throat", why: "Voice strain combined with viral exposure — teachers lose their voice more than any other profession" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Teaching has one of the highest burnout rates of any Australian profession" },
+      { name: "Migraine", slug: "migraine", why: "Classroom noise, fluorescent lighting, and screen time are common migraine triggers" },
+      { name: "Gastroenteritis", slug: "gastro", why: "Schools are high-transmission environments, especially primary schools" },
+    ],
+    workplaceRights: [
+      "Teachers under state education awards typically receive 10-15 days of paid sick leave per year",
+      "Most schools require a medical certificate for absences of 2+ days, though some require one from day one",
+      "You do not need to tell your school the specific nature of your illness — 'medical condition' on the certificate is sufficient",
+      "Casual relief teachers can use InstantMed for documentation even without paid leave entitlements",
+      "Mental health days are covered under personal leave provisions — the same as physical illness",
     ],
   },
   hospitality: {
@@ -188,6 +232,23 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       { name: "Marcus P.", role: "Melbourne", quote: "My hours don't line up with clinic hours at all. This actually works around my roster." },
       { name: "Sophie R.", role: "Brisbane", quote: "Got sick on a Saturday. Had my cert before my Sunday shift." },
     ],
+    industryContext: [
+      "Hospitality workers face a unique combination of irregular hours, food safety obligations, and high physical demands. Shifts that start at 5am for breakfast service or end at 2am after closing mean GP clinics are rarely accessible during your free time. Telehealth fits around the hours that hospitality actually works.",
+      "Food safety legislation in all Australian states requires food handlers to not attend work while experiencing vomiting, diarrhoea, or other symptoms of foodborne illness. The 48-hour exclusion rule applies strictly — and your employer may require documented evidence. A medical certificate from InstantMed satisfies this requirement.",
+      "Hospitality also has one of the highest rates of casual employment in Australia, meaning many workers don't have paid sick leave. While a certificate won't change your entitlements, it does protect your employment relationship — an unexplained absence is far more likely to cause issues than a documented one.",
+    ],
+    commonConditions: [
+      { name: "Gastroenteritis", slug: "gastro", why: "Mandatory 48-hour exclusion for food handlers — certificate documents compliance" },
+      { name: "Food Poisoning", slug: "food-poisoning", why: "Occupational exposure to foodborne pathogens is higher in hospitality" },
+      { name: "Back Pain", slug: "back-pain", why: "Long hours standing, carrying plates, and repetitive bending cause musculoskeletal strain" },
+      { name: "Burnout", slug: "burnout", why: "Hospitality has the highest turnover rate of any Australian industry, often driven by burnout" },
+    ],
+    workplaceRights: [
+      "Food handlers MUST stay home for 48 hours after vomiting or diarrhoea symptoms stop — this is a legal requirement, not optional",
+      "Permanent and part-time hospitality workers receive 10 days paid personal leave per year under the Restaurant Industry Award",
+      "Casual hospitality workers are not entitled to paid sick leave but should still document absences",
+      "Your employer cannot force you to work while symptomatic with a gastrointestinal illness — food safety laws override roster requirements",
+    ],
   },
   retail: {
     slug: "retail",
@@ -236,6 +297,23 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       { name: "Emma T.", role: "Brisbane", quote: "Got sick on a Sunday. Had my cert to HR before Monday morning." },
       { name: "Liam S.", role: "Sydney", quote: "Early shifts meant I could never make it to a clinic. Did it from my phone instead." },
     ],
+    industryContext: [
+      "Retail is Australia's second-largest employer, with over 1.3 million workers — many of whom are casuals without paid sick leave. For these workers, an absence without documentation can mean lost shifts, damaged relationships with managers, or worse. A medical certificate protects your position even when you're not entitled to paid leave.",
+      "Retail shifts often start early (5-6am for stock or opening) or run late (closing at 9-10pm), making standard GP hours impractical. Weekend work is the norm, not the exception. Telehealth provides certificate access during the hours retail workers actually need it — including weekends and evenings.",
+      "The General Retail Industry Award 2020 provides 10 days of paid personal leave per year for permanent and part-time employees. Most retail employers require a certificate for absences of 2 or more consecutive days, or for absences on days adjacent to weekends or public holidays. Having your certificate ready before your manager even asks removes friction.",
+    ],
+    commonConditions: [
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "Customer-facing roles with high contact exposure, especially during winter" },
+      { name: "Back Pain", slug: "back-pain", why: "Standing for long shifts, manual stock handling, and repetitive bending" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Customer-facing pressure combined with irregular hours and low pay contributes to burnout" },
+      { name: "Muscle Strain", slug: "muscle-strain", why: "Lifting stock, unloading deliveries, and prolonged standing cause musculoskeletal injury" },
+    ],
+    workplaceRights: [
+      "Permanent and part-time retail workers receive 10 days paid personal leave per year under the General Retail Industry Award",
+      "Casual retail workers are not entitled to paid sick leave but can access unpaid leave — documentation protects your shifts",
+      "Your employer can request a certificate but cannot ask what your specific illness is",
+      "Sick leave accrues progressively and rolls over — unused leave from previous years is still available",
+    ],
   },
   "office-workers": {
     slug: "office-workers",
@@ -283,6 +361,24 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     testimonials: [
       { name: "Sarah L.", role: "Melbourne", quote: "Did it from my desk at lunch. HR accepted it straight away." },
       { name: "Tom W.", role: "Canberra", quote: "Employer accepted it, no questions. Didn't have to take time off to get it." },
+    ],
+    industryContext: [
+      "For the millions of Australians who work in offices, getting sick often means a choice: drag yourself to work and infect your colleagues, or take a half-day off just to sit in a GP waiting room. Neither is a good option. Telehealth eliminates the paradox — get your certificate from your couch and email it to HR before your team even notices you're absent.",
+      "Open-plan offices are incubators for respiratory infections. Studies show that cold and flu viruses spread 5x faster in open-plan environments. Your employer has a duty of care to other workers, which means coming to work sick isn't just unpleasant — it's counterproductive. A medical certificate from a telehealth consultation documents your absence and protects your leave balance.",
+      "Many office workers also experience conditions related to sedentary work — back pain, neck pain, repetitive strain injuries, and eye strain. While these don't always require time off, a medical certificate can support a request for ergonomic adjustments or modified duties.",
+    ],
+    commonConditions: [
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "Open-plan offices accelerate virus transmission — you catch what your colleagues bring in" },
+      { name: "Back Pain", slug: "back-pain", why: "Prolonged sitting with poor ergonomics is the leading cause of office-worker back pain" },
+      { name: "Migraine", slug: "migraine", why: "Screens, fluorescent lighting, and air conditioning are common migraine triggers" },
+      { name: "Stress", slug: "stress", why: "Workplace pressure and deadline-driven environments contribute to chronic stress" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Burnout from email overload, meetings, and always-on culture" },
+    ],
+    workplaceRights: [
+      "Full-time office workers receive 10 days paid personal/carer's leave per year under the NES",
+      "Most corporate employers require a certificate for 2+ consecutive days, but some require one from day one",
+      "Your certificate can be submitted electronically — a PDF forwarded to HR is legally valid",
+      "If you work from home while unwell, you are still entitled to take sick leave — you don't have to 'push through' just because you're at home",
     ],
   },
   parents: {
@@ -336,6 +432,24 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       { name: "Jessica M.", role: "Sydney", quote: "Kid was too sick for school. Got the cert without dragging her to a clinic." },
       { name: "Chris D.", role: "Adelaide", quote: "Needed carer's leave for work. Sorted it online, HR accepted it." },
     ],
+    industryContext: [
+      "Carer's leave is one of the most underused workplace entitlements in Australia. Under the Fair Work Act, employees are entitled to use their personal leave to care for an immediate family member or household member who is unwell. This means you don't need separate 'carer's leave' — it comes from the same 10-day personal leave balance. Many parents don't realise a medical certificate for their child's illness also supports their own leave application.",
+      "When your child wakes up sick, you're juggling three things simultaneously: caring for them, notifying their school, and telling your employer. Dragging a sick child to a GP waiting room adds a fourth. Telehealth lets you get a certificate from home while your child rests — often before you even need to call the school office.",
+      "For parents of school-aged children, some schools require medical certificates for absences of 3+ days or for absences around school holidays. Our certificates cover the child's dates of illness and are accepted by all Australian schools. For your employer, the same certificate supports your carer's leave application.",
+    ],
+    commonConditions: [
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "Children bring home every virus from school and daycare — and pass it to parents" },
+      { name: "Gastroenteritis", slug: "gastro", why: "Childcare and school outbreaks are common, and gastro spreads easily within families" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Parental burnout from juggling work, childcare, and household responsibilities" },
+      { name: "Ear Infection", slug: "ear-infection", why: "Very common in children under 5 — may require your time off to care for them" },
+    ],
+    workplaceRights: [
+      "You can use personal/carer's leave to care for an unwell immediate family member or household member",
+      "Personal and carer's leave comes from the same 10-day annual balance under the NES",
+      "Your employer can request evidence but cannot deny leave if you provide a certificate",
+      "Part-time employees receive pro-rata personal leave (e.g. 3 days/week = 6 days leave/year)",
+      "A single certificate covering your child's illness also supports your carer's leave application",
+    ],
   },
   "remote-workers": {
     slug: "remote-workers",
@@ -388,6 +502,23 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       { name: "Rachel K.", role: "Byron Bay", quote: "Couldn't get a local appointment for ages. Did it online from home." },
       { name: "Alex T.", role: "Melbourne", quote: "Sick and needed a cert. Did it from bed without getting up." },
     ],
+    industryContext: [
+      "Remote work has permanently changed healthcare access patterns. When your office is your spare room, 'popping out to the GP' means either a 30-minute drive or disrupting your entire day. And when you're working from a regional area or travelling, local GP availability may be limited. Telehealth is the natural healthcare model for remote workers — you're already online.",
+      "A common misconception among remote workers is that because you can work from bed, you don't need a sick day. This is wrong and harmful. Working while unwell extends your recovery time, reduces the quality of your output, and normalises overwork. You are entitled to sick leave whether you work from home or an office. Taking a day off to recover is not being lazy — it's being sensible.",
+      "For remote workers in regional Australia, telehealth may be the most practical option regardless of health status. GP availability in towns like Byron Bay, Noosa, or Margaret River can be severely limited, with wait times of weeks for non-urgent appointments. InstantMed provides same-day access from anywhere with internet.",
+    ],
+    commonConditions: [
+      { name: "Back Pain", slug: "back-pain", why: "Home office ergonomics are often worse than corporate offices — dining chairs, laptop on couch" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Remote work isolation and blurred work-life boundaries contribute to burnout" },
+      { name: "Insomnia", slug: "insomnia", why: "Screen time and lack of commute routine can disrupt sleep patterns" },
+      { name: "Stress", slug: "stress", why: "Always-on culture and lack of physical separation between work and home" },
+    ],
+    workplaceRights: [
+      "Remote workers have the same sick leave entitlements as office-based workers — 10 days per year under the NES",
+      "You are entitled to take sick leave even when working from home — you don't have to 'just push through'",
+      "Your employer can request a medical certificate but cannot deny leave if one is provided",
+      "A telehealth certificate is especially appropriate for remote workers — it matches how you already work",
+    ],
   },
   "gig-workers": {
     slug: "gig-workers",
@@ -439,6 +570,24 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     testimonials: [
       { name: "Jake M.", role: "Sydney", quote: "Couldn't work for 2 days. Got my cert and sent it through. Sorted." },
       { name: "Mia L.", role: "Brisbane", quote: "No sick leave so I needed documentation. Simple process, doctor was thorough." },
+    ],
+    industryContext: [
+      "Gig workers — delivery drivers, rideshare operators, freelancers, and independent contractors — make up a growing segment of the Australian workforce, but they lack the safety net of paid sick leave. When you get sick, you don't earn. A medical certificate might seem pointless without paid leave, but it serves several important purposes: documenting absences for platform compliance, supporting insurance claims (if you have income protection), and providing evidence for Centrelink if illness prevents you from meeting mutual obligation requirements.",
+      "For platform-based gig workers (Uber, DoorDash, Menulog, Airtasker), some platforms require documentation for extended absences or deactivation appeals. Having a medical certificate on file demonstrates that your downtime was genuine and not a performance issue. This is increasingly relevant as gig platforms implement rating and reliability systems.",
+      "Freelancers and sole traders have a different challenge: no employer to report to, but clients who expect delivery. A medical certificate provides professional documentation when you need to push a deadline. It also supports any income protection insurance claim if you are unable to work for an extended period.",
+    ],
+    commonConditions: [
+      { name: "Cold & Flu", slug: "cold-and-flu", why: "Driving, delivering, and working outdoors increases exposure — and you can't 'work from home'" },
+      { name: "Back Pain", slug: "back-pain", why: "Delivery driving, cycling, and carrying packages cause musculoskeletal strain" },
+      { name: "Mental Health Day", slug: "mental-health-day", why: "Gig work isolation, income uncertainty, and lack of workplace community take a toll" },
+      { name: "Muscle Strain", slug: "muscle-strain", why: "Lifting, carrying, and physical delivery work without workplace OHS protections" },
+    ],
+    workplaceRights: [
+      "Gig workers classified as independent contractors are NOT entitled to paid sick leave under the Fair Work Act",
+      "If you are an employee misclassified as a contractor, you may have leave entitlements — seek advice from the Fair Work Ombudsman",
+      "Medical certificates support Centrelink claims if illness prevents you from meeting mutual obligations",
+      "Income protection insurance claims typically require a medical certificate as evidence of inability to work",
+      "Platform deactivation appeals often require documentation — a medical certificate explains gaps in availability",
     ],
   },
 }

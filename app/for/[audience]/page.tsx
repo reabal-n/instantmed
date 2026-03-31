@@ -242,6 +242,76 @@ export default async function AudiencePage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* Industry Context — deep unique content for SEO */}
+          {config.industryContext && config.industryContext.length > 0 && (
+            <section className="px-4 py-12 sm:px-6">
+              <div className="mx-auto max-w-3xl space-y-4">
+                {config.industryContext.map((paragraph, i) => (
+                  <p key={i} className="text-muted-foreground leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Common Conditions for this audience */}
+          {config.commonConditions && config.commonConditions.length > 0 && (
+            <section className="px-4 py-12 sm:px-6 bg-muted/30 dark:bg-white/[0.03]">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-xl font-semibold mb-6 text-center">
+                  Common Reasons {config.badgeLabel.replace("For ", "")} Need a Certificate
+                </h2>
+                <div className="space-y-3">
+                  {config.commonConditions.map((condition) => (
+                    <Link
+                      key={condition.slug}
+                      href={`/conditions/${condition.slug}`}
+                      className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 hover:border-primary/30 transition-all"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Shield className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">
+                          {condition.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">{condition.why}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Workplace Rights */}
+          {config.workplaceRights && config.workplaceRights.length > 0 && (
+            <section className="px-4 py-12 sm:px-6">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-xl font-semibold mb-6 text-center">
+                  Your Workplace Rights
+                </h2>
+                <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6">
+                  <ul className="space-y-3">
+                    {config.workplaceRights.map((right, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <Zap className="w-3 h-3 text-success" />
+                        </div>
+                        <span className="text-sm text-muted-foreground leading-relaxed">{right}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 pt-4 border-t border-border/30 text-xs text-muted-foreground">
+                    Source: Fair Work Ombudsman (fairwork.gov.au). This information is general in nature.
+                    Check your specific award or enterprise agreement for details.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* CTA */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
