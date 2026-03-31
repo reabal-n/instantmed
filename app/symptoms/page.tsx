@@ -6,12 +6,13 @@ import { CenteredHero } from "@/components/heroes";
 import { AccordionSection, CTABanner, SectionHeader } from "@/components/sections";
 import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema";
+import { symptoms as symptomsData } from "@/lib/seo/data/symptoms";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Symptom Guide | Common Symptoms & Causes",
   description:
-    "Understand your symptoms and when to see a doctor. Browse common symptoms like sore throat, headache, fatigue, cough, and fever. Get assessed by Australian doctors online.",
+    "Understand your symptoms and when to see a doctor. Browse 26 common symptoms including sore throat, headache, fatigue, nausea, dizziness, and more. Get assessed by Australian doctors online.",
   openGraph: {
     title: "Symptom Checker | InstantMed",
     description:
@@ -22,39 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
-const symptoms = [
-  {
-    slug: "sore-throat",
-    name: "Sore Throat",
-    description:
-      "Pain or irritation in the throat, especially when swallowing",
-    commonCauses: ["Viral infection", "Bacterial infection", "Allergies"],
-  },
-  {
-    slug: "headache",
-    name: "Headache",
-    description: "Pain in any region of the head, from dull to sharp",
-    commonCauses: ["Tension", "Migraine", "Dehydration", "Sinus"],
-  },
-  {
-    slug: "fatigue",
-    name: "Fatigue & Tiredness",
-    description: "Persistent exhaustion that doesn't improve with rest",
-    commonCauses: ["Poor sleep", "Stress", "Anaemia", "Thyroid"],
-  },
-  {
-    slug: "cough",
-    name: "Cough",
-    description: "Dry or productive cough that may be acute or chronic",
-    commonCauses: ["Viral infection", "Allergies", "Asthma", "Reflux"],
-  },
-  {
-    slug: "fever",
-    name: "Fever",
-    description: "Body temperature above 38°C, often with other symptoms",
-    commonCauses: ["Viral infection", "Bacterial infection", "COVID-19"],
-  },
-];
+const symptoms = Object.values(symptomsData).map((s) => ({
+  slug: s.slug,
+  name: s.name,
+  description: s.description,
+  commonCauses: s.possibleCauses
+    .filter((c) => c.likelihood === "common")
+    .slice(0, 4)
+    .map((c) => c.name),
+}));
 
 const symptomsFaqs = [
   {
@@ -141,7 +118,7 @@ export default function SymptomsIndexPage() {
               highlightWords={["Symptoms"]}
             />
 
-            <div className="mx-auto max-w-4xl grid sm:grid-cols-2 gap-5">
+            <div className="mx-auto max-w-5xl grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {symptoms.map((symptom) => (
                 <Link key={symptom.slug} href={`/symptoms/${symptom.slug}`} className="group">
                   <PerspectiveTiltCard variant="glass" maxRotation={4} className="h-full">

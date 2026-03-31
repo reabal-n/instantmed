@@ -246,6 +246,7 @@ export const footerLinks = {
     { label: "FAQs", href: "/faq" },
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
+    { label: "Sitemap", href: "/sitemap-html" },
   ],
   resources: [
     { label: "Health Conditions", href: "/conditions" },

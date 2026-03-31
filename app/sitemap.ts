@@ -45,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/symptoms",
     "/for",
     "/intent",
+    "/sitemap-html",
   ]
 
   const servicePages = [
