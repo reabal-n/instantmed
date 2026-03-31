@@ -282,39 +282,149 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* E-E-A-T: Medical Context & Doctor Review */}
-          <section className="px-4 py-16">
-            <div className="mx-auto max-w-3xl">
-              <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
-                </div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">
-                  Understanding {condition.name}
-                </h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
-                  <p>{condition.description}</p>
-                  <p>{condition.searchIntent}</p>
-                  <p>
-                    All assessments on InstantMed are conducted by AHPRA-registered Australian doctors.
-                    If your symptoms fall outside what can be safely managed via telehealth, your doctor will
-                    advise you to seek in-person care — your safety always comes first.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Stethoscope className="w-3.5 h-3.5" />
-                    Reviewed by AHPRA-registered GP
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    Last updated: March 2026
-                  </span>
+          {/* Doctor's Perspective — unique clinical insight */}
+          {condition.doctorPerspective && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-3xl">
+                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Stethoscope className="w-5 h-5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Doctor&apos;s perspective</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    A GP&apos;s take on {condition.name}
+                  </h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
+                    <p>{condition.doctorPerspective}</p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5" />
+                      Clinically reviewed by the InstantMed Medical Team
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Last updated: {condition.reviewedDate ? new Date(condition.reviewedDate + "-01").toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "March 2026"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
+
+          {/* Recovery Timeline */}
+          {condition.recoveryTimeline && (
+            <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
+              <div className="mx-auto max-w-4xl">
+                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+                  Recovery & Return to Work
+                </h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <Clock className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">Typical recovery</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.typical}</p>
+                  </div>
+                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
+                    <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center mb-4">
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">Returning to work</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.returnToWork}</p>
+                  </div>
+                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
+                    <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center mb-4">
+                      <AlertTriangle className="w-5 h-5 text-warning" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">When to reassess</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.whenToReassess}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Self-Care Tips */}
+          {condition.selfCareTips && condition.selfCareTips.length > 0 && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+                  Self-Care for {condition.name}
+                </h2>
+                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-6 sm:p-8">
+                  <ul className="space-y-4">
+                    {condition.selfCareTips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                        </div>
+                        <span className="text-muted-foreground leading-relaxed">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Australian Health Statistics */}
+          {condition.auStats && condition.auStats.length > 0 && (
+            <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
+              <div className="mx-auto max-w-3xl">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-6 text-center">
+                  {condition.name} in Australia
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {condition.auStats.map((stat, i) => (
+                    <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/10">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <BookOpen className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{stat}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* E-E-A-T fallback for conditions without doctor perspective */}
+          {!condition.doctorPerspective && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-3xl">
+                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    Understanding {condition.name}
+                  </h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
+                    <p>{condition.description}</p>
+                    <p>{condition.searchIntent}</p>
+                    <p>
+                      All assessments on InstantMed are conducted by AHPRA-registered Australian doctors.
+                      If your symptoms fall outside what can be safely managed via telehealth, your doctor will
+                      advise you to seek in-person care — your safety always comes first.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5" />
+                      Clinically reviewed by the InstantMed Medical Team
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Last updated: {condition.reviewedDate ? new Date(condition.reviewedDate + "-01").toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "March 2026"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Helpful Articles */}
           <section className="px-4 py-8">

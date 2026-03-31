@@ -24,6 +24,20 @@ export interface ConditionData {
     avgTime: string
     satisfaction: string
   }
+  /** Clinical perspective — 2-3 paragraphs of doctor-level insight unique to this condition */
+  doctorPerspective?: string
+  /** Australian-specific health statistics for this condition */
+  auStats?: string[]
+  /** Typical recovery timeline and return-to-work guidance */
+  recoveryTimeline?: {
+    typical: string
+    returnToWork: string
+    whenToReassess: string
+  }
+  /** Self-care tips beyond the generic "rest and fluids" */
+  selfCareTips?: string[]
+  /** Reviewed date in YYYY-MM format */
+  reviewedDate?: string
 }
 
 export const conditionsData: Record<string, ConditionData> = {
@@ -94,6 +108,27 @@ export const conditionsData: Record<string, ConditionData> = {
     ctaText: "Get a medical certificate",
     ctaHref: "/request?service=med-cert&condition=cold-flu",
     stats: { avgTime: "45 mins", satisfaction: "4.9/5" },
+    doctorPerspective: "Most cold and flu cases are straightforward viral infections that resolve on their own within 7-10 days. What we look for during an assessment is whether your symptoms suggest something that needs more attention — a secondary bacterial infection like sinusitis or pneumonia, or an underlying condition that makes you more vulnerable. The key distinction between a cold and influenza matters clinically: true influenza tends to hit suddenly with high fever, severe body aches, and profound fatigue, while colds build gradually and stay mostly above the neck. If your symptoms improved and then suddenly worsened — especially with a new fever or worsening cough — that's a pattern that warrants reassessment, as it can indicate a secondary infection.",
+    auStats: [
+      "Influenza causes an estimated 3,500 hospitalisations in Australia each year (AIHW)",
+      "The average Australian adult catches 2-4 colds per year",
+      "Flu season in Australia typically runs from May to September, peaking in August",
+      "Only about 30% of Australians get the recommended annual flu vaccine",
+    ],
+    recoveryTimeline: {
+      typical: "Common cold: 7-10 days. Influenza: 1-2 weeks, with fatigue sometimes lingering for 2-3 weeks. Most people feel significantly better by day 5-7.",
+      returnToWork: "You can typically return to work once you've been fever-free for 24 hours without medication and your symptoms are manageable. For flu, this is usually 5-7 days from symptom onset. You remain contagious for about a week, so good hygiene matters even after you feel better.",
+      whenToReassess: "If symptoms haven't improved after 10 days, or if you develop new symptoms (ear pain, facial pressure, worsening cough with coloured phlegm) after initially improving, see a doctor — you may have developed a secondary bacterial infection.",
+    },
+    selfCareTips: [
+      "Paracetamol or ibuprofen for fever and body aches (follow packet directions)",
+      "Stay hydrated — water, herbal tea, clear broth. Aim for pale urine",
+      "Saline nasal spray can relieve congestion without medication side effects",
+      "Honey in warm water soothes sore throats (not for children under 1)",
+      "Elevate your head while sleeping to reduce sinus pressure",
+      "Avoid alcohol and caffeine — both can worsen dehydration",
+    ],
+    reviewedDate: "2026-03",
   },
   gastro: {
     name: "Gastroenteritis",
