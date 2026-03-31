@@ -982,5 +982,171 @@ export const symptoms: Record<string, SymptomData> = {
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
     doctorPerspective: "Itching (pruritus) without a visible rash is a diagnostically interesting symptom. If there is a rash, the cause is usually dermatological — eczema, contact dermatitis, fungal infection, hives, or insect bites. But generalised itching without any rash can indicate systemic conditions: liver disease (bile salt deposition), kidney disease (uraemia), thyroid dysfunction, iron deficiency, or rarely, lymphoma. This is why persistent, unexplained itching warrants blood tests. For itching with a clear skin cause, treatment is usually straightforward — moisturisers for dry skin, topical steroids for eczema, antifungals for fungal infections, and antihistamines for allergic reactions. The most important self-care advice is to avoid scratching — it creates an itch-scratch cycle that worsens the condition.",
     certGuidance: "Severe itching — particularly from eczema flares or allergic reactions — can be genuinely debilitating and affect sleep and concentration. A certificate is appropriate when itching significantly impairs your ability to work.",
+  },
+  "heart-palpitations": {
+    name: "Heart Palpitations",
+    slug: "heart-palpitations",
+    description: "An awareness of your heartbeat — racing, pounding, fluttering, or skipping beats. Usually benign but can be frightening.",
+    possibleCauses: [
+      { name: "Anxiety or stress", likelihood: "common", description: "Adrenaline causes the heart to beat faster and harder.", whenToSuspect: ["During stress", "With other anxiety symptoms", "Resolves when calm"] },
+      { name: "Caffeine or stimulants", likelihood: "common", description: "Coffee, energy drinks, and some medications.", whenToSuspect: ["After coffee/energy drinks", "Dose-dependent"] },
+      { name: "Exercise or physical exertion", likelihood: "common", description: "Normal response to activity.", whenToSuspect: ["During or after exercise", "Settles with rest"] },
+      { name: "Dehydration", likelihood: "common", description: "Low fluid volume increases heart rate.", whenToSuspect: ["Hot weather", "Not drinking enough", "Dark urine"] },
+      { name: "Arrhythmia", likelihood: "less-common", description: "Abnormal heart rhythm requiring investigation.", whenToSuspect: ["Irregular pattern", "At rest", "With dizziness or fainting"] },
+      { name: "Thyroid overactivity", likelihood: "less-common", description: "Hyperthyroidism increases heart rate.", whenToSuspect: ["Weight loss", "Heat intolerance", "Tremor", "Anxiety"] }
+    ],
+    selfCareAdvice: ["Reduce caffeine intake", "Stay well hydrated", "Practice slow breathing", "Manage stress", "Avoid alcohol excess", "Get adequate sleep"],
+    whenToSeeDoctor: ["Frequent palpitations at rest", "Palpitations with dizziness or fainting", "Family history of heart conditions", "Palpitations with chest pain", "You need reassurance or investigation"],
+    emergencySigns: ["Palpitations with chest pain or pressure", "Fainting or loss of consciousness", "Severe breathlessness", "Palpitations lasting more than 15 minutes at rest"],
+    relatedSymptoms: ["chest-pain", "anxiety", "dizziness", "shortness-of-breath"],
+    faqs: [
+      { q: "Are heart palpitations dangerous?", a: "Most palpitations are harmless — caused by caffeine, stress, or exercise. However, palpitations with chest pain, fainting, or severe breathlessness need urgent assessment to rule out arrhythmias." },
+      { q: "Should I see a cardiologist?", a: "Not usually as a first step. Your GP can arrange an ECG and blood tests. Specialist referral is needed if an arrhythmia is detected or palpitations are frequent and unexplained." },
+      { q: "Can anxiety cause heart palpitations?", a: "Yes — anxiety is one of the most common causes. Adrenaline from the fight-or-flight response directly increases heart rate and force of contraction." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Heart palpitations are one of the most anxiety-provoking symptoms patients experience, but the vast majority are benign. When I assess palpitations, I first determine the pattern: are they regular or irregular? Brief or sustained? Associated with exertion or at rest? Palpitations during stress, after caffeine, or during exercise are almost always normal physiological responses. The features that raise concern are palpitations at rest that are irregular, sustained (more than 15 minutes), associated with dizziness or fainting, or occurring with chest pain. These may indicate an arrhythmia requiring investigation with an ECG or Holter monitor. Importantly, many patients with benign palpitations enter a cycle where anxiety about the palpitations causes more adrenaline, which causes more palpitations — breaking this cycle with reassurance and breathing techniques is often the most effective treatment.",
+    certGuidance: "Palpitations alone rarely prevent work unless they cause significant dizziness or anxiety. If palpitations required emergency assessment or investigation, time off for recovery and follow-up is appropriate.",
+  },
+  "joint-pain": {
+    name: "Joint Pain",
+    slug: "joint-pain",
+    description: "Pain, stiffness, or swelling in one or more joints. Can be caused by injury, overuse, arthritis, infection, or autoimmune conditions.",
+    possibleCauses: [
+      { name: "Osteoarthritis", likelihood: "common", description: "Wear-and-tear arthritis, increases with age.", whenToSuspect: ["Over 45", "Stiffness after rest", "Affects knees, hips, or hands", "Gradual onset"] },
+      { name: "Injury or overuse", likelihood: "common", description: "Strain, sprain, or repetitive use.", whenToSuspect: ["Recent activity change", "Localised to one joint", "Swelling after activity"] },
+      { name: "Gout", likelihood: "less-common", description: "Sudden, severe joint inflammation from uric acid.", whenToSuspect: ["Sudden onset", "Big toe", "Extremely painful", "Red and hot"] },
+      { name: "Rheumatoid arthritis", likelihood: "less-common", description: "Autoimmune joint inflammation.", whenToSuspect: ["Multiple joints", "Morning stiffness >30min", "Symmetric (both sides)", "Under 50"] },
+      { name: "Viral infection", likelihood: "common", description: "Many viruses cause temporary joint pain.", whenToSuspect: ["With fever or rash", "Recent illness", "Multiple joints", "Resolves in weeks"] }
+    ],
+    selfCareAdvice: ["Rest the affected joint but maintain gentle movement", "Apply ice for acute pain or heat for chronic stiffness", "Over-the-counter anti-inflammatories (ibuprofen)", "Gentle stretching and strengthening", "Maintain healthy weight to reduce joint load"],
+    whenToSeeDoctor: ["Joint pain lasting more than 2 weeks", "Significant swelling, redness, or warmth", "Joint pain with fever", "Inability to use the joint normally", "You need a medical certificate"],
+    emergencySigns: ["Hot, red, swollen joint with fever (possible septic arthritis — emergency)", "Joint pain after significant trauma with deformity", "Unable to bear weight on the affected joint"],
+    relatedSymptoms: ["back-pain", "neck-pain", "muscle-strain"],
+    faqs: [
+      { q: "Can I get a medical certificate for joint pain?", a: "Yes. Joint pain — particularly in weight-bearing joints or hands — can significantly affect your ability to work. A certificate is appropriate, especially for physical roles." },
+      { q: "When does joint pain need investigation?", a: "See a doctor if pain persists beyond 2 weeks, if the joint is swollen/hot/red, if multiple joints are affected, or if you have morning stiffness lasting more than 30 minutes (possible inflammatory arthritis)." },
+      { q: "Should I use heat or ice?", a: "Ice for acute pain and swelling (first 48 hours of a new injury). Heat for chronic stiffness and muscle tension. Many people benefit from alternating both." }
+    ],
+    serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Joint pain is one of the broadest symptom categories in medicine, and the approach depends on whether it is one joint or many, acute or chronic, and inflammatory or mechanical. A single hot, red, swollen joint with fever is septic arthritis until proven otherwise — this is a medical emergency requiring urgent in-person assessment and joint aspiration. In contrast, gradual knee stiffness in a 55-year-old is almost certainly osteoarthritis and can be managed with exercise and weight management. The key features I assess remotely are: which joints, how many, morning stiffness duration (more than 30 minutes suggests inflammatory arthritis), and associated symptoms (fever, rash, eye inflammation). This allows me to triage effectively between conditions that need urgent attention and those that can be managed conservatively.",
+    certGuidance: "Joint pain affecting weight-bearing joints (knees, hips, ankles) or hands can prevent physical work and desk work respectively. Gout attacks are among the most painful conditions and typically warrant 3-5 days off.",
+  },
+  "weight-gain": {
+    name: "Unexplained Weight Gain",
+    slug: "weight-gain",
+    description: "Gaining weight without a clear change in diet or exercise habits. May indicate hormonal, metabolic, or medication-related causes.",
+    possibleCauses: [
+      { name: "Hypothyroidism", likelihood: "less-common", description: "Underactive thyroid slows metabolism.", whenToSuspect: ["Fatigue", "Cold intolerance", "Constipation", "Dry skin"] },
+      { name: "Medication side effects", likelihood: "common", description: "Many medications cause weight gain.", whenToSuspect: ["Started new medication", "Antidepressants, steroids, insulin, contraceptive pill"] },
+      { name: "Fluid retention", likelihood: "common", description: "Excess fluid causing rapid weight increase.", whenToSuspect: ["Swollen ankles", "Rapid gain over days", "Tight rings or shoes"] },
+      { name: "PCOS (polycystic ovary syndrome)", likelihood: "less-common", description: "Hormonal condition in women.", whenToSuspect: ["Irregular periods", "Acne", "Excess hair growth", "Difficulty losing weight"] },
+      { name: "Cushing's syndrome", likelihood: "rare", description: "Excess cortisol production.", whenToSuspect: ["Central obesity", "Moon face", "Stretch marks", "Thin skin"] }
+    ],
+    selfCareAdvice: ["Track food intake accurately — many people underestimate consumption by 40-50%", "Maintain regular physical activity", "Check medication side effects with your doctor", "Get adequate sleep — poor sleep disrupts hunger hormones", "Manage stress — cortisol promotes fat storage"],
+    whenToSeeDoctor: ["Unexplained weight gain of 5kg+ over a few months", "Weight gain with other symptoms (fatigue, hair loss, menstrual changes)", "Rapid weight gain over days (possible fluid retention)", "Difficulty losing weight despite genuine effort"],
+    emergencySigns: ["Rapid weight gain with severe breathlessness (possible heart failure)", "Sudden leg swelling with chest pain (possible blood clot)", "Rapid weight gain with facial swelling (possible kidney problems)"],
+    relatedSymptoms: ["fatigue", "bloating"],
+    faqs: [
+      { q: "What medical conditions cause weight gain?", a: "The most common are hypothyroidism, PCOS, medication side effects, insulin resistance, Cushing's syndrome, and fluid retention from heart, liver, or kidney conditions. Blood tests can screen for most of these." },
+      { q: "Which medications cause weight gain?", a: "Common culprits include some antidepressants (mirtazapine, amitriptyline), antipsychotics, corticosteroids, insulin, sulfonylureas, beta-blockers, and some contraceptives." },
+      { q: "Should I get blood tests?", a: "Yes, if weight gain is genuinely unexplained. A basic panel should include thyroid function (TSH), fasting glucose and HbA1c, cortisol, and a full blood count. PCOS testing may be appropriate for women." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "When a patient tells me they are gaining weight without eating more, I take it seriously — but I also investigate honestly. Research shows that most people significantly underestimate their caloric intake (by 40-50% on average). That said, genuine unexplained weight gain does occur and has identifiable medical causes. The most common is hypothyroidism, followed by medication side effects (which are vastly underappreciated — many commonly prescribed medications cause 5-10kg of weight gain). PCOS in women is another major cause. The investigation is straightforward: thyroid function, fasting glucose, and in some cases hormone panels. Via telehealth, I can order the appropriate blood tests, review medications for weight-gaining culprits, and provide evidence-based guidance.",
+    certGuidance: "Unexplained weight gain itself rarely requires a certificate, but the underlying cause (hypothyroidism, depression) or associated symptoms (severe fatigue, mobility limitation) may.",
+  },
+  "hair-loss": {
+    name: "Hair Loss",
+    slug: "hair-loss",
+    description: "Thinning, shedding, or bald patches on the scalp. Can be caused by genetics, hormones, stress, nutritional deficiencies, or autoimmune conditions.",
+    possibleCauses: [
+      { name: "Androgenetic alopecia (male/female pattern)", likelihood: "common", description: "Genetic hair loss — the most common type.", whenToSuspect: ["Family history", "Gradual thinning", "Receding hairline (men)", "Widening part (women)"] },
+      { name: "Telogen effluvium (stress-related)", likelihood: "common", description: "Temporary shedding 2-3 months after a stressor.", whenToSuspect: ["Recent illness, surgery, or stress", "Diffuse thinning", "Started 2-3 months after event"] },
+      { name: "Iron or nutritional deficiency", likelihood: "less-common", description: "Low iron, zinc, or vitamin D can cause hair loss.", whenToSuspect: ["Fatigue", "Vegetarian/vegan", "Heavy periods", "Diffuse thinning"] },
+      { name: "Thyroid dysfunction", likelihood: "less-common", description: "Both hypo- and hyperthyroidism cause hair loss.", whenToSuspect: ["Fatigue or anxiety", "Weight changes", "Temperature sensitivity"] },
+      { name: "Alopecia areata", likelihood: "less-common", description: "Autoimmune patches of hair loss.", whenToSuspect: ["Round bald patches", "Smooth skin in patches", "May regrow spontaneously"] }
+    ],
+    selfCareAdvice: ["Don't panic — stress worsens hair loss. Most types are treatable", "Get blood tests for iron, thyroid, vitamin D, and zinc", "Use gentle hair care — avoid excessive heat, tight styles, and harsh chemicals", "Consider minoxidil (available OTC) for pattern hair loss", "Ensure adequate protein intake — hair is made of protein"],
+    whenToSeeDoctor: ["Sudden or rapid hair loss", "Bald patches appearing", "Hair loss with scalp symptoms (pain, itching, redness)", "Hair loss after starting new medication", "You want to discuss treatment options"],
+    emergencySigns: ["Hair loss with severe scalp pain and scarring (possible scarring alopecia — needs dermatology)", "Complete hair loss over days (rare — needs urgent assessment)"],
+    relatedSymptoms: ["fatigue", "stress"],
+    faqs: [
+      { q: "Can a doctor help with hair loss?", a: "Yes. A doctor can identify the cause (blood tests for deficiencies, thyroid, hormones), prescribe treatments (finasteride, minoxidil, iron supplementation), and refer to a dermatologist if needed." },
+      { q: "Is hair loss reversible?", a: "It depends on the cause. Telogen effluvium (stress-related) is fully reversible. Iron/thyroid-related hair loss reverses with treatment. Pattern hair loss can be slowed and partially reversed with early treatment but is progressive without it." },
+      { q: "What treatments are available?", a: "Minoxidil (topical, OTC), finasteride (prescription, for men), iron/vitamin supplements if deficient, and referral for PRP therapy or specialist treatments for resistant cases." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Hair loss consultations have increased significantly in telehealth — likely because patients find it easier to discuss a sensitive topic from home. The diagnostic approach starts with the pattern: is it diffuse (all over) or patchy? Gradual or sudden? Diffuse gradual thinning in a typical pattern strongly suggests androgenetic alopecia (genetic). Diffuse shedding 2-3 months after a stressor (illness, surgery, childbirth, severe stress) is telogen effluvium — this is fully reversible. Patchy loss with smooth skin suggests alopecia areata. I always check for treatable causes: iron, ferritin, thyroid function, zinc, and vitamin D — these are all correctable and commonly overlooked. For androgenetic alopecia, the key message is that early treatment (minoxidil ± finasteride for men) is far more effective at preventing further loss than trying to regrow what's already gone.",
+    certGuidance: "Hair loss itself is unlikely to require a medical certificate, but the psychological impact can be significant. If hair loss is causing anxiety or depression that affects work, that is a legitimate reason for support.",
+  },
+  "eye-strain": {
+    name: "Eye Strain (Digital Eye Strain)",
+    slug: "eye-strain",
+    description: "Tired, sore, or dry eyes from prolonged screen use or close-up work. Also called computer vision syndrome. Affects up to 90% of people who use screens for 2+ hours daily.",
+    possibleCauses: [
+      { name: "Prolonged screen use", likelihood: "common", description: "Reduced blink rate and sustained focus cause strain.", whenToSuspect: ["Worse after screen time", "Better on weekends", "Late afternoon symptoms"] },
+      { name: "Poor lighting or glare", likelihood: "common", description: "Screen brightness mismatch with environment.", whenToSuspect: ["Overhead fluorescent lighting", "Screen facing window", "No screen filter"] },
+      { name: "Uncorrected vision", likelihood: "common", description: "Needing glasses or updated prescription.", whenToSuspect: ["Squinting", "Headaches", "Holding phone closer"] },
+      { name: "Dry eye syndrome", likelihood: "less-common", description: "Insufficient tear production.", whenToSuspect: ["Eyes feel gritty", "Worse in air conditioning", "Contact lens discomfort"] }
+    ],
+    selfCareAdvice: ["Follow the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds", "Blink deliberately — screen use reduces blink rate by 50%", "Adjust screen brightness to match your environment", "Use lubricating eye drops (artificial tears)", "Position screen at arm's length, slightly below eye level"],
+    whenToSeeDoctor: ["Eye strain with persistent headaches", "Vision changes or blurred vision", "Eye pain (not just tiredness)", "Symptoms not improving with self-care", "You need an eye test referral"],
+    emergencySigns: ["Sudden vision loss or dark spots", "Severe eye pain", "Flashing lights or new floaters", "Double vision"],
+    relatedSymptoms: ["headache", "neck-pain"],
+    faqs: [
+      { q: "Can screens damage my eyes?", a: "Screens don't cause permanent eye damage, but they do cause temporary symptoms (strain, dryness, headache). The real concern is that we blink 50% less when using screens, leading to dry eyes and fatigue." },
+      { q: "Do blue light glasses help?", a: "Evidence is mixed. Current research suggests blue light glasses have minimal effect on eye strain. Better strategies are the 20-20-20 rule, proper screen positioning, and adequate lighting." },
+      { q: "Can I get a medical certificate for eye strain?", a: "Severe eye strain with headaches can affect your ability to do screen-based work. A certificate may be appropriate, along with recommendations for workplace ergonomic assessment." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Digital eye strain is the occupational health epidemic of the modern workplace. Nearly everyone who works at a screen for more than 2 hours daily experiences it to some degree, yet very few seek help or make the simple adjustments that resolve it. The root cause is that our eyes evolved for distance vision and outdoor light — sustained near-focus on a backlit screen in an air-conditioned room is physiologically demanding. The most effective intervention is the 20-20-20 rule, combined with deliberate blinking and appropriate screen positioning. I also always recommend an eye test to rule out uncorrected refractive error — even a mild prescription that you 'don't really need' can eliminate eye strain entirely.",
+    certGuidance: "Severe eye strain can make screen-based work impossible. If headaches and eye fatigue are debilitating despite ergonomic adjustments, a certificate and optometry referral are appropriate.",
+  },
+  "sleep-apnoea": {
+    name: "Sleep Apnoea",
+    slug: "sleep-apnoea",
+    description: "A condition where breathing repeatedly stops and starts during sleep. Causes loud snoring, daytime sleepiness, and increases the risk of heart disease, stroke, and diabetes.",
+    possibleCauses: [
+      { name: "Obstructive sleep apnoea (OSA)", likelihood: "common", description: "Throat muscles relax excessively during sleep, blocking the airway.", whenToSuspect: ["Loud snoring", "Witnessed apnoeas (partner sees you stop breathing)", "Overweight", "Neck circumference >40cm"] },
+      { name: "Central sleep apnoea", likelihood: "rare", description: "Brain doesn't send proper signals to breathing muscles.", whenToSuspect: ["Heart failure", "Opioid use", "No snoring", "Cheyne-Stokes breathing pattern"] }
+    ],
+    selfCareAdvice: ["Lose weight if overweight — even 5-10% weight loss can significantly reduce OSA severity", "Sleep on your side — back sleeping worsens obstruction", "Avoid alcohol within 3 hours of bedtime — it relaxes throat muscles", "Avoid sedating medications before bed", "Maintain regular sleep schedule"],
+    whenToSeeDoctor: ["Loud snoring with witnessed breathing pauses", "Excessive daytime sleepiness despite adequate sleep hours", "Morning headaches", "Difficulty concentrating", "Falling asleep while driving (urgent)"],
+    emergencySigns: ["Falling asleep at the wheel or during safety-critical tasks", "Severe breathlessness on waking", "Chest pain on waking"],
+    relatedSymptoms: ["fatigue", "headache", "insomnia"],
+    faqs: [
+      { q: "How is sleep apnoea diagnosed?", a: "A sleep study (polysomnography) is the gold standard. Home-based sleep studies are now available and are more convenient. Your GP can arrange a referral." },
+      { q: "What is CPAP?", a: "Continuous Positive Airway Pressure — a machine that gently blows air through a mask to keep your airway open during sleep. It is the most effective treatment for moderate-severe OSA." },
+      { q: "Is sleep apnoea dangerous?", a: "Untreated OSA significantly increases risk of heart attack, stroke, type 2 diabetes, and car accidents (due to daytime sleepiness). Treatment with CPAP dramatically reduces these risks." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Sleep apnoea is one of the most underdiagnosed conditions in Australia — up to 80% of moderate-to-severe cases remain undiagnosed. The classic presentation is a middle-aged, overweight male with loud snoring and daytime sleepiness, but it affects women too (particularly after menopause) and can occur at any weight. Via telehealth, I can screen using validated questionnaires (STOP-BANG, Epworth Sleepiness Scale), arrange home sleep study referrals, and discuss treatment options. The most important reason to diagnose and treat OSA is cardiovascular risk reduction — untreated severe OSA doubles the risk of heart attack and stroke. CPAP compliance is the main challenge, but modern machines are quieter, smaller, and more comfortable than older models.",
+    certGuidance: "Untreated severe OSA with excessive daytime sleepiness is a safety risk for driving and operating machinery. A certificate may be appropriate while awaiting diagnosis and treatment initiation.",
+  },
+  "acid-reflux-cough": {
+    name: "Chronic Cough",
+    slug: "chronic-cough",
+    description: "A cough lasting more than 8 weeks. The three most common causes in non-smokers are asthma, postnasal drip, and acid reflux — often in combination.",
+    possibleCauses: [
+      { name: "Asthma (cough-variant)", likelihood: "common", description: "Airway hyperreactivity causing cough without typical wheeze.", whenToSuspect: ["Worse at night", "Triggered by cold air or exercise", "No other cold symptoms", "Responds to inhaler trial"] },
+      { name: "Postnasal drip (upper airway cough syndrome)", likelihood: "common", description: "Mucus from sinuses dripping down throat.", whenToSuspect: ["Throat clearing", "Runny/blocked nose", "Worse lying down", "Allergies"] },
+      { name: "Acid reflux (GORD)", likelihood: "common", description: "Stomach acid irritating the lower oesophagus and throat.", whenToSuspect: ["Heartburn", "Worse after meals or lying down", "Sour taste", "Hoarse voice"] },
+      { name: "Post-infectious cough", likelihood: "common", description: "Cough persisting weeks after a respiratory infection.", whenToSuspect: ["Started with a cold", "Gradually improving", "No new symptoms"] },
+      { name: "ACE inhibitor medication", likelihood: "less-common", description: "Common side effect of blood pressure medications.", whenToSuspect: ["Taking ramipril, perindopril, or enalapril", "Dry tickling cough", "Started weeks to months after medication"] },
+      { name: "Lung pathology", likelihood: "rare", description: "Requires investigation in persistent cases.", whenToSuspect: ["Smoker or ex-smoker", "Coughing blood", "Weight loss", "Breathlessness"] }
+    ],
+    selfCareAdvice: ["If post-infectious: honey in warm water, time is the best treatment", "If reflux-related: eat smaller meals, don't eat before bed, elevate the head of the bed", "If allergic: nasal corticosteroid spray and antihistamines", "Stay hydrated", "Avoid known triggers (smoke, strong perfumes, cold air)"],
+    whenToSeeDoctor: ["Cough lasting more than 8 weeks", "Coughing up blood (even small amounts)", "Cough with unexplained weight loss", "Cough with increasing breathlessness", "Cough affecting sleep or daily life"],
+    emergencySigns: ["Coughing up significant blood", "Severe breathlessness with cough", "Chest pain with cough", "Cough with high fever and rigors"],
+    relatedSymptoms: ["cough", "sore-throat", "chest-pain", "shortness-of-breath"],
+    faqs: [
+      { q: "How long is too long for a cough?", a: "A cough lasting more than 8 weeks is considered chronic and warrants investigation. Post-infectious coughs can last 2-3 weeks after a cold — this duration is normal." },
+      { q: "What tests might I need?", a: "Depending on the likely cause: spirometry (for asthma), chest X-ray (for smokers or if lung pathology suspected), trial of PPI medication (for reflux), or nasal endoscopy (for postnasal drip)." },
+      { q: "Can I get a medical certificate for chronic cough?", a: "Yes. A persistent cough can disrupt sleep, cause voice strain, and make certain work environments difficult (quiet offices, phone-based work)." }
+    ],
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    doctorPerspective: "Chronic cough is one of the most common reasons for GP referral, and the diagnosis often involves treating the three most common causes (asthma, postnasal drip, reflux) sequentially or simultaneously. The key in telehealth assessment is ruling out serious causes first: any smoker or ex-smoker with a new or changed cough needs a chest X-ray. Coughing blood (haemoptysis) always warrants investigation. Unexplained weight loss with cough raises concern for malignancy. Once these are excluded, the 'big three' account for over 90% of chronic cough cases. A structured trial of treatment — inhaler for possible asthma, nasal steroid for postnasal drip, PPI for reflux — often identifies the cause by which treatment works. ACE inhibitor cough is a commonly overlooked cause that resolves within 1-4 weeks of switching medication.",
+    certGuidance: "Chronic cough can be disruptive at work — particularly in quiet environments. If cough is severe enough to cause vomiting, urinary incontinence, or significant sleep disruption, a certificate is appropriate.",
   }
 }
