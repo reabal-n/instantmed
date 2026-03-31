@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion";
@@ -30,8 +31,15 @@ export function MeshGradientCanvas() {
   const y2 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[2] * 100}%`]);
   const parallaxYs = [y0, y1, y2];
 
+  // Skip on mobile — decorative only, saves main thread work
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    setIsDesktop(window.innerWidth >= 768);
+  }, []);
+
   const isDashboard = DASHBOARD_PREFIXES.some(p => pathname?.startsWith(p));
   if (isDashboard) return null;
+  if (!isDesktop) return null;
 
   return (
     <div

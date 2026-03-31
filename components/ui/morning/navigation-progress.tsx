@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion";
@@ -8,13 +8,20 @@ import { useReducedMotion } from "@/components/ui/motion";
 export function NavigationProgress() {
   const pathname = usePathname();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
+  // Track whether the user has navigated at least once
+  const initialPathRef = useRef(pathname);
   useEffect(() => {
+    if (pathname !== initialPathRef.current) {
+      setHasNavigated(true);
+    }
     setIsNavigating(false);
   }, [pathname]);
 
-  // Hook into link clicks to detect navigation start
+  // Only attach the click listener after the first navigation has occurred,
+  // or lazily on first click — attach always but keep the handler cheap
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest("a");
@@ -23,6 +30,7 @@ export function NavigationProgress() {
         target.origin === window.location.origin &&
         target.pathname !== pathname
       ) {
+        setHasNavigated(true);
         setIsNavigating(true);
       }
     };
@@ -31,6 +39,7 @@ export function NavigationProgress() {
   }, [pathname]);
 
   if (prefersReducedMotion) return null;
+  if (!hasNavigated) return null;
 
   return (
     <AnimatePresence>
