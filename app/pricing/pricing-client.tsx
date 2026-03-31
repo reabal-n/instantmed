@@ -1,7 +1,10 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
@@ -11,7 +14,8 @@ import { ComparisonTable, AccordionSection, CTABanner } from "@/components/secti
 import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill } from "lucide-react"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
-import { PRICING } from "@/lib/constants"
+import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 /* ────────────────────────────── Data ────────────────────────────── */
@@ -78,14 +82,54 @@ const pricingFaqs = [
           "Full refund, no questions asked. We only charge if we can actually help you.",
       },
       {
-        question: "How do I pay?",
+        question: "What payment methods do you accept?",
         answer:
-          "All major credit/debit cards, Apple Pay, and Google Pay. Payment is secure and encrypted.",
+          "All major credit and debit cards (Visa, Mastercard, American Express), Apple Pay, and Google Pay. All payments are processed securely through Stripe with full encryption.",
       },
       {
-        question: "Is this covered by Medicare?",
+        question: "Can I get a receipt for my health insurance?",
         answer:
-          "Our service fee isn\u2019t Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
+          "Yes. You\u2019ll receive a tax invoice via email after payment. Whether your health insurer reimburses telehealth consultations depends on your policy and fund — check with your insurer directly. We provide the documentation either way.",
+      },
+      {
+        question: "Why isn\u2019t this covered by Medicare?",
+        answer:
+          "Most asynchronous telehealth services in Australia operate outside of Medicare. Medicare item numbers are structured around real-time consultations with an established provider-patient relationship. Our service \u2014 where a doctor reviews your request without a scheduled appointment \u2014 doesn\u2019t fit existing Medicare billing categories. This is standard across the telehealth industry, not specific to us.",
+      },
+      {
+        question: "Do I need a Medicare card to use InstantMed?",
+        answer:
+          "Not for medical certificates. For prescriptions and consultations, a Medicare card is required so we can verify your identity and ensure continuity of care. If you hold an international student visa or don\u2019t have Medicare, you can still access medical certificates.",
+      },
+      {
+        question: "How much do prescriptions cost at the pharmacy?",
+        answer:
+          "Our fee covers the doctor\u2019s review and eScript generation only. Medication costs are separate and paid at your pharmacy. With a Medicare card, most PBS-listed medications cost $31.60 or less ($7.70 for concession card holders). Without Medicare, you\u2019ll pay the full retail price. Your pharmacist can confirm the exact cost before you purchase.",
+      },
+      {
+        question: "Is there a fee for follow-up questions?",
+        answer:
+          "No. If the reviewing doctor needs more information to make a clinical decision about your request, that follow-up is included in your original consultation fee. You won\u2019t be charged extra for the doctor doing their job properly.",
+      },
+      {
+        question: "Do you offer discounts for students or concession card holders?",
+        answer:
+          "Our pricing is already designed to be accessible \u2014 significantly less than the average out-of-pocket cost of a private GP visit. We don\u2019t currently offer tiered pricing by concession status, but we\u2019re exploring this for the future. If cost is a barrier, reach out to us at support@instantmed.com.au.",
+      },
+      {
+        question: "What if I need a longer medical certificate?",
+        answer:
+          "We offer 1-day, 2-day, and 3-day medical certificates at different price points. For absences beyond 3 days, we\u2019d generally recommend seeing a GP in person for a more thorough assessment. If your situation requires an extended certificate, start a request and the reviewing doctor will advise on the best path forward.",
+      },
+      {
+        question: "How long does it take to get my refund?",
+        answer:
+          "Refunds are processed automatically when a doctor declines a request. The funds typically appear back in your account within 3\u20135 business days, depending on your bank or card provider.",
+      },
+      {
+        question: "Can I use InstantMed for my family members?",
+        answer:
+          "Each request must be submitted by \u2014 or on behalf of \u2014 the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
       },
     ],
   },
@@ -94,8 +138,42 @@ const pricingFaqs = [
 /* ────────────────────────────── Component ────────────────────────────── */
 
 export function PricingClient() {
+  const pricingCardsRef = useRef<HTMLElement>(null)
+  const [showStickyCTA, setShowStickyCTA] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    const el = pricingCardsRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: pricingFaqs.flatMap((group) =>
+      group.items.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      }))
+    ),
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+      />
       <Navbar variant="marketing" />
 
       <main className="flex-1">
@@ -113,7 +191,7 @@ export function PricingClient() {
         />
 
         {/* Pricing Cards */}
-        <section className="px-4 py-16 sm:px-6">
+        <section ref={pricingCardsRef} className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <div className="grid md:grid-cols-2 gap-6">
               {services.map((service) => (
@@ -238,6 +316,9 @@ export function PricingClient() {
           items={comparisonItems}
         />
 
+        {/* Pricing Guide */}
+        <PricingGuideSection />
+
         {/* FAQ */}
         <AccordionSection
           title="Common questions"
@@ -257,6 +338,33 @@ export function PricingClient() {
           ctaHref="/medical-certificate"
         />
       </main>
+
+      {/* Sticky mobile CTA — appears when pricing cards scroll out of view */}
+      <AnimatePresence>
+        {showStickyCTA && (
+          <motion.div
+            className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
+            initial={prefersReducedMotion ? {} : { y: 100 }}
+            animate={prefersReducedMotion ? { opacity: 1 } : { y: 0 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { y: 100 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-border/50 shadow-lg px-4 pt-2.5 pb-3 safe-area-pb">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-foreground">
+                  {PRICING_DISPLAY.FROM_MED_CERT}
+                </p>
+                <Button asChild size="sm" className="shrink-0 shadow-md shadow-primary/20">
+                  <Link href="/request">
+                    Get started
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <MarketingFooter />
     </div>

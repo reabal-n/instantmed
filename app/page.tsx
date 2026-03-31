@@ -23,6 +23,7 @@ import { CTABanner, SectionHeader } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
+import { TotalPatientsCounter } from '@/components/marketing/total-patients-counter'
 
 export const revalidate = 3600
 
@@ -194,6 +195,11 @@ export default async function HomePage() {
           subtitle="Everything you need to know about our service."
           groups={faqGroups}
         />
+
+        {/* Social proof before final CTA */}
+        <div className="mx-auto max-w-4xl px-4 pb-4 flex justify-center">
+          <TotalPatientsCounter variant="badge" />
+        </div>
 
         {/* Final CTA */}
         <CTABanner

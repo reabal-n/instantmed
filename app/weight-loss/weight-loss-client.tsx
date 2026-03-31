@@ -25,10 +25,11 @@ import {
   Activity,
   CheckCircle2,
   Scale,
-  Star,
 } from "lucide-react"
+import { WeightLossGuideSection } from "@/components/marketing/sections/weight-loss-guide-section"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
-import { getTestimonialsByService } from "@/lib/data/testimonials"
+import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
+import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section"
 
 const treatments = [
   {
@@ -90,14 +91,6 @@ const eligibility = {
   ],
 }
 
-// Weight loss testimonials — Greg W. (t41) first, plus 1-2 other consultation testimonials
-const weightLossTestimonials = (() => {
-  const all = getTestimonialsByService("consultation").filter(t => t.rating >= 4);
-  const greg = all.find(t => t.id === "t41");
-  const others = all.filter(t => t.id !== "t41").slice(0, 2);
-  return greg ? [greg, ...others] : all.slice(0, 3);
-})();
-
 const faqs = [
   {
     question: "What treatment options are available?",
@@ -128,6 +121,26 @@ const faqs = [
     question: "How long will I need treatment?",
     answer:
       "This depends on the treatment approach and your individual response. Some options are used long-term for sustained results, while others are typically used for 3-6 months alongside lifestyle changes. Your doctor will create a personalised plan with regular check-ins.",
+  },
+  {
+    question: "Is this service covered by Medicare?",
+    answer:
+      "The consultation fee is not Medicare-rebateable. However, if your doctor prescribes a treatment that is listed on the Pharmaceutical Benefits Scheme (PBS), you may be eligible for PBS subsidies on the medication itself. Your doctor will discuss costs and PBS eligibility as part of your consultation.",
+  },
+  {
+    question: "What happens if I'm not eligible for treatment?",
+    answer:
+      "If our doctor determines that medical weight management treatment isn't appropriate for you — whether due to BMI criteria, contraindications, or other clinical reasons — you'll receive a full refund of your consultation fee. Your doctor may also provide alternative recommendations, such as lifestyle modifications or a referral to a specialist.",
+  },
+  {
+    question: "Can I use this service if I've had weight loss surgery?",
+    answer:
+      "Yes, but it's important to disclose any previous bariatric surgery during your health assessment. Some treatments may not be suitable post-surgery, and dosing or monitoring requirements may differ. Your doctor will review your surgical history and current health status to determine whether medical weight management treatment is appropriate for you.",
+  },
+  {
+    question: "Do I need to provide photos or measurements?",
+    answer:
+      "Photos and measurements can be helpful for tracking your progress over time, but they're not always required for your initial assessment. Your doctor may request them as part of follow-up reviews to monitor how treatment is working. Any images you provide are stored securely and treated as confidential medical information.",
   },
 ]
 
@@ -359,26 +372,26 @@ export function WeightLossClient() {
             ]}
           />
 
-          {/* Doctor credibility + patient feedback */}
-          <section className="py-12 px-4">
-            <div className="max-w-4xl mx-auto">
-              <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
-              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                {weightLossTestimonials.map((t) => (
-                  <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
-                    <div className="flex gap-0.5 mb-2">
-                      {[...Array(t.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                    <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          {/* Doctor credibility */}
+          <div className="max-w-4xl mx-auto px-4">
+            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
+          </div>
+
+          {/* Patient testimonials */}
+          <TestimonialsSection
+            testimonials={(() => {
+              const serviceTestimonials = getTestimonialsByService('consultation')
+                .filter(t => t.rating >= 4)
+              return serviceTestimonials.length >= 6
+                ? serviceTestimonials.map(t => ({ text: t.text, image: t.image || '', name: t.name, role: t.location }))
+                : getTestimonialsForColumns()
+            })()}
+            title="What our patients say"
+            subtitle="Real reviews from Australians"
+          />
+
+          {/* E-E-A-T Guide */}
+          <WeightLossGuideSection />
 
           {/* FAQs */}
           <AccordionSection

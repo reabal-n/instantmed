@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { HairLossGuideSection } from "@/components/marketing/sections/hair-loss-guide-section";
 import {
   ArrowRight,
   Clock,
@@ -11,7 +12,6 @@ import {
   EyeOff,
   Pill,
   PhoneOff,
-  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,8 @@ import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import { RegulatoryPartners } from "@/components/marketing";
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility";
-import { getTestimonialsByService } from "@/lib/data/testimonials";
+import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
+import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -183,14 +184,6 @@ const faqGroups = [
     ],
   },
 ];
-
-// Hair loss testimonials — Jake T. (t39) first, plus 1-2 other consultation testimonials
-const hairLossTestimonials = (() => {
-  const all = getTestimonialsByService("consultation").filter(t => t.rating >= 4);
-  const jake = all.find(t => t.id === "t39");
-  const others = all.filter(t => t.id !== "t39").slice(0, 2);
-  return jake ? [jake, ...others] : all.slice(0, 3);
-})();
 
 /* ------------------------------------------------------------------ */
 /*  Custom treatment cards (too detailed for FeatureGrid)              */
@@ -386,26 +379,25 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
             steps={resultsTimeline}
           />
 
-          {/* Doctor credibility + patient feedback */}
-          <section className="py-12 px-4">
-            <div className="max-w-4xl mx-auto">
-              <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} className="mb-10" />
-              <h2 className="text-2xl font-semibold text-center mb-8">What patients say</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                {hairLossTestimonials.map((t) => (
-                  <div key={t.id} className="rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-md shadow-primary/[0.06] dark:shadow-none">
-                    <div className="flex gap-0.5 mb-2">
-                      {[...Array(t.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                    <p className="text-xs text-muted-foreground mt-3">{t.name}, {t.location}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          {/* Doctor credibility */}
+          <div className="max-w-4xl mx-auto px-4">
+            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
+          </div>
+
+          {/* Patient testimonials */}
+          <TestimonialsSection
+            testimonials={(() => {
+              const serviceTestimonials = getTestimonialsByService('consultation')
+                .filter(t => t.rating >= 4)
+              return serviceTestimonials.length >= 6
+                ? serviceTestimonials.map(t => ({ text: t.text, image: t.image || '', name: t.name, role: t.location }))
+                : getTestimonialsForColumns()
+            })()}
+            title="What our patients say"
+            subtitle="Real reviews from Australians"
+          />
+
+          <HairLossGuideSection />
 
           <AccordionSection
             pill="FAQs"
