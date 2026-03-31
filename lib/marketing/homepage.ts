@@ -200,6 +200,34 @@ export const faqItems = [
     question: "How much does it cost compared to a GP?",
     answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save — and definitely save time.`,
   },
+  {
+    question: "What services does InstantMed offer?",
+    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. General consultations for new or ongoing health concerns. Plus specialised pathways for hair loss, weight management, and women's health. All reviewed by a real doctor — no exceptions.",
+  },
+  {
+    question: "Is there a subscription or ongoing fees?",
+    answer: "No subscriptions, no membership fees, no hidden charges. You pay a flat fee per request. If your request is declined, you get a full refund. That's it.",
+  },
+  {
+    question: "Does Medicare cover InstantMed?",
+    answer: "Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. The upside: no Medicare card required for medical certificates, no bulk-billing lottery, and no 45-minute wait for a 6-minute appointment.",
+  },
+  {
+    question: "How do prescriptions work?",
+    answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia — no paper scripts, no fax machines, no carrier pigeons.",
+  },
+  {
+    question: "Are you available on weekends and after hours?",
+    answer: "Yes. We're open 8am to 10pm AEST, seven days a week — including weekends and public holidays. Because getting sick doesn't wait for Monday.",
+  },
+  {
+    question: "Who are the doctors?",
+    answer: "Every request is reviewed by an AHPRA-registered Australian GP — qualified, experienced, and actively practising. We don't use overseas doctors, nurse practitioners, or AI to make clinical decisions. A real doctor reviews every single request.",
+  },
+  {
+    question: "Does my employer see my diagnosis?",
+    answer: "No. Your medical certificate states the dates you're unfit for work — not why. Your employer doesn't see your diagnosis, your symptoms, or anything you told the doctor. Your health information is encrypted and stays between you and your treating doctor.",
+  },
 ]
 
 export const footerLinks = {
@@ -225,6 +253,8 @@ export const footerLinks = {
     { label: "How-To Guides", href: "/guides" },
     { label: "Compare Services", href: "/compare" },
     { label: "Locations", href: "/locations" },
+    { label: "For You", href: "/for" },
+    { label: "Quick Answers", href: "/intent" },
   ],
   legal: [
     { label: "Privacy Policy", href: "/privacy" },

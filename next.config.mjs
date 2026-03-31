@@ -146,12 +146,12 @@ const nextConfig = {
       // Missing route redirects — prevent external 404s
       {
         source: "/erectile-dysfunction",
-        destination: "/mens-health",
+        destination: "/general-consult",
         permanent: true
       },
       {
         source: "/prescription",
-        destination: "/repeat-prescription",
+        destination: "/prescriptions",
         permanent: true
       },
       {
@@ -167,7 +167,7 @@ const nextConfig = {
       {
         source: "/health/:path*",
         destination: "/conditions/:path*",
-        permanent: false
+        permanent: true
       }
     ];
   },

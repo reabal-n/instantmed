@@ -3,19 +3,22 @@ import { ArrowRight, AlertTriangle } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
 import { MarketingFooter } from "@/components/marketing";
 import { CenteredHero } from "@/components/heroes";
-import { CTABanner, SectionHeader } from "@/components/sections";
+import { AccordionSection, CTABanner, SectionHeader } from "@/components/sections";
 import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema";
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Symptom Checker | What Could Be Causing Your Symptoms",
+  title: "Symptom Guide | Common Symptoms & Causes",
   description:
-    "Understand your symptoms and learn when you should see a doctor. Browse common symptoms like sore throat, headache, fatigue, cough, and fever. Get assessed by Australian doctors online.",
+    "Understand your symptoms and when to see a doctor. Browse common symptoms like sore throat, headache, fatigue, cough, and fever. Get assessed by Australian doctors online.",
   openGraph: {
     title: "Symptom Checker | InstantMed",
     description:
       "Understand your symptoms and when to seek medical advice.",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/symptoms",
   },
 };
 
@@ -53,6 +56,41 @@ const symptoms = [
   },
 ];
 
+const symptomsFaqs = [
+  {
+    question: "Is this a diagnosis tool?",
+    answer: "No. Our symptom guides are for general health information only. They can help you understand what might be going on, but they don't replace a proper medical assessment. For a clinical opinion, start a consultation with one of our doctors.",
+  },
+  {
+    question: "When should I go to emergency instead?",
+    answer: "If you're experiencing chest pain, difficulty breathing, severe bleeding, loss of consciousness, signs of stroke, or any life-threatening symptoms — call 000 or go to your nearest emergency department immediately. Telehealth is not appropriate for emergencies.",
+  },
+  {
+    question: "Can you treat my symptoms via telehealth?",
+    answer: "Many common symptoms can be assessed and managed via telehealth, including sore throats, headaches, coughs, fevers, and fatigue. Our doctors will tell you if your symptoms need in-person examination instead.",
+  },
+  {
+    question: "What if I have multiple symptoms at the same time?",
+    answer: "That's completely normal — most illnesses come with a few symptoms at once. Describe everything you're experiencing in your consultation request, and our doctor will consider the full picture.",
+  },
+  {
+    question: "Can I get a medical certificate based on my symptoms?",
+    answer: "If a doctor assesses that your symptoms are genuine and prevent you from working or studying, they can issue a medical certificate. The certificate covers the period the doctor considers clinically appropriate.",
+  },
+  {
+    question: "How accurate is symptom information online?",
+    answer: "Our symptom pages are reviewed for clinical accuracy, but online information is general by nature. Your actual situation may differ. That's why we always recommend getting assessed by a doctor rather than self-diagnosing.",
+  },
+  {
+    question: "Do I need to know my diagnosis before starting?",
+    answer: "Not at all. You don't need to know what's wrong — that's our job. Just describe your symptoms as clearly as you can, and our doctor will take it from there.",
+  },
+  {
+    question: "What happens after I describe my symptoms?",
+    answer: "An AHPRA-registered doctor reviews your symptom details and medical history. They'll either provide advice, issue a certificate, suggest treatment, or recommend you see someone in person — whatever's clinically appropriate.",
+  },
+]
+
 export default function SymptomsIndexPage() {
   return (
     <>
@@ -65,6 +103,7 @@ export default function SymptomsIndexPage() {
           },
         ]}
       />
+      <FAQSchema faqs={symptomsFaqs} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -136,6 +175,24 @@ export default function SymptomsIndexPage() {
               ))}
             </div>
           </section>
+
+          {/* FAQ Section */}
+          <AccordionSection
+            groups={[{ items: symptomsFaqs }]}
+            title="Common Questions About Symptoms"
+            subtitle="Understanding when and how to seek care"
+          />
+
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
 
           <CTABanner
             title="Concerned About Your Symptoms?"

@@ -4,14 +4,18 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { AccordionSection } from "@/components/sections"
 
 export const metadata: Metadata = {
-  title: "Health Conditions We Can Help With | Online Doctor",
-  description: "Get assessed for common health conditions by Australian doctors online. Medical certificates, treatment advice, and prescriptions for conditions like cold & flu, back pain, anxiety, and more.",
+  title: "Health Conditions We Treat Online",
+  description: "Get assessed for common health conditions by Australian doctors online. Medical certificates, treatment advice, and prescriptions for cold & flu, back pain, anxiety, and more.",
   openGraph: {
     title: "Health Conditions | InstantMed",
     description: "Online doctor consultations for common health conditions.",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/conditions",
   },
 }
 
@@ -66,15 +70,51 @@ const conditions = [
   },
 ]
 
+const conditionsFaqs = [
+  {
+    question: "What conditions can you treat online?",
+    answer: "We can assess and provide medical certificates for a range of common conditions including cold and flu, gastro, back pain, migraine, anxiety, UTIs, skin rashes, and sleep problems. Our doctors will let you know if your condition needs in-person care instead.",
+  },
+  {
+    question: "Do I need a referral to use InstantMed?",
+    answer: "No referral is needed. You can start a request directly through our website. An AHPRA-registered doctor reviews every submission and decides the appropriate next step.",
+  },
+  {
+    question: "Can I get a medical certificate for any condition?",
+    answer: "Medical certificates are available for conditions that genuinely prevent you from working or studying. Our doctors assess each request individually — if a certificate isn't clinically appropriate, they'll let you know.",
+  },
+  {
+    question: "What if my condition is more serious than expected?",
+    answer: "If our doctor determines your condition requires in-person examination, imaging, or emergency care, they'll advise you accordingly. We never push treatment beyond what's safe to deliver via telehealth.",
+  },
+  {
+    question: "Can I get a prescription for my condition?",
+    answer: "Where clinically appropriate, our doctors can issue eScripts for eligible medications. Some conditions and medications require an in-person consultation — our doctors will guide you if that's the case.",
+  },
+  {
+    question: "How do your doctors assess conditions online?",
+    answer: "You fill in a structured medical questionnaire about your symptoms, history, and current medications. A doctor reviews your responses (and any photos, if relevant) and makes a clinical decision — the same way they would in a clinic, minus the waiting room.",
+  },
+  {
+    question: "Are your doctors qualified to treat these conditions?",
+    answer: "Every doctor on our platform is registered with AHPRA and holds a current medical licence in Australia. They follow our clinical governance framework and only treat conditions within the scope of telehealth.",
+  },
+  {
+    question: "What if I have a condition that's not listed here?",
+    answer: "Start a general consultation and describe what's going on. Our doctors can assess a wide range of concerns beyond what's listed. If telehealth isn't appropriate for your situation, they'll point you in the right direction.",
+  },
+]
+
 export default function ConditionsIndexPage() {
   return (
     <>
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Conditions", url: "https://instantmed.com.au/conditions" }
-        ]} 
+        ]}
       />
+      <FAQSchema faqs={conditionsFaqs} />
 
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />
@@ -138,6 +178,24 @@ export default function ConditionsIndexPage() {
               </div>
             </div>
           </section>
+
+          {/* FAQ Section */}
+          <AccordionSection
+            groups={[{ items: conditionsFaqs }]}
+            title="Common Questions About Health Conditions"
+            subtitle="What you should know before getting assessed online"
+          />
+
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
 
           {/* CTA */}
           <section className="px-4 py-16 bg-primary/5">

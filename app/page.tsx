@@ -18,7 +18,8 @@ import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { ReferralCapture } from '@/components/shared/referral-capture'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { CTABanner } from '@/components/sections'
+import Link from 'next/link'
+import { CTABanner, SectionHeader } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
@@ -28,7 +29,7 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: 'Online Doctor Australia | Med Certs & Medication',
+  title: { absolute: 'Online Doctor Australia | Med Certs & Medication | InstantMed' },
   description: 'Medical certificates from $19.95, repeat medication from $29.95. AHPRA-registered Australian doctors. Most requests reviewed within 1–2 hours, 100% online.',
   keywords: [
     'online doctor australia',
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
     'virtual doctor australia',
   ],
   openGraph: {
-    title: 'InstantMed - Online Doctor Consultations Australia',
+    title: 'Online Doctor Australia | Med Certs & Medication | InstantMed',
     description: 'Medical certificates and repeat medication. Most requests reviewed within 1–2 hours by Australian-registered doctors.',
     type: 'website',
     locale: 'en_AU',
@@ -155,6 +156,35 @@ export default async function HomePage() {
 
         {/* Key stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
+
+        {/* Content hubs — internal links for crawl discovery */}
+        <section className="py-16 px-4">
+          <SectionHeader
+            title="Browse by Topic"
+            subtitle="Find the information you need"
+            highlightWords={["Topic"]}
+          />
+          <div className="mx-auto max-w-4xl grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { label: "Health Conditions", href: "/conditions", description: "48 conditions covered" },
+              { label: "Symptom Guide", href: "/symptoms", description: "Common symptoms explained" },
+              { label: "How-To Guides", href: "/guides", description: "Step-by-step health guides" },
+              { label: "Compare Services", href: "/compare", description: "See how we stack up" },
+              { label: "Locations", href: "/locations", description: "Find your nearest city" },
+            ].map((hub) => (
+              <Link
+                key={hub.href}
+                href={hub.href}
+                className="group rounded-2xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm shadow-primary/[0.04] hover:shadow-md hover:border-primary/20 transition-all"
+              >
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {hub.label}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">{hub.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* FAQs */}
         <AccordionSection
