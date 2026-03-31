@@ -35,19 +35,16 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline */}
-            <motion.h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15]"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
+            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            <h1
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15] animate-hero-headline"
             >
               <RotatingText
                 texts={heroRotatingTexts}
                 interval={3500}
                 className="text-3xl sm:text-4xl lg:text-5xl font-semibold"
               />
-            </motion.h1>
+            </h1>
 
             {/* LCP slot — server-rendered when passed as children, else fallback */}
             {children ?? (

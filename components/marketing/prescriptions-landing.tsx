@@ -394,19 +394,16 @@ function HeroSection({
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline */}
-            <motion.h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15]"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
+            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            <h1
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
               Repeat medication,{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
                 reviewed by a real Australian doctor.
               </span>
-            </motion.h1>
+            </h1>
 
             {/* Subheadline */}
             <motion.p

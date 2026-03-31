@@ -1149,6 +1149,27 @@ body {
   animation: page-enter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Hero headline entrance — no opacity change so LCP text is visible on first paint.
+   Only animates transform; respects prefers-reduced-motion automatically. */
+@keyframes hero-headline-enter {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-headline {
+  animation: hero-headline-enter 0.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-headline {
+    animation: none;
+  }
+}
+
 /* Fade in up with spring */
 @keyframes fade-in-up {
   from {

@@ -131,14 +131,12 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
               <div className="flex flex-col lg:flex-row items-center lg:gap-12">
                 <div className="text-center lg:text-left flex-1 max-w-2xl">
-                  <motion.h1
-                    className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15]"
-                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
+                  {/* Plain h1 with CSS animation so LCP text is visible on first paint */}
+                  <h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] animate-hero-headline"
                   >
                     {config.h1}
-                  </motion.h1>
+                  </h1>
 
                   <motion.p
                     className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto"

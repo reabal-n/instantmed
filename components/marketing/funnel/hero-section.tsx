@@ -46,11 +46,9 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           {/* Text content */}
           <div className={cn('flex-1 text-center', hasImages && 'lg:text-left')}>
             {/* Headline with optional rotating text */}
-            <motion.h1
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15]"
+            {/* Plain h1 with CSS animation so LCP text is visible on first paint */}
+            <h1
+              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] animate-hero-headline"
             >
               {hasRotatingWords ? (
                 <>
@@ -63,7 +61,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               ) : (
                 config.hero.headline
               )}
-            </motion.h1>
+            </h1>
 
             {/* Subheadline */}
             <motion.p
