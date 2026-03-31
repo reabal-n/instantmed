@@ -133,6 +133,24 @@ export function Footer({ variant = "marketing" }: FooterProps) {
               </div>
             </nav>
 
+            {/* Resources column — SEO hub pages for crawl discovery */}
+            {isMarketing && (
+              <nav className="flex flex-col gap-1 md:gap-4" aria-label="Resources">
+                <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Resources</h4>
+                <div className="flex flex-col gap-2 text-sm items-start">
+                  {footerLinks.resources.map((link) => (
+                    <Link
+                      key={link.href}
+                      className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
+                      href={link.href}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            )}
+
             {/* Legal column */}
             {isMarketing && (
               <nav className="flex flex-col gap-1 md:gap-4" aria-label="Legal">

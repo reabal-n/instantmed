@@ -1037,6 +1037,7 @@ export function MedCertLanding() {
         {/* Exit-intent overlay — desktop only, once per session */}
         {!isDisabled && (
           <ExitIntentOverlay
+            service="medical-certificate"
             onShow={() => analytics.trackExitIntent("shown")}
             onCTAClick={() => analytics.trackExitIntent("clicked")}
             onDismiss={() => analytics.trackExitIntent("dismissed")}

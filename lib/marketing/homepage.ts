@@ -204,24 +204,33 @@ export const faqItems = [
 
 export const footerLinks = {
   services: [
-    { label: "Medical Certificates", href: "/request?service=med-cert" },
-    { label: "Repeat Medication", href: "/request?service=prescription" },
-    { label: "General Consult", href: "/request?service=consult" },
+    { label: "Medical Certificates", href: "/medical-certificate" },
+    { label: "Repeat Prescriptions", href: "/prescriptions" },
+    { label: "General Consult", href: "/general-consult" },
+    { label: "Weight Management", href: "/weight-management" },
+    { label: "Hair Loss", href: "/hair-loss" },
   ],
   company: [
     { label: "About Us", href: "/about" },
-    { label: "Our Doctors", href: "/our-doctors" },
     { label: "Reviews", href: "/reviews" },
-    { label: "Clinical Governance", href: "/clinical-governance" },
     { label: "How It Works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },
     { label: "FAQs", href: "/faq" },
+    { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
+  ],
+  resources: [
+    { label: "Health Conditions", href: "/conditions" },
+    { label: "Symptoms Guide", href: "/symptoms" },
+    { label: "How-To Guides", href: "/guides" },
+    { label: "Compare Services", href: "/compare" },
+    { label: "Locations", href: "/locations" },
   ],
   legal: [
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
     { label: "Refund Policy", href: "/refund-policy" },
+    { label: "Trust & Safety", href: "/trust" },
   ],
 }
 

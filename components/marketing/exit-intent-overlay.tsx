@@ -1,14 +1,15 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, useTransition } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { CheckCircle2, X, Mail } from "lucide-react"
+import { CheckCircle2, X, Mail, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PRICING } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { captureExitIntentEmail } from "@/app/actions/capture-exit-intent"
 
 const SESSION_KEY = "exit_intent_shown"
 const ARM_DELAY_MS = 10_000
@@ -24,6 +25,8 @@ interface ExitIntentOverlayProps {
   ctaHref?: string
   /** Override the default price display */
   price?: number
+  /** Service identifier for the reminder email */
+  service?: "medical-certificate" | "prescription" | "consult"
   /** Analytics callbacks */
   onShow?: () => void
   onCTAClick?: () => void
@@ -34,6 +37,7 @@ interface ExitIntentOverlayProps {
 export function ExitIntentOverlay({
   ctaHref = "/request?service=med-cert",
   price = PRICING.MED_CERT,
+  service = "medical-certificate",
   onShow,
   onCTAClick,
   onDismiss,
@@ -44,6 +48,7 @@ export function ExitIntentOverlay({
   const [email, setEmail] = useState("")
   const [emailSubmitted, setEmailSubmitted] = useState(false)
   const [emailError, setEmailError] = useState("")
+  const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
   const prefersReducedMotion = useReducedMotion()
 
@@ -177,8 +182,15 @@ export function ExitIntentOverlay({
                           return
                         }
                         setEmailError("")
-                        setEmailSubmitted(true)
-                        onEmailCapture?.(trimmed)
+                        startTransition(async () => {
+                          const result = await captureExitIntentEmail({ email: trimmed, service })
+                          if (result.success) {
+                            setEmailSubmitted(true)
+                            onEmailCapture?.(trimmed)
+                          } else {
+                            setEmailError(result.error || "Something went wrong")
+                          }
+                        })
                       }}
                       className="space-y-2"
                     >
@@ -205,8 +217,16 @@ export function ExitIntentOverlay({
                         type="submit"
                         size="lg"
                         className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
+                        disabled={isPending}
                       >
-                        Remind me later
+                        {isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending…
+                          </>
+                        ) : (
+                          "Remind me later"
+                        )}
                       </Button>
                     </form>
 
