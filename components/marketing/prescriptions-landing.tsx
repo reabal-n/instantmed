@@ -711,7 +711,7 @@ function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, 
 // =============================================================================
 
 export function PrescriptionsLanding() {
-  const isDisabled = useServiceAvailability().isServiceDisabled("prescription")
+  const isDisabled = useServiceAvailability().isServiceDisabled("scripts")
   const heroCTARef = useRef<HTMLDivElement>(null)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()

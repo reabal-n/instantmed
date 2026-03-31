@@ -743,6 +743,12 @@ export function GeneralConsultLanding() {
                 : `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`
             }
             ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
+            colors={{
+              light: "bg-primary/10",
+              text: "text-primary",
+              border: "border-primary/20",
+              button: "bg-primary hover:bg-primary/90",
+            }}
             showComparisonTable={false}
           />
 
