@@ -266,42 +266,76 @@ export default async function SymptomPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* E-E-A-T: Next Steps & Doctor Review */}
-          <section className="px-4 py-16">
-            <div className="mx-auto max-w-3xl">
-              <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
-                </div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">
-                  Next Steps for {symptom.name}
-                </h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
-                  <p>{symptom.description}</p>
-                  <p>
-                    If you&apos;re experiencing {symptom.name.toLowerCase()} and need medical advice, an Australian telehealth
-                    consultation can help determine whether your symptoms require further investigation, a medical certificate,
-                    or a referral to a specialist.
-                  </p>
-                  <p>
-                    All assessments on InstantMed are conducted by AHPRA-registered doctors. If your symptoms require
-                    in-person examination, your doctor will advise you accordingly — your safety always comes first.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Stethoscope className="w-3.5 h-3.5" />
-                    Reviewed by AHPRA-registered GP
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    Last updated: March 2026
-                  </span>
+          {/* Doctor's Perspective — unique clinical triage insight */}
+          {symptom.doctorPerspective && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-3xl">
+                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Stethoscope className="w-5 h-5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Doctor&apos;s perspective</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    How a GP Assesses {symptom.name}
+                  </h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed space-y-3">
+                    <p>{symptom.doctorPerspective}</p>
+                    {symptom.certGuidance && (
+                      <p className="bg-primary/5 rounded-lg p-4 border border-primary/10">
+                        <strong className="text-foreground">Medical certificate guidance:</strong>{" "}
+                        {symptom.certGuidance}
+                      </p>
+                    )}
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5" />
+                      Clinically reviewed by the InstantMed Medical Team
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Last updated: March 2026
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
+
+          {/* E-E-A-T fallback for symptoms without doctor perspective */}
+          {!symptom.doctorPerspective && (
+            <section className="px-4 py-16">
+              <div className="mx-auto max-w-3xl">
+                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    Next Steps for {symptom.name}
+                  </h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
+                    <p>{symptom.description}</p>
+                    <p>
+                      If you&apos;re experiencing {symptom.name.toLowerCase()} and need medical advice, an Australian telehealth
+                      consultation can help determine whether your symptoms require further investigation, a medical certificate,
+                      or a referral to a specialist.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5" />
+                      Clinically reviewed by the InstantMed Medical Team
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Last updated: March 2026
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Related Reading */}
           <section className="px-4 py-8">
