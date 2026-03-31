@@ -95,6 +95,14 @@ export function PrescriptionApprovedEmail({
         </a>
         .
       </Text>
+
+      <Text muted small style={{ textAlign: "center" as const }}>
+        Had a good experience?{" "}
+        <a href="https://g.page/r/CWqy3A7IKcX6EBI/review" style={{ color: colors.accent, fontWeight: 500 }}>
+          Leave a quick Google review
+        </a>
+        {" "}&mdash; it helps other Australians find us.
+      </Text>
     </BaseEmail>
   )
 }
