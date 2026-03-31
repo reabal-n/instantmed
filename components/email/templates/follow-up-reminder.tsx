@@ -59,6 +59,11 @@ export function renderFollowUpReminderEmail(props: FollowUpReminderEmailProps): 
                 If symptoms are hanging around or you need ongoing care, a GP consultation might be
                 worth considering. Same process — fill in a form, a doctor reviews it.
               </p>
+              <p style="font-size: 14px; color: #78716C; text-align: center; margin: 0 0 24px 0; padding-top: 16px; border-top: 1px solid #F5F5F4;">
+                Had a good experience?
+                <a href="https://g.page/r/CWqy3A7IKcX6EBI/review" style="color: #0D9488; text-decoration: none; font-weight: 500;">Leave a quick Google review</a>
+                — it helps other Australians find us.
+              </p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px auto; width: 100%;">
                 <tr>
                   <td style="text-align: center;">
@@ -69,6 +74,11 @@ export function renderFollowUpReminderEmail(props: FollowUpReminderEmailProps): 
               <p style="font-size: 12px; color: #A8A29E; text-align: center; margin: 0 0 16px 0;">GP consultations from $49.95</p>
               <p style="font-size: 13px; color: #78716C; margin: 0 0 20px 0;">
                 If you're all good — great. No action needed.
+              </p>
+              <p style="font-size: 13px; color: #78716C; margin: 0 0 20px 0;">
+                Know someone who could use us?
+                <a href="${appUrl}/patient" style="color: #0D9488; text-decoration: none; font-weight: 500;">Refer a friend</a>
+                and you both get $5 off your next request.
               </p>
               <p style="font-size: 12px; color: #A8A29E; margin: 0;">
                 To stop these check-in emails, <a href="${unsubscribeUrl}" style="color: #0D9488; text-decoration: none;">unsubscribe here</a>.
