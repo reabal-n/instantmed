@@ -434,6 +434,18 @@ export default async function SymptomPage({ params }: PageProps) {
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+                  <Link href="/medical-certificate" className="text-primary hover:underline font-medium">
+                    Medical certificates →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/general-consult" className="text-primary hover:underline font-medium">
+                    GP consultations →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/prescriptions" className="text-primary hover:underline font-medium">
+                    Repeat prescriptions →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
                   <Link href="/symptoms" className="text-primary hover:underline font-medium">
                     All symptoms →
                   </Link>
@@ -441,9 +453,34 @@ export default async function SymptomPage({ params }: PageProps) {
                   <Link href="/conditions" className="text-primary hover:underline font-medium">
                     Browse conditions →
                   </Link>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Cross-links fallback when no related symptoms */}
+          {symptom.relatedSymptoms.length === 0 && (
+            <section className="px-4 py-8">
+              <div className="mx-auto max-w-4xl">
+                <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+                  <Link href="/medical-certificate" className="text-primary hover:underline font-medium">
+                    Medical certificates →
+                  </Link>
                   <span className="text-muted-foreground">·</span>
-                  <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline font-medium">
-                    Medical certificate guide →
+                  <Link href="/general-consult" className="text-primary hover:underline font-medium">
+                    GP consultations →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/prescriptions" className="text-primary hover:underline font-medium">
+                    Repeat prescriptions →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/symptoms" className="text-primary hover:underline font-medium">
+                    All symptoms →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
+                  <Link href="/conditions" className="text-primary hover:underline font-medium">
+                    Browse conditions →
                   </Link>
                 </div>
               </div>
