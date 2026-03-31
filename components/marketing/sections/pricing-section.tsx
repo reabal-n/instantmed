@@ -129,7 +129,7 @@ export function PricingSection({
             100% refund if we can&apos;t help
           </div>
           <p className="mt-2 text-xs text-muted-foreground">No account required</p>
-          <p className="mt-1.5 text-[11px] text-muted-foreground/50 flex items-center justify-center gap-1">
+          <p className="mt-1.5 text-[11px] text-muted-foreground/70 flex items-center justify-center gap-1">
             <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Secured by Stripe · 256-bit SSL
           </p>
@@ -179,16 +179,16 @@ function ComparisonTable() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-border/50">
-              <th className="text-left py-4 px-5 text-muted-foreground font-medium"></th>
-              <th className="text-center py-4 px-5 font-semibold text-primary bg-primary/5 dark:bg-primary/10">InstantMed</th>
-              <th className="text-center py-4 px-5 text-muted-foreground font-medium">GP Clinic</th>
-              <th className="text-center py-4 px-5 text-muted-foreground font-medium">Walk-in</th>
+              <th scope="col" className="text-left py-4 px-5 text-muted-foreground font-medium"><span className="sr-only">Feature</span></th>
+              <th scope="col" className="text-center py-4 px-5 font-semibold text-primary bg-primary/5 dark:bg-primary/10">InstantMed</th>
+              <th scope="col" className="text-center py-4 px-5 text-muted-foreground font-medium">GP Clinic</th>
+              <th scope="col" className="text-center py-4 px-5 text-muted-foreground font-medium">Walk-in</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
             {comparisonRows.map((row, i) => (
               <tr key={i} className="hover:bg-muted/20 transition-colors">
-                <td className="py-3.5 px-5 text-muted-foreground font-medium">{row.label}</td>
+                <th scope="row" className="py-3.5 px-5 text-left text-muted-foreground font-medium">{row.label}</th>
                 <td className={cn('py-3.5 px-5 text-center font-semibold bg-primary/5 dark:bg-primary/10', row.instantHighlight ? 'text-foreground' : 'text-foreground')}>
                   {renderCell(row.instant)}
                 </td>
@@ -199,7 +199,7 @@ function ComparisonTable() {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-[11px] text-muted-foreground/60 text-center leading-relaxed px-2">
+      <p className="mt-4 text-[11px] text-muted-foreground/70 text-center leading-relaxed px-2">
         * Average review time based on recent requests. Individual times vary.{" "}
         † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
       </p>

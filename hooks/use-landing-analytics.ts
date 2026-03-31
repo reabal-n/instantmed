@@ -33,7 +33,7 @@ export function useLandingAnalytics(service: string) {
 
   // Track exit intent interactions
   const trackExitIntent = useCallback(
-    (action: "shown" | "clicked" | "dismissed") => {
+    (action: "shown" | "clicked" | "dismissed" | "email_captured") => {
       posthog?.capture("landing_exit_intent", {
         service,
         action,

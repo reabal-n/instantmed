@@ -80,7 +80,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
                     )}
                   />
                 </div>
-                <span className="text-[10px] text-muted-foreground/50 font-medium tracking-wide uppercase">{partner.name}</span>
+                <span className="text-[10px] text-muted-foreground/70 font-medium tracking-wide uppercase">{partner.name}</span>
               </motion.div>
             ))}
           </div>
