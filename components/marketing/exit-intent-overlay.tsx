@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { CheckCircle2, X } from "lucide-react"
+import { CheckCircle2, X, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { PRICING } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -27,6 +28,7 @@ interface ExitIntentOverlayProps {
   onShow?: () => void
   onCTAClick?: () => void
   onDismiss?: () => void
+  onEmailCapture?: (email: string) => void
 }
 
 export function ExitIntentOverlay({
@@ -35,9 +37,14 @@ export function ExitIntentOverlay({
   onShow,
   onCTAClick,
   onDismiss,
+  onEmailCapture,
 }: ExitIntentOverlayProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isArmed, setIsArmed] = useState(false)
+  const [email, setEmail] = useState("")
+  const [emailSubmitted, setEmailSubmitted] = useState(false)
+  const [emailError, setEmailError] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
   const prefersReducedMotion = useReducedMotion()
 
   // Arm the trigger after a delay
@@ -127,51 +134,109 @@ export function ExitIntentOverlay({
 
               {/* Content */}
               <div className="text-center space-y-4">
-                <h2 className="text-xl font-semibold text-foreground tracking-tight">
-                  Still thinking it over?
-                </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Here&apos;s what to know before you go:
-                </p>
-
-                {/* Reassurance bullets */}
-                <ul className="space-y-2.5 text-left">
-                  {REASSURANCE_POINTS.map((point) => (
-                    <li
-                      key={point}
-                      className="flex items-center gap-2.5 text-sm text-foreground"
+                {emailSubmitted ? (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-6 h-6 text-success" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground tracking-tight">
+                      We&apos;ll send you a reminder
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Check your inbox — we&apos;ll follow up with everything you need to get started.
+                    </p>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
+                      onClick={() => {
+                        onCTAClick?.()
+                        dismiss()
+                      }}
                     >
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
+                      <Link href={ctaHref}>Or get your certificate now</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-semibold text-foreground tracking-tight">
+                      Still thinking it over?
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      No worries. Drop your email and we&apos;ll send a reminder with everything you need.
+                    </p>
 
-                {/* Price anchor */}
-                <p className="text-xs text-muted-foreground">
-                  From ${price.toFixed(2)} &middot; Typically {SOCIAL_PROOF.gpPriceStandard} at a GP
-                </p>
+                    {/* Email capture */}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        const trimmed = email.trim()
+                        if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                          setEmailError("Enter a valid email address")
+                          inputRef.current?.focus()
+                          return
+                        }
+                        setEmailError("")
+                        setEmailSubmitted(true)
+                        onEmailCapture?.(trimmed)
+                      }}
+                      className="space-y-2"
+                    >
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                        <Input
+                          ref={inputRef}
+                          type="email"
+                          placeholder="your@email.com"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value)
+                            if (emailError) setEmailError("")
+                          }}
+                          className="pl-9 h-11"
+                          aria-label="Email address"
+                          aria-invalid={!!emailError}
+                        />
+                      </div>
+                      {emailError && (
+                        <p className="text-xs text-destructive text-left">{emailError}</p>
+                      )}
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
+                      >
+                        Remind me later
+                      </Button>
+                    </form>
 
-                {/* CTA */}
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
-                  onClick={() => {
-                    onCTAClick?.()
-                    dismiss()
-                  }}
-                >
-                  <Link href={ctaHref}>Get your certificate</Link>
-                </Button>
+                    {/* Reassurance bullets */}
+                    <ul className="space-y-2 text-left">
+                      {REASSURANCE_POINTS.map((point) => (
+                        <li
+                          key={point}
+                          className="flex items-center gap-2.5 text-xs text-muted-foreground"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
 
-                {/* Dismiss link */}
-                <button
-                  onClick={dismiss}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  No thanks, I&apos;ll decide later
-                </button>
+                    {/* Price anchor */}
+                    <p className="text-xs text-muted-foreground/70">
+                      From ${price.toFixed(2)} &middot; Typically {SOCIAL_PROOF.gpPriceStandard} at a GP
+                    </p>
+
+                    {/* Dismiss link */}
+                    <button
+                      onClick={dismiss}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      No thanks
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

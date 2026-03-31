@@ -18,7 +18,7 @@ import {
   Clock,
   Star,
   ShieldCheck,
-  ChevronRight,
+  Gift,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -126,20 +126,59 @@ const RELATED_ARTICLES = [
 // SMALL COMPONENTS
 // =============================================================================
 
-/** Breadcrumb navigation */
-function Breadcrumbs() {
+/** Closing time countdown — shows "Closes in Xh Ym" during operating hours */
+function ClosingCountdown() {
+  const [label, setLabel] = useState<string | null>(null)
+
+  useEffect(() => {
+    function update() {
+      // AEST is UTC+10 (ignoring daylight savings edge — close enough)
+      const now = new Date()
+      const aestOffset = 10 * 60 // minutes
+      const utc = now.getTime() + now.getTimezoneOffset() * 60_000
+      const aest = new Date(utc + aestOffset * 60_000)
+      const hour = aest.getHours()
+      const minute = aest.getMinutes()
+
+      const openHour = SOCIAL_PROOF.operatingHoursStart // 8
+      const closeHour = SOCIAL_PROOF.operatingHoursEnd   // 22
+
+      if (hour < openHour) {
+        // Before open
+        const minsUntilOpen = (openHour - hour) * 60 - minute
+        const h = Math.floor(minsUntilOpen / 60)
+        const m = minsUntilOpen % 60
+        setLabel(`Opens in ${h}h ${m}m`)
+      } else if (hour >= closeHour) {
+        setLabel("Opens at 8am AEST")
+      } else {
+        // During operating hours — show closing countdown
+        const minsUntilClose = (closeHour - hour) * 60 - minute
+        if (minsUntilClose <= 120) {
+          const h = Math.floor(minsUntilClose / 60)
+          const m = minsUntilClose % 60
+          setLabel(h > 0 ? `Closes in ${h}h ${m}m` : `Closes in ${m}m`)
+        } else {
+          setLabel(null) // No urgency needed when plenty of time
+        }
+      }
+    }
+
+    update()
+    const interval = setInterval(update, 60_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (!label) return null
+
   return (
-    <nav aria-label="Breadcrumb" className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10 pt-4">
-      <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <li>
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-        </li>
-        <li><ChevronRight className="h-3 w-3" /></li>
-        <li aria-current="page" className="text-foreground font-medium">Medical Certificate</li>
-      </ol>
-    </nav>
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+      <Clock className="h-3 w-3 shrink-0" />
+      {label}
+    </span>
   )
 }
+
 
 /** Animated number counter using NumberFlow when available */
 function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
@@ -284,14 +323,14 @@ function HeroSection({
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Doctor availability pill */}
             <motion.div
-              className="flex justify-center lg:justify-start mb-8"
+              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
               initial={animate ? { opacity: 0, y: -10 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
@@ -301,7 +340,7 @@ function HeroSection({
 
             {/* Headline */}
             <motion.h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-6 leading-[1.15]"
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15]"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
@@ -315,7 +354,7 @@ function HeroSection({
 
             {/* Subheadline */}
             <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-4 leading-relaxed text-balance"
+              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
@@ -366,12 +405,13 @@ function HeroSection({
                   <Clock className="h-3 w-3 shrink-0" />
                   Open today {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
                 </p>
+                <ClosingCountdown />
               </div>
             </motion.div>
 
-            {/* Trust signals + wait time */}
+            {/* Trust signals + wait time — hidden on mobile to keep CTA above fold */}
             <motion.div
-              className="flex flex-col gap-2"
+              className="hidden sm:flex flex-col gap-2"
               initial={animate ? { opacity: 0 } : {}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -391,9 +431,9 @@ function HeroSection({
               </div>
             </motion.div>
 
-            {/* Secondary anchor CTA */}
+            {/* Secondary anchor CTA — desktop only */}
             <motion.div
-              className="flex justify-center lg:justify-start mt-4"
+              className="hidden sm:flex justify-center lg:justify-start mt-4"
               initial={animate ? { opacity: 0 } : {}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
@@ -562,17 +602,37 @@ function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => void }) 
               ))}
             </ul>
 
-            <Button
-              asChild
-              variant="outline"
-              className="active:scale-[0.98]"
-              onClick={onCTAClick}
-            >
-              <Link href="/request?service=med-cert">
-                Get your certificate
-                <ArrowRight className="ml-2 h-4 w-4" />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                asChild
+                variant="outline"
+                className="active:scale-[0.98]"
+                onClick={onCTAClick}
+              >
+                <Link href="/request?service=med-cert">
+                  Get your certificate
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <a
+                href="/sample-certificate.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Download sample (PDF)
+              </a>
+            </div>
+            <div className="mt-3">
+              <Link
+                href="/verify"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Verify a certificate
               </Link>
-            </Button>
+            </div>
           </motion.div>
 
           {/* Certificate mockup */}
@@ -626,6 +686,17 @@ function DoctorProfileSection() {
               {SOCIAL_PROOF.doctorCombinedYears}+ years of GP experience. Every request is
               reviewed and approved by a registered Australian doctor — no automated
               clinical decisions.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground/70">
+              Verify any doctor&apos;s registration on the{" "}
+              <a
+                href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                AHPRA public register
+              </a>
             </p>
           </div>
         </motion.div>
@@ -690,7 +761,7 @@ function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: nu
         </motion.div>
 
         {/* Emergency note */}
-        <p className="mt-8 text-center text-xs text-muted-foreground/60">
+        <p className="mt-8 text-center text-xs text-muted-foreground/70">
           For emergencies, call 000. This service is for non-urgent conditions
           only.
         </p>
@@ -940,6 +1011,20 @@ export function MedCertLanding() {
           {/* 6. FAQ */}
           <FaqCtaSection onFAQOpen={handleFAQOpen} />
 
+          {/* Referral awareness strip */}
+          <div className="py-6 border-t border-border/30 dark:border-white/10">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" />
+                Know someone who needs a certificate?{" "}
+                <Link href="/patient" className="text-primary hover:underline font-medium">
+                  Refer a friend
+                </Link>
+                {" "}&mdash; you both get $5 off.
+              </p>
+            </div>
+          </div>
+
           {/* 7. Final CTA */}
           <FinalCtaSection onCTAClick={handleFinalCTA} />
         </main>
@@ -955,6 +1040,7 @@ export function MedCertLanding() {
             onShow={() => analytics.trackExitIntent("shown")}
             onCTAClick={() => analytics.trackExitIntent("clicked")}
             onDismiss={() => analytics.trackExitIntent("dismissed")}
+            onEmailCapture={() => analytics.trackExitIntent("email_captured")}
           />
         )}
 

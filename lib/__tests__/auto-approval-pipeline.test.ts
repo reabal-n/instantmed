@@ -12,8 +12,8 @@ vi.mock("@sentry/nextjs", () => ({
   addBreadcrumb: vi.fn(),
 }))
 
-// Chainable Supabase mock builder
-function createChainMock(terminalValue: unknown = { data: null, error: null }) {
+// Chainable Supabase mock builder (kept for future test coverage expansion)
+function _createChainMock(terminalValue: unknown = { data: null, error: null }) {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {}
   const methods = [
     "from", "select", "insert", "update", "eq", "is", "not",
