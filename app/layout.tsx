@@ -20,6 +20,7 @@ import { LazyOverlays } from "@/components/shared/lazy-overlays"
 import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
 import { UrgentNoticeBanner } from "@/components/shared/urgent-notice-banner"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
+import { MotionProvider } from "@/components/providers/motion-provider"
 import Script from "next/script"
 import "./globals.css"
 
@@ -187,6 +188,7 @@ export default function RootLayout({
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <PostHogLoader>
+          <MotionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>
                 <MeshGradientCanvas />
@@ -207,6 +209,7 @@ export default function RootLayout({
                 <CookieBanner />
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
+          </MotionProvider>
           </PostHogLoader>
         </body>
       </html>
