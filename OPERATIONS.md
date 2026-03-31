@@ -437,3 +437,89 @@ supabase db push --project-ref X   # Apply migrations
 ### Service Dashboards
 
 Sentry: https://sentry.io | Vercel: https://vercel.com | Stripe: https://dashboard.stripe.com | PostHog: https://app.posthog.com | Supabase: https://supabase.com/dashboard | Resend: https://resend.com
+
+---
+
+## Backup & Disaster Recovery
+
+### Database (Supabase PostgreSQL)
+
+**Automatic backups:** Supabase Pro includes daily backups with 7-day retention. Point-in-Time Recovery (PITR) available via Supabase dashboard.
+
+**Recovery steps:**
+1. Go to Supabase Dashboard → Project → Database → Backups
+2. Select the target restore point (daily snapshot or PITR timestamp)
+3. Restore creates a new project — verify data before switching
+4. Update `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel env vars
+5. Redeploy the application
+
+**Manual export (monthly recommended):**
+```bash
+# Export full schema + data
+pg_dump "$DATABASE_URL" --format=custom --no-owner > backup-$(date +%Y%m%d).dump
+
+# Restore to new database
+pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
+```
+
+### File Storage (Supabase Storage)
+
+**Certificates and documents** are stored in Supabase Storage buckets:
+- `certificates` — Patient certificates (signed PDFs)
+- `documents` — Intake documents, uploads
+
+**Recovery:** Supabase Storage is backed up alongside the database. For individual file recovery, use the Supabase Storage API or dashboard.
+
+### Application Code
+
+**Source of truth:** GitHub (`main` branch). All deployments are from git.
+
+**Recovery:** Redeploy from Vercel dashboard or `git push` to trigger rebuild.
+
+### Secret Rotation Procedures
+
+| Secret | Rotation Process | Downtime |
+|--------|-----------------|----------|
+| `STRIPE_SECRET_KEY` | Generate new key in Stripe → update Vercel env → redeploy | Zero (old key valid for 24h) |
+| `STRIPE_WEBHOOK_SECRET` | Roll endpoint secret in Stripe → update env → redeploy | Brief (webhooks fail until deployed) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Regenerate in Supabase dashboard → update env → redeploy | Brief |
+| `CLERK_SECRET_KEY` | Regenerate in Clerk dashboard → update env → redeploy | Brief (auth calls fail) |
+| `RESEND_API_KEY` | Regenerate in Resend → update env → redeploy | Zero |
+| `PHI_MASTER_KEY` | **CRITICAL:** Must re-encrypt all PHI fields. See SECURITY.md | Requires migration |
+| `ENCRYPTION_KEY` | **CRITICAL:** Same as PHI_MASTER_KEY | Requires migration |
+| `UPSTASH_REDIS_REST_TOKEN` | Regenerate in Upstash → update env → redeploy | Brief (rate limits fail open) |
+| `CRON_SECRET` | Generate new value → update env → redeploy | Zero (crons use header auth) |
+| `ANTHROPIC_API_KEY` | Regenerate in Anthropic console → update env → redeploy | Zero |
+
+### Recovery Time Objectives
+
+| Scenario | RTO | RPO | Notes |
+|----------|-----|-----|-------|
+| Vercel outage | 0 (CDN failover) | 0 | Static pages served from CDN edge |
+| Supabase outage | 1-4h (PITR restore) | < 1h | Depends on PITR granularity |
+| Stripe outage | 0 (kill switches) | 0 | DLQ captures failed webhooks for replay |
+| Secret compromise | 15min (rotation) | 0 | Rotate immediately, redeploy |
+| Full data loss | 4-8h | 24h | Restore from daily backup |
+| Code regression | 5min (rollback) | 0 | Vercel instant rollback to previous deployment |
+
+### Disaster Recovery Checklist
+
+**If a secret is compromised:**
+1. Rotate the compromised secret immediately (see table above)
+2. Redeploy via Vercel dashboard
+3. Check audit logs for unauthorized access in the exposure window
+4. If PHI was potentially accessed: follow SECURITY.md breach protocol
+5. Document the incident in the incident log
+
+**If the database is corrupted:**
+1. Stop all cron jobs (Vercel dashboard → Cron → Disable)
+2. Enable maintenance mode (`maintenance_mode` feature flag)
+3. Restore from PITR to the last known good state
+4. Verify critical tables: `intakes`, `profiles`, `issued_certificates`, `email_outbox`
+5. Re-enable cron jobs and disable maintenance mode
+6. Reconcile any payments received during downtime via Stripe dashboard
+
+**If a deployment breaks production:**
+1. Vercel dashboard → Deployments → find last working deployment → Promote to Production
+2. This takes effect in < 60 seconds
+3. Investigate the broken deployment in a preview branch
