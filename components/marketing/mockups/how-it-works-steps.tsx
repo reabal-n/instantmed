@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react"
 
 /** Step 1: Patient filling in the intake form */
@@ -38,11 +39,14 @@ export function StepTwoMockup() {
   return (
     <div className="p-4 space-y-3">
       <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="https://api.dicebear.com/7.x/notionists/svg?seed=DrReview"
           alt=""
+          width={28}
+          height={28}
           className="w-7 h-7 rounded-full bg-muted/30"
+          unoptimized
+          loading="lazy"
         />
         <div>
           <p className="text-[10px] font-semibold text-foreground leading-tight">

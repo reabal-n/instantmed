@@ -329,7 +329,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   <div className="flex -space-x-2">
                     {doctorAvatars.map((src, i) => (
                       <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                        <Image src={src} alt="" fill className="object-cover" unoptimized />
+                        <Image src={src} alt="" fill sizes="32px" className="object-cover" unoptimized loading="lazy" />
                       </div>
                     ))}
                   </div>

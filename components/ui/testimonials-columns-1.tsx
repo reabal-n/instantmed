@@ -55,19 +55,23 @@ export const TestimonialsColumn = (props: {
                       <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
                         <Image
                           fill
+                          sizes="32px"
                           src={image}
                           alt={name}
                           className="object-cover"
+                          loading="lazy"
                         />
                       </div>
                     ) : image?.startsWith("http") ? (
                       <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
                         <Image
                           fill
+                          sizes="32px"
                           src={image}
                           alt={name}
                           className="object-cover"
                           unoptimized
+                          loading="lazy"
                         />
                       </div>
                     ) : (

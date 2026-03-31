@@ -4,6 +4,7 @@ import { ArrowRight, Clock, CheckCircle2, Mail, FileText, Download } from 'lucid
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { FloatingCard } from '@/components/marketing/floating-card'
 
@@ -37,11 +38,14 @@ function StepTwoMockup() {
     <div className="p-4 space-y-3">
       {/* Doctor header */}
       <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="https://api.dicebear.com/7.x/notionists/svg?seed=DrReview"
           alt=""
+          width={28}
+          height={28}
           className="w-7 h-7 rounded-full bg-muted/30"
+          unoptimized
+          loading="lazy"
         />
         <div>
           <p className="text-[10px] font-semibold text-foreground leading-tight">Your GP</p>
