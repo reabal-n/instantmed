@@ -263,7 +263,7 @@ function ContextualMessage() {
   if (!message) return null
 
   return (
-    <p className="text-xs text-muted-foreground/80 italic mt-1">
+    <p className="text-xs text-muted-foreground italic mt-1">
       {message}
     </p>
   )
@@ -632,7 +632,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
-          <p className="mt-4 text-foreground/70 text-sm font-medium">
+          <p className="mt-4 text-muted-foreground text-sm font-medium">
             From ${PRICING.REPEAT_SCRIPT.toFixed(2)} &middot; No account required
           </p>
           <p className="mt-1 text-muted-foreground text-xs">
@@ -649,9 +649,9 @@ function RelatedArticles() {
   return (
     <section aria-label="Related articles" className="py-12 lg:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
           Related reading
-        </h3>
+        </h2>
         <div className="flex flex-wrap justify-center gap-3">
           {RELATED_ARTICLES.map((article) => (
             <Link
@@ -854,7 +854,7 @@ export function PrescriptionsLanding() {
               <p className="text-sm text-muted-foreground">
                 <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" />
                 Know someone who needs their medication renewed?{" "}
-                <Link href="/patient" className="text-primary hover:underline font-medium">
+                <Link href="/patient" className="text-primary underline underline-offset-2 hover:no-underline font-medium">
                   Refer a friend
                 </Link>
                 {" "}&mdash; you both get $5 off.

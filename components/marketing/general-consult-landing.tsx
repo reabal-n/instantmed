@@ -264,7 +264,7 @@ function ContextualMessage() {
   if (!message) return null
 
   return (
-    <p className="text-xs text-muted-foreground/80 italic mt-1">
+    <p className="text-xs text-muted-foreground italic mt-1">
       {message}
     </p>
   )
@@ -605,9 +605,9 @@ function RelatedArticles() {
   return (
     <section aria-label="Related articles" className="py-12 lg:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
           Related reading
-        </h3>
+        </h2>
         <div className="flex flex-wrap justify-center gap-3">
           {RELATED_ARTICLES.map((article) => (
             <Link
@@ -803,7 +803,7 @@ export function GeneralConsultLanding() {
                 </p>
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="text-sm text-primary hover:underline font-medium"
+                  className="text-sm text-primary underline underline-offset-2 hover:no-underline font-medium"
                 >
                   {CONTACT_EMAIL}
                 </a>
@@ -817,7 +817,7 @@ export function GeneralConsultLanding() {
               <p className="text-sm text-muted-foreground">
                 <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" />
                 Know someone who could use a doctor?{" "}
-                <Link href="/patient" className="text-primary hover:underline font-medium">
+                <Link href="/patient" className="text-primary underline underline-offset-2 hover:no-underline font-medium">
                   Refer a friend
                 </Link>
                 {" "}&mdash; you both get $5 off.
