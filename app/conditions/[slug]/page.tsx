@@ -533,13 +533,42 @@ export default async function ConditionPage({ params }: PageProps) {
                     ))}
                 </div>
 
-                {/* Cross-links to other page types */}
+                {/* Cross-links to other page types + landing pages */}
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+                  {(condition.serviceType === "med-cert" || condition.serviceType === "both") && (
+                    <>
+                      <Link
+                        href="/medical-certificate"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Medical certificates →
+                      </Link>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  {(condition.serviceType === "consult" || condition.serviceType === "both") && (
+                    <>
+                      <Link
+                        href="/general-consult"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        GP consultations →
+                      </Link>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  <Link
+                    href="/prescriptions"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Repeat prescriptions →
+                  </Link>
+                  <span className="text-muted-foreground">·</span>
                   <Link
                     href="/conditions"
                     className="text-primary hover:underline font-medium"
                   >
-                    View all conditions →
+                    All conditions →
                   </Link>
                   <span className="text-muted-foreground">·</span>
                   <Link
@@ -547,13 +576,6 @@ export default async function ConditionPage({ params }: PageProps) {
                     className="text-primary hover:underline font-medium"
                   >
                     Browse by symptom →
-                  </Link>
-                  <span className="text-muted-foreground">·</span>
-                  <Link
-                    href="/guides/how-to-get-medical-certificate-for-work"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    How to get a medical certificate →
                   </Link>
                 </div>
               </div>
