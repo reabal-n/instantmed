@@ -108,3 +108,11 @@ export type { FollowUpReminderEmailProps } from "./follow-up-reminder"
 // --- Still Reviewing (45-min follow-up for pending requests) ---
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
 export type { StillReviewingEmailProps } from "./still-reviewing"
+
+// --- Exit Intent Social Proof (email 2 of nurture sequence) ---
+export { ExitIntentSocialProofEmail, exitIntentSocialProofSubject } from "./exit-intent-social-proof"
+export type { ExitIntentSocialProofEmailProps } from "./exit-intent-social-proof"
+
+// --- Exit Intent Last Chance (email 3 of nurture sequence) ---
+export { ExitIntentLastChanceEmail, exitIntentLastChanceSubject } from "./exit-intent-last-chance"
+export type { ExitIntentLastChanceEmailProps } from "./exit-intent-last-chance"

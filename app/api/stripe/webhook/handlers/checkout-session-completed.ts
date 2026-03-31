@@ -404,6 +404,24 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       }
     }
 
+    // STEP 4b: Mark exit-intent captures as converted (non-critical)
+    // If this customer previously triggered an exit-intent nurture, stop further emails
+    try {
+      const customerEmail = session.customer_details?.email || session.customer_email
+      if (customerEmail) {
+        await supabase
+          .from("exit_intent_captures")
+          .update({
+            converted: true,
+            converted_at: new Date().toISOString(),
+          })
+          .eq("email", customerEmail.toLowerCase())
+          .eq("converted", false)
+      }
+    } catch {
+      // Non-blocking — nurture suppression is best-effort
+    }
+
     // STEP 5: Send payment notification + confirmation email (non-critical)
     if (patientId && session.amount_total) {
       const { data: patientProfile } = await supabase

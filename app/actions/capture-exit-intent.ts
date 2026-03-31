@@ -7,6 +7,7 @@ import { logger } from "@/lib/observability/logger"
 import { sendEmail } from "@/lib/email/send-email"
 import { ExitIntentReminderEmail, exitIntentReminderSubject } from "@/components/email/templates/exit-intent-reminder"
 import { PRICING } from "@/lib/constants"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const schema = z.object({
   email: z.string().transform(sanitizeEmail).pipe(z.string().email()),
@@ -68,6 +69,19 @@ export async function captureExitIntentEmail(formData: {
         { name: "service", value: service },
       ],
     })
+
+    // Record capture in DB for nurture sequence (emails 2 & 3 sent by cron)
+    // ON CONFLICT: if same email+service already active, just update reminder_1 timestamp
+    try {
+      const supabase = createServiceRoleClient()
+      await supabase.rpc("upsert_exit_intent_capture", {
+        p_email: email,
+        p_service: service,
+      })
+    } catch {
+      // Non-blocking — email 1 already sent, nurture is best-effort
+      logger.warn("Failed to record exit intent capture", { service })
+    }
 
     logger.info("Exit intent email captured", { email: email.split("@")[0] + "@***", service })
 

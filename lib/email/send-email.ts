@@ -55,6 +55,8 @@ export type EmailType =
   | "referral_credit"
   | "refund_issued"
   | "still_reviewing"
+  | "exit_intent_social_proof"
+  | "exit_intent_last_chance"
 
 interface SendEmailParams {
   to: string
@@ -72,6 +74,7 @@ interface SendEmailParams {
   from?: string
   replyTo?: string
   tags?: { name: string; value: string }[]
+  headers?: Record<string, string>
 }
 
 interface SendEmailResult {
@@ -339,6 +342,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     from = env.resendFromEmail,
     replyTo = CONTACT_EMAIL,
     tags = [],
+    headers,
   } = params
 
   // Add Sentry context
@@ -484,6 +488,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       { name: "email_type", value: emailType },
       ...tags,
     ],
+    ...(headers && Object.keys(headers).length > 0 && { headers }),
   }
 
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
