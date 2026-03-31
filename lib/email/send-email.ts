@@ -1401,7 +1401,7 @@ async function generateAndUploadPdfForCertificate(
       return { success: false, error: "Certificate missing required date fields" }
     }
 
-    const { formatDateLong, formatShortDate, formatShortDateSafe } = await import("@/lib/format")
+    const { formatDateLong, formatShortDate, formatShortDateSafe, addDays } = await import("@/lib/format")
 
     const certificateType = cert.certificate_type as "work" | "study" | "carer"
 
@@ -1423,6 +1423,7 @@ async function generateAndUploadPdfForCertificate(
       consultationDate: formatDateLong(cert.issue_date),
       startDate: formatDateLong(cert.start_date),
       endDate: formatDateLong(cert.end_date),
+      returnDate: formatDateLong(addDays(cert.end_date, 1)),
       certificateRef,
       issueDate: formatShortDate(cert.issue_date),
     })

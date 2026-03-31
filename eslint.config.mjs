@@ -22,6 +22,8 @@ const eslintConfig = [
       "public/sw.js",
       "playwright-report/**",
       "test-results/**",
+      "scripts/**",
+      ".worktrees/**",
     ],
   },
   // Base JS recommended

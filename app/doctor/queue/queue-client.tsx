@@ -211,6 +211,20 @@ export function QueueClient({
     return hours > 0 ? `${hours}h ${diffMins % 60}m left` : `${diffMins}m left`
   }
 
+  // Open intake review in a slide-over panel (stays on queue)
+  const openReviewPanel = useCallback((intakeId: string) => {
+    openPanel({
+      id: `intake-review-${intakeId}`,
+      type: "sheet",
+      component: (
+        <IntakeReviewPanel
+          intakeId={intakeId}
+          onActionComplete={() => router.refresh()}
+        />
+      ),
+    })
+  }, [openPanel, router])
+
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === "med_certs") {
       // Open review panel — doctor uses the certificate preview dialog there
@@ -299,20 +313,6 @@ export function QueueClient({
     if (intake.requires_live_consult) return true
     return false
   }, [])
-
-  // Open intake review in a slide-over panel (stays on queue)
-  const openReviewPanel = useCallback((intakeId: string) => {
-    openPanel({
-      id: `intake-review-${intakeId}`,
-      type: "sheet",
-      component: (
-        <IntakeReviewPanel
-          intakeId={intakeId}
-          onActionComplete={() => router.refresh()}
-        />
-      ),
-    })
-  }, [openPanel, router])
 
   // Sort: priority → flagged → SLA deadline → wait time
   const sortedIntakes = useMemo(() => {
