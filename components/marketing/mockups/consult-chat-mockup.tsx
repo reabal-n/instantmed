@@ -1,0 +1,179 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
+import { Stethoscope, Clock, BadgeCheck, CheckCircle2, FileText } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface ConsultChatMockupProps {
+  /** Compact mode for mobile — shows chat card only, no floating badges or timeline */
+  compact?: boolean
+}
+
+/**
+ * Consult-specific hero mockup for the general consult landing page.
+ * Shows a doctor-patient chat exchange: concern → doctor response → typing indicator.
+ * Replaces the generic HeroProductMockup on this page.
+ */
+export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
+  return (
+    <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
+      {/* Main chat card */}
+      <motion.div
+        className={cn(
+          "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-3",
+          compact ? "p-4" : "p-5"
+        )}
+        initial={animate ? { opacity: 0, y: 20 } : {}}
+        whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Stethoscope className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <span className="text-sm font-semibold text-foreground block leading-tight">Dr. Review</span>
+            <span className="text-[11px] text-success font-medium">Online now</span>
+          </div>
+        </div>
+
+        {/* Chat messages */}
+        <div className="space-y-2.5">
+          {/* Patient message — right-aligned */}
+          <div className="flex justify-end">
+            <div className="max-w-[85%] rounded-xl rounded-br-sm bg-primary/10 px-3 py-2">
+              <p className="text-[12px] leading-relaxed text-foreground/80">
+                I&apos;ve had a persistent rash on my arm for about a week
+              </p>
+            </div>
+          </div>
+
+          {/* Doctor message 1 — left-aligned */}
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-xl rounded-bl-sm bg-muted/50 dark:bg-muted/20 px-3 py-2">
+              <p className="text-[12px] leading-relaxed text-foreground/80">
+                Thanks for the details. Can you send a photo of the affected area?
+              </p>
+            </div>
+          </div>
+
+          {/* Doctor message 2 — left-aligned */}
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-xl rounded-bl-sm bg-muted/50 dark:bg-muted/20 px-3 py-2">
+              <p className="text-[12px] leading-relaxed text-foreground/80">
+                I&apos;ll assess and can prescribe treatment if appropriate.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Typing indicator */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-0.5">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40"
+                animate={animate ? { opacity: [0.3, 1, 0.3] } : undefined}
+                transition={animate ? { duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" } : undefined}
+              />
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground">Doctor is typing…</span>
+        </div>
+
+        {/* AHPRA badge top-right — desktop only */}
+        {!compact && (
+          <motion.div
+            className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
+            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+          >
+            <BadgeCheck className="w-3.5 h-3.5 text-success" />
+            AHPRA registered
+          </motion.div>
+        )}
+
+        {/* Time badge top-left — desktop only */}
+        {!compact && (
+          <motion.div
+            className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
+            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
+          >
+            <Clock className="w-3.5 h-3.5 text-primary" />
+            Within 2 hours
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* Progress timeline — overlapping bottom-right, desktop only */}
+      {!compact && (
+        <motion.div
+          className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
+          initial={animate ? { opacity: 0, x: 20 } : {}}
+          whileInView={animate ? { opacity: 1, x: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+        >
+          <motion.div
+            className="space-y-2"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: animate ? 0.2 : 0, delayChildren: animate ? 0.3 : 0 } },
+            }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div
+              className="flex items-center gap-2"
+              variants={animate
+                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
+                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+              }
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+              <span className="text-[11px] text-foreground/60">Concern submitted</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">10m ago</span>
+            </motion.div>
+            <motion.div
+              className="flex items-center gap-2"
+              variants={animate
+                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
+                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+              }
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+              <span className="text-[11px] text-foreground/60">Doctor reviewing</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">Just now</span>
+            </motion.div>
+            <motion.div
+              className="flex items-center gap-2"
+              variants={animate
+                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
+                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+              }
+            >
+              <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="text-[11px] font-medium text-foreground">Treatment plan sent</span>
+              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success">
+                Done
+              </span>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  )
+}
