@@ -1,24 +1,536 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-// Mock server-only before any imports
+// ============================================================================
+// MOCKS — must be declared before any imports that reference them
+// ============================================================================
+
 vi.mock("server-only", () => ({}))
 
-// Mock Sentry
 vi.mock("@sentry/nextjs", () => ({
   captureMessage: vi.fn(),
   captureException: vi.fn(),
   addBreadcrumb: vi.fn(),
 }))
 
-/**
- * These tests verify the exported helper logic from auto-approval-pipeline.ts.
- * Since the orchestrator itself requires Supabase, we test the build logic
- * by importing it dynamically after mocking.
- *
- * For the pipeline orchestrator (attemptAutoApproval), we verify:
- * - Feature flag gating
- * - The claim/release pattern is documented and tested via the eligibility engine
- */
+// Chainable Supabase mock builder
+function createChainMock(terminalValue: unknown = { data: null, error: null }) {
+  const chain: Record<string, ReturnType<typeof vi.fn>> = {}
+  const methods = [
+    "from", "select", "insert", "update", "eq", "is", "not",
+    "in", "gte", "single", "order", "limit",
+  ]
+  for (const method of methods) {
+    chain[method] = vi.fn().mockReturnValue(chain)
+  }
+  // Terminal methods return actual data
+  chain.single = vi.fn().mockResolvedValue(terminalValue)
+  chain.select = vi.fn().mockReturnValue({ ...chain, then: undefined })
+  // Make select chainable but also resolve when awaited at end of chain
+  return chain
+}
+
+// Configurable supabase mock state
+let supabaseQueryResults: Record<string, unknown> = {}
+const mockSupabaseChain = {
+  from: vi.fn(),
+  rpc: vi.fn(),
+}
+
+function setupSupabaseMock() {
+  // Default: all queries succeed with empty data
+  const defaultChain = () => {
+    const chain: Record<string, unknown> = {}
+    const methods = ["select", "insert", "update", "eq", "is", "not", "in", "gte", "single", "order", "limit"]
+    for (const method of methods) {
+      chain[method] = vi.fn().mockReturnValue(chain)
+    }
+    // Make it thenable so await resolves
+    chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: null, error: null, count: 0 })
+    return chain
+  }
+
+  mockSupabaseChain.from.mockImplementation((table: string) => {
+    if (supabaseQueryResults[table]) {
+      return supabaseQueryResults[table]
+    }
+    return defaultChain()
+  })
+}
+
+vi.mock("@/lib/supabase/service-role", () => ({
+  createServiceRoleClient: () => mockSupabaseChain,
+}))
+
+vi.mock("@/lib/observability/logger", () => ({
+  createLogger: () => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  }),
+}))
+
+const mockFeatureFlags = {
+  ai_auto_approve_enabled: false,
+  auto_approve_dry_run: false,
+  auto_approve_rate_limit_5min: 10,
+  auto_approve_daily_cap: 50,
+  auto_approve_max_duration_days: 3,
+}
+
+vi.mock("@/lib/feature-flags", () => ({
+  getFeatureFlags: vi.fn(async () => ({ ...mockFeatureFlags })),
+}))
+
+const mockCheckRateLimit = vi.fn().mockResolvedValue({ allowed: true, remaining: 9 })
+const mockRecordRateLimitedAction = vi.fn().mockResolvedValue(undefined)
+
+vi.mock("@/lib/rate-limit/doctor", () => ({
+  checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
+  recordRateLimitedAction: (...args: unknown[]) => mockRecordRateLimitedAction(...args),
+}))
+
+vi.mock("@/lib/posthog-server", () => ({
+  getPostHogClient: () => ({ capture: vi.fn(), shutdown: vi.fn() }),
+}))
+
+const mockExecuteCertApproval = vi.fn()
+vi.mock("@/lib/cert/execute-approval", () => ({
+  executeCertApproval: (...args: unknown[]) => mockExecuteCertApproval(...args),
+}))
+
+vi.mock("@/lib/notifications/telegram", () => ({
+  sendTelegramAlert: vi.fn().mockResolvedValue(undefined),
+  escapeMarkdownValue: (v: string) => v,
+}))
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+const TEST_INTAKE_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+const TEST_DOCTOR_ID = "11111111-2222-3333-4444-555555555555"
+const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
+
+function makeIntakeChain(overrides: {
+  intakeData?: Record<string, unknown> | null
+  intakeError?: { message: string } | null
+  claimData?: unknown[] | null
+  claimError?: { message: string } | null
+} = {}) {
+  const {
+    intakeData = {
+      id: TEST_INTAKE_ID,
+      status: "paid",
+      subtype: "work",
+      patient_id: "patient-1",
+      service: { id: "svc-1", slug: "med-cert-1day", name: "Medical Certificate", type: "med_certs" },
+      patient: { date_of_birth: "1990-01-01" },
+      answers: { answers: { symptoms: ["Cold"], symptomDetails: "runny nose and cough", duration: "1", startDate: today } },
+    },
+    intakeError = null,
+    claimData = [{ id: TEST_INTAKE_ID }],
+    claimError = null,
+  } = overrides
+
+  let callCount = 0
+  const chain: Record<string, unknown> = {}
+  const methods = ["select", "insert", "update", "eq", "is", "not", "in", "gte", "single", "order", "limit"]
+  for (const method of methods) {
+    chain[method] = vi.fn().mockReturnValue(chain)
+  }
+
+  // Track whether this is a select (fetch) or update (claim/release)
+  chain.select = vi.fn().mockImplementation(() => {
+    callCount++
+    const selectChain: Record<string, unknown> = { ...chain }
+    if (callCount === 1) {
+      // First select: intake fetch
+      selectChain.single = vi.fn().mockResolvedValue({ data: intakeData, error: intakeError })
+      selectChain.eq = vi.fn().mockReturnValue(selectChain)
+    } else {
+      // Subsequent selects: claim result or count queries
+      selectChain.then = (resolve: (v: unknown) => unknown) => resolve({ data: claimData, error: claimError, count: 0 })
+      selectChain.eq = vi.fn().mockReturnValue(selectChain)
+      selectChain.is = vi.fn().mockReturnValue(selectChain)
+      selectChain.gte = vi.fn().mockReturnValue(selectChain)
+    }
+    return selectChain
+  })
+
+  chain.update = vi.fn().mockReturnValue(chain)
+  chain.insert = vi.fn().mockReturnValue({
+    then: (resolve: (v: unknown) => unknown) => resolve({ data: null, error: null }),
+  })
+  // Make base chain awaitable
+  chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: claimData, error: claimError, count: 0 })
+
+  return chain
+}
+
+function makeDraftsChain(drafts: unknown[] = []) {
+  const chain: Record<string, unknown> = {}
+  chain.select = vi.fn().mockReturnValue(chain)
+  chain.eq = vi.fn().mockReturnValue(chain)
+  chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: drafts, error: null })
+  return chain
+}
+
+function makeDoctorsChain(doctors: unknown[] = []) {
+  const chain: Record<string, unknown> = {}
+  const methods = ["select", "eq", "not", "in"]
+  for (const m of methods) {
+    chain[m] = vi.fn().mockReturnValue(chain)
+  }
+  chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: doctors, error: null })
+  return chain
+}
+
+function makeAuditChain() {
+  const chain: Record<string, unknown> = {}
+  chain.insert = vi.fn().mockReturnValue({
+    then: (resolve: (v: unknown) => unknown) => resolve({ data: null, error: null }),
+  })
+  return chain
+}
+
+// ============================================================================
+// TESTS
+// ============================================================================
+
+describe("attemptAutoApproval orchestrator", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    // Reset to defaults
+    mockFeatureFlags.ai_auto_approve_enabled = false
+    mockFeatureFlags.auto_approve_dry_run = false
+    mockFeatureFlags.auto_approve_rate_limit_5min = 10
+    mockFeatureFlags.auto_approve_daily_cap = 50
+    mockFeatureFlags.auto_approve_max_duration_days = 3
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9 })
+    mockRecordRateLimitedAction.mockResolvedValue(undefined)
+    mockExecuteCertApproval.mockReset()
+    supabaseQueryResults = {}
+    setupSupabaseMock()
+  })
+
+  // Lazily import so mocks are registered first
+  async function getAttemptAutoApproval() {
+    const mod = await import("@/lib/clinical/auto-approval-pipeline")
+    return mod.attemptAutoApproval
+  }
+
+  // --------------------------------------------------------------------------
+  // 1. Feature flag gating
+  // --------------------------------------------------------------------------
+
+  it("returns early when feature flag is OFF", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = false
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Feature disabled")
+    // Should NOT touch Supabase at all
+    expect(mockSupabaseChain.from).not.toHaveBeenCalled()
+  })
+
+  // --------------------------------------------------------------------------
+  // 2. Rate limiting
+  // --------------------------------------------------------------------------
+
+  it("returns early when burst rate limit is hit", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    mockCheckRateLimit.mockResolvedValueOnce({ allowed: false, remaining: 0 })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Rate limit exceeded")
+  })
+
+  it("returns early when daily cap is hit", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    // First call (burst) passes, second call (daily) fails
+    mockCheckRateLimit
+      .mockResolvedValueOnce({ allowed: true, remaining: 5 })
+      .mockResolvedValueOnce({ allowed: false, remaining: 0 })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Daily cap exceeded")
+  })
+
+  // --------------------------------------------------------------------------
+  // 3. Intake validation
+  // --------------------------------------------------------------------------
+
+  it("handles intake not found", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    supabaseQueryResults["intakes"] = makeIntakeChain({
+      intakeData: null,
+      intakeError: { message: "Not found" },
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(false)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Intake not found")
+  })
+
+  it("skips non-med-cert service types", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    supabaseQueryResults["intakes"] = makeIntakeChain({
+      intakeData: {
+        id: TEST_INTAKE_ID,
+        status: "paid",
+        subtype: null,
+        patient_id: "patient-1",
+        service: { id: "svc-2", slug: "general-consult", name: "General Consult", type: "consults" },
+        patient: { date_of_birth: "1990-01-01" },
+        answers: { answers: {} },
+      },
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Not a med cert service")
+  })
+
+  it("skips intake not in 'paid' status", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    supabaseQueryResults["intakes"] = makeIntakeChain({
+      intakeData: {
+        id: TEST_INTAKE_ID,
+        status: "approved",
+        subtype: "work",
+        patient_id: "patient-1",
+        service: { id: "svc-1", slug: "med-cert-1day", name: "Medical Certificate", type: "med_certs" },
+        patient: { date_of_birth: "1990-01-01" },
+        answers: { answers: {} },
+      },
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toContain("not paid")
+  })
+
+  it("skips when intake is already claimed by a doctor", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    supabaseQueryResults["intakes"] = makeIntakeChain({
+      claimData: [], // Empty array = claim failed (someone else has it)
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Intake already claimed by doctor")
+  })
+
+  // --------------------------------------------------------------------------
+  // 4. Deterministic failure marking
+  // --------------------------------------------------------------------------
+
+  it("marks deterministic failures with auto_approval_skipped flag", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    // Create intake with emergency keyword (deterministic failure)
+    const intakeChain = makeIntakeChain({
+      intakeData: {
+        id: TEST_INTAKE_ID,
+        status: "paid",
+        subtype: "work",
+        patient_id: "patient-1",
+        service: { id: "svc-1", slug: "med-cert-1day", name: "Medical Certificate", type: "med_certs" },
+        patient: { date_of_birth: "1990-01-01" },
+        answers: { answers: { symptoms: ["Chest pain"], symptomDetails: "suicidal thoughts and chest pain", duration: "1", startDate: today } },
+      },
+    })
+    supabaseQueryResults["intakes"] = intakeChain
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    // Should be ineligible due to emergency/mental health keywords
+    expect(result.reason).toBeTruthy()
+  })
+
+  // --------------------------------------------------------------------------
+  // 5. Dry run mode
+  // --------------------------------------------------------------------------
+
+  it("evaluates but does not issue certificate in dry run mode", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    mockFeatureFlags.auto_approve_dry_run = true
+
+    supabaseQueryResults["intakes"] = makeIntakeChain()
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([
+      { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
+    ])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["profiles"] = makeDoctorsChain([
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+    ])
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toContain("Dry run")
+    // executeCertApproval should NOT be called in dry run
+    expect(mockExecuteCertApproval).not.toHaveBeenCalled()
+  })
+
+  // --------------------------------------------------------------------------
+  // 6. No doctor available
+  // --------------------------------------------------------------------------
+
+  it("fails when no doctor with credentials is available", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    supabaseQueryResults["intakes"] = makeIntakeChain()
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([
+      { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
+    ])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["profiles"] = makeDoctorsChain([]) // No doctors!
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(false)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("No doctor available")
+  })
+
+  // --------------------------------------------------------------------------
+  // 7. Successful approval
+  // --------------------------------------------------------------------------
+
+  it("issues certificate when all checks pass", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    supabaseQueryResults["intakes"] = makeIntakeChain()
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([
+      { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
+    ])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["profiles"] = makeDoctorsChain([
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+    ])
+
+    mockExecuteCertApproval.mockResolvedValue({
+      success: true,
+      certificateId: "cert-123",
+      emailSent: true,
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(true)
+    expect(result.autoApproved).toBe(true)
+    expect(result.certificateId).toBe("cert-123")
+    expect(result.reason).toBe("Auto-approved and delivered")
+
+    // Verify executeCertApproval was called with correct shape
+    expect(mockExecuteCertApproval).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeId: TEST_INTAKE_ID,
+        skipClaim: true,
+        aiApproved: true,
+        doctorProfile: expect.objectContaining({
+          id: TEST_DOCTOR_ID,
+          full_name: "Dr Test Doctor",
+        }),
+        reviewData: expect.objectContaining({
+          doctorName: "Dr Test Doctor",
+          medicalReason: expect.any(String),
+        }),
+      })
+    )
+
+    // Verify rate limit actions were recorded
+    expect(mockRecordRateLimitedAction).toHaveBeenCalledTimes(2)
+  })
+
+  // --------------------------------------------------------------------------
+  // 8. Failed approval pipeline
+  // --------------------------------------------------------------------------
+
+  it("releases claim and returns failure when approval pipeline errors", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    supabaseQueryResults["intakes"] = makeIntakeChain()
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([
+      { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
+    ])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["profiles"] = makeDoctorsChain([
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+    ])
+
+    mockExecuteCertApproval.mockResolvedValue({
+      success: false,
+      error: "PDF generation failed",
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(false)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Approval pipeline failed")
+    expect(result.error).toBe("PDF generation failed")
+  })
+
+  // --------------------------------------------------------------------------
+  // 9. Unexpected errors
+  // --------------------------------------------------------------------------
+
+  it("catches unexpected exceptions and releases claim", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    // Make supabase throw on first call
+    mockSupabaseChain.from.mockImplementation(() => {
+      throw new Error("Connection refused")
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.success).toBe(false)
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("Unexpected error")
+    expect(result.error).toBe("Connection refused")
+  })
+})
+
+// ============================================================================
+// EXISTING TESTS — preserved from original file
+// ============================================================================
 
 describe("Auto-Approval Pipeline Helpers", () => {
   beforeEach(() => {
@@ -26,9 +538,6 @@ describe("Auto-Approval Pipeline Helpers", () => {
   })
 
   describe("buildReviewDataFromAnswers (via pipeline behavior)", () => {
-    // We test the review data building logic indirectly through the eligibility engine
-    // and directly test date extraction/duration logic
-
     it("extractDurationDays handles all answer formats", async () => {
       const { extractDurationDays } = await import("@/lib/clinical/auto-approval")
 
@@ -59,8 +568,6 @@ describe("Auto-Approval Pipeline Helpers", () => {
 
   describe("Feature flag gating", () => {
     it("pipeline uses DB-backed feature flag (ai_auto_approve_enabled), not env var", async () => {
-      // The pipeline reads from getFeatureFlags() which queries the feature_flags DB table.
-      // DEFAULT_FLAGS has ai_auto_approve_enabled = false — must be explicitly enabled via admin.
       const { DEFAULT_FLAGS } = await import("@/lib/data/types/feature-flags")
       expect(DEFAULT_FLAGS.ai_auto_approve_enabled).toBe(false)
     })
@@ -70,7 +577,6 @@ describe("Auto-Approval Pipeline Helpers", () => {
     it("rejects when all text fields contain flagged keywords across different fields", async () => {
       const { evaluateAutoApprovalEligibility } = await import("@/lib/clinical/auto-approval")
 
-      // Keywords spread across multiple answer fields
       const result = evaluateAutoApprovalEligibility(
         { service_type: "med_certs", subtype: "work" },
         {
@@ -144,14 +650,59 @@ describe("Auto-Approval Pipeline Helpers", () => {
 
   describe("Claim lifecycle documentation", () => {
     it("releaseSystemClaim pattern: claim uses system profile UUID for FK safety", async () => {
-      // This is a documentation test that verifies the claim/release contract:
-      // - Claim: UPDATE intakes SET claimed_by=SYSTEM_AUTO_APPROVE_ID WHERE status='paid' AND claimed_by IS NULL
-      // - Release: UPDATE intakes SET claimed_by=NULL WHERE claimed_by=SYSTEM_AUTO_APPROVE_ID
-      // - The eq("claimed_by", SYSTEM_AUTO_APPROVE_ID) guard prevents releasing doctor claims
       const { SYSTEM_AUTO_APPROVE_ID } = await import("@/lib/constants")
-      // Must be a valid UUID (intakes.claimed_by is UUID REFERENCES profiles)
       expect(SYSTEM_AUTO_APPROVE_ID).toBe("00000000-0000-0000-0000-000000000000")
       expect(SYSTEM_AUTO_APPROVE_ID).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+    })
+  })
+
+  describe("isDeterministicFailure", () => {
+    it("classifies emergency and clinical flags as deterministic", async () => {
+      // Test via the eligibility engine — deterministic flags should be those
+      // that stem from patient data (age, symptoms, service type), not
+      // from system state (rate limits, no doctor, pipeline errors)
+      const { evaluateAutoApprovalEligibility } = await import("@/lib/clinical/auto-approval")
+
+      // Emergency symptoms = deterministic
+      const emergency = evaluateAutoApprovalEligibility(
+        { service_type: "med_certs", subtype: "work" },
+        {
+          symptoms: ["chest pain", "difficulty breathing"],
+          symptomDetails: "severe chest pain radiating to left arm",
+          duration: "1",
+          start_date: new Date().toISOString().split("T")[0],
+        },
+        { clinicalNote: null }
+      )
+      expect(emergency.eligible).toBe(false)
+      // Should have emergency flag
+      expect(emergency.disqualifyingFlags.some(f => f.startsWith("emergency:"))).toBe(true)
+
+      // Under 18 = deterministic
+      const minor = evaluateAutoApprovalEligibility(
+        { service_type: "med_certs", subtype: "work" },
+        {
+          symptoms: ["Cold"],
+          symptomDetails: "runny nose",
+          duration: "1",
+          start_date: new Date().toISOString().split("T")[0],
+        },
+        { clinicalNote: { status: "ready", content: { flags: { requiresReview: false, flagReason: null } } } },
+        { date_of_birth: new Date().toISOString().split("T")[0] } // born today = <18
+      )
+      expect(minor.eligible).toBe(false)
+      expect(minor.disqualifyingFlags).toContain("patient_under_18")
+
+      // Wrong service type = deterministic
+      const wrongService = evaluateAutoApprovalEligibility(
+        { service_type: "consults", subtype: null },
+        { symptoms: ["Cold"], symptomDetails: "runny nose", duration: "1" },
+        { clinicalNote: null }
+      )
+      expect(wrongService.eligible).toBe(false)
+      expect(wrongService.disqualifyingFlags.some(f =>
+        f === "wrong_service_type" || f === "service_type_mismatch"
+      )).toBe(true)
     })
   })
 })

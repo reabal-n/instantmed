@@ -37,6 +37,7 @@ interface UnifiedCheckoutInput {
     utm_campaign?: string
     referrer?: string
   }
+  posthogDistinctId?: string
 }
 
 interface CheckoutResult {
@@ -185,7 +186,7 @@ function validateAnswersServerSide(
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity, chatSessionId, attribution } = input
+  const { serviceType, answers, identity, chatSessionId, attribution, posthogDistinctId } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
@@ -227,6 +228,7 @@ export async function createCheckoutFromUnifiedFlow(
         .slice(0, 32),
       chatSessionId, // Pass chat session ID for transcript linking
       attribution,
+      posthogDistinctId,
     })
   } else {
     // Guest checkout - requires identity info
@@ -255,6 +257,7 @@ export async function createCheckoutFromUnifiedFlow(
       guestDateOfBirth: identity.dateOfBirth,
       guestPhone: identity.phone,
       attribution,
+      posthogDistinctId,
     })
   }
 }

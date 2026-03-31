@@ -138,6 +138,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         identity,
         chatSessionId: chatSessionId || undefined,
         attribution,
+        posthogDistinctId: posthog?.get_distinct_id() || undefined,
       })
 
       if (!result.success) {

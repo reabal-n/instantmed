@@ -49,6 +49,7 @@ interface CreateCheckoutInput {
     utm_campaign?: string
     referrer?: string
   }
+  posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -626,6 +627,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         subtype: input.subtype,
         service_slug: serviceSlug,
         ...(refCode ? { referral_code: refCode } : {}),
+        ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
       },
       customer: stripeCustomerId || undefined,
       customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,

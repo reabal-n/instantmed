@@ -46,6 +46,7 @@ interface GuestCheckoutInput {
     utm_campaign?: string
     referrer?: string
   }
+  posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
 }
 
 interface CheckoutResult {
@@ -520,6 +521,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           service_slug: serviceSlug,
           guest_checkout: "true",
           guest_email: input.guestEmail,
+          ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
         },
       }, {
         idempotencyKey: `guest-checkout-${intake.id}`,

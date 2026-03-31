@@ -331,6 +331,16 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     try {
       const posthog = getPostHogClient()
 
+      // Identity stitching: connect the browser's anonymous PostHog ID to the resolved user
+      // ph_distinct_id is the client-side PostHog distinct ID passed through Stripe metadata
+      const browserDistinctId = session.metadata?.ph_distinct_id
+      if (browserDistinctId && browserDistinctId !== posthogDistinctId) {
+        posthog.alias({
+          distinctId: posthogDistinctId,
+          alias: browserDistinctId,
+        })
+      }
+
       // Alias patientId (Supabase UUID) → clerk_user_id so PostHog merges person records
       if (phProfile?.clerk_user_id && patientId && phProfile.clerk_user_id !== patientId) {
         posthog.alias({
