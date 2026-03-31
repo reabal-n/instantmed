@@ -30,7 +30,6 @@ import { MarketingFooter } from "@/components/marketing/footer"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
-import { Skeleton } from "@/components/ui/skeleton"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import {
@@ -43,7 +42,7 @@ import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 // Below-fold lazy loads — keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
-  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 const ExitIntentOverlay = dynamic(
   () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
@@ -51,27 +50,27 @@ const ExitIntentOverlay = dynamic(
 )
 const HowItWorksSection = dynamic(
   () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
-  { loading: () => <Skeleton className="w-full h-[600px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 const CertificatePreviewSection = dynamic(
   () => import("@/components/marketing/sections/certificate-preview-section").then((m) => m.CertificatePreviewSection),
-  { loading: () => <Skeleton className="w-full h-[500px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 const FaqCtaSection = dynamic(
   () => import("@/components/marketing/sections/faq-cta-section").then((m) => m.FaqCtaSection),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 const FinalCtaSection = dynamic(
   () => import("@/components/marketing/sections/final-cta-section").then((m) => m.FinalCtaSection),
-  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 const LimitationsSection = dynamic(
   () => import("@/components/marketing/sections/limitations-section").then((m) => m.LimitationsSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[150px]" /> },
 )
 
 // =============================================================================

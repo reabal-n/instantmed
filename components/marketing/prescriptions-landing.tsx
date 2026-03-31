@@ -34,7 +34,6 @@ import { ReturningPatientBanner } from "@/components/shared/returning-patient-ba
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { FAQList } from "@/components/ui/faq-list"
-import { Skeleton } from "@/components/ui/skeleton"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
@@ -48,7 +47,7 @@ import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 // Below-fold lazy loads — keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
-  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 const ExitIntentOverlay = dynamic(
   () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
@@ -56,23 +55,23 @@ const ExitIntentOverlay = dynamic(
 )
 const PBSCalloutStrip = dynamic(
   () => import("@/components/marketing/sections/pbs-callout-strip").then((m) => m.PBSCalloutStrip),
-  { loading: () => <Skeleton className="w-full h-[80px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[60px]" /> },
 )
 const EScriptExplainerSection = dynamic(
   () => import("@/components/marketing/sections/escript-explainer-section").then((m) => m.EScriptExplainerSection),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 const SupportedMedicationsSection = dynamic(
   () => import("@/components/marketing/sections/supported-medications-section").then((m) => m.SupportedMedicationsSection),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[350px]" /> },
 )
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 const PrescriptionLimitationsSection = dynamic(
   () => import("@/components/marketing/sections/prescription-limitations-section").then((m) => m.PrescriptionLimitationsSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[150px]" /> },
 )
 
 // =============================================================================

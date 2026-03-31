@@ -34,7 +34,6 @@ import { ReturningPatientBanner } from "@/components/shared/returning-patient-ba
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { FAQList } from "@/components/ui/faq-list"
-import { Skeleton } from "@/components/ui/skeleton"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { CONSULT_FAQ } from "@/lib/data/consult-faq"
@@ -48,7 +47,7 @@ import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 // Below-fold lazy loads — keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
-  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 const ExitIntentOverlay = dynamic(
   () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
@@ -56,27 +55,27 @@ const ExitIntentOverlay = dynamic(
 )
 const ExpectCallStrip = dynamic(
   () => import("@/components/marketing/sections/expect-call-strip").then((m) => m.ExpectCallStrip),
-  { loading: () => <Skeleton className="w-full h-[60px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[60px]" /> },
 )
 const CommonConcernsSection = dynamic(
   () => import("@/components/marketing/sections/common-concerns-section").then((m) => m.CommonConcernsSection),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[350px]" /> },
 )
 const SpecialisedConsultsSection = dynamic(
   () => import("@/components/marketing/sections/specialised-consults-section").then((m) => m.SpecialisedConsultsSection),
-  { loading: () => <Skeleton className="w-full h-[400px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[350px]" /> },
 )
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 const ConsultLimitationsSection = dynamic(
   () => import("@/components/marketing/sections/consult-limitations-section").then((m) => m.ConsultLimitationsSection),
-  { loading: () => <Skeleton className="w-full h-[200px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[150px]" /> },
 )
 const FinalCtaSection = dynamic(
   () => import("@/components/marketing/sections/final-cta-section").then((m) => m.FinalCtaSection),
-  { loading: () => <Skeleton className="w-full h-[300px] rounded-xl" /> },
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 // =============================================================================
