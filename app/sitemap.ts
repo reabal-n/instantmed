@@ -15,144 +15,74 @@ const CONTENT_ENRICHED_MARCH_2026 = new Date("2026-03-31")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 // ============================================
-// SEGMENTED SITEMAPS
-// Google recommends splitting large sitemaps for better crawl management.
-// Segment 0: Static + service pages (highest priority)
-// Segment 1: Conditions + symptoms (medical content)
-// Segment 2: Guides + comparisons + intent (how-to/educational)
-// Segment 3: Locations + blog + audience (volume content)
+// SINGLE SITEMAP
+// ~400 total URLs — well under the 50,000 limit.
+// Segmented sitemaps had a Vercel caching bug where all segments
+// returned identical content. Single sitemap is simpler and reliable.
 // ============================================
 
-export async function generateSitemaps() {
-  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }]
-}
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // ── Static + service pages (highest priority) ──
+  const staticPages = [
+    "",
+    "/medical-certificate",
+    "/prescriptions",
+    "/general-consult",
+    "/pricing",
+    "/how-it-works",
+    "/faq",
+    "/contact",
+    "/reviews",
+    "/privacy",
+    "/terms",
+    "/about",
+    "/trust",
+    "/blog",
+    "/locations",
+    "/guides",
+    "/compare",
+    "/conditions",
+    "/symptoms",
+    "/for",
+    "/intent",
+  ]
 
-export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
-  // ── Segment 0: Static + service pages ──
-  if (id === 0) {
-    const staticPages = [
-      "",
-      "/medical-certificate",
-      "/prescriptions",
-      "/pricing",
-      "/how-it-works",
-      "/faq",
-      "/contact",
-      "/reviews",
-      "/privacy",
-      "/terms",
-      "/about",
-      "/trust",
-      "/blog",
-      "/locations",
-      "/guides",
-      "/compare",
-      "/conditions",
-      "/symptoms",
-      "/for",
-      "/intent",
-    ]
+  const servicePages = [
+    "/consult",
+    "/gp-consult",
+    "/weight-loss",
+    "/weight-management",
+    "/hair-loss",
+    "/medical-certificate/work",
+    "/medical-certificate/study",
+    "/medical-certificate/carer",
+    "/medical-certificate/sick-leave",
+    "/medical-certificate/university",
+    "/medical-certificate/school",
+    "/medical-certificate/return-to-work",
+    "/medical-certificate/employer-acceptance",
+    "/medical-certificate/centrelink",
+    "/medical-certificate/jury-duty",
+  ]
 
-    const servicePages = [
-      "/consult",
-      "/general-consult",
-      "/gp-consult",
-      "/weight-loss",
-      "/weight-management",
-      "/hair-loss",
-      "/medical-certificate/work",
-      "/medical-certificate/study",
-      "/medical-certificate/carer",
-      "/medical-certificate/sick-leave",
-      "/medical-certificate/university",
-      "/medical-certificate/school",
-      "/medical-certificate/return-to-work",
-      "/medical-certificate/employer-acceptance",
-      "/medical-certificate/centrelink",
-      "/medical-certificate/jury-duty",
-    ]
+  // ── Conditions + symptoms (medical content) ──
+  const conditionSlugs = getAllConditionSlugs()
+  const symptomSlugs = [
+    "sore-throat", "headache", "fatigue", "cough", "fever",
+    "burning-when-urinating", "hair-thinning", "chest-pain", "frequent-urination",
+    "nausea", "dizziness", "runny-nose", "body-aches", "shortness-of-breath",
+    "stomach-pain", "neck-pain", "bloating", "earache", "itching",
+    "heart-palpitations", "joint-pain", "weight-gain", "hair-loss",
+    "eye-strain", "sleep-apnoea", "chronic-cough",
+  ]
+  const conditionLocationCombos = getAllConditionLocationComboSlugs()
 
-    return [
-      ...staticPages.map((route) => ({
-        url: `${baseUrl}${route}`,
-        lastModified: BUILD_DATE,
-        changeFrequency: route === "" ? ("daily" as const) : ("weekly" as const),
-        priority: route === "" ? 1 : 0.8,
-      })),
-      ...servicePages.map((route) => ({
-        url: `${baseUrl}${route}`,
-        lastModified: BUILD_DATE,
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-      })),
-    ]
-  }
+  // ── Guides + comparisons + intent (educational) ──
+  const guideSlugs = getAllGuideSlugs()
+  const comparisonSlugs = getAllComparisonSlugs()
+  const intentSlugs = getAllIntentSlugs()
 
-  // ── Segment 1: Conditions + symptoms (medical content) ──
-  if (id === 1) {
-    const conditionSlugs = getAllConditionSlugs()
-    const symptomSlugs = [
-      "sore-throat", "headache", "fatigue", "cough", "fever",
-      "burning-when-urinating", "hair-thinning", "chest-pain", "frequent-urination",
-      "nausea", "dizziness", "runny-nose", "body-aches", "shortness-of-breath",
-      "stomach-pain", "neck-pain", "bloating", "earache", "itching",
-      "heart-palpitations", "joint-pain", "weight-gain", "hair-loss",
-      "eye-strain", "sleep-apnoea", "chronic-cough",
-    ]
-
-    const conditionLocationCombos = getAllConditionLocationComboSlugs()
-
-    return [
-      ...conditionSlugs.map((slug) => ({
-        url: `${baseUrl}/conditions/${slug}`,
-        lastModified: CONTENT_ENRICHED_MARCH_2026,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-      })),
-      ...symptomSlugs.map((slug) => ({
-        url: `${baseUrl}/symptoms/${slug}`,
-        lastModified: CONTENT_ENRICHED_MARCH_2026,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-      })),
-      ...conditionLocationCombos.map(({ slug, city }) => ({
-        url: `${baseUrl}/conditions/${slug}/${city}`,
-        lastModified: CONTENT_ENRICHED_MARCH_2026,
-        changeFrequency: "monthly" as const,
-        priority: 0.65,
-      })),
-    ]
-  }
-
-  // ── Segment 2: Guides + comparisons + intent (educational) ──
-  if (id === 2) {
-    const guideSlugs = getAllGuideSlugs()
-    const comparisonSlugs = getAllComparisonSlugs()
-    const intentSlugs = getAllIntentSlugs()
-
-    return [
-      ...guideSlugs.map((slug) => ({
-        url: `${baseUrl}/guides/${slug}`,
-        lastModified: BUILD_DATE,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-      })),
-      ...comparisonSlugs.map((slug) => ({
-        url: `${baseUrl}/compare/${slug}`,
-        lastModified: BUILD_DATE,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-      })),
-      ...intentSlugs.map((slug) => ({
-        url: `${baseUrl}/intent/${slug}`,
-        lastModified: BUILD_DATE,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-      })),
-    ]
-  }
-
-  // ── Segment 3: Locations + blog + audience (volume content) ──
+  // ── Locations + blog + audience (volume content) ──
   const locationSlugs = [
     "sydney", "parramatta", "bondi-beach", "newcastle", "wollongong",
     "wagga-wagga", "albury-wodonga", "central-coast", "penrith",
@@ -189,24 +119,93 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
   const articleDateMap = new Map(allArticles.map(a => [a.slug, new Date(a.updatedAt)]))
 
   return [
+    // Static + service pages
+    ...staticPages.map((route) => ({
+      url: `${baseUrl}${route}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: route === "" ? ("daily" as const) : ("weekly" as const),
+      priority: route === "" ? 1 : 0.9,
+    })),
+    ...servicePages.map((route) => ({
+      url: `${baseUrl}${route}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+
+    // Conditions
+    ...conditionSlugs.map((slug) => ({
+      url: `${baseUrl}/conditions/${slug}`,
+      lastModified: CONTENT_ENRICHED_MARCH_2026,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+
+    // Symptoms
+    ...symptomSlugs.map((slug) => ({
+      url: `${baseUrl}/symptoms/${slug}`,
+      lastModified: CONTENT_ENRICHED_MARCH_2026,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+
+    // Condition + location combos
+    ...conditionLocationCombos.map(({ slug, city }) => ({
+      url: `${baseUrl}/conditions/${slug}/${city}`,
+      lastModified: CONTENT_ENRICHED_MARCH_2026,
+      changeFrequency: "monthly" as const,
+      priority: 0.65,
+    })),
+
+    // Guides
+    ...guideSlugs.map((slug) => ({
+      url: `${baseUrl}/guides/${slug}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+
+    // Comparisons
+    ...comparisonSlugs.map((slug) => ({
+      url: `${baseUrl}/compare/${slug}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+
+    // Intent pages
+    ...intentSlugs.map((slug) => ({
+      url: `${baseUrl}/intent/${slug}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+
+    // Locations
     ...locationSlugs.map((slug) => ({
       url: `${baseUrl}/locations/${slug}`,
       lastModified: CONTENT_ENRICHED_MARCH_2026,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
+
+    // Med cert location pages
     ...medCertLocationSlugs.map((slug) => ({
       url: `${baseUrl}/medical-certificate/${slug}`,
       lastModified: BUILD_DATE,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
+
+    // Blog
     ...blogSlugs.map((slug) => ({
       url: `${baseUrl}/blog/${slug}`,
       lastModified: articleDateMap.get(slug) || BUILD_DATE,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
+
+    // Audience pages
     ...audiencePages.map((slug) => ({
       url: `${baseUrl}/for/${slug}`,
       lastModified: CONTENT_ENRICHED_MARCH_2026,
