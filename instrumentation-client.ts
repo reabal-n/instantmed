@@ -128,13 +128,24 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       capture_pageleave: true,
       capture_exceptions: true,
       autocapture: true,
-      disable_session_recording: false,  // Enabled for checkout drop-off analysis
+      disable_session_recording: true,  // Deferred — starts after idle to avoid blocking LCP
       session_recording: {
         maskAllInputs: true,          // PHI protection — mask all form inputs
         maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements
       },
       debug: process.env.NODE_ENV === "development",
     });
+
+    // Defer session recording until after the page is interactive.
+    // Saves ~51KB + 550ms from the critical path (posthog-recorder.js).
+    const startRecording = () => {
+      posthog.startSessionRecording();
+    };
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(startRecording, { timeout: 5000 });
+    } else {
+      setTimeout(startRecording, 3000);
+    }
   }).catch(() => {
     // PostHog not available — skip silently
   });
