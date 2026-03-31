@@ -10,6 +10,9 @@ import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons"
 // This is set once at build time, not on every request
 const BUILD_DATE = new Date()
 
+// Content enrichment dates — when pages were last substantively updated
+const CONTENT_ENRICHED_MARCH_2026 = new Date("2026-03-31")
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
@@ -224,7 +227,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const locationRoutes = locationSlugs.map((slug) => ({
     url: `${baseUrl}/locations/${slug}`,
-    lastModified: BUILD_DATE,
+    lastModified: CONTENT_ENRICHED_MARCH_2026,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }))
@@ -251,14 +254,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const conditionRoutes = conditionSlugs.map((slug) => ({
     url: `${baseUrl}/conditions/${slug}`,
-    lastModified: BUILD_DATE,
+    lastModified: CONTENT_ENRICHED_MARCH_2026,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }))
 
   const symptomRoutes = symptomSlugs.map((slug) => ({
     url: `${baseUrl}/symptoms/${slug}`,
-    lastModified: BUILD_DATE,
+    lastModified: CONTENT_ENRICHED_MARCH_2026,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }))
@@ -277,16 +280,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
+  // Blog posts use their actual updatedAt date for freshness signaling
+  const articleDateMap = new Map(allArticles.map(a => [a.slug, new Date(a.updatedAt)]))
   const blogRoutes = blogSlugs.map((slug) => ({
     url: `${baseUrl}/blog/${slug}`,
-    lastModified: BUILD_DATE,
+    lastModified: articleDateMap.get(slug) || BUILD_DATE,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }))
 
   const audienceRoutes = audiencePages.map((slug) => ({
     url: `${baseUrl}/for/${slug}`,
-    lastModified: BUILD_DATE,
+    lastModified: CONTENT_ENRICHED_MARCH_2026,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }))
