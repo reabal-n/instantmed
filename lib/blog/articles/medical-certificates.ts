@@ -539,7 +539,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'Women\'s Health',
         description: 'Speak with a doctor about ongoing symptoms',
-        href: '/womens-health',
+        href: '/request?service=consult&subtype=womens-health',
         icon: 'consult'
       }
     ],
@@ -1315,7 +1315,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'Women\'s Health',
         description: 'Speak with a doctor about your symptoms',
-        href: '/womens-health',
+        href: '/request?service=consult&subtype=womens-health',
         icon: 'consult'
       }
     ],

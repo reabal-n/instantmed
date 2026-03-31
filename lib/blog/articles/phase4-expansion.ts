@@ -743,7 +743,7 @@ export const phase4ExpansionArticles: Article[] = [
       { question: 'Will my pharmacy accept an eScript for contraception?', answer: 'Yes. eScripts work at any pharmacy in Australia.' },
     ],
     relatedServices: [
-      { title: 'Women\'s Health', description: 'Contraception and more', href: '/womens-health', icon: 'consult' },
+      { title: 'Women\'s Health', description: 'Contraception and more', href: '/request?service=consult&subtype=womens-health', icon: 'consult' },
       { title: 'Prescriptions', description: 'Request a prescription', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: { title: 'Contraceptive Prescription Online | Birth Control via Telehealth | InstantMed', description: 'Get a contraceptive prescription online in Australia. Birth control via telehealth — no clinic visit required.', keywords: ['contraceptive prescription online', 'birth control telehealth', 'pill prescription online australia'] },
