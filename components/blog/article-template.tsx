@@ -457,30 +457,30 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
           {article.category === "medical-certificates" && (
             <>
-              <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical certificates</Link>
+              <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
               <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">Med cert guide</Link>
               <Link href="/conditions/cold-and-flu" className="text-primary hover:underline">Cold & flu</Link>
             </>
           )}
           {article.category === "medications" && (
             <>
-              <Link href="/services/prescriptions" className="text-primary hover:underline">Prescription service</Link>
-              <Link href="/repeat-prescriptions" className="text-primary hover:underline">Repeat prescriptions</Link>
+              <Link href="/prescriptions" className="text-primary hover:underline">Prescription service</Link>
               <Link href="/guides/how-to-get-repeat-prescription-online" className="text-primary hover:underline">Repeat script guide</Link>
+              <Link href="/conditions/uti" className="text-primary hover:underline">UTI treatment</Link>
             </>
           )}
           {article.category === "telehealth" && (
             <>
-              <Link href="/services/telehealth-consult" className="text-primary hover:underline">Online consultations</Link>
+              <Link href="/general-consult" className="text-primary hover:underline">Online consultations</Link>
               <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">Telehealth guide</Link>
               <Link href="/how-it-works" className="text-primary hover:underline">How it works</Link>
             </>
           )}
           {!["medical-certificates", "medications", "telehealth"].includes(article.category) && (
             <>
-              <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical certificates</Link>
-              <Link href="/services/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
-              <Link href="/services/telehealth-consult" className="text-primary hover:underline">Consultations</Link>
+              <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
+              <Link href="/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
+              <Link href="/general-consult" className="text-primary hover:underline">Consultations</Link>
             </>
           )}
         </div>

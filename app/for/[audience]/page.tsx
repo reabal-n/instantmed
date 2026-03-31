@@ -334,9 +334,9 @@ export default async function AudiencePage({ params }: PageProps) {
                   {" • "}
                   <Link href="/for/shift-workers" className="text-primary hover:underline">Shift Workers</Link>
                   {" • "}
-                  <Link href="/services/medical-certificates" className="text-primary hover:underline">Medical Certificates</Link>
+                  <Link href="/medical-certificate" className="text-primary hover:underline">Medical Certificates</Link>
                   {" • "}
-                  <Link href="/services/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
+                  <Link href="/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
                 </p>
               </div>
             </div>

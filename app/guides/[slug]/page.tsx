@@ -226,17 +226,17 @@ export default async function GuidePage({ params }: PageProps) {
             // Map categories to relevant service/condition links
             const categoryLinks: Record<string, Array<{ href: string; label: string }>> = {
               "Medical Certificates": [
-                { href: "/services/medical-certificates", label: "Medical certificate service" },
+                { href: "/medical-certificate", label: "Medical certificate service" },
                 { href: "/conditions/cold-and-flu", label: "Cold & flu certificates" },
                 { href: "/conditions/back-pain", label: "Back pain certificates" },
               ],
               "Prescriptions": [
-                { href: "/services/prescriptions", label: "Prescription service" },
-                { href: "/repeat-prescriptions", label: "Repeat prescriptions" },
-                { href: "/conditions/hay-fever", label: "Hay fever prescriptions" },
+                { href: "/prescriptions", label: "Prescription service" },
+                { href: "/conditions/hay-fever", label: "Hay fever treatment" },
+                { href: "/conditions/uti", label: "UTI treatment" },
               ],
               "Telehealth": [
-                { href: "/services/telehealth-consult", label: "Online consultations" },
+                { href: "/general-consult", label: "Online consultations" },
                 { href: "/how-it-works", label: "How InstantMed works" },
                 { href: "/trust", label: "Trust & safety" },
               ],
