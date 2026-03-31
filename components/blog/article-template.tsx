@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SocialShare } from "@/components/blog/social-share"
 import { RelatedArticles } from "@/components/blog/related-articles"
+import { BlogCTACard } from "@/components/marketing/blog-cta-card"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { ArticleTags } from "@/components/blog/article-tags"
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
@@ -351,6 +352,9 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       {article.faqs && article.faqs.length > 0 && (
         <FAQSection faqs={article.faqs} />
       )}
+
+      {/* Blog CTA Card */}
+      <BlogCTACard />
 
       {/* Related services CTA */}
       <div className="mt-12 pt-8 border-t border-border">

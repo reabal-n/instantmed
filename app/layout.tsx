@@ -143,6 +143,8 @@ export default function RootLayout({
           <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
+          <link rel="preconnect" href="https://us.posthog.com" />
+          <link rel="dns-prefetch" href="https://api.dicebear.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
           {/* Google Consent Mode v2 - must load BEFORE gtag */}

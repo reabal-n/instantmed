@@ -819,6 +819,25 @@ export default async function CityPage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Med Cert CTA */}
+          <section className="px-4 py-12">
+            <div className="mx-auto max-w-3xl rounded-2xl bg-primary/5 border border-primary/15 p-6 sm:p-8">
+              <h2 className="text-xl font-semibold tracking-tight sm:text-2xl mb-3">
+                Medical certificates online in {cityData.name}
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Skip the {cityData.name} waiting rooms. Get a medical certificate reviewed by an
+                AHPRA-registered doctor and delivered to your inbox — from {PRICING_DISPLAY.MED_CERT}.
+              </p>
+              <Button asChild size="lg" className="rounded-full">
+                <Link href="/medical-certificate">
+                  Get a medical certificate
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+          </section>
+
           {/* Services */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
