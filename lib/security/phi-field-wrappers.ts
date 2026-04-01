@@ -20,6 +20,13 @@ const isWriteEnabled = () => process.env.PHI_ENCRYPTION_WRITE_ENABLED === "true"
 const isReadEnabled = () => process.env.PHI_ENCRYPTION_READ_ENABLED === "true"
 const isEncryptionEnabled = () => process.env.PHI_ENCRYPTION_ENABLED === "true"
 
+// TODO(phi-cutover): ~2 weeks post-launch, once zero Sentry decryption errors confirmed:
+//   1. Remove plaintext fallback from all read*() functions in this file (grep phi-cutover)
+//   2. Create migration to DROP plaintext columns:
+//      patient_notes.(content, doctor_notes), issued_certificates.patient_name,
+//      document_drafts.data, intake_answers.(answers, allergy_details, medical_conditions)
+//   See SECURITY.md §"Pending: Phase 2 Dual-Write Cutover" for full procedure.
+
 // ============================================================================
 // DOCTOR NOTES (intakes.doctor_notes / doctor_notes_enc)
 // ============================================================================

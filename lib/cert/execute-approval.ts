@@ -170,7 +170,6 @@ export async function executeCertApproval(
       : service.slug.includes("carer") ? "carer" : "work"
 
   const certificateNumber = generateCertificateNumber()
-  const certificateRef = generateCertificateRef(certificateType)
   const generatedAt = new Date().toISOString()
 
   // Validate and calculate duration days
@@ -196,9 +195,40 @@ export async function executeCertApproval(
   const answersData = answersObj?.answers || null
 
   // Duration-tier mismatch check
+  if (!answersData) {
+    // Missing answers means we can't verify the paid tier — log but don't block
+    // (auto-approval engine already hard-blocks duration_unknown before reaching here)
+    logger.warn("Certificate answers missing — cannot verify paid duration tier", { intakeId })
+    Sentry.captureMessage("Certificate approved with missing intake answers — paid tier unverifiable", {
+      level: "warning",
+      tags: { subsystem: "cert-pipeline", intake_id: intakeId },
+    })
+  }
+
   const paidDurationDays = getAbsenceDays(answersData ?? undefined)
-  if (durationDays !== paidDurationDays) {
-    logger.warn("Certificate duration differs from paid tier", {
+
+  if (durationDays > paidDurationDays) {
+    // Hard block: never issue more days than the patient paid for
+    logger.warn("Certificate duration exceeds paid tier — blocking approval", {
+      intakeId,
+      paidDurationDays,
+      approvedDurationDays: durationDays,
+      startDate: reviewData.startDate,
+      endDate: reviewData.endDate,
+    })
+    if (!skipClaim) {
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+        .then(({ error }) => { if (error) logger.warn("Failed to release claim after duration block", { intakeId, error: error.message }) })
+    }
+    return {
+      success: false,
+      error: `Certificate duration (${durationDays} day${durationDays !== 1 ? "s" : ""}) exceeds the paid tier (${paidDurationDays} day${paidDurationDays !== 1 ? "s" : ""}). Please adjust the dates or contact support.`,
+    }
+  }
+
+  if (durationDays < paidDurationDays) {
+    // Soft flag: issuing fewer days is unusual but can be clinically appropriate
+    logger.warn("Certificate duration is less than paid tier", {
       intakeId,
       paidDurationDays,
       approvedDurationDays: durationDays,
@@ -207,7 +237,7 @@ export async function executeCertApproval(
     })
     Sentry.addBreadcrumb({
       category: "cert.audit",
-      message: `Duration mismatch: paid ${paidDurationDays}d, approved ${durationDays}d`,
+      message: `Duration under paid tier: paid ${paidDurationDays}d, approved ${durationDays}d`,
       level: "warning",
       data: { intakeId, paidDurationDays, approvedDurationDays: durationDays },
     })
@@ -217,10 +247,7 @@ export async function executeCertApproval(
 
   const verificationCode = generateVerificationCode(certificateNumber)
 
-  // 3. Generate PDF
-  Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating PDF", level: "info", data: { intakeId, certificateNumber, certificateRef, certificateType } })
-  logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber, certificateRef })
-
+  // 3. Fetch doctor identity (outside the ref-retry loop — doesn't vary per attempt)
   const doctorIdentityForPdf = await getDoctorIdentity(doctorProfile.id)
   if (!doctorIdentityForPdf) {
     if (!skipClaim) {
@@ -230,60 +257,116 @@ export async function executeCertApproval(
     return { success: false, error: "Doctor identity not found" }
   }
 
-  const pdfResult = await renderTemplatePdf({
-    certificateType,
-    patientName: patient.full_name,
-    patientDateOfBirth: formatShortDateSafe(patientDob),
-    consultationDate: formatDateLong(generatedAt),
-    startDate: formatDateLong(reviewData.startDate),
-    endDate: formatDateLong(reviewData.endDate),
-    certificateRef,
-    issueDate: formatShortDate(generatedAt),
-  })
+  // 3+4. Generate PDF + upload with certificateRef collision retry.
+  //
+  // WHY upsert: false — certificateRef has 100M possibilities per type/day. A collision
+  // (two intakes drawing the same ref) is astronomically unlikely but possible. With
+  // upsert: true, Intake B would silently overwrite Intake A's PDF in storage, then the
+  // DB unique constraint would reject Intake B, and its cleanup would delete the now-shared
+  // storage object — leaving Intake A's DB record pointing to a deleted file. With
+  // upsert: false, a collision surfaces as a 409 and we regenerate the ref and re-render
+  // on the next iteration. The DB UNIQUE constraint on certificate_ref is the hard guard.
+  const MAX_CERT_REF_ATTEMPTS = 3
+  let certificateRef = generateCertificateRef(certificateType)
+  let pdfBuffer: Buffer | undefined
+  let storagePath = ""
 
-  if (!pdfResult.success || !pdfResult.buffer) {
-    logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
-    if (!skipClaim) {
-      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
-        .then(({ error }) => { if (error) logger.warn("Failed to release claim after PDF failure", { intakeId, error: error.message }) })
+  for (let certAttempt = 0; certAttempt < MAX_CERT_REF_ATTEMPTS; certAttempt++) {
+    storagePath = `certificates/${certificateRef}.pdf`
+
+    // 3. Render PDF with current ref
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating PDF", level: "info", data: { intakeId, certificateNumber, certificateRef, certificateType, certAttempt } })
+    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber, certificateRef, certAttempt })
+
+    const pdfResult = await renderTemplatePdf({
+      certificateType,
+      patientName: patient.full_name,
+      patientDateOfBirth: formatShortDateSafe(patientDob),
+      consultationDate: formatDateLong(generatedAt),
+      startDate: formatDateLong(reviewData.startDate),
+      endDate: formatDateLong(reviewData.endDate),
+      certificateRef,
+      issueDate: formatShortDate(generatedAt),
+    })
+
+    if (!pdfResult.success || !pdfResult.buffer) {
+      // PDF gen failure is not a ref issue — release claim and return immediately
+      logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
+      if (!skipClaim) {
+        await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+          .then(({ error }) => { if (error) logger.warn("Failed to release claim after PDF failure", { intakeId, error: error.message }) })
+      }
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
-    await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
-    return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
-  }
 
-  const pdfBuffer = pdfResult.buffer
+    const candidateBuffer = pdfResult.buffer
 
-  // 4. Upload PDF to storage
-  Sentry.addBreadcrumb({ category: "cert.flow", message: "Uploading PDF to storage", level: "info", data: { intakeId, pdfSizeBytes: pdfBuffer.length } })
-  const storagePath = `certificates/${certificateRef}.pdf`
+    // 4. Upload — no upsert, so a collision surfaces as an error rather than silently
+    //    overwriting another intake's file at the same storage path.
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Uploading PDF to storage", level: "info", data: { intakeId, pdfSizeBytes: candidateBuffer.length, certAttempt } })
 
-  let uploadError: Error | null = null
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const { error } = await supabase.storage
+    const { error: uploadErr } = await supabase.storage
       .from("documents")
-      .upload(storagePath, pdfBuffer, {
+      .upload(storagePath, candidateBuffer, {
         contentType: "application/pdf",
-        upsert: true,
+        upsert: false,
       })
 
-    if (!error) {
-      uploadError = null
+    if (!uploadErr) {
+      pdfBuffer = candidateBuffer
       break
     }
 
-    uploadError = error
-    if (attempt < 1) {
-      await new Promise(r => setTimeout(r, 1000))
-    }
-  }
+    // Detect storage collision (file already exists at this path)
+    const isCollision =
+      (uploadErr as unknown as { statusCode?: number }).statusCode === 409 ||
+      uploadErr.message?.toLowerCase().includes("already exists") ||
+      uploadErr.message?.toLowerCase().includes("duplicate")
 
-  if (uploadError) {
-    logger.error("Failed to upload PDF to storage after retries", { intakeId, certificateNumber, error: uploadError })
+    if (isCollision && certAttempt < MAX_CERT_REF_ATTEMPTS - 1) {
+      // Regenerate ref and re-render on next iteration
+      logger.warn("Certificate ref storage collision — regenerating ref", {
+        intakeId,
+        collidedRef: certificateRef,
+        attempt: certAttempt,
+      })
+      Sentry.captureMessage("Certificate ref storage collision — regenerating ref", {
+        level: "warning",
+        tags: { subsystem: "cert-pipeline", intake_id: intakeId },
+        extra: { collidedRef: certificateRef, attempt: certAttempt },
+      })
+      certificateRef = generateCertificateRef(certificateType)
+      continue
+    }
+
+    // Non-collision upload error, or exhausted collision retries
+    logger.error("Failed to upload PDF to storage", {
+      intakeId,
+      certificateNumber,
+      error: uploadErr,
+      isCollision,
+      attempt: certAttempt,
+    })
     if (!skipClaim) {
       await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
         .then(({ error }) => { if (error) logger.warn("Failed to release claim after storage failure", { intakeId, error: error.message }) })
     }
     return { success: false, error: "Failed to store certificate. Please try again." }
+  }
+
+  if (!pdfBuffer) {
+    // Defensive: loop always breaks with pdfBuffer set or returns early — this is unreachable
+    logger.error("Certificate ref collision exhausted all retries", { intakeId, maxAttempts: MAX_CERT_REF_ATTEMPTS })
+    Sentry.captureMessage("Certificate ref collision exhausted all retries", {
+      level: "error",
+      tags: { subsystem: "cert-pipeline", intake_id: intakeId },
+    })
+    if (!skipClaim) {
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+        .then(({ error }) => { if (error) logger.warn("Failed to release claim after collision exhaustion", { intakeId, error: error.message }) })
+    }
+    return { success: false, error: "Failed to store certificate after multiple attempts. Please try again." }
   }
 
   // 5. Atomic approval

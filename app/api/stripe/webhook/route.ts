@@ -10,6 +10,12 @@ import { tryClaimEvent } from "./handlers/utils"
 
 const log = createLogger("stripe-webhook")
 
+// Give after() (draft gen + auto-approval) the full function lifetime.
+// Without this, Vercel Pro defaults to 60s — enough for the webhook response
+// but tight for the AI calls inside after(). The retry-auto-approval cron
+// catches anything that slips through, but 300s eliminates the gap entirely.
+export const maxDuration = 300
+
 // Use service role for webhook (bypasses RLS)
 function getServiceClient() {
   return createClient(env.supabaseUrl, env.supabaseServiceRoleKey)

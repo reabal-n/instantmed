@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
-import crypto from "crypto"
+import { Webhook } from "svix"
 import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
 
 /**
@@ -58,40 +58,37 @@ function getServiceClient() {
 }
 
 /**
- * Verify Resend webhook signature
+ * Verify Resend webhook signature using Svix.
+ *
+ * Resend signs webhooks via Svix. The signing algorithm is:
+ *   HMAC-SHA256( svix-id + "." + svix-timestamp + "." + body, base64decode(secret) )
+ * and the result is base64-encoded with a "v1," prefix in the svix-signature header.
+ * A plain HMAC of the payload does NOT work — use the svix library.
+ *
+ * Returns the parsed payload on success, throws on failure.
  */
-function verifyWebhookSignature(
+function verifyAndParseWebhook(
   payload: string,
-  signature: string | null,
+  headers: Headers,
   webhookSecret: string | undefined
-): boolean {
-  // Require webhook secret in production and Vercel preview
+): ResendWebhookPayload {
   if (!webhookSecret) {
     if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "preview") {
       logger.error("[Resend Webhook] CRITICAL: No webhook secret configured in production/preview")
-      return false
+      throw new Error("No webhook secret configured")
     }
-    logger.warn("[Resend Webhook] No webhook secret configured, skipping verification (local dev only)")
-    return true
+    // Local dev — skip verification
+    logger.warn("[Resend Webhook] No webhook secret, skipping verification (local dev only)")
+    return JSON.parse(payload) as ResendWebhookPayload
   }
 
-  if (!signature) {
-    return false
-  }
-
-  try {
-    const expectedSignature = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(payload)
-      .digest("hex")
-    
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    )
-  } catch {
-    return false
-  }
+  const wh = new Webhook(webhookSecret)
+  // svix verify() throws if the signature is invalid
+  return wh.verify(payload, {
+    "svix-id": headers.get("svix-id") ?? "",
+    "svix-timestamp": headers.get("svix-timestamp") ?? "",
+    "svix-signature": headers.get("svix-signature") ?? "",
+  }) as ResendWebhookPayload
 }
 
 /**
@@ -230,16 +227,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const payload = await request.text()
-    const signature = request.headers.get("svix-signature")
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
 
-    // Verify signature
-    if (!verifyWebhookSignature(payload, signature, webhookSecret)) {
+    let event: ResendWebhookPayload
+    try {
+      event = verifyAndParseWebhook(payload, request.headers, webhookSecret)
+    } catch {
       logger.warn("[Resend Webhook] Invalid signature")
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
-
-    const event: ResendWebhookPayload = JSON.parse(payload)
     const { type: eventType, data, created_at: _eventCreatedAt } = event
 
     logger.info("[Resend Webhook] Received event", {

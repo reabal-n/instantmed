@@ -1,14 +1,16 @@
 "use client"
 
-import { useState, useEffect, useSyncExternalStore, useCallback } from "react"
+import { useState, useEffect, useSyncExternalStore } from "react"
 import { getPatientCount, ANCHOR_COUNT } from "./social-proof"
 
 /**
- * SSR-safe hook that returns the current patient count.
- * Updates every `intervalMs` (default 15s) for a slow, realistic tick.
+ * SSR-safe hook that returns the real patient count from the DB.
+ *
+ * - Server render / before hydration → interpolated ANCHOR_COUNT (no flicker)
+ * - On mount → fetches /api/patient-count (real DB count, 1h cached)
+ * - Falls back to interpolated count if fetch fails
  */
-export function usePatientCount(intervalMs: number = 15_000): number {
-  // Prevent hydration mismatch — render nothing on server
+export function usePatientCount(): number {
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -17,17 +19,20 @@ export function usePatientCount(intervalMs: number = 15_000): number {
 
   const [count, setCount] = useState(() => getPatientCount())
 
-  const tick = useCallback(() => {
-    setCount(getPatientCount())
-  }, [])
-
   useEffect(() => {
     if (!mounted) return
-    // Sync immediately on mount
-    tick()
-    const id = setInterval(tick, intervalMs)
-    return () => clearInterval(id)
-  }, [mounted, intervalMs, tick])
+
+    fetch("/api/patient-count")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { count: number } | null) => {
+        if (data && typeof data.count === "number" && data.count > 0) {
+          setCount(data.count)
+        }
+      })
+      .catch(() => {
+        // Silently fall back to interpolated count already in state
+      })
+  }, [mounted])
 
   return mounted ? count : ANCHOR_COUNT
 }

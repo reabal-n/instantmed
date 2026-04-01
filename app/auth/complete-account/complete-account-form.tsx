@@ -49,8 +49,10 @@ export function CompleteAccountForm({
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'
     const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
     const postSignInUrl = `${appUrl}/auth/post-signin?intake_id=${intakeId}`
-    const signUpUrl = `${clerkSignUpUrl}?redirect_url=${encodeURIComponent(postSignInUrl)}`
-    router.push(signUpUrl)
+    const params = new URLSearchParams({ redirect_url: postSignInUrl })
+    // Pre-fill email so they don't have to retype it
+    if (email) params.set("email_address", email)
+    router.push(`${clerkSignUpUrl}?${params.toString()}`)
   }
 
   // If already signed in, show success message
@@ -80,14 +82,14 @@ export function CompleteAccountForm({
         </div>
         <h1 className="text-2xl font-semibold mb-2">Payment successful</h1>
         <p className="text-muted-foreground">
-          Create a free account to access your documents and track your request.
+          Create a free account to view and download your certificate, see the doctor&apos;s notes, and contact support — all in one place.
         </p>
       </div>
 
       <div className="space-y-4">
         {email && (
           <div className="p-3 rounded-lg bg-muted/50 text-center">
-            <p className="text-sm text-muted-foreground">Creating account for:</p>
+            <p className="text-sm text-muted-foreground">Your account email:</p>
             <p className="font-medium">{email}</p>
           </div>
         )}
@@ -97,18 +99,18 @@ export function CompleteAccountForm({
           className="w-full rounded-xl"
           size="lg"
         >
-          Create Account & Access Certificate
+          Create Account & View Certificate
         </Button>
 
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
-          className="w-full rounded-xl"
-        >
-          Skip for now
-        </Button>
         <p className="text-xs text-center text-muted-foreground">
-          Your certificate will be emailed either way — an account just makes it easier to find later.
+          Your certificate will be emailed to you regardless.{" "}
+          <button
+            type="button"
+            onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Skip for now
+          </button>
         </p>
       </div>
 

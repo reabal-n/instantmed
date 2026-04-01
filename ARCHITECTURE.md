@@ -381,6 +381,29 @@ Also re-exports common shadcn/Radix primitives: `Spinner`, `Progress`, `Skeleton
 
 **File organization:** `components/ui/` (155 primitives), `components/shared/` (73 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
+### Service Page Patterns
+
+Two patterns coexist intentionally. Use this decision rule for every new service/marketing page:
+
+**Pattern A — `ServiceFunnelPage` (config-driven)**
+`components/marketing/service-funnel-page.tsx`
+
+Use when: the page is a standard service landing page with a fixed section order (hero → how it works → pricing → testimonials → FAQ → CTA). All content is passed via a typed config object.
+
+- All InstantMed service pages use this: med-cert, repeat-rx, consult, hair-loss, weight-loss, womens-health, etc.
+- Sections are ordered and spaced consistently across all services — no per-page layout decisions
+- To add a new service page: add a config to `lib/marketing/service-funnel-configs.ts`, create a route that renders `<ServiceFunnelPage config={...} />`
+
+**Pattern B — Manual Morning Canvas composition**
+
+Use when: the page is not a standard service funnel — it has a unique layout, unique section order, or content that doesn't fit the config model (e.g. `/trust`, `/our-doctors`, `/reviews`, homepage, `/pricing`).
+
+- Compose sections directly from `components/marketing/sections/` (MeshGradientHero, FeatureGrid, TestimonialsSection, etc.)
+- No constraint on section order — but use Morning Canvas components consistently
+- Do NOT use this for service landing pages — use Pattern A instead
+
+**The rule in one sentence:** Standard service = Pattern A (config). Unique layout = Pattern B (compose).
+
 ### Image Optimization
 
 - Use `next/image` (or `OptimizedImage` wrapper at `components/ui/optimized-image.tsx`) for all images

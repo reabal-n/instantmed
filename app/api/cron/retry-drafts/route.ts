@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -10,20 +10,40 @@ import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-retry-drafts")
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+export const maxDuration = 60
+
 /**
  * GET /api/cron/retry-drafts
- * 
+ *
  * Retries failed AI draft generation with exponential backoff.
- * Should be called every 5 minutes via Vercel Cron.
- * 
+ * Runs every 5 minutes via Vercel Cron.
+ *
+ * generateDraftsForIntake is idempotent (skips if drafts already exist), but
+ * without a concurrency lock two overlapping runs can call it for the same
+ * intake simultaneously — burning duplicate AI tokens. The lock makes
+ * each 5-minute window a single-writer window.
+ *
  * Required env: CRON_SECRET
  */
 export async function GET(request: NextRequest) {
-  // Verify cron authentication (standardized)
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
   await recordCronHeartbeat("retry-drafts")
+
+  // Acquire concurrency lock — prevents overlapping runs from double-processing rows
+  const lock = await acquireCronLock("retry-drafts")
+  if (!lock.acquired) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: lock.existingLockAge
+        ? `Already running for ${lock.existingLockAge}s`
+        : "Already running",
+    })
+  }
 
   const supabase = createServiceRoleClient()
 
@@ -122,7 +142,8 @@ export async function GET(request: NextRequest) {
 
     logger.info("Retry drafts cron completed", { succeeded, failed, total: pendingRetries.length })
 
-    return NextResponse.json({ 
+    await releaseCronLock("retry-drafts")
+    return NextResponse.json({
       processed: pendingRetries.length,
       succeeded,
       failed,
@@ -132,6 +153,7 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Cron job error", { error: err.message })
     captureCronError(err, { jobName: "retry-drafts" })
+    await releaseCronLock("retry-drafts")
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }
