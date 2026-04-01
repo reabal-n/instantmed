@@ -10,6 +10,8 @@ import { locationArticles } from './locations'
 import { additionalSeoArticles } from './additional-seo'
 import { highIntentKeywordArticles } from './high-intent-keywords'
 import { phase4ExpansionArticles } from './phase4-expansion'
+import { competitorComparisonArticles } from './competitor-comparisons'
+import { transactionalSeoArticles } from './transactional-seo'
 import type { Article, ArticleCategory } from '../types'
 
 // Combine all article collections
@@ -26,6 +28,8 @@ export const allArticles: Article[] = [
   ...additionalSeoArticles,
   ...highIntentKeywordArticles,
   ...phase4ExpansionArticles,
+  ...competitorComparisonArticles,
+  ...transactionalSeoArticles,
 ]
 
 // Get article by slug
