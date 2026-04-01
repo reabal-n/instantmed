@@ -234,11 +234,11 @@ export async function executeCertApproval(
     certificateType,
     patientName: patient.full_name,
     patientDateOfBirth: formatShortDateSafe(patientDob),
-    consultationDate: formatDateLong(generatedAt.split("T")[0]!),
+    consultationDate: formatDateLong(generatedAt),
     startDate: formatDateLong(reviewData.startDate),
     endDate: formatDateLong(reviewData.endDate),
     certificateRef,
-    issueDate: formatShortDate(generatedAt.split("T")[0]!),
+    issueDate: formatShortDate(generatedAt),
   })
 
   if (!pdfResult.success || !pdfResult.buffer) {

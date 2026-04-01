@@ -236,6 +236,16 @@ export async function GET(request: NextRequest) {
           draftsGenerated++
         }
 
+        // Release the cron claim before calling attemptAutoApproval.
+        // attemptAutoApproval has its own atomic claim (claimed_by IS NULL check).
+        // Holding the cron claim here would block it from claiming, causing it to
+        // return "already claimed by doctor" and never approve anything.
+        await supabase
+          .from("intakes")
+          .update({ claimed_by: null })
+          .eq("id", intake.id)
+          .eq("claimed_by", CRON_CLAIM_ID)
+
         const result = await attemptAutoApproval(intake.id)
         if (result.autoApproved) {
           approved++
