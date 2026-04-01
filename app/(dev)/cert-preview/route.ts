@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     consultationDate: "1 April 2026",
     startDate: "1 April 2026",
     endDate: "2 April 2026",
-    certificateRef: "IM-WORK-20260401-00001",
+    certificateRef: "IM-WORK-20260401-00000001",
     issueDate: "01/04/2026",
   })
 

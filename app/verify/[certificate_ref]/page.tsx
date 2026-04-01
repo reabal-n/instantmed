@@ -54,8 +54,8 @@ function maskName(fullName: string | null): string {
 export default async function VerifyCertificateRefPage({ params }: Props) {
   const { certificate_ref } = await params
 
-  // Validate format: IM-TYPE-YYYYMMDD-NNNNN (5-digit suffix)
-  const refPattern = /^IM-(WORK|STUDY|CARER)-\d{8}-\d{5}$/
+  // Validate format: IM-TYPE-YYYYMMDD-NNNNNNNN (8-digit suffix)
+  const refPattern = /^IM-(WORK|STUDY|CARER)-\d{8}-\d{8}$/
   if (!refPattern.test(certificate_ref.toUpperCase())) {
     notFound()
   }

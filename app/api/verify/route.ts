@@ -187,7 +187,7 @@ export async function GET(request: Request) {
   // MC-YYYY-XXXXXXXX (certificate number), IM-TYPE-YYYYMMDD-NNNNN (certificate ref), or XXXXXXXX (verification code)
   const isValidFormat =
     /^MC-\d{4}-[A-F0-9]{8}$/.test(code) ||       // MC-2026-A1B2C3D4 (certificate number)
-    /^IM-(WORK|STUDY|CARER)-\d{8}-\d{5}$/.test(code) || // IM-WORK-20260101-04827 (certificate ref)
+    /^IM-(WORK|STUDY|CARER)-\d{8}-\d{8}$/.test(code) || // IM-WORK-20260101-04827391 (certificate ref)
     /^[A-Z0-9]{6,16}$/.test(code)                 // Plain verification code or legacy
   if (!isValidFormat) {
     // Apply stricter rate limit for invalid format attempts (potential brute force)
