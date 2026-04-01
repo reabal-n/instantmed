@@ -60,12 +60,7 @@ export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 export const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 export const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 export const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
-// Template IDs for each template type
-export const TEMPLATE_ID_WORK = "e2e00000-0000-0000-0000-000000000051"
-export const TEMPLATE_ID_UNI = "e2e00000-0000-0000-0000-000000000052"
-export const TEMPLATE_ID_CARER = "e2e00000-0000-0000-0000-000000000053"
-// Legacy alias for backwards compatibility
-export const TEMPLATE_ID = TEMPLATE_ID_WORK
+export const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 
 // Valid template config that matches TypeScript types
 const E2E_TEMPLATE_CONFIG = {
@@ -364,90 +359,71 @@ async function seedClinicIdentity() {
 }
 
 async function seedCertificateTemplate() {
-  console.log("🔧 Seeding certificate templates (all 3 types)...")
-  
-  // Template definitions for all three types
-  const templates = [
-    { id: TEMPLATE_ID_WORK, type: "med_cert_work", name: "E2E Work Certificate v1" },
-    { id: TEMPLATE_ID_UNI, type: "med_cert_uni", name: "E2E Uni Certificate v1" },
-    { id: TEMPLATE_ID_CARER, type: "med_cert_carer", name: "E2E Carer Certificate v1" },
-  ]
+  console.log("🔧 Seeding certificate template...")
 
-  const seededTemplates: unknown[] = []
+  const { data: existing } = await supabase
+    .from("certificate_templates")
+    .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
+    .eq("id", TEMPLATE_ID)
+    .single()
 
-  for (const tmpl of templates) {
-    // Check if our specific E2E template exists by deterministic ID
-    const { data: existing } = await supabase
-      .from("certificate_templates")
-      .select("id, template_type, version, name, config, is_active, activated_at, activated_by, created_at, created_by")
-      .eq("id", tmpl.id)
-      .single()
-
-    if (existing) {
-      // Ensure it's active
-      if (!existing.is_active) {
-        console.log(`   ↳ Reactivating E2E template: ${tmpl.type}`)
-        await supabase
-          .from("certificate_templates")
-          .update({ 
-            is_active: true, 
-            activated_at: new Date().toISOString(),
-            activated_by: OPERATOR_PROFILE_ID,
-          })
-          .eq("id", tmpl.id)
-      } else {
-        console.log(`   ↳ Reusing E2E template: ${tmpl.type}`)
-      }
-      seededTemplates.push(existing)
-      continue
+  if (existing) {
+    if (!existing.is_active) {
+      console.log("   ↳ Reactivating E2E template")
+      await supabase
+        .from("certificate_templates")
+        .update({
+          is_active: true,
+          activated_at: new Date().toISOString(),
+          activated_by: OPERATOR_PROFILE_ID,
+        })
+        .eq("id", TEMPLATE_ID)
+    } else {
+      console.log("   ↳ Reusing E2E template")
     }
-
-    // NOTE: We do NOT reuse "any active" production templates - deterministic seeding only.
-    // Deactivate any existing active template for this type to satisfy unique constraint
-    await supabase
-      .from("certificate_templates")
-      .update({ is_active: false })
-      .eq("template_type", tmpl.type)
-      .eq("is_active", true)
-
-    // Get the next available version number for this template type
-    const { data: maxVersion } = await supabase
-      .from("certificate_templates")
-      .select("version")
-      .eq("template_type", tmpl.type)
-      .order("version", { ascending: false })
-      .limit(1)
-      .single()
-    
-    const nextVersion = (maxVersion?.version ?? 0) + 1
-
-    // Insert with correct schema and valid config structure
-    const { data, error } = await supabase
-      .from("certificate_templates")
-      .insert({
-        id: tmpl.id,
-        template_type: tmpl.type,
-        name: tmpl.name,
-        version: nextVersion,
-        config: E2E_TEMPLATE_CONFIG,
-        is_active: true,
-        activated_at: new Date().toISOString(),
-        activated_by: OPERATOR_PROFILE_ID,
-        created_by: OPERATOR_PROFILE_ID,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error(`❌ Failed to seed template ${tmpl.type}:`, error.message)
-      throw error
-    }
-
-    console.log(`   ↳ Created E2E template: ${tmpl.type}`)
-    seededTemplates.push(data)
+    return existing
   }
 
-  return seededTemplates[0] // Return first for backwards compat
+  // Deactivate any existing active template to satisfy unique constraint
+  await supabase
+    .from("certificate_templates")
+    .update({ is_active: false })
+    .eq("template_type", "med_cert")
+    .eq("is_active", true)
+
+  const { data: maxVersion } = await supabase
+    .from("certificate_templates")
+    .select("version")
+    .eq("template_type", "med_cert")
+    .order("version", { ascending: false })
+    .limit(1)
+    .single()
+
+  const nextVersion = (maxVersion?.version ?? 0) + 1
+
+  const { data, error } = await supabase
+    .from("certificate_templates")
+    .insert({
+      id: TEMPLATE_ID,
+      template_type: "med_cert",
+      name: "E2E Medical Certificate v1",
+      version: nextVersion,
+      config: E2E_TEMPLATE_CONFIG,
+      is_active: true,
+      activated_at: new Date().toISOString(),
+      activated_by: OPERATOR_PROFILE_ID,
+      created_by: OPERATOR_PROFILE_ID,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("❌ Failed to seed certificate template:", error.message)
+    throw error
+  }
+
+  console.log("   ↳ Created E2E template")
+  return data
 }
 
 async function seedPaidIntake(serviceId: string) {

@@ -100,7 +100,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
                 <Clock className="w-3 h-3 text-primary shrink-0" />
-                Med certs in under 15 min, 24/7
+                Med certs in under 30 min, 24/7
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
                 <ShieldCheck className="w-3 h-3 text-primary shrink-0" />

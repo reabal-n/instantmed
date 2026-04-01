@@ -1,21 +1,19 @@
 /**
  * Template-based PDF renderer using pdf-lib
  *
- * Loads a pre-designed clean template PDF from /public/templates/ and draws
- * dynamic text (body paragraphs, issue date, certificate ref) on top using
- * drawText(). Templates contain the visual design (logo, title, signature,
- * stamp, doctor info, footer) with no body text — all body content is drawn
- * by this renderer.
+ * Loads a single pre-designed template PDF from /public/templates/template.pdf
+ * and draws all dynamic content on top using drawText() and drawImage().
  *
- * Uses a dynamic flowing layout: text starts at an anchor Y and flows
- * downward. Each section's Y is computed from the previous section's end.
- * Body text is auto-wrapped by the wrapText() utility.
- *
- * Templates: work_template.pdf, study_template.pdf, carer_template.pdf
- * (all share the same design/spacing — only the title differs)
+ * Dynamic content drawn by this renderer:
+ *   - Certificate title (Medical Certificate / Carer Certificate)
+ *   - Issue date (right-aligned)
+ *   - Body text (salutation + paragraphs, auto-wrapped)
+ *   - Certificate ID (small grey, centered above footer)
+ *   - QR code (right of footer, links to /verify?id=...)
  */
 
 import { PDFDocument, rgb, StandardFonts, type PDFFont } from "pdf-lib"
+import QRCode from "qrcode"
 import * as fs from "fs/promises"
 import { existsSync } from "fs"
 import * as path from "path"
@@ -56,27 +54,29 @@ export interface TemplatePdfResult {
 // ---------------------------------------------------------------------------
 // Layout configuration
 //
-// Single config for all template types (same design/spacing).
-// Uses a dynamic flowing layout — text starts at anchorY and flows down.
+// Single template for all certificate types.
+// Dynamic title + body drawn on top of blank areas in the template.
 //
-// Coordinate reference (top-origin, measured from the carer template screenshot):
-//   Header block (logo + clinic info):      ~0–90 pt
-//   Divider line:                           ~100 pt
-//   Title ("Medical/Carer Certificate"):    ~150 pt
-//   Issue date (right-aligned):             ~170 pt
-//   Body text anchor:                       ~290 pt
-//   Doctor block:                           ~560 pt
-//   Signature:                              ~610 pt
-//   Bottom divider line:                    ~650 pt
-//   Certificate ref:                        ~670 pt
-//   Footer disclaimer:                      ~715 pt
+// Top-origin coordinates (measured from template):
+//   Header block (logo + clinic info):    ~0–220 pt
+//   Divider line:                         ~230 pt
+//   Title (dynamic):                      ~285 pt  ← drawn by renderer
+//   Issue date (right-aligned):           ~315 pt  ← drawn by renderer
+//   Body text anchor:                     ~380 pt  ← drawn by renderer
+//   Doctor block:                         ~700 pt  (baked in template)
+//   Bottom divider line:                  ~780 pt  (baked in template)
+//   Certificate ID:                       ~800 pt  ← drawn by renderer
+//   Footer text:                          ~820 pt  (baked in template)
+//   QR code (right of footer):            ~815 pt  ← drawn by renderer
 // ---------------------------------------------------------------------------
 
 const LAYOUT = {
-  /** Issue date Y — in the space between title and body, right-aligned */
-  issueDateY: 170,
+  /** Title Y — centered, large, below top divider */
+  titleY: 285,
+  /** Issue date Y — right-aligned, below title */
+  issueDateY: 315,
   /** Where "To whom it may concern," starts */
-  anchorY: 290,
+  anchorY: 380,
   /** Gap between salutation and body paragraph */
   bodyGap: 10,
   /** Gap between body paragraph and return paragraph */
@@ -87,14 +87,19 @@ const LAYOUT = {
   bodyX: 72,
   /** Max text width for body paragraphs */
   bodyWidth: 450,
-  /** Certificate ref Y — between bottom divider (~650) and footer (~715) */
-  certIdY: 695,
-  /** Right margin for date */
+  /** Certificate ID Y — between bottom divider (~628pt) and footer text (~650pt) */
+  certIdY: 636,
+  /** Right margin */
   rightMargin: 50,
-  /** Maximum Y before body text would collide with doctor block (~560pt) */
-  maxBodyY: 540,
+  /** Maximum Y before body text would collide with doctor block (~535pt) */
+  maxBodyY: 530,
+  /** QR code: top-origin Y, right-aligned. Sits beside footer text (starts ~650pt) */
+  qrY: 650,
+  /** QR code rendered size in points */
+  qrSize: 55,
   /** Font sizes */
   fontSize: {
+    title: 18,
     body: 11,
     salutation: 11,
     issueDate: 10,
@@ -103,13 +108,9 @@ const LAYOUT = {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers: name capitalisation, DOB formatting
+// Helpers: name capitalisation
 // ---------------------------------------------------------------------------
 
-/**
- * Title-case patient name for professional display.
- * Handles: "tina chawner" -> "Tina Chawner", "mary-jane" -> "Mary-Jane", "o'brien" -> "O'Brien"
- */
 function toTitleCase(name: string): string {
   const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "")
   return name
@@ -117,12 +118,8 @@ function toTitleCase(name: string): string {
     .split(/\s+/)
     .map((word) => {
       if (!word) return ""
-      if (word.includes("-")) {
-        return word.split("-").map(cap).join("-")
-      }
-      if (word.includes("'")) {
-        return word.split("'").map(cap).join("'")
-      }
+      if (word.includes("-")) return word.split("-").map(cap).join("-")
+      if (word.includes("'")) return word.split("'").map(cap).join("'")
       return cap(word)
     })
     .filter(Boolean)
@@ -130,15 +127,15 @@ function toTitleCase(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Body text generators — single string per paragraph, auto-wrapped at render
+// Body text generators
 // ---------------------------------------------------------------------------
 
+function getTitle(type: TemplatePdfInput["certificateType"]): string {
+  return type === "carer" ? "Carer Certificate" : "Medical Certificate"
+}
+
 function getDatePhrase(input: TemplatePdfInput): string {
-  // Single day: "on 18 February 2026"
-  // Multi-day: "from 18 February 2026 to 20 February 2026 inclusive"
-  if (input.startDate === input.endDate) {
-    return `on ${input.startDate}`
-  }
+  if (input.startDate === input.endDate) return `on ${input.startDate}`
   return `from ${input.startDate} to ${input.endDate} inclusive`
 }
 
@@ -182,17 +179,14 @@ function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: numbe
 
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word
-    const testWidth = font.widthOfTextAtSize(testLine, fontSize)
-    if (testWidth > maxWidth && currentLine) {
+    if (font.widthOfTextAtSize(testLine, fontSize) > maxWidth && currentLine) {
       lines.push(currentLine)
       currentLine = word
     } else {
       currentLine = testLine
     }
   }
-  if (currentLine) {
-    lines.push(currentLine)
-  }
+  if (currentLine) lines.push(currentLine)
   return lines
 }
 
@@ -202,37 +196,27 @@ function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: numbe
 
 export async function renderTemplatePdf(input: TemplatePdfInput): Promise<TemplatePdfResult> {
   try {
-    // Validate patient name — strip control chars, zero-width chars, soft hyphens
+    // Sanitise patient name
     // eslint-disable-next-line no-control-regex -- Intentional: strip control chars from patient names for PDF safety
     const trimmedName = input.patientName?.replace(/[\x00-\x1F\x7F\u200B-\u200D\uFEFF\u00AD]/g, "").trim()
-    if (!trimmedName) {
-      return { success: false, error: "Patient name is required" }
-    }
-    if (trimmedName.length > 100) {
-      return { success: false, error: "Patient name exceeds maximum length (100 characters)" }
-    }
-    // Use the sanitised name for rendering
-    const sanitisedInput = { ...input, patientName: trimmedName }
+    if (!trimmedName) return { success: false, error: "Patient name is required" }
+    if (trimmedName.length > 100) return { success: false, error: "Patient name exceeds maximum length (100 characters)" }
 
-    // Runtime guard: only allow known template types (defence against path traversal)
     const ALLOWED_TYPES = new Set(["work", "study", "carer"])
-    if (!ALLOWED_TYPES.has(sanitisedInput.certificateType)) {
-      return { success: false, error: `Invalid certificate type: ${sanitisedInput.certificateType}` }
+    if (!ALLOWED_TYPES.has(input.certificateType)) {
+      return { success: false, error: `Invalid certificate type: ${input.certificateType}` }
     }
 
-    const templateFile = `${sanitisedInput.certificateType}_template.pdf`
+    const sanitisedInput = { ...input, patientName: trimmedName }
+    const templateFile = "template.pdf"
 
-    // Load template PDF — try filesystem first (local dev), then HTTP fetch (Vercel serverless).
-    // Vercel serverless functions don't have /public on the filesystem; files are served via CDN.
+    // Load template PDF — filesystem first (local dev), then HTTP (Vercel serverless)
     let templateBytes: Buffer
     try {
       const templatePath = path.join(process.cwd(), "public", "templates", templateFile)
-      if (!existsSync(templatePath)) {
-        throw new Error(`Template file not found on filesystem: ${templateFile}`)
-      }
+      if (!existsSync(templatePath)) throw new Error("Template not found on filesystem")
       templateBytes = await fs.readFile(templatePath)
     } catch {
-      // Filesystem not available (Vercel serverless) — fetch from public URL
       try {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL
           ? `https://${process.env.VERCEL_URL}`
@@ -240,9 +224,7 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
         const res = await fetch(`${baseUrl}/templates/${templateFile}`, {
           signal: AbortSignal.timeout(5000),
         })
-        if (!res.ok) {
-          return { success: false, error: `Template not found: ${templateFile} (HTTP ${res.status})` }
-        }
+        if (!res.ok) return { success: false, error: `Template not found: ${templateFile} (HTTP ${res.status})` }
         templateBytes = Buffer.from(await res.arrayBuffer())
       } catch (fetchErr) {
         log.error("Template load failed (both fs and fetch)", { templateFile, error: fetchErr instanceof Error ? fetchErr.message : String(fetchErr) })
@@ -254,48 +236,25 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     try {
       pdfDoc = await PDFDocument.load(templateBytes)
     } catch (loadError) {
-      log.error("Failed to parse template PDF — file may be corrupt", {
-        templateFile,
-        error: loadError instanceof Error ? loadError.message : String(loadError),
-      })
+      log.error("Failed to parse template PDF", { templateFile, error: loadError instanceof Error ? loadError.message : String(loadError) })
       return { success: false, error: `Template PDF is corrupt or invalid: ${templateFile}` }
     }
-    const page = pdfDoc.getPage(0)
 
-    // Embed fonts — Helvetica for a clean, modern sans-serif look
+    const page = pdfDoc.getPage(0)
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
     const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
 
-    const textColor = rgb(0.15, 0.15, 0.15) // soft black, less harsh than pure black
-    const lightGrey = rgb(0.55, 0.55, 0.55) // for certificate ref
+    const textColor = rgb(0.15, 0.15, 0.15)
+    const lightGrey = rgb(0.55, 0.55, 0.55)
 
-    // Helper: draw a single line of text
-    const drawLine = (
-      text: string,
-      x: number,
-      topY: number,
-      font: PDFFont,
-      size: number,
-      color = textColor,
-    ) => {
-      page.drawText(text, {
-        x,
-        y: ty(topY),
-        size,
-        font,
-        color,
-      })
+    const drawLine = (text: string, x: number, topY: number, font: PDFFont, size: number, color = textColor) => {
+      page.drawText(text, { x, y: ty(topY), size, font, color })
     }
 
-    // Helper: draw a wrapped paragraph, returns the Y position after the last line
     const drawWrappedParagraph = (
-      text: string,
-      x: number,
-      startTopY: number,
-      font: PDFFont,
-      size: number,
-      lineHeight: number,
-      maxWidth: number,
+      text: string, x: number, startTopY: number,
+      font: PDFFont, size: number, lineHeight: number, maxWidth: number,
       color = textColor,
     ): number => {
       const lines = wrapText(text, font, size, maxWidth)
@@ -307,78 +266,55 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       return currentY
     }
 
-    // ---- Issue date (right-aligned, below title area) ----
-    const dateWidth = fontRegular.widthOfTextAtSize(sanitisedInput.issueDate, LAYOUT.fontSize.issueDate)
-    drawLine(
-      sanitisedInput.issueDate,
-      PAGE_WIDTH - LAYOUT.rightMargin - dateWidth,
-      LAYOUT.issueDateY,
-      fontRegular,
-      LAYOUT.fontSize.issueDate,
-    )
+    // ---- Title (centered, bold) ----
+    const title = getTitle(sanitisedInput.certificateType)
+    const titleWidth = fontBold.widthOfTextAtSize(title, LAYOUT.fontSize.title)
+    drawLine(title, (PAGE_WIDTH - titleWidth) / 2, LAYOUT.titleY, fontBold, LAYOUT.fontSize.title)
 
-    // ---- Dynamic flowing body text ----
+    // ---- Issue date (right-aligned) ----
+    const dateWidth = fontRegular.widthOfTextAtSize(sanitisedInput.issueDate, LAYOUT.fontSize.issueDate)
+    drawLine(sanitisedInput.issueDate, PAGE_WIDTH - LAYOUT.rightMargin - dateWidth, LAYOUT.issueDateY, fontRegular, LAYOUT.fontSize.issueDate)
+
+    // ---- Body text (flowing) ----
     let currentY = LAYOUT.anchorY
 
-    // Salutation
-    drawLine(
-      "To whom it may concern,",
-      LAYOUT.bodyX,
-      currentY,
-      fontItalic,
-      LAYOUT.fontSize.salutation,
-    )
+    drawLine("To whom it may concern,", LAYOUT.bodyX, currentY, fontItalic, LAYOUT.fontSize.salutation)
     currentY += LAYOUT.lineHeight + LAYOUT.bodyGap
 
-    // Body paragraph (auto-wrapped)
     const bodyText = getBodyText(sanitisedInput)
-    currentY = drawWrappedParagraph(
-      bodyText,
-      LAYOUT.bodyX,
-      currentY,
-      fontRegular,
-      LAYOUT.fontSize.body,
-      LAYOUT.lineHeight,
-      LAYOUT.bodyWidth,
-    )
-
-    // Gap between body and return paragraph
+    currentY = drawWrappedParagraph(bodyText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
     currentY += LAYOUT.paragraphGap
 
-    // Guard: check body text hasn't overflowed into doctor block area
     if (currentY > LAYOUT.maxBodyY) {
-      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block. Please shorten the patient name or date range." }
+      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block." }
     }
 
-    // Return paragraph (auto-wrapped)
     const returnText = getReturnText(sanitisedInput)
-    const endY = drawWrappedParagraph(
-      returnText,
-      LAYOUT.bodyX,
-      currentY,
-      fontRegular,
-      LAYOUT.fontSize.body,
-      LAYOUT.lineHeight,
-      LAYOUT.bodyWidth,
-    )
+    const endY = drawWrappedParagraph(returnText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
 
-    // Guard: final overflow check after all text is drawn
     if (endY > LAYOUT.maxBodyY) {
-      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block. Please shorten the patient name or date range." }
+      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block." }
     }
 
-    // ---- Certificate ref (centered, light grey, small — between bottom divider and footer) ----
+    // ---- Certificate ID (centered, light grey, small) ----
     const certIdLabel = `CERTIFICATE ID: ${sanitisedInput.certificateRef}`
     const certIdWidth = fontRegular.widthOfTextAtSize(certIdLabel, LAYOUT.fontSize.certId)
-    const certIdX = (PAGE_WIDTH - certIdWidth) / 2
-    drawLine(
-      certIdLabel,
-      certIdX,
-      LAYOUT.certIdY,
-      fontRegular,
-      LAYOUT.fontSize.certId,
-      lightGrey,
-    )
+    drawLine(certIdLabel, (PAGE_WIDTH - certIdWidth) / 2, LAYOUT.certIdY, fontRegular, LAYOUT.fontSize.certId, lightGrey)
+
+    // ---- QR code (right of footer text) ----
+    const verifyUrl = `https://instantmed.com.au/verify/${sanitisedInput.certificateRef}`
+    const qrBuffer = await QRCode.toBuffer(verifyUrl, {
+      width: 120, // render at 2× for crispness, scale down in PDF
+      margin: 1,
+      color: { dark: "#262626", light: "#ffffff" },
+    })
+    const qrImage = await pdfDoc.embedPng(qrBuffer)
+    page.drawImage(qrImage, {
+      x: PAGE_WIDTH - LAYOUT.rightMargin - LAYOUT.qrSize,
+      y: ty(LAYOUT.qrY + LAYOUT.qrSize),
+      width: LAYOUT.qrSize,
+      height: LAYOUT.qrSize,
+    })
 
     // ---- Save ----
     const pdfBytes = await pdfDoc.save()
@@ -388,15 +324,10 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       certificateRef: sanitisedInput.certificateRef,
     })
 
-    return {
-      success: true,
-      buffer: Buffer.from(pdfBytes),
-    }
+    return { success: true, buffer: Buffer.from(pdfBytes) }
+
   } catch (error) {
     log.error("Template PDF render failed", {}, error instanceof Error ? error : undefined)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Template PDF rendering failed",
-    }
+    return { success: false, error: error instanceof Error ? error.message : "Template PDF rendering failed" }
   }
 }

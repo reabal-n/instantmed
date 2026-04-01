@@ -44,7 +44,7 @@ test.describe("Admin Template Studio", () => {
     test.skip(!isDbAvailable(), "SUPABASE_SERVICE_ROLE_KEY required")
 
     // Get initial template state
-    const initialTemplate = await getActiveTemplate("med_cert_work")
+    const initialTemplate = await getActiveTemplate("med_cert")
     const initialVersion = initialTemplate?.version || 0
 
     await page.goto("/admin/studio")
@@ -112,7 +112,7 @@ test.describe("Admin Template Studio", () => {
       await expect(page.getByText(/template saved/i)).toBeVisible({ timeout: 10000 })
 
       // Verify DB was updated - version should have incremented
-      const updatedTemplate = await getActiveTemplate("med_cert_work")
+      const updatedTemplate = await getActiveTemplate("med_cert")
       expect(updatedTemplate?.version).toBeGreaterThan(initialVersion)
     }
   })
@@ -124,7 +124,7 @@ test.describe("Admin Template Studio", () => {
     await waitForPageLoad(page)
 
     // Verify we have an active template in the DB first
-    const template = await getActiveTemplate("med_cert_work")
+    const template = await getActiveTemplate("med_cert")
     expect(template).toBeTruthy()
     expect(template?.version).toBeGreaterThanOrEqual(1)
 

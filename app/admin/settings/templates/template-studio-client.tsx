@@ -76,12 +76,11 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
     footer_disclaimer: initialData.clinicIdentity?.footer_disclaimer || "",
   })
 
-  // Template Config State (using work template as default)
-  const activeTemplate = initialData.activeTemplates.work
+  // Template Config State
+  const activeTemplate = initialData.activeTemplate
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(
     (activeTemplate?.config as TemplateConfig) || DEFAULT_TEMPLATE_CONFIG
   )
-  const [_selectedTemplateType, _setSelectedTemplateType] = useState("med_cert_work")
 
   // Preview Scenarios
   const [scenarios, setScenarios] = useState<Record<string, boolean>>({

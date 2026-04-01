@@ -14,6 +14,7 @@ import {
   Zap,
   BookOpen,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -132,7 +133,7 @@ export default async function ConditionPage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-gradient-to-b from-muted/50 to-white dark:from-background dark:to-background">
+      <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
         <ContentPageTracker pageType="condition" slug={slug} serviceRecommendation="med-cert" />
 
@@ -161,14 +162,12 @@ export default async function ConditionPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl">
               {/* Trust indicators */}
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                  <Shield className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">AHPRA Registered Doctors</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-light border border-success-border/20">
-                  <Clock className="w-4 h-4 text-success" />
-                  <span className="text-sm font-medium">Avg. {condition.stats.avgTime} response</span>
-                </div>
+                <Badge variant="default" shape="pill" size="lg" icon={<Shield className="w-4 h-4" />}>
+                  AHPRA Registered Doctors
+                </Badge>
+                <Badge variant="success" shape="pill" size="lg" icon={<Clock className="w-4 h-4" />}>
+                  Avg. {condition.stats.avgTime} response
+                </Badge>
               </div>
 
               {/* Main heading */}
@@ -668,7 +667,7 @@ export default async function ConditionPage({ params }: PageProps) {
           </section>
 
           {/* Final CTA Section */}
-          <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">
+          <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Ready to get help?

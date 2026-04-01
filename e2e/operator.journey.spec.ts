@@ -119,7 +119,7 @@ test.describe("Operator End-to-End Journey", () => {
     // ========================================================================
     await test.step("Update template config in /admin/studio", async () => {
       // Get initial template state
-      const initialTemplate = await getLatestActiveTemplateByType("med_cert_work")
+      const initialTemplate = await getLatestActiveTemplateByType("med_cert")
       expect(initialTemplate).toBeTruthy()
       const initialVersion = initialTemplate?.version || 0
 
@@ -180,7 +180,7 @@ test.describe("Operator End-to-End Journey", () => {
         await expect(page.getByText(/template saved/i)).toBeVisible({ timeout: 10000 })
 
         // Verify DB update - version should increment
-        const updatedTemplate = await getLatestActiveTemplateByType("med_cert_work")
+        const updatedTemplate = await getLatestActiveTemplateByType("med_cert")
         expect(updatedTemplate?.version).toBeGreaterThan(initialVersion)
         savedTemplate = updatedTemplate
       } else {

@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "price" | "warning" | "info"
+  variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "price" | "warning" | "info" | "pending" | "approved" | "declined" | "in_review"
   /** rounded-md (default) or rounded-full pill shape */
   shape?: "badge" | "pill"
   size?: "sm" | "default" | "lg"
@@ -14,6 +14,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<string, string> = {
+  // Semantic
   default: "bg-primary/10 text-primary border border-primary/20",
   secondary: "bg-muted text-muted-foreground border border-border",
   destructive: "bg-destructive-light text-destructive border border-destructive-border",
@@ -22,6 +23,11 @@ const variantStyles: Record<string, string> = {
   price: "bg-success/10 text-success border border-success/20 font-semibold",
   warning: "bg-warning-light text-warning border border-warning-border",
   info: "bg-info-light text-info border border-info-border",
+  // Portal intake/request status
+  pending: "bg-warning-light text-warning border border-warning-border",
+  approved: "bg-success-light text-success border border-success-border",
+  declined: "bg-destructive-light text-destructive border border-destructive-border",
+  in_review: "bg-info-light text-info border border-info-border",
 }
 
 const shapeStyles: Record<string, string> = {
@@ -76,6 +82,11 @@ const badgeVariants = {
   price: "price",
   warning: "warning",
   info: "info",
+  // Portal status
+  pending: "pending",
+  approved: "approved",
+  declined: "declined",
+  in_review: "in_review",
 }
 
 export { Badge, badgeVariants }

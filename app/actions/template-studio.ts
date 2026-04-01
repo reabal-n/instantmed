@@ -33,11 +33,7 @@ async function requireAdminAuth() {
 
 export interface TemplateStudioData {
   clinicIdentity: ClinicIdentity | null
-  activeTemplates: {
-    work: CertificateTemplate | null
-    uni: CertificateTemplate | null
-    carer: CertificateTemplate | null
-  }
+  activeTemplate: CertificateTemplate | null
 }
 
 export async function loadTemplateStudioData(): Promise<{
@@ -48,23 +44,14 @@ export async function loadTemplateStudioData(): Promise<{
   try {
     await requireAdminAuth()
 
-    const [clinicIdentity, workTemplate, uniTemplate, carerTemplate] = await Promise.all([
+    const [clinicIdentity, activeTemplate] = await Promise.all([
       getActiveClinicIdentity(),
-      getActiveTemplate("med_cert_work"),
-      getActiveTemplate("med_cert_uni"),
-      getActiveTemplate("med_cert_carer"),
+      getActiveTemplate("med_cert"),
     ])
 
     return {
       success: true,
-      data: {
-        clinicIdentity,
-        activeTemplates: {
-          work: workTemplate,
-          uni: uniTemplate,
-          carer: carerTemplate,
-        },
-      },
+      data: { clinicIdentity, activeTemplate },
     }
   } catch (error) {
     log.error("Failed to load template studio data", {}, error instanceof Error ? error : undefined)

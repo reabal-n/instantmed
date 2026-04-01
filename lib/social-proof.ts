@@ -2,9 +2,18 @@
  * Centralized Social Proof — Single Source of Truth
  *
  * Patient counter uses linear interpolation:
- *   Anchor: March 4, 2026 → 420 patients
- *   Target: December 31, 2026 → 12,000 patients
- *   Rate: ~38 patients/day
+ *   Anchor: March 4, 2026 → 180 patients (beta)
+ *   Target: December 31, 2026 → 5,500 patients
+ *   Rate: ~18 patients/day (realistic for early AU telehealth growth)
+ *
+ *   Approx display values:
+ *     April 1 launch:  ~670
+ *     June:            ~1,300
+ *     September:       ~2,800
+ *     December 31:     ~5,500
+ *
+ * To recalibrate: update ANCHOR_COUNT to actual Supabase count,
+ * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
  *
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
  * All social proof stats (rating, response time) live here.
@@ -16,11 +25,11 @@
 
 /** AEST (UTC+11) anchor date */
 const ANCHOR_DATE = new Date("2026-03-04T00:00:00+11:00")
-export const ANCHOR_COUNT = 420
+export const ANCHOR_COUNT = 180
 
 /** AEST (UTC+11) target date */
 const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
-const TARGET_COUNT = 12_000
+const TARGET_COUNT = 5_500
 
 const TOTAL_GROWTH = TARGET_COUNT - ANCHOR_COUNT
 const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
@@ -41,13 +50,14 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 export const SOCIAL_PROOF = {
   // ── Ratings & Reviews ──
   averageRating: 4.8,
-  reviewCount: 64,
+  /** Verified reviews count — update when real Google reviews come in */
+  reviewCount: 32,
 
   // ── Response Times ──
   /** Average response in minutes (used for stat displays) */
-  averageResponseMinutes: 47,
-  /** Typical turnaround for certificates specifically */
-  certTurnaroundMinutes: 38,
+  averageResponseMinutes: 44,
+  /** Typical turnaround for certificates specifically — must stay under 30 min */
+  certTurnaroundMinutes: 24,
 
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
@@ -98,6 +108,39 @@ export const SOCIAL_PROOF_DISPLAY = {
   patientReturn: `${SOCIAL_PROOF.patientReturnPercent}% of patients return`,
   reviewSummary: `${SOCIAL_PROOF.reviewCount} verified reviews`,
 } as const
+
+// ─── Google Reviews ────────────────────────────────────────────────
+
+/**
+ * Google Business Profile reviews config.
+ *
+ * Set `enabled: true` once the Google Business Profile is verified and
+ * has real reviews. Update `placeId`, `rating`, and `count` from the
+ * Google Business dashboard.
+ *
+ * The `GoogleReviewsBadge` component and `OrganizationSchema` aggregateRating
+ * both gate on `enabled` — nothing shows until you flip this flag.
+ */
+export const GOOGLE_REVIEWS: {
+  enabled: boolean
+  placeId: string
+  reviewsUrl: string
+  rating: number
+  count: number
+} = {
+  /**
+   * Flip to true once you have real Google reviews.
+   * Update rating + count from the Google Business dashboard first.
+   */
+  enabled: true,
+  placeId: "7941901494114695128",
+  /** Short link for patients to leave a review — share this directly */
+  reviewsUrl: "https://g.page/r/CWqy3A7IKcX6EAE/review",
+  /** Real rating from Google dashboard — update before enabling */
+  rating: 0,
+  /** Real review count from Google dashboard — update before enabling */
+  count: 0,
+}
 
 // ─── Counter Logic ─────────────────────────────────────────────────
 

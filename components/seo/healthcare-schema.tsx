@@ -1,6 +1,7 @@
 import Script from "next/script"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
+import { GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -89,6 +90,16 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       availableLanguage: ["English"]
     }],
     // sameAs omitted — no verified social profiles yet
+    // aggregateRating: only injected once Google reviews are live
+    ...(GOOGLE_REVIEWS.enabled && GOOGLE_REVIEWS.count > 0 ? {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: GOOGLE_REVIEWS.rating.toFixed(1),
+        reviewCount: GOOGLE_REVIEWS.count,
+        bestRating: "5",
+        worstRating: "1",
+      }
+    } : {}),
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "InstantMed Services",

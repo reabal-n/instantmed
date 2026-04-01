@@ -1,6 +1,8 @@
 # DESIGN_SYSTEM.md — InstantMed
 
-> **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
+> **Load every session.** Single source of truth for all visual and layout decisions. The design system is law.
+
+> **Motion & interactions:** Animations, easing curves, Framer Motion patterns, UI states, loading sequences, and dark mode interaction rules live in `INTERACTIONS.md`. Load both files for any UI/frontend work.
 
 > Brand essence: "Clarity emerging." Calm authority. Morning light. Good judgment. If it feels impressive but loud — kill it. If it resembles crypto/AI SaaS — kill it. If it feels like wellness marketing — kill it.
 
@@ -463,222 +465,204 @@ className="bg-white dark:bg-card border border-border
 
 ---
 
-## 11. Motion
+## 11. Brand Assets & Core Components
 
-**Two easing curves. Use the right one:**
-- `--ease-out` — entrances, page loads, elements appearing. Decelerates into rest.
-- `--ease-spring` — interactions, hover states, anything a user triggers. Has overshoot feel without bounce.
+### Logo System
 
-```css
---ease-out:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
---ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-```
+**Files:** All brand assets live in `/public/branding/`.
 
-### Durations
+| File | Use |
+|------|-----|
+| `logo-light.svg` | Icon mark — light mode |
+| `logo-dark.svg` | Icon mark — dark mode |
+| `wordmark.png` | Text lockup (dark mode: `dark:brightness-0 dark:invert`) |
+| `logo.png` | Static/meta contexts (OG image, manifest) |
+| `logo-192.png` | PWA icon |
+| `seal.svg` | Trust/certification contexts |
+| `favicon.ico` | Browser tab |
 
-| Duration | Use |
-|----------|-----|
-| 150ms | Colour transitions, border changes, icon colour |
-| 200ms | Button states, badge changes, icon scale |
-| 300ms | Card lifts, input focus, list entry, link underline |
-| 400ms | Page section entrance, modal open |
-| 500ms | Hero entrance — hard ceiling |
+**Always use `BrandLogo` from `@/components/shared/brand-logo` — never import logo files directly in UI.**
 
-No bounce. No elastic. No parallax on content. Patients don't need theatrics.
-
-**Scale limits:**
-- **Interactive (hover/press):** Icons max `1.1x`. Elements max `1.02x`. Press: `scale: 0.98`.
-- **Non-interactive (loaders, background blobs):** No hard limit — decorative only.
-
-### Framer Motion Patterns
+### BrandLogo Component
 
 ```tsx
-// Section entrance — ease-out, 12px rise
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-/>
+import { BrandLogo } from "@/components/shared/brand-logo"
 
-// Staggered children — spring, 40ms delay, 12px rise
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-/>
+// Default — sm size, links to /
+<BrandLogo />
 
-// Card hover — CSS spring (preferred over Framer for simple lifts)
-className="hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+// Sizes
+<BrandLogo size="sm" />   // 28px icon — navbar
+<BrandLogo size="md" />   // 32px icon — standard
+<BrandLogo size="lg" />   // 38px icon — hero/splash
 
-// Button press depth
-<motion.button
-  whileTap={{ scale: 0.98 }}
-  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-/>
+// Icon only (no wordmark)
+<BrandLogo iconOnly />
 
-// Icon spring on hover (inside a parent group)
-// Parent: className="group"
-// Icon:   className="transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
-
-// Stat counter (spring count-up on enter)
-<motion.span
-  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.85 }}
-  whileInView={{ opacity: 1, scale: 1 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-/>
+// Non-link usage
+<BrandLogo href={undefined} />
 ```
 
-### Portal Exception
+- Theme-aware: automatically switches `logo-light.svg` ↔ `logo-dark.svg` via `resolvedTheme`
+- Wordmark inverts on dark mode via `dark:brightness-0 dark:invert` — no separate dark wordmark file needed
+- Always links to `/` by default — pass `href={undefined}` to render as a `div`
 
-**Doctor portal (`app/doctor/`) and admin portal (`app/admin/`) get no decorative motion.**
-- No `whileHover`, no `whileTap`, no entrance animations on data rows
-- `transition-colors duration-150` only — for state changes (loading, active, error)
-- Lottie animations for empty states and feedback are still permitted
-- Reason: doctors use the portal under time pressure. Animation is friction, not delight.
-
-### Reduced Motion
-
-**Critical:** Always respect `prefers-reduced-motion`. Use `useReducedMotion()` hook.
-
-```tsx
-const prefersReducedMotion = useReducedMotion()
-
-// CORRECT: empty object disables animation
-initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-
-// WRONG on motion.div: false is not valid for initial prop
-initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}  // DO NOT USE
-
-// NOTE: AnimatePresence initial={false} IS valid — it means "don't animate on first mount"
-// Only motion.div/motion.section initial={false} is wrong
-```
-
-### Rules
-
-- `viewport={{ once: true }}` on every scroll-triggered animation. Always.
-- `whileHover` icon scale max `1.1x`. Element scale max `1.02x`.
-- Never rotate, never elastic, never parallax on content.
-- Spring (`[0.16, 1, 0.3, 1]`) for interactions. Ease-out (`[0.25, 0.46, 0.45, 0.94]`) for entrances.
+**Never** import logo SVGs directly into components. **Never** use `<img>` — always `next/image`.
 
 ---
 
-## 12. Premium Interactions
-
-Every interactive element should feel alive. These patterns apply to marketing pages and patient flows. **Not portals** (see Motion § Portal Exception).
-
-### Icon Spring
-
-Icons inside buttons, cards, and nav items scale on hover with a spring curve. Always requires a `group` parent.
+### SkyToggle (Dark Mode Toggle)
 
 ```tsx
-// Parent
-<div className="group ...">
-// Icon
-<Icon className="w-5 h-5 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" />
+import SkyToggle from "@/components/ui/sky-toggle"
+
+// Default size — use in navbar
+<SkyToggle />
+
+// Custom size (controls CSS --toggle-size)
+<SkyToggle size={24} />  // smaller
+<SkyToggle size={36} />  // larger
 ```
 
-Max scale: `1.1x`. Spring easing only. Never rotate.
-
-### Link Underline Slide
-
-Nav links, footer links, and inline text links animate an underline from left to right on hover. CSS-only, no JS.
-
-```css
-/* Apply to link elements */
-.link-underline {
-  position: relative;
-  text-decoration: none;
-}
-.link-underline::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: currentColor;
-  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.link-underline:hover::after {
-  width: 100%;
-}
-```
-
-Tailwind utility: add `link-slide` to `globals.css` as a component class.
-
-### Card Lift
-
-2px vertical lift with spring easing and shadow expansion. See §5 Elevation for full pattern.
-
-```
-hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-```
-
-### Button Press Depth
-
-Buttons physically depress on click. Shadow shrinks to reinforce the press.
-
-```tsx
-<motion.button
-  whileTap={{ scale: 0.98 }}
-  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-  className="... active:shadow-md active:shadow-primary/15"
-/>
-```
-
-### Input Focus Glow
-
-Inputs expand a soft blue ring on focus — immediate, not delayed.
-
-```tsx
-className="focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-           transition-shadow duration-150"
-```
-
-### Image Hover Scale
-
-Hero mockup images and card images scale subtly on hover. Never exceeds `1.03x`.
-
-```
-className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
-           group-hover:scale-[1.02] overflow-hidden rounded-2xl"
-```
-
-Apply `overflow-hidden rounded-2xl` on the **container**, not the image — to clip the scale.
-
-### Stat Counter Spring
-
-Numbers/counters in hero and stats sections spring-scale into view.
-
-```tsx
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.85 }}
-  whileInView={{ opacity: 1, scale: 1 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
-/>
-```
+- Animates sun → moon with clouds/stars CSS animation
+- Respects `prefers-reduced-motion` (transitions reduced to 0.01s, not disabled — the state change still renders)
+- Handles SSR hydration via `useSyncExternalStore` — renders a muted placeholder until mounted
+- **Only use in the navbar.** One instance per page.
 
 ---
 
-## 13. Lottie Animations
-
-Use `LottieAnimation` from `@/components/ui/lottie-animation` for empty states, success, error, and loading feedback.
-
-Available animations: `confetti`, `empty-state`, `error`, `loading-files`, `loading`, `notification`, `success`.
+### MeshGradientCanvas (Page Background)
 
 ```tsx
-<LottieAnimation name="empty-state" size={100} loop={false} />
+import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas"
+
+// Placed once in app/layout.tsx — renders globally
+<MeshGradientCanvas />
 ```
 
-Respects `useReducedMotion`. Lazy-loads `lottie-web`. Use `loop={false}` for one-time feedback (success, error), `loop={true}` for ongoing states (loading).
+- Fixed position, `z-index: -10`, `pointer-events: none` — fully inert
+- Automatically returns `null` on portal routes (`/patient`, `/doctor`, `/admin`) — no configuration needed
+- Disabled on mobile (< 768px) — decorative only, saves main thread
+- Respects `useReducedMotion()` — disables parallax and animation, keeps static blobs
+- Three light blobs (sky blue, soft peach, ivory) + three dark blobs (deep navy variants)
+- **Do not add additional instances.** One global render in `app/layout.tsx` only.
+- **Do not use on portal pages** — the component handles this automatically, but don't fight it.
 
 ---
 
-## 14. Layout
+### WordReveal (Scroll-Triggered Heading Animation)
+
+```tsx
+import { WordReveal } from "@/components/ui/morning/word-reveal"
+
+<WordReveal text="Get a medical certificate today" />
+
+// With highlight words
+<WordReveal
+  text="Doctor reviewed. Delivered fast."
+  highlightWords={["Doctor reviewed"]}
+  highlightClassName="text-primary"
+/>
+
+// Custom element and timing
+<WordReveal
+  text="Your health, handled."
+  as="h2"
+  staggerDelay={0.08}
+  wordDuration={0.5}
+/>
+```
+
+**Props:** `text` (string), `highlightWords` (string[], words to apply `highlightClassName`), `highlightClassName` (string), `as` (h1/h2/h3/p/span — default h1), `staggerDelay` (seconds between words, default 0.06), `wordDuration` (per-word animation duration, default 0.4).
+
+- Words animate from `opacity: 0, y: 20` to `opacity: 1, y: 0` using `useInView` (triggers once on scroll into view)
+- Use in hero headings and major section headlines — not in body copy or repeated lists
+
+---
+
+### PerspectiveTiltCard (Mouse-Tracked 3D Card)
+
+```tsx
+import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
+
+// Default — solid variant
+<PerspectiveTiltCard>
+  <YourCardContent />
+</PerspectiveTiltCard>
+
+// Variants
+<PerspectiveTiltCard variant="glass" />     // glass surface
+<PerspectiveTiltCard variant="solid" />     // bg-white / dark:bg-card
+<PerspectiveTiltCard variant="gradient" />  // morning gradient fill
+<PerspectiveTiltCard variant="outline" />   // border only
+
+// Tuning
+<PerspectiveTiltCard maxRotation={4} spotlightOpacity={0.1} />
+```
+
+**Props:** `children`, `className`, `maxRotation` (max tilt degrees, default 6), `spotlightOpacity` (radial highlight intensity, default 0.15), `variant` (glass/solid/gradient/outline).
+
+- Mouse-tracked via `useMotionValue` + `useSpring` (stiffness: 120, damping: 20) — smooth, not snappy
+- Spotlight overlay follows cursor as a radial gradient (white → transparent)
+- Use for feature cards, pricing cards, testimonial cards — not for interactive form elements
+- Respects `pointer: coarse` — tilt stays neutral on touch devices
+
+---
+
+### ClipPathImage (Scroll-Reveal Image)
+
+```tsx
+import { ClipPathImage } from "@/components/ui/morning/clip-path-image"
+
+// Default — reveals from bottom
+<ClipPathImage src="/images/doctor.jpg" alt="Doctor" width={600} height={400} />
+
+// Directional reveal
+<ClipPathImage src="/images/hero.jpg" alt="Hero" width={800} height={500} direction="left" />
+```
+
+**Props:** `src`, `alt`, `width`, `height`, `className`, `priority` (passed to `next/image`), `direction` (bottom/left/right/top — default bottom).
+
+- Animates `clip-path` from fully hidden → fully visible over 0.5s with a subtle 1.02 → 1 scale
+- Use for editorial images, hero photography, how-it-works illustrations — not UI screenshots or logos
+
+---
+
+### NavigationProgress (Route Transition Bar)
+
+```tsx
+import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
+
+// Place once in app/layout.tsx — renders globally
+<NavigationProgress />
+```
+
+- Fixed to the top of the viewport. Uses `bg-accent-teal` (teal accent color).
+- Only visible after the first navigation — doesn't flash on initial page load
+- Tracks `pathname` changes and `click` events to detect navigation start
+- Fades out via `AnimatePresence` after route completes
+- **One instance only.** Already placed in `app/layout.tsx` — do not add more.
+
+---
+
+### MorningSkyBackground (Full-Page Sky Gradient)
+
+```tsx
+import { MorningSkyBackground } from "@/components/ui/morning/morning-sky-background"
+
+// Alternative to MeshGradientCanvas — use on specific pages, not globally
+<MorningSkyBackground className="opacity-60" />
+```
+
+- Fixed, full viewport-height background with a higher-fidelity sky scene than `MeshGradientCanvas`
+- **Light mode:** warm morning gradient + 3 cloud shapes (60-90s drift) + warm dawn accent
+- **Dark mode:** deep navy gradient + scattered star specks + teal nebula wash
+- Use on splash/landing pages where you want a richer sky scene — not as a global layout background
+- Do not use alongside `MeshGradientCanvas` on the same page — they conflict visually
+
+---
+
+## 12. Layout
 
 ### Grids
 
@@ -708,7 +692,7 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 
 ---
 
-## 15. Trust Logos
+## 13. Trust Logos
 
 Three regulatory logos displayed on service and marketing pages:
 
@@ -723,7 +707,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 16. Voice & Copy Rules
+## 14. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|
@@ -734,7 +718,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 17. Do / Don't
+## 15. Do / Don't
 
 | Do | Don't |
 |----|-------|

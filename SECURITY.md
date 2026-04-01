@@ -58,6 +58,12 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **RPC:** `atomicApproveCertificate()` (migration `20260311014239`) writes both `patient_name` and `patient_name_enc` via `p_patient_name_enc` parameter. App layer uses `prepareCertificatePatientNameWrite()` before calling the RPC.
 
+### Pending: Medicare Plaintext Removal
+
+**Deadline: 2026-06-01.** Medicare number is currently stored in both `profiles.medicare_number` (plaintext) and `profiles.medicare_number_encrypted` (AES-256-GCM) for rollback safety. Once the encrypted column is confirmed fully populated and stable, the plaintext column must be dropped.
+
+Plan: `docs/plans/2026-06-01-medicare-plaintext-removal.md`. Tracked at `lib/data/profiles.ts:97` — `TODO(security)`.
+
 ### Dual-Write Pattern
 
 During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:
@@ -129,6 +135,16 @@ FOR SELECT USING (
 |--------|-----------|---------|--------|--------|
 | `attachments` | Private | Upload/view own | View all | Draft intakes only |
 | `documents` | Public (signed URLs, 7-day expiry) | Via signed URL | INSERT | No one (immutable) |
+
+### Public Asset Security — OPEN ISSUE
+
+**⚠️ `/public/branding/eSignature.jpg` is publicly accessible.** This file contains the treating doctor's personal handwritten signature. It is currently served as a static file at `https://instantmed.com.au/branding/eSignature.jpg` — no auth required, no rate limiting.
+
+**Required action:** Move to private Supabase Storage (`attachments` bucket or a dedicated `signatures` bucket with strict RLS). Reference it only from server-side PDF generation (`lib/pdf/`) via a signed URL fetched at render time. Remove from `/public/branding/` and redeploy.
+
+**Risk:** Signature forgery. Publicly accessible signatures can be extracted and applied to documents without authorisation.
+
+**Status:** Resolved 2026-04-01. `/public/branding/eSignature.jpg` deleted. The signature in generated PDFs is embedded in the static template files (`/public/templates/*.pdf`) — not dynamically injected. Doctor portal signature uploads use `signature_storage_path` in Supabase private Storage, not the public branding folder.
 
 ### Testing RLS
 

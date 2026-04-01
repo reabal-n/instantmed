@@ -41,11 +41,7 @@ const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
-// Template IDs for each template type
-const TEMPLATE_ID_WORK = "e2e00000-0000-0000-0000-000000000051"
-const TEMPLATE_ID_UNI = "e2e00000-0000-0000-0000-000000000052"
-const TEMPLATE_ID_CARER = "e2e00000-0000-0000-0000-000000000053"
-const ALL_TEMPLATE_IDS = [TEMPLATE_ID_WORK, TEMPLATE_ID_UNI, TEMPLATE_ID_CARER]
+const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 
 // ============================================================================
 // TEARDOWN FUNCTIONS (in reverse dependency order)
@@ -228,11 +224,10 @@ async function deleteService() {
 async function deleteCertificateTemplates() {
   console.log("🗑️  Deleting e2e certificate templates (if seeded)...")
   
-  // Delete all three E2E templates by their deterministic IDs
   const { error } = await supabase
     .from("certificate_templates")
     .delete()
-    .in("id", ALL_TEMPLATE_IDS)
+    .eq("id", TEMPLATE_ID)
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete certificate templates:", error.message)

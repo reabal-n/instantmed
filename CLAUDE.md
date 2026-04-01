@@ -22,11 +22,13 @@
 
 | File | Scope | When to load |
 |------|-------|-------------|
-| `DESIGN_SYSTEM.md` | Color, typography, spacing, components, bento grid, motion, glass, layout, voice | **Every session.** Always load before any UI/frontend/marketing work. The design system is law. |
-| `ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, components, design tokens | Building features, understanding flows |
+| `DESIGN_SYSTEM.md` | Color, typography, spacing, components, elevation, layout, voice | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
+| `INTERACTIONS.md` | Motion, animation, easing curves, Framer Motion patterns, UI states, loading sequences | **Load alongside DESIGN_SYSTEM.md** for any UI/frontend work. |
+| `ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, key patterns | Building features, understanding flows, navigating the codebase |
 | `CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
 | `SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |
-| `OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, production checklist | Ops tasks, debugging, deployments |
+| `OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, daily audit prompt | Ops tasks, debugging, deployments |
+| `TESTING.md` | Unit test conventions, E2E patterns, auth bypass, coverage rules, CI pipeline | Writing tests, debugging test failures |
 
 ---
 
@@ -281,7 +283,7 @@ Prevents Google Ads disapproval and AHPRA scrutiny.
 - **Curated testimonials**: 35+ realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
 - **Doctor model**: System supports multiple doctors but currently operates with one. Don't advertise team size beyond what's real
 - **E2E routes blocked in prod**: Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview
-- **Supabase migrations**: 150+. Use `supabase db push`. May need `supabase migration repair` for drift
+- **Supabase migrations**: 178. Use `supabase db push`. May need `supabase migration repair` for drift
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
 
@@ -312,12 +314,9 @@ You write and review production-grade code in:
 - **Vercel** (deployments, edge config, caching)
 - **Clerk** (auth, organisations, webhooks)
 - **Resend** + React Email (transactional email)
-- **Loops.so** (lifecycle email, SaaS onboarding sequences, user activation)
 - **Stripe** (subscriptions, webhooks, metered billing)
 - **Framer Motion** (production animation patterns, not toy demos)
 - **Zod** (schema validation — enforced on all API inputs and form data)
-- **Twilio** (SMS notifications, OTP fallback, order confirmations)
-- **Inngest** (background jobs, multi-step workflows, retry logic, delayed triggers)
 - **Sentry** (error tracking, performance monitoring, alerting)
 - **PostHog** (product analytics, session replay, feature flags, funnel analysis)
 - **Playwright** (E2E testing for critical user flows — auth, checkout, core features)

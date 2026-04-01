@@ -87,7 +87,7 @@ export interface TemplateConfig {
 // CERTIFICATE TEMPLATE
 // ============================================================================
 
-export type TemplateType = "med_cert_work" | "med_cert_uni" | "med_cert_carer"
+export type TemplateType = "med_cert"
 
 export interface CertificateTemplate {
   id: string

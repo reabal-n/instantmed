@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
 interface BrandLogoProps {
@@ -15,9 +14,9 @@ interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  sm: { iconSize: 28, textHeight: 18, textWidth: 108 },
-  md: { iconSize: 32, textHeight: 22, textWidth: 132 },
-  lg: { iconSize: 38, textHeight: 26, textWidth: 156 },
+  sm: { iconSize: 28, textHeight: 17, textWidth: 110 },
+  md: { iconSize: 32, textHeight: 20, textWidth: 130 },
+  lg: { iconSize: 38, textHeight: 24, textWidth: 155 },
 }
 
 export function BrandLogo({
@@ -27,18 +26,17 @@ export function BrandLogo({
   href = "/",
   onClick,
 }: BrandLogoProps) {
-  const { resolvedTheme } = useTheme()
   const { iconSize, textHeight, textWidth } = sizeConfig[size]
-  const logoSrc = resolvedTheme === "dark" ? "/branding/logo-dark.svg" : "/branding/logo-light.svg"
 
   const content = (
     <span className="flex items-center gap-2">
       <Image
-        src={logoSrc}
+        src="/branding/logo.svg"
         alt="InstantMed"
         width={iconSize}
         height={iconSize}
         className="rounded-lg object-contain transition-opacity duration-200 group-hover:opacity-80"
+        style={{ filter: "drop-shadow(0 0 8px rgba(37,99,235,0.35))" }}
         priority
         unoptimized
       />
@@ -49,8 +47,9 @@ export function BrandLogo({
           width={textWidth}
           height={textHeight}
           className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
+          style={{ filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
           priority
-          quality={65}
+          unoptimized
         />
       )}
     </span>

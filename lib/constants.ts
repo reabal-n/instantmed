@@ -30,7 +30,7 @@ export const CONTACT_PHONE = "0450 722 549"
 
 // Google Business Profile review link — SINGLE SOURCE OF TRUTH
 // Used in all email templates, dashboard, and post-delivery flows
-export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EBI/review"
+export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 
 // Service pricing (in AUD) — SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings

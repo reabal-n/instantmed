@@ -30,10 +30,5 @@ export { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
  * Get template type display name
  */
 export function getTemplateTypeName(type: TemplateType): string {
-  const names: Record<TemplateType, string> = {
-    med_cert_work: "Work Medical Certificate",
-    med_cert_uni: "University Medical Certificate",
-    med_cert_carer: "Carer's Certificate",
-  }
-  return names[type] || type
+  return "Medical Certificate"
 }

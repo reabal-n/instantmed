@@ -24,6 +24,8 @@ import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
 import { TotalPatientsCounter } from '@/components/marketing/total-patients-counter'
+import { RegulatoryPartners } from '@/components/marketing/media-mentions'
+import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 
 export const revalidate = 3600
 
@@ -136,6 +138,11 @@ export default async function HomePage() {
         {/* Trust badges - compact strip */}
         <TrustBadgeSlider />
 
+        {/* Google reviews badge — renders only when GOOGLE_REVIEWS.enabled = true */}
+        <div className="flex justify-center pb-2">
+          <GoogleReviewsBadge />
+        </div>
+
         {/* Core services - what we offer */}
         <ServicePicker />
 
@@ -195,6 +202,9 @@ export default async function HomePage() {
           subtitle="Everything you need to know about our service."
           groups={faqGroups}
         />
+
+        {/* Regulatory credibility strip */}
+        <RegulatoryPartners variant="strip" />
 
         {/* Social proof before final CTA */}
         <div className="mx-auto max-w-4xl px-4 pb-4 flex justify-center">

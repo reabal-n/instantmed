@@ -415,6 +415,14 @@ stripe prices list --limit 5       # Verify Stripe prices
 supabase db push --project-ref X   # Apply migrations
 ```
 
+## Compliance Documents
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| Google Ads Policy Audit | `docs/compliance/GOOGLE-ADS-AUDIT.md` | Ad policy checklist — certification requirements, code changes made, ongoing action items |
+
+---
+
 ## Useful Links
 
 ### Support Channels
@@ -523,3 +531,142 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 1. Vercel dashboard → Deployments → find last working deployment → Promote to Production
 2. This takes effect in < 60 seconds
 3. Investigate the broken deployment in a preview branch
+
+---
+
+## Daily Audit
+
+> Copy-paste this into Claude Code. Run daily. Takes ~15-20 min.
+
+---
+
+You are performing a comprehensive daily audit of the InstantMed codebase and production environment. This is a Next.js 15 / React 19 / Supabase / Clerk / Stripe telehealth platform preparing for whitelabel.
+
+**Instructions:** Load `CLAUDE.md` first. Run every check below. Use subagents in parallel where checks are independent. Auto-fix safe mechanical issues (dead imports, unused variables, lint violations, type errors). For anything that changes logic, behavior, or public APIs — report it but do NOT fix it. Commit safe fixes in grouped commits (one per category).
+
+---
+
+### 1. Type Safety & Build Health
+
+```
+pnpm typecheck
+pnpm lint
+pnpm build
+```
+
+- Fix type errors, lint violations, build failures.
+- Flag new `any` types, `@ts-ignore`, or `as unknown as` casts.
+- Check `lib/env.ts` — any new env vars missing validation?
+
+### 2. Dead Code & Redundancy
+
+- Unused exports: functions, components, types, constants with zero import references.
+- Duplicate logic: inline format functions, repeated Supabase queries, copy-pasted validation.
+- Files >500 lines that should be split.
+- Stale `revalidatePath()` calls pointing to non-existent routes.
+- Orphaned test files whose source was deleted.
+
+### 3. Security & Compliance
+
+- Every `app/api/` route has auth (`requireApiRole`, `requireApiAuth`, or `getApiAuth`).
+- Every `app/actions/` server action has auth (`requireRoleOrNull` or equivalent).
+- No `console.log`/`console.error` — use `createLogger` from `@/lib/observability/logger`.
+- No hardcoded secrets or API keys in source.
+- No PHI fields returned to client components without encryption/masking.
+- Rate limiting applied to all public-facing API routes.
+- New `createServiceRoleClient()` usages bypass RLS — are they justified?
+
+### 4. Clinical Logic
+
+- Load `CLINICAL.md`.
+- `lib/clinical/intake-validation.ts` still hard-blocks Schedule 8 substances.
+- AI prompts in `lib/ai/` — temperature settings correct per CLAUDE.md AI Configuration table?
+- Consent flows intact (safety consent merged into review step, not standalone).
+
+### 5. Database & Data Layer
+
+- N+1 query patterns in `lib/data/` files.
+- `.single()` where `.maybeSingle()` should be used (throws on missing rows).
+- Unhandled Supabase errors (queries without error checking).
+- All date operations use `Australia/Sydney` timezone.
+- New migrations since last audit — flag for review.
+
+### 6. Payment & Billing
+
+- Stripe price IDs in `lib/stripe/price-mapping.ts` match CLAUDE.md pricing table.
+- Webhook handlers have proper signature verification.
+- Refund flow integrity — no partial refund edge cases.
+
+### 7. Email & Notifications
+
+- Resend email templates in `lib/email/` compile without errors.
+- No emails contain PHI in subject lines.
+- No fire-and-forget email sends without error handling.
+
+### 8. Frontend Quality
+
+- Load `DESIGN_SYSTEM.md` and `INTERACTIONS.md`.
+- Design system violations: wrong card surfaces, prohibited colors, wrong fonts, glass on content.
+- Dark mode works on new/changed components (`dark:` variants present).
+- `useReducedMotion()` respected in all Framer Motion animations.
+- Missing loading states (pages without `loading.tsx` or skeleton components).
+- All forms use react-hook-form + Zod.
+
+### 9. Test Coverage
+
+```
+pnpm test
+```
+
+- Fix failing tests.
+- Flag critical paths (auth, payments, cert generation, clinical validation) below 40% coverage.
+- Run `pnpm e2e:chromium` if `PLAYWRIGHT=1` available — report failures.
+
+### 10. Production Health
+
+Using Vercel MCP, PostHog MCP, and Sentry MCP:
+
+- **Vercel:** Runtime logs last 24h — filter error/warning, categorize.
+- **PostHog:** Error tracking issues last 24h. Key funnel anomalies (intake → checkout → approval).
+- **Sentry:** Unresolved issues by frequency. Flag new issues since last audit.
+- **Cron jobs:** health-check, retry-auto-approval, SLA monitoring — check for errors.
+
+### 11. Whitelabel Readiness
+
+- Hardcoded "InstantMed" references outside `lib/constants.ts` and `CLAUDE.md`.
+- Hardcoded ABN, addresses, phone numbers, emails outside constants.
+- Doctor-specific names or details on marketing pages.
+
+---
+
+### Output Format
+
+```
+# Daily Audit Report — [DATE]
+
+## Fixed (auto-applied)
+- [ ] Category: what was fixed (files changed)
+
+## Needs Attention
+### Critical (blocks launch or breaks prod)
+- Finding, file, line, severity, recommendation
+
+### Important (fix this week)
+- Finding, file, line, severity, recommendation
+
+### Minor (tech debt)
+- Finding, file, line, severity, recommendation
+
+## Production Health
+- Vercel: X errors in last 24h
+- PostHog: funnel status, anomalies
+- Sentry: X unresolved issues (top 3)
+- Cron: status of each job
+
+## Stats
+- Type errors: X → Y
+- Lint violations: X → Y
+- Test results: X passed, Y failed
+- Coverage: X%
+- Dead code removed: X lines
+```
