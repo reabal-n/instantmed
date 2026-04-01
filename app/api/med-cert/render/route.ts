@@ -3,7 +3,7 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render-route")
 import type { MedCertDraft } from "@/types/db"
@@ -98,7 +98,6 @@ export async function POST(request: NextRequest) {
       consultationDate: formatDateLong(today),
       startDate: formatDateLong(draftData.date_from),
       endDate: formatDateLong(draftData.date_to),
-      returnDate: formatDateLong(addDays(draftData.date_to, 1)),
       certificateRef,
       issueDate: formatShortDate(today),
     })

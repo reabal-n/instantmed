@@ -127,7 +127,7 @@ export function CertificatePreview({
               <h1
                 style={{
                   fontSize: styles.fontSize.heading,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   marginBottom: 2,
                 }}
               >
@@ -185,7 +185,7 @@ export function CertificatePreview({
           className="text-center mb-6"
           style={{
             fontSize: styles.fontSize.heading + 4,
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: 1,
           }}

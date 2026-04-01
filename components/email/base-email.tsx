@@ -442,7 +442,7 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
                   backgroundColor: c.color,
                   color: "#ffffff",
                   fontSize: "12px",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   lineHeight: "22px",
                   textAlign: "center" as const,
                 }}

@@ -55,7 +55,7 @@ export function CommonConcernsSection() {
               transition={{ duration: 0.3, delay: animate ? i * 0.05 : 0 }}
               className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none"
             >
-              <p className="text-sm font-bold text-foreground">{concern.title}</p>
+              <p className="text-sm font-semibold text-foreground">{concern.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">{concern.examples}</p>
             </motion.div>
           ))}

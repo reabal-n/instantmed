@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +17,11 @@ import {
   Mail,
   MapPin,
   Eye,
+  BookOpen,
+  Scale,
+  BadgeCheck,
+  ClipboardCheck,
+  AlertTriangle,
 } from "lucide-react"
 import { SampleCertificate } from "@/components/marketing/sample-certificate"
 import { CONTACT_EMAIL } from "@/lib/constants"
@@ -44,34 +50,73 @@ export default function EmployersPage() {
 
   const faqs = [
     {
-      question: "Are InstantMed certificates legally valid?",
+      question: "Are online medical certificates legally valid?",
       answer:
-        "Yes. InstantMed certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates issued by any other registered medical practitioner in Australia.",
+        "Yes. Certificates issued by AHPRA-registered doctors via telehealth carry the same legal weight as those from in-person GP visits. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method.",
     },
     {
-      question: "How do I verify a certificate?",
+      question: "Can I reject an online medical certificate?",
       answer:
-        "Enter the unique verification code (found on the certificate) into our verification portal at instantmed.com.au/verify. The system will confirm if the certificate is genuine and display the relevant details.",
+        "Under the Fair Work Act, employers must accept 'reasonable evidence' of illness. A certificate from an AHPRA-registered doctor meets this standard. Rejecting a valid certificate could constitute a breach.",
     },
     {
-      question: "What if the verification fails?",
+      question: "How do I verify an InstantMed certificate?",
       answer:
-        "A failed verification may indicate an incorrectly entered code, a certificate issued before our verification system was implemented, or a document not issued by InstantMed. Contact us if you need assistance.",
+        "Enter the unique verification code at instantmed.com.au/verify. This confirms the certificate was genuinely issued by our practice, the dates match, and the doctor is AHPRA-registered.",
     },
     {
-      question: "Can I contact InstantMed to verify directly?",
+      question: "What information is on the certificate?",
       answer:
-        `Yes. For additional verification or if you have concerns, you can email ${CONTACT_EMAIL} with the certificate details. We respond within one business day.`,
+        "Doctor's full name, AHPRA registration number, date of consultation, patient's name and DOB, period of unfitness, unique verification ID, doctor's signature, and practice details.",
     },
     {
-      question: "Who issues the certificates?",
+      question: "Can I ask the employee what they were sick with?",
       answer:
-        "All certificates are reviewed and issued by AHPRA-registered Australian doctors. You can verify any doctor's registration on the AHPRA public register.",
+        "Generally, no. Under Australian privacy law, employees are not required to disclose their specific diagnosis. The certificate confirms unfitness for work — that's the extent of what employers are entitled to know.",
+    },
+    {
+      question: "What if I suspect a certificate is fraudulent?",
+      answer:
+        `Use our verification portal. If the certificate ID doesn't verify, contact us at ${CONTACT_EMAIL}. We take fraudulent use seriously and cooperate with workplace investigations.`,
+    },
+    {
+      question: "Do your certificates meet Fair Work requirements?",
+      answer:
+        "Yes. They contain all elements required under the Fair Work Act: registered practitioner details, dates of unfitness, practitioner signature, and AHPRA registration number.",
+    },
+    {
+      question: "Can employees get backdated certificates?",
+      answer:
+        "Certificates can cover absences up to 48 hours prior if clinically appropriate. The doctor makes this determination based on the patient's reported symptoms.",
+    },
+    {
+      question: "How quickly can employees get a certificate?",
+      answer:
+        "Most certificates are issued in under 30 minutes, available 24/7. This means employees can produce a certificate whenever they need one.",
+    },
+    {
+      question: "Can we set up a corporate account?",
+      answer:
+        `Contact us at ${CONTACT_EMAIL} to discuss volume arrangements for your organisation.`,
     },
   ]
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
       <Navbar variant="marketing" />
 
       <main className="flex-1">
@@ -287,8 +332,150 @@ export default function EmployersPage() {
           </div>
         </section>
 
-        {/* FAQs */}
+        {/* Employer's Guide */}
         <section className="py-16">
+          <div className="max-w-3xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
+                <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+                Employer Guide
+              </Badge>
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+                An employer&apos;s guide to telehealth medical certificates
+              </h2>
+            </div>
+
+            <div className="space-y-8">
+              {/* 1. Legal standing */}
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Scale className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">The legal standing of telehealth certificates</h3>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal weight to those from in-person consultations.
+                  </p>
+                  <p>
+                    The Fair Work Act requires &quot;a medical certificate or statutory declaration&quot; as evidence of illness — it does not specify the mode of consultation. Multiple Fair Work Commission decisions have upheld telehealth certificates as valid evidence, and no distinction is drawn between certificates issued following a face-to-face appointment versus a telehealth assessment.
+                  </p>
+                  <p>
+                    For employers, this means a medical certificate from InstantMed carries the same obligations and protections as one from any other registered medical practice in Australia.
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. What to look for */}
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <ClipboardCheck className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">What to look for on a certificate</h3>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    A valid Australian medical certificate should include: the practitioner&apos;s full name, their AHPRA registration number (verifiable at{" "}
+                    <a href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      ahpra.gov.au
+                    </a>
+                    ), the date of the clinical assessment, the patient&apos;s name and date of birth, the specific dates the patient is certified unfit for duties, and the practitioner&apos;s signature. Digital signatures are accepted under Australian law.
+                  </p>
+                  <p>
+                    InstantMed certificates also include a unique verification ID and QR code for instant verification. This provides an additional layer of authenticity that traditional paper certificates from most GP clinics do not offer. You can verify any certificate at{" "}
+                    <Link href="/verify" className="text-primary hover:underline">
+                      instantmed.com.au/verify
+                    </Link>.
+                  </p>
+                </div>
+              </div>
+
+              {/* 3. Fair Work obligations */}
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <BadgeCheck className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Your obligations under the Fair Work Act</h3>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently — you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
+                  </p>
+                  <p>
+                    You must accept certificates from any registered medical practitioner, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis — the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
+                  </p>
+                </div>
+              </div>
+
+              {/* 4. Managing patterns */}
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Managing sick leave patterns</h3>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    If you are concerned about frequent absences, the appropriate response is a formal performance management process — not challenging individual certificates. Employers can request a medical assessment through an independent medical examiner for ongoing fitness-for-duty concerns, but this is a separate process from standard sick leave and should be handled with legal advice.
+                  </p>
+                  <p>
+                    The Fair Work Ombudsman provides{" "}
+                    <a href="https://www.fairwork.gov.au/leave/sick-and-carers-leave" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      detailed guidance
+                    </a>{" "}
+                    on managing excessive absenteeism within the bounds of the law.
+                  </p>
+                </div>
+              </div>
+
+              {/* 5. Verification */}
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Verification and fraud prevention</h3>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    InstantMed provides instant certificate verification at{" "}
+                    <Link href="/verify" className="text-primary hover:underline">
+                      instantmed.com.au/verify
+                    </Link>
+                    . Enter the unique certificate ID to confirm authenticity. This is more robust than paper certificates from traditional clinics, which typically have no verification mechanism beyond calling the practice directly.
+                  </p>
+                  <p>
+                    If you encounter a certificate that does not verify, contact us at{" "}
+                    <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+                      {CONTACT_EMAIL}
+                    </a>
+                    . We investigate all reports and take fraudulent use seriously.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* AHPRA badge + clinical governance */}
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-success" />
+                <span>All doctors AHPRA-registered</span>
+              </div>
+              <span className="hidden sm:inline">·</span>
+              <Link href="/clinical-governance" className="flex items-center gap-1.5 text-primary hover:underline">
+                <FileText className="w-3.5 h-3.5" />
+                View our clinical governance framework
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQs */}
+        <section className="py-16 bg-muted/30">
           <div className="max-w-3xl mx-auto px-4">
               <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 <HelpCircle className="w-6 h-6 inline mr-2" />
@@ -302,11 +489,11 @@ export default function EmployersPage() {
                   </div>
                 ))}
               </div>
-            </div>
+          </div>
         </section>
 
         {/* Contact CTA */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-16">
           <div className="max-w-xl mx-auto px-4 text-center">
               <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Need further assistance?

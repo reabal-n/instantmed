@@ -108,10 +108,10 @@ export async function revokeAIApproval(
     }
 
     // 7. Sentry alert for monitoring
-    Sentry.captureMessage("AI-approved certificate revoked by doctor", {
+    Sentry.captureMessage("Auto-reviewed certificate revoked by doctor", {
       level: "warning",
       tags: {
-        subsystem: "auto-approval",
+        subsystem: "cert-pipeline",
         intake_id: intakeId,
         doctor_id: user.profile.id,
       },

@@ -187,7 +187,15 @@ export function SuccessClient({
       serviceName: serviceName || "Request",
       email: patientEmail,
     })
-  }, [intakeId, serviceName, amountCents, patientEmail])
+
+    // PostHog purchase event — completes the funnel: step_viewed → step_completed → purchase_completed
+    posthog?.capture('purchase_completed', {
+      intake_id: intakeId,
+      service: serviceName || "unknown",
+      value: valueDollars,
+      currency: 'AUD',
+    })
+  }, [intakeId, serviceName, amountCents, patientEmail, posthog])
 
   // Show loading state while verifying payment
   if (isVerifying) {

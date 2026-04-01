@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,20 @@ import { Badge } from "@/components/ui/badge"
 import { getMedicationBySlug, CATEGORY_LABELS } from "@/lib/data/medications"
 import { ArrowRight, Pill, AlertTriangle, CheckCircle, Clock, Shield } from "lucide-react"
 import type { Metadata } from "next"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+import { HelpCircle } from "lucide-react"
+
+// Generic prescription-service FAQs shown on all medication pages
+const PRESCRIPTION_FAQS = [
+  { q: "How does eScript work?", a: "After your doctor approves the prescription, you receive an eScript token via SMS. Take your phone to any Australian pharmacy and they'll scan it directly — no paper needed." },
+  { q: "Do PBS subsidies still apply?", a: "Yes. If your medication is listed on the PBS, you'll pay the subsidised price at the pharmacy as usual. Our consultation fee is separate from your medication cost." },
+  { q: "Can you prescribe Schedule 8 medications?", a: "No. We cannot prescribe Schedule 8 (S8) controlled substances such as opioids, benzodiazepines, or stimulants. These require an in-person consultation with your regular GP." },
+  { q: "How long does a prescription review take?", a: "Most prescription requests are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days). You'll receive an email when your request has been reviewed." },
+  { q: "Do I need a previous prescription?", a: "For repeat prescriptions, yes — this service is for medications you've already been prescribed. If you need a new medication, our general consult service is more appropriate." },
+  { q: "What if the doctor declines my request?", a: "If a doctor determines the medication isn't appropriate, you'll receive a full refund. The doctor may suggest an alternative or recommend seeing your regular GP." },
+]
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -16,15 +31,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: "Medication Not Found" }
   }
 
+  const baseUrl = "https://instantmed.com.au"
+
   return {
-    title: `${med.name} Prescription Online Australia | ${med.brandNames[0]} | InstantMed`,
-    description: `Request ${med.name} (${med.brandNames[0]}) prescription online. ${med.simpleDescription} Reviewed by Australian doctors. From $${med.price}.`,
+    title: `${med.name} (${med.brandNames[0]}) | Online Consultation Australia`,
+    description: `Learn about ${med.name} (${med.brandNames[0]}). ${med.simpleDescription} Consult an AHPRA-registered Australian doctor online. From $${med.price}.`,
     keywords: [
-      `${med.name.toLowerCase()} online`,
-      `${med.name.toLowerCase()} prescription australia`,
-      `${med.brandNames[0].toLowerCase()} online`,
-      `buy ${med.name.toLowerCase()} australia`,
+      `${med.name.toLowerCase()} online consultation`,
+      `${med.name.toLowerCase()} australia`,
+      `${med.brandNames[0].toLowerCase()} doctor`,
+      `${med.name.toLowerCase()} telehealth`,
     ],
+    alternates: {
+      canonical: `${baseUrl}/prescriptions/med/${slug}`,
+    },
+    openGraph: {
+      title: `${med.name} (${med.brandNames[0]}) | InstantMed`,
+      description: `Consult an Australian doctor about ${med.name}. ${med.simpleDescription}`,
+      url: `${baseUrl}/prescriptions/med/${slug}`,
+    },
   }
 }
 
@@ -36,7 +61,45 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
+  const baseUrl = "https://instantmed.com.au"
+
+  const medPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    name: `${med.name} — Online Doctor Consultation`,
+    description: med.simpleDescription,
+    url: `${baseUrl}/prescriptions/med/${slug}`,
+    lastReviewed: "2026-03-31",
+    medicalAudience: {
+      "@type": "MedicalAudience",
+      audienceType: "Patient",
+    },
+    publisher: {
+      "@type": "MedicalOrganization",
+      "@id": `${baseUrl}/#organization`,
+    },
+    inLanguage: "en-AU",
+  }
+
   return (
+    <>
+      <FAQSchema faqs={[
+        ...(med.faqs || []).map(f => ({ question: f.q, answer: f.a })),
+        ...PRESCRIPTION_FAQS.map(f => ({ question: f.q, answer: f.a })),
+      ]} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: baseUrl },
+          { name: "Prescriptions", url: `${baseUrl}/prescriptions` },
+          { name: med.name, url: `${baseUrl}/prescriptions/med/${slug}` },
+        ]}
+      />
+      <Script
+        id={`med-page-schema-${slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(medPageSchema) }}
+      />
+
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
@@ -82,12 +145,12 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                   </div>
                   <Button asChild className="w-full h-12 text-base" size="lg">
                     <Link href={`/request?service=prescription&medication=${med.slug}`}>
-                      Request {med.name}
+                      Start a consultation
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-3">
-                    Only charged if a doctor approves your request
+                    A doctor will assess if this medication is appropriate for you
                   </p>
                 </div>
               </div>
@@ -183,21 +246,58 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
         {/* Bottom CTA */}
         <section className="px-4 py-12 bg-muted/30">
           <div className="mx-auto max-w-xl text-center">
-            <h2 className="text-2xl font-semibold mb-4">Ready to request {med.name}?</h2>
+            <h2 className="text-2xl font-semibold mb-4">Interested in {med.name}?</h2>
             <p className="text-muted-foreground mb-6">
-              Fill out a quick questionnaire. A doctor reviews within hours. E-script sent straight to your phone.
+              A doctor will assess whether this medication is right for you. Fill out a short questionnaire, and an AHPRA-registered GP reviews your request.
             </p>
             <Button asChild size="lg" className="h-12 px-8">
               <Link href={`/request?service=prescription&medication=${med.slug}`}>
-                Get started
+                Start a consultation
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
         </section>
+
+        {/* FAQs */}
+        <section className="px-4 py-12">
+          <div className="mx-auto max-w-2xl">
+            <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
+            <div className="space-y-4">
+              {med.faqs && med.faqs.length > 0 && (
+                <>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">About {med.name}</h3>
+                  {med.faqs.map((faq, i) => (
+                    <div key={`med-${i}`} className="p-5 rounded-xl border bg-card">
+                      <h4 className="font-semibold text-sm mb-2 flex items-start gap-2">
+                        <HelpCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        {faq.q}
+                      </h4>
+                      <p className="text-sm text-muted-foreground pl-6">{faq.a}</p>
+                    </div>
+                  ))}
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pt-4">About the service</h3>
+                </>
+              )}
+              {PRESCRIPTION_FAQS.map((faq, i) => (
+                <div key={`svc-${i}`} className="p-5 rounded-xl border bg-card">
+                  <h4 className="font-semibold text-sm mb-2 flex items-start gap-2">
+                    <HelpCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    {faq.q}
+                  </h4>
+                  <p className="text-sm text-muted-foreground pl-6">{faq.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Medical Disclaimer */}
+        <MedicalDisclaimer reviewedDate="2026-03" />
       </main>
 
       <MarketingFooter />
     </div>
+    </>
   )
 }

@@ -221,9 +221,13 @@ export async function createCheckoutFromUnifiedFlow(
       subtype: finalSubtype,
       type: serviceType,
       answers: transformedAnswers,
+      // Idempotency key prevents duplicate intakes from double-clicks/retries.
+      // Uses a 10-minute time bucket so:
+      //   - Rapid double-clicks (same bucket) → deduplicated ✓
+      //   - Legitimate repeat requests (different bucket) → new intake ✓
       idempotencyKey: crypto
         .createHash("sha256")
-        .update(`${authResult.profile.id}:${serviceType}:${finalSubtype}:${JSON.stringify(transformedAnswers)}`)
+        .update(`${authResult.profile.id}:${serviceType}:${finalSubtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(transformedAnswers)}`)
         .digest("hex")
         .slice(0, 32),
       chatSessionId, // Pass chat session ID for transcript linking

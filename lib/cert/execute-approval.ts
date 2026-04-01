@@ -23,7 +23,7 @@ import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
-import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 // ============================================================================
 // TYPES
@@ -237,7 +237,6 @@ export async function executeCertApproval(
     consultationDate: formatDateLong(generatedAt.split("T")[0]!),
     startDate: formatDateLong(reviewData.startDate),
     endDate: formatDateLong(reviewData.endDate),
-    returnDate: formatDateLong(addDays(reviewData.endDate, 1)),
     certificateRef,
     issueDate: formatShortDate(generatedAt.split("T")[0]!),
   })
@@ -408,7 +407,7 @@ export async function executeCertApproval(
   try {
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from("documents")
-      .createSignedUrl(storagePath, 7 * 24 * 60 * 60)
+      .createSignedUrl(storagePath, 3 * 24 * 60 * 60) // 72 hours
     if (signedUrlError || !signedUrlData?.signedUrl) {
       logger.warn("Failed to generate signed download URL", { intakeId, storagePath, error: signedUrlError?.message })
     } else {
@@ -461,7 +460,7 @@ export async function executeCertApproval(
     }
   }
 
-  logger.info("Certificate issuance complete", { intakeId, certificateId, emailSent: emailResult.success, aiApproved })
+  logger.info("Certificate issuance complete", { intakeId, certificateId, emailSent: emailResult.success, approvalMethod: aiApproved ? "ai_assisted" : "manual" })
 
   // 9. In-app notification
   await createNotification({
@@ -478,12 +477,12 @@ export async function executeCertApproval(
     const posthog = getPostHogClient()
     posthog.capture({
       distinctId: patient.id,
-      event: aiApproved ? 'ai_auto_approved' : 'doctor_approved',
+      event: 'certificate_approved',
       properties: {
         intake_id: intakeId,
         certificate_type: certificateType,
         doctor_id: doctorProfile.id,
-        ai_approved: aiApproved,
+        approval_method: aiApproved ? 'ai_assisted' : 'manual',
       },
     })
   } catch { /* non-blocking */ }
@@ -501,7 +500,7 @@ export async function executeCertApproval(
     serviceSlug: service.slug,
     serviceType: 'med_certs',
     userId: phDistinctId,
-    metadata: { certificate_type: certificateType, doctor_id: doctorProfile.id, ai_approved: aiApproved },
+    metadata: { certificate_type: certificateType, doctor_id: doctorProfile.id, approval_method: aiApproved ? 'ai_assisted' : 'manual' },
   })
   if (emailResult.success) {
     trackIntakeFunnelStep({

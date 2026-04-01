@@ -6,6 +6,8 @@ import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/time-of-day
 
 interface AvailabilityIndicatorProps {
   variant?: "inline" | "badge" | "detailed"
+  /** Service type — med certs are always shown as active (24/7) */
+  service?: string
   className?: string
 }
 
@@ -13,22 +15,23 @@ interface AvailabilityIndicatorProps {
  * Time-of-day aware availability indicator
  * Shows whether doctors are currently reviewing requests
  */
-export function AvailabilityIndicator({ 
+export function AvailabilityIndicator({
   variant = "inline",
-  className 
+  service,
+  className
 }: AvailabilityIndicatorProps) {
-  const [availability, setAvailability] = useState(() => getAvailabilityMessage())
-  const [isActive, setIsActive] = useState(() => isWithinBusinessHours())
+  const [availability, setAvailability] = useState(() => getAvailabilityMessage(service))
+  const [isActive, setIsActive] = useState(() => service === "med-cert" || isWithinBusinessHours())
 
   // Update every minute to keep status current
   useEffect(() => {
     const interval = setInterval(() => {
-      setAvailability(getAvailabilityMessage())
-      setIsActive(isWithinBusinessHours())
+      setAvailability(getAvailabilityMessage(service))
+      setIsActive(service === "med-cert" || isWithinBusinessHours())
     }, 60000)
-    
+
     return () => clearInterval(interval)
-  }, [])
+  }, [service])
 
   if (variant === "badge") {
     return (

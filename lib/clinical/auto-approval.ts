@@ -4,9 +4,49 @@
  * Deterministic evaluation of whether a med cert intake is safe for auto-approval.
  * Uses existing triage rules + additional safety keyword checks.
  * Returns eligible=true ONLY when ALL checks pass.
+ *
+ * IMPORTANT: Increment ELIGIBILITY_ENGINE_VERSION when modifying check logic,
+ * keyword lists, or thresholds. This version is recorded in the audit trail
+ * so compliance reviews can identify which clinical criteria were applied.
  */
 
 import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-engine"
+
+/**
+ * Eligibility engine version — increment on ANY change to:
+ * - Check logic (adding/removing/modifying checks)
+ * - Keyword lists (MENTAL_HEALTH_KEYWORDS, INJURY_KEYWORDS, etc.)
+ * - Thresholds (backdating window, duration limits, cooldown periods)
+ * - Soft-block / hard-block classification
+ *
+ * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
+ */
+export const ELIGIBILITY_ENGINE_VERSION = "2.0"
+
+/**
+ * Human-readable manifest of all checks the engine applies.
+ * Recorded in audit logs for medicolegal compliance.
+ */
+export const ELIGIBILITY_CHECK_MANIFEST = [
+  "service_type_is_med_cert",
+  "repeat_request_7d_cooldown",
+  "overlapping_cert_date_check",
+  "patient_age_18_plus",
+  "emergency_symptom_screening",
+  "red_flag_pattern_screening",
+  "mental_health_keyword_hard_block",
+  "mental_health_keyword_soft_block",
+  "injury_keyword_hard_block",
+  "injury_keyword_soft_block",
+  "chronic_condition_hard_block",
+  "chronic_condition_soft_block",
+  "pregnancy_keyword_block",
+  "duration_within_limit",
+  "backdating_within_1_day",
+  "symptom_text_substantive",
+  "ai_clinical_note_exists_and_ready",
+  "ai_draft_no_review_flag",
+] as const
 
 // ============================================================================
 // TYPES
@@ -17,6 +57,10 @@ export interface AutoApprovalEligibility {
   reason: string
   disqualifyingFlags: string[]
   softFlags: string[]
+  /** Version of the eligibility engine that made this decision */
+  engineVersion: string
+  /** List of all checks that were evaluated */
+  checksApplied: readonly string[]
 }
 
 interface DraftInfo {
@@ -211,19 +255,45 @@ export function evaluateAutoApprovalEligibility(
   answers: Record<string, unknown> | null,
   drafts: { clinicalNote: DraftInfo | null },
   patient?: PatientInfo | null,
-  options?: { maxDurationDays?: number; previousApprovalCount?: number },
+  options?: {
+    maxDurationDays?: number
+    previousApprovalCount?: number
+    /** Number of approved certs for this patient in the last 7 days */
+    recentCertCount?: number
+    /** Whether the requested dates overlap with an existing approved cert */
+    hasOverlappingCert?: boolean
+  },
 ): AutoApprovalEligibility {
   const flags: string[] = []
   const softFlags: string[] = []
 
+  // Helper: stamp every return with engine version and checks manifest
+  const result = (r: Omit<AutoApprovalEligibility, "engineVersion" | "checksApplied">): AutoApprovalEligibility => ({
+    ...r,
+    engineVersion: ELIGIBILITY_ENGINE_VERSION,
+    checksApplied: ELIGIBILITY_CHECK_MANIFEST,
+  })
+
   // Service-type mismatch: only med certs are eligible for auto-approval
   if (intake.service_type !== "med_certs") {
-    return {
+    return result({
       eligible: false,
       reason: `Service type ${intake.service_type} is not eligible for auto-approval`,
       disqualifyingFlags: ["service_type_mismatch"],
       softFlags: [],
-    }
+    })
+  }
+
+  // 1b. Repeat request cooldown — block if patient got a cert in the last 7 days
+  // Prevents abuse patterns that would trigger AHPRA scrutiny
+  if (options?.recentCertCount !== undefined && options.recentCertCount > 0) {
+    flags.push(`repeat_request_within_7d: ${options.recentCertCount} recent cert(s)`)
+  }
+
+  // 1c. Overlapping date detection — block if dates overlap an existing approved cert
+  // Two valid certificates covering the same dates from the same doctor is a medicolegal red flag
+  if (options?.hasOverlappingCert) {
+    flags.push("overlapping_cert_dates")
   }
 
   // 2. Age check — minors (under 18) always require doctor review
@@ -363,39 +433,39 @@ export function evaluateAutoApprovalEligibility(
   // even if soft-block keywords are present. These are the most common and lowest-risk requests.
   const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softFlags.includes(f))
   if (hasOnlySoftFlags && durationDays === 1) {
-    return {
+    return result({
       eligible: true,
       reason: "1-day certificate with mild symptoms — auto-approved",
       disqualifyingFlags: [],
       softFlags: flags,
-    }
+    })
   }
 
   // TRUST: Returning patients with prior successful auto-approvals get relaxed thresholds
   const previousApprovals = options?.previousApprovalCount ?? 0
   if (previousApprovals >= 2 && hasOnlySoftFlags) {
-    return {
+    return result({
       eligible: true,
       reason: `Returning patient (${previousApprovals} prior approvals) with soft flags only`,
       disqualifyingFlags: [],
       softFlags: flags,
-    }
+    })
   }
 
   // Final decision
   if (flags.length > 0) {
-    return {
+    return result({
       eligible: false,
       reason: `Disqualified: ${flags[0]}`,
       disqualifyingFlags: flags,
       softFlags,
-    }
+    })
   }
 
-  return {
+  return result({
     eligible: true,
     reason: "All checks passed — standard med cert, no flags, clean draft",
     disqualifyingFlags: [],
     softFlags,
-  }
+  })
 }

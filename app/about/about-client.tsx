@@ -24,12 +24,75 @@ import {
   ImageTextSplit,
   FeatureGrid,
   IconChecklist,
+  AccordionSection,
   CTABanner,
 } from "@/components/sections"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
+import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
+
+// =============================================================================
+// FAQ DATA
+// =============================================================================
+
+const ABOUT_FAQS = [
+  {
+    q: "What is InstantMed?",
+    a: "InstantMed is an Australian telehealth platform that connects patients with AHPRA-registered doctors for medical certificates, repeat prescriptions, and consultations. Everything is handled online through structured clinical forms — no phone calls or video chats required for most requests.",
+  },
+  {
+    q: "Is InstantMed a real medical practice?",
+    a: "Yes. InstantMed is operated by registered medical practitioners with AHPRA oversight and Medical Director governance. Certificates and prescriptions issued through InstantMed carry the same legal standing as those from any other medical practice in Australia.",
+  },
+  {
+    q: "Where is InstantMed based?",
+    a: "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. All doctors on the platform are Australian-based and AHPRA-registered.",
+  },
+  {
+    q: "How long has InstantMed been operating?",
+    a: "InstantMed was founded to address well-documented gaps in primary care access across Australia — long GP wait times, declining bulk billing, and the inconvenience of clinic visits for straightforward healthcare needs. We are currently in our early operations phase.",
+  },
+  {
+    q: "Who are the doctors behind InstantMed?",
+    a: "All doctors on InstantMed are AHPRA-registered Australian medical practitioners with experience in general practice. Our clinical operations are led by a Medical Director who holds Fellowship of the Royal Australian College of General Practitioners (FRACGP).",
+  },
+  {
+    q: "Is InstantMed covered by Medicare?",
+    a: "InstantMed service fees are not Medicare rebateable as we are a private telehealth service. However, any medications prescribed through our platform may be eligible for PBS (Pharmaceutical Benefits Scheme) subsidies at your pharmacy.",
+  },
+  {
+    q: "What services does InstantMed offer?",
+    a: "We offer medical certificates (for work, university, and carer's leave), repeat prescriptions for stable medications, general consultations, and specialised pathways for hair loss, weight management, and men's and women's health.",
+  },
+  {
+    q: "How does InstantMed protect my privacy?",
+    a: "All personal health information is encrypted using AES-256-GCM encryption and stored on Australian servers. We comply with the Privacy Act 1988 and all 13 Australian Privacy Principles. We don't sell or share your data with third parties.",
+  },
+  {
+    q: "Can I use InstantMed from anywhere in Australia?",
+    a: "Yes, InstantMed is available Australia-wide. All you need is an internet connection. Our service is available to patients aged 18 and over (parental consent arrangements available for minors).",
+  },
+  {
+    q: "How do I contact InstantMed?",
+    a: "You can reach us by email at support@instantmed.com.au, by phone on 0450 722 549, or through our contact page. For complaints, email complaints@instantmed.com.au — we respond within 14 days.",
+  },
+] as const
 
 export function AboutClient() {
+  const faqSchemaItems = ABOUT_FAQS.map((f) => ({
+    question: f.q,
+    answer: f.a,
+  }))
+
+  const accordionGroups = [
+    {
+      category: "About InstantMed",
+      items: ABOUT_FAQS.map((f) => ({ question: f.q, answer: f.a })),
+    },
+  ] as const
+
   return (
     <div className="flex min-h-screen flex-col">
+      <FAQSchema faqs={faqSchemaItems} />
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-20">
@@ -241,6 +304,49 @@ export function AboutClient() {
 
         {/* Media mentions */}
         <MediaMentions variant="strip" className="bg-muted/30" />
+
+        {/* E-E-A-T Guide */}
+        <AboutGuideSection />
+
+        {/* FAQs */}
+        <AccordionSection
+          pill="FAQs"
+          title="Frequently asked questions"
+          subtitle="Common questions about InstantMed, our doctors, and how the service works."
+          groups={accordionGroups}
+        />
+
+        {/* Content Hub Cross-Links — E-E-A-T internal linking from trust page */}
+        <section className="px-4 py-8 border-t border-border/30 dark:border-white/10">
+          <div className="mx-auto max-w-3xl">
+            <h3 className="text-sm font-semibold text-foreground mb-4 text-center">
+              Explore our health resources
+            </h3>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+              <Link href="/conditions" className="text-primary hover:underline">
+                Health conditions
+              </Link>
+              <Link href="/symptoms" className="text-primary hover:underline">
+                Symptom checker
+              </Link>
+              <Link href="/guides" className="text-primary hover:underline">
+                Health guides
+              </Link>
+              <Link href="/blog" className="text-primary hover:underline">
+                Health articles
+              </Link>
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                Clinical governance
+              </Link>
+              <Link href="/our-doctors" className="text-primary hover:underline">
+                Our doctors
+              </Link>
+              <Link href="/trust" className="text-primary hover:underline">
+                Trust &amp; safety
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* CTA */}
         <CTABanner

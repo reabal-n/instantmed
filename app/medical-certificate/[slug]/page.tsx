@@ -12,6 +12,8 @@ import {
 } from "@/lib/marketing/med-cert-intent-config"
 import { MedCertIntentPage } from "@/components/marketing/med-cert-intent-page"
 import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 
 export const dynamic = "force-dynamic"
 
@@ -163,8 +165,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Suburb pages
   const data = suburbs[slug]
   if (data) {
-    const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
-    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Australian doctors, 15-minute turnaround. Valid for all employers.`
+    const title = `Medical Certificate Online ${data.name}`
+    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. From $19.95.`
     return {
       title,
       description,
@@ -248,7 +250,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
         },
       },
       {
@@ -266,7 +268,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
       <div className="flex min-h-screen flex-col bg-foreground text-background">
         <Navbar variant="marketing" />
@@ -404,6 +406,9 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               </p>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

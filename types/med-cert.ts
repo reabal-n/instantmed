@@ -377,10 +377,10 @@ export interface MedCertEdgeCases {
     relationshipRequired: boolean
   }
   
-  // 5. Weekend/after-hours
-  afterHours: {
-    operatingHoursAEST: { start: 8, end: 22 }
-    afterHoursMessage: string
+  // 5. Availability (med certs are 24/7)
+  availability: {
+    alwaysAvailable: true
+    message: string
   }
 }
 

@@ -2,13 +2,10 @@ import type { Metadata } from "next"
 import { ReviewsClientPageComponent as ReviewsClientPage } from "./reviewsClientPage"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Patient Reviews",
+  title: "Patient Reviews | Online Doctor Australia",
   description:
-    "Read real reviews from Australian patients who've used InstantMed for medical certificates, prescriptions, and referrals.",
+    "Read real reviews from Australian patients who've used InstantMed for medical certificates, prescriptions, and doctor consultations.",
   keywords: ["telehealth reviews", "online doctor reviews", "InstantMed reviews", "Australia telehealth"],
   openGraph: {
     title: "Patient Reviews | InstantMed",

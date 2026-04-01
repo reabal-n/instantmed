@@ -3,12 +3,13 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { logCertificateEvent } from "@/lib/data/issued-certificates"
 
 const log = createLogger("certificate-download")
 
 /**
- * Generate a signed download URL for a patient's certificate.
- * Validates ownership before generating the URL.
+ * Stream a patient's certificate PDF through the server.
+ * Validates ownership before fetching. Never exposes signed URLs to the client.
  * Rate limited: 30 downloads/hour per user.
  */
 export async function GET(
@@ -45,7 +46,7 @@ export async function GET(
     // Get certificate with ownership check
     const { data: certificate, error } = await supabase
       .from("issued_certificates")
-      .select("id, storage_path, patient_name, certificate_type, status")
+      .select("id, storage_path, patient_name, certificate_type, status, intake_id")
       .eq("id", certificateId)
       .eq("patient_id", profile.id)
       .eq("status", "valid")
@@ -59,10 +60,10 @@ export async function GET(
       return NextResponse.json({ error: "Certificate file not available" }, { status: 404 })
     }
 
-    // Generate signed URL (1 hour expiry)
+    // Generate short-lived signed URL (5 min) — used server-side only, never exposed to client
     const { data: signedUrlData, error: urlError } = await supabase.storage
       .from("documents")
-      .createSignedUrl(certificate.storage_path, 3600)
+      .createSignedUrl(certificate.storage_path, 300)
 
     if (urlError || !signedUrlData?.signedUrl) {
       log.error("Failed to generate signed URL", {
@@ -73,8 +74,34 @@ export async function GET(
       return NextResponse.json({ error: "Failed to generate download link" }, { status: 500 })
     }
 
-    // Redirect to signed URL for download
-    return NextResponse.redirect(signedUrlData.signedUrl)
+    // Stream PDF through the server — signed URL never leaves the backend
+    const pdfResponse = await fetch(signedUrlData.signedUrl)
+    if (!pdfResponse.ok) {
+      log.error("Failed to fetch PDF from storage", {
+        certificateId,
+        status: pdfResponse.status,
+        storagePath: certificate.storage_path,
+      })
+      return NextResponse.json({ error: "Certificate file not available" }, { status: 500 })
+    }
+
+    const pdfBuffer = await pdfResponse.arrayBuffer()
+
+    // Audit trail: log download event
+    void logCertificateEvent(certificate.id, "downloaded", profile.id, "patient", {
+      file_size_bytes: pdfBuffer.byteLength,
+      endpoint: "certificates_id_download",
+    })
+
+    return new NextResponse(pdfBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="medical-certificate-${certificate.intake_id || certificateId}.pdf"`,
+        "Content-Length": pdfBuffer.byteLength.toString(),
+        "Cache-Control": "private, no-store, no-cache",
+      },
+    })
   } catch (error) {
     log.error("Certificate download error", {
       error: error instanceof Error ? error.message : String(error),

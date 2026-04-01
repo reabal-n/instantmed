@@ -12,17 +12,19 @@
 
 ## 1. Color
 
+> **Variable naming:** The design system uses conceptual names below for clarity. The actual Tailwind/shadcn CSS variables in `globals.css` use shadcn convention: `--background` (= `--bg`), `--card` (= `--surface`), `--popover` (= `--overlay`). Use Tailwind classes: `bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`.
+
 ```css
 :root {
   /* -- Backgrounds (light mode — the default) -- */
-  --bg:           #F8F7F4;   /* warm ivory page background — never pure white */
-  --surface:      #FFFFFF;   /* card surfaces — pure white for contrast against ivory */
-  --elevated:     #F2F0EC;   /* hover states, nested regions */
-  --overlay:      #ECEAE5;   /* dropdowns, tooltips */
+  --bg:           #F8F7F4;   /* warm ivory — Tailwind: bg-background */
+  --surface:      #FFFFFF;   /* pure white cards — Tailwind: bg-card / bg-white */
+  --elevated:     #F2F0EC;   /* hover states, nested regions — Tailwind: bg-muted */
+  --overlay:      #ECEAE5;   /* dropdowns, tooltips — Tailwind: bg-popover */
 
   /* -- Backgrounds (dark mode — "Quiet Night Sky") -- */
-  --bg-dark:      #0B1120;
-  --surface-dark: #111827;   /* maps to dark:bg-card */
+  --bg-dark:      #0B1120;   /* dark:bg-background */
+  --surface-dark: #111827;   /* dark:bg-card */
   --elevated-dark:#1A2332;
   --overlay-dark: #1F2D42;
 
@@ -34,8 +36,8 @@
   --border-dark-em: rgba(255,255,255,0.15);  /* dark:border-white/15 */
 
   /* -- Text -- */
-  --text:      #1A1A2E;
-  --muted:     #6B7280;
+  --text:      #1A1A2E;   /* text-foreground */
+  --muted:     #6B7280;   /* text-muted-foreground */
   --muted2:    #9CA3AF;
   --text-dark: #E8EDF5;
   --muted-dark:#8FA3BF;
@@ -105,10 +107,21 @@ text-service-medcert  text-service-rx  text-service-hair  text-service-weight  t
 
 **Usage:** Always prefer semantic tokens over raw Tailwind palette colors. Use `bg-success-light` not `bg-green-50`, `text-destructive` not `text-red-600`, etc. Third-party brand colors (Stripe, social media) are exceptions.
 
+### Background System
+
+The page background is layered — not a flat color:
+
+1. `body { background: transparent }` — body has no background
+2. `<MeshGradientCanvas />` — global animated canvas element (renders in `app/layout.tsx`) provides the morning gradient backdrop on all pages
+3. `--background: #F8F7F4` — warm ivory fallback (shows when canvas hasn't loaded, or in non-marketing areas like portals)
+4. Cards use `bg-white dark:bg-card` — pure white for contrast against the canvas/ivory background
+
+Never set `background` directly on `body` or `html`. Never use `bg-white` on the page wrapper — only on card surfaces.
+
 ### Rules
 
 - Light mode is default. Dark mode ("Quiet Night Sky") supported site-wide — marketing, SEO pages, and app shell.
-- Page backgrounds use warm ivory (`--bg`). Card surfaces use pure white (`--surface`) for contrast.
+- Page backgrounds use warm ivory (`#F8F7F4`). Card surfaces use pure white for contrast.
 - **Prohibited:** purple/violet (except `--service-referral` and AI indicators in internal portals), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
 - Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces. Exception: `dark:shadow-black/40` on image containers.
@@ -127,10 +140,11 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 | Class | Size | Weight | Tracking | Use |
 |-------|------|--------|----------|-----|
-| display | 48px | 300 | -0.03em | Hero headlines |
-| h1 | 36px | 600 | -0.025em | Page titles |
-| h2 | 24px | 600 | -0.02em | Section headings |
-| h3 | 18px | 600 | -0.01em | Card titles |
+| display-xl | 68px | 300 | -0.04em | Homepage hero only — `lg:` breakpoint |
+| display | 56px | 300 | -0.035em | Hero headlines, large section titles |
+| h1 | 40px | 600 | -0.03em | Page titles |
+| h2 | 28px | 600 | -0.025em | Section headings |
+| h3 | 18px | 600 | -0.015em | Card titles |
 | body | 16px | 400 | — | Body text (non-negotiable minimum on patient flows) |
 | small | 14px | 400 | — | Secondary text |
 | label | 13px | 500 | — | Form labels |
@@ -140,11 +154,13 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 ### Rules
 
+- **3-step contrast rule:** Heading and body text must differ by at least 3 scale steps. Never put h3 directly next to display — use an intermediary or increase body size.
 - Body 16px minimum on all patient-facing flows. Non-negotiable.
 - Weights: 300 (display only), 400 (body), 500 (label), 600 (headings). Never 700+.
-- Negative tracking on all headings.
+- Negative tracking on all headings. The larger the text, the tighter the tracking.
 - Sentence case everywhere. All caps only on overline.
 - Emoji: max 1 per block. Never in headings. Never medical emoji.
+- Line height: display/h1 use `leading-[1.1]`, h2/h3 use `leading-[1.25]`, body uses `leading-relaxed`.
 
 ---
 
@@ -185,39 +201,54 @@ Rounded/squircle geometry only. No sharp corners anywhere.
 
 ---
 
-## 5. Elevation — Solid Depth (dub.co pattern)
+## 5. Elevation — Solid Depth
 
 The core surface pattern. Every card, panel, and container uses this system. **No glass, no backdrop-blur on content surfaces.**
+
+Cards use a two-layer shadow system + an inner top-edge highlight for dimensional presence. This creates real physical weight without frosted glass.
 
 ### Card Tiers
 
 ```tsx
-// Tier 1: Standard card (most common)
+// Tier 1: Standard card (most common — dashboards, list items)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl"
 
-// Tier 2: Elevated card (feature cards, pricing, treatments)
+// Tier 2: Elevated card (feature cards, pricing, service cards)
+// Two-layer shadow + inner highlight for depth
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
-           shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl
-           hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.08]
-           transition-all duration-300"
+           shadow-[0_2px_8px_rgba(37,99,235,0.06),0_1px_3px_rgba(37,99,235,0.04)]
+           [box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]
+           dark:shadow-none rounded-2xl
+           hover:-translate-y-2 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
+           transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Tier 3: Highlighted card (popular/featured, with ring)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
-           ring-2 ring-primary shadow-lg shadow-primary/[0.1]
-           hover:shadow-xl hover:shadow-primary/[0.15]
-           hover:-translate-y-1 transition-all duration-300 rounded-2xl"
+           ring-2 ring-primary
+           shadow-[0_4px_16px_rgba(37,99,235,0.12),0_1px_4px_rgba(37,99,235,0.08)]
+           [box-shadow:inset_0_1px_0_rgba(255,255,255,0.9)]
+           dark:shadow-none rounded-2xl
+           hover:-translate-y-2 hover:shadow-[0_12px_32px_rgba(37,99,235,0.16),0_4px_8px_rgba(37,99,235,0.10)]
+           transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Section background (subtle tinted region)
 className="bg-muted/50 dark:bg-white/[0.06]"
 ```
 
+### Inner Highlight
+
+The inner top-edge highlight (`inset 0 1px 0 rgba(255,255,255,0.8)`) simulates ambient light hitting the top of the card. Use on all Tier 2+ marketing cards. **Do not use in portals.**
+
+In Tailwind: `[box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]` combined with the outer shadow using a comma-separated value.
+
 ### Card Hover
 
-All marketing cards use a standard hover pattern:
+Marketing cards: **2px lift** with spring easing. Use `duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]` (spring curve) — not `ease-out`.
 
 ```
-hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300
+hover:-translate-y-2 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
+transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
 ```
 
 ### Dark Mode Card Pattern
@@ -366,6 +397,13 @@ className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
 
 // Mono pill (codes, references)
 // font-mono text-xs tracking-wider
+
+// Trust signal pill (hero footer, inline trust signals with icons)
+// Use for: refund guarantee, timing claims, regulatory signals
+className="inline-flex items-center gap-1.5 text-xs text-muted-foreground
+           bg-muted/50 border border-border/50 rounded-full px-3 py-1.5
+           hover:border-primary/30 hover:text-foreground transition-colors duration-200"
+// Icon: w-3 h-3, use text-success for refund/guarantee, text-primary for timing/regulatory
 ```
 
 ---
@@ -375,22 +413,12 @@ className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
 ### Button
 
 ```tsx
-// Primary
+// Primary — stronger glow at rest, larger bloom on hover, physical press
 className="bg-primary hover:bg-primary/90 text-primary-foreground
-           shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
-           active:scale-[0.98] transition-all"
+           shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
+           active:scale-[0.98] active:shadow-md active:shadow-primary/15
+           transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
-### CTA Button Glow
-
-All primary marketing CTAs use a consistent shadow glow:
-
-```
-shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
-```
-
-Secondary CTAs on colored backgrounds: `shadow-lg hover:shadow-xl` (no color tint).
-
-```tsx
 // Secondary / Outline
 className="bg-foreground hover:bg-foreground/90 text-background"
 // or
@@ -399,6 +427,20 @@ variant="outline" // shadcn default
 // Ghost
 variant="ghost" // shadcn default
 ```
+
+### CTA Button Glow
+
+All primary marketing CTAs:
+- **At rest:** `shadow-lg shadow-primary/25` — button is visually prominent
+- **On hover:** `shadow-xl shadow-primary/40` — glow blooms, draws the eye
+- **On press:** `scale-[0.98] shadow-md shadow-primary/15` — physically depresses
+
+```
+shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
+active:scale-[0.98] active:shadow-md active:shadow-primary/15
+```
+
+Secondary CTAs on colored backgrounds: `shadow-lg hover:shadow-xl` (no color tint).
 
 ### Input
 
@@ -423,6 +465,10 @@ className="bg-white dark:bg-card border border-border
 
 ## 11. Motion
 
+**Two easing curves. Use the right one:**
+- `--ease-out` — entrances, page loads, elements appearing. Decelerates into rest.
+- `--ease-spring` — interactions, hover states, anything a user triggers. Has overshoot feel without bounce.
+
 ```css
 --ease-out:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
 --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -432,43 +478,66 @@ className="bg-white dark:bg-card border border-border
 
 | Duration | Use |
 |----------|-----|
-| 150ms | Hover colour, border transitions |
-| 200ms | Button states, badge changes |
-| 300ms | Card lifts, input focus, list entry |
+| 150ms | Colour transitions, border changes, icon colour |
+| 200ms | Button states, badge changes, icon scale |
+| 300ms | Card lifts, input focus, list entry, link underline |
 | 400ms | Page section entrance, modal open |
 | 500ms | Hero entrance — hard ceiling |
 
-No bounce. No elastic. Patients don't need theatrics.
+No bounce. No elastic. No parallax on content. Patients don't need theatrics.
 
 **Scale limits:**
-- **Interactive (hover/press):** Max 1.02x. `whileTap={{ scale: 0.98 }}` for press.
-- **Non-interactive (loaders, background blobs, pulse effects):** No hard limit — these are decorative and not user-triggered.
+- **Interactive (hover/press):** Icons max `1.1x`. Elements max `1.02x`. Press: `scale: 0.98`.
+- **Non-interactive (loaders, background blobs):** No hard limit — decorative only.
 
 ### Framer Motion Patterns
 
 ```tsx
-// Section entrance
+// Section entrance — ease-out, 12px rise
 <motion.div
-  initial={{ opacity: 0, y: 10 }}
+  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
   whileInView={{ opacity: 1, y: 0 }}
   viewport={{ once: true }}
   transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
 />
 
-// Staggered children
+// Staggered children — spring, 40ms delay, 12px rise
 <motion.div
-  initial={{ opacity: 0, y: 8 }}
+  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
   whileInView={{ opacity: 1, y: 0 }}
   viewport={{ once: true }}
-  transition={{ delay: index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+  transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 />
 
-// Card hover — CSS-only preferred over framer for simple lifts
-className="hover:-translate-y-1 transition-all duration-300"
+// Card hover — CSS spring (preferred over Framer for simple lifts)
+className="hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
-// Button press
-<motion.button whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }} />
+// Button press depth
+<motion.button
+  whileTap={{ scale: 0.98 }}
+  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+/>
+
+// Icon spring on hover (inside a parent group)
+// Parent: className="group"
+// Icon:   className="transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+
+// Stat counter (spring count-up on enter)
+<motion.span
+  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.85 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+/>
 ```
+
+### Portal Exception
+
+**Doctor portal (`app/doctor/`) and admin portal (`app/admin/`) get no decorative motion.**
+- No `whileHover`, no `whileTap`, no entrance animations on data rows
+- `transition-colors duration-150` only — for state changes (loading, active, error)
+- Lottie animations for empty states and feedback are still permitted
+- Reason: doctors use the portal under time pressure. Animation is friction, not delight.
 
 ### Reduced Motion
 
@@ -478,25 +547,124 @@ className="hover:-translate-y-1 transition-all duration-300"
 const prefersReducedMotion = useReducedMotion()
 
 // CORRECT: empty object disables animation
-initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
 
 // WRONG on motion.div: false is not valid for initial prop
-initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}  // DO NOT USE
+initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}  // DO NOT USE
 
 // NOTE: AnimatePresence initial={false} IS valid — it means "don't animate on first mount"
 // Only motion.div/motion.section initial={false} is wrong
-```
 ```
 
 ### Rules
 
 - `viewport={{ once: true }}` on every scroll-triggered animation. Always.
-- `whileHover` scale never beyond 1.02.
+- `whileHover` icon scale max `1.1x`. Element scale max `1.02x`.
 - Never rotate, never elastic, never parallax on content.
+- Spring (`[0.16, 1, 0.3, 1]`) for interactions. Ease-out (`[0.25, 0.46, 0.45, 0.94]`) for entrances.
 
 ---
 
-## 12. Lottie Animations
+## 12. Premium Interactions
+
+Every interactive element should feel alive. These patterns apply to marketing pages and patient flows. **Not portals** (see Motion § Portal Exception).
+
+### Icon Spring
+
+Icons inside buttons, cards, and nav items scale on hover with a spring curve. Always requires a `group` parent.
+
+```tsx
+// Parent
+<div className="group ...">
+// Icon
+<Icon className="w-5 h-5 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" />
+```
+
+Max scale: `1.1x`. Spring easing only. Never rotate.
+
+### Link Underline Slide
+
+Nav links, footer links, and inline text links animate an underline from left to right on hover. CSS-only, no JS.
+
+```css
+/* Apply to link elements */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+```
+
+Tailwind utility: add `link-slide` to `globals.css` as a component class.
+
+### Card Lift
+
+2px vertical lift with spring easing and shadow expansion. See §5 Elevation for full pattern.
+
+```
+hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+```
+
+### Button Press Depth
+
+Buttons physically depress on click. Shadow shrinks to reinforce the press.
+
+```tsx
+<motion.button
+  whileTap={{ scale: 0.98 }}
+  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+  className="... active:shadow-md active:shadow-primary/15"
+/>
+```
+
+### Input Focus Glow
+
+Inputs expand a soft blue ring on focus — immediate, not delayed.
+
+```tsx
+className="focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
+           transition-shadow duration-150"
+```
+
+### Image Hover Scale
+
+Hero mockup images and card images scale subtly on hover. Never exceeds `1.03x`.
+
+```
+className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
+           group-hover:scale-[1.02] overflow-hidden rounded-2xl"
+```
+
+Apply `overflow-hidden rounded-2xl` on the **container**, not the image — to clip the scale.
+
+### Stat Counter Spring
+
+Numbers/counters in hero and stats sections spring-scale into view.
+
+```tsx
+<motion.div
+  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.85 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
+/>
+```
+
+---
+
+## 13. Lottie Animations
 
 Use `LottieAnimation` from `@/components/ui/lottie-animation` for empty states, success, error, and loading feedback.
 
@@ -510,7 +678,7 @@ Respects `useReducedMotion`. Lazy-loads `lottie-web`. Use `loop={false}` for one
 
 ---
 
-## 13. Layout
+## 14. Layout
 
 ### Grids
 
@@ -540,7 +708,7 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 
 ---
 
-## 14. Trust Logos
+## 15. Trust Logos
 
 Three regulatory logos displayed on service and marketing pages:
 
@@ -555,7 +723,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 15. Voice & Copy Rules
+## 16. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|
@@ -566,7 +734,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 16. Do / Don't
+## 17. Do / Don't
 
 | Do | Don't |
 |----|-------|
@@ -574,7 +742,10 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 | `bg-white dark:bg-card` for all card surfaces | `bg-card/60 dark:bg-white/5 backdrop-blur` |
 | `shadow-md shadow-primary/[0.06]` for depth | Black box-shadow anywhere |
 | `hover:-translate-y-1` for card interaction | No interaction on hover |
-| Morning gradient — radial, hero background only | Full gradient page background |
+| `MeshGradientCanvas` global canvas as page background | Setting `background` on `body` or `html` directly |
+| `bg-white dark:bg-card` for all card surfaces | `bg-card/60 backdrop-blur` — semi-transparent cards are glass morphism |
+| Static single headline in heroes | Rotating/cycling text in h1 — kills LCP and conversion |
+| Trust signal pills with icons in hero footer | Plain text dot-separated trust row |
 | Split or centered hero (context-dependent) | One rigid hero layout for everything |
 | Full dark mode support (`dark:` variants) | Dark mode limited to dashboard only |
 | 16px body on patient flows | 14px — too small for anxious patients |
@@ -583,6 +754,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 | `scale: 0.98` on press | `scale: 0.95` — too aggressive |
 | `initial={{}}` for reduced motion on `motion.*` | `motion.div initial={false}` — invalid (`AnimatePresence initial={false}` is fine) |
 | `bg-success-light`, `text-warning`, `border-destructive-border` | `bg-green-50`, `text-amber-600`, `border-red-200` — raw palette colors |
+| `bg-success`, `text-success` for live status dots | `bg-emerald-500` raw color |
 | `font-semibold` (600) max weight | `font-bold` (700) or `font-extrabold` (800) |
 | `viewport={{ once: true }}` always | Animating on every scroll pass |
 | Product mockups as section anchors | Illustration-only grids |

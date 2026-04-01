@@ -34,7 +34,7 @@ interface WhatHappensNextProps {
 const FAQ_ITEMS = [
   {
     question: "How long does review take?",
-    answer: "Most requests are reviewed within 1–2 hours during business hours (8am–10pm AEST).",
+    answer: "Medical certificates are typically issued in under 30 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST).",
   },
   {
     question: "What if the doctor needs more info?",
@@ -64,6 +64,7 @@ export function WhatHappensNext({
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
   const [queuePosition, setQueuePosition] = useState<number | null>(initialQueuePosition ?? null)
+  const isMedCert = serviceName?.toLowerCase().includes("cert") ?? false
   // Trigger confetti on mount
   useEffect(() => {
     if (showConfetti) {
@@ -110,10 +111,13 @@ export function WhatHappensNext({
           
           <h1 className="text-2xl font-semibold tracking-tight mb-2">Request submitted</h1>
           <p className="text-muted-foreground">
-            {serviceName ? `Your ${serviceName.toLowerCase()} request is ` : "Your request is "}
-            being reviewed by our doctors.
+            {isMedCert
+              ? "Your certificate request has been received. Check your email shortly."
+              : serviceName
+                ? `Your ${serviceName.toLowerCase()} request is being reviewed by our doctors.`
+                : "Your request is being reviewed by our doctors."}
           </p>
-          
+
           {/* Reassurance badge */}
           <motion.div
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
@@ -126,7 +130,7 @@ export function WhatHappensNext({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
             <span className="text-xs font-medium text-success">
-              Doctors are reviewing requests now
+              {isMedCert ? "Typically delivered in under 30 minutes" : "Doctors are reviewing requests now"}
             </span>
           </motion.div>
         </motion.div>

@@ -409,10 +409,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
-    // Deterministic idempotency key based on email + service + answers to prevent duplicate intakes
+    // Idempotency key: 10-minute time bucket prevents double-clicks while allowing legitimate repeat requests
     const { createHash } = await import("crypto")
     const guestIdempotencyKey = `guest-${createHash("sha256")
-      .update(`${normalizedEmail}:${input.category}:${input.subtype}:${JSON.stringify(input.answers)}`)
+      .update(`${normalizedEmail}:${input.category}:${input.subtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(input.answers)}`)
       .digest("hex")
       .slice(0, 24)}`
     const { data: intake, error: intakeError } = await supabase
@@ -455,7 +455,22 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       sessionId: normalizedEmail,
     })
 
+    // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
+    // Answers must be saved BEFORE audit logs to avoid orphaned compliance records
+    // if this step fails and the intake is rolled back.
+    const { error: answersError } = await supabase.from("intake_answers").insert({
+      intake_id: intake.id,
+      answers: input.answers,
+    })
+
+    if (answersError) {
+      logger.error("Failed to save answers, rolling back intake", { intakeId: intake.id }, new Error(answersError.message))
+      await supabase.from("intakes").delete().eq("id", intake.id)
+      return { success: false, error: "Failed to save your clinical information. Please try again." }
+    }
+
     // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
+    // Placed after answers insert so these records never orphan if the intake is rolled back.
     const requestType = mapCategoryToRequestType(input.category, input.subtype || "")
     await logRequestCreated(intake.id, requestType, guestProfileId, {
       category: input.category,
@@ -468,18 +483,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       logTelehealthConsentGiven(intake.id, requestType, guestProfileId, TELEHEALTH_CONSENT_VERSION),
       logAccuracyAttestationGiven(intake.id, requestType, guestProfileId),
     ])
-
-    // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
-    const { error: answersError } = await supabase.from("intake_answers").insert({
-      intake_id: intake.id,
-      answers: input.answers,
-    })
-
-    if (answersError) {
-      logger.error("Failed to save answers, rolling back intake", { intakeId: intake.id }, new Error(answersError.message))
-      await supabase.from("intakes").delete().eq("id", intake.id)
-      return { success: false, error: "Failed to save your clinical information. Please try again." }
-    }
 
     // 5. Validate price ID (already fetched above)
     if (!priceId) {

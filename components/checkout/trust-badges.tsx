@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils"
 function StripeLogo() {
   return (
     <span
-      className="text-[#635BFF] font-bold text-base tracking-tight leading-none"
+      className="text-[#635BFF] font-semibold text-base tracking-tight leading-none"
       aria-label="Stripe"
     >
       stripe

@@ -7,6 +7,7 @@ import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/em
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
+import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"
 
 interface ResendCertificateResult {
   success: boolean
@@ -25,6 +26,12 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
 
     if (!authResult) {
       return { success: false, error: "Please sign in to continue" }
+    }
+
+    // Rate limit: 5 resends per intake per 24 hours
+    const rateLimit = await checkResendRateLimit(intakeId, authResult.profile.id)
+    if (!rateLimit.allowed) {
+      return { success: false, error: "You've reached the resend limit for this certificate. Please try again later." }
     }
 
     const supabase = createServiceRoleClient()
@@ -80,7 +87,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         try {
           const { data: signedUrlData } = await supabase.storage
             .from("documents")
-            .createSignedUrl(certificate.storage_path, 7 * 24 * 60 * 60)
+            .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60) // 72 hours
           downloadUrl = signedUrlData?.signedUrl ?? undefined
         } catch {
           logger.warn("Resend certificate: failed to generate signed URL", { intakeId })

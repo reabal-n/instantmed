@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Search } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { AccordionSection } from "@/components/sections"
 
 export const metadata: Metadata = {
-  title: "Find What You Need | Online Doctor Services | InstantMed",
-  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, repeat prescriptions, and more — all reviewed by Australian doctors.",
+  title: "Find What You Need | Online Doctor Services",
+  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more — all reviewed by Australian doctors.",
   openGraph: {
     title: "Find What You Need | InstantMed",
     description: "Same-day medical certificates, prescriptions, and consultations reviewed by Australian doctors.",
@@ -19,14 +20,49 @@ export const metadata: Metadata = {
 }
 
 const intents = [
-  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate reviewed and emailed within hours" },
+  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in under 30 minutes, 24/7" },
   { slug: "work-certificate-online", name: "Work Certificate Online", description: "Sick leave certificate accepted by all Australian employers" },
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
   { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
-  { slug: "repeat-prescription-online", name: "Repeat Prescription Online", description: "Renew existing medication without a clinic visit" },
+  { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },
   { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Available 8am-10pm AEST, 7 days including weekends" },
   { slug: "hair-loss-treatment-online", name: "Hair Loss Treatment", description: "Doctor-reviewed treatment plans for hair thinning" },
   { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with same-day eScript" },
+]
+
+const intentFaqs = [
+  {
+    question: "How do I know which service I need?",
+    answer: "If you're unsure, start with a general consultation. Our doctors will assess your situation and point you toward the right service — whether that's a medical certificate, a prescription, or something else entirely.",
+  },
+  {
+    question: "Can I switch services after starting?",
+    answer: "If you start a request and realise you need a different service, you can begin a new request for the right one. Our doctors may also suggest a different service if they think it's more appropriate for your situation.",
+  },
+  {
+    question: "What if I'm not sure what's wrong?",
+    answer: "That's perfectly fine — you don't need a self-diagnosis. Describe your symptoms and concerns, and our doctor will work through it with you. That's literally what they're trained for.",
+  },
+  {
+    question: "How long does it take to get a response?",
+    answer: "Medical certificates are typically issued in under 30 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days).",
+  },
+  {
+    question: "Is my information kept private?",
+    answer: "Yes. All health information is encrypted and stored in compliance with Australian privacy legislation. We follow the Australian Privacy Principles and never share your data with third parties without your consent.",
+  },
+  {
+    question: "Do I need to see a doctor in person?",
+    answer: "Most requests don't require an in-person visit. Our doctors assess everything online. If they determine you need a physical examination or specialist referral, they'll let you know.",
+  },
+  {
+    question: "How does payment work?",
+    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund — no questions asked.",
+  },
+  {
+    question: "Can I use InstantMed from anywhere in Australia?",
+    answer: "Yes. As long as you're in Australia and have an internet connection, you can use InstantMed. Our doctors are registered to practise across all states and territories.",
+  },
 ]
 
 export default function IntentPage() {
@@ -36,6 +72,7 @@ export default function IntentPage() {
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Services", url: "https://instantmed.com.au/intent" },
       ]} />
+      <FAQSchema faqs={intentFaqs} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -73,6 +110,15 @@ export default function IntentPage() {
                     </span>
                   </Link>
                 ))}
+              </div>
+
+              {/* FAQ Section */}
+              <div className="mt-16">
+                <AccordionSection
+                  groups={[{ items: intentFaqs }]}
+                  title="Common Questions"
+                  subtitle="Finding the right service for your situation"
+                />
               </div>
 
               <div className="mt-12 text-center">

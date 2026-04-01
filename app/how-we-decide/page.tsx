@@ -17,13 +17,63 @@ import {
   IconChecklist,
   ProcessSteps,
   CTABanner,
+  AccordionSection,
 } from "@/components/sections"
 import type { FeatureItem, ChecklistItem, ProcessStep } from "@/components/sections"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
+import { HowWeDecideGuideSection } from "@/components/marketing/sections/how-we-decide-guide-section"
+
+// =============================================================================
+// FAQ DATA
+// =============================================================================
+
+const howWeDecideFaqs = [
+  {
+    question: "Does a real doctor review every request?",
+    answer: "Yes, every single one. No automated approvals, no AI making clinical decisions. An AHPRA-registered doctor reviews your information and makes a clinical judgement — the same way they would in a face-to-face consultation.",
+  },
+  {
+    question: "How long does the review take?",
+    answer: "Most requests are reviewed within 1-2 hours during operating hours (8am-10pm AEST, 7 days). Some may take longer if the doctor needs to follow up with additional questions or if we're experiencing higher than usual demand.",
+  },
+  {
+    question: "What if the doctor needs more information?",
+    answer: "They'll contact you directly before making a decision. Better to ask than to assume. You'll receive a notification via email or SMS, and the doctor will wait for your response before finalising the review.",
+  },
+  {
+    question: "Can I appeal a declined request?",
+    answer: "You can contact us at support@instantmed.com.au with additional information. The doctor may reconsider based on new details, or we can explain the clinical reasoning behind the decision. Either way, you'll receive a full refund for any declined request.",
+  },
+  {
+    question: "Do you use AI in the decision-making process?",
+    answer: "AI assists with intake and information gathering — helping you describe your symptoms and organising your medical history for the doctor. All clinical decisions are made by human doctors. AI never approves, declines, or influences a clinical outcome.",
+  },
+  {
+    question: "What happens to my data after the review?",
+    answer: "Your information is securely stored with AES-256 encryption on Australian servers hosted by Supabase. Medical records are retained in accordance with Australian healthcare record-keeping requirements. We never sell or share your data with third parties.",
+  },
+  {
+    question: "How do I know the process is fair?",
+    answer: "Clinical decisions are audited regularly by our Medical Director. Doctors aren't incentivised to approve or decline — they're paid the same either way. This removes the financial pressure that can compromise clinical judgement in other models.",
+  },
+  {
+    question: "What if I disagree with the doctor's decision?",
+    answer: "Contact us at support@instantmed.com.au. Complaints are taken seriously and responded to within 48 hours. For formal clinical complaints, email complaints@instantmed.com.au — these are reviewed by our Medical Director within 14 days.",
+  },
+  {
+    question: "Are your doctors insured?",
+    answer: "Yes. All doctors maintain professional indemnity insurance, which is a requirement for AHPRA registration. This protects both the doctor and the patient in the event of an adverse outcome.",
+  },
+  {
+    question: "How does this compare to seeing a GP in person?",
+    answer: "The clinical standard is the same — our doctors follow the same guidelines and have the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
+  },
+]
 
 export const metadata: Metadata = {
-  title: "How Doctors Review Your Request",
+  title: "How Doctors Review Your Request | Our Process",
   description:
-    "Learn how our doctors assess requests, why some are declined, and how we prioritise your safety. No algorithms — just real medical judgment.",
+    "How AHPRA-registered doctors assess your request, why some are declined, and how we prioritise safety. Real medical judgment, not algorithms.",
   openGraph: {
     title: "How We Make Decisions | InstantMed",
     description:
@@ -136,6 +186,8 @@ const afterSubmitSteps: ProcessStep[] = [
 
 export default function HowWeDecidePage() {
   return (
+    <>
+      <FAQSchema faqs={howWeDecideFaqs} />
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
@@ -179,6 +231,14 @@ export default function HowWeDecidePage() {
           steps={afterSubmitSteps}
         />
 
+        <HowWeDecideGuideSection />
+
+        <AccordionSection
+          title="Common questions about our process"
+          subtitle="Straight answers about how decisions are made, what happens to your data, and what to do if you disagree."
+          groups={[{ items: howWeDecideFaqs }]}
+        />
+
         <CTABanner
           title="Still have questions?"
           subtitle="We're happy to explain more. Our support team is real people who actually reply."
@@ -191,5 +251,6 @@ export default function HowWeDecidePage() {
 
       <MarketingFooter />
     </div>
+    </>
   )
 }

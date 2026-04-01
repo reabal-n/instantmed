@@ -1,27 +1,41 @@
 "use server"
 
+import { z } from "zod"
 import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 
 const logger = createLogger("date-correction")
 
-interface RequestDateCorrectionInput {
-  intakeId: string
-  requestedStartDate: string
-  requestedEndDate: string
-  reason: string
-}
+const requestDateCorrectionSchema = z.object({
+  intakeId: z.string().uuid("Invalid intake ID"),
+  requestedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+  requestedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+  reason: z.string().min(1, "Reason is required").max(500, "Reason must be 500 characters or less"),
+})
+
+type RequestDateCorrectionInput = z.infer<typeof requestDateCorrectionSchema>
 
 export async function requestDateCorrection(
-  input: RequestDateCorrectionInput
+  rawInput: RequestDateCorrectionInput
 ): Promise<{ success: boolean; error?: string }> {
-  const { intakeId, requestedStartDate, requestedEndDate, reason } = input
+  const parsed = requestDateCorrectionSchema.safeParse(rawInput)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || "Invalid input" }
+  }
+  const { intakeId, requestedStartDate, requestedEndDate, reason } = parsed.data
 
   const authResult = await getApiAuth()
   if (!authResult) {
     return { success: false, error: "Please sign in" }
+  }
+
+  // Rate limit: prevent Telegram alert spam (3 corrections per hour per patient)
+  const rateLimit = await checkServerActionRateLimit(authResult.profile.id, "sensitive")
+  if (!rateLimit.success) {
+    return { success: false, error: "Too many correction requests. Please try again later." }
   }
 
   const supabase = createServiceRoleClient()
@@ -156,20 +170,20 @@ export async function approveDateCorrection(
   const startDate = meta.requested_start_date as string
   const endDate = meta.requested_end_date as string
 
-  // Update the certificate dates
-  const { error: certUpdateError } = await supabase
-    .from("issued_certificates")
-    .update({
-      start_date: startDate,
-      end_date: endDate,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("intake_id", intakeId)
-    .eq("status", "valid")
+  // Regenerate the certificate with corrected dates.
+  // This supersedes the old PDF, generates a new one, and emails the patient.
+  const { regenerateCertificateAction } = await import("@/app/actions/regenerate-certificate")
+  const regenResult = await regenerateCertificateAction({
+    intakeId,
+    reason: `Date correction: ${meta.reason || "dates updated"}`,
+    corrections: {
+      dateRange: { startDate, endDate },
+    },
+  })
 
-  if (certUpdateError) {
-    logger.error("Failed to update certificate dates", { intakeId, error: certUpdateError.message })
-    return { success: false, error: "Failed to update certificate" }
+  if (!regenResult.success) {
+    logger.error("Failed to regenerate certificate for date correction", { intakeId, error: regenResult.error })
+    return { success: false, error: regenResult.error || "Failed to regenerate certificate with corrected dates" }
   }
 
   // Mark the correction as approved
@@ -186,10 +200,21 @@ export async function approveDateCorrection(
     event_type: "date_correction_approved",
     actor_id: authResult.profile.id,
     actor_role: authResult.profile.role,
-    metadata: { correction_event_id: correctionEventId, new_start_date: startDate, new_end_date: endDate },
+    metadata: {
+      correction_event_id: correctionEventId,
+      new_start_date: startDate,
+      new_end_date: endDate,
+      new_certificate_id: regenResult.certificateId,
+    },
   })
 
-  logger.info("Date correction approved", { intakeId, correctionEventId, startDate, endDate })
+  logger.info("Date correction approved — certificate regenerated", {
+    intakeId,
+    correctionEventId,
+    startDate,
+    endDate,
+    newCertificateId: regenResult.certificateId,
+  })
 
   return { success: true }
 }

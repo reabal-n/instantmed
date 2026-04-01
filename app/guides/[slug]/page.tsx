@@ -18,6 +18,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 
 interface PageProps {
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!guide) return {}
 
   return {
-    title: `${guide.title} | InstantMed`,
+    title: guide.title,
     description: guide.description,
     keywords: [
       guide.slug.split('-').join(' '),
@@ -321,6 +322,9 @@ export default async function GuidePage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

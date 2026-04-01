@@ -88,13 +88,13 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       // Send email using the same approach as initial approval
       const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
 
-      // Generate signed download URL (7-day expiry) so patient can download without login
+      // Generate signed download URL (72h expiry) so patient can download without login
       let downloadUrl: string | undefined
       if (certificate.storage_path) {
         try {
           const { data: signedUrlData } = await supabase.storage
             .from("documents")
-            .createSignedUrl(certificate.storage_path, 7 * 24 * 60 * 60)
+            .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60)
           downloadUrl = signedUrlData?.signedUrl ?? undefined
         } catch {
           logger.warn("Resend cert admin: failed to generate signed URL", { intakeId })

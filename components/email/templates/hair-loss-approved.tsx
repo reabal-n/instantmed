@@ -16,6 +16,7 @@ import {
   SuccessBanner,
   colors,
 } from "../base-email"
+import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface HairLossApprovedEmailProps {
   patientName: string
@@ -131,7 +132,7 @@ export function HairLossApprovedEmail({
 
       <Text muted small style={{ textAlign: "center" as const }}>
         Had a good experience?{" "}
-        <a href="https://g.page/r/CWqy3A7IKcX6EBI/review" style={{ color: colors.accent, fontWeight: 500 }}>
+        <a href={GOOGLE_REVIEW_URL} style={{ color: colors.accent, fontWeight: 500 }}>
           Leave a quick Google review
         </a>
         {" "}&mdash; it helps other Australians find us.

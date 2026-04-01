@@ -14,7 +14,8 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!condition || !combo) return {}
 
-  const title = `${condition.name} in ${cityName} | Medical Certificate Online | InstantMed`
+  const title = `${condition.name} in ${cityName} | Medical Certificate Online`
   const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment. ${PRICING_DISPLAY.FROM_MED_CERT}.`
 
   return {
@@ -92,6 +93,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
 
   return (
     <>
+      <HealthArticleSchema title={`${condition.name} in ${cityName}`} description={condition.description} url={`/conditions/${slug}/${city}`} />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
@@ -340,6 +342,8 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

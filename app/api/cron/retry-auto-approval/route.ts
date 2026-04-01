@@ -140,10 +140,14 @@ export async function GET(request: NextRequest) {
     // timeouts, slow AI draft gen) must still be auto-approved, not silently dropped to queue.
     const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 
+    // Cap retries at 10 attempts to prevent infinite retry loops on persistently failing intakes
+    const MAX_AUTO_APPROVAL_ATTEMPTS = 10
+
     const { data: eligibleIntakes, error: fetchError } = await supabase
       .from("intakes")
       .select(`
         id,
+        auto_approval_attempts,
         service:services!service_id(type),
         ai_approved
       `)
@@ -151,6 +155,7 @@ export async function GET(request: NextRequest) {
       .is("claimed_by", null)
       .eq("ai_approved", false)
       .eq("auto_approval_skipped", false)
+      .lt("auto_approval_attempts", MAX_AUTO_APPROVAL_ATTEMPTS)
       .lt("paid_at", delayAgo)
       .gt("paid_at", eightHoursAgo)
       .order("paid_at", { ascending: true })
@@ -185,8 +190,30 @@ export async function GET(request: NextRequest) {
     let failed = 0
     let draftsGenerated = 0
 
+    const CRON_CLAIM_ID = `cron-auto-approval-${Date.now()}`
+
     for (const intake of medCertIntakes) {
       try {
+        // Atomically claim the intake to prevent duplicate processing by overlapping cron runs.
+        // Only claims if still unclaimed (claimed_by IS NULL). Also increments attempt counter.
+        const currentAttempts = (intake as { auto_approval_attempts?: number }).auto_approval_attempts ?? 0
+        const { data: claimed, error: claimError } = await supabase
+          .from("intakes")
+          .update({
+            claimed_by: CRON_CLAIM_ID,
+            auto_approval_attempts: currentAttempts + 1,
+          })
+          .eq("id", intake.id)
+          .is("claimed_by", null)
+          .select("id")
+          .single()
+
+        if (claimError || !claimed) {
+          logger.info("Intake already claimed, skipping", { intakeId: intake.id })
+          skipped++
+          continue
+        }
+
         // Check if AI drafts exist — if not, generate them first
         const { data: existingDrafts } = await supabase
           .from("document_drafts")
@@ -229,7 +256,38 @@ export async function GET(request: NextRequest) {
           intakeId: intake.id,
           error: err instanceof Error ? err.message : String(err),
         })
+      } finally {
+        // Release the claim so the intake can be retried on the next cron run if it failed.
+        // Successful approvals change status to 'approved', so the claim field is irrelevant.
+        await supabase
+          .from("intakes")
+          .update({ claimed_by: null })
+          .eq("id", intake.id)
+          .eq("claimed_by", CRON_CLAIM_ID)
       }
+    }
+
+    // Check for intakes that just hit max attempts — alert so they don't get stuck silently
+    const { data: maxedOut } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("status", "paid")
+      .eq("ai_approved", false)
+      .eq("auto_approval_skipped", false)
+      .gte("auto_approval_attempts", MAX_AUTO_APPROVAL_ATTEMPTS)
+      .limit(10)
+
+    if (maxedOut && maxedOut.length > 0) {
+      const ids = maxedOut.map(i => i.id.slice(0, 8)).join(", ")
+      Sentry.captureMessage(`${maxedOut.length} intake(s) hit auto-approval retry cap (${MAX_AUTO_APPROVAL_ATTEMPTS})`, {
+        level: "warning",
+        tags: { subsystem: "cert-pipeline" },
+        extra: { intakeIds: maxedOut.map(i => i.id) },
+      })
+      logger.warn("Intakes hit auto-approval retry cap — falling to doctor queue", {
+        count: maxedOut.length,
+        intakeIds: ids,
+      })
     }
 
     logger.info("Retry auto-approval cron complete", {
@@ -246,6 +304,7 @@ export async function GET(request: NextRequest) {
       skipped,
       failed,
       draftsGenerated,
+      maxedOut: maxedOut?.length ?? 0,
     })
   } catch (error) {
     Sentry.captureException(error)

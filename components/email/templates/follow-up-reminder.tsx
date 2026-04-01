@@ -5,7 +5,7 @@
  * One-time touchpoint — gentle check-in, surfaces the consult product.
  */
 
-import { COMPANY_NAME, ABN } from "@/lib/constants"
+import { COMPANY_NAME, ABN, GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface FollowUpReminderEmailProps {
   patientName: string
@@ -61,7 +61,7 @@ export function renderFollowUpReminderEmail(props: FollowUpReminderEmailProps): 
               </p>
               <p style="font-size: 14px; color: #78716C; text-align: center; margin: 0 0 24px 0; padding-top: 16px; border-top: 1px solid #F5F5F4;">
                 Had a good experience?
-                <a href="https://g.page/r/CWqy3A7IKcX6EBI/review" style="color: #0D9488; text-decoration: none; font-weight: 500;">Leave a quick Google review</a>
+                <a href="${GOOGLE_REVIEW_URL}" style="color: #0D9488; text-decoration: none; font-weight: 500;">Leave a quick Google review</a>
                 — it helps other Australians find us.
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px auto; width: 100%;">

@@ -20,6 +20,7 @@ import { usePanel, DrawerPanel } from "@/components/panels"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
+import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
 import { capture } from "@/lib/analytics/capture"
@@ -381,6 +382,13 @@ export function PanelDashboard({
                 </div>
               ))}
           </div>
+        </section>
+      )}
+
+      {/* Google Review prompt — show after first completed request */}
+      {intakes.some(i => i.status === "approved" || i.status === "completed") && (
+        <section>
+          <GoogleReviewCard />
         </section>
       )}
 

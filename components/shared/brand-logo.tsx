@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
 interface BrandLogoProps {
@@ -26,17 +27,20 @@ export function BrandLogo({
   href = "/",
   onClick,
 }: BrandLogoProps) {
+  const { resolvedTheme } = useTheme()
   const { iconSize, textHeight, textWidth } = sizeConfig[size]
+  const logoSrc = resolvedTheme === "dark" ? "/branding/logo-dark.svg" : "/branding/logo-light.svg"
 
   const content = (
     <span className="flex items-center gap-2">
       <Image
-        src="/branding/logo.png"
+        src={logoSrc}
         alt="InstantMed"
         width={iconSize}
         height={iconSize}
         className="rounded-lg object-contain transition-opacity duration-200 group-hover:opacity-80"
         priority
+        unoptimized
       />
       {!iconOnly && (
         <Image

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
@@ -172,7 +173,7 @@ export function PricingClient() {
     <div className="flex min-h-screen flex-col">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }}
       />
       <Navbar variant="marketing" />
 

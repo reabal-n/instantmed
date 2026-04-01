@@ -3,6 +3,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { decryptIfNeeded } from "@/lib/security/encryption"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { sendViaResend } from "@/lib/email/resend"
 import { CONTACT_EMAIL } from "@/lib/constants"
@@ -68,9 +69,15 @@ interface PatientDataExport {
 export async function exportPatientData(): Promise<ExportDataResult> {
   try {
     const authUser = await getAuthenticatedUserWithProfile()
-    
+
     if (!authUser) {
       return { success: false, error: "Please sign in to export your data" }
+    }
+
+    // Rate limit: 5 exports per hour per patient (PHI decryption + heavy queries)
+    const rateLimit = await checkServerActionRateLimit(authUser.profile.id, "sensitive")
+    if (!rateLimit.success) {
+      return { success: false, error: "Too many export requests. Please try again later." }
     }
 
     const profile = authUser.profile

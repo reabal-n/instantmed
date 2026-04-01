@@ -142,6 +142,11 @@ export interface Intake {
   ai_approved: boolean
   ai_approved_at: string | null
   ai_approval_reason: string | null
+  // Batch review (doctor reviews auto-approved certs within 24h)
+  batch_reviewed_at: string | null
+  batch_reviewed_by: string | null
+  // Retry tracking
+  auto_approval_attempts: number
   // Client info
   client_ip: string | null
   client_user_agent: string | null

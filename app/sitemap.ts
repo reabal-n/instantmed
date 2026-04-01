@@ -5,6 +5,7 @@ import { getAllConditionSlugs } from "@/lib/seo/data/conditions"
 import { getAllConditionLocationComboSlugs } from "@/lib/seo/data/condition-location-combos"
 import { getAllGuideSlugs } from "@/lib/seo/data/guides"
 import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons"
+import { getAllMedications } from "@/lib/data/medications"
 
 // Build-time date for consistent lastModified values
 const BUILD_DATE = new Date()
@@ -46,6 +47,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/for",
     "/intent",
     "/sitemap-html",
+    "/clinical-governance",
+    "/our-doctors",
+    "/how-we-decide",
+    "/repeat-prescriptions",
+    "/weight-management",
+    "/hair-loss",
+    "/gp-consult",
+    "/refund-policy",
+    "/cookie-policy",
   ]
 
   const servicePages = [
@@ -65,6 +75,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/centrelink",
     "/medical-certificate/jury-duty",
   ]
+
+  // ── Medications (educational + service pages) ──
+  const medicationInfoSlugs = [
+    "amoxicillin", "metformin", "sildenafil", "trimethoprim", "doxycycline",
+    "sertraline", "pantoprazole", "omeprazole", "azithromycin", "citalopram",
+    "escitalopram", "fluoxetine", "loratadine", "cetirizine", "salbutamol",
+    "prednisolone", "naproxen", "diclofenac", "famotidine",
+    "amoxicillin-clavulanate", "cephalexin", "gabapentin", "propranolol",
+    "oral-contraceptive",
+  ]
+  const prescriptionMedSlugs = getAllMedications().map(m => m.slug)
 
   // ── Conditions + symptoms (medical content) ──
   const conditionSlugs = getAllConditionSlugs()
@@ -212,6 +233,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: CONTENT_ENRICHED_MARCH_2026,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+
+    // Medication info pages (educational)
+    ...medicationInfoSlugs.map((slug) => ({
+      url: `${baseUrl}/medications/${slug}`,
+      lastModified: CONTENT_ENRICHED_MARCH_2026,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+
+    // Prescription medication pages (service)
+    ...prescriptionMedSlugs.map((slug) => ({
+      url: `${baseUrl}/prescriptions/med/${slug}`,
+      lastModified: CONTENT_ENRICHED_MARCH_2026,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ]
 }

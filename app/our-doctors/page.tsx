@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     description:
       "Every request is reviewed by a real doctor. AHPRA-registered Australian GPs with years of clinical experience.",
   },
+  alternates: {
+    canonical: "https://instantmed.com.au/our-doctors",
+  },
 }
 
 interface DoctorProfile {

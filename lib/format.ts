@@ -38,11 +38,20 @@ export function formatDateLong(date: string | Date): string {
   })
 }
 
-/** Add N days to a date string and return as ISO date string (YYYY-MM-DD) */
+/**
+ * Add N days to a date string and return as ISO date string (YYYY-MM-DD).
+ *
+ * Uses UTC noon to avoid two timezone pitfalls:
+ * 1. new Date("YYYY-MM-DD") parses as UTC midnight — mixing local getDate/setDate
+ *    with toISOString() loses a day on US DST spring-forward (Vercel iad1).
+ * 2. UTC midnight can shift the calendar day when converted to AEST/AEDT.
+ */
 export function addDays(date: string | Date, days: number): string {
-  const d = new Date(date)
-  d.setDate(d.getDate() + days)
-  return d.toISOString().split("T")[0]!
+  const str = typeof date === "string" ? date : date.toISOString().split("T")[0]!
+  const [y, m, d] = str.split("-").map(Number)
+  const utcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
+  utcNoon.setUTCDate(utcNoon.getUTCDate() + days)
+  return utcNoon.toISOString().split("T")[0]!
 }
 
 /** "12/03/2026" — DD/MM/YYYY for certificates, DOB, issue date */

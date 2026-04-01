@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { HairLossGuideSection } from "@/components/marketing/sections/hair-loss-guide-section";
+import { safeJsonLd } from "@/lib/seo/safe-json-ld";
 import {
   ArrowRight,
   Clock,
@@ -291,7 +292,7 @@ function TreatmentOptions() {
 /* ------------------------------------------------------------------ */
 
 interface HairLossClientProps {
-  faqSchema: object;
+  faqSchema: Record<string, unknown>;
 }
 
 export function HairLossClient({ faqSchema }: HairLossClientProps) {
@@ -299,7 +300,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
     <MarketingPageShell>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
 
       <div className="flex min-h-screen flex-col">

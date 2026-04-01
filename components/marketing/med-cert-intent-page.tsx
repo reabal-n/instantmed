@@ -126,7 +126,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <AvailabilityIndicator variant="badge" />
+                <AvailabilityIndicator variant="badge" service="med-cert" />
               </motion.div>
 
               <div className="flex flex-col lg:flex-row items-center lg:gap-12">

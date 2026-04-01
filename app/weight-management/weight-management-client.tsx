@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield, CheckCircle2, Zap, MessageSquare, Target, Calendar, UserCheck, TrendingDown } from "lucide-react"
 import Link from "next/link"
@@ -9,6 +10,7 @@ import { AvailabilityIndicator } from "@/components/shared/availability-indicato
 import { CenteredHero } from "@/components/heroes"
 import { AccordionSection, ProcessSteps, CTABanner } from "@/components/sections"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { WeightManagementGuideSection } from "@/components/marketing/sections/weight-management-guide-section"
 
 export function WeightManagementClient() {
   const faqSchema = {
@@ -69,6 +71,30 @@ export function WeightManagementClient() {
           question: "How much does the program cost?",
           answer: "Initial consultation is $49.95. This includes your assessment, doctor review, and personalised plan. Medication costs are separate and vary depending on treatment.",
         },
+        {
+          question: "Is this covered by Medicare or private health insurance?",
+          answer: "The consultation itself is not covered by Medicare as it's a private telehealth service. However, some prescribed medications may be PBS-subsidised, which significantly reduces their cost. Private health insurance typically doesn't cover telehealth consultations or weight management medications, but check with your fund — policies vary. Your doctor will discuss medication costs and any PBS eligibility during your consultation.",
+        },
+        {
+          question: "What if I've tried weight loss treatment before and it didn't work?",
+          answer: "Previous treatment experience is actually useful information for your doctor. There are multiple categories of weight management medication that work through different biological mechanisms — what didn't work before may not be relevant to a different approach. Your doctor will ask about what you've tried, what happened, and why it didn't work out, then recommend an approach that accounts for that history. Sometimes the issue was the wrong treatment, sometimes the wrong dose, and sometimes the timing wasn't right.",
+        },
+        {
+          question: "Can I use this alongside my existing GP care?",
+          answer: "Absolutely, and we encourage it. Our doctors can work alongside your regular GP — we'll provide documentation of your treatment plan that you can share with them. If you have existing conditions being managed by your GP (diabetes, blood pressure, etc.), it's important they're aware of any new medications. We're happy to communicate directly with your GP if you consent to it.",
+        },
+        {
+          question: "What happens if I experience side effects?",
+          answer: "Side effects are discussed upfront before any treatment starts, so you know what to watch for. If you experience side effects, contact us through your patient dashboard — your doctor will review and may adjust your dose, change the timing of your medication, or recommend a different treatment. Most common side effects (particularly gastrointestinal ones) improve within the first few weeks as your body adjusts. Your doctor won't keep you on a treatment that's making you miserable.",
+        },
+        {
+          question: "Do I need blood tests before starting?",
+          answer: "It depends on your health profile. Your doctor may recommend baseline blood tests — particularly for blood sugar, thyroid function, liver and kidney function — before starting certain treatments. This helps rule out underlying conditions that could be contributing to weight gain and ensures the chosen medication is safe for you. If blood tests are needed, your doctor will explain which ones and why. You can have them done at any pathology lab.",
+        },
+        {
+          question: "What's the difference between this and a weight loss clinic?",
+          answer: "Most commercial weight loss clinics focus on meal plans, supplements, or a single branded program. Medical weight management through InstantMed is a doctor-led service using TGA-approved treatments prescribed based on your individual health assessment. Your doctor considers your full medical history, current medications, and health conditions — not just your weight. There's no upselling, no proprietary shakes, and no lock-in contracts. It's straightforward medical care for a medical condition.",
+        },
       ],
     },
   ]
@@ -98,7 +124,7 @@ export function WeightManagementClient() {
 
   return (
     <MarketingPageShell>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -261,6 +287,9 @@ export function WeightManagementClient() {
               </div>
             </div>
           </section>
+
+          {/* Guide Section */}
+          <WeightManagementGuideSection />
 
           {/* FAQs */}
           <AccordionSection

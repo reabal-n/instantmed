@@ -1,5 +1,6 @@
 import "server-only"
 
+import * as Sentry from "@sentry/nextjs"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendFromOutboxRow, claimOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
@@ -52,8 +53,9 @@ function isSupportedEmailType(emailType: string): boolean {
 /**
  * Permanently fail an outbox row so it won't be retried.
  * Sets retry_count=MAX_RETRIES and status=failed with clear error message.
+ * Fires a Sentry warning so exhausted emails are visible in error monitoring.
  */
-async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string): Promise<void> {
+async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string, context?: { emailType?: string; toEmail?: string; intakeId?: string | null }): Promise<void> {
   const supabase = createServiceRoleClient()
   await supabase
     .from("email_outbox")
@@ -64,6 +66,19 @@ async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string):
       last_attempt_at: new Date().toISOString(),
     })
     .eq("id", outboxId)
+
+  // Alert: permanently failed emails need ops visibility
+  Sentry.captureMessage(`Email permanently failed after ${MAX_RETRIES} retries: ${errorMessage}`, {
+    level: "warning",
+    tags: { subsystem: "email-dispatcher", email_type: context?.emailType ?? "unknown" },
+    extra: { outboxId, intakeId: context?.intakeId ?? null },
+  })
+  logger.error("[Email Dispatcher] Email permanently failed — exhausted all retries", {
+    outboxId,
+    emailType: context?.emailType,
+    intakeId: context?.intakeId,
+    error: errorMessage,
+  })
 }
 
 function getBackoffMinutes(retryCount: number): number {
@@ -159,9 +174,10 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     const claimedRow = claim.row!
 
     // STEP 2: Validate required fields
+    const rowContext = { emailType: claimedRow.email_type, toEmail: claimedRow.to_email, intakeId: claimedRow.intake_id }
     if (claimedRow.email_type === "med_cert_patient" && !claimedRow.certificate_id) {
       logger.warn("[Email Dispatcher] med_cert_patient without certificate_id - permanent fail", { id: row.id })
-      await permanentlyFailOutboxRow(row.id, "Missing certificate_id - cannot reconstruct email")
+      await permanentlyFailOutboxRow(row.id, "Missing certificate_id - cannot reconstruct email", rowContext)
       failed++
       results.push({ id: row.id, success: false, error: "Missing certificate_id" })
       continue
@@ -170,7 +186,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     // STEP 3: Check for unsupported email types
     if (!isSupportedEmailType(claimedRow.email_type)) {
       logger.warn("[Email Dispatcher] Unsupported email_type - permanent fail", { id: row.id, type: claimedRow.email_type })
-      await permanentlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`)
+      await permanentlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`, rowContext)
       failed++
       results.push({ id: row.id, success: false, error: `Unsupported email_type: ${claimedRow.email_type}` })
       continue
@@ -178,13 +194,27 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     // STEP 4: Send the email
     const result = await sendFromOutboxRow(claimedRow)
-    
+
     if (result.success) {
       sent++
     } else {
       failed++
+      // Alert if this failure just exhausted all retries
+      if (claimedRow.retry_count + 1 >= MAX_RETRIES) {
+        Sentry.captureMessage(`Email exhausted all ${MAX_RETRIES} retries`, {
+          level: "warning",
+          tags: { subsystem: "email-dispatcher", email_type: claimedRow.email_type },
+          extra: { outboxId: row.id, intakeId: claimedRow.intake_id, lastError: result.error },
+        })
+        logger.error("[Email Dispatcher] Email exhausted all retries", {
+          outboxId: row.id,
+          emailType: claimedRow.email_type,
+          intakeId: claimedRow.intake_id,
+          lastError: result.error,
+        })
+      }
     }
-    
+
     results.push({ id: row.id, success: result.success, error: result.error })
   }
 

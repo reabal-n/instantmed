@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Users } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { AccordionSection } from "@/components/sections"
 
 export const metadata: Metadata = {
-  title: "Telehealth for Your Industry | InstantMed",
+  title: "Telehealth for Your Industry",
   description: "Find out how InstantMed works for your profession. Medical certificates, prescriptions, and consultations tailored for students, nurses, tradies, shift workers, and more.",
   openGraph: {
     title: "Telehealth for Your Industry | InstantMed",
@@ -34,6 +35,41 @@ const audiences = [
   { slug: "employers", name: "Employers", description: "How InstantMed certificates meet workplace requirements" },
 ]
 
+const audienceFaqs = [
+  {
+    question: "Do you offer different services for different industries?",
+    answer: "The core service is the same for everyone — doctor-reviewed medical certificates, prescriptions, and consultations. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
+  },
+  {
+    question: "Are certificates accepted by all employers?",
+    answer: "Our medical certificates are issued by AHPRA-registered doctors and are legally valid under the Fair Work Act. They're accepted by employers across all industries, just like a certificate from your local GP.",
+  },
+  {
+    question: "Is there a discount for students?",
+    answer: "Our prices are the same for everyone, starting at $19.95 for a one-day medical certificate. We keep prices low across the board rather than adding surcharges for some groups and discounts for others.",
+  },
+  {
+    question: "Can my employer verify my certificate?",
+    answer: "Every certificate includes a unique verification ID and the issuing doctor's details. Employers can confirm its authenticity if needed. We take certificate integrity seriously — it protects both you and us.",
+  },
+  {
+    question: "Do you cover carer's leave certificates?",
+    answer: "Yes. If you need time off to care for a family member or dependent, our doctors can issue a medical certificate for carer's leave where clinically appropriate. This applies to parents, carers, and anyone with caring responsibilities.",
+  },
+  {
+    question: "Is the service available outside business hours?",
+    answer: "We're available 8am to 10pm AEST, 7 days a week — including weekends and public holidays. Handy if you work odd hours or realise on a Sunday night that you need a certificate for Monday.",
+  },
+  {
+    question: "Can my company set up a corporate account?",
+    answer: "We're working on corporate partnerships for businesses that want streamlined telehealth access for their teams. Get in touch at support@instantmed.com.au if you're interested.",
+  },
+  {
+    question: "Do I need Medicare to use InstantMed?",
+    answer: "Medicare isn't required for medical certificates. For prescriptions and consultations, you'll need a valid Medicare card. We don't bulk bill — our service sits outside the Medicare system.",
+  },
+]
+
 export default function ForPage() {
   return (
     <>
@@ -41,6 +77,7 @@ export default function ForPage() {
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "For Your Industry", url: "https://instantmed.com.au/for" },
       ]} />
+      <FAQSchema faqs={audienceFaqs} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -78,6 +115,15 @@ export default function ForPage() {
                     </span>
                   </Link>
                 ))}
+              </div>
+
+              {/* FAQ Section */}
+              <div className="mt-16">
+                <AccordionSection
+                  groups={[{ items: audienceFaqs }]}
+                  title="Common Questions"
+                  subtitle="What people ask before getting started"
+                />
               </div>
 
               <div className="mt-12 text-center">

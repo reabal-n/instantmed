@@ -30,6 +30,7 @@ import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
+import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
@@ -826,6 +827,9 @@ export function GeneralConsultLanding() {
         </main>
 
         <MarketingFooter />
+
+        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        <ContentHubLinks service="general-consult" />
 
         {/* Related articles — SEO internal linking, after footer */}
         <RelatedArticles />

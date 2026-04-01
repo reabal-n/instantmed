@@ -6,7 +6,7 @@
 
 InstantMed provides three core telehealth services to Australian residents (18+):
 
-1. **Medical Certificates** — Online medical certificates for work, study, or carer's leave. Reviewed by a registered doctor, typically within 1–2 hours. Valid for Australian employers and educational institutions. From $19.95.
+1. **Medical Certificates** — Online medical certificates for work, study, or carer's leave. Typically issued in under 30 minutes, available 24/7. Valid for Australian employers and educational institutions. From $19.95.
 
 2. **Prescriptions** — Repeat prescription requests for existing medications. A doctor reviews your history and, if appropriate, issues an electronic prescription (eScript) sent to your phone. From $29.95.
 
@@ -19,7 +19,7 @@ InstantMed provides three core telehealth services to Australian residents (18+)
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Doctors:** AHPRA-registered Australian general practitioners
 - **Hours:** 8am–10pm AEST, 7 days a week
-- **Turnaround:** Most requests reviewed within 1–2 hours
+- **Turnaround:** Medical certificates in under 30 minutes (24/7). Other requests reviewed within 1–2 hours
 - **Payment:** Secure online payment (credit/debit card)
 - **Refund policy:** Full refund if a doctor cannot approve your request
 - **Medicare:** Optional for medical certificates, required for prescriptions

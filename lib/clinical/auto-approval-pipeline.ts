@@ -11,7 +11,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { getFeatureFlags } from "@/lib/feature-flags"
-import { evaluateAutoApprovalEligibility, extractDurationDays } from "./auto-approval"
+import { evaluateAutoApprovalEligibility, extractDurationDays, extractStartDate } from "./auto-approval"
 import { executeCertApproval } from "@/lib/cert/execute-approval"
 import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -95,19 +95,24 @@ async function logAutoApprovalAudit(
   intakeId: string,
   eligible: boolean,
   reason: string,
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>,
+  doctorId?: string
 ): Promise<void> {
   try {
     await supabase.from("ai_audit_log").insert({
       intake_id: intakeId,
-      action: "auto_approve",
+      action: "auto_approve_evaluation",
       draft_type: "med_cert",
       draft_id: null,
-      actor_id: SYSTEM_AUTO_APPROVE_ID,
-      actor_type: "system",
+      // Attribute to the real doctor when available (post-selection),
+      // fall back to system for pre-selection eligibility checks
+      actor_id: doctorId || SYSTEM_AUTO_APPROVE_ID,
+      actor_type: doctorId ? "doctor_delegated" : "system",
       metadata: {
         eligible,
         reason,
+        approval_pathway: "ai_assisted_clinical_decision_support",
+        clinical_logic_version: "deterministic_v1",
         ...metadata,
       },
     })
@@ -153,6 +158,10 @@ const DETERMINISTIC_FAILURE_PREFIXES = [
   "emergency:", "patient_under_18", "wrong_service_type", "service_type_mismatch",
   "mental_health:", "injury:", "chronic:", "pregnancy:",
   "empty_symptom_text", "backdated_too_far",
+  "overlapping_cert_dates",
+  // Note: repeat_request_within_7d is NOT deterministic — it may become eligible
+  // after the 7-day window passes. The retry cron's 8-hour window means this
+  // won't change within a single retry cycle, but we don't mark it permanent.
 ]
 
 function isDeterministicFailure(flags: string[]): boolean {
@@ -175,16 +184,21 @@ function isDeterministicFailure(flags: string[]): boolean {
 export async function attemptAutoApproval(intakeId: string): Promise<AutoApprovalResult> {
   const startTime = Date.now()
 
+  // doctorId is set after round-robin selection; trackOutcome uses it when available
+  let selectedDoctorId: string | null = null
+
   const trackOutcome = (outcome: string, reason: string, extra?: Record<string, unknown>) => {
     try {
       const posthog = getPostHogClient()
       posthog.capture({
-        distinctId: "system-auto-approve",
-        event: "auto_approval_outcome",
+        // Use real doctor as distinctId when available, system fallback for pre-selection failures
+        distinctId: selectedDoctorId || "system-auto-approve",
+        event: "cert_approval_pipeline",
         properties: {
           intake_id: intakeId,
           outcome, // "approved", "skipped", "failed", "rate_limited", "not_eligible", "dry_run"
           reason,
+          approval_method: "ai_assisted",
           duration_ms: Date.now() - startTime,
           ...extra,
         },
@@ -327,12 +341,51 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     // Count previous successful auto-approvals for this patient (trust building)
     const patientId = intake.patient_id
-    const { count: previousApprovalCount } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("patient_id", patientId)
-      .eq("ai_approved", true)
-      .eq("status", "approved")
+
+    // Run patient history queries in parallel for performance
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const [
+      { count: previousApprovalCount },
+      { count: recentCertCount },
+    ] = await Promise.all([
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("patient_id", patientId)
+        .eq("ai_approved", true)
+        .eq("status", "approved"),
+      // 6b. Repeat request detection — certs approved for this patient in last 7 days
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("patient_id", patientId)
+        .eq("status", "approved")
+        .eq("category", "medical_certificate")
+        .gte("reviewed_at", sevenDaysAgo)
+        .neq("id", intakeId),
+    ])
+
+    // 6c. Overlapping date detection — check if requested dates overlap an existing approved cert
+    let hasOverlappingCert = false
+    const requestedStart = extractStartDate(answersData)
+    const requestedDuration = extractDurationDays(answersData)
+    if (requestedStart && requestedDuration) {
+      const [y, m, d] = requestedStart.split("-").map(Number)
+      const startUtc = new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
+      startUtc.setUTCDate(startUtc.getUTCDate() + requestedDuration - 1)
+      const requestedEnd = startUtc.toISOString().slice(0, 10)
+
+      const { data: overlapping } = await supabase
+        .from("issued_certificates")
+        .select("id")
+        .eq("patient_id", patientId)
+        .is("revoked_at", null)
+        .lte("start_date", requestedEnd)
+        .gte("end_date", requestedStart)
+        .limit(1)
+
+      hasOverlappingCert = (overlapping?.length ?? 0) > 0
+    }
 
     // 7. Evaluate eligibility (with configurable max duration from admin settings)
     const eligibility = evaluateAutoApprovalEligibility(
@@ -344,15 +397,24 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           : null,
       },
       patientInfo,
-      { maxDurationDays: featureFlags.auto_approve_max_duration_days, previousApprovalCount: previousApprovalCount ?? 0 },
+      {
+        maxDurationDays: featureFlags.auto_approve_max_duration_days,
+        previousApprovalCount: previousApprovalCount ?? 0,
+        recentCertCount: recentCertCount ?? 0,
+        hasOverlappingCert,
+      },
     )
 
-    // Log eligibility decision regardless of outcome
+    // Log eligibility decision regardless of outcome — includes engine version for compliance
     await logAutoApprovalAudit(supabase, intakeId, eligibility.eligible, eligibility.reason, {
       disqualifyingFlags: eligibility.disqualifyingFlags,
       softFlags: eligibility.softFlags,
       service_slug: service.slug,
       duration_days: extractDurationDays(answersData),
+      engine_version: eligibility.engineVersion,
+      checks_applied: eligibility.checksApplied,
+      recent_cert_count: recentCertCount ?? 0,
+      has_overlapping_cert: hasOverlappingCert,
     })
 
     if (!eligibility.eligible) {
@@ -383,23 +445,36 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     }
 
     // 8. Round-robin doctor selection: pick the doctor with fewest recent approvals
-    const { data: doctors, error: doctorError } = await supabase
+    // Only select doctors whose AHPRA verification has not expired (ahpra_next_review_at
+    // is null — no expiry set — or in the future). This prevents issuing certificates
+    // under credentials that may have lapsed.
+    const nowIso = new Date().toISOString()
+    const { data: allDoctors, error: doctorError } = await supabase
       .from("profiles")
-      .select("id, full_name, provider_number, ahpra_number")
+      .select("id, full_name, provider_number, ahpra_number, ahpra_next_review_at")
       .in("role", ["doctor", "admin"])
       .eq("ahpra_verified", true)
       .not("provider_number", "is", null)
       .not("ahpra_number", "is", null)
 
-    if (doctorError || !doctors || doctors.length === 0) {
-      log.error("Auto-approval: no available doctor with credentials", { intakeId, error: doctorError?.message })
-      Sentry.captureMessage("Auto-approval failed: no doctor with credentials available", {
+    // Filter out doctors whose ahpra_next_review_at has passed
+    const doctors = (allDoctors || []).filter(d => {
+      if (!d.ahpra_next_review_at) return true // no expiry set — allow
+      return d.ahpra_next_review_at > nowIso
+    })
+
+    if (doctorError || doctors.length === 0) {
+      const reason = allDoctors && allDoctors.length > 0 && doctors.length === 0
+        ? "All doctors have overdue AHPRA verification"
+        : "No doctor with credentials found"
+      log.error("Auto-approval: no available doctor with valid credentials", { intakeId, error: doctorError?.message, reason })
+      Sentry.captureMessage(`Auto-approval failed: ${reason}`, {
         level: "error",
-        tags: { subsystem: "auto-approval", intake_id: intakeId },
+        tags: { subsystem: "cert-pipeline", intake_id: intakeId },
       })
       await releaseSystemClaim(supabase, intakeId)
-      trackOutcome("failed", "no_doctor")
-      return { success: false, autoApproved: false, reason: "No doctor available", error: "No doctor with credentials found" }
+      trackOutcome("failed", "no_doctor", { reason })
+      return { success: false, autoApproved: false, reason: "No doctor available", error: reason }
     }
 
     // If only one doctor, use them directly
@@ -420,6 +495,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       doctorCounts.sort((a, b) => a.count - b.count)
       doctor = doctorCounts[0].doctor
     }
+
+    // Set selectedDoctorId so PostHog events attribute to the real doctor
+    selectedDoctorId = doctor.id
 
     // 9. Build review data from answers
     const reviewData = buildReviewDataFromAnswers(answersData, doctor.full_name)
@@ -472,12 +550,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       })
 
       // Structured Sentry event for monitoring dashboards
-      Sentry.captureMessage("AI auto-approval: certificate issued", {
+      Sentry.captureMessage("Certificate issued via clinical decision support", {
         level: "info",
         tags: {
-          subsystem: "auto-approval",
+          subsystem: "cert-pipeline",
           intake_id: intakeId,
           outcome: "approved",
+          approval_method: "ai_assisted",
         },
         extra: {
           certificateId: approvalResult.certificateId,
@@ -485,15 +564,15 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           durationMs,
           emailSent: approvalResult.emailSent,
         },
-        fingerprint: ["auto-approval", "success"],
+        fingerprint: ["cert-pipeline", "ai-assisted", "success"],
       })
 
-      await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued", {
+      await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued via clinical decision support", {
         certificate_id: approvalResult.certificateId,
         doctor_id: doctor.id,
         duration_ms: durationMs,
         email_sent: approvalResult.emailSent,
-      })
+      }, doctor.id)
 
       trackOutcome("approved", "auto_approved", { certificate_id: approvalResult.certificateId })
 

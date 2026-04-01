@@ -3,11 +3,11 @@ import ClinicalGovernanceClient from "./clinical-governance-client"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Clinical Governance",
+  title: "Clinical Governance | Medical Standards",
   description:
-    "Learn how InstantMed maintains clinical standards through Medical Director oversight, RACGP-aligned protocols, and regular audits.",
+    "Medical Director oversight, RACGP-aligned protocols, and regular clinical audits. How InstantMed maintains Australian healthcare standards.",
   openGraph: {
-    title: "Clinical Governance | InstantMed",
+    title: "Clinical Governance | Medical Standards | InstantMed",
     description:
       "Our clinical processes are designed by practising GPs and reviewed regularly to meet Australian standards.",
   },

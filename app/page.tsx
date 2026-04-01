@@ -31,7 +31,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: { absolute: 'Online Doctor Australia | Med Certs & Medication | InstantMed' },
-  description: 'Medical certificates from $19.95, repeat medication from $29.95. AHPRA-registered Australian doctors. Most requests reviewed within 1–2 hours, 100% online.',
+  description: 'Medical certificates from $19.95 — issued in under 30 minutes, 24/7. Repeat medication from $29.95. AHPRA-registered Australian doctors, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Online Doctor Australia | Med Certs & Medication | InstantMed',
-    description: 'Medical certificates and repeat medication. Most requests reviewed within 1–2 hours by Australian-registered doctors.',
+    description: 'Medical certificates issued in under 30 minutes, 24/7. Repeat medication reviewed by Australian-registered doctors.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates and repeat medication. Most requests reviewed within 1–2 hours.',
+    description: 'Medical certificates issued in under 30 minutes, 24/7. Repeat medication reviewed by Australian doctors.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
@@ -92,7 +92,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description="Get medical certificates, repeat medication and doctor consults online from $19.95. AHPRA-registered Australian doctors. Most requests reviewed within 1-2 hours."
+        description="Get medical certificates in under 30 minutes, 24/7. Repeat medication and doctor consults online from $19.95. AHPRA-registered Australian doctors."
         url="/"
       />
 
@@ -126,7 +126,7 @@ export default async function HomePage() {
         {/* Hero with main value prop — LCP p passed as children for server render */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
-            Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Reviewed within 1–2 hours, most days.
+            Medical certificates in under 30 minutes, 24/7. Prescriptions and consultations reviewed by real Australian doctors. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest.
           </p>
         </Hero>
 

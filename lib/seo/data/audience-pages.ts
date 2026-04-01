@@ -48,7 +48,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "Works around your roster • Hospitals accept • AHPRA doctors",
     icon: Stethoscope,
     metadata: {
-      title: "Medical Certificates for Nurses | Healthcare Workers | InstantMed",
+      title: "Medical Certificates for Nurses | Online",
       description:
         "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, usually under 1 hour. Accepted by hospitals and aged care. 8am-10pm, 7 days.",
       keywords: [
@@ -70,6 +70,38 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "What if I work night shift?",
         a: "Submit your request anytime. If it's after 10pm, we'll process it from 8am. You can also submit in the morning after a night shift.",
+      },
+      {
+        q: "How much does a medical certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. No hidden fees. If our doctor is unable to issue your certificate, you receive a full refund.",
+      },
+      {
+        q: "Can my employer see my diagnosis?",
+        a: "No. Your certificate states that you were assessed and found unfit for work. It does not include your diagnosis, symptoms, or clinical notes. Your privacy is protected under Australian health privacy law.",
+      },
+      {
+        q: "Can I get a carer's leave certificate?",
+        a: "Yes. If you need time off to care for an unwell family member or household member, we can issue a carer's leave certificate. This uses your personal leave balance under the Fair Work Act.",
+      },
+      {
+        q: "Are online medical certificates legally valid?",
+        a: "Yes. Telehealth certificates issued by AHPRA-registered doctors have the same legal standing as in-person GP certificates under the Fair Work Act. There is no distinction in Australian law.",
+      },
+      {
+        q: "Can I get a certificate for more than one day?",
+        a: "Yes. We issue certificates for 1, 2, or 3 days. If you need longer, the doctor may recommend an in-person assessment.",
+      },
+      {
+        q: "What if my hospital requires a certificate from day one?",
+        a: "Many healthcare employers require a certificate for any absence. We can issue same-day certificates so you have documentation ready before your next rostered shift.",
+      },
+      {
+        q: "Do I need to provide my Medicare card?",
+        a: "No. Medicare is not required for medical certificates. You pay a flat fee and receive your certificate directly — no Medicare rebate applies, but no Medicare card is needed either.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "If our doctor determines they cannot issue a certificate based on the information provided, you receive a full refund. They may also recommend you see a GP in person.",
       },
     ],
     whyChoose: [
@@ -119,7 +151,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "No relief needed to see a doctor • All schools accept • Usually under 1 hour",
     icon: GraduationCap,
     metadata: {
-      title: "Medical Certificates for Teachers | Education Staff | InstantMed",
+      title: "Medical Certificates for Teachers | Online",
       description:
         "Teachers: get a medical certificate without taking time off. Doctor-reviewed, usually under 1 hour. Accepted by all Australian schools. Complete during lunch or after school.",
       keywords: [
@@ -141,6 +173,38 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "What about casual relief teachers?",
         a: "Same process. Get your certificate, forward to your agency or school. Valid for all employers.",
+      },
+      {
+        q: "How much does a certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. If the doctor cannot issue your certificate, you receive a full refund.",
+      },
+      {
+        q: "Will my school see my diagnosis on the certificate?",
+        a: "No. The certificate confirms you were assessed and found unfit for work. It does not include your diagnosis or clinical details. Your school only needs to know you have a valid certificate.",
+      },
+      {
+        q: "Can I get a certificate for a mental health day?",
+        a: "Yes. Mental health is covered under personal leave provisions — the same as physical illness. The certificate will not specify the nature of your condition.",
+      },
+      {
+        q: "Can I get a carer's leave certificate for my child?",
+        a: "Yes. If your child is unwell and you need time off to care for them, we can issue a carer's leave certificate. This covers your absence from school work duties.",
+      },
+      {
+        q: "Are these certificates valid under education department policies?",
+        a: "Yes. Our certificates are issued by AHPRA-registered doctors and meet the requirements of all Australian education departments, Catholic education offices, and independent school authorities.",
+      },
+      {
+        q: "What if I need a certificate before 8am for a morning absence?",
+        a: "Our hours are 8am-10pm AEST. If you know you will be unwell, submit your request the evening before. Otherwise, submit at 8am and you will typically have your certificate within an hour.",
+      },
+      {
+        q: "Can I get a multi-day certificate?",
+        a: "Yes. We issue certificates for 1, 2, or 3 days. For longer absences, the doctor may recommend an in-person assessment.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may recommend you see a GP in person for a more thorough assessment.",
       },
     ],
     whyChoose: [
@@ -190,7 +254,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "Works around your roster • Restaurants & hotels accept • 7 days",
     icon: Coffee,
     metadata: {
-      title: "Medical Certificates for Hospitality Workers | InstantMed",
+      title: "Medical Certificates for Hospitality Workers",
       description:
         "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed, usually under 1 hour. Accepted by restaurants, hotels, venues.",
       keywords: [
@@ -211,7 +275,39 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I need it before my evening shift?",
-        a: "Submit in the morning or afternoon. Most certificates are issued withonline during operating hours.",
+        a: "Medical certificates are available 24/7 and typically issued in under 30 minutes. Submit anytime.",
+      },
+      {
+        q: "How much does a medical certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. No hidden fees. Full refund if the doctor is unable to issue your certificate.",
+      },
+      {
+        q: "Will my employer see what I was sick with?",
+        a: "No. The certificate confirms you were assessed and found unfit for work. It does not include your diagnosis, symptoms, or any clinical details. Your privacy is protected.",
+      },
+      {
+        q: "Can I get a certificate for gastro with the 48-hour exclusion?",
+        a: "Yes. Food handlers are legally required to stay away from work for 48 hours after symptoms stop. Our certificate documents this for your employer and satisfies food safety requirements.",
+      },
+      {
+        q: "I'm a casual — do I still need a certificate?",
+        a: "You may not have paid sick leave, but a certificate still protects your employment relationship. An unexplained absence is more likely to cost you shifts than a documented one.",
+      },
+      {
+        q: "Can I get a certificate for a mental health day?",
+        a: "Yes. Mental health is a valid reason for personal leave. The certificate will not specify the nature of your condition — your employer only sees that you were assessed by a doctor.",
+      },
+      {
+        q: "Are these certificates valid under the Fair Work Act?",
+        a: "Yes. Certificates from AHPRA-registered doctors — whether issued via telehealth or in person — have the same legal standing under Australian employment law.",
+      },
+      {
+        q: "Can I get a multi-day certificate?",
+        a: "Yes. We issue certificates for 1, 2, or 3 days. For longer absences, the doctor may recommend an in-person assessment.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may suggest you see a GP in person for further assessment.",
       },
     ],
     whyChoose: [
@@ -259,7 +355,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "Works around your roster • All retailers accept • Usually under 1 hour",
     icon: ShoppingBag,
     metadata: {
-      title: "Medical Certificates for Retail Workers | InstantMed",
+      title: "Medical Certificates for Retail Workers",
       description:
         "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed, usually under 1 hour. Accepted by supermarkets, shops, and warehouses.",
       keywords: [
@@ -277,6 +373,38 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "I work irregular hours — when can I get one?",
         a: "We're available 8am-10pm AEST, 7 days. Submit when it suits you — before work, on a break, or after your shift.",
+      },
+      {
+        q: "How much does a medical certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor cannot issue your certificate.",
+      },
+      {
+        q: "Will my manager see what I was sick with?",
+        a: "No. The certificate states you were assessed and found unfit for work. No diagnosis, no symptoms, no clinical details. Your medical information stays private.",
+      },
+      {
+        q: "I'm a casual retail worker — is a certificate still useful?",
+        a: "Yes. Even without paid sick leave, a certificate protects your shifts. Managers are more understanding when an absence is documented. It also supports any future dispute under the Fair Work Act.",
+      },
+      {
+        q: "Can I get a certificate for a mental health day?",
+        a: "Yes. Mental health conditions are covered under personal leave. The certificate does not specify the nature of your illness — your employer only sees that a doctor assessed you.",
+      },
+      {
+        q: "Are these certificates valid under the General Retail Industry Award?",
+        a: "Yes. Our certificates meet all requirements under the General Retail Industry Award 2020 and the Fair Work Act. They are issued by AHPRA-registered doctors.",
+      },
+      {
+        q: "Can I get a certificate on a weekend or public holiday?",
+        a: "Yes. We operate 8am-10pm AEST, 7 days a week — including weekends and public holidays. Retail never stops, and neither do we.",
+      },
+      {
+        q: "Can I get a carer's leave certificate?",
+        a: "Yes. If you need time off to care for an unwell family member, we can issue a carer's leave certificate. This uses your personal leave balance.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may recommend you visit a GP in person for further assessment.",
       },
     ],
     whyChoose: [
@@ -324,7 +452,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "From your desk or home • Usually under 1 hour • All employers accept",
     icon: Briefcase,
     metadata: {
-      title: "Medical Certificates for Office Workers | InstantMed",
+      title: "Medical Certificates for Office Workers",
       description:
         "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed, usually under 1 hour. Accepted by corporate and government employers.",
       keywords: [
@@ -342,6 +470,38 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "Can I do this from work?",
         a: "Yes. The form takes 2 minutes. Complete it during a break. Your certificate arrives via email — forward to HR.",
+      },
+      {
+        q: "How much does a medical certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. If the doctor cannot issue your certificate, you receive a full refund.",
+      },
+      {
+        q: "Will HR see my diagnosis?",
+        a: "No. The certificate confirms you were assessed and found unfit for work. It does not include your diagnosis, symptoms, or clinical notes. HR only sees what they need to process your leave.",
+      },
+      {
+        q: "Can I use this for a mental health day?",
+        a: "Yes. Mental health is covered under personal leave — the same entitlement as physical illness. Your certificate will not specify the nature of your condition.",
+      },
+      {
+        q: "Are these certificates accepted by government employers?",
+        a: "Yes. Commonwealth, state, and local government employers all accept certificates from AHPRA-registered doctors. Telehealth certificates carry the same legal weight as in-person ones.",
+      },
+      {
+        q: "Can I get a carer's leave certificate?",
+        a: "Yes. If you need time off to care for an unwell family member or household member, we can issue a carer's leave certificate that supports your leave application.",
+      },
+      {
+        q: "What if my employer requires a certificate from day one?",
+        a: "Some corporate policies require documentation for any absence. We issue certificates same-day, so you can have your documentation ready before you even email HR.",
+      },
+      {
+        q: "Can I submit the certificate electronically?",
+        a: "Yes. Your certificate is delivered as a secure PDF via email. Forwarding it to HR or uploading it to your leave management system is legally valid — no paper copy required.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may recommend you see a GP in person for a more thorough assessment.",
       },
     ],
     whyChoose: [
@@ -390,7 +550,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "Carer's leave • School absence • No clinic visit needed",
     icon: Users,
     metadata: {
-      title: "Medical Certificates for Parents | Carer's Leave | InstantMed",
+      title: "Medical Certificates for Parents | Carer's Leave",
       description:
         "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. Doctor-reviewed, usually under 1 hour.",
       keywords: [
@@ -412,6 +572,42 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "Do I need to take my child to a clinic?",
         a: "No. You describe their symptoms. For straightforward cases, we can issue documentation without a clinic visit. If they need urgent care, we'll advise.",
+      },
+      {
+        q: "How much does it cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor is unable to issue the certificate.",
+      },
+      {
+        q: "Will the certificate show my child's diagnosis?",
+        a: "No. The certificate states that your child was assessed and found unfit for school or care. It does not include the specific diagnosis or clinical details.",
+      },
+      {
+        q: "Can I use the same certificate for both school and my work?",
+        a: "Yes. A single certificate documenting your child's illness covers their school absence and supports your carer's leave application at work. Two birds, one form.",
+      },
+      {
+        q: "What age does my child need to be?",
+        a: "We can issue certificates for children of any age. A parent or legal guardian completes the form on the child's behalf and provides details about their symptoms.",
+      },
+      {
+        q: "Does my child need a Medicare card?",
+        a: "No. Medicare is not required for medical certificates. You pay a flat fee and receive the certificate directly.",
+      },
+      {
+        q: "Can I get a certificate for my own illness too?",
+        a: "Yes. If you are also unwell — which happens often when kids bring something home — you can submit a separate request for your own certificate.",
+      },
+      {
+        q: "What if the school requires a certificate for absences near holidays?",
+        a: "Some schools request medical documentation for absences immediately before or after school holidays. Our certificates satisfy this requirement.",
+      },
+      {
+        q: "Are online certificates accepted by daycare centres?",
+        a: "Yes. Childcare centres, daycare, and early learning centres all accept certificates from AHPRA-registered doctors. The format is the same as any GP certificate.",
+      },
+      {
+        q: "What happens if the doctor declines the request?",
+        a: "You receive a full refund. The doctor may recommend you take your child to a GP in person for a more thorough assessment.",
       },
     ],
     whyChoose: [
@@ -460,7 +656,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "From anywhere • No commute • All employers accept",
     icon: Laptop,
     metadata: {
-      title: "Medical Certificates for Remote Workers | InstantMed",
+      title: "Medical Certificates for Remote Workers",
       description:
         "Remote workers: get a medical certificate from home. No clinic visit, no commute. Doctor-reviewed, usually under 1 hour. Works for WFH and regional workers.",
       keywords: [
@@ -482,6 +678,38 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "Will my employer accept it?",
         a: "Yes. Certificates from registered doctors are valid for all Australian employers, regardless of where you work from.",
+      },
+      {
+        q: "How much does a certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor cannot issue your certificate.",
+      },
+      {
+        q: "Will my employer see my diagnosis?",
+        a: "No. The certificate confirms you were assessed and found unfit for work. No diagnosis, no symptoms, no clinical notes. Your health information stays between you and the doctor.",
+      },
+      {
+        q: "I work from home — do I really need a sick day?",
+        a: "Yes. Working while unwell extends your recovery and reduces the quality of your output. You are entitled to sick leave whether you work from home or an office. Resting is not slacking.",
+      },
+      {
+        q: "Can I get a certificate for a mental health day?",
+        a: "Yes. Mental health is covered under personal leave — same as physical illness. The certificate does not specify the nature of your condition.",
+      },
+      {
+        q: "I live regionally and can't get a GP appointment. Will this work?",
+        a: "Yes. Telehealth works anywhere in Australia with internet access. Especially useful in areas where GP wait times can stretch to weeks.",
+      },
+      {
+        q: "Can I get a carer's leave certificate?",
+        a: "Yes. If you need time off to care for an unwell family member, we can issue a carer's leave certificate that supports your leave application.",
+      },
+      {
+        q: "Can I submit the certificate digitally to my employer?",
+        a: "Yes. The certificate is a secure PDF delivered to your email. Forward it to HR or upload it to your leave management system — no paper copy needed.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may recommend you visit a GP in person for a more thorough assessment.",
       },
     ],
     whyChoose: [
@@ -529,7 +757,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     heroTagline: "No appointments • Usually under 1 hour • Platforms accept",
     icon: Car,
     metadata: {
-      title: "Medical Certificates for Gig Workers | InstantMed",
+      title: "Medical Certificates for Gig Workers",
       description:
         "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. Doctor-reviewed, usually under 1 hour.",
       keywords: [
@@ -551,6 +779,42 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       {
         q: "When are you available?",
         a: "8am-10pm AEST, 7 days a week. Submit when it suits you — between gigs or when you're resting.",
+      },
+      {
+        q: "How much does a medical certificate cost?",
+        a: "A 1-day certificate is $19.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor is unable to issue your certificate.",
+      },
+      {
+        q: "I don't have an employer — why would I need a certificate?",
+        a: "Certificates serve multiple purposes beyond employer leave: platform compliance for Uber and Deliveroo, income protection insurance claims, Centrelink mutual obligation evidence, and professional documentation for clients when deadlines slip.",
+      },
+      {
+        q: "Will the certificate show my diagnosis?",
+        a: "No. It confirms you were assessed by a doctor and found unfit for work. No diagnosis, no symptoms, no clinical details.",
+      },
+      {
+        q: "Can I use this for a Centrelink mutual obligation exemption?",
+        a: "A medical certificate can support your case for a temporary exemption from mutual obligations. Contact your Centrelink provider to confirm what documentation they require.",
+      },
+      {
+        q: "Does this work for income protection insurance claims?",
+        a: "Most income protection insurers require a medical certificate as evidence of inability to work. Our certificates include all standard details — doctor name, provider number, dates, and assessment.",
+      },
+      {
+        q: "Can I get a certificate for a mental health day?",
+        a: "Yes. Gig work isolation and income uncertainty take a real toll. Mental health is a valid reason for a certificate. The nature of your condition stays private.",
+      },
+      {
+        q: "Are these certificates valid under the Fair Work Act?",
+        a: "Yes. If you are later found to be an employee rather than a contractor, a certificate provides evidence of genuine illness. Either way, our certificates meet all legal requirements.",
+      },
+      {
+        q: "Can I get a multi-day certificate?",
+        a: "Yes. We issue certificates for 1, 2, or 3 days. For longer periods, the doctor may recommend an in-person assessment.",
+      },
+      {
+        q: "What happens if the doctor declines my request?",
+        a: "You receive a full refund. The doctor may suggest you see a GP in person for further assessment.",
       },
     ],
     whyChoose: [

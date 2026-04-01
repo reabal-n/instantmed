@@ -9,6 +9,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { ArticleTemplate } from "@/components/blog/article-template"
 import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles, allArticles } from "@/lib/blog/articles"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { BreadcrumbSchema, FAQSchema, HowToSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { ReadingProgress } from "@/components/blog/reading-progress"
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : `${baseUrl}${post.image.startsWith("/") ? "" : "/"}${post.image}`
 
   return {
-    title: `${post.title} | InstantMed Blog`,
+    title: post.title,
     description: post.excerpt,
     robots: { index: true, follow: true },
     openGraph: {
@@ -221,7 +222,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         )}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }}
         />
 
         <div className="flex min-h-screen flex-col">
@@ -274,7 +275,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, '\\u003c') }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

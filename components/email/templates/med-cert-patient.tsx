@@ -18,6 +18,7 @@ import {
   VerificationCode,
   colors,
 } from "../base-email"
+import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface MedCertPatientEmailProps {
   patientName: string
@@ -92,6 +93,31 @@ export function MedCertPatientEmail({
         </Text>
       )}
 
+      {/* Review CTA — placed at peak satisfaction, right after delivery */}
+      <div style={{ textAlign: "center" as const, padding: "20px 0", borderTop: `1px solid ${colors.border}`, borderBottom: `1px solid ${colors.border}`, margin: "16px 0" }}>
+        <Text style={{ fontSize: "14px", fontWeight: 600, color: colors.text, marginBottom: "4px" }}>
+          Happy with your experience?
+        </Text>
+        <Text muted small style={{ marginBottom: "12px" }}>
+          A quick Google review helps other Australians find reliable telehealth. Takes 30 seconds.
+        </Text>
+        <a
+          href={GOOGLE_REVIEW_URL}
+          style={{
+            display: "inline-block",
+            padding: "10px 24px",
+            borderRadius: "8px",
+            backgroundColor: colors.accent,
+            color: "#ffffff",
+            fontWeight: 600,
+            fontSize: "14px",
+            textDecoration: "none",
+          }}
+        >
+          Leave a Google review
+        </a>
+      </div>
+
       <Text muted small style={{ textAlign: "center" as const }}>
         Need to renew a prescription?{" "}
         <a href={`${appUrl}/request?service=prescription`} style={{ color: colors.accent, fontWeight: 500 }}>
@@ -105,14 +131,6 @@ export function MedCertPatientEmail({
           help centre
         </a>
         .
-      </Text>
-
-      <Text muted small style={{ textAlign: "center" as const }}>
-        Had a good experience?{" "}
-        <a href="https://g.page/r/CWqy3A7IKcX6EBI/review" style={{ color: colors.accent, fontWeight: 500 }}>
-          Leave a quick Google review
-        </a>
-        {" "}— it helps other Australians find us.
       </Text>
     </BaseEmail>
   )

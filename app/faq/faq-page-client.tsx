@@ -15,7 +15,7 @@ const faqCategories = [
     faqs: [
       {
         q: "What is InstantMed?",
-        a: "We\u2019re an Australian telehealth service that connects you with AHPRA-registered GPs for medical certificates, prescription renewals, and consultations. You fill in a quick form online, a real doctor reviews it, and you get your result \u2014 usually within a couple of hours.",
+        a: "We\u2019re an Australian telehealth service that connects you with AHPRA-registered GPs for medical certificates, prescription renewals, and consultations. You fill in a quick form online, a real doctor reviews it, and you get your result. Medical certificates are typically issued in under 30 minutes, available 24/7.",
       },
       {
         q: "Is this actually legitimate?",
@@ -44,6 +44,52 @@ const faqCategories = [
     ],
   },
   {
+    title: "Telehealth & How It Works",
+    faqs: [
+      {
+        q: "How does telehealth compare to seeing a GP in person?",
+        a: "For many routine matters \u2014 sick certificates, repeat prescriptions, follow-up consultations \u2014 the clinical outcome is the same. The difference is you skip the waiting room and the drive. That said, some things genuinely need hands-on care, and our doctors will always tell you if that\u2019s the case.",
+      },
+      {
+        q: "Can a telehealth doctor do everything an in-person doctor can?",
+        a: "Not everything, and we\u2019re upfront about that. Telehealth is excellent for history-based assessments, medication management, and documentation. It can\u2019t replace a physical examination, blood tests, or procedures. If your situation needs any of those, we\u2019ll point you to the right place.",
+      },
+      {
+        q: "Is telehealth regulated in Australia?",
+        a: "Absolutely. Telehealth in Australia is regulated by AHPRA, the Medical Board of Australia, and the TGA \u2014 the same bodies that oversee in-person care. Our doctors are held to identical clinical and ethical standards whether they see you in a clinic or review your request online.",
+      },
+      {
+        q: "What technology do I need to use InstantMed?",
+        a: "A device with a web browser and an internet connection. That\u2019s it. No app to download, no special software, no video call setup. You fill in a form, a doctor reviews it, and you get your result. Deliberately simple.",
+      },
+      {
+        q: "Can I use InstantMed if I\u2019m in a rural area?",
+        a: "Yes \u2014 and this is one of the things telehealth does best. If you\u2019re hours from the nearest GP or your local clinic is booked out for weeks, we can help with the same routine matters we handle for anyone else. All you need is an internet connection.",
+      },
+    ],
+  },
+  {
+    title: "Consultations",
+    faqs: [
+      {
+        q: "What types of consultations do you offer?",
+        a: "We offer general consultations, erectile dysfunction consults, hair loss consults, women\u2019s health consults, and weight management consults. Each is reviewed by an AHPRA-registered doctor who\u2019ll assess whether we can help or whether you\u2019d be better off with in-person care.",
+      },
+      {
+        q: "Can I get a referral to a specialist?",
+        a: "Our doctors can provide referrals to specialists where clinically appropriate. If your consultation reveals something that needs specialist input, the doctor will issue a referral as part of your consult \u2014 no extra charge.",
+      },
+      {
+        q: "What happens after my consultation?",
+        a: "Depends on the outcome. If the doctor approves a prescription, you\u2019ll receive an eScript via SMS. If they issue a certificate or referral, it\u2019ll appear in your patient dashboard. If they need more information or recommend in-person care, they\u2019ll let you know directly.",
+      },
+      {
+        q: "Can I use InstantMed for mental health concerns?",
+        a: "For some things, yes \u2014 like renewing a stable antidepressant prescription or getting a mental health care plan referral. But telehealth has limits here, and we respect them. If you\u2019re in crisis or need ongoing therapy, we\u2019ll direct you to appropriate services. If you need immediate support, contact Lifeline on 13 11 14 or Beyond Blue on 1300 22 4636.",
+      },
+    ],
+  },
+  {
     title: "Medical Certificates",
     faqs: [
       {
@@ -61,6 +107,14 @@ const faqCategories = [
       {
         q: "What if I need more than 2 days off?",
         a: "For longer absences, the doctor may need a bit more detail about your condition or recommend an in-person visit. They\u2019ll guide you on the best next step.",
+      },
+      {
+        q: "Can I get a certificate for carer\u2019s leave?",
+        a: "Yes. If you\u2019re caring for an immediate family or household member who\u2019s sick or injured, our doctors can issue a carer\u2019s leave certificate. You\u2019ll need to provide some basic details about the person you\u2019re caring for and the nature of their illness or injury.",
+      },
+      {
+        q: "Do universities accept online medical certificates?",
+        a: "They do. Our certificates are issued by AHPRA-registered doctors and meet the same standard as any GP-issued certificate. Australian universities accept them for special consideration applications, deferred exams, and extension requests. We\u2019ve seen thousands used for exactly this.",
       },
     ],
   },
@@ -99,6 +153,14 @@ const faqCategories = [
       {
         q: "Can I delete my account?",
         a: "Yes, just get in touch and we\u2019ll handle it. The only caveat: we\u2019re legally required to retain medical records for 7 years under Australian healthcare regulations.",
+      },
+      {
+        q: "Where is my data stored?",
+        a: "All data is stored on Australian servers. Your medical information is encrypted at rest using AES-256 encryption \u2014 the same standard used by banks. We don\u2019t store data offshore, and we don\u2019t cut corners on infrastructure.",
+      },
+      {
+        q: "Do you comply with Australian Privacy Principles?",
+        a: "Fully. We comply with all 13 Australian Privacy Principles under the Privacy Act 1988. That covers everything from how we collect and store your information to how we handle access requests and complaints. If you want the details, our privacy policy spells it out.",
       },
     ],
   },
@@ -159,7 +221,7 @@ export default function FAQPage() {
           </p>
         </CenteredHero>
 
-        {/* FAQ Sections — 5 categories with accordion */}
+        {/* FAQ Sections — 7 categories with accordion */}
         <AccordionSection
           groups={accordionGroups}
           hideHeader

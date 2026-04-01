@@ -17,7 +17,6 @@ const TEST_INPUT: Omit<TemplatePdfInput, "certificateType" | "certificateRef"> =
   consultationDate: "19 February 2026",
   startDate: "19 February 2026",
   endDate: "21 February 2026",
-  returnDate: "22 February 2026",
   issueDate: "19/02/2026",
 }
 

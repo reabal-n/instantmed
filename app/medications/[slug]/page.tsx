@@ -1,3 +1,4 @@
+import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
@@ -6,6 +7,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 
 // Medication Directory Configuration
 const medications: Record<
@@ -355,22 +358,68 @@ export default async function MedicationPage({ params }: PageProps) {
     notFound()
   }
 
-  // Educational health information schema (NOT Drug schema — avoids Google pharma policy triggers)
-  const medSchema = {
+  const baseUrl = "https://instantmed.com.au"
+
+  // Drug schema for educational medication info (safe for organic — Google pharma policy only applies to Ads)
+  const drugSchema = {
+    "@context": "https://schema.org",
+    "@type": "Drug",
+    name: med.name,
+    alternateName: med.genericName,
+    description: med.description,
+    url: `${baseUrl}/medications/${slug}`,
+    drugClass: med.category,
+    administrationRoute: "Oral",
+    ...(med.uses.length > 0 && {
+      indication: med.uses.map((use: string) => ({
+        "@type": "MedicalIndication",
+        name: use,
+      })),
+    }),
+    ...(med.sideEffects.length > 0 && {
+      adverseOutcome: med.sideEffects.map((effect: string) => ({
+        "@type": "MedicalEntity",
+        name: effect,
+      })),
+    }),
+    ...(med.warnings.length > 0 && {
+      warning: med.warnings.join(". "),
+    }),
+    legalStatus: {
+      "@type": "DrugLegalStatus",
+      applicableLocation: { "@type": "Country", name: "Australia" },
+      description: `Schedule ${med.schedule} — Prescription Only Medicine`,
+    },
+    prescriptionStatus: "PrescriptionOnly",
+  }
+
+  // MedicalWebPage wrapper for E-E-A-T
+  const pageSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
     name: `${med.name} Information`,
     description: `Educational information about ${med.name}`,
-    lastReviewed: new Date().toISOString().split("T")[0],
+    url: `${baseUrl}/medications/${slug}`,
+    lastReviewed: "2026-03-31",
     medicalAudience: {
       "@type": "MedicalAudience",
       audienceType: "Patient",
+    },
+    publisher: {
+      "@type": "MedicalOrganization",
+      "@id": `${baseUrl}/#organization`,
+    },
+    inLanguage: "en-AU",
+    about: {
+      "@type": "Drug",
+      name: med.name,
     },
   }
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(medSchema) }} />
+      <Script id={`drug-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(drugSchema) }} />
+      <Script id={`page-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchema) }} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
@@ -470,16 +519,57 @@ export default async function MedicationPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Disclaimer */}
-          <section className="px-4 py-8">
-            <div className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">
-              <p>
-                This information is for educational purposes only and is not a substitute for professional medical
-                advice. Always consult a doctor before starting or changing any medication. The prescribing doctor will
-                assess whether this medication is appropriate for you.
-              </p>
+          {/* Related Resources */}
+          <section className="px-4 py-12 border-t border-border/30">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-lg font-semibold mb-6">Related Information</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Services</h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link href="/prescriptions" className="text-sm text-primary hover:underline">
+                        Online Prescriptions — how it works
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/repeat-prescriptions" className="text-sm text-primary hover:underline">
+                        Repeat Medication Renewals
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/consult" className="text-sm text-primary hover:underline">
+                        General Doctor Consultation
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Helpful Guides</h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link href="/guides/telehealth-guide-australia" className="text-sm text-primary hover:underline">
+                        Telehealth Guide for Australians
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/guides/when-to-use-telehealth" className="text-sm text-primary hover:underline">
+                        When to Use Telehealth
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/medications" className="text-sm text-primary hover:underline">
+                        Browse All Medications
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

@@ -29,6 +29,7 @@ export interface Medication {
   price: number
   requiresCall: boolean
   popular: boolean
+  faqs?: Array<{ q: string; a: string }>
 }
 
 export const CATEGORY_LABELS: Record<MedicationCategory, string> = {
@@ -71,6 +72,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "How long does tretinoin take to work?", a: "Most people see improvement in 6–12 weeks. Skin may initially look worse (purging) before improving. Consistency is key — don't stop early." },
+      { q: "Can I use tretinoin with other skincare?", a: "Avoid using with AHAs, BHAs, benzoyl peroxide, or vitamin C at the same time. Your doctor will advise on a safe routine." },
+      { q: "Do I need sunscreen with tretinoin?", a: "Yes — tretinoin increases sun sensitivity significantly. Use SPF 50+ daily, even on cloudy days." },
+    ],
   },
   {
     id: "doxycycline-acne",
@@ -88,6 +94,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Can I take doxycycline with alcohol?", a: "It's best to avoid alcohol while on doxycycline. Alcohol doesn't reduce effectiveness, but it can worsen side effects like nausea and stomach upset." },
+      { q: "How long do I take doxycycline for acne?", a: "Typically 3–6 months. Your doctor will review progress and may switch to topical treatment once acne is controlled." },
+      { q: "Does doxycycline cause sun sensitivity?", a: "Yes — doxycycline makes skin more sensitive to UV. Use SPF 50+ sunscreen and avoid prolonged sun exposure during treatment." },
+    ],
   },
   // Men's Health
   {
@@ -106,6 +117,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "How long before activity should I take sildenafil?", a: "Take 30–60 minutes before. Effects last 4–6 hours. It works best on an empty stomach or after a light meal." },
+      { q: "Can I take sildenafil daily?", a: "Sildenafil is typically taken as needed. For daily use, your doctor may recommend tadalafil 5mg instead." },
+      { q: "Is sildenafil the same as Viagra?", a: "Yes — sildenafil is the active ingredient in Viagra. Generic sildenafil is equally effective at a lower cost." },
+    ],
   },
   {
     id: "tadalafil",
@@ -123,6 +139,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "What's the difference between tadalafil and sildenafil?", a: "Tadalafil lasts up to 36 hours vs 4–6 hours for sildenafil. Tadalafil can also be taken daily at a low dose (5mg) for continuous effect." },
+      { q: "Can I drink alcohol with tadalafil?", a: "Small amounts are generally fine, but alcohol can increase side effects like dizziness and lower blood pressure. Avoid heavy drinking." },
+      { q: "Is Cialis the same as tadalafil?", a: "Yes — tadalafil is the active ingredient in Cialis. Generic tadalafil is equally effective." },
+    ],
   },
   // Women's Health
   {
@@ -141,6 +162,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "How far in advance should I start norethisterone?", a: "Start 3 days before your expected period. Your period will typically start 2–3 days after you stop taking it." },
+      { q: "Is norethisterone a contraceptive?", a: "No — norethisterone at this dose is NOT a contraceptive. You still need separate contraception to prevent pregnancy." },
+      { q: "How long can I delay my period?", a: "Usually up to 2 weeks. Longer use should be discussed with your doctor. It's a short-term solution for travel or events." },
+    ],
   },
   {
     id: "trimethoprim",
@@ -158,6 +184,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "How quickly does trimethoprim work for a UTI?", a: "Most people feel improvement within 24 hours. Complete the full 3-day course even if symptoms resolve earlier." },
+      { q: "Can I get trimethoprim without seeing a doctor in person?", a: "Yes — uncomplicated UTIs are well-suited to telehealth. A doctor will assess your symptoms and prescribe if appropriate." },
+      { q: "Will trimethoprim affect the contraceptive pill?", a: "Trimethoprim is not generally considered to reduce pill effectiveness. However, being unwell can sometimes affect absorption." },
+    ],
   },
   // Allergy
   {
@@ -176,6 +207,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Is fexofenadine non-drowsy?", a: "Yes — fexofenadine is a non-drowsy antihistamine. It's one of the least sedating options available and is safe for driving." },
+      { q: "Can I take fexofenadine every day?", a: "Yes — it's safe for daily use during allergy season. Take it at the same time each day for best results." },
+      { q: "Why shouldn't I take fexofenadine with fruit juice?", a: "Fruit juice (especially grapefruit, orange, apple) can reduce absorption by up to 40%. Take with water instead." },
+    ],
   },
   {
     id: "mometasone-nasal",
@@ -193,6 +229,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "How long does mometasone take to work?", a: "You may notice some relief within 12 hours, but full effect takes 1–2 weeks of regular daily use. Don't use it sporadically." },
+      { q: "Is mometasone a steroid?", a: "Yes — it's a corticosteroid nasal spray. At nasal doses, very little is absorbed systemically, so side effects are minimal." },
+      { q: "Can I use mometasone with antihistamine tablets?", a: "Yes — combining a nasal steroid with oral antihistamines (like fexofenadine) is a common and effective strategy for moderate-to-severe hayfever." },
+    ],
   },
   // Pain
   {
@@ -211,6 +252,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Is naproxen stronger than ibuprofen?", a: "They're similar strength, but naproxen lasts longer (8–12 hours vs 4–6 hours for ibuprofen), so you take fewer doses per day." },
+      { q: "Can I take naproxen on an empty stomach?", a: "No — always take with food or milk. Naproxen can irritate the stomach lining and cause ulcers if taken without food." },
+      { q: "How long can I take naproxen?", a: "Short-term use (up to 2 weeks) is generally safe. Long-term use requires doctor supervision due to stomach and cardiovascular risks." },
+    ],
   },
   // Mental Health
   {
@@ -229,6 +275,11 @@ const MEDICATIONS: Medication[] = [
     price: 49,
     requiresCall: true,
     popular: true,
+    faqs: [
+      { q: "How long does sertraline take to work?", a: "Most people notice improvement in 2–4 weeks, but full effects can take 6–8 weeks. Don't stop taking it because it feels like it's not working yet." },
+      { q: "Can I drink alcohol while taking sertraline?", a: "It's best to avoid or limit alcohol. Sertraline and alcohol both affect the brain — combining them can worsen drowsiness, dizziness, and depression." },
+      { q: "What happens if I miss a dose?", a: "Take it as soon as you remember, unless it's close to your next dose. Never take a double dose. Missing doses occasionally is common — just resume your normal schedule." },
+    ],
   },
   {
     id: "escitalopram",
@@ -246,6 +297,11 @@ const MEDICATIONS: Medication[] = [
     price: 49,
     requiresCall: true,
     popular: true,
+    faqs: [
+      { q: "What's the difference between escitalopram and sertraline?", a: "Both are SSRIs. Escitalopram tends to have fewer side effects and drug interactions. Your doctor will recommend based on your specific situation." },
+      { q: "Can I stop escitalopram suddenly?", a: "No — stopping suddenly can cause withdrawal symptoms (dizziness, nausea, brain zaps). Always taper off gradually under doctor supervision." },
+      { q: "Does escitalopram cause weight gain?", a: "Some people experience modest weight gain, but it's less common than with other antidepressants. Effects vary between individuals." },
+    ],
   },
   // Infection
   {
@@ -264,6 +320,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Can I take amoxicillin with alcohol?", a: "Moderate alcohol is unlikely to interfere, but it can worsen side effects like nausea. Best to avoid heavy drinking while fighting an infection." },
+      { q: "Do I need to finish the whole course?", a: "Yes — always complete the full course even if you feel better. Stopping early can allow resistant bacteria to survive and the infection to return." },
+      { q: "Does amoxicillin affect the contraceptive pill?", a: "Current evidence suggests amoxicillin doesn't reduce pill effectiveness. However, being unwell (vomiting, diarrhoea) can — use backup contraception if in doubt." },
+    ],
   },
   {
     id: "azithromycin",
@@ -281,6 +342,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Why is azithromycin taken for only 5 days?", a: "Azithromycin stays active in your body for several days after the last dose. The 5-day course provides effective treatment equivalent to longer courses of other antibiotics." },
+      { q: "Can I take azithromycin on an empty stomach?", a: "Yes — azithromycin can be taken with or without food. If you experience stomach upset, taking it with food may help." },
+      { q: "Is a single dose of azithromycin enough for chlamydia?", a: "Yes — a single 1g dose is the standard treatment for uncomplicated chlamydia. You should avoid sexual contact for 7 days after treatment." },
+    ],
   },
   // Chronic
   {
@@ -299,6 +365,11 @@ const MEDICATIONS: Medication[] = [
     price: 39,
     requiresCall: false,
     popular: true,
+    faqs: [
+      { q: "Can I take omeprazole long-term?", a: "Short-term use (2–8 weeks) is generally safe. Long-term use may affect calcium and magnesium absorption. Discuss with your doctor if you've been on it for months." },
+      { q: "When should I take omeprazole?", a: "Take 30 minutes before breakfast on an empty stomach. This gives it time to block acid production before you eat." },
+      { q: "Can I stop omeprazole suddenly?", a: "Stopping suddenly after long-term use can cause rebound acid production. If you've been on it for weeks, your doctor may recommend tapering off gradually." },
+    ],
   },
   {
     id: "metformin",
@@ -316,6 +387,11 @@ const MEDICATIONS: Medication[] = [
     price: 49,
     requiresCall: true,
     popular: true,
+    faqs: [
+      { q: "Why does metformin cause stomach upset?", a: "Metformin can irritate the gut lining. Starting with a low dose, taking it with food, and using the extended-release (XR) form all help reduce this." },
+      { q: "Do I need blood tests while taking metformin?", a: "Yes — your doctor should check kidney function and HbA1c regularly. Your prescribing doctor will advise on the frequency." },
+      { q: "Can metformin help with weight loss?", a: "Metformin is weight-neutral or may cause modest weight loss in some people. It's prescribed for blood sugar control, not weight management." },
+    ],
   },
 ]
 

@@ -1,14 +1,19 @@
+import { cn } from "@/lib/utils"
 import { Navbar } from "@/components/shared/navbar"
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, HelpCircle } from "lucide-react"
+import Script from "next/script"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import type { DeepCityContent } from "@/lib/seo/data/deep-city-content"
 
 // Geo coordinates for each city (latitude, longitude)
 const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
@@ -243,7 +248,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   sydney: [
     { q: "Can I use InstantMed if I live in Western Sydney?", a: "Yes — InstantMed is available anywhere in Greater Sydney, from Penrith to Bondi. All you need is an internet connection." },
     { q: "Are InstantMed certificates accepted by NSW employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers, including NSW government agencies." },
-    { q: "How fast can I get a medical certificate in Sydney?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it via email as a PDF." },
+    { q: "How fast can I get a medical certificate in Sydney?", a: "Most medical certificates are issued in under 30 minutes, available 24/7. You'll receive it via email as a PDF." },
   ],
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes — from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
@@ -306,7 +311,39 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
 const DEFAULT_FAQS = [
   { q: "Is InstantMed available in my area?", a: "Yes — InstantMed works anywhere in Australia with an internet connection. No matter your location, our doctors can help." },
   { q: "Are your medical certificates accepted by employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all Australian employers and educational institutions." },
-  { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it as a PDF via email." },
+  { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are issued in under 30 minutes, available 24/7. You'll receive it as a PDF via email." },
+]
+
+// Shared FAQs that apply to all cities — merged with city-specific FAQs
+const SHARED_LOCATION_FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: "Is InstantMed available in my city?",
+    a: "Yes. InstantMed is an online service, so it's available anywhere in Australia with an internet connection. You don't need to be in a particular city or state — just complete the form and a doctor reviews your request remotely.",
+  },
+  {
+    q: "Will my employer accept a medical certificate from InstantMed?",
+    a: "Yes. Our certificates are issued by AHPRA-registered doctors and meet all requirements under the Fair Work Act. They're accepted by every Australian employer, government agency, and educational institution — the same as a certificate from your local GP.",
+  },
+  {
+    q: "How do I fill a prescription from InstantMed?",
+    a: "If your doctor approves a prescription, you'll receive an eScript — a QR code sent to your phone via SMS. Take it to any pharmacy in Australia, they scan the code, and you collect your medication. No paper script needed.",
+  },
+  {
+    q: "Do I need to be physically located in a specific city to use InstantMed?",
+    a: "No. You can use InstantMed from anywhere in Australia — your home, your workplace, or while travelling. The service is entirely online, so your physical location doesn't matter as long as you're within Australia.",
+  },
+  {
+    q: "How does InstantMed's pricing compare to a local GP visit?",
+    a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} and repeat prescriptions from ${PRICING_DISPLAY.FROM_SCRIPT}. With bulk-billing rates declining across Australia, this is often comparable to or less than a GP gap fee — and you avoid the travel time and waiting room.`,
+  },
+  {
+    q: "Can I use InstantMed outside of business hours?",
+    a: "Yes. InstantMed is available 8am to 10pm AEST, seven days a week — including evenings, weekends, and public holidays. That covers the hours when most GP clinics are closed.",
+  },
+  {
+    q: "Do I need a Medicare card to use InstantMed?",
+    a: "Not for medical certificates. For prescriptions and consultations, a Medicare card is required. InstantMed is a private service with transparent flat-fee pricing — there are no hidden gap fees or surprise charges.",
+  },
 ]
 
 // Local SEO Pages - Top 25 Australian cities & regions
@@ -668,7 +705,11 @@ export default async function CityPage({ params }: PageProps) {
   }
 
   const geo = GEO_COORDS[city] || GEO_COORDS.sydney
-  const faqs = CITY_FAQS[city] || DEFAULT_FAQS
+  const deepContent: DeepCityContent | undefined = DEEP_CITY_CONTENT[city]
+  const baseFaqs = CITY_FAQS[city] || DEFAULT_FAQS
+  const faqs = deepContent
+    ? [...baseFaqs, ...deepContent.additionalFaqs, ...SHARED_LOCATION_FAQS]
+    : [...baseFaqs, ...SHARED_LOCATION_FAQS]
   const cityContent = CITY_CONTENT[city]
 
   // Enhanced Local Business Schema for SEO
@@ -757,8 +798,9 @@ export default async function CityPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <Script id={`local-schema-${city}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
+      <Script id={`faq-schema-${city}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <HealthArticleSchema title={`Online Doctor in ${cityData.name}`} description={`Online doctor consultations, medical certificates, and prescriptions for ${cityData.name} residents.`} url={`/locations/${city}`} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Locations", url: "https://instantmed.com.au/locations" },
@@ -815,6 +857,68 @@ export default async function CityPage({ params }: PageProps) {
                     {paragraph}
                   </p>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Deep content: Health Stats */}
+          {deepContent && (
+            <section className="px-4 py-12 bg-muted/30">
+              <div className="mx-auto max-w-4xl">
+                <h2 className="text-xl font-semibold mb-8 text-center">
+                  Healthcare in {cityData.name} — By the Numbers
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {deepContent.healthStats.map((stat) => (
+                    <div key={stat.label} className="text-center p-4 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
+                      <p className="text-2xl font-semibold text-primary">{stat.value}</p>
+                      <p className="text-sm font-medium text-foreground">{stat.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.context}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Deep content: Detailed sections */}
+          {deepContent?.sections.map((section, i) => (
+            <section key={i} className={cn("px-4 py-12", i % 2 === 1 && "bg-muted/30")}>
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-xl font-semibold mb-6">{section.title}</h2>
+                <div className="space-y-4">
+                  {section.paragraphs.map((p, j) => (
+                    <p key={j} className="text-muted-foreground leading-relaxed">{p}</p>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ))}
+
+          {/* Deep content: Telehealth Regulations */}
+          {deepContent && (
+            <section className="px-4 py-12">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-xl font-semibold mb-6">{deepContent.telehealthRegulations.title}</h2>
+                <div className="space-y-4">
+                  {deepContent.telehealthRegulations.paragraphs.map((p, i) => (
+                    <p key={i} className="text-muted-foreground leading-relaxed">{p}</p>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Deep content: Pharmacy Info */}
+          {deepContent && (
+            <section className="px-4 py-12 bg-muted/30">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-xl font-semibold mb-6">{deepContent.pharmacyInfo.title}</h2>
+                <div className="space-y-4">
+                  {deepContent.pharmacyInfo.paragraphs.map((p, i) => (
+                    <p key={i} className="text-muted-foreground leading-relaxed">{p}</p>
+                  ))}
+                </div>
               </div>
             </section>
           )}
@@ -931,6 +1035,17 @@ export default async function CityPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
 
           {/* FAQ Section */}
           <section className="px-4 py-12">
@@ -1067,6 +1182,8 @@ export default async function CityPage({ params }: PageProps) {
               </p>
             </div>
           </section>
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

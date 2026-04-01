@@ -6,17 +6,17 @@ import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "About Us | Australian Telehealth",
-  description: "Australian telehealth platform connecting patients with AHPRA-registered doctors for med certs, scripts and consults.",
+  title: "About Us | Australian Online Doctors",
+  description: "Australian telehealth platform connecting patients with AHPRA-registered doctors for medical certificates, medication, and consultations. 100% online.",
   openGraph: {
-    title: "About InstantMed | Australian Telehealth",
-    description: "Learn about InstantMed - connecting Australians with AHPRA-registered doctors for fast, secure online healthcare.",
+    title: "About InstantMed | Australian Online Doctors",
+    description: "Connecting Australians with AHPRA-registered doctors for secure online healthcare. Med certs, medication, and consultations.",
     url: "https://instantmed.com.au/about",
   },
   twitter: {
     card: "summary_large_image",
-    title: "About InstantMed | Australian Telehealth",
-    description: "Learn about InstantMed - connecting Australians with AHPRA-registered doctors for fast, secure online healthcare.",
+    title: "About InstantMed | Australian Online Doctors",
+    description: "Connecting Australians with AHPRA-registered doctors for secure online healthcare. Med certs, medication, and consultations.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/about",

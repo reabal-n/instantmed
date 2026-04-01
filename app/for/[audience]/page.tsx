@@ -8,7 +8,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getAudiencePageConfig, getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface PageProps {
@@ -57,6 +58,7 @@ export default async function AudiencePage({ params }: PageProps) {
 
   return (
     <>
+      <HealthArticleSchema title={config.h1} description={config.metadata.description} url={`/for/${config.slug}`} />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
@@ -312,12 +314,23 @@ export default async function AudiencePage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
+
           {/* CTA */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="bg-primary/5 dark:bg-card border border-primary/20 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in under 30 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     No appointments. No waiting rooms. Just results.
                   </p>
@@ -411,6 +424,9 @@ export default async function AudiencePage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
 
           <LiveWaitTime variant="strip" services={["med-cert"]} />
           <StatsStrip className="bg-muted/20 border-y border-border/30" />

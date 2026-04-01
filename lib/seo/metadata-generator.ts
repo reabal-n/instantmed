@@ -19,55 +19,57 @@ import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 // TITLE TEMPLATES
 // ============================================
 
+// NOTE: Root layout uses template "%s | InstantMed" — do NOT append "| InstantMed" here.
+// Titles here become the %s part and get the brand suffix automatically.
 const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
-    if (!isMedicationPage(page)) return `${page.h1} | InstantMed`
-    const brandInfo = page.medication.brandNames?.length > 0 
-      ? ` (${page.medication.brandNames[0]})` 
+    if (!isMedicationPage(page)) return page.h1
+    const brandInfo = page.medication.brandNames?.length > 0
+      ? ` (${page.medication.brandNames[0]})`
       : ''
-    return `${page.medication.genericName || page.h1}${brandInfo} Online Australia | Prescription | InstantMed`
+    return `${page.medication.genericName || page.h1}${brandInfo} Online Australia`
   },
-  
+
   condition: (page) => {
-    return `${page.h1} Treatment Online Australia | ${extractPrimaryKeyword(page)} | InstantMed`
+    return `${page.h1} Treatment Online Australia`
   },
-  
+
   intent: (page) => {
-    if (!isIntentPage(page)) return `${page.h1} | InstantMed`
+    if (!isIntentPage(page)) return page.h1
     const urgency = page.intent.urgency === 'immediate' ? 'Urgent ' : ''
-    return `${urgency}${page.h1} | Online Doctors Australia | InstantMed`
+    return `${urgency}${page.h1} | Online Doctors Australia`
   },
-  
+
   'category-hub': (page) => {
-    return `${page.h1} | Online Doctor Services | InstantMed`
+    return `${page.h1} | Online Doctor Services`
   },
-  
+
   audience: (page) => {
-    return `${page.h1} | Medical Certificates & Prescriptions | InstantMed`
+    return `${page.h1} | Medical Certificates Online`
   },
-  
+
   symptom: (page) => {
-    return `${page.h1} | Causes & Treatment Options | InstantMed`
+    return `${page.h1} | Causes & Treatment Options`
   },
-  
+
   comparison: (page) => {
-    return `${page.h1} | Compare Treatments | InstantMed`
+    return `${page.h1} | Compare Treatments`
   },
-  
+
   location: (page) => {
-    return `Online Doctor ${page.h1} | Telehealth Services | InstantMed`
+    return `Online Doctor ${page.h1} | Telehealth`
   },
-  
+
   certificate: (page) => {
-    return `${page.h1} | Medical Certificate Online | InstantMed`
+    return `${page.h1} | Medical Certificate Online`
   },
-  
+
   benefit: (page) => {
-    return `${page.h1} | Why Choose InstantMed`
+    return `${page.h1} | Online Doctor Benefits`
   },
-  
+
   resource: (page) => {
-    return `${page.h1} | Guide | InstantMed`
+    return `${page.h1} | Health Guide`
   },
 }
 
@@ -240,7 +242,7 @@ export function generateMetadata(page: SEOPage): Metadata {
 // HELPER FUNCTIONS
 // ============================================
 
-function extractPrimaryKeyword(page: SEOPage): string {
+function _extractPrimaryKeyword(page: SEOPage): string {
   if (page.metadata.keywords && page.metadata.keywords.length > 0) {
     return page.metadata.keywords[0]
   }

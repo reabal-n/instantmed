@@ -235,7 +235,7 @@ export function QueueTable({
                         {intake.ai_approved && (
                           <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
                             <Sparkles className="w-3 h-3 mr-1" />
-                            AI approved
+                            Auto-reviewed
                           </Badge>
                         )}
                       </div>

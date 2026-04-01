@@ -10,7 +10,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { logger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { addDays, formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 
 /**
  * Fetch the draft data for certificate preview before approval.
@@ -420,7 +420,6 @@ export async function generatePreviewPdfAction(
       consultationDate: formatDateLong(previewData.consultDate),
       startDate: formatDateLong(previewData.startDate),
       endDate: formatDateLong(previewData.endDate),
-      returnDate: formatDateLong(addDays(previewData.endDate, 1)),
       certificateRef,
       issueDate: formatShortDate(previewData.consultDate),
     })

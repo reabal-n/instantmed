@@ -135,7 +135,7 @@ function makeIntakeChain(overrides: {
 
   let callCount = 0
   const chain: Record<string, unknown> = {}
-  const methods = ["select", "insert", "update", "eq", "is", "not", "in", "gte", "single", "order", "limit"]
+  const methods = ["select", "insert", "update", "eq", "is", "not", "in", "gte", "neq", "lt", "single", "order", "limit"]
   for (const method of methods) {
     chain[method] = vi.fn().mockReturnValue(chain)
   }
@@ -145,15 +145,17 @@ function makeIntakeChain(overrides: {
     callCount++
     const selectChain: Record<string, unknown> = { ...chain }
     if (callCount === 1) {
-      // First select: intake fetch
+      // First select: intake fetch (.single())
       selectChain.single = vi.fn().mockResolvedValue({ data: intakeData, error: intakeError })
       selectChain.eq = vi.fn().mockReturnValue(selectChain)
     } else {
-      // Subsequent selects: claim result or count queries
+      // Subsequent selects: claim result, count queries (previousApprovalCount, recentCertCount)
       selectChain.then = (resolve: (v: unknown) => unknown) => resolve({ data: claimData, error: claimError, count: 0 })
       selectChain.eq = vi.fn().mockReturnValue(selectChain)
       selectChain.is = vi.fn().mockReturnValue(selectChain)
       selectChain.gte = vi.fn().mockReturnValue(selectChain)
+      selectChain.neq = vi.fn().mockReturnValue(selectChain)
+      selectChain.lt = vi.fn().mockReturnValue(selectChain)
     }
     return selectChain
   })
@@ -178,11 +180,21 @@ function makeDraftsChain(drafts: unknown[] = []) {
 
 function makeDoctorsChain(doctors: unknown[] = []) {
   const chain: Record<string, unknown> = {}
-  const methods = ["select", "eq", "not", "in"]
+  const methods = ["select", "eq", "not", "in", "gte", "lte", "neq", "is", "lt", "limit"]
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
   chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: doctors, error: null })
+  return chain
+}
+
+function makeIssuedCertsChain(certs: unknown[] = []) {
+  const chain: Record<string, unknown> = {}
+  const methods = ["select", "eq", "is", "lte", "gte", "limit"]
+  for (const m of methods) {
+    chain[m] = vi.fn().mockReturnValue(chain)
+  }
+  chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: certs, error: null })
   return chain
 }
 
@@ -366,6 +378,7 @@ describe("attemptAutoApproval orchestrator", () => {
     supabaseQueryResults["intakes"] = intakeChain
     supabaseQueryResults["document_drafts"] = makeDraftsChain([])
     supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
 
     const attemptAutoApproval = await getAttemptAutoApproval()
     const result = await attemptAutoApproval(TEST_INTAKE_ID)
@@ -389,8 +402,9 @@ describe("attemptAutoApproval orchestrator", () => {
       { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
     ])
     supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
     supabaseQueryResults["profiles"] = makeDoctorsChain([
-      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001", ahpra_next_review_at: null },
     ])
 
     const attemptAutoApproval = await getAttemptAutoApproval()
@@ -415,6 +429,7 @@ describe("attemptAutoApproval orchestrator", () => {
       { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
     ])
     supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
     supabaseQueryResults["profiles"] = makeDoctorsChain([]) // No doctors!
 
     const attemptAutoApproval = await getAttemptAutoApproval()
@@ -437,8 +452,9 @@ describe("attemptAutoApproval orchestrator", () => {
       { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
     ])
     supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
     supabaseQueryResults["profiles"] = makeDoctorsChain([
-      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001", ahpra_next_review_at: null },
     ])
 
     mockExecuteCertApproval.mockResolvedValue({
@@ -488,8 +504,9 @@ describe("attemptAutoApproval orchestrator", () => {
       { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
     ])
     supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
     supabaseQueryResults["profiles"] = makeDoctorsChain([
-      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001" },
+      { id: TEST_DOCTOR_ID, full_name: "Dr Test Doctor", provider_number: "1234567A", ahpra_number: "MED0000000001", ahpra_next_review_at: null },
     ])
 
     mockExecuteCertApproval.mockResolvedValue({

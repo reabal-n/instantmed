@@ -20,6 +20,7 @@ import { getAIHealthMetrics } from "@/lib/monitoring/ai-health"
 import { recordCronHeartbeat, checkCronHeartbeats } from "@/lib/monitoring/cron-heartbeat"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 // Alert deduplication: suppress repeated alerts for the same condition within this window.
@@ -119,18 +120,46 @@ export async function GET(request: NextRequest) {
       },
     }
 
+    // 6. Batch Review Enforcement — alert if auto-approved certs go un-reviewed for 24h+
+    // AHPRA compliance: doctors must review auto-approved certificates within a reasonable window
+    let unreviewedAutoApproved = 0
+    try {
+      const supabase = createServiceRoleClient()
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { count } = await supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("ai_approved", true)
+        .eq("status", "approved")
+        .lt("ai_approved_at", twentyFourHoursAgo)
+        // batch_reviewed_at is null means doctor hasn't reviewed it yet
+        .is("batch_reviewed_at", null)
+      unreviewedAutoApproved = count ?? 0
+    } catch {
+      // Non-critical — don't fail health check
+    }
+    results.checks = {
+      ...results.checks as object,
+      batchReview: {
+        unreviewedOver24h: unreviewedAutoApproved,
+      },
+    }
+
     // Determine overall health
+    // Doctor inactivity is no longer a health signal — med certs are auto-approved 24/7,
+    // so doctor activity is only relevant for prescriptions/consults during business hours.
     const isHealthy =
       queueHealth.isHealthy &&
-      (doctorActivity.hasRecentActivity || !doctorActivity.isBusinessHours) &&
       aiHealth.isHealthy &&
       cronHealth.healthy
-    
+
     results.healthy = isHealthy
     results.status = isHealthy ? "ok" : "degraded"
 
-    // Push critical alerts to Telegram for real-time doctor/ops visibility.
-    // Each alert type is deduplicated via Redis — at most one per 25 minutes.
+    // Push critical alerts to Telegram for real-time ops visibility.
+    // Each alert type is deduplicated via Redis — at most one per 2 hours.
+    // NOTE: Doctor inactivity alerts removed — med certs are auto-approved,
+    // so doctor inactivity outside business hours is expected and normal.
     const esc = escapeMarkdownValue
     const alertPromises: Promise<void>[] = []
 
@@ -138,17 +167,14 @@ export async function GET(request: NextRequest) {
       const msg = `*InstantMed Health Alert*\n\n🚨 SLA BREACH: ${queueHealth.queueSize} items in queue, oldest ${queueHealth.oldestRequestAgeMinutes}min`
       alertPromises.push(sendDedupedAlert(redis, "telegram:alert:sla_breach", msg).catch(() => {}))
     }
-    if (doctorActivity.isBusinessHours && !doctorActivity.hasRecentActivity) {
-      const inactiveMin = Number.isFinite(doctorActivity.lastActivityMinutes)
-        ? `${doctorActivity.lastActivityMinutes}min`
-        : "unknown \\(no activity recorded\\)"
-      const msg = `*InstantMed Health Alert*\n\n⚠️ No doctor activity for ${inactiveMin} during business hours`
-      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:doctor_inactive", msg).catch(() => {}))
-    }
     if (!cronHealth.healthy && cronHealth.overdue.length > 0) {
       const names = cronHealth.overdue.map(o => esc(o.jobName)).join(", ")
       const msg = `*InstantMed Health Alert*\n\n⚠️ ${cronHealth.overdue.length} cron jobs overdue: ${names}`
       alertPromises.push(sendDedupedAlert(redis, "telegram:alert:cron_overdue", msg).catch(() => {}))
+    }
+    if (unreviewedAutoApproved > 0) {
+      const msg = `*InstantMed Batch Review*\n\n📋 ${unreviewedAutoApproved} auto\\-reviewed cert\\(s\\) pending doctor batch review \\(24h\\+\\)\\. Open /doctor/dashboard to review\\.`
+      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:batch_review_overdue", msg).catch(() => {}))
     }
 
     await Promise.all(alertPromises)

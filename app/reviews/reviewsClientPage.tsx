@@ -14,6 +14,7 @@ import {
   getReviewsPageTestimonials
 } from "@/lib/data/testimonials"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 // Get reviews from centralized data — limited to a curated selection
 const reviewsData = getReviewsPageTestimonials().slice(0, 10)
@@ -262,7 +263,7 @@ export function ReviewsClientPageComponent() {
                 Your feedback helps other Australians find reliable telehealth. It takes 30 seconds.
               </p>
               <a
-                href="https://g.page/r/CWqy3A7IKcX6EBI/review"
+                href={GOOGLE_REVIEW_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all"

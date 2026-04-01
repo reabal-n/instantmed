@@ -16,8 +16,44 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import { symptoms } from "@/lib/seo/data/symptoms"
+
+const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: "When should I get a medical certificate for my symptoms?",
+    a: "If your symptoms are keeping you from work or study, you can request a medical certificate through InstantMed. A doctor will review your symptoms and issue a certificate if clinically appropriate — typically for 1 to 3 days depending on severity. You don't need to be dramatically unwell; feeling genuinely too rough to function is reason enough.",
+  },
+  {
+    q: "Can I get a medical certificate without seeing a doctor in person?",
+    a: "Yes. Australian-registered doctors can assess your symptoms and issue valid medical certificates via telehealth. You fill in a detailed health questionnaire, a doctor reviews it, and if appropriate, your certificate is delivered digitally. No waiting room required.",
+  },
+  {
+    q: "How does a doctor assess my symptoms through telehealth?",
+    a: "You complete a structured health questionnaire covering your symptoms, duration, severity, and relevant medical history. The reviewing doctor uses this information — the same clinical reasoning they'd apply in a face-to-face consult — to determine whether a certificate, advice, or referral is appropriate.",
+  },
+  {
+    q: "What if my symptoms get worse after getting a certificate?",
+    a: "A medical certificate covers the period stated on the document. If your symptoms worsen or don't improve as expected, you should see a GP in person or visit your nearest emergency department if it's urgent. Your certificate doesn't replace ongoing care — it's a point-in-time clinical assessment.",
+  },
+  {
+    q: "Can I get a prescription through InstantMed for my symptoms?",
+    a: "In some cases, yes. If a doctor reviewing your request determines that a common, non-restricted treatment is appropriate, they may issue a prescription as part of a consultation. Not all symptoms require or qualify for a prescription — the doctor will advise you on next steps.",
+  },
+  {
+    q: "How long does the doctor's review take?",
+    a: "Medical certificates are typically issued in under 30 minutes, available 24/7. Other requests are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days). You'll receive an email notification once your request has been reviewed.",
+  },
+  {
+    q: "What happens if the doctor thinks I need in-person care?",
+    a: "If your symptoms suggest something that requires a physical examination, diagnostic tests, or specialist referral, the doctor will let you know and recommend appropriate next steps. Your safety is the priority — telehealth is a great option for many things, but it's not a replacement for hands-on assessment when that's what's needed.",
+  },
+  {
+    q: "Do I need a Medicare card to use InstantMed?",
+    a: "No Medicare card is required for medical certificates. If you're requesting a prescription or consultation, a valid Medicare card is needed. Our service is private and does not attract a Medicare rebate, though any prescriptions issued can still attract PBS subsidies at the pharmacy.",
+  },
+]
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -28,7 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const symptom = symptoms[slug]
   if (!symptom) return {}
 
-  const title = `${symptom.name} | Causes, When to See a Doctor | InstantMed`
+  const title = `${symptom.name} | Causes & When to See a Doctor`
   const description = `${symptom.description} Learn about possible causes, self-care tips, and when you should see a doctor. Get assessed online by Australian doctors.`
 
   return {
@@ -64,8 +100,11 @@ export default async function SymptomPage({ params }: PageProps) {
     notFound()
   }
 
+  // Merge symptom-specific FAQs (first, more relevant) with shared FAQs
+  const allFaqs = [...symptom.faqs, ...SHARED_SYMPTOM_FAQS]
+
   // Transform FAQs for schema
-  const faqSchemaData = symptom.faqs.map(faq => ({
+  const faqSchemaData = allFaqs.map(faq => ({
     question: faq.q,
     answer: faq.a
   }))
@@ -337,26 +376,48 @@ export default async function SymptomPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Related Reading */}
+          {/* Related Reading — contextual per symptom's service type */}
           <section className="px-4 py-8">
             <div className="mx-auto max-w-3xl">
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
                 <span className="text-muted-foreground font-medium">Related reading:</span>
+                {(symptom.serviceRecommendation.type === "med-cert" || symptom.serviceRecommendation.type === "both") && (
+                  <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                    Med cert for work
+                  </Link>
+                )}
+                {(symptom.serviceRecommendation.type === "med-cert" || symptom.serviceRecommendation.type === "both") && (
+                  <Link href="/blog/medical-certificate-online-australia" className="text-primary hover:underline">
+                    Online med certs in Australia
+                  </Link>
+                )}
+                {(symptom.serviceRecommendation.type === "consult" || symptom.serviceRecommendation.type === "both") && (
+                  <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
+                    Telehealth vs GP
+                  </Link>
+                )}
+                {(symptom.serviceRecommendation.type === "consult" || symptom.serviceRecommendation.type === "both") && (
+                  <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
+                    When to use telehealth
+                  </Link>
+                )}
                 <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
                   Telehealth guide
-                </Link>
-                <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
-                  When to use telehealth
-                </Link>
-                <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
-                  Med cert for work
-                </Link>
-                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
-                  Telehealth vs GP
                 </Link>
               </div>
             </div>
           </section>
+
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
 
           {/* FAQ Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
@@ -366,7 +427,7 @@ export default async function SymptomPage({ params }: PageProps) {
               </h2>
 
               <div className="space-y-4">
-                {symptom.faqs.map((faq, i) => (
+                {allFaqs.map((faq, i) => (
                   <div
                     key={i}
                     className="bg-white dark:bg-card rounded-xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15"
@@ -516,6 +577,9 @@ export default async function SymptomPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

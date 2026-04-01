@@ -15,8 +15,10 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
 
 // Comparison pages for competitive SEO
 const comparisons: Record<string, {
@@ -38,6 +40,11 @@ const comparisons: Record<string, {
   whenCompetitorBetter: string[]
   verdict: string
   faqs: Array<{ q: string; a: string }>
+  guideContent: {
+    title: string
+    subtitle: string
+    sections: Array<{ id: string; title: string; paragraphs: string[] }>
+  }
 }> = {
   "telehealth-vs-gp": {
     title: "Telehealth vs In-Person GP: Which Should You Choose?",
@@ -97,8 +104,81 @@ const comparisons: Record<string, {
       {
         q: "Should I still have a regular GP if I use telehealth?",
         a: "Yes, we recommend it. A regular GP provides continuity of care, knows your full history, and can manage complex or chronic conditions. Telehealth is best used as a complement to, not replacement for, ongoing GP care."
+      },
+      {
+        q: "Are telehealth doctors registered with AHPRA?",
+        a: "They should be, and you should always verify. Every doctor on InstantMed is fully registered with AHPRA (the Australian Health Practitioner Regulation Agency). If a telehealth service doesn't confirm this, that's a reason to look elsewhere."
+      },
+      {
+        q: "Is my personal health information safe during a telehealth consultation?",
+        a: "Reputable telehealth services use encryption and follow Australian Privacy Act requirements for handling health data. InstantMed encrypts all personal health information and stores data on Australian servers. Always check a provider's privacy policy before sharing medical details."
+      },
+      {
+        q: "Can a telehealth doctor issue a referral to a specialist?",
+        a: "Yes. Telehealth doctors can write referrals for specialists, pathology, and imaging — the same as a GP. However, your specialist may still want to see you in person for the actual consultation, depending on your condition."
+      },
+      {
+        q: "How do I know if my issue is suitable for telehealth?",
+        a: "A reasonable rule of thumb: if you could describe the problem over the phone and the doctor wouldn't need to touch you, it's probably suitable. Cold and flu symptoms, repeat scripts, medical certificates, and skin concerns visible in photos are all good fits. Chest pain, severe injuries, or breathing difficulties need in-person or emergency care."
+      },
+      {
+        q: "What happens if the telehealth doctor can't help me?",
+        a: "A responsible telehealth service will tell you when your issue needs in-person care. At InstantMed, if a doctor can't safely help through telehealth, they'll advise you to see a GP or attend an emergency department — and you'll receive a full refund."
+      },
+      {
+        q: "Does telehealth cost more than seeing a GP?",
+        a: "If your GP bulk bills, then yes — telehealth will cost more in dollar terms. But if you factor in travel costs, time off work, and the convenience of being seen from home, many people find telehealth a reasonable trade-off. Private GP consultations often cost $40-80 out of pocket, which makes the comparison closer."
+      },
+      {
+        q: "Can children use telehealth services?",
+        a: "Most telehealth services, including InstantMed, are designed for patients aged 18 and over. Some services offer paediatric telehealth, but for children, an in-person GP is generally the better option — kids are harder to assess remotely and often need physical examination."
+      },
+      {
+        q: "Is a medical certificate from telehealth valid for work?",
+        a: "Yes. A medical certificate issued by an AHPRA-registered doctor through telehealth is legally identical to one from an in-person visit. The Fair Work Act doesn't distinguish between the two. Your employer must accept it."
       }
-    ]
+    ],
+    guideContent: {
+      title: "Understanding Telehealth vs GP Visits in Australia",
+      subtitle: "An honest guide to choosing the right healthcare option for your situation.",
+      sections: [
+        {
+          id: "regulation",
+          title: "How Telehealth Is Regulated in Australia",
+          paragraphs: [
+            "Telehealth in Australia operates under the same regulatory framework as in-person medicine. Every telehealth doctor must hold current AHPRA registration, and the Medical Board of Australia's guidelines on telehealth consultations apply equally to online and in-person care. This means the clinical standards you receive through telehealth should be identical to what you'd get sitting in a GP's office.",
+            "The TGA (Therapeutic Goods Administration) regulates prescribing regardless of the consultation format. Telehealth doctors follow the same prescribing rules, can't prescribe controlled substances without appropriate assessment, and must document their clinical reasoning. The difference is the delivery method, not the regulatory standard.",
+            "One area where regulation is still catching up is cross-border prescribing. Australian telehealth services can only treat patients physically located in Australia, and prescribing laws vary slightly between states — though for common conditions and standard medications, these differences rarely matter in practice."
+          ]
+        },
+        {
+          id: "when-to-choose",
+          title: "When Each Option Makes Clinical Sense",
+          paragraphs: [
+            "The clinical question isn't whether telehealth is 'real medicine' — it is. The question is whether your specific issue can be safely assessed without hands-on examination. Upper respiratory infections, urinary symptoms, mental health check-ins, repeat prescriptions, and medical certificates are all well-suited to telehealth. These conditions rely primarily on your history and reported symptoms, not on physical findings.",
+            "In-person GP visits become necessary when examination changes the clinical picture. A sore throat is fine for telehealth, but persistent abdominal pain needs palpation. A rash you can photograph works online, but a suspicious mole needs a dermoscope. The best approach is to start with the question: does this condition require someone to physically examine me?",
+            "For ongoing chronic conditions, the answer is usually 'both.' Your regular GP manages the long-term plan, runs periodic blood tests, and adjusts treatment. Telehealth fills the gaps — when you need a script renewed between appointments, or a quick certificate when you're too unwell to visit the clinic."
+          ]
+        },
+        {
+          id: "cost-value",
+          title: "The Real Cost Comparison",
+          paragraphs: [
+            "The headline price is simple: bulk-billed GPs are free at the point of service; telehealth costs money out of pocket. But the full cost picture is more nuanced. The average private GP consultation in Australia costs $40-80 after any Medicare rebate, and many Australians no longer have access to a bulk-billing GP — particularly in metro areas where bulk billing has declined sharply.",
+            "Then there are the hidden costs of GP visits: travel time, fuel or public transport fares, parking, and time off work. For someone earning an average wage, a two-hour round trip to the GP (including waiting room time) represents $60-80 in lost productivity. A telehealth consultation that takes 10 minutes to complete suddenly looks more economical."
+          ]
+        },
+        {
+          id: "privacy",
+          title: "Privacy and Data Security Considerations",
+          paragraphs: [
+            "There's an irony in healthcare privacy: sitting in a GP waiting room is one of the least private experiences in medicine. Everyone can see you're there, and conversations at the reception desk aren't always discreet. Telehealth, by contrast, lets you consult from wherever you're comfortable — no one knows you sought medical attention unless you tell them.",
+            "On the digital side, reputable telehealth services encrypt personal health information both in transit and at rest. The Australian Privacy Act's health-specific provisions (the Australian Privacy Principles) apply to telehealth providers just as they do to GP clinics. The key difference is that telehealth creates a digital record from the start, while GP clinics vary widely in how they store and protect patient data.",
+            "If privacy matters to you — whether for stigmatised conditions, workplace sensitivity, or personal preference — telehealth offers a level of discretion that's difficult to match in a physical clinic setting."
+          ]
+        }
+      ]
+    }
   },
   "online-medical-certificate-options": {
     title: "Online Medical Certificate Services in Australia Compared",
@@ -151,8 +231,80 @@ const comparisons: Record<string, {
       {
         q: "Can my employer tell if my certificate is from a telehealth service?",
         a: "Certificates will show the doctor's details. Some employers can tell it's from a telehealth service, but this doesn't affect validity. Telehealth certificates are legally equivalent to in-person ones."
+      },
+      {
+        q: "Are online medical certificates accepted under the Fair Work Act?",
+        a: "Yes. The Fair Work Act requires a medical certificate from a 'registered health practitioner.' AHPRA-registered doctors providing certificates through telehealth meet this standard. The Act makes no distinction between online and in-person certificates."
+      },
+      {
+        q: "Can I get a backdated medical certificate online?",
+        a: "Some services can backdate certificates when it's clinically appropriate — for example, if you were genuinely unwell yesterday but couldn't see a doctor. The doctor needs to be satisfied there's a reasonable basis for backdating. Services that backdate without any clinical assessment should be avoided."
+      },
+      {
+        q: "What happens if my online certificate request is declined?",
+        a: "A reputable service will explain why the request was declined and suggest next steps — usually seeing a GP in person. At InstantMed, declined requests receive a full refund. If a service keeps your money after declining, that's worth questioning."
+      },
+      {
+        q: "How long is an online medical certificate valid for?",
+        a: "The validity period is set by the issuing doctor based on their clinical assessment, just like an in-person certificate. Common durations are 1-3 days for acute illness. The certificate will clearly state the dates it covers."
+      },
+      {
+        q: "Can I get a carer's leave certificate online?",
+        a: "Yes. Carer's leave certificates require a doctor to confirm that a member of your household or family is ill and needs your care. Most online services can issue these — the doctor will ask about the person you're caring for and why they need your support."
+      },
+      {
+        q: "Do online medical certificate services report to My Health Record?",
+        a: "This varies by service. Some upload records to My Health Record, others don't. Medical certificates aren't routinely uploaded to My Health Record even by GPs, so this usually isn't a concern. Check the service's privacy policy if you want to know their specific practice."
+      },
+      {
+        q: "Is it safe to enter my health information on these websites?",
+        a: "Reputable services use encryption and comply with Australian Privacy Act requirements. Look for services that clearly state how they handle your data, use HTTPS, and follow the Australian Privacy Principles. Avoid services with vague or missing privacy policies."
+      },
+      {
+        q: "Can I get a medical certificate for mental health reasons online?",
+        a: "Yes. Mental health conditions like anxiety, stress, and depression are valid reasons for a medical certificate, and telehealth is well-suited for assessing these conditions. The doctor will ask about your symptoms and their impact on your ability to work. There's no requirement to disclose a specific diagnosis to your employer."
       }
-    ]
+    ],
+    guideContent: {
+      title: "Choosing an Online Medical Certificate Service",
+      subtitle: "What matters, what doesn't, and the red flags to watch for.",
+      sections: [
+        {
+          id: "legitimacy",
+          title: "What Makes an Online Certificate Legitimate",
+          paragraphs: [
+            "The legitimacy of a medical certificate comes from who issues it, not how. Under Australian law, a valid medical certificate must be issued by a registered health practitioner — in most cases, an AHPRA-registered doctor. Whether that doctor assessed you in a clinic or through a telehealth platform is irrelevant to the certificate's legal standing.",
+            "The certificate itself should include the doctor's name, AHPRA registration number (or provider number), the date of assessment, the period of unfitness, and the doctor's signature or digital equivalent. If a service issues certificates missing any of these elements, that's a problem. If it issues them without any clinical assessment at all, that's a bigger problem.",
+            "Worth noting: your employer can verify a doctor's registration on the AHPRA website. They can also contact the issuing doctor to confirm a certificate is genuine. Services that use real, registered doctors have nothing to hide here."
+          ]
+        },
+        {
+          id: "assessment-quality",
+          title: "Why the Assessment Process Matters",
+          paragraphs: [
+            "Some online certificate services use a minimal questionnaire — a few checkboxes and you're done. Others conduct a more thorough assessment, asking about your symptoms, duration, severity, and any relevant medical history. The quality of this assessment directly affects the quality (and defensibility) of the certificate.",
+            "A proper assessment protects you. If your employer ever questions a certificate, a thorough assessment record supports the doctor's decision. It also means the doctor can pick up on red flags — symptoms that might suggest something more serious, or patterns that warrant follow-up. The extra few minutes of answering questions is a feature, not a bug."
+          ]
+        },
+        {
+          id: "employer-acceptance",
+          title: "Employer Acceptance and Your Rights",
+          paragraphs: [
+            "Some employers raise eyebrows at online medical certificates. They shouldn't — and legally, they can't reject a valid certificate simply because it came from a telehealth service. The Fair Work Act requires employees to provide 'evidence that would satisfy a reasonable person,' and a certificate from a registered doctor meets that standard regardless of the consultation format.",
+            "That said, some enterprise agreements or company policies have specific wording about acceptable evidence. If your employer has a policy that specifically requires an in-person GP visit, that policy may be unenforceable under the Fair Work Act, but it's worth knowing about before a dispute arises. The Fair Work Ombudsman has guidance on this.",
+            "If an employer rejects a legitimate telehealth certificate, the employee can file a complaint with the Fair Work Commission. In practice, most employers accept them without question — particularly since COVID normalised telehealth across Australia."
+          ]
+        },
+        {
+          id: "security-privacy",
+          title: "Protecting Your Health Information Online",
+          paragraphs: [
+            "When you submit health information to an online service, you're trusting them with sensitive data. Australian Privacy Principle 11 requires organisations to take reasonable steps to protect personal information from misuse, interference, and unauthorised access. For health information, the standard is higher.",
+            "Before using any online certificate service, check three things: do they use HTTPS (the padlock in your browser bar)? Do they have a clear privacy policy explaining how your data is stored and who can access it? And do they store data in Australia, or is it going offshore? These basics tell you a lot about how seriously a service takes your privacy."
+          ]
+        }
+      ]
+    }
   },
   "waiting-room-vs-telehealth": {
     title: "Skip the Waiting Room: Is Telehealth Worth It?",
@@ -208,8 +360,72 @@ const comparisons: Record<string, {
       {
         q: "Do I still need a regular GP if I use telehealth?",
         a: "We recommend having a regular GP for ongoing care, chronic conditions, and comprehensive health management. Telehealth is best for convenience and acute issues, not as a replacement for regular preventive care."
+      },
+      {
+        q: "Is the clinical quality lower when I skip the waiting room?",
+        a: "The waiting room is not part of the clinical assessment — it's just where you sit before it happens. The quality of care depends on the doctor, not the chair you waited in. For conditions suitable for remote assessment, telehealth doctors apply the same clinical standards as in-person doctors."
+      },
+      {
+        q: "Can I use telehealth if I'm in a rural or remote area?",
+        a: "Absolutely — and this is where telehealth really shines. If the nearest GP is a 90-minute drive, telehealth removes a significant barrier to getting care. You just need an internet connection. Many rural Australians have made telehealth their first port of call for straightforward issues."
+      },
+      {
+        q: "What about infection risk in waiting rooms?",
+        a: "It's a legitimate concern. GP waiting rooms can expose you to other sick patients, which is particularly relevant during flu season or respiratory illness outbreaks. Telehealth eliminates this risk entirely. If you're already unwell or immunocompromised, avoiding a waiting room has clear clinical benefits."
+      },
+      {
+        q: "How does telehealth handle follow-up if my condition worsens?",
+        a: "A responsible telehealth service includes safety-netting advice — what to watch for and when to seek in-person or emergency care. If your condition worsens, you should see a GP or attend an emergency department. Telehealth is a complement to the healthcare system, not a walled garden."
+      },
+      {
+        q: "Are telehealth consultations documented like in-person visits?",
+        a: "Yes. Telehealth consultations create a clinical record that includes your symptoms, the doctor's assessment, and any treatment or referrals. These records can be shared with your GP if needed. Some services also provide consultation summaries you can keep for your own records."
+      },
+      {
+        q: "Can I get a referral through telehealth?",
+        a: "Yes. Telehealth doctors can write referrals to specialists, pathology, and imaging. The referral is as valid as one from an in-person visit. However, the specialist may still require you to attend in person — that depends on the specialist's own practice."
+      },
+      {
+        q: "What technology do I need for a telehealth consultation?",
+        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. No special software, no video calls, no app downloads. You fill in a form, a doctor reviews it, and you get your result. Simpler than most people expect."
+      },
+      {
+        q: "Is telehealth covered by private health insurance?",
+        a: "Most private health insurance policies don't cover GP consultations (in-person or telehealth) under their extras cover. However, some policies offer telehealth as a member benefit. Check with your insurer. For most people, telehealth is an out-of-pocket cost that competes on convenience rather than insurance coverage."
       }
-    ]
+    ],
+    guideContent: {
+      title: "The Real Cost of the Waiting Room",
+      subtitle: "Time, money, and health trade-offs most people don't think about.",
+      sections: [
+        {
+          id: "hidden-costs",
+          title: "The Hidden Costs of a GP Visit",
+          paragraphs: [
+            "The financial cost of seeing a GP is just the start. The average GP visit in Australia takes about two hours from door to door — factoring in travel time, parking, the waiting room, the consultation itself, and any pharmacy stop afterwards. For someone on an average wage, those two hours represent $60-80 in lost earnings or productive time.",
+            "Then there are the less obvious costs: arranging childcare, rescheduling meetings, using up personal leave. For shift workers, a midday GP appointment might mean losing an entire shift. For small business owners, being away from work for two hours can have ripple effects. The waiting room isn't free — you're just paying in time instead of money.",
+            "None of this means GP visits aren't worth it. For complex issues, ongoing care, and physical examinations, they absolutely are. But for a medical certificate or a repeat prescription, the two-hour investment can feel disproportionate to the clinical need."
+          ]
+        },
+        {
+          id: "infection-risk",
+          title: "Waiting Rooms and Infection Exposure",
+          paragraphs: [
+            "GP waiting rooms are, by design, places where sick people congregate. During flu season, a waiting room visit carries a measurable risk of picking up something new. Research has shown that respiratory viruses can spread in enclosed spaces with limited ventilation — and while many clinics have improved their airflow since COVID, the fundamental physics hasn't changed.",
+            "For immunocompromised patients, the elderly, or pregnant women, this isn't a trivial concern. Telehealth removes the exposure entirely. You consult from your own environment, on your own terms, without sitting next to someone who's coughing into the shared magazine pile."
+          ]
+        },
+        {
+          id: "accessibility",
+          title: "Accessibility and Equity of Access",
+          paragraphs: [
+            "Australia's GP shortage is well-documented. In 2024, the average wait for a GP appointment was 4-7 days in metro areas and significantly longer in rural and regional Australia. Some towns have no GP at all. Telehealth doesn't fix the doctor shortage, but it does remove the geographic barrier — a patient in rural Queensland has the same access to telehealth as someone in Sydney's CBD.",
+            "Accessibility matters beyond geography too. People with mobility limitations, those without reliable transport, parents with young children, and workers on inflexible rosters all face barriers to in-person care. Telehealth lowers those barriers without requiring anyone to build a new clinic or hire another receptionist.",
+            "The equity argument is real: if your only options are a GP with a two-week wait or paying $20-30 for a same-day telehealth consultation, the ability to access care at all becomes the defining factor. A system that only works during business hours for people who can leave work isn't serving everyone."
+          ]
+        }
+      ]
+    }
   },
   "bulk-billing-vs-private-telehealth": {
     title: "Bulk Billing vs Private Telehealth: Which Is Better?",
@@ -243,7 +459,71 @@ const comparisons: Record<string, {
       { q: "Is private telehealth worth it when bulk billing exists?", a: "It depends on your situation. If you need a certificate today and bulk-billing has a 2-week wait, paying $20 can be worth it. If you have time and cost matters, bulk billing is the better choice." },
       { q: "Can I claim Medicare for private telehealth?", a: "Some private telehealth services may allow you to claim a rebate. Check with the provider. InstantMed is a private service with transparent upfront pricing." },
       { q: "Why is bulk-billed telehealth so hard to get?", a: "Demand exceeds supply. Many bulk-billing services are fully booked. Government funding for bulk billing has also been under pressure." },
+      {
+        q: "Are the doctors less qualified on private telehealth services?",
+        a: "No. All practising doctors in Australia must be registered with AHPRA regardless of whether they work in a bulk-billing clinic or a private telehealth service. The qualification and registration requirements are identical. The difference is in the business model, not the medical credentials."
+      },
+      {
+        q: "Why can't private telehealth services offer bulk billing?",
+        a: "Bulk billing requires the provider to accept the Medicare rebate as full payment. For telehealth consultations, the Medicare rebate is often lower than the cost of providing the service — particularly for asynchronous consultations that don't attract standard MBS item numbers. Private services charge a fee to sustain quality and availability."
+      },
+      {
+        q: "Do bulk-billed telehealth services offer the same clinical quality?",
+        a: "They can — the clinical quality depends on the individual doctor and the service's processes, not the billing model. However, bulk-billed services are under more financial pressure, which can mean shorter consultations and higher patient volumes per doctor. This doesn't necessarily mean worse care, but it's a factor."
+      },
+      {
+        q: "Can I use private telehealth for conditions I'd normally bulk bill?",
+        a: "Yes. You can use private telehealth for any condition that's clinically appropriate for remote assessment. Many people use private telehealth when they can't get a timely bulk-billed appointment — it's a matter of trading cost for convenience."
+      },
+      {
+        q: "Is my health data handled differently by private vs bulk-billed services?",
+        a: "Both are bound by the Australian Privacy Act and the Australian Privacy Principles. In practice, private telehealth services often invest more heavily in data security infrastructure — encryption, secure storage, access controls — because their business model depends on patient trust. But the legal obligations are the same."
+      },
+      {
+        q: "Will bulk-billed telehealth become easier to access in future?",
+        a: "The Australian Government has been expanding Medicare item numbers for telehealth, but the fundamental challenge remains: there aren't enough doctors to meet demand, regardless of billing model. Telehealth improves access by removing geographic barriers, but it can't create more doctors. Private services help absorb overflow demand."
+      },
+      {
+        q: "Can I claim private telehealth costs on my tax return?",
+        a: "Medical expenses are generally not tax-deductible for individuals in Australia. However, if your employer provides a health spending account or you have an HSA equivalent through your workplace, check whether telehealth services are covered. Some corporate wellness programs reimburse telehealth costs."
+      },
+      {
+        q: "Do I need a Medicare card to use private telehealth?",
+        a: "Not necessarily. Private telehealth services that don't bill Medicare may not require a Medicare card. At InstantMed, a Medicare card is not required for medical certificates, but is needed for services where the doctor may need to verify your Medicare eligibility or prescribing history."
+      }
     ],
+    guideContent: {
+      title: "Bulk Billing vs Private Telehealth: The Full Picture",
+      subtitle: "Understanding the real trade-offs behind free and paid telehealth models.",
+      sections: [
+        {
+          id: "funding-model",
+          title: "How Each Model Is Funded",
+          paragraphs: [
+            "Bulk billing works because the government pays the doctor on your behalf through the Medicare Benefits Schedule. The MBS sets the rebate amount for each consultation type. When a doctor bulk bills, they accept this rebate as full payment — no gap, no out-of-pocket cost to the patient. It's a cornerstone of Australia's universal healthcare system.",
+            "Private telehealth services charge patients directly and don't rely on MBS rebates. This means they can set their own prices, offer extended hours, and invest in technology and service quality without being constrained by Medicare rebate levels. The trade-off is clear: patients pay, but they gain access and convenience.",
+            "The financial pressure on bulk billing is real. Medicare rebates haven't kept pace with the cost of running a medical practice, which is why fewer GPs offer bulk billing — particularly in capital cities. For telehealth specifically, asynchronous consultations don't always fit neatly into existing MBS item numbers, making bulk billing structurally difficult."
+          ]
+        },
+        {
+          id: "availability",
+          title: "Why Availability Differs So Much",
+          paragraphs: [
+            "The wait time difference between bulk-billed and private telehealth is often dramatic — days or weeks versus under an hour. This isn't a mystery: when something is free, demand outstrips supply. Bulk-billed telehealth services are often overwhelmed, with appointment slots filling up almost immediately.",
+            "Private services manage this through pricing. The fee creates a natural demand filter — people who need care urgently are willing to pay, while those with less urgent needs may prefer to wait for a free option. This isn't a value judgment; it's how markets work. The result is that private services can maintain shorter wait times because they aren't absorbing unlimited demand at zero cost."
+          ]
+        },
+        {
+          id: "when-to-use",
+          title: "A Practical Decision Framework",
+          paragraphs: [
+            "Rather than treating this as an either/or choice, most Australians are better served by using both models strategically. For routine check-ups, chronic disease management, and ongoing care, a bulk-billed GP (in-person or telehealth) provides the best value. Your regular GP knows your history, coordinates your care, and bulk billing keeps costs manageable over time.",
+            "For acute needs — a medical certificate for tomorrow, a repeat prescription that ran out over the weekend, or care after hours when bulk-billed services aren't available — private telehealth fills a genuine gap. Paying $20-40 for same-day service is a reasonable cost when the alternative is missing work or going without care.",
+            "The test is simple: can this wait, or do I need it now? If it can wait, use the free option. If it can't, pay for the faster one. Neither choice is wrong — they serve different needs."
+          ]
+        }
+      ]
+    }
   },
   "e-prescriptions-vs-paper": {
     title: "e-Prescriptions vs Paper Prescriptions: What's the Difference?",
@@ -274,7 +554,84 @@ const comparisons: Record<string, {
       { q: "Do all pharmacies accept eScripts?", a: "Yes. eScripts are now the standard across Australia. Any pharmacy can scan the QR code or enter the token." },
       { q: "What if I lose my eScript?", a: "Contact your doctor or the service that issued it. They can resend it. One advantage of eScripts — they're digital and resendable." },
       { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked in to one pharmacy." },
+      {
+        q: "How do e-prescriptions actually work?",
+        a: "Your doctor creates the prescription electronically. You receive a token — a unique code — via SMS or email, often with a QR code. At the pharmacy, the pharmacist scans the QR code or enters the token to retrieve your prescription from a secure national database. The medication is dispensed just like it would be with paper."
+      },
+      {
+        q: "Are e-prescriptions as safe and regulated as paper prescriptions?",
+        a: "Yes — arguably more so. e-Prescriptions are regulated by the same TGA and state-based prescribing laws as paper. Additionally, eScripts have built-in safeguards: they're tied to a verified prescriber, tracked in a national system, and can't be photocopied or forged the way paper scripts occasionally are."
+      },
+      {
+        q: "Can I still get a paper prescription if I prefer one?",
+        a: "In most cases, yes. While eScripts are the default, doctors can still issue paper prescriptions if you request one. However, if you're using a telehealth service, paper prescriptions add a logistical step — you'd need to collect the paper script or have it posted, which somewhat defeats the point."
+      },
+      {
+        q: "Do e-prescriptions work with the PBS (Pharmaceutical Benefits Scheme)?",
+        a: "Yes. e-Prescriptions are fully compatible with the PBS. You receive the same subsidised pricing regardless of whether your prescription is electronic or paper. The pharmacist applies your PBS entitlements in exactly the same way."
+      },
+      {
+        q: "What happens to my repeats with an e-prescription?",
+        a: "Your repeats are stored electronically with your original prescription. Each time you fill a repeat, the pharmacy updates the national system. You can check how many repeats you have left through Active Script List (ASL) if your pharmacy participates, or by asking your pharmacist."
+      },
+      {
+        q: "Can someone else pick up my e-prescription medication?",
+        a: "Yes. You can forward the eScript token or QR code to someone else, and they can present it at the pharmacy on your behalf. The pharmacist may ask them to confirm your date of birth or other identifying details. It works the same way as giving someone a paper script to fill for you."
+      },
+      {
+        q: "What is the Active Script List (ASL)?",
+        a: "The Active Script List is a national service that stores your electronic prescriptions in one place. If your pharmacy participates in ASL, they can see all your current eScripts without you needing to present a token each time. It's opt-in and makes managing multiple prescriptions significantly easier."
+      },
+      {
+        q: "Are e-prescriptions secure? Can they be hacked or intercepted?",
+        a: "e-Prescriptions use encryption and are transmitted through a secure national infrastructure managed by the Australian Digital Health Agency. The token alone isn't enough — it needs to be redeemed through an authorised pharmacy system. In practical terms, eScripts are more secure than paper prescriptions, which can be stolen, copied, or altered."
+      },
+      {
+        q: "Can my e-prescription expire?",
+        a: "Yes. Like paper prescriptions, eScripts have an expiry date set by the prescribing doctor or by legislation (typically 12 months for standard medications). Your token will show the expiry date, and the pharmacy system will flag expired prescriptions. If yours expires, you'll need a new prescription from a doctor."
+      }
     ],
+    guideContent: {
+      title: "e-Prescriptions in Australia: What You Need to Know",
+      subtitle: "The complete guide to how electronic prescriptions work, their benefits, and the transition from paper.",
+      sections: [
+        {
+          id: "how-it-works",
+          title: "How the e-Prescription System Works",
+          paragraphs: [
+            "Australia's e-prescription system is built on a national infrastructure managed by the Australian Digital Health Agency. When a doctor writes an electronic prescription, it's uploaded to a secure prescription exchange. The patient receives a token — a unique identifier — via SMS, email, or through their health app. This token is the digital equivalent of the paper script.",
+            "At the pharmacy, the process is straightforward. The pharmacist either scans the QR code or manually enters the token, which retrieves the prescription from the exchange. They verify the patient's identity, dispense the medication, and mark the prescription as filled. The whole process takes about the same time as a paper script — the difference is everything that happens before you reach the pharmacy counter.",
+            "For repeat prescriptions, the system is particularly elegant. Instead of keeping track of multiple paper scripts (and inevitably losing one behind the fridge), all your repeats are stored electronically. Each fill updates the national record, and you always know how many repeats remain."
+          ]
+        },
+        {
+          id: "security",
+          title: "Security and Privacy of Electronic Prescriptions",
+          paragraphs: [
+            "e-Prescriptions are transmitted through encrypted channels and stored in secure, government-regulated prescription exchanges. The system was designed with privacy as a core requirement — your prescription data is only accessible to authorised prescribers and pharmacists, not to insurers, employers, or other third parties.",
+            "Compared to paper, eScripts are more secure in several meaningful ways. Paper prescriptions can be photocopied, altered, or stolen. eScripts can't be forged — they're cryptographically signed by the prescribing doctor and verified through the national system. If someone intercepts your token, they still need to present identification at the pharmacy to collect the medication.",
+            "The Active Script List (ASL) adds another layer of convenience without sacrificing privacy. If you opt in, your pharmacy can see all your current prescriptions in one place, reducing the risk of duplicates, interactions, or expired scripts slipping through the cracks."
+          ]
+        },
+        {
+          id: "transition",
+          title: "The Transition from Paper to Digital",
+          paragraphs: [
+            "Australia has been transitioning to e-prescriptions since 2020, and the shift is now well advanced. Virtually all pharmacies accept eScripts, and most GPs issue them by default. Paper prescriptions aren't going away entirely — they're still valid and sometimes necessary — but they're increasingly the exception rather than the rule.",
+            "For patients, the transition has been largely seamless. If you've used a QR code to check in somewhere or scan a menu, you already have the technical skills for eScripts. The learning curve is minimal. For older patients or those less comfortable with technology, pharmacists are accustomed to walking people through the process."
+          ]
+        },
+        {
+          id: "telehealth-fit",
+          title: "Why e-Prescriptions and Telehealth Are Natural Partners",
+          paragraphs: [
+            "Before e-prescriptions, telehealth had a prescription problem. If a doctor consulted with you remotely but needed to prescribe medication, they had to either post a paper script (slow and unreliable) or fax it to a specific pharmacy (limiting your choice). eScripts solved this completely — the prescription is delivered digitally, instantly, and can be filled anywhere.",
+            "This is why telehealth has grown so rapidly alongside e-prescriptions. The two technologies remove the two biggest barriers to remote healthcare: the need to be physically present for the consultation, and the need to physically collect a prescription. Together, they mean a patient in rural NSW can consult a doctor and have their prescription ready at the local pharmacy without leaving home.",
+            "For repeat prescriptions in particular, the telehealth-plus-eScript combination is transformative. Instead of booking a GP appointment, waiting days, travelling to the clinic, sitting in the waiting room, and then driving to the pharmacy — you fill in a form, receive your eScript, and walk to your nearest pharmacy. The clinical standard is the same; the logistics are just better."
+          ]
+        }
+      ]
+    }
   },
 }
 
@@ -288,7 +645,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!comparison) return {}
 
   return {
-    title: `${comparison.title} | InstantMed`,
+    title: comparison.title,
     description: comparison.description,
     keywords: [
       'telehealth vs gp',
@@ -333,7 +690,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           { name: "Home", url: "https://instantmed.com.au" },
           { name: "Compare", url: "https://instantmed.com.au/compare" },
           { name: comparison.title, url: `https://instantmed.com.au/compare/${slug}` }
-        ]} 
+        ]}
       />
 
       <div className="flex min-h-screen flex-col bg-background">
@@ -383,7 +740,7 @@ export default async function ComparisonPage({ params }: PageProps) {
 
                 {/* Rows */}
                 {comparison.comparisonTable.map((row, i) => (
-                  <div 
+                  <div
                     key={i}
                     className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}`}
                   >
@@ -479,6 +836,14 @@ export default async function ComparisonPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* Guide Section (E-E-A-T) */}
+          <DataDrivenGuideSection
+            ariaLabel="comparison guide"
+            title={comparison.guideContent.title}
+            subtitle={comparison.guideContent.subtitle}
+            sections={comparison.guideContent.sections}
+          />
+
           {/* FAQ */}
           <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
@@ -492,6 +857,30 @@ export default async function ComparisonPage({ params }: PageProps) {
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Related Reading — cross-links to content hubs */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                <span className="text-muted-foreground font-medium">Related reading:</span>
+                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                  Telehealth guide
+                </Link>
+                <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
+                  Telehealth vs GP
+                </Link>
+                <Link href="/conditions" className="text-primary hover:underline">
+                  Health conditions
+                </Link>
+                <Link href="/symptoms" className="text-primary hover:underline">
+                  Symptom checker
+                </Link>
+                <Link href="/blog/best-online-doctor-australia-comparison" className="text-primary hover:underline">
+                  Best online doctors (2026)
+                </Link>
               </div>
             </div>
           </section>
@@ -523,6 +912,9 @@ export default async function ComparisonPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

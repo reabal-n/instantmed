@@ -6,10 +6,11 @@ import { ArrowRight, Shield, Zap, Clock, Smartphone, Star, Wrench, Building } fr
 import Link from "next/link"
 import type { Metadata } from "next"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Tradies | 15 Min Script",
-  description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Valid for all employers. No appointments, no waiting rooms. Built for tradies.",
+  title: "Medical Certificates for Tradies | Online",
+  description: "Get your medical certificate without leaving the job site. Valid for all employers. No appointments, no waiting rooms. Built for tradies. From $19.95.",
   keywords: [
     "medical certificate tradies",
     "tradie sick certificate",
@@ -19,8 +20,8 @@ export const metadata: Metadata = {
     "telehealth for tradies",
   ],
   openGraph: {
-    title: "Medical Certificates for Tradies | 15 Min | InstantMed",
-    description: "Get your med cert without leaving the site. 15-minute turnaround. Valid for all employers.",
+    title: "Medical Certificates for Tradies | InstantMed",
+    description: "Get your med cert without leaving the site. Valid for all employers. From $19.95.",
     url: "https://instantmed.com.au/for/tradies",
   },
   alternates: {
@@ -35,18 +36,98 @@ export default function TradiesPage() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Can I get a medical certificate on my phone?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email — typically within 15 minutes. No need to leave the site.",
-        },
-      },
-      {
-        "@type": "Question",
         name: "Will my boss accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
           text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers, including construction companies, contractors, and agencies.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How fast is it?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Fill out the form in 2 minutes. Doctor reviews it. Most certs are in your inbox within 15 minutes.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can I get a cert for yesterday?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes, we can backdate up to 48 hours if it makes sense clinically. Just say so when you fill it out.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What if I need a script too?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We do repeat prescriptions for common stuff — blood pressure meds, reflux, asthma inhalers. Same deal, 15 minutes, sent to your phone.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What's it cost?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Med certs from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95. No surprises.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is this certificate valid for WorkCover?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No. WorkCover claims require in-person examination and specific forms from your employer's nominated doctor. Our certificates are for personal/carer's sick leave under the Fair Work Act, not workplace injury claims.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can I get a certificate for a mental health day?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Mental health is a legitimate medical reason. Construction and trades have some of the highest rates of mental health challenges in Australia. The certificate won't specify the nature of your condition.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What about carer's leave?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We issue certificates for carer's leave too. If you need to look after a sick family member, the certificate confirms your need to take carer's leave under the Fair Work Act. Same process, same price.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do I need a Medicare card?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No. Medicare is not required for medical certificates. The fee covers the doctor's assessment directly.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can my employer ask what I was sick with?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No. Under Australian privacy law, your employer is entitled to know you were unfit for work and for how long — not your specific diagnosis. Our certificates state 'medical condition' without disclosing details.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "I'm a subcontractor — does this work for me?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. While subcontractors don't get paid sick leave, a medical certificate protects your professional relationship and demonstrates good faith. Some head contractors and agencies still require one.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What if I get sick on a remote site?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Our service works anywhere with phone reception. FIFO workers, remote mine sites, rural construction — if you can fill in a form on your phone, we can get you a certificate.",
         },
       },
     ],
@@ -54,7 +135,7 @@ export default function TradiesPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -71,7 +152,7 @@ export default function TradiesPage() {
                     Get Your Med Cert Without Leaving Site
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Woke up crook? Get your medical certificate on your phone in <strong>15 minutes</strong>. No doctor visits, no time off site, no stuffing around.
+                    Woke up crook? Get your medical certificate on your phone in <strong>under 30 minutes</strong>, 24/7. No doctor visits, no time off site, no stuffing around.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Valid for all employers • AHPRA doctors • Done from your phone
@@ -237,6 +318,65 @@ export default function TradiesPage() {
             </div>
           </section>
 
+          {/* Sick Leave Guide */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-3xl mx-auto">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-medium text-primary">Reviewed by AHPRA-registered GPs</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-center mb-8">Your guide to sick leave in the trades</h2>
+
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Sick leave rights for tradies under the Fair Work Act</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Full-time employees get 10 days of paid personal/carer&apos;s leave per year under the National Employment Standards. Part-timers get proportional leave based on their hours. Your employer can request a medical certificate for any absence, though most only require one for absences of two or more days. Important for tradies: your award or enterprise agreement might have different rules. The Building and Construction General On-site Award 2020 aligns with the NES, but check if your specific agreement adds extra requirements — some site agreements require a cert from day one. Casual tradies don&apos;t accrue paid leave, but a certificate still shows good faith and protects your position with your employer or agency.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">WorkCover vs sick leave — know the difference</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        If your injury happened at work, that&apos;s WorkCover — and it needs in-person assessment with specific employer-nominated processes. Our service covers personal illness and non-work injuries: woke up with the flu, back&apos;s playing up from weekend footy, gastro from dodgy takeaway. The distinction matters legally. WorkCover injuries are the employer&apos;s responsibility and have their own insurance pathway. Personal illness is your own sick leave entitlement. If you&apos;re unsure whether your situation is work-related, a good rule of thumb: did it happen on the job? If yes, talk to your employer about WorkCover. If it&apos;s something you woke up with or picked up outside work hours, that&apos;s personal sick leave and we can help.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Common conditions tradies need certificates for</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        The physical nature of trade work means some conditions come up more than others: back and muscle strains (even from non-work activity like weekend sport or lifting something at home), cold and flu (especially when working outdoors or in enclosed spaces with poor ventilation), gastro (spreads fast on job sites with shared facilities), and fatigue and burnout from long hours and early starts. Mental health is also a growing issue in the industry — trades have disproportionately high rates of depression and anxiety, and taking a day to look after your head is no different to taking one for a crook back. All of these are legitimate reasons for a medical certificate. The doctor assesses your condition and determines an appropriate duration based on your symptoms and the physical demands of your role.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">FIFO and remote workers</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        If you work fly-in-fly-out or on remote sites, getting to a GP can mean a full day&apos;s travel. Telehealth was designed for exactly this situation. As long as you have phone reception, you can complete the form and receive your certificate by email. For FIFO workers on roster, the certificate covers your sick leave just like it would for anyone else. Your employer can&apos;t discriminate against telehealth certificates compared to in-person ones — the law doesn&apos;t distinguish between them.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Why your employer can&apos;t reject a valid certificate</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Under the Fair Work Act, a medical certificate from an AHPRA-registered doctor is &quot;reasonable evidence&quot; of illness. Your employer must accept it. They can&apos;t require you to see their own doctor for standard sick leave (that&apos;s a WorkCover thing). They can&apos;t require a specific GP clinic. They can&apos;t demand to know your diagnosis. If an employer rejects a valid medical certificate, that&apos;s potentially a breach of the Fair Work Act, and you can contact the Fair Work Ombudsman for advice.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-border/50 text-center">
+                    <Link href="/clinical-governance" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>Learn about our clinical governance</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* FAQs */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -263,6 +403,34 @@ export default function TradiesPage() {
                     {
                       q: "What's it cost?",
                       a: `Med certs from ${PRICING_DISPLAY.MED_CERT} (1 day) or ${PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No surprises.`,
+                    },
+                    {
+                      q: "Is this certificate valid for WorkCover?",
+                      a: "No. WorkCover claims require in-person examination and specific forms from your employer's nominated doctor. Our certificates are for personal/carer's sick leave under the Fair Work Act, not workplace injury claims.",
+                    },
+                    {
+                      q: "Can I get a certificate for a mental health day?",
+                      a: "Yes. Mental health is a legitimate medical reason. Construction and trades have some of the highest rates of mental health challenges in Australia. The certificate won't specify the nature of your condition.",
+                    },
+                    {
+                      q: "What about carer's leave?",
+                      a: "We issue certificates for carer's leave too. If you need to look after a sick family member, the certificate confirms your need to take carer's leave under the Fair Work Act. Same process, same price.",
+                    },
+                    {
+                      q: "Do I need a Medicare card?",
+                      a: "No. Medicare is not required for medical certificates. The fee covers the doctor's assessment directly.",
+                    },
+                    {
+                      q: "Can my employer ask what I was sick with?",
+                      a: "No. Under Australian privacy law, your employer is entitled to know you were unfit for work and for how long — not your specific diagnosis. Our certificates state 'medical condition' without disclosing details.",
+                    },
+                    {
+                      q: "I'm a subcontractor — does this work for me?",
+                      a: "Yes. While subcontractors don't get paid sick leave, a medical certificate protects your professional relationship and demonstrates good faith. Some head contractors and agencies still require one.",
+                    },
+                    {
+                      q: "What if I get sick on a remote site?",
+                      a: "Our service works anywhere with phone reception. FIFO workers, remote mine sites, rural construction — if you can fill in a form on your phone, we can get you a certificate.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-white dark:bg-card border border-border/50">

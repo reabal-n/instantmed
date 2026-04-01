@@ -12,9 +12,11 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 interface ConfirmedClientProps {
   intakeId?: string
   email?: string
+  serviceName?: string
 }
 
-export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
+export function ConfirmedClient({ intakeId, email, serviceName }: ConfirmedClientProps) {
+  const isMedCert = serviceName?.toLowerCase().includes("cert") ?? false
   useEffect(() => {
     // Track guest confirmation view
     capture("guest_confirmation_viewed", {
@@ -32,7 +34,9 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
 
       <h1 className="text-2xl font-semibold tracking-tight mb-2">Request Confirmed</h1>
       <p className="text-muted-foreground mb-6">
-        Your payment was successful. A doctor will review your request shortly.
+        {isMedCert
+          ? "Your payment was successful. Check your email shortly for your certificate."
+          : "Your payment was successful. A doctor will review your request shortly."}
       </p>
 
       <div className="space-y-4 text-left bg-muted/30 rounded-xl p-4 mb-6">
@@ -59,7 +63,9 @@ export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">
-              Most medical certificates are delivered within 5 minutes. Other requests are typically reviewed within 1–2 hours.
+              {isMedCert
+                ? "Certificates are typically delivered in under 30 minutes."
+                : "Medical certificates are typically delivered in under 30 minutes. Other requests are typically reviewed within 1–2 hours."}
             </p>
           </div>
         </div>

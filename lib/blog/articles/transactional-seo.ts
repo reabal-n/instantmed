@@ -98,7 +98,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'How Much Does It Cost?', level: 2 },
       {
         type: 'paragraph',
-        content: 'At InstantMed, a one-day medical certificate costs $19.95, a two-day certificate is $29.95, and a three-day certificate is $39.95. There\'s no Medicare rebate for telehealth medical certificates — this is an out-of-pocket cost.'
+        content: 'At InstantMed, a one-day medical certificate costs $19.95, a two-day certificate is $29.95, and a three-day certificate is $39.95. There\'s no Medicare rebate for telehealth medical certificates — this is an out-of-pocket cost.',
+        links: [
+          { text: 'one-day medical certificate', href: '/medical-certificate', title: 'Online medical certificates' },
+          { text: '$19.95', href: '/pricing', title: 'InstantMed pricing' }
+        ]
       },
       {
         type: 'paragraph',
@@ -107,7 +111,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'Privacy: What Your Employer Sees', level: 2 },
       {
         type: 'paragraph',
-        content: 'Your medical certificate will show the dates you\'re certified as unfit for work, the assessing doctor\'s details, and the clinic information. It will not include your specific diagnosis. Your employer is entitled to know you\'re unwell and for how long. They\'re not entitled to know what\'s wrong with you.'
+        content: 'Your medical certificate will show the dates you\'re certified as unfit for work, the assessing doctor\'s details, and the clinic information. It will not include your specific diagnosis. Your employer is entitled to know you\'re unwell and for how long. They\'re not entitled to know what\'s wrong with you.',
+        links: [
+          { text: 'medical certificate', href: '/medical-certificate', title: 'Online medical certificates' },
+          { text: 'specific diagnosis', href: '/blog/employer-accept-online-medical-certificate', title: 'Do employers accept online medical certificates?' }
+        ]
       },
       {
         type: 'paragraph',
@@ -147,7 +155,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         question: 'How long does it take to get an online medical certificate?',
-        answer: 'At InstantMed, most certificates are reviewed and issued within a few hours during operating hours (8am-10pm AEST, 7 days). The process is designed to be same-day for straightforward requests.'
+        answer: 'At InstantMed, most certificates are issued in under 30 minutes, available 24/7. Submit your request anytime and your certificate will be emailed to you shortly after.'
       },
       {
         question: 'Can I get a backdated medical certificate online?',
@@ -209,7 +217,11 @@ export const transactionalSeoArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Yes, employers are required to accept online medical certificates in Australia. A certificate issued by an AHPRA-registered doctor through a telehealth consultation is legally indistinguishable from one issued in a clinic. The law doesn\'t care whether the doctor was across a desk or across an internet connection.'
+        content: 'Yes, employers are required to accept online medical certificates in Australia. A certificate issued by an AHPRA-registered doctor through a telehealth consultation is legally indistinguishable from one issued in a clinic. The law doesn\'t care whether the doctor was across a desk or across an internet connection.',
+        links: [
+          { text: 'online medical certificates', href: '/medical-certificate', title: 'Get a medical certificate online' },
+          { text: 'AHPRA-registered doctor', href: '/our-doctors', title: 'Our doctors' }
+        ]
       },
       {
         type: 'paragraph',
@@ -325,7 +337,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'The Bigger Picture', level: 2 },
       {
         type: 'paragraph',
-        content: 'Telehealth isn\'t a loophole. It\'s a regulated healthcare delivery method that\'s been part of the Australian system for years and was significantly expanded during the pandemic. The Medical Board of Australia\'s position is clear: telehealth consultations are held to the same standards as in-person ones.'
+        content: 'Telehealth isn\'t a loophole. It\'s a regulated healthcare delivery method that\'s been part of the Australian system for years and was significantly expanded during the pandemic. The Medical Board of Australia\'s position is clear: telehealth consultations are held to the same standards as in-person ones.',
+        links: [
+          { text: 'Telehealth', href: '/blog/what-is-telehealth', title: 'What is telehealth?' },
+          { text: 'same standards as in-person ones', href: '/clinical-governance', title: 'Clinical governance' }
+        ]
       },
       {
         type: 'paragraph',
@@ -398,7 +414,11 @@ export const transactionalSeoArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'If you\'re on a stable medication and your prescription has run out, you don\'t necessarily need to sit in a waiting room to get it renewed. Telehealth services in Australia can issue repeat prescriptions for most routine medications, and the process is considerably less painful than booking a GP appointment three weeks from now.'
+        content: 'If you\'re on a stable medication and your prescription has run out, you don\'t necessarily need to sit in a waiting room to get it renewed. Telehealth services in Australia can issue repeat prescriptions for most routine medications, and the process is considerably less painful than booking a GP appointment three weeks from now.',
+        links: [
+          { text: 'repeat prescriptions', href: '/prescriptions', title: 'Online repeat prescriptions' },
+          { text: 'Telehealth services', href: '/blog/what-is-telehealth', title: 'What is telehealth?' }
+        ]
       },
       {
         type: 'paragraph',
@@ -496,7 +516,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'Cost Comparison', level: 2 },
       {
         type: 'paragraph',
-        content: 'At InstantMed, a repeat prescription costs $29.95. This is the consultation fee for the doctor\'s assessment and the eScript. Your medication cost at the pharmacy is separate and depends on whether it\'s PBS-listed and your concession status.'
+        content: 'At InstantMed, a repeat prescription costs $29.95. This is the consultation fee for the doctor\'s assessment and the eScript. Your medication cost at the pharmacy is separate and depends on whether it\'s PBS-listed and your concession status.',
+        links: [
+          { text: '$29.95', href: '/pricing', title: 'InstantMed pricing' },
+          { text: 'eScript', href: '/blog/how-escripts-work-australia', title: 'How eScripts work in Australia' }
+        ]
       },
       {
         type: 'paragraph',

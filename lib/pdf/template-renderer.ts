@@ -43,7 +43,6 @@ export interface TemplatePdfInput {
   consultationDate: string // formatted display string e.g. "18 February 2026"
   startDate: string        // formatted display string
   endDate: string          // formatted display string
-  returnDate: string       // formatted display string — day after endDate (when patient returns)
   certificateRef: string   // IM-WORK-20260218-00847
   issueDate: string        // formatted date for header e.g. "18/02/2026"
 }
@@ -161,22 +160,14 @@ function getBodyText(input: TemplatePdfInput): string {
 
 function getReturnText(input: TemplatePdfInput): string {
   const isSingleDay = input.startDate === input.endDate
+  const periodRef = isSingleDay ? "this date" : "this period"
   switch (input.certificateType) {
     case "work":
-      if (isSingleDay) {
-        return `They are advised to rest and recover and are expected to return to work the following day.`
-      }
-      return `They are advised to rest and recover during this period and are expected to return to work on ${input.returnDate}, or earlier if symptoms resolve.`
+      return `They are advised to rest and recover and may return to work once ${periodRef} has concluded, or earlier if symptoms resolve.`
     case "study":
-      if (isSingleDay) {
-        return `They require rest and recovery and are expected to resume academic activities the following day. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
-      }
-      return `They require this period for rest and recovery and are expected to resume academic activities on ${input.returnDate}, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
+      return `They require rest and recovery and may resume academic activities once ${periodRef} has concluded, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
     case "carer":
-      if (isSingleDay) {
-        return `They are expected to return to work the following day, subject to the dependent's recovery.`
-      }
-      return `They are expected to return to work on ${input.returnDate}, subject to the dependent's recovery.`
+      return `They may return to work once ${periodRef} has concluded, subject to the dependent's recovery.`
   }
 }
 
@@ -222,6 +213,12 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     }
     // Use the sanitised name for rendering
     const sanitisedInput = { ...input, patientName: trimmedName }
+
+    // Runtime guard: only allow known template types (defence against path traversal)
+    const ALLOWED_TYPES = new Set(["work", "study", "carer"])
+    if (!ALLOWED_TYPES.has(sanitisedInput.certificateType)) {
+      return { success: false, error: `Invalid certificate type: ${sanitisedInput.certificateType}` }
+    }
 
     const templateFile = `${sanitisedInput.certificateType}_template.pdf`
 

@@ -18,11 +18,47 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 const conditions = conditionsData
+
+/**
+ * Shared FAQs that apply to all condition pages.
+ * Merged with condition-specific FAQs to reach 10-12 total per page.
+ */
+const SHARED_CONDITION_FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: "Do employers accept online medical certificates?",
+    a: "Yes. Medical certificates issued by AHPRA-registered doctors through telehealth are legally equivalent to certificates from an in-person GP visit. Under the Fair Work Act, employers must accept valid medical certificates regardless of how the consultation was conducted. We haven't had one rejected yet.",
+  },
+  {
+    q: "How does the doctor review process work?",
+    a: "You fill in a short health questionnaire about your symptoms and medical history. An AHPRA-registered Australian doctor reviews your request and makes an independent clinical decision — approve, request more information, or decline. Medical certificates are typically issued in under 30 minutes. Other requests are reviewed within 1–2 hours during operating hours.",
+  },
+  {
+    q: "Are telehealth medical certificates legally valid in Australia?",
+    a: "Absolutely. Telehealth consultations are recognised under Australian law, and certificates issued through telehealth carry the same legal weight as those from a face-to-face appointment. Our doctors are registered with AHPRA and authorised to issue medical certificates via telehealth.",
+  },
+  {
+    q: "What information appears on the medical certificate?",
+    a: "Your certificate includes your name, the date(s) you're unfit for work, and the doctor's details and signature. It does not include your diagnosis or any clinical details — your employer only needs to know that a doctor has assessed you and determined you're unfit for duties. Your privacy is protected.",
+  },
+  {
+    q: "What happens if my request is declined?",
+    a: "If the reviewing doctor determines they can't issue a certificate based on your clinical presentation, you'll receive a full refund. No questions, no hassle. The doctor may also recommend you visit a GP in person if your situation needs a more thorough assessment.",
+  },
+  {
+    q: "Can I get a medical certificate for a past illness?",
+    a: "We can issue certificates for recent illness in some circumstances, but our doctors need to be satisfied that backdating is clinically appropriate. If you've already recovered, mention the dates you were unwell in your request and the doctor will make a judgement. Certificates for illness more than a few days ago are harder to justify clinically.",
+  },
+  {
+    q: "How do I get a medical certificate for carer's leave?",
+    a: "Select the carer's leave option when you start your request. You'll need to describe who you're caring for and their condition. The doctor will issue a certificate confirming you need to provide care to an immediate family or household member — the same as you'd get from a GP clinic, without the waiting room.",
+  },
+]
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -33,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const condition = conditions[slug]
   if (!condition) return {}
 
-  const title = `${condition.name} | Online Doctor Assessment | InstantMed`
+  const title = `${condition.name} | Online Doctor Assessment`
   const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Confidential telehealth.`
 
   return {
@@ -69,8 +105,11 @@ export default async function ConditionPage({ params }: PageProps) {
     notFound()
   }
 
+  // Merge condition-specific FAQs with shared FAQs (condition-specific first)
+  const allFaqs = [...condition.commonQuestions, ...SHARED_CONDITION_FAQS]
+
   // Transform FAQs for schema
-  const faqSchemaData = condition.commonQuestions.map(faq => ({
+  const faqSchemaData = allFaqs.map(faq => ({
     question: faq.q,
     answer: faq.a
   }))
@@ -457,6 +496,17 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* Clinical Governance */}
+          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              All clinical decisions are made by AHPRA-registered doctors following{" "}
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                our clinical governance framework
+              </Link>
+              . We never automate clinical decisions.
+            </p>
+          </div>
+
           {/* FAQ Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-3xl">
@@ -465,7 +515,7 @@ export default async function ConditionPage({ params }: PageProps) {
               </h2>
 
               <div className="space-y-4">
-                {condition.commonQuestions.map((faq, i) => (
+                {allFaqs.map((faq, i) => (
                   <div 
                     key={i}
                     className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6"
@@ -582,6 +632,41 @@ export default async function ConditionPage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Related Reading — contextual guide/blog cross-links */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                <span className="text-muted-foreground font-medium">Related reading:</span>
+                {(condition.serviceType === "med-cert" || condition.serviceType === "both") && (
+                  <>
+                    <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                      Med cert for work
+                    </Link>
+                    <Link href="/blog/medical-certificate-online-australia" className="text-primary hover:underline">
+                      Online med certs in Australia
+                    </Link>
+                    <Link href="/blog/employer-accept-online-medical-certificate" className="text-primary hover:underline">
+                      Do employers accept online med certs?
+                    </Link>
+                  </>
+                )}
+                {(condition.serviceType === "consult" || condition.serviceType === "both") && (
+                  <>
+                    <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
+                      Telehealth vs GP
+                    </Link>
+                    <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
+                      When to use telehealth
+                    </Link>
+                  </>
+                )}
+                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                  Telehealth guide
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* Final CTA Section */}
           <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
@@ -618,6 +703,9 @@ export default async function ConditionPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate={condition.reviewedDate || "2026-03"} />
         </main>
 
         <Footer />

@@ -24,9 +24,9 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.genericDoctor,
     heroImageAlt: 'Doctor providing telehealth consultation for medical certificate',
     content: [
-      { type: 'paragraph', content: 'Getting a medical certificate online in Australia is straightforward, legitimate, and accepted by employers nationwide. If you\'re unwell and can\'t make it to a clinic, a telehealth consultation with an AHPRA-registered doctor can assess your condition and provide a valid certificate — usually within an hour.', links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'Learn about telehealth' }] },
+      { type: 'paragraph', content: 'Getting a medical certificate online in Australia is straightforward, legitimate, and accepted by employers nationwide. If you\'re unwell and can\'t make it to a clinic, a telehealth consultation with an AHPRA-registered doctor can assess your condition and provide a valid certificate — typically in under 30 minutes, available 24/7.', links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'Learn about telehealth' }] },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Online medical certificates are legally valid and accepted by Australian employers', 'You\'ll consult with an AHPRA-registered doctor who assesses your condition', 'Most certificates are issued within an hour and delivered digitally'] },
+      { type: 'list', content: '', items: ['Online medical certificates are legally valid and accepted by Australian employers', 'You\'ll consult with an AHPRA-registered doctor who assesses your condition', 'Most certificates are issued in under 30 minutes and delivered digitally, 24/7'] },
       { type: 'heading', content: 'How Online Medical Certificates Work', level: 2 },
       { type: 'paragraph', content: 'Online medical certificates follow the same process as in-person consultations — just without the waiting room. A registered doctor reviews your symptoms, asks relevant questions, and makes a clinical decision about whether you\'re fit for work. If appropriate, they issue a certificate that meets all the same legal requirements as one from your local GP.' },
       { type: 'paragraph', content: 'The certificate states you\'re unfit for work due to a medical condition. It doesn\'t need to — and won\'t — disclose your specific diagnosis. Your health information remains private.' },
@@ -36,14 +36,14 @@ export const seoArticles: Article[] = [
       { type: 'paragraph', content: 'Online medical certificates are appropriate for many common conditions that don\'t require physical examination. These include cold and flu symptoms, gastroenteritis, migraines, back pain, mental health days, period pain, and recovery from minor illness. If your condition needs hands-on assessment, a good telehealth service will tell you.', links: [{ text: 'mental health days', href: '/blog/medical-certificate-mental-health-day', title: 'Medical certificates for mental health' }] },
       { type: 'callout', variant: 'info', content: 'Telehealth doctors won\'t issue certificates without proper assessment. If your situation isn\'t suitable for online consultation, they\'ll advise you to see a doctor in person.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
-      { type: 'paragraph', content: 'InstantMed connects you with AHPRA-registered Australian doctors who can assess your condition and issue medical certificates when clinically appropriate. The process is simple: complete a brief questionnaire, and a doctor reviews your request — usually within an hour during business hours.' },
+      { type: 'paragraph', content: 'InstantMed connects you with AHPRA-registered Australian doctors who can assess your condition and issue medical certificates when clinically appropriate. The process is simple: complete a brief questionnaire, and a doctor reviews your request — typically in under 30 minutes, available 24/7.' },
       { type: 'heading', content: 'When to See a Doctor In Person', level: 2 },
       { type: 'list', content: '', items: ['You have severe or worsening symptoms', 'You need a physical examination (ear infections, chest sounds, lumps)', 'Your condition requires urgent attention', 'You\'ve been unwell for an extended period without improvement', 'The telehealth doctor recommends in-person care'] },
       { type: 'callout', variant: 'warning', content: 'For emergencies — chest pain, difficulty breathing, severe allergic reactions — call 000 immediately. Telehealth is not for emergencies.' }
     ],
     faqs: [
       { question: 'Are online medical certificates valid for work in Australia?', answer: 'Yes. Medical certificates issued by AHPRA-registered doctors via telehealth are legally valid and accepted by employers throughout Australia.' },
-      { question: 'How quickly can I get an online medical certificate?', answer: 'Most requests are reviewed within an hour during business hours. Once approved, your certificate is sent immediately via email or SMS.' },
+      { question: 'How quickly can I get an online medical certificate?', answer: 'Most certificates are issued in under 30 minutes, available 24/7. Once approved, your certificate is sent immediately via email.' },
       { question: 'Will my employer know it\'s from an online doctor?', answer: 'The certificate will show it\'s from a telehealth consultation, but this doesn\'t affect its validity. Employers cannot reject a certificate simply because it was issued via telehealth.' },
       { question: 'What if the doctor doesn\'t approve my certificate?', answer: 'Doctors only issue certificates when clinically appropriate. If your situation doesn\'t warrant a certificate, or requires in-person assessment, the doctor will explain why.' },
       { question: 'How much does an online medical certificate cost?', answer: 'InstantMed\'s medical certificate service starts from $19.95.' }
@@ -54,7 +54,7 @@ export const seoArticles: Article[] = [
     ],
     seo: {
       title: 'Medical Certificate Online Australia | Get One Today | InstantMed',
-      description: 'Get a valid medical certificate online in Australia from AHPRA-registered doctors. Accepted by employers. Most reviewed within an hour.',
+      description: 'Get a valid medical certificate online in Australia from AHPRA-registered doctors. Accepted by employers. Issued in under 30 minutes, 24/7.',
       keywords: ['medical certificate online australia', 'online medical certificate', 'get medical certificate online', 'telehealth medical certificate', 'online doctor certificate australia', 'sick certificate online']
     }
   },
@@ -154,7 +154,7 @@ export const seoArticles: Article[] = [
   {
     slug: 'same-day-medical-certificate',
     title: 'Same-Day Medical Certificates: How It Works',
-    subtitle: 'Need a medical certificate today? Here\'s how to get one within hours.',
+    subtitle: 'Need a medical certificate today? Here\'s how to get one in under 30 minutes.',
     excerpt: 'Woke up sick and need a medical certificate for work today? Learn how same-day medical certificates work through telehealth and what to expect.',
     category: 'medical-certificates',
     tags: ['medical-certificate', 'telehealth', 'online-doctor', 'work', 'sick-leave'],
@@ -166,9 +166,9 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.certificateDuration,
     heroImageAlt: 'Same-day medical certificate timing',
     content: [
-      { type: 'paragraph', content: 'When you wake up sick and your GP can\'t see you until next week, telehealth offers a same-day solution. An AHPRA-registered doctor can assess your condition and, if appropriate, issue a valid medical certificate — typically within an hour.' },
+      { type: 'paragraph', content: 'When you wake up sick and your GP can\'t see you until next week, telehealth offers an immediate solution. An AHPRA-registered doctor can assess your condition and, if appropriate, issue a valid medical certificate — typically in under 30 minutes, available 24/7.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Same-day certificates are available through telehealth consultations', 'Most requests are reviewed within an hour during business hours', 'Certificates are delivered digitally — no waiting for post'] },
+      { type: 'list', content: '', items: ['Certificates are available 24/7 through telehealth', 'Most are issued in under 30 minutes', 'Certificates are delivered digitally — no waiting for post'] },
       { type: 'heading', content: 'How Same-Day Certificates Work', level: 2 },
       { type: 'paragraph', content: 'Same-day telehealth certificates follow a simple process. You submit details about your symptoms and situation, a doctor reviews your information, and if a certificate is clinically appropriate, it\'s sent directly to your email or phone. No appointments to book, no waiting rooms to sit in.' },
       { type: 'heading', content: 'What to Include in Your Request', level: 2 },

@@ -30,6 +30,7 @@ import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
+import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
@@ -37,6 +38,7 @@ import { FAQList } from "@/components/ui/faq-list"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
+import { RepeatRxGuideSection } from "@/components/marketing/sections/repeat-rx-guide-section"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
@@ -841,6 +843,9 @@ export function PrescriptionsLanding() {
           {/* Regulatory Partners — Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
+          {/* Deep E-E-A-T guide content */}
+          <RepeatRxGuideSection />
+
           {/* 7. FAQ */}
           <PrescriptionFAQSection onFAQOpen={handleFAQOpen} />
 
@@ -863,6 +868,9 @@ export function PrescriptionsLanding() {
         </main>
 
         <MarketingFooter />
+
+        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        <ContentHubLinks service="prescriptions" />
 
         {/* Related articles — SEO internal linking, after footer */}
         <RelatedArticles />

@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RegulatoryPartners } from "@/components/marketing"
@@ -160,7 +161,7 @@ export function WeightLossClient() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

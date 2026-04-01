@@ -2,22 +2,38 @@ import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { BreadcrumbSchema, MedicalServiceSchema, HowToSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, MedicalServiceSchema, HowToSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
+import { ConsultGuideSection } from '@/components/marketing/sections/consult-guide-section'
+
+const consultFaqs = [
+  { question: "Will the doctor call me?", answer: "For most general consults, yes. The doctor will review your questionnaire first, then call to discuss your symptoms. Keep your phone nearby after submitting." },
+  { question: "Can I get a prescription from a consult?", answer: "Yes. If the doctor determines medication is clinically appropriate, they'll send an eScript to your phone. You can collect it at any pharmacy." },
+  { question: "What about referrals and pathology?", answer: "The doctor can provide referral letters and pathology requests if they believe further investigation is needed. These are included in your consultation fee." },
+  { question: "How is this different from a GP visit?", answer: "You get the same quality of care from an AHPRA-registered GP — just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit." },
+  { question: "What if my issue needs in-person care?", answer: "If the doctor determines your concern requires a physical examination, they'll let you know and recommend seeing a GP in person. You'll receive a full refund." },
+  { question: "What conditions can you treat online?", answer: "Skin conditions (with photos), UTIs, allergies, mental health concerns, medication reviews, minor infections, stable chronic conditions, and many more. If your concern requires physical examination, we'll let you know." },
+  { question: "Is my consultation private?", answer: "Doctor-patient confidentiality applies fully. Your health information is encrypted and never shared with employers, insurers, or third parties. Since this is a private service, nothing appears on your Medicare claims history." },
+  { question: "Can I send photos to the doctor?", answer: "Yes. For skin conditions, rashes, and other visual concerns, you can upload photos during the questionnaire. This helps the doctor make a more accurate assessment." },
+  { question: "How long is the consultation?", answer: "Phone consultations typically run 10–15 minutes, though the doctor will take as long as needed. The entire process — from submitting the form to receiving treatment advice — is usually complete within 2 hours." },
+  { question: "Do I need a Medicare card?", answer: "Medicare details are requested for identity verification and prescribing history, but this is a private service — no Medicare rebate is claimed and nothing appears on your Medicare statement." },
+  { question: "Can I get a medical certificate from a consult?", answer: "Yes. If during the consultation the doctor determines you're unfit for work, they can issue a medical certificate as part of your consultation — no additional fee." },
+  { question: "What about follow-up questions?", answer: "After your consultation, you can message the doctor with follow-up questions through our secure platform. This is included in your consultation fee." },
+]
 
 export const metadata: Metadata = {
-  title: 'Online Doctor Consultation | Speak with an Australian Doctor',
-  description: 'A proper doctor consult without the clinic visit. Australian AHPRA-registered doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
+  title: 'Online Doctor Consultation Australia',
+  description: 'Consult an AHPRA-registered Australian doctor online. Get treatment advice, prescriptions, or referrals without visiting a clinic. From $49.95.',
   openGraph: {
-    title: 'Online Doctor Consultation | InstantMed',
-    description: 'A proper doctor consult without the clinic visit. Australian doctors assess your health concerns.',
+    title: 'Online Doctor Consultation Australia | InstantMed',
+    description: 'Consult an AHPRA-registered Australian doctor online. Treatment advice, prescriptions, and referrals.',
     type: 'website',
     url: 'https://instantmed.com.au/consult',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Online Doctor Consultation | InstantMed',
-    description: 'A proper doctor consult without the clinic visit. Australian doctors assess your health concerns.',
+    title: 'Online Doctor Consultation Australia | InstantMed',
+    description: 'Consult an AHPRA-registered Australian doctor online. Treatment advice, prescriptions, and referrals.',
   },
   alternates: {
     canonical: 'https://instantmed.com.au/consult',
@@ -73,9 +89,12 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
           },
         ]}
       />
+      <FAQSchema faqs={consultFaqs} />
       {/* Show contextual banner for med cert redirects */}
       {isFromMedCert && <MedCertRedirectBanner />}
-      <ServiceFunnelPage config={generalConsultFunnelConfig} isDisabled={flags.disable_consults} />
+      <ServiceFunnelPage config={generalConsultFunnelConfig} isDisabled={flags.disable_consults}>
+        <ConsultGuideSection />
+      </ServiceFunnelPage>
     </>
   )
 }

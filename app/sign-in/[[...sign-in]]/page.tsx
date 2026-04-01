@@ -66,7 +66,7 @@ export default function SignInPage() {
               <span className="text-primary">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Medical certificates and prescriptions reviewed in under an hour. 
+              Medical certificates in under 30 minutes, 24/7. Prescriptions reviewed by Australian doctors.
               No waiting rooms. Most requests don't require a call.
             </p>
             

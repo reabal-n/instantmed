@@ -27,6 +27,7 @@ import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
+import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
@@ -55,6 +56,10 @@ const HowItWorksSection = dynamic(
 const CertificatePreviewSection = dynamic(
   () => import("@/components/marketing/sections/certificate-preview-section").then((m) => m.CertificatePreviewSection),
   { loading: () => <div className="min-h-[500px]" /> },
+)
+const MedCertGuideSection = dynamic(
+  () => import("@/components/marketing/sections/med-cert-guide-section").then((m) => m.MedCertGuideSection),
+  { loading: () => <div className="min-h-[600px]" /> },
 )
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
@@ -662,6 +667,9 @@ export function MedCertLanding() {
           {/* 3. Certificate Preview */}
           <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
 
+          {/* 3b. Long-form guide — E-E-A-T content for SEO depth */}
+          <MedCertGuideSection />
+
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
 
@@ -717,6 +725,9 @@ export function MedCertLanding() {
         </main>
 
         <MarketingFooter />
+
+        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        <ContentHubLinks service="med-cert" />
 
         {/* Related articles — SEO internal linking, after footer to avoid draining conversion */}
         <RelatedArticles />

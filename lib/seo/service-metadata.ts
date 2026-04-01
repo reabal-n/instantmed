@@ -11,7 +11,7 @@ interface ServiceSEO {
 
 export const serviceSEO: Record<string, ServiceSEO> = {
   "medical-certificate": {
-    title: "Online Medical Certificate Australia | Same Day | InstantMed",
+    title: "Online Medical Certificate Australia | Same Day",
     description:
       "Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $19.95.",
     keywords: [
@@ -27,7 +27,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "How quickly can I get a medical certificate?",
         answer:
-          "Most certificates are reviewed and issued within 1 hour during operating hours (8am–10pm AEST). You'll receive it via email as a PDF.",
+          "Most certificates are issued in under 30 minutes, available 24/7. You'll receive it via email as a PDF.",
       },
       {
         question: "Is an online medical certificate valid for work?",
@@ -46,7 +46,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
     ],
   },
   prescriptions: {
-    title: "Online Prescription Australia | Repeat Scripts | InstantMed",
+    title: "Online Prescription Australia | Repeat Scripts",
     description:
       "Request prescriptions online from Australian doctors. Repeat scripts and medication reviews handled online. Reviewed by AHPRA-registered GPs.",
     keywords: [

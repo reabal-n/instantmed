@@ -3,9 +3,12 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { CenteredHero } from "@/components/heroes"
-import { FeatureGrid, IconChecklist, CTABanner } from "@/components/sections"
+import { FeatureGrid, IconChecklist, AccordionSection, CTABanner } from "@/components/sections"
+import { DoctorsGuideSection } from "@/components/marketing/sections/doctors-guide-section"
 import type { FeatureItem, ChecklistItem } from "@/components/sections/types"
+import type { FAQGroup } from "@/components/ui/faq-list"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -95,6 +98,64 @@ const standards: ChecklistItem[] = [
   { text: "Background checks and credentialing completed" },
 ]
 
+const doctorFaqs: FAQGroup[] = [
+  {
+    category: "Our Doctors",
+    items: [
+      {
+        question: "Are your doctors real, registered Australian doctors?",
+        answer:
+          "Yes. Every doctor on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency (AHPRA). You can verify any doctor's registration on the AHPRA public register at ahpra.gov.au. We don't use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
+      },
+      {
+        question: "Can I choose which doctor reviews my request?",
+        answer:
+          "Requests are assigned to available doctors based on their current workload and availability. You can't select a specific doctor, but all of our doctors meet the same credentialing requirements and follow identical clinical protocols — so the standard of care is consistent regardless of who reviews your request.",
+      },
+      {
+        question: "What qualifications do your doctors have?",
+        answer:
+          "Our doctors hold medical degrees from accredited Australian or equivalent international institutions, current AHPRA registration, professional indemnity insurance, and have completed telehealth-specific training. They meet minimum post-graduate clinical experience requirements and participate in ongoing continuing medical education.",
+      },
+      {
+        question: "How do you verify doctor credentials?",
+        answer:
+          "Doctor credentials are verified against the AHPRA public register before onboarding, and registration status is monitored on an ongoing basis — not just checked once. Professional indemnity insurance is verified annually. If a doctor's registration status changes for any reason, their access to the platform is suspended immediately.",
+      },
+      {
+        question: "Do your doctors have experience in telehealth?",
+        answer:
+          "Yes. All doctors on InstantMed have completed telehealth-specific training covering remote assessment techniques, asynchronous consultation best practices, and RACGP telehealth guidelines. Telehealth is a specific clinical skillset beyond general practice, and we screen for this during credentialing.",
+      },
+      {
+        question: "Can I see the same doctor for follow-up requests?",
+        answer:
+          "This isn't guaranteed, as requests are assigned based on doctor availability. However, all doctors have access to your previous consultation history on the platform, so they can review any relevant context from earlier requests when assessing your current one.",
+      },
+      {
+        question: "What happens if a doctor has concerns about my request?",
+        answer:
+          "If a doctor has concerns about your request, they may contact you for additional information, recommend that you see a GP in person, or decline the request entirely. If your request is declined for any reason, you'll receive a full refund. We'd rather refer you to the right care than issue something that isn't clinically appropriate.",
+      },
+      {
+        question: "Are your doctors supervised?",
+        answer:
+          "A Medical Director with RACGP Fellowship provides clinical oversight of all protocols and guidelines. Clinical decisions are independently audited through a peer review process, and clinical protocols are reviewed quarterly. Doctors make independent clinical decisions, but those decisions are subject to audit and review.",
+      },
+      {
+        question: "Can your doctors prescribe any medication?",
+        answer:
+          "Doctors prescribe within TGA (Therapeutic Goods Administration) guidelines and their scope of practice. Schedule 8 controlled substances — including opioids, benzodiazepines, and stimulants — are not available through telehealth on our platform. If your medication falls outside what can be safely prescribed remotely, your doctor will let you know and suggest an alternative pathway.",
+      },
+      {
+        question: "How many doctors does InstantMed have?",
+        answer:
+          "Our consulting team varies in size based on availability and demand. Rather than advertising a specific number, we focus on ensuring every doctor on the platform meets identical credentialing requirements, follows the same clinical protocols, and is subject to the same ongoing oversight and audit processes.",
+      },
+    ],
+  },
+]
+
 /* ────────────────────────────── Component ────────────────────────────── */
 
 interface OurDoctorsClientProps {
@@ -102,8 +163,13 @@ interface OurDoctorsClientProps {
 }
 
 export default function OurDoctorsClient({ doctors }: OurDoctorsClientProps) {
+  const allFaqs = doctorFaqs.flatMap((g) =>
+    g.items.map((f) => ({ question: f.question, answer: f.answer }))
+  )
+
   return (
     <div className="flex min-h-screen flex-col">
+      <FAQSchema faqs={allFaqs} />
       <Navbar variant="marketing" />
 
       <main className="flex-1">
@@ -231,6 +297,46 @@ export default function OurDoctorsClient({ doctors }: OurDoctorsClientProps) {
                 AHPRA Public Register
               </Link>
             </Button>
+          </div>
+        </section>
+
+        {/* E-E-A-T Guide */}
+        <DoctorsGuideSection />
+
+        {/* FAQs */}
+        <AccordionSection
+          pill="Common Questions"
+          title="Frequently asked questions about our doctors"
+          subtitle="Straight answers about credentials, oversight, and how our consulting team works."
+          groups={doctorFaqs}
+        />
+
+        {/* Content Hub Cross-Links — E-E-A-T internal linking */}
+        <section className="px-4 py-8 border-t border-border/30 dark:border-white/10">
+          <div className="mx-auto max-w-3xl">
+            <h3 className="text-sm font-semibold text-foreground mb-4 text-center">
+              Health resources reviewed by our doctors
+            </h3>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+              <Link href="/conditions" className="text-primary hover:underline">
+                Health conditions
+              </Link>
+              <Link href="/symptoms" className="text-primary hover:underline">
+                Symptom checker
+              </Link>
+              <Link href="/guides" className="text-primary hover:underline">
+                Health guides
+              </Link>
+              <Link href="/blog" className="text-primary hover:underline">
+                Health articles
+              </Link>
+              <Link href="/about" className="text-primary hover:underline">
+                About InstantMed
+              </Link>
+              <Link href="/clinical-governance" className="text-primary hover:underline">
+                Clinical governance
+              </Link>
+            </div>
           </div>
         </section>
 

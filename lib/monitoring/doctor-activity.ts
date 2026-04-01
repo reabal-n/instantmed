@@ -7,7 +7,6 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import * as Sentry from "@sentry/nextjs"
 
 export interface DoctorActivityMetrics {
   lastActivityAt: string | null
@@ -31,9 +30,8 @@ export interface DoctorPerformanceMetrics {
   avgReviewTimeMs: number
 }
 
-// Thresholds
+// Threshold for "recent activity" metric (used by admin dashboard, not alerts)
 const INACTIVITY_WARNING_MINUTES = 30
-const INACTIVITY_CRITICAL_MINUTES = 60
 
 /**
  * Get current doctor activity metrics
@@ -101,48 +99,15 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
 }
 
 /**
- * Check doctor activity and alert if no activity
+ * Check doctor activity and return metrics.
+ *
+ * NOTE: Doctor inactivity alerts (Sentry + Telegram) have been removed.
+ * Med certs are auto-approved 24/7, so doctor inactivity is expected
+ * outside business hours and is no longer an alertable condition.
+ * Metrics are still collected for the admin dashboard.
  */
 export async function checkDoctorActivityAndAlert(): Promise<DoctorActivityMetrics> {
-  const metrics = await getDoctorActivity()
-  
-  // Only alert during business hours
-  if (!metrics.isBusinessHours) {
-    return metrics
-  }
-  
-  // Critical: No activity for 60+ minutes during business hours
-  if (metrics.lastActivityMinutes >= INACTIVITY_CRITICAL_MINUTES) {
-    Sentry.captureMessage("Critical: No doctor activity for 60+ minutes", {
-      level: "error",
-      tags: {
-        alert_type: "doctor_availability",
-        severity: "critical",
-      },
-      extra: {
-        lastActivityMinutes: metrics.lastActivityMinutes,
-        lastActivityAt: metrics.lastActivityAt,
-        isBusinessHours: metrics.isBusinessHours,
-      },
-    })
-  }
-  // Warning: No activity for 30+ minutes
-  else if (metrics.lastActivityMinutes >= INACTIVITY_WARNING_MINUTES) {
-    Sentry.captureMessage("Warning: No doctor activity for 30+ minutes", {
-      level: "warning",
-      tags: {
-        alert_type: "doctor_availability",
-        severity: "warning",
-      },
-      extra: {
-        lastActivityMinutes: metrics.lastActivityMinutes,
-        lastActivityAt: metrics.lastActivityAt,
-        activeDoctors: metrics.activeDoctorsLast30Min,
-      },
-    })
-  }
-  
-  return metrics
+  return getDoctorActivity()
 }
 
 /**

@@ -1,3 +1,4 @@
+import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
@@ -5,6 +6,9 @@ import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, Zap, Building2, 
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 
 // Suburb/City data for "medical certificate online [location]" SEO
 const suburbs: Record<
@@ -233,8 +237,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = suburbs[suburb]
   if (!data) return {}
 
-  const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
-  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Australian doctors, 15-minute turnaround. Valid for all employers. No waiting rooms, no appointments.`
+  const title = `Medical Certificate Online ${data.name}`
+  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. From $19.95.`
 
   return {
     title,
@@ -279,7 +283,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
         },
       },
       {
@@ -295,7 +299,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: "How fast can I get my medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Most certificates are issued within 15 minutes during business hours (8am-10pm AEST). You'll receive a secure PDF via email.",
+          text: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email.",
         },
       },
     ],
@@ -317,8 +321,13 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema).replace(/</g, '\\u003c') }} />
+      <Script id={`faq-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <Script id={`local-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }} />
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://instantmed.com.au" },
+        { name: "Medical Certificates", url: "https://instantmed.com.au/medical-certificate" },
+        { name: data.name, url: `https://instantmed.com.au/medical-certificate/location/${suburb}` },
+      ]} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
@@ -336,7 +345,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Get a Medical Certificate Online in {data.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox — typically in <strong>15 minutes</strong>.
+                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox — typically in <strong>under 30 minutes</strong>, 24/7.
               </p>
 
               <Link href="/medical-certificate/request">
@@ -472,7 +481,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 {[
                   {
                     q: `Can I get a medical certificate online in ${data.name}?`,
-                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
                   },
                   {
                     q: "Will my employer accept this certificate?",
@@ -480,7 +489,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "How fast can I get my certificate?",
-                    a: "Most certificates are reviewed and issued within 15 minutes during business hours (8am-10pm AEST). You'll receive a secure PDF via email as soon as it's approved.",
+                    a: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email as soon as it's approved.",
                   },
                   {
                     q: "Can I get a certificate for yesterday?",
@@ -536,6 +545,8 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               </p>
             </div>
           </section>
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

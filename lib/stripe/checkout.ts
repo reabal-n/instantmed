@@ -133,13 +133,15 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
     }
 
-    // Business hours
-    const outsideHours = await isOutsideBusinessHours()
-    if (outsideHours.closed) {
-      trackOperationalBlock({ blockType: "business_hours", source: "checkout", userId: input.patientId })
-      return {
-        success: false,
-        error: `We're outside our operating hours. We'll be back at ${outsideHours.nextOpen ?? "8am"} AEST.`,
+    // Business hours (med certs are 24/7 — auto-approved)
+    if (input.category !== "medical_certificate") {
+      const outsideHours = await isOutsideBusinessHours()
+      if (outsideHours.closed) {
+        trackOperationalBlock({ blockType: "business_hours", source: "checkout", userId: input.patientId })
+        return {
+          success: false,
+          error: `We're outside our operating hours. We'll be back at ${outsideHours.nextOpen ?? "8am"} AEST.`,
+        }
       }
     }
 
@@ -524,7 +526,24 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
     }
 
+    // 6a. Insert the answers (ATOMIC - fail if answers cannot be saved)
+    // Answers must be saved BEFORE audit logs to avoid orphaned compliance records
+    // if this step fails and the intake is rolled back.
+    const { error: answersError } = await supabase.from("intake_answers").insert({
+      intake_id: intake.id,
+      answers: input.answers,
+    })
+
+    if (answersError) {
+      logger.error("[Stripe Checkout] Failed to save answers, rolling back intake", {
+        intakeId: intake.id,
+      }, new Error(answersError.message))
+      await supabase.from("intakes").delete().eq("id", intake.id)
+      return { success: false, error: "Failed to save your clinical information. Please try again." }
+    }
+
     // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
+    // Placed after answers insert so these records never orphan if the intake is rolled back.
     const requestType = mapCategoryToRequestType(input.category, input.subtype)
     await logRequestCreated(intake.id, requestType, patientId, {
       category: input.category,
@@ -537,34 +556,20 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       logAccuracyAttestationGiven(intake.id, requestType, patientId),
     ])
 
-    // 6a. Save fraud flags if any were detected (non-blocking)
+    // 6b. Save fraud flags if any were detected (non-blocking)
     if (fraudResult.flagged) {
       try {
         await saveFraudFlags(intake.id, patientId, fraudResult.flags)
-        logger.info("Fraud flags saved for review", { 
-          intakeId: intake.id, 
+        logger.info("Fraud flags saved for review", {
+          intakeId: intake.id,
           flagCount: fraudResult.flags.length,
           riskScore: fraudResult.riskScore,
         })
       } catch (fraudSaveError) {
         // Don't block checkout if fraud flag save fails - just log
-        logger.error("Failed to save fraud flags", { intakeId: intake.id }, 
+        logger.error("Failed to save fraud flags", { intakeId: intake.id },
           fraudSaveError instanceof Error ? fraudSaveError : undefined)
       }
-    }
-
-    // 6b. Insert the answers (ATOMIC - fail if answers cannot be saved)
-    const { error: answersError } = await supabase.from("intake_answers").insert({
-      intake_id: intake.id,
-      answers: input.answers,
-    })
-
-    if (answersError) {
-      logger.error("[Stripe Checkout] Failed to save answers, rolling back intake", {
-        intakeId: intake.id,
-      }, new Error(answersError.message))
-      await supabase.from("intakes").delete().eq("id", intake.id)
-      return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
 
     // 6c. Link chat transcript to intake if chat session ID provided

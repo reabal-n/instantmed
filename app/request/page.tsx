@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    "Medical certificates from $19, repeat medication from $29.95, doctor consultations from $49.95. Reviewed by Australian doctors. Most requests completed within 1–2 hours.",
+    "Medical certificates from $19 — issued in under 30 minutes, 24/7. Repeat medication from $29.95, doctor consultations from $49.95. Reviewed by Australian doctors.",
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",
@@ -31,6 +31,10 @@ export default async function RequestPage({
     medication?: string
   }>
 }) {
+  const params = await searchParams
+  const initialService = mapServiceParam(params.service)
+  const isMedCert = initialService === "med-cert"
+
   // Check maintenance mode before anything else
   const maintenance = await isMaintenanceMode()
   const outsideHours = await isOutsideBusinessHours()
@@ -72,8 +76,8 @@ export default async function RequestPage({
     )
   }
 
-  // Outside business hours
-  if (outsideHours.closed) {
+  // Outside business hours (med certs are 24/7 — auto-approved)
+  if (outsideHours.closed && !isMedCert) {
     trackOperationalBlock({ blockType: "business_hours", source: "request_page" })
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -142,8 +146,6 @@ export default async function RequestPage({
     )
   }
 
-  const params = await searchParams
-
   // Wrap auth in try-catch — if Clerk/Supabase is temporarily unavailable,
   // fall through to guest checkout rather than crashing the server component
   let user: Awaited<ReturnType<typeof getCurrentUser>> = null
@@ -156,10 +158,6 @@ export default async function RequestPage({
     user = null
     profile = null
   }
-
-  // Map URL param to unified service type
-  // Returns null for invalid services (RequestFlow will show error)
-  const initialService = mapServiceParam(params.service)
 
   // Block disabled services before showing the flow
   if (initialService) {

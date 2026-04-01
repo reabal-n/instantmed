@@ -91,12 +91,12 @@ body {
   --slate-800: #1E293B;
   --slate-900: #0F172A;
   
-  /* Backgrounds — Clean white space with subtle depth */
-  --background: #FAFBFC;
+  /* Backgrounds — Warm ivory page + solid white cards (Morning Canvas) */
+  --background: #F8F7F4;
   --foreground: var(--slate-800);
-  --card: rgba(255, 255, 255, 0.85);
+  --card: #FFFFFF;
   --card-foreground: var(--slate-800);
-  --popover: rgba(255, 255, 255, 0.95);
+  --popover: #FFFFFF;
   --popover-foreground: var(--slate-800);
   
   /* Primary: Morning sky blue — trustworthy, calm, professional (WCAG AA: 5.17:1 with white) */

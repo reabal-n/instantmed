@@ -791,7 +791,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
       try {
         const { data: signedUrlData } = await supabase.storage
           .from("documents")
-          .createSignedUrl(cert.storage_path, 7 * 24 * 60 * 60)
+          .createSignedUrl(cert.storage_path, 3 * 24 * 60 * 60) // 72 hours
         downloadUrl = signedUrlData?.signedUrl ?? undefined
       } catch {
         // Non-fatal: email will fall back to dashboard link
@@ -1428,7 +1428,6 @@ async function generateAndUploadPdfForCertificate(
       consultationDate: formatDateLong(cert.issue_date),
       startDate: formatDateLong(cert.start_date),
       endDate: formatDateLong(cert.end_date),
-      returnDate: formatDateLong(addDays(cert.end_date, 1)),
       certificateRef,
       issueDate: formatShortDate(cert.issue_date),
     })

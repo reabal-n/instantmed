@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, ShieldCheck } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -10,8 +10,6 @@ import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
-import { RotatingText } from '@/components/marketing/rotating-text'
-import { heroRotatingTexts } from '@/lib/marketing/homepage'
 import { MagneticButton } from '@/components/ui/magnetic-button'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
@@ -35,15 +33,9 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
-            <h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15] animate-hero-headline"
-            >
-              <RotatingText
-                texts={heroRotatingTexts}
-                interval={3500}
-                className="text-3xl sm:text-4xl lg:text-5xl font-semibold"
-              />
+            {/* Headline — server-rendered static text for LCP */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15] animate-hero-headline">
+              A doctor, without the waiting room.
             </h1>
 
             {/* LCP slot — server-rendered when passed as children, else fallback */}
@@ -97,13 +89,23 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Trust signals */}
             <motion.div
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-2"
               initial={prefersReducedMotion ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-xs sm:text-sm text-muted-foreground text-center lg:text-left">
-                AHPRA-registered doctors · Accepted by all employers · Pay only if approved
-              </p>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-success/30 hover:text-foreground transition-colors duration-200">
+                <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
+                Full refund if declined
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
+                <Clock className="w-3 h-3 text-primary shrink-0" />
+                Med certs in under 15 min, 24/7
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
+                <ShieldCheck className="w-3 h-3 text-primary shrink-0" />
+                AHPRA-registered doctors
+              </span>
             </motion.div>
           </div>
 

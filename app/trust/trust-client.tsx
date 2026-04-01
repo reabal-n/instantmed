@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import {
   UserCheck,
   Lock,
@@ -26,6 +27,7 @@ import { useSyncExternalStore } from "react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
+import { TrustGuideSection } from "@/components/marketing/sections/trust-guide-section"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
@@ -69,11 +71,35 @@ const trustFAQs = [
   },
   {
     question: "What if I'm not happy with the service?",
-    answer: "We respond to complaints within 48 hours and offer a full refund if we can't help you. You can also escalate concerns to the Health Complaints Commissioner in your state.",
+    answer: "General complaints are responded to within 48 hours. Formal clinical complaints are reviewed by our Medical Director within 14 days. You can also escalate concerns to the Health Complaints Commissioner in your state.",
   },
   {
     question: "Are electronic prescriptions legitimate?",
     answer: "Yes. Our eScripts are generated through official PBS channels and work at any Australian pharmacy. Electronic prescriptions are the national standard and fully compliant with the Therapeutic Goods Act.",
+  },
+  {
+    question: "How is my data stored and protected?",
+    answer: "All personal health information is encrypted with AES-256-GCM — the same standard used by banks and government agencies. We apply field-level encryption, meaning individual data fields are encrypted separately in our database. All data is stored on Australian-hosted servers and never leaves the country. Transport encryption (TLS) protects data in transit between your browser and our servers.",
+  },
+  {
+    question: "Can I delete my account and data?",
+    answer: "Yes. Under the Australian Privacy Principles, you have the right to request deletion of your personal information. Contact support@instantmed.com.au and we will process your request. Note that we are required by law to retain certain clinical records for a minimum period (typically 7 years for adults, or until a minor turns 25), but all other personal data can be deleted on request.",
+  },
+  {
+    question: "Who has access to my health information?",
+    answer: "Only the AHPRA-registered doctor reviewing your specific request has access to your clinical information during the consultation. Our systems enforce strict access controls — administrative staff cannot view your health data. After your request is completed, your records are accessible only to you through your secure patient dashboard.",
+  },
+  {
+    question: "How do I verify a certificate is genuine?",
+    answer: "Every certificate issued by InstantMed includes a unique verification ID. Employers, universities, and other institutions can verify any certificate at instantmed.com.au/verify by entering the certificate ID. This confirms the certificate was genuinely issued by our practice, the date it was issued, and the period of the certificate. This provides a level of verification that paper certificates from traditional clinics typically cannot offer.",
+  },
+  {
+    question: "What qualifications do your doctors have?",
+    answer: "All doctors on InstantMed are registered medical practitioners with the Medical Board of Australia via AHPRA. They hold recognised medical degrees from Australian or internationally accredited universities, have completed supervised training, and maintain ongoing professional development. All doctors carry professional indemnity insurance that meets Medical Board requirements.",
+  },
+  {
+    question: "Are telehealth certificates accepted by universities?",
+    answer: "Yes. Australian universities accept medical certificates from any AHPRA-registered doctor, regardless of whether the consultation was conducted in person or via telehealth. Our certificates include all the information universities require: the doctor's name and registration number, date of assessment, and the certified period of unfitness. Many universities also accept our online verification system as additional proof of authenticity.",
   },
 ]
 
@@ -100,6 +126,23 @@ export default function TrustPage() {
 
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: safeJsonLd({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: trustFAQs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          }),
+        }}
+      />
       <Navbar variant="marketing" />
 
       <main id="main-content" aria-label="Trust and safety information">
@@ -235,7 +278,7 @@ export default function TrustPage() {
             {
               icon: <Scale className="w-6 h-6" />,
               title: "Complaints Process",
-              description: "48-hour response guarantee. Escalation to Health Complaints Commissioner available.",
+              description: "48-hour response for general complaints; 14-day Medical Director review for clinical complaints.",
             },
           ]}
           columns={3}
@@ -254,7 +297,7 @@ export default function TrustPage() {
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
                 "Every request is human-reviewed",
-                "Complaints responded to within 48 hours",
+                "General complaints responded to within 48 hours",
                 "Full refund if we can't help",
                 "Escalation to Health Complaints Commissioner",
               ].map((point) => (
@@ -317,6 +360,9 @@ export default function TrustPage() {
 
         {/* ── Testimonials ──────────────────────────────────── */}
         <TestimonialSection patientCount={patientCount} mounted={mounted} />
+
+        {/* ── E-E-A-T Guide ─────────────────────────────────── */}
+        <TrustGuideSection />
 
         {/* ── Trust FAQ ─────────────────────────────────────── */}
         <AccordionSection

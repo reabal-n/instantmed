@@ -39,9 +39,10 @@ export type { ServiceFunnelConfig } from '@/components/marketing/funnel/funnel-t
 interface ServiceFunnelPageProps {
   config: ServiceFunnelConfig
   isDisabled?: boolean
+  children?: React.ReactNode
 }
 
-export function ServiceFunnelPage({ config, isDisabled }: ServiceFunnelPageProps) {
+export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunnelPageProps) {
   const colors = colorClasses[config.accentColor]
 
   // Get testimonials for scrolling columns (filtered by service)
@@ -168,6 +169,9 @@ export function ServiceFunnelPage({ config, isDisabled }: ServiceFunnelPageProps
       {/* Stats + Media Mentions */}
       <StatsStrip className="bg-muted/20 dark:bg-muted/10 border-y border-border/30" />
       <MediaMentions variant="strip" className="bg-muted/10 dark:bg-muted/5" />
+
+      {/* Optional deep content (guide sections, E-E-A-T) */}
+      {children}
 
       {/* Section 8: FAQ */}
       {config.faq && (

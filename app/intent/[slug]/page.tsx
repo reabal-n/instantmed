@@ -12,6 +12,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import {
   getIntentPageBySlug,
@@ -252,7 +253,7 @@ export default async function IntentPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Guides & Comparisons Cross-Links */}
+          {/* Guides & Content Cross-Links */}
           <section className="px-4 py-8">
             <div className="mx-auto max-w-3xl">
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
@@ -265,11 +266,17 @@ export default async function IntentPage({ params }: PageProps) {
                 <Link href="/compare/telehealth-vs-gp" className="text-primary hover:underline">
                   Telehealth vs GP
                 </Link>
-                <Link href="/guides/how-to-get-repeat-prescription-online" className="text-primary hover:underline">
-                  Repeat script guide
+                <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
+                  Telehealth vs GP (article)
+                </Link>
+                <Link href="/blog/repeat-prescription-online-australia" className="text-primary hover:underline">
+                  Repeat scripts online
                 </Link>
                 <Link href="/conditions" className="text-primary hover:underline">
                   All conditions
+                </Link>
+                <Link href="/symptoms" className="text-primary hover:underline">
+                  Symptom checker
                 </Link>
               </div>
             </div>
@@ -309,6 +316,9 @@ export default async function IntentPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* Medical Disclaimer */}
+          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

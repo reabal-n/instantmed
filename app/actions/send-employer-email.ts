@@ -40,7 +40,7 @@ interface SendEmployerEmailResult {
  */
 async function generateSecureDownloadUrl(
   storagePath: string,
-  expiresInSeconds: number = 7 * 24 * 60 * 60 // 7 days
+  expiresInSeconds: number = 3 * 24 * 60 * 60 // 72 hours
 ): Promise<string | null> {
   try {
     const supabase = createServiceRoleClient()
@@ -193,7 +193,7 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
         companyName,
         patientName: certificate.patient_name,
         downloadUrl,
-        expiresInDays: 7,
+        expiresInDays: 3,
         verificationCode: certificate.verification_code,
         patientNote: note,
         certStartDate: formatDate(certificate.start_date),

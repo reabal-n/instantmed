@@ -60,8 +60,11 @@ export const metadata: Metadata = {
     "InstantMed",
   ],
   icons: {
-    icon: "/branding/logo.png",
-    apple: "/apple-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: { url: "/apple-icon.png", type: "image/png", sizes: "512x512" },
   },
   authors: [{ name: "InstantMed" }],
   creator: "InstantMed",
@@ -134,7 +137,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html
-        lang="en"
+        lang="en-AU"
         className={`${sourceSans.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
       >
