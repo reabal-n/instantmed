@@ -656,6 +656,73 @@ export function MedicalConditionSchema({
 }
 
 // ============================================================================
+// MEDICAL ORGANIZATION SCHEMA (named alias — same as OrganizationSchema)
+// ============================================================================
+
+/**
+ * MedicalOrganization schema — named alias for OrganizationSchema.
+ * Use on pages where you want to explicitly emit the MedicalOrganization entity
+ * (e.g. homepage, service landing pages) without relying solely on layout.tsx.
+ */
+export const MedicalOrganizationSchema = OrganizationSchema
+
+// ============================================================================
+// SERVICE SCHEMA (schema.org/Service — for non-medical service contexts)
+// ============================================================================
+
+interface ServiceSchemaProps {
+  name: string
+  description: string
+  price: string
+  url: string
+  baseUrl?: string
+}
+
+/**
+ * Schema.org Service structured data.
+ * Complements MedicalServiceSchema for pages where the broader
+ * schema.org/Service type is more appropriate (e.g. consult pages).
+ */
+export function ServiceSchema({
+  name,
+  description,
+  price,
+  url,
+  baseUrl = "https://instantmed.com.au",
+}: ServiceSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name,
+    description,
+    url: url.startsWith("http") ? url : `${baseUrl}${url}`,
+    provider: {
+      "@type": "MedicalOrganization",
+      "@id": `${baseUrl}/#organization`,
+      name: "InstantMed",
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "Australia",
+    },
+    offers: {
+      "@type": "Offer",
+      price,
+      priceCurrency: "AUD",
+      availability: "https://schema.org/InStock",
+    },
+  }
+
+  return (
+    <Script
+      id={`service-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
+    />
+  )
+}
+
+// ============================================================================
 // HEALTH GUIDE / ARTICLE SCHEMA (for guides, compare, intent pages)
 // ============================================================================
 

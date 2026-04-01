@@ -80,6 +80,10 @@
     {
       "path": "/api/cron/exit-intent-nurture",
       "schedule": "30 * * * *"
+    },
+    {
+      "path": "/api/cron/indexnow",
+      "schedule": "0 6 * * *"
     }
   ]
 }

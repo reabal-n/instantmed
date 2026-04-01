@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
+import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+import { PRICING } from "@/lib/constants"
 import { HairLossClient } from "./hair-loss-client"
 
 export const metadata: Metadata = {
-  title: "Hair Loss Treatment Online | Doctor-Led Consultation",
+  title: "Hair Loss Treatment Online Australia",
   description:
-    "Get a doctor-led consultation for hair loss treatment from an Australian doctor. No waiting rooms. Completely discreet.",
+    "Consult an AHPRA-registered Australian doctor about hair loss treatment. Discreet online assessment, personalised treatment plan. From $39.95.",
   keywords: [
     "hair loss treatment australia",
     "hair loss treatment online",
@@ -13,9 +15,9 @@ export const metadata: Metadata = {
     "male pattern baldness treatment",
   ],
   openGraph: {
-    title: "Hair Loss Treatment Online | InstantMed",
+    title: "Hair Loss Treatment Online Australia | InstantMed",
     description:
-      "Doctor-led hair loss consultation. Assessed by AHPRA-registered Australian doctors.",
+      "Consult an AHPRA-registered Australian doctor about hair loss treatment. Discreet online assessment.",
     url: "https://instantmed.com.au/hair-loss",
   },
   twitter: {
@@ -85,5 +87,20 @@ const faqSchema = {
 }
 
 export default function HairLossPage() {
-  return <HairLossClient faqSchema={faqSchema} />
+  return (
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "Hair Loss Treatment", url: "https://instantmed.com.au/hair-loss" },
+        ]}
+      />
+      <MedicalServiceSchema
+        name="Hair Loss Treatment Consultation"
+        description="Online hair loss assessment and treatment plan from an AHPRA-registered Australian doctor. Discreet, fast, and clinician-reviewed."
+        price={PRICING.HAIR_LOSS.toFixed(2)}
+      />
+      <HairLossClient faqSchema={faqSchema} />
+    </>
+  )
 }

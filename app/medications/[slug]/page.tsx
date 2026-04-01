@@ -5,6 +5,7 @@ import { AlertTriangle, Pill, Clock, FileText } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // Medication Directory Configuration
 const medications: Record<
@@ -328,14 +329,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 
   return {
-    title: `${med.name} Information | InstantMed`,
+    title: `${med.name} (${med.genericName}) | Medication Information`,
     description: `Learn about ${med.name} (${med.genericName}). ${med.description} Educational information reviewed by Australian doctors.`,
     keywords: [`${med.name} information`, `${med.name} side effects`, `${med.name} uses`],
     alternates: {
       canonical: `${baseUrl}/medications/${slug}`,
     },
     openGraph: {
-      title: `${med.name} Information | InstantMed`,
+      title: `${med.name} (${med.genericName}) | InstantMed`,
       description: `Educational information about ${med.name} reviewed by AHPRA-registered doctors.`,
       url: `${baseUrl}/medications/${slug}`,
     },
@@ -370,6 +371,13 @@ export default async function MedicationPage({ params }: PageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(medSchema) }} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "Medications", url: "https://instantmed.com.au/medications" },
+          { name: med.name, url: `https://instantmed.com.au/medications/${slug}` },
+        ]}
+      />
 
       <div className="flex min-h-screen flex-col bg-hero">
         <Navbar variant="marketing" />

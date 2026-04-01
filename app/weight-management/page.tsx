@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+import { PRICING } from "@/lib/constants"
 import { WeightManagementClient } from "./weight-management-client"
 
 export const metadata: Metadata = {
@@ -29,5 +31,20 @@ export const metadata: Metadata = {
 }
 
 export default function WeightManagementPage() {
-  return <WeightManagementClient />
+  return (
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "Weight Management", url: "https://instantmed.com.au/weight-management" },
+        ]}
+      />
+      <MedicalServiceSchema
+        name="Doctor-Supervised Weight Management"
+        description="Personalised weight management program reviewed by AHPRA-registered Australian GPs. Sustainable results with ongoing doctor support."
+        price={PRICING.WEIGHT_LOSS.toFixed(2)}
+      />
+      <WeightManagementClient />
+    </>
+  )
 }
