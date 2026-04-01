@@ -1124,7 +1124,7 @@ export const symptoms: Record<string, SymptomData> = {
     doctorPerspective: "Sleep apnoea is one of the most underdiagnosed conditions in Australia — up to 80% of moderate-to-severe cases remain undiagnosed. The classic presentation is a middle-aged, overweight male with loud snoring and daytime sleepiness, but it affects women too (particularly after menopause) and can occur at any weight. Via telehealth, I can screen using validated questionnaires (STOP-BANG, Epworth Sleepiness Scale), arrange home sleep study referrals, and discuss treatment options. The most important reason to diagnose and treat OSA is cardiovascular risk reduction — untreated severe OSA doubles the risk of heart attack and stroke. CPAP compliance is the main challenge, but modern machines are quieter, smaller, and more comfortable than older models.",
     certGuidance: "Untreated severe OSA with excessive daytime sleepiness is a safety risk for driving and operating machinery. A certificate may be appropriate while awaiting diagnosis and treatment initiation.",
   },
-  "acid-reflux-cough": {
+  "chronic-cough": {
     name: "Chronic Cough",
     slug: "chronic-cough",
     description: "A cough lasting more than 8 weeks. The three most common causes in non-smokers are asthma, postnasal drip, and acid reflux — often in combination.",

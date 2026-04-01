@@ -23,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",          // API routes
           "/auth/",         // Auth flow (sign-in, callback)
           "/_next/",        // Next.js build output (JS/CSS chunks)
-          "/*?*",           // Parameterized URLs
+          // Canonical tags handle duplicate parameterized URLs — no blanket block needed
           "/search",        // Internal search
           "/*/search",      // Category search pages
         ],
