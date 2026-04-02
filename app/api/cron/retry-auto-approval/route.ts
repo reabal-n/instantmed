@@ -190,7 +190,8 @@ export async function GET(request: NextRequest) {
     let failed = 0
     let draftsGenerated = 0
 
-    const CRON_CLAIM_ID = `cron-auto-approval-${Date.now()}`
+    // Must be a valid UUID — claimed_by is uuid type in the DB
+    const CRON_CLAIM_ID = crypto.randomUUID()
 
     for (const intake of medCertIntakes) {
       try {
@@ -208,7 +209,19 @@ export async function GET(request: NextRequest) {
           .select("id")
           .single()
 
-        if (claimError || !claimed) {
+        if (claimError) {
+          // A real DB error — surface it, don't silently treat as "already claimed"
+          logger.error("Claim update failed — DB error", { intakeId: intake.id, error: claimError.message, code: claimError.code })
+          Sentry.captureMessage(`Auto-approval cron: claim update DB error (${claimError.code})`, {
+            level: "error",
+            tags: { subsystem: "cert-pipeline", intake_id: intake.id },
+            extra: { error: claimError.message, code: claimError.code },
+          })
+          failed++
+          continue
+        }
+        if (!claimed) {
+          // 0 rows updated — intake was claimed by someone else between the read and write
           logger.info("Intake already claimed, skipping", { intakeId: intake.id })
           skipped++
           continue

@@ -527,19 +527,28 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             medCert: "medCert" in result ? result.medCert?.status : undefined,
           })
 
-          // Attempt auto-approval for med certs immediately after drafts are generated.
-          // Draft generation already provides a natural delay (10-30s).
-          // The retry-auto-approval cron (every 3 min) catches any that slip through
-          // (e.g. webhook timeout, transient errors).
+          // Attempt auto-approval for med certs immediately after drafts are generated,
+          // but ONLY when auto_approve_delay_minutes is 0. When a delay is configured,
+          // the retry-auto-approval cron enforces it — calling here would bypass it.
+          // The cron (every 3 min) also catches any slipped-through cases regardless.
           try {
-            const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
-            const autoResult = await attemptAutoApproval(intakeId)
-            log.info("Auto-approval attempted", {
-              intakeId,
-              autoApproved: autoResult.autoApproved,
-              reason: autoResult.reason,
-              certificateId: autoResult.certificateId,
-            })
+            const { getFeatureFlags } = await import("@/lib/feature-flags")
+            const flags = await getFeatureFlags()
+            if (flags.auto_approve_delay_minutes === 0) {
+              const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
+              const autoResult = await attemptAutoApproval(intakeId)
+              log.info("Auto-approval attempted", {
+                intakeId,
+                autoApproved: autoResult.autoApproved,
+                reason: autoResult.reason,
+                certificateId: autoResult.certificateId,
+              })
+            } else {
+              log.info("Auto-approval deferred to cron — delay is configured", {
+                intakeId,
+                delayMinutes: flags.auto_approve_delay_minutes,
+              })
+            }
           } catch (autoErr) {
             // Never fail — auto-approval failure just means doctor reviews manually
             log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {

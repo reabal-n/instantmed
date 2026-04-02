@@ -101,23 +101,28 @@ async function logAutoApprovalAudit(
   try {
     await supabase.from("ai_audit_log").insert({
       intake_id: intakeId,
-      action: "auto_approve_evaluation",
+      action: "auto_approve",
       draft_type: "med_cert",
       draft_id: null,
       // Attribute to the real doctor when available (post-selection),
       // fall back to system for pre-selection eligibility checks
       actor_id: doctorId || SYSTEM_AUTO_APPROVE_ID,
-      actor_type: doctorId ? "doctor_delegated" : "system",
+      actor_type: doctorId ? "doctor" : "system",
+      reason,
       metadata: {
         eligible,
-        reason,
         approval_pathway: "ai_assisted_clinical_decision_support",
         clinical_logic_version: "deterministic_v1",
         ...metadata,
       },
     })
   } catch (err) {
-    log.warn("Failed to log auto-approval audit (non-fatal)", { intakeId, error: err })
+    // Audit log failures are non-fatal for the approval flow but must be visible
+    log.warn("Failed to log auto-approval audit", { intakeId, error: err })
+    Sentry.captureException(err, {
+      level: "warning",
+      tags: { subsystem: "auto-approval", intake_id: intakeId, stage: "audit_log" },
+    })
   }
 }
 
@@ -138,9 +143,18 @@ async function releaseSystemClaim(
 
     if (error) {
       log.warn("Failed to release system claim", { intakeId, error: error.message })
+      Sentry.captureMessage("Auto-approval: failed to release system claim", {
+        level: "warning",
+        tags: { subsystem: "cert-pipeline", intake_id: intakeId },
+        extra: { error: error.message, code: error.code },
+      })
     }
   } catch (err) {
     log.warn("Exception releasing system claim", { intakeId, error: err })
+    Sentry.captureException(err, {
+      level: "warning",
+      tags: { subsystem: "cert-pipeline", intake_id: intakeId, stage: "release_claim" },
+    })
   }
 }
 
@@ -159,6 +173,8 @@ const DETERMINISTIC_FAILURE_PREFIXES = [
   "mental_health:", "injury:", "chronic:", "pregnancy:",
   "empty_symptom_text", "backdated_too_far",
   "overlapping_cert_dates",
+  // AI clinical note flagged requiresReview — the draft won't change, so retrying is wasteful
+  "draft_requires_review:",
   // Note: repeat_request_within_7d is NOT deterministic — it may become eligible
   // after the 7-day window passes. The retry cron's 8-hour window means this
   // won't change within a single retry cycle, but we don't mark it permanent.
@@ -437,6 +453,20 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         } catch (err) {
           log.warn("Failed to set auto_approval_skipped (non-fatal)", { intakeId, error: err })
         }
+        // Alert so ops knows this intake dropped to the doctor queue permanently
+        Sentry.captureMessage("Auto-approval: intake permanently dropped to doctor queue", {
+          level: "info",
+          tags: {
+            subsystem: "cert-pipeline",
+            intake_id: intakeId,
+            skip_reason: eligibility.disqualifyingFlags[0] ?? "unknown",
+          },
+          extra: {
+            reason: eligibility.reason,
+            disqualifyingFlags: eligibility.disqualifyingFlags,
+          },
+          fingerprint: ["cert-pipeline", "permanent-skip", eligibility.disqualifyingFlags[0] ?? "unknown"],
+        })
       }
 
       await releaseSystemClaim(supabase, intakeId)
