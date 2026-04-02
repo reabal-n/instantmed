@@ -284,9 +284,9 @@ export function evaluateAutoApprovalEligibility(
     })
   }
 
-  // 1b. Repeat request cooldown — block if patient got a cert in the last 7 days
+  // 1b. Repeat request cooldown — block if patient got 3+ certs in the last 7 days
   // Prevents abuse patterns that would trigger AHPRA scrutiny
-  if (options?.recentCertCount !== undefined && options.recentCertCount > 0) {
+  if (options?.recentCertCount !== undefined && options.recentCertCount >= 3) {
     flags.push(`repeat_request_within_7d: ${options.recentCertCount} recent cert(s)`)
   }
 
