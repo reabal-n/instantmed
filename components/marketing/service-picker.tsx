@@ -249,13 +249,9 @@ export function ServicePicker() {
         </motion.div>
         
         {/* Simple note */}
-        <motion.p
-          className="text-center text-xs text-muted-foreground mt-8"
-          initial={false}
-          viewport={{ once: true }}
-        >
+        <p className="text-center text-xs text-muted-foreground mt-8">
           Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy
-        </motion.p>
+        </p>
       </div>
     </section>
   )
