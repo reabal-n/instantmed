@@ -10,24 +10,38 @@
 
 ## Motion
 
-**Two easing curves. Use the right one:**
-- `--ease-out` — entrances, page loads, elements appearing. Decelerates into rest.
-- `--ease-spring` — interactions, hover states, anything a user triggers. Has overshoot feel without bounce.
+**Canonical source:** `lib/motion.ts` — all timing, easing, and variant tokens live here. Import from this file, not hardcoded values.
 
-```css
---ease-out:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
---ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+**Two easing curves. Use the right one:**
+- `easing.out` / `[0, 0, 0.2, 1]` — entrances, page loads, elements appearing. Primary curve.
+- `easing.panel` / `[0.16, 1, 0.3, 1]` — panels, drawers, sheets. Confident arrival feel.
+
+```ts
+// lib/motion.ts — the only easing values you should use
+import { easing, duration, transition, spring, fadeUp, stagger } from '@/lib/motion'
+
+easing.out     // [0, 0, 0.2, 1]     — PRIMARY for most entrances
+easing.panel   // [0.16, 1, 0.3, 1]  — panels, drawers, confident arrivals
+easing.inOut   // [0.42, 0, 0.58, 1] — fallback only
 ```
+
+**Note:** No CSS custom properties for easing exist. For CSS transitions, use `ease-out` keyword or inline the cubic-bezier.
+
+**Widely used but not tokenized:** `[0.25, 0.1, 0.25, 1]` (the CSS standard `ease` curve) appears in 15+ section/marketing components and `PageTransitionProvider`. It's not exported from `lib/motion.ts` — components import it inline. If you're building a new section component and see this curve in adjacent code, it's intentional.
 
 ### Durations
 
-| Duration | Use |
-|----------|-----|
-| 150ms | Colour transitions, border changes, icon colour |
-| 200ms | Button states, badge changes, icon scale |
-| 300ms | Card lifts, input focus, list entry, link underline |
-| 400ms | Page section entrance, modal open |
-| 500ms | Hero entrance — hard ceiling |
+All durations collapse to ~200ms for snappy, responsive feel. The token file is the authority:
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `duration.fast` | 200ms | Button states, badge changes, icon scale |
+| `duration.normal` | 200ms | Standard smooth — most things |
+| `duration.slow` | 220ms | Generous, reassuring — complex motions |
+| `duration.slower` | 250ms | Final fallback for elaborate entrances |
+| `duration.page` | 200ms | Page transitions |
+
+Ad-hoc durations (400ms, 500ms) may appear in hero/marketing components but are not tokenized.
 
 No bounce. No elastic. No parallax on content. Patients don't need theatrics.
 
@@ -37,43 +51,30 @@ No bounce. No elastic. No parallax on content. Patients don't need theatrics.
 
 ### Framer Motion Patterns
 
+Prefer `lib/motion.ts` variants (`fadeUp`, `stagger`) over inline values. The canonical entrance is `fadeUp` (opacity 0→1, y 16→0).
+
 ```tsx
-// Section entrance — ease-out, 12px rise
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-/>
+import { fadeUp, stagger, spring, easing } from '@/lib/motion'
 
-// Staggered children — spring, 40ms delay, 12px rise
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-/>
+// Section entrance — use the fadeUp variant directly
+<motion.div variants={fadeUp} initial="initial" whileInView="animate" viewport={{ once: true }} />
 
-// Card hover — CSS spring (preferred over Framer for simple lifts)
-className="hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+// Staggered children — container + item system
+<motion.div variants={stagger.container} initial="initial" whileInView="animate" viewport={{ once: true }}>
+  {items.map(item => (
+    <motion.div key={item.id} variants={stagger.item} />
+  ))}
+</motion.div>
+
+// Card hover — subtle lift (0.5 = 2px, not 2 = 8px)
+className="hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Button press depth
-<motion.button
-  whileTap={{ scale: 0.98 }}
-  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-/>
+<motion.button whileTap={{ scale: 0.97 }} transition={spring.snappy} />
 
 // Icon spring on hover (inside a parent group)
 // Parent: className="group"
 // Icon:   className="transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
-
-// Stat counter (spring count-up on enter)
-<motion.span
-  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.85 }}
-  whileInView={{ opacity: 1, scale: 1 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-/>
 ```
 
 ### Portal Exception
@@ -91,14 +92,12 @@ className="hover:-translate-y-2 transition-all duration-300 ease-[cubic-bezier(0
 ```tsx
 const prefersReducedMotion = useReducedMotion()
 
-// CORRECT: empty object disables animation
+// PREFERRED: empty object disables animation cleanly
 initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
 
-// WRONG on motion.div: false is not valid for initial prop
-initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}  // DO NOT USE
-
-// NOTE: AnimatePresence initial={false} IS valid — it means "don't animate on first mount"
-// Only motion.div/motion.section initial={false} is wrong
+// ALSO VALID: initial={false} means "start at animate state, skip entrance"
+// Framer Motion accepts this on motion.div — useful for AnimatePresence children
+// that shouldn't animate on first mount. Use {} for reduced motion though.
 ```
 
 ### Rules
@@ -106,21 +105,23 @@ initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}  // DO NOT USE
 - `viewport={{ once: true }}` on every scroll-triggered animation. Always.
 - `whileHover` icon scale max `1.1x`. Element scale max `1.02x`.
 - Never rotate, never elastic, never parallax on content.
-- Spring (`[0.16, 1, 0.3, 1]`) for interactions. Ease-out (`[0.25, 0.46, 0.45, 0.94]`) for entrances.
+- Panel curve (`[0.16, 1, 0.3, 1]`) for drawers/sheets. Primary ease-out (`[0, 0, 0.2, 1]`) for everything else. Import from `lib/motion.ts`.
 
 ---
 
-## Premium Interactions
+## Premium Interactions — Design Spec
+
+> **Status: largely aspirational.** The patterns below are a design target, not a description of current implementation. Most Tier 1 and Tier 2 patterns are not yet built. Tier 3 is partially implemented. Implement selectively per-page when the ROI justifies it — never globally. Every pattern must pass the performance budget (see below) before shipping.
 
 > Aliveness is not more animation. It's the right motion at the wrong level of perception — movement you feel before you consciously see it. Stay as close to the sub-perceptual threshold as possible without crossing it. Marketing pages and patient flows only. **Never portals.**
 
 ### The Three Tiers
 
-**Tier 1 — Always on, fully ambient.** Never stops. Never reacts to user input. Environmental — forgotten during use, noticed only in absence.
+**Tier 1 — Always on, fully ambient.** Never stops. Never reacts to user input. Environmental — forgotten during use, noticed only in absence. *(Mostly unimplemented — mesh gradient drift exists; hero float and cursor glow are not yet built.)*
 
-**Tier 2 — Presence-aware.** Responds to the user being near, not touching.
+**Tier 2 — Presence-aware.** Responds to the user being near, not touching. *(Not implemented — wake radius, gradient warmth, staggered wake are spec only.)*
 
-**Tier 3 — Interaction-triggered.** Responds to hover, click, focus, scroll entry.
+**Tier 3 — Interaction-triggered.** Responds to hover, click, focus, scroll entry. *(Partially implemented — card lift, button press, icon spring, stagger rise exist. Button halo, link underline slide, magnetic CTA, shadow memory are not yet built.)*
 
 Most implementations only build Tier 3. Aliveness comes from all three being right.
 
@@ -128,24 +129,17 @@ Most implementations only build Tier 3. Aliveness comes from all three being rig
 
 ### Physics & Easing
 
-Spring is the default for all interactions. Four named curves — use nothing else:
+**Tween-based, NOT spring physics.** `lib/motion.ts` explicitly avoids Framer Motion spring configs. All transitions use duration + easing.
 
-```css
---ease-expo:        cubic-bezier(0.16, 1, 0.3, 1);
---ease-sine:        cubic-bezier(0.37, 0, 0.63, 1);
---ease-standard:    cubic-bezier(0.4, 0, 0.2, 1);
-/* --ease-spring / --ease-spring-fast: Framer Motion spring config below */
+```ts
+// lib/motion.ts — actual presets
+spring.snappy  // { duration: 0.15, ease: 'easeOut' } — icons, badges, small elements
+spring.smooth  // { duration: 0.2, ease: 'easeOut' }  — cards, containers, panels
+easing.out     // [0, 0, 0.2, 1]                      — primary curve
+easing.panel   // [0.16, 1, 0.3, 1]                   — drawers, sheets, confident arrivals
 ```
 
-| Curve | Use |
-|---|---|
-| `--ease-spring` (stiffness 300, damping 25) | Cards, containers, panels |
-| `--ease-spring-fast` (stiffness 400, damping 30) | Icons, badges, small elements |
-| `--ease-expo` | Page-level arrivals from off-screen |
-| `--ease-sine` | Ambient loops and breathing animations |
-| `--ease-standard` | Micro state changes (color, opacity) |
-
-Never use CSS `ease`, `ease-in-out`, or `linear` keywords.
+No CSS custom properties exist for easing. For CSS transitions use inline cubic-bezier or the `ease-out` keyword.
 
 **Asymmetric timing.** Enter slower than exit. If an element enters over 200ms, it exits in 100ms or less.
 
@@ -300,14 +294,11 @@ className="hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier
 
 ### Scroll & Reveal
 
-**Stagger rise.** Default scroll-entry for lists, grids, card groups.
+**Stagger rise.** Default scroll-entry for lists, grids, card groups. Use `stagger.container` + `stagger.item` from `lib/motion.ts`:
 ```tsx
-<motion.div
-  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.04 }}
-/>
+<motion.div variants={stagger.container} initial="initial" whileInView="animate" viewport={{ once: true }}>
+  {items.map(item => <motion.div key={item.id} variants={stagger.item} />)}
+</motion.div>
 ```
 Hard cap: 8 items per stagger group.
 
@@ -346,7 +337,7 @@ transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
 
 ### Page & State Transitions
 
-**Route transitions.** Opacity only, 120ms, `--ease-standard`. Never translate on full-page transitions.
+**Route transitions.** `PageTransitionProvider` uses opacity + subtle translateY (6px enter, -4px exit), 250ms, ease `[0.25, 0.1, 0.25, 1]`. Kept minimal — no dramatic slides.
 
 **Modal entrance.** `scale(0.95 → 1)` + `opacity(0 → 1)`, spring. Exit: opacity only, 80ms.
 
@@ -471,29 +462,24 @@ In utility interfaces: zero ambient motion, zero cursor effects, zero scroll ani
 
 ## Reduced Motion (Full Rules)
 
-All Tier 1 and Tier 2 animations fully disabled under `prefers-reduced-motion`. Always use `initial={prefersReducedMotion ? {} : { ... }}` — never `initial={false}`. Tier 3 feedback (color shifts, hover states, focus rings) remains. Remove timing and transforms, keep the endpoint state.
+All Tier 1 and Tier 2 animations fully disabled under `prefers-reduced-motion`. Preferred pattern: `initial={prefersReducedMotion ? {} : { ... }}`. `initial={false}` is also valid — it means "start at animate state, skip entrance" (used in `AnimatePresence` children and 7+ components). Tier 3 feedback (color shifts, hover states, focus rings) remains. Remove timing and transforms, keep the endpoint state.
 
 ---
 
 ## Anti-Patterns
 
-- Spring on full-page route transitions
 - Stagger beyond 8 items
-- Translate on route changes — opacity only
 - Magnetic pull on more than one element per page
 - Glass on content cards
 - Ambient motion in portals
 - Repeat pulses on success states
-- Cursor glow responding to scroll position
 - Scale beyond 1.1× on hover
-- Animations longer than 500ms that aren't scroll storytelling
+- Animations longer than 500ms that aren't hero/marketing
 - Typewriter text — use stagger reveal
-- Black/grey shadows — always tinted
-- Gradients without noise overlay
-- CSS `ease`, `ease-in-out`, or `linear` keywords
-- Synchronized ambient loops — always phase-offset
-- Breathing on typography — alive lives in surfaces, never text
+- Black/grey shadows on marketing surfaces — use tinted
 - `will-change` on more than 8 elements simultaneously
 - `filter: blur()` without performance testing and `@supports` fallback
 - Animating layout properties (`width`, `height`, `top`, `left`)
 - `outline: none` without a replacement focus state
+- Spring physics (stiffness/damping) in transitions — use tween presets from `lib/motion.ts`. Exception: `useSpring` for continuous mouse-tracking (e.g. `PerspectiveTiltCard`)
+- Hardcoded easing values — import from `lib/motion.ts` (exception: `[0.25, 0.1, 0.25, 1]` standard ease curve used inline in section components)

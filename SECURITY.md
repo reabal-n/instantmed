@@ -7,14 +7,14 @@
 
 ### Model
 
-Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. Verified at startup via `verifyEncryptionSetup()`.
+Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. `ENCRYPTION_KEY` (simpler module) verified at startup via `verifyEncryptionSetup()` in `instrumentation.ts`. PHI envelope encryption (`PHI_MASTER_KEY`) is NOT verified at startup — it fails at first use if misconfigured.
 
 1. Generate a per-record data key
 2. Encrypt PHI with the data key (AES-256-GCM)
 3. Encrypt the data key with the master key (KMS or env var)
 4. Store encrypted data + encrypted data key together
 
-**Key management:** Production uses AWS KMS (`AWS_KMS_KEY_ARN`, HIPAA-eligible, automatic rotation, CloudTrail audit). Dev/staging uses local master key (`PHI_MASTER_KEY`, base64-encoded 32-byte key).
+**Key management:** All environments use `PHI_MASTER_KEY` (base64-encoded 32-byte key) as the master key for envelope encryption. AWS KMS integration was evaluated but not adopted — AES-256-GCM with env-var key is production-ready at current scale. Key rotation: generate new key, re-encrypt PHI fields via `scripts/encrypt-phi-backfill.ts`, update env var.
 
 **Utility API** (`lib/security/phi-encryption.ts`): `encryptPHI()`, `decryptPHI()`, `encryptJSONB()`, `decryptJSONB()` -- all async, return/accept `EncryptedData` (ciphertext, encryptedDataKey, keyId, iv, authTag, version).
 
@@ -154,7 +154,7 @@ FOR SELECT USING (
 | Bucket | Visibility | Patient | Doctor | Delete |
 |--------|-----------|---------|--------|--------|
 | `attachments` | Private | Upload/view own | View all | Draft intakes only |
-| `documents` | Public (signed URLs, 7-day expiry) | Via signed URL | INSERT | No one (immutable) |
+| `documents` | Private (signed URLs) | Via signed URL | INSERT | No one (immutable) |
 
 ### Public Asset Security — Resolved
 
@@ -192,26 +192,30 @@ RESET request.jwt.claims;
 
 ### Content Security Policy
 
+Defined in `next.config.mjs`. Key directives (production — `unsafe-eval` is **dev-only**, removed in production builds):
+
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://challenges.cloudflare.com;
+script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au;
+worker-src 'self' blob:;
+child-src 'self' blob:;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-img-src 'self' data: https: blob:;
-font-src 'self' https://fonts.gstatic.com;
-connect-src 'self' https://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.posthog.com;
-frame-src https://js.stripe.com https://challenges.cloudflare.com;
+font-src 'self' https://fonts.gstatic.com data:;
+img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://img.clerk.com https://*.clerk.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au https://pagead2.googlesyndication.com;
+frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au;
+form-action 'self' https://*.supabase.co https://accounts.google.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au;
 frame-ancestors 'self';
 object-src 'none';
 base-uri 'self';
-form-action 'self';
 upgrade-insecure-requests;
 ```
 
 **Why `challenges.cloudflare.com`:** Required by Stripe Checkout for bot protection challenges during payment flows. This is Stripe's embedded Cloudflare challenge, not a standalone Turnstile implementation.
 
-**Why `unsafe-inline`/`unsafe-eval`:** Required by Next.js 15 for hydration scripts, styled-components, and dynamic imports. Nonce-based CSP not fully supported in Next.js 15 production. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
+**Why `unsafe-inline` (no `unsafe-eval` in prod):** `unsafe-inline` required by Next.js 15 for hydration scripts and dynamic imports. `unsafe-eval` added only in dev/test for HMR. Nonce-based CSP not fully supported in Next.js 15 production. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
 
-CSP violations reported to Sentry via `report-uri`.
+**CSP violation reporting:** A separate `Content-Security-Policy-Report-Only` header (stricter, no `unsafe-inline`) reports violations to `/api/csp-report` via `report-uri`. The main enforced CSP does **not** include `report-uri`.
 
 ---
 
@@ -228,7 +232,9 @@ CSP violations reported to Sentry via `report-uri`.
 | Standard API | 100 requests | 1 minute | redis |
 | Authentication | 10 requests | 1 minute | redis |
 | Sensitive operations | 20 requests | 1 hour | redis |
-| AI endpoints | 20 requests | 1 hour | redis |
+| File uploads | 30 requests | 1 hour | redis |
+| AI endpoints | 30 requests | 1 minute | redis |
+| Webhooks | 1000 requests | 1 minute | redis |
 | Doctor approval | 20 requests | 1 hour | security/rate-limit |
 | Doctor decline | 100 requests | 1 hour | security/rate-limit |
 | Certificate issue | 30 requests | 1 hour | security/rate-limit |
@@ -245,7 +251,7 @@ All webhooks use signature verification (not CSRF).
 |----------|-------------|
 | **Stripe** | `stripe.webhooks.constructEvent(body, req.headers['stripe-signature'], webhookSecret)` |
 | **Clerk** | Svix: `new Webhook(WEBHOOK_SECRET).verify(payload, headers)` |
-| **Resend** | `verifyResendSignature(payload, signature, secret)` |
+| **Resend** | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
 
 ---
 
@@ -385,6 +391,9 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 | `DISABLE_EMPLOYER_EMAIL=true` | Blocks employer email sending |
 | `FORCE_CALL_REQUIRED=true` | Requires calls for all consults |
 | `DISABLE_CONSULT_SUBTYPES=<csv>` | Disables specific consult subtypes |
+| `DISABLE_INTAKE_EVENTS=true` | Disables intake event logging |
+| `DISABLE_STUCK_INTAKE_SENTRY=true` | Disables Sentry warnings for stuck intakes |
+| `DISABLE_RECONCILIATION_SENTRY=true` | Disables Sentry warnings for reconciliation mismatches |
 
 ### Where Checked
 

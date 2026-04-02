@@ -149,17 +149,17 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | **Prescribing** | Recommend medications; suggest dosages; indicate PBS eligibility; imply prescribing authority |
 | **Diagnosis** | Provide diagnostic conclusions; suggest conditions from symptoms; recommend treatment paths |
 
-### Seven "Never Automate" Decisions (Human-Only)
+### "Never Automate" Decisions (Human-Only)
 
 These must remain human-only regardless of future AI capabilities:
 
-1. **Approval of any clinical request** -- AHPRA requires human clinician responsibility
-2. **Safety knockout overrides** -- life safety decisions cannot be delegated to AI
-3. **Prescribing decisions** -- TGA/PBS require human prescriber
-4. **Certificate duration determination** -- requires clinical judgment
-5. **Call requirement decisions** -- requires clinical judgment
-6. **Decline reason determination** -- requires clinical reasoning
-7. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
+1. **Safety knockout overrides** -- life safety decisions cannot be delegated to AI
+2. **Prescribing decisions** -- TGA/PBS require human prescriber
+3. **Call requirement decisions** -- requires clinical judgment
+4. **Decline reason determination** -- requires clinical reasoning
+5. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
+
+**Exception — Med cert auto-approval:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs — prescriptions and consults always require human review. See ARCHITECTURE.md → Auto-Approval Pipeline.
 
 ### Architecture Enforcement
 
@@ -167,7 +167,7 @@ These must remain human-only regardless of future AI capabilities:
 |----------|------|
 | **File separation** | `lib/clinical/` = deterministic safety logic (no AI); `lib/ai/` = documentation assistance only |
 | **Output status** | All AI outputs marked `pending_review`; doctors must explicitly approve before use |
-| **Audit logging** | All AI content logged to `ai_audit_log` with action, actor_type, input_hash, output_hash |
+| **Audit logging** | Two tables: `ai_audit_log` (auto-approval pipeline, with `input_hash`/`output_hash` for content integrity) and `ai_chat_audit_log` (chat interactions, with `user_input_preview`/`ai_output_preview` truncated previews). Full chat transcripts stored in `ai_chat_transcripts` (JSONB). |
 | **System prompts** | Must include: "You are a documentation assistant only. You DO NOT make clinical decisions. You DO NOT approve or deny requests. You DO NOT recommend treatments or medications. All output requires doctor review before use." |
 
 ### AI Input/Output Rules
@@ -186,7 +186,7 @@ These must remain human-only regardless of future AI capabilities:
 - Emergency/crisis keywords trigger hard blocks with static responses
 - Controlled substance requests blocked with explanation
 - Prompt injection attempts detected and rejected; validation failures redirect to traditional form
-- Full transcripts not stored; only truncated previews for audit compliance
+- Full transcripts stored in `ai_chat_transcripts` (with size limits); truncated previews in `ai_chat_audit_log` for quick querying
 
 ### Doctor Confirmation Enforcement
 

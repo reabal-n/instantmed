@@ -45,7 +45,7 @@ pnpm e2e              # Playwright E2E (needs PLAYWRIGHT=1)
 pnpm ci               # Full CI: install → lint → test → build
 ```
 
-- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. 40% coverage threshold.
+- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`).
 - E2E tests: `e2e/**/*.spec.ts` — auto-seeds/tears down test data. Auth bypass: `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie.
 
 ## Tech Stack
@@ -72,7 +72,6 @@ Next.js 15 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · S
 ### State & Data
 - Zustand for intake flow state (persisted to localStorage, 24h expiry)
 - React hooks for local component state
-- SWR for client-side data fetching
 - `revalidatePath("/path")` after server mutations
 
 ### Server Actions
@@ -82,11 +81,10 @@ Next.js 15 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · S
 
 ### Component Decision Tree
 - **Form elements**: shadcn/ui from `@/components/ui/`
-- **Data tables with sort/search/pagination**: `DataTable` from `@/components/uix`
 - **Simple display tables**: shadcn `Table` from `@/components/ui/table`
-- **Loading states**: `TableSkeleton`, `CardSkeleton`, `FormSkeleton` from `@/components/ui/skeletons`
+- **Loading states**: `SkeletonCard`, `SkeletonForm`, `SkeletonList`, `SkeletonDashboard` from `@/components/ui/skeleton`
 - **Toasts**: `toast` from `sonner` (success, error, promise variants)
-- **Error handling**: `ErrorBoundary`, `ErrorRecovery` from `@/components/ui/`
+- **Error handling**: `ErrorRecovery` from `@/components/ui/error-recovery`; flow-specific: `StepErrorBoundary` (`components/request/`), `DashboardErrorBoundary` (`components/doctor/`)
 - **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See DESIGN_SYSTEM.md §5
 
 ## Pricing
@@ -99,11 +97,14 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | Med cert (2 day) | $29.95 | `STRIPE_PRICE_MEDCERT_2DAY` |
 | Med cert (3 day) | $39.95 | `STRIPE_PRICE_MEDCERT_3DAY` |
 | Repeat prescription | $29.95 | `STRIPE_PRICE_REPEAT_SCRIPT` |
+| New prescription | $49.95 | Uses `STRIPE_PRICE_CONSULT` (routed via consult flow) |
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $39.95 | `STRIPE_PRICE_CONSULT_ED` |
 | Hair loss | $39.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
 | Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
 | Weight loss | $79.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
+| Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |
 
 ## Key Workflows
 
@@ -126,17 +127,17 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 ## Gotchas
 
 - **Build needs 8GB heap**: `NODE_OPTIONS='--max-old-space-size=8192'` set in build/typecheck scripts
-- **Controlled substances**: `lib/clinical/intake-validation.ts` hard-blocks Schedule 8 — no override
+- **Controlled substances**: `isControlledSubstance(name)` in `lib/clinical/intake-validation.ts` detects Schedule 8 via regex patterns; UI passes the flag to `validateIntake()` which blocks progression. Both form and chat paths enforce this — no override
 - **PHI encryption**: AES-256-GCM field-level. Controlled by `PHI_ENCRYPTION_*` env vars. See SECURITY.md
-- **Rate limiting fallback**: Redis down → in-memory `Map` with 100 actions/hour
+- **Rate limiting fallback**: Two systems — Redis (general API): fails open when unavailable. Doctor actions (DB-backed): falls back to in-memory `Map` with half limits
 - **Certificate IDs**: `crypto.randomInt()` not `Math.random()` — security requirement
 - **Name validation**: Unicode-aware `/^[\p{L}\s'-]+$/u` for international names
 - **AHPRA validation**: Format check `/^[A-Z]{3}\d{10}$/` only — not a real AHPRA lookup
 - **No template editor**: Certificates use static PDF templates in `/public/templates/` with `pdf-lib` text overlay — not a WYSIWYG editor
 - **GP comparisons**: Kept but subtle — `text-xs text-muted-foreground`, no crossed-out prices
-- **Curated testimonials**: 35+ realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
+- **Curated testimonials**: 47 realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
 - **Doctor model**: System supports multiple doctors but currently operates with one. Don't advertise team size beyond what's real
-- **E2E routes blocked in prod**: Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview
+- **Dev routes blocked in prod**: Middleware blocks `/api/test/*`, `/email-preview*`, `/sentry-test*` in production/preview (exception: `PLAYWRIGHT=1`). Note: `(dev)` route group files (e.g. `app/(dev)/cert-preview`) resolve to `/cert-preview` and are **not** blocked by middleware
 - **Supabase migrations**: 184. Use `supabase db push`. May need `supabase migration repair` for drift
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this

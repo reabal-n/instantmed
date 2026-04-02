@@ -63,12 +63,12 @@
 
 ## API Key Rotation
 
-### INTERNAL_API_KEY (zero-downtime)
+### INTERNAL_API_SECRET (zero-downtime)
 
 1. Generate: `openssl rand -base64 32`
-2. Add `INTERNAL_API_KEY_NEW=<new-key>` to Vercel env vars
+2. Add `INTERNAL_API_SECRET_NEW=<new-key>` to Vercel env vars
 3. Deploy (both old and new keys work during overlap)
-4. Verify system works, then set `INTERNAL_API_KEY=<new-key>`, remove `INTERNAL_API_KEY_NEW`
+4. Verify system works, then set `INTERNAL_API_SECRET=<new-key>`, remove `INTERNAL_API_SECRET_NEW`
 5. Deploy final
 
 ### CRON_SECRET
@@ -217,7 +217,7 @@ NODE_ENV         -> fallback
 
 | Environment | Server Traces | Client Traces | Replay | Error Replay |
 |-------------|--------------|---------------|--------|--------------|
-| Production | 0.5 | 0.1 | 0.1 | 1.0 |
+| Production | 0.5 | 0.1 | 0.01 | 0.5 |
 | Preview | 1.0 | 1.0 | 0.1 | 1.0 |
 | E2E | 1.0 | 1.0 | N/A | N/A |
 
@@ -235,24 +235,25 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
-| Process Email Retries | `/api/cron/process-email-retries` | Every 10 min | DEPRECATED -- delegates to email-dispatcher. Kept for backward compat |
 | Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, email failures, SLA breaches |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly | Send recovery emails for abandoned checkout sessions |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
 | Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
-| Expire Certificates | `/api/cron/expire-certificates` | Daily (1 AM) | Mark certificates past their `end_date` as expired |
+| Expire Certificates | `/api/cron/expire-certificates` | Daily (1 AM UTC) | Mark certificates past their `end_date` as expired |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | Repeat Rx Reminders | `/api/cron/repeat-rx-reminders` | Daily (8 AM AEST) | Enqueue reminder emails for repeat scripts completed ~30 days ago |
-| DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
-| QA Sampling | `/api/cron/qa-sampling` | Daily | Sample 10% of approved intakes from last 24h for quality review |
-| Data Retention | `/api/cron/data-retention` | Daily | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
+| DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM UTC) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
+| QA Sampling | `/api/cron/qa-sampling` | Weekly (Mon 6 AM UTC) | Sample 10% of approved intakes from last week for quality review |
+| Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
 | Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit sitemap URLs to IndexNow for Bing/Yandex indexing |
-| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 5 min | Retry failed auto-approval attempts (feature-flagged) |
-| Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
+| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry failed auto-approval attempts (feature-flagged) |
+| Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
+
+**Timezone note:** All cron schedules in `vercel.json` are UTC. "AEST" times above are UTC+10 (standard time). During AEDT (daylight saving, Oct–Apr), these shift 1 hour later in local time (e.g., "6 AM AEST" runs at 7 AM AEDT).
 
 ---
 
@@ -308,7 +309,7 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 
 ## SLA Targets
 
-**Admin page:** `/doctor/admin/ops/intakes-stuck` (requires `doctor` or `admin` role)
+**Admin page:** `/admin/ops/intakes-stuck` (requires `doctor` or `admin` role)
 
 | Condition | Threshold | Reason Code |
 |-----------|-----------|-------------|
@@ -319,7 +320,7 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 
 **Escalation:** The `stale-queue` cron monitors `paid_no_review`. At 4h: Sentry warning. At 8h: Sentry critical + email escalation to `support@instantmed.com.au` with intake details (ID, service type, patient name, hours waiting).
 
-**Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable Sentry warnings).
+**Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
 
 ### Stuck Intake Resolution
 
@@ -420,14 +421,18 @@ All previously identified gaps have been resolved:
 
 Required env vars validated at startup via Zod in `lib/env.ts`:
 
-- **Supabase**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`
-- **Clerk**: `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` (9 price IDs)
-- **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-- **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`
+- **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- **Clerk**: `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_*` (9 price IDs)
+- **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
+- **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 - **AI**: `ANTHROPIC_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
+- **Cron**: `CRON_SECRET`, `OPS_CRON_SECRET`
+- **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
+- **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional)
+- **Other**: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAILS`, `GOOGLE_PLACES_API_KEY`, `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
 
 ---
 
@@ -483,7 +488,7 @@ Sentry: https://sentry.io | Vercel: https://vercel.com | Stripe: https://dashboa
 1. Go to Supabase Dashboard → Project → Database → Backups
 2. Select the target restore point (daily snapshot or PITR timestamp)
 3. Restore creates a new project — verify data before switching
-4. Update `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel env vars
+4. Update `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in Vercel env vars
 5. Redeploy the application
 
 **Manual export (monthly recommended):**

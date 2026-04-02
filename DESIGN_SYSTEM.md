@@ -21,33 +21,28 @@
   /* -- Backgrounds (light mode — the default) -- */
   --bg:           #F8F7F4;   /* warm ivory — Tailwind: bg-background */
   --surface:      #FFFFFF;   /* pure white cards — Tailwind: bg-card / bg-white */
-  --elevated:     #F2F0EC;   /* hover states, nested regions — Tailwind: bg-muted */
-  --overlay:      #ECEAE5;   /* dropdowns, tooltips — Tailwind: bg-popover */
+  --elevated:     #F5F7F9;   /* hover states, nested regions — Tailwind: bg-muted (mist-100) */
+  --overlay:      #FFFFFF;   /* dropdowns, tooltips — Tailwind: bg-popover */
 
   /* -- Backgrounds (dark mode — "Quiet Night Sky") -- */
   --bg-dark:      #0B1120;   /* dark:bg-background */
-  --surface-dark: #111827;   /* dark:bg-card */
-  --elevated-dark:#1A2332;
-  --overlay-dark: #1F2D42;
+  --surface-dark: rgba(17, 24, 39, 0.75);  /* dark:bg-card — translucent */
+  --overlay-dark: rgba(17, 24, 39, 0.90);  /* dark:bg-popover — translucent */
 
   /* -- Borders -- */
-  --border:         rgba(0, 0, 0, 0.07);    /* border-border/50 */
-  --border-em:      rgba(0, 0, 0, 0.12);
-  --border-focus:   rgba(59, 130, 246, 0.40);
-  --border-dark:    rgba(255,255,255,0.07);
-  --border-dark-em: rgba(255,255,255,0.15);  /* dark:border-white/15 */
+  --border:         rgba(203, 213, 225, 0.50);  /* slate-300 at 50% — Tailwind: border-border */
+  --border-dark:    rgba(148, 163, 184, 0.12);  /* slate-400 at 12% — dark mode */
 
   /* -- Text -- */
-  --text:      #1A1A2E;   /* text-foreground */
-  --muted:     #6B7280;   /* text-muted-foreground */
-  --muted2:    #9CA3AF;
-  --text-dark: #E8EDF5;
-  --muted-dark:#8FA3BF;
+  --text:      #1E293B;   /* text-foreground (slate-800) */
+  --muted:     #475569;   /* text-muted-foreground (slate-600) */
+  --text-dark: #E8EEF4;
+  --muted-dark:#94A3B8;
 
   /* -- Semantic -- */
   --blue:         #2563EB;   /* primary (WCAG AA 5.17:1 with white) */
   --blue-light:   #EFF6FF;
-  --blue-border:  rgba(37,99,235,0.20);
+  --blue-border:  rgba(59,130,246,0.20);
 
   --teal:         #5DB8C9;   /* dark mode primary accent */
   --teal-light:   rgba(93,184,201,0.12);
@@ -56,9 +51,9 @@
   --green-light:  #F0FDF4;
   --green-border: rgba(34,197,94,0.20);
 
-  --coral:        #DC2626;   /* destructive (WCAG AA 4.83:1 on white) */
+  --coral:        #DC2626;   /* destructive (WCAG AA 4.63:1 on white) */
   --coral-light:  #FEF2F2;
-  --coral-border: rgba(220,38,38,0.20);
+  --coral-border: rgba(248,113,113,0.20);
 
   --amber:        #B45309;   /* warning (WCAG AA 5.02:1 on white) */
   --amber-light:  #FFFBEB;
@@ -71,12 +66,6 @@
   --service-hair:     #F59E0B;
   --service-weight:   #EC4899;
 
-  /* -- Order status -- */
-  --status-pending:    var(--amber);
-  --status-processing: var(--blue);
-  --status-complete:   var(--green);
-  --status-rejected:   var(--coral);
-
   /* -- Trust signal -- */
   --trust-bg:     rgba(34,197,94,0.06);
   --trust-border: rgba(34,197,94,0.15);
@@ -87,6 +76,12 @@
   --morning-peach: #F5C6A0;
   --morning-ivory: #F7F3EC;
   --morning-champ: #E8D5A3;
+
+  /* -- Custom palettes (sky, dawn, ivory, peach, champagne) -- */
+  /* Defined in tailwind.config.js (custom morning spectrum values) AND
+     globals.css @theme (Tailwind v4 overrides). Note: dawn-* in globals.css
+     uses amber tones (#F59E0B), while tailwind.config.js uses peach tones
+     (#F5A962). CSS values take precedence at runtime in Tailwind v4. */
 }
 ```
 
@@ -142,8 +137,8 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 | Class | Size | Weight | Tracking | Use |
 |-------|------|--------|----------|-----|
-| display-xl | 68px | 300 | -0.04em | Homepage hero only — `lg:` breakpoint |
-| display | 56px | 300 | -0.035em | Hero headlines, large section titles |
+| display-xl | 68px | 400 | -0.04em | Homepage hero only — `lg:` breakpoint |
+| display | 56px | 400 | -0.035em | Hero headlines, large section titles |
 | h1 | 40px | 600 | -0.03em | Page titles |
 | h2 | 28px | 600 | -0.025em | Section headings |
 | h3 | 18px | 600 | -0.015em | Card titles |
@@ -158,7 +153,7 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 - **3-step contrast rule:** Heading and body text must differ by at least 3 scale steps. Never put h3 directly next to display — use an intermediary or increase body size.
 - Body 16px minimum on all patient-facing flows. Non-negotiable.
-- Weights: 300 (display only), 400 (body), 500 (label), 600 (headings). Never 700+.
+- Weights: 400 (body + display), 500 (label), 600 (headings), 700 (email templates only). Loaded weights: 400, 500, 600, 700.
 - Negative tracking on all headings. The larger the text, the tighter the tracking.
 - Sentence case everywhere. All caps only on overline.
 - Emoji: max 1 per block. Never in headings. Never medical emoji.
@@ -192,10 +187,10 @@ Container: `max-w-6xl mx-auto px-4 sm:px-6 lg:px-8` (standard) / `max-w-3xl` (co
 ## 4. Border Radius — Squircle-preferred
 
 ```
-6px   rounded-md     Badges, tags
-10px  rounded-lg     Buttons, inputs
+6px   rounded-sm     Badges, tags
+10px  rounded-lg     Buttons, inputs (--radius base)
 14px  rounded-xl     Cards, modals
-20px  rounded-2xl    Hero panels, feature containers
+18px  rounded-2xl    Hero panels, feature containers
 9999px rounded-full  Pills, avatars, toggles
 ```
 
@@ -222,7 +217,7 @@ className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            shadow-[0_2px_8px_rgba(37,99,235,0.06),0_1px_3px_rgba(37,99,235,0.04)]
            [box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]
            dark:shadow-none rounded-2xl
-           hover:-translate-y-2 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
+           hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
            transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Tier 3: Highlighted card (popular/featured, with ring)
@@ -231,7 +226,7 @@ className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            shadow-[0_4px_16px_rgba(37,99,235,0.12),0_1px_4px_rgba(37,99,235,0.08)]
            [box-shadow:inset_0_1px_0_rgba(255,255,255,0.9)]
            dark:shadow-none rounded-2xl
-           hover:-translate-y-2 hover:shadow-[0_12px_32px_rgba(37,99,235,0.16),0_4px_8px_rgba(37,99,235,0.10)]
+           hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(37,99,235,0.16),0_4px_8px_rgba(37,99,235,0.10)]
            transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Section background (subtle tinted region)
@@ -246,20 +241,22 @@ In Tailwind: `[box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]` combined with th
 
 ### Card Hover
 
-Marketing cards: **2px lift** with spring easing. Use `duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]` (spring curve) — not `ease-out`.
+Marketing cards: **2px lift** (`-translate-y-0.5`) with panel easing. Use `duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]` — not `ease-out`.
 
 ```
-hover:-translate-y-2 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
+hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
 ```
 
 ### Dark Mode Card Pattern
 
-In dark mode, cards rely on border contrast rather than shadows:
-- Background: `dark:bg-card` (maps to `--surface-dark`)
+In dark mode, cards use translucent backgrounds with border contrast instead of shadows:
+- Background: `dark:bg-card` — maps to `rgba(17, 24, 39, 0.75)` (75% opacity, not fully solid)
 - Border: `dark:border-white/15` (subtle white edge)
 - Shadow: `dark:shadow-none` (no shadows in dark mode)
 - Hover: border brightening only, no shadow
+
+**Note:** Dark mode cards are intentionally translucent (75% opacity) despite the "solid depth" philosophy. The translucency allows the dark background to show through subtly. This is the only surface exception — all light mode cards remain fully solid (`bg-white`).
 
 ### Trust Badge Pills
 
@@ -415,24 +412,22 @@ className="inline-flex items-center gap-1.5 text-xs text-muted-foreground
 ### Button
 
 ```tsx
-// Primary — stronger glow at rest, larger bloom on hover, physical press
-className="bg-primary hover:bg-primary/90 text-primary-foreground
-           shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
-           active:scale-[0.98] active:shadow-md active:shadow-primary/15
-           transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+// Base Button component (components/ui/button.tsx) — uses CVA variants:
+// Primary: bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:bg-primary/90
+// Outline: border border-input bg-white dark:bg-card
+// Ghost: hover:bg-muted/50
+// All variants: active:scale-[0.97], transition-all duration-200
 
-// Secondary / Outline
-className="bg-foreground hover:bg-foreground/90 text-background"
-// or
-variant="outline" // shadcn default
-
-// Ghost
-variant="ghost" // shadcn default
+// Marketing CTA override — add glow classes on top of Button for hero/landing CTAs:
+className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
+           active:scale-[0.98] active:shadow-md active:shadow-primary/15"
 ```
+
+**Note:** The glow shadow (`shadow-primary/25`) is NOT in the base `Button` component — it's applied inline on marketing pages (hero CTAs, how-it-works, sticky CTA bars). Use the base Button for app UI; add glow classes only on marketing surfaces.
 
 ### CTA Button Glow
 
-All primary marketing CTAs:
+Marketing CTAs only (not the base Button component):
 - **At rest:** `shadow-lg shadow-primary/25` — button is visually prominent
 - **On hover:** `shadow-xl shadow-primary/40` — glow blooms, draws the eye
 - **On press:** `scale-[0.98] shadow-md shadow-primary/15` — physically depresses
@@ -473,10 +468,9 @@ className="bg-white dark:bg-card border border-border
 
 | File | Use |
 |------|-----|
-| `logo-light.svg` | Icon mark — light mode |
-| `logo-dark.svg` | Icon mark — dark mode |
+| `logo.svg` | Icon mark — single file, used in both light and dark mode |
 | `wordmark.png` | Text lockup (dark mode: `dark:brightness-0 dark:invert`) |
-| `logo.png` | Static/meta contexts (OG image, manifest) |
+| `logo-512.png` | Static/meta contexts (OG image, manifest) |
 | `logo-192.png` | PWA icon |
 | `seal.svg` | Trust/certification contexts |
 | `favicon.ico` | Browser tab |
@@ -503,7 +497,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 <BrandLogo href={undefined} />
 ```
 
-- Theme-aware: automatically switches `logo-light.svg` ↔ `logo-dark.svg` via `resolvedTheme`
+- Uses single `logo.svg` for both themes (no theme-switching needed — the icon works on both backgrounds)
 - Wordmark inverts on dark mode via `dark:brightness-0 dark:invert` — no separate dark wordmark file needed
 - Always links to `/` by default — pass `href={undefined}` to render as a `div`
 
@@ -725,7 +719,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 | Solid white cards with sky-toned shadows | Glass morphism / backdrop-blur on cards |
 | `bg-white dark:bg-card` for all card surfaces | `bg-card/60 dark:bg-white/5 backdrop-blur` |
 | `shadow-md shadow-primary/[0.06]` for depth | Black box-shadow anywhere |
-| `hover:-translate-y-1` for card interaction | No interaction on hover |
+| `hover:-translate-y-0.5` for card interaction | No interaction on hover |
 | `MeshGradientCanvas` global canvas as page background | Setting `background` on `body` or `html` directly |
 | `bg-white dark:bg-card` for all card surfaces | `bg-card/60 backdrop-blur` — semi-transparent cards are glass morphism |
 | Static single headline in heroes | Rotating/cycling text in h1 — kills LCP and conversion |
@@ -736,10 +730,10 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 | Squircle / rounded corners | Any sharp geometry |
 | Source Sans 3 for everything | Inter, Roboto, serif, decorative |
 | `scale: 0.98` on press | `scale: 0.95` — too aggressive |
-| `initial={{}}` for reduced motion on `motion.*` | `motion.div initial={false}` — invalid (`AnimatePresence initial={false}` is fine) |
+| `initial={{}}` for reduced motion on `motion.*` | Hardcoded `initial={{ opacity: 0 }}` without reduced-motion check |
 | `bg-success-light`, `text-warning`, `border-destructive-border` | `bg-green-50`, `text-amber-600`, `border-red-200` — raw palette colors |
 | `bg-success`, `text-success` for live status dots | `bg-emerald-500` raw color |
-| `font-semibold` (600) max weight | `font-bold` (700) or `font-extrabold` (800) |
+| `font-semibold` (600) max weight in UI | `font-extrabold` (800) — 700 is loaded but reserved for email templates only |
 | `viewport={{ once: true }}` always | Animating on every scroll pass |
 | Product mockups as section anchors | Illustration-only grids |
 | 48px min tap target on mobile | Small hit areas on patient forms |

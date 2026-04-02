@@ -21,9 +21,9 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 
 | Service | Steps |
 |---------|-------|
-| `med-cert` | certificate, symptoms, details, safety, review, checkout |
-| `prescription` / `repeat-script` | medication, medication-history, medical-history, details, safety, review, checkout |
-| `consult` | consult-reason, medical-history, details, safety, review, checkout |
+| `med-cert` | certificate, symptoms, details, review, checkout |
+| `prescription` / `repeat-script` | medication, medication-history, medical-history, details, review, checkout |
+| `consult` | consult-reason, medical-history, details, review, checkout |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 
@@ -207,7 +207,7 @@ Entry points (doctor queue | admin panel | API)
 
 **Template types:** `med_cert_patient`, `med_cert_employer`, `welcome`, `script_sent`, `request_declined`.
 
-**Admin hub:** `/admin/email-hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`), queue (`/admin/email-queue`), outbox (`/admin/ops/email-outbox`).
+**Admin hub:** `/admin/email-hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`). Test studio at `/admin/email-test`.
 
 ### Retry & Delivery
 
@@ -248,7 +248,7 @@ app/actions/approve-cert.ts
 
 ### Doctor Cert Workflow
 
-1. Doctor loads draft from `med_cert_drafts` table
+1. Doctor loads draft from `document_drafts` table
 2. Edits fields (patient name, dates, reason, cert type)
 3. Calls `renderMedicalCertificateToPdf(draft, logoUrl)` via `pdf-lib` (template overlay)
 4. Draft marked `status: 'issued'`, `issued_at` + `issued_by` set
@@ -262,12 +262,12 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | Table | Owner | Purpose |
 |-------|-------|---------|
 | `clinic_identity` | Admin | Singleton clinic details (name, ABN, address, logo) |
-| `doctor_identity` | Doctor (admin validates) | Provider number, AHPRA, signature |
+| `profiles` | Doctor (admin validates) | Provider number, AHPRA number, signature (on `profiles` table) |
 | `certificate_templates` | Admin | JSONB config, versioned per type |
 | `issued_certificates` | System | Immutable record with template + identity snapshots |
-| `template_audit_log` | System | Append-only change log |
+| `certificate_audit_log` | System | Append-only issuance/download/verify log |
 
-**Certificate types:** `med_cert_work`, `med_cert_uni`, `med_cert_carer`. **Also generates:** pathology/imaging referral documents (`lib/pdf/referral-template.tsx`, HTML print-optimized with urgency levels). Versioning: any change -> new version (monotonic per type). Activation is atomic (deactivate old + activate new in transaction). Partial unique index enforces one active per type. Issued certificates lock to `template_id` + `template_version` with optional `template_config_snapshot` for guaranteed re-render. Certificates are immutable except status (valid -> revoked | superseded). Idempotency via `cert_number` UNIQUE constraint (`generateCertificateNumber()` → `MC-YYYY-XXXXXXXX`) and `cert_ref` (`generateCertificateRef()` → `TYPE-YYYYMMDD-XXXXXXXX`). PDF integrity: SHA-256 hash stored on `issued_certificates`.
+**Certificate types:** `work`, `uni`, `carer` (defined as `MedicalCertificateSubtype` in `types/db.ts`). Versioning: any change -> new version (monotonic per type). Activation is atomic (deactivate old + activate new in transaction). Partial unique index enforces one active per type. Issued certificates lock to `template_id` + `template_version` with optional `template_config_snapshot` for guaranteed re-render. Certificates are immutable except status (valid -> revoked | superseded). Idempotency via `cert_number` UNIQUE constraint (`generateCertificateNumber()` → `MC-YYYY-XXXXXXXX`) and `cert_ref` (`generateCertificateRef()` → `TYPE-YYYYMMDD-XXXXXXXX`). PDF integrity: SHA-256 hash stored on `issued_certificates`.
 
 ---
 
@@ -360,7 +360,7 @@ Admin capabilities span the `/admin` route group and include: operations dashboa
 
 **Operational controls** (`/admin/features`): Business hours (configurable open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min.
 
-Role assignment methods: SQL update on `profiles` table (production), `/api/admin/make-doctor` endpoint (dev/preview only, blocked in production), or Clerk dashboard metadata sync.
+Role assignment methods: SQL update on `profiles` table (production), or Clerk dashboard metadata sync.
 
 ---
 
@@ -383,9 +383,8 @@ Role assignment methods: SQL update on `profiles` table (production), `/api/admi
 | `stripe_disputes` | Dispute tracking | `intakes.id` |
 | `email_preferences` | Unsubscribe / email prefs | `profiles.id` |
 | `referrals` | Referral tracking ($5 credit both parties, UI: `referral-card.tsx`) | `profiles.id` (referrer + referee) |
-| `med_cert_drafts` | Certificate draft editing | `intakes.id` via `request_id` |
+| `document_drafts` | Certificate/document draft editing | `intakes.id` via `request_id` |
 | `issued_certificates` | Issued certs with template snapshots | `intakes.id` |
-| `certificate_template_versions` | Template versioning (immutable history) | Template ID |
 | `certificate_audit_log` | Issuance/download/verify events | `issued_certificates.id` |
 
 **Relationship hierarchy:**
@@ -409,13 +408,13 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 
 | Domain | Routes | Key Endpoints |
 |--------|--------|---------------|
-| **Admin** (4) | `/api/admin/*` | `approve`, `decline`, `make-doctor` (dev only), `webhook-dlq` |
-| **AI** (5) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `form-validation`, `review-summary`, `symptom-suggestions` |
+| **Admin** (2) | `/api/admin/*` | `test-email`, `webhook-dlq` |
+| **AI** (6) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `clinical-note`, `form-validation`, `med-cert-draft`, `symptom-suggestions` |
 | **Cron** (21) | `/api/cron/*` | See OPERATIONS.md for full cron table |
-| **Doctor** (9) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `drafts/[intakeId]`, `monitoring-stats`, `personal-stats`, `script-sent`, `export`, `log-view-duration` |
-| **Patient** (10) | `/api/patient/*` | `documents/[id]/download`, `get-invoices`, `download-invoice`, `messages` (GET/POST), `profile` (PATCH), `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
-| **Med Cert** (3) | `/api/med-cert/*` | `preview` (GET), `render` (POST), `submit` (POST) |
-| **Webhooks** (3) | `/api/stripe/webhook`, `/api/webhooks/clerk`, `/api/webhooks/resend` | One per provider, separate signature verification |
+| **Doctor** (13) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `certificates/[intakeId]/download`, `drafts/[intakeId]`, `intakes/[id]/review-data`, `monitoring-stats`, `onboarding-status`, `script-sent`, `scripts` (index + `[id]`), `export`, `log-view-duration` |
+| **Patient** (14) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `refill-prescription`, `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
+| **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
+| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/clerk`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification |
 | **Misc** (12) | Various | `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
 
 ### Server-Only Module Pattern
@@ -480,7 +479,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 ### Image Optimization
 
-- Use `next/image` (or `OptimizedImage` wrapper at `components/ui/optimized-image.tsx`) for all images
+- Use `next/image` for all images
 - Hero images: `priority={true}`. Below-fold: default lazy loading
 - Next.js auto WebP/AVIF optimization enabled
 - Exceptions (raw `<img>` allowed): email templates (client compatibility), blob URL previews (file upload/OCR), inline SVG decorations
@@ -489,23 +488,27 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 ## SEO System
 
-**Programmatic SEO** generates 50+ static landing pages at build time. No DB calls at render.
+**Programmatic SEO** generates 160+ static landing pages at build time (50 conditions + 27 symptoms + 34 guides + 5 comparisons + 46 audience). No DB calls at render.
 
 **URL structure:**
 ```
-/health/conditions/[slug]     16 condition pages (cold-and-flu, migraine, uti, etc.)
-/health/certificates/[slug]   3 certificate types (work, study, carer)
-/health/why-[slug]            1 benefit page
-/health/resources/[slug]      2 resource pages (FAQ, disclaimer)
+/conditions/[slug]      50 condition pages (cold-and-flu, migraine, uti, etc.)
+/symptoms/[slug]        Symptom-based landing pages
+/guides/[slug]          How-to health guides
+/compare/[slug]         Service comparison pages
+/medications/[slug]     Medication information pages
+/for/[audience]         Audience segment pages (students, parents, tradies, etc.)
+/locations/[city]       Australian city pages
+/intent/[slug]          High-intent search query landing pages
 ```
 
 **Data layer:** `lib/seo/pages.ts` -- typed `ConditionPage` and `CertificatePage` interfaces. Template: `components/seo/seo-page-template.tsx`. Each page requires: unique title (50-60 chars), description (120-150 chars), 5+ symptoms, 3+ red flags, 3+ FAQs, 2+ disclaimers.
 
-**Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs. JSON-LD `FAQPage` structured data via `lib/seo/schema.ts`.
+**Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs. JSON-LD `FAQPage` structured data via `lib/seo/safe-json-ld.ts` and `components/seo/healthcare-schema.tsx`.
 
 **Sitemap/robots:** `app/sitemap.ts` and `app/robots.ts` auto-update from the page data layer. No manual updates needed.
 
-**IndexNow:** Automatic real-time index submission to Bing (and Yandex/other IndexNow participants) on new/updated content. Implementation: `lib/seo/indexnow.ts` (`submitToIndexNow(urls: string[])`). Called from: blog post publish, new SEO pages deploy. Key: stored in `INDEXNOW_KEY` env var, verified via `app/[INDEXNOW_KEY].txt` static route. No Google support — Google has its own crawl pipeline.
+**IndexNow:** Automatic real-time index submission to Bing (and Yandex/other IndexNow participants) on new/updated content. Implementation: `/api/indexnow/route.ts` (endpoint) and `/api/cron/indexnow/route.ts` (scheduled). Key: stored in `INDEXNOW_KEY` env var. No Google support — Google has its own crawl pipeline.
 
 **Internal linking:** Each page links to 2-3 related pages. `components/seo/related-pages.tsx` handles cross-linking.
 
@@ -538,8 +541,9 @@ All AI usage is documentation-assistance only. Safety logic is deterministic (no
 |-------|-------------|---------|
 | `/api/ai/chat-intake` | conversational | Conversational intake collection |
 | `/api/ai/chat-intake/validate` | clinical | Validate + normalize chat-collected fields |
-| `/api/ai/review-summary` | advanced | Doctor-facing intake summary |
+| `/api/ai/clinical-note` | clinical | Generate clinical notes for doctor review |
 | `/api/ai/form-validation` | clinical | Validate free-text intake answers |
+| `/api/ai/med-cert-draft` | clinical | Generate medical certificate draft text |
 | `/api/ai/symptom-suggestions` | creative | Autocomplete symptom descriptions |
 
 ---
@@ -549,7 +553,7 @@ All AI usage is documentation-assistance only. Safety logic is deterministic (no
 See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypass, and coverage rules.
 
 **Quick reference:**
-- Unit tests: Vitest, Node environment, `lib/__tests__/`, 40% coverage threshold
+- Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`)
 - E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
@@ -598,7 +602,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `providers/` | — | PostHogProvider, ThemeProvider, ClerkProvider wrapper |
 | `heroes/` | — | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
 | `ui/morning/` | — | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
-| `ui/skeletons.tsx` | — | TableSkeleton, CardSkeleton, FormSkeleton |
+| `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
 ### `lib/` — 334 files
 
@@ -620,8 +624,8 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |
 | `lib/security/` | Encryption | `phi-encryption.ts` (AES-256-GCM), `phi-field-wrappers.ts` (data layer wrappers) |
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
-| `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts` — drive programmatic pages |
-| `lib/blog/articles/` | Blog content | Article data (13,768 lines total) |
+| `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
+| `lib/blog/articles/` | Blog content | Article data (12,574 lines total) |
 | `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
@@ -637,9 +641,9 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `instrumentation-client.ts` | PostHog + Sentry client init |
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
-| `hooks/` | 5 custom hooks (useMediaQuery, useMounted, etc.) |
+| `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 43 Playwright specs, `helpers/` (seed/teardown, auth bypass) |
-| `supabase/migrations/` | 183 SQL migrations |
+| `supabase/migrations/` | 184 SQL migrations |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---
@@ -655,7 +659,7 @@ verifyCronRequest(request)         → cron auth via CRON_SECRET header
 
 ### Data Access
 ```
-createServiceRoleClient()          → Supabase with service role (server-only, 177 files)
+createServiceRoleClient()          → Supabase with service role (server-only, 187 files)
 createClient()                     → Supabase with user session (client-side)
 ```
 
@@ -699,7 +703,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 |-------|---------|
 | `/` | Marketing homepage (hero, service picker, how-it-works, testimonials, FAQ) |
 | `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
-| `/faq` | 19 FAQs across 5 categories |
+| `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |
 | `/terms` | Terms of Service (Feb 2026) |
 | `/privacy` | Privacy Policy (Feb 2026) |

@@ -8,12 +8,12 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | 921+ |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 43+ |
+| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | 816+ |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 329+ |
 
-**Coverage threshold:** 40% (enforced by Vitest config).
+**Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`).
 
-**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. E2E runs separately in `e2e-preview.yml` against Vercel preview deployments.
+**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). E2E runs in `ci.yml` gated by `vars.E2E_ENABLED` and also in `e2e-preview.yml` against Vercel preview deployments.
 
 ---
 
@@ -28,16 +28,17 @@ Node environment — not jsdom. Do not import browser APIs, React components, or
 ```bash
 pnpm test               # Run all unit tests
 pnpm test:watch         # Watch mode
-pnpm test:coverage      # With coverage report (40% threshold)
+pnpm test:coverage      # With coverage report (80/70/80/80 thresholds)
 ```
 
 ### Conventions
 
 - Test files: `lib/__tests__/**/*.test.ts` — mirrors `lib/` directory structure
 - One test file per source file (`lib/clinical/intake-validation.ts` → `lib/__tests__/clinical/intake-validation.test.ts`)
-- Test descriptions: plain English, no prefixes like "should" (`"blocks Schedule 8 substances"` not `"should block Schedule 8 substances"`)
-- No mocking of the database — if a test needs DB behavior, write an integration test or restructure the code to be testable without it
-- Do not mock Supabase clients — structure functions to accept data as arguments where possible
+- Test descriptions: plain English, no prefixes like "should" (`"blocks Schedule 8 substances"` not `"should block Schedule 8 substances"`). **Known debt:** ~25% of unit tests (203/816) still use "should" prefix — fix opportunistically, not in bulk
+- Supabase is globally mocked in `lib/__tests__/setup.ts` (`createClient` and `createServiceRoleClient` return chainable mocks). This is intentional for unit tests — they test business logic, not DB queries
+- For tests that need real DB behavior, use E2E tests against the real Supabase instance
+- Prefer structuring functions to accept data as arguments where possible, reducing the need for mock setup
 
 ### What to Unit Test
 
@@ -73,27 +74,30 @@ pnpm e2e:debug          # Step-through debugger
 
 ### Auth Bypass
 
-E2E tests bypass Clerk auth using a test cookie:
+E2E tests bypass Clerk auth via a server endpoint that sets auth cookies:
 
 ```ts
-// Set in test setup (e2e/helpers/auth.ts)
-await context.addCookies([{
-  name: '__e2e_auth_user_id',
-  value: testUserId,
-  domain: 'localhost',
-  path: '/',
-}])
-// Requires PLAYWRIGHT=1 env var — middleware checks this before accepting the cookie
+// e2e/helpers/auth.ts — loginAsTestUser()
+await page.request.post(`${BASE_URL}/api/test/login`, {
+  headers: {
+    "X-E2E-SECRET": E2E_SECRET,
+    "Content-Type": "application/json",
+  },
+  data: { userType },  // "operator" | "doctor" | "patient"
+})
+// Server sets __e2e_auth_user_id + __e2e_auth_user_type + __e2e_auth_role cookies
+// Requires PLAYWRIGHT=1 env var — middleware checks this before accepting the cookies
 ```
 
 **Never** use real Clerk credentials in E2E. The auth bypass is the only supported pattern.
 
 ### Test Data
 
-E2E tests auto-seed and teardown test data. Helpers in `e2e/helpers/`:
-- `seed.ts` — creates test intakes, profiles, payments
-- `teardown.ts` — cleans up test records after each spec
-- `auth.ts` — sets auth bypass cookie
+E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. Helpers in `e2e/helpers/`:
+- `auth.ts` — `loginAsTestUser()` / `logoutTestUser()` via `/api/test/login` endpoint
+- `db.ts` — database helpers for test data
+- `test-utils.ts` — shared test utilities
+- `sentry.ts` — Sentry test helpers
 
 Always clean up in `afterEach` or `afterAll`. Do not leave test records in the database.
 
@@ -163,10 +167,9 @@ The certificate pipeline has strict idempotency and security requirements. These
 
 ## Coverage Rules
 
-- **Global threshold:** 40% line coverage (Vitest config enforces this — build fails below threshold)
-- **Critical paths must exceed threshold:** clinical validation, PHI encryption, checkout logic, certificate pipeline
+- **Scoped thresholds** (Vitest config): 80% statements, 70% branches, 80% functions, 80% lines — applied to `lib/clinical/`, `lib/state-machine/`, `lib/security/` only
 - Run `pnpm test:coverage` to see per-file breakdown
-- Flag any file in `lib/clinical/`, `lib/security/`, or `lib/cert/` below 60% — these are high-risk
+- Other directories are not gated but critical paths (checkout, certificate pipeline) should be tested via E2E
 
 ---
 
@@ -174,12 +177,19 @@ The certificate pipeline has strict idempotency and security requirements. These
 
 ```yaml
 # .github/workflows/ci.yml
-steps:
-  - pnpm install
-  - pnpm lint
-  - pnpm typecheck
-  - pnpm test          # Unit tests + coverage check
-  - pnpm build         # Production build (8GB heap)
+jobs:
+  build:
+    steps:
+      - pnpm install --frozen-lockfile
+      - pnpm audit --audit-level=critical
+      - pnpm lint
+      - pnpm test --run --coverage    # Unit tests + coverage check
+      - bash scripts/check-route-conflicts.sh
+      - pnpm build                    # Production build (includes typecheck, 8GB heap)
+  e2e:                                # Gated by vars.E2E_ENABLED == 'true'
+    needs: build
+    steps:
+      - playwright test --project=chromium (critical paths only)
 
 # .github/workflows/e2e-preview.yml
 # Runs against Vercel preview deployment
@@ -187,7 +197,7 @@ steps:
   - pnpm e2e:chromium  # E2E against preview URL
 ```
 
-E2E does not run on every push — only on preview deployments. Unit tests and type checks run on every push to main and all PRs.
+E2E runs in two places: (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium only, critical paths); (2) `e2e-preview.yml` against Vercel preview deployments. Unit tests and lint run on every push to main and all PRs.
 
 ---
 
