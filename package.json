@@ -99,6 +99,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.0.16",
+    "checkly": "^7.7.0",
     "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.12",
