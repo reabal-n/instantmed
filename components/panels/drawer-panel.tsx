@@ -76,7 +76,7 @@ export function DrawerPanel({
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/30"
         onClick={handleClose}
         aria-hidden="true"
       />

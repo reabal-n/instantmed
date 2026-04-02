@@ -66,18 +66,30 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/availability")
-      .then((res) => res.json())
-      .then((data: AvailabilityState) => {
-        setState(data)
-      })
-      .catch(() => {
-        // Fail open — assume all services available
-        setState(defaultState)
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
+    // Defer until after first paint — don't race with critical resources
+    const id = requestIdleCallback
+      ? requestIdleCallback(() => doFetch(), { timeout: 2000 })
+      : setTimeout(() => doFetch(), 0)
+
+    function doFetch() {
+      fetch("/api/availability")
+        .then((res) => res.json())
+        .then((data: AvailabilityState) => {
+          setState(data)
+        })
+        .catch(() => {
+          // Fail open — assume all services available
+          setState(defaultState)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    }
+
+    return () => {
+      if (requestIdleCallback) cancelIdleCallback(id as number)
+      else clearTimeout(id as ReturnType<typeof setTimeout>)
+    }
   }, [])
 
   const isServiceDisabled = useCallback(

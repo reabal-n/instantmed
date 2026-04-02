@@ -69,11 +69,10 @@ function useServicePickerVariants() {
   }
 
   const itemVariants = prefersReducedMotion
-    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    ? { hidden: {}, visible: {} }
     : {
-        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        hidden: { y: 30, scale: 0.95 },
         visible: {
-          opacity: 1,
           y: 0,
           scale: 1,
           transition: {
@@ -96,8 +95,8 @@ export function ServicePicker() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-12"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
@@ -114,8 +113,8 @@ export function ServicePicker() {
               <motion.div
                 key={signal.text}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={prefersReducedMotion ? {} : { y: 10 }}
+                whileInView={{ y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.3 + index * 0.08 }}
               >
@@ -252,10 +251,8 @@ export function ServicePicker() {
         {/* Simple note */}
         <motion.p
           className="text-center text-xs text-muted-foreground mt-8"
-          initial={prefersReducedMotion ? {} : { opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={false}
           viewport={{ once: true }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.3 }}
         >
           Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy
         </motion.p>

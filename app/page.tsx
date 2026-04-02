@@ -79,8 +79,25 @@ const faqGroups = [
   },
 ]
 
-export default async function HomePage() {
+// Streamed async component — fetches flags independently so the main page
+// shell renders immediately without waiting for the DB call.
+async function MaintenanceBanner() {
   const flags = await getFeatureFlags()
+  if (!flags.maintenance_mode) return null
+  return (
+    <div className="mx-4 mt-2 rounded-2xl border border-warning-border bg-warning-light/50 px-4 py-3 flex items-center gap-3">
+      <svg className="w-5 h-5 text-warning shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63" />
+      </svg>
+      <div>
+        <p className="text-sm font-medium text-amber-900">We&apos;re currently performing maintenance.</p>
+        <p className="text-xs text-warning">{(flags as { maintenance_message?: string }).maintenance_message || "New requests will be accepted soon."}</p>
+      </div>
+    </div>
+  )
+}
+
+export default async function HomePage() {
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
     question: item.question,
@@ -111,18 +128,10 @@ export default async function HomePage() {
 
       <Navbar variant="marketing" />
 
-      {/* Maintenance banner when platform is closed (below Navbar) */}
-      {flags.maintenance_mode && (
-        <div className="mx-4 mt-2 rounded-2xl border border-warning-border bg-warning-light/50 px-4 py-3 flex items-center gap-3">
-          <svg className="w-5 h-5 text-warning shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63" />
-          </svg>
-          <div>
-            <p className="text-sm font-medium text-amber-900">We&apos;re currently performing maintenance.</p>
-            <p className="text-xs text-warning">{flags.maintenance_message || "New requests will be accepted soon."}</p>
-          </div>
-        </div>
-      )}
+      {/* Maintenance banner — streamed independently, doesn't block hero */}
+      <Suspense fallback={null}>
+        <MaintenanceBanner />
+      </Suspense>
 
       <main className="relative">
         {/* Hero with main value prop — LCP p passed as children for server render */}

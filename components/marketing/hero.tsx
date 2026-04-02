@@ -26,8 +26,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-8"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: -10 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
             >
               <DoctorAvailabilityPill />
@@ -48,8 +48,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* Price anchor above CTAs */}
             <motion.div
               className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: 12 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <Badge variant="price" shape="pill" size="lg" className="hover:bg-emerald-500/15 transition-colors duration-200 cursor-default">
@@ -63,8 +63,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* CTAs */}
             <motion.div
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: 12 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
               <MagneticButton>
@@ -90,8 +90,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* Trust signals */}
             <motion.div
               className="flex flex-wrap items-center justify-center lg:justify-start gap-2"
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={prefersReducedMotion ? {} : { y: 8 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-success/30 hover:text-foreground transition-colors duration-200">

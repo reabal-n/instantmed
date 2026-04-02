@@ -80,7 +80,7 @@ export function SheetPanel({
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40"
         onClick={handleClose}
         aria-hidden="true"
       />

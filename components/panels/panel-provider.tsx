@@ -75,7 +75,7 @@ export function PanelProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <AnimatePresence mode={prefersReducedMotion ? undefined : "wait"}>
+      <AnimatePresence>
         {activePanel && (
           <div key={activePanel.id}>
             {activePanel.component}

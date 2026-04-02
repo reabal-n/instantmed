@@ -50,8 +50,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         {/* Trust badges grid */}
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-          initial={animate ? { opacity: 0, y: 20 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          initial={animate ? { y: 20 } : false}
+          whileInView={animate ? { y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
@@ -73,8 +73,8 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
             return (
               <motion.div
                 key={badge.name}
-                initial={animate ? { opacity: 0, y: 20 } : false}
-                whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+                initial={animate ? { y: 20 } : false}
+                whileInView={animate ? { y: 0 } : undefined}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="group"

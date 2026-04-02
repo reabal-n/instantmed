@@ -34,8 +34,8 @@ export async function GET(
     return NextResponse.json({ error: "Intake not found" }, { status: 404 })
   }
 
-  // Compliance audit logging
-  await logClinicianOpenedRequest(intakeId, "intake", auth.profile.id)
+  // Compliance audit logging — fire-and-forget, don't block data fetch
+  logClinicianOpenedRequest(intakeId, "intake", auth.profile.id).catch(() => {})
 
   // Determine service type for conditional fetches
   const serviceType = (intake.service as { type?: string } | undefined)?.type

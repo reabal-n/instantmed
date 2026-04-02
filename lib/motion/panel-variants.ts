@@ -47,14 +47,14 @@ export const drawerVariants = (side: 'left' | 'right') => ({
     x: 0,
     opacity: 1,
     transition: {
-      duration: 0.35,
+      duration: 0.22,
       ease: easing.panel,
     },
   },
   exit: {
     x: side === 'right' ? '100%' : '-100%',
     opacity: 0,
-    transition: { duration: duration.slower, ease: 'easeIn' },
+    transition: { duration: 0.18, ease: 'easeIn' },
   },
 })
 
@@ -65,13 +65,13 @@ export const sheetVariants = (side: 'left' | 'right') => ({
   visible: {
     x: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.22,
       ease: easing.panel,
     },
   },
   exit: {
     x: side === 'right' ? '100%' : '-100%',
-    transition: { duration: duration.slower, ease: 'easeIn' },
+    transition: { duration: 0.18, ease: 'easeIn' },
   },
 })
 

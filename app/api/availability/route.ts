@@ -9,6 +9,10 @@ export const revalidate = 30
  * No auth required — used by marketing components (service picker, navbar).
  * Response is cached via getFeatureFlags (30s TTL).
  */
+const CACHE_HEADERS = {
+  "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+}
+
 export async function GET() {
   try {
     const flags = await getFeatureFlags()
@@ -23,7 +27,7 @@ export async function GET() {
       business_hours_close: flags.business_hours_close,
       business_hours_timezone: flags.business_hours_timezone,
       business_hours_enabled: flags.business_hours_enabled,
-    })
+    }, { headers: CACHE_HEADERS })
   } catch {
     // On error, return all services available (fail open for marketing)
     return NextResponse.json({
@@ -37,6 +41,6 @@ export async function GET() {
       business_hours_close: 22,
       business_hours_timezone: "Australia/Sydney",
       business_hours_enabled: false,
-    })
+    }, { headers: CACHE_HEADERS })
   }
 }

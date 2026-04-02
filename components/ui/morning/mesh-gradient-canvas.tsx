@@ -2,36 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { motion, useScroll, useTransform } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion";
 
 const DASHBOARD_PREFIXES = ["/patient", "/doctor", "/admin"];
 
-const LIGHT_BLOBS = [
-  { color: "rgba(186, 218, 246, 0.12)", x: "20%", y: "30%", size: "60%" },
-  { color: "rgba(240, 180, 160, 0.10)", x: "70%", y: "20%", size: "50%" },
-  { color: "rgba(250, 245, 235, 0.08)", x: "40%", y: "70%", size: "55%" },
-];
-
-const DARK_BLOBS = [
-  { color: "rgba(30, 50, 80, 0.12)", x: "20%", y: "30%", size: "60%" },
-  { color: "rgba(50, 40, 70, 0.08)", x: "70%", y: "20%", size: "50%" },
-  { color: "rgba(20, 40, 60, 0.10)", x: "40%", y: "70%", size: "55%" },
-];
-
-// Each blob gets a slightly different parallax speed for depth
-const PARALLAX_SPEEDS = [-0.08, -0.12, -0.05];
-
+/**
+ * Subtle ambient background — static radial gradients.
+ * No JS animation, no blend modes, no scroll listeners.
+ * Pure CSS: zero runtime cost, same visual effect.
+ */
 export function MeshGradientCanvas() {
   const pathname = usePathname();
-  const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const y0 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[0] * 100}%`]);
-  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[1] * 100}%`]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["0%", `${PARALLAX_SPEEDS[2] * 100}%`]);
-  const parallaxYs = [y0, y1, y2];
 
-  // Skip on mobile — decorative only, saves main thread work
+  // Skip on mobile — decorative only
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     setIsDesktop(window.innerWidth >= 768);
@@ -46,72 +28,60 @@ export function MeshGradientCanvas() {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       aria-hidden="true"
     >
-      {/* Light mode blobs */}
-      <div className="absolute inset-0 dark:opacity-0 transition-opacity duration-500">
-        {LIGHT_BLOBS.map((blob, i) => (
-          <motion.div
-            key={`light-${i}`}
-            className="absolute rounded-full mix-blend-soft-light"
-            style={{
-              background: `radial-gradient(circle, ${blob.color} 0%, transparent 70%)`,
-              width: blob.size,
-              height: blob.size,
-              left: blob.x,
-              top: blob.y,
-              translateX: "-50%",
-              translateY: "-50%",
-              y: prefersReducedMotion ? 0 : parallaxYs[i],
-            }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : {
-                    x: [0, 40, -30, 0],
-                    scale: [1, 1.15, 0.9, 1],
-                  }
-            }
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 3,
-            }}
-          />
-        ))}
+      {/* Light mode */}
+      <div className="absolute inset-0 dark:opacity-0">
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(186,218,246,0.18) 0%, transparent 70%)",
+            width: "60%", height: "60%", left: "20%", top: "30%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(240,180,160,0.13) 0%, transparent 70%)",
+            width: "50%", height: "50%", left: "70%", top: "20%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(250,245,235,0.12) 0%, transparent 70%)",
+            width: "55%", height: "55%", left: "40%", top: "70%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
       </div>
 
-      {/* Dark mode blobs */}
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-500">
-        {DARK_BLOBS.map((blob, i) => (
-          <motion.div
-            key={`dark-${i}`}
-            className="absolute rounded-full mix-blend-soft-light"
-            style={{
-              background: `radial-gradient(circle, ${blob.color} 0%, transparent 70%)`,
-              width: blob.size,
-              height: blob.size,
-              left: blob.x,
-              top: blob.y,
-              translateX: "-50%",
-              translateY: "-50%",
-              y: prefersReducedMotion ? 0 : parallaxYs[i],
-            }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : {
-                    x: [0, 40, -30, 0],
-                    scale: [1, 1.15, 0.9, 1],
-                  }
-            }
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 3,
-            }}
-          />
-        ))}
+      {/* Dark mode */}
+      <div className="absolute inset-0 opacity-0 dark:opacity-100">
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(30,50,80,0.18) 0%, transparent 70%)",
+            width: "60%", height: "60%", left: "20%", top: "30%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(50,40,70,0.12) 0%, transparent 70%)",
+            width: "50%", height: "50%", left: "70%", top: "20%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(20,40,60,0.14) 0%, transparent 70%)",
+            width: "55%", height: "55%", left: "40%", top: "70%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
       </div>
     </div>
   );
