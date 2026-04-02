@@ -615,7 +615,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
 | `lib/ai/` | AI integration | `provider.ts` (model profiles), prompts, clinical note generation |
 | `lib/cert/` | Certificate pipeline | `execute-approval.ts` (9-step approval), PDF → storage → email |
-| `lib/clinical/` | Clinical logic | `auto-approval.ts` (eligibility), `auto-approval-pipeline.ts` (orchestrator), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
+| `lib/clinical/` | Clinical logic | `auto-approval.ts` (eligibility), `auto-approval-pipeline.ts` (orchestrator), `auto-approval-state.ts` (state machine — CAS transitions), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
 | `lib/data/` | Supabase queries | `intakes.ts`, `issued-certificates.ts`, `documents.ts`, `intake-answers.ts` — all use `createServiceRoleClient()` |
 | `lib/email/` | Email system | `send-email.ts` (1505 lines, dispatcher), `email-dispatcher.ts` (cron processor) |
 | `lib/flow/` | Intake flow logic | `safety/` (safety rules), `draft/` (localStorage drafts) |

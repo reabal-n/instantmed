@@ -129,33 +129,16 @@ export async function GET(request: NextRequest) {
 
   try {
     // -----------------------------------------------------------------------
-    // Auto-approval: find med cert intakes eligible for AI review
+    // Auto-approval: find intakes eligible for AI review via state machine
     // -----------------------------------------------------------------------
-    // - status = 'paid' (not yet approved)
-    // - unclaimed (no doctor or system has claimed them)
-    // - paid after configurable delay (admin setting) to 60 minutes ago
     const delayMinutes = Math.max(1, flags.auto_approve_delay_minutes)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
-    // Extend retry window to 8 hours — intakes stuck from transient errors (rate limits,
-    // timeouts, slow AI draft gen) must still be auto-approved, not silently dropped to queue.
     const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
-
-    // Cap retries at 10 attempts to prevent infinite retry loops on persistently failing intakes
-    const MAX_AUTO_APPROVAL_ATTEMPTS = 10
 
     const { data: eligibleIntakes, error: fetchError } = await supabase
       .from("intakes")
-      .select(`
-        id,
-        auto_approval_attempts,
-        service:services!service_id(type),
-        ai_approved
-      `)
-      .eq("status", "paid")
-      .is("claimed_by", null)
-      .eq("ai_approved", false)
-      .eq("auto_approval_skipped", false)
-      .lt("auto_approval_attempts", MAX_AUTO_APPROVAL_ATTEMPTS)
+      .select("id, auto_approval_state, auto_approval_attempts, auto_approval_state_updated_at")
+      .in("auto_approval_state", ["pending", "failed_retrying"])
       .lt("paid_at", delayAgo)
       .gt("paid_at", eightHoursAgo)
       .order("paid_at", { ascending: true })
@@ -166,19 +149,54 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
 
-    if (!eligibleIntakes || eligibleIntakes.length === 0) {
-      return NextResponse.json({ processed: 0, reason: "No eligible intakes" })
+    // Timeout recovery: rescue intakes stuck in "attempting" for > 10 minutes
+    let recovered = 0
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    const { data: stuckIntakes } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("auto_approval_state", "attempting")
+      .lt("auto_approval_state_updated_at", tenMinutesAgo)
+      .limit(5)
+
+    if (stuckIntakes && stuckIntakes.length > 0) {
+      const { recoverStale } = await import("@/lib/clinical/auto-approval-state")
+      for (const stuck of stuckIntakes) {
+        await recoverStale(supabase, stuck.id)
+        recovered++
+      }
     }
 
-    // Filter to med certs only
-    const medCertIntakes = eligibleIntakes.filter((intake) => {
-      const serviceRaw = intake.service as unknown
-      const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { type: string } | null
-      return service?.type === "med_certs"
-    })
+    // Recovery: intakes stuck in "awaiting_drafts" for > 10 minutes
+    // (after() callback killed before draft generation completed, AND draft retry queue failed)
+    const { data: stuckDrafts } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("auto_approval_state", "awaiting_drafts")
+      .lt("auto_approval_state_updated_at", tenMinutesAgo)
+      .limit(5)
 
-    if (medCertIntakes.length === 0) {
-      return NextResponse.json({ processed: 0, reason: "No med cert intakes in window" })
+    if (stuckDrafts && stuckDrafts.length > 0) {
+      const { generateDraftsForIntake: genDrafts } = await import("@/app/actions/generate-drafts")
+      const { markDraftsReady } = await import("@/lib/clinical/auto-approval-state")
+      for (const stuck of stuckDrafts) {
+        try {
+          const draftResult = await genDrafts(stuck.id)
+          if (draftResult.success) {
+            await markDraftsReady(supabase, stuck.id)
+            recovered++
+          }
+        } catch (err) {
+          logger.warn("Failed to recover awaiting_drafts intake", {
+            intakeId: stuck.id,
+            error: err instanceof Error ? err.message : String(err),
+          })
+        }
+      }
+    }
+
+    if (!eligibleIntakes || eligibleIntakes.length === 0) {
+      return NextResponse.json({ processed: 0, recovered, reason: "No eligible intakes" })
     }
 
     // Dynamically import to avoid cold start cost when no work to do
@@ -190,43 +208,8 @@ export async function GET(request: NextRequest) {
     let failed = 0
     let draftsGenerated = 0
 
-    // Must be a valid UUID — claimed_by is uuid type in the DB
-    const CRON_CLAIM_ID = crypto.randomUUID()
-
-    for (const intake of medCertIntakes) {
+    for (const intake of eligibleIntakes) {
       try {
-        // Atomically claim the intake to prevent duplicate processing by overlapping cron runs.
-        // Only claims if still unclaimed (claimed_by IS NULL). Also increments attempt counter.
-        const currentAttempts = (intake as { auto_approval_attempts?: number }).auto_approval_attempts ?? 0
-        const { data: claimed, error: claimError } = await supabase
-          .from("intakes")
-          .update({
-            claimed_by: CRON_CLAIM_ID,
-            auto_approval_attempts: currentAttempts + 1,
-          })
-          .eq("id", intake.id)
-          .is("claimed_by", null)
-          .select("id")
-          .single()
-
-        if (claimError) {
-          // A real DB error — surface it, don't silently treat as "already claimed"
-          logger.error("Claim update failed — DB error", { intakeId: intake.id, error: claimError.message, code: claimError.code })
-          Sentry.captureMessage(`Auto-approval cron: claim update DB error (${claimError.code})`, {
-            level: "error",
-            tags: { subsystem: "cert-pipeline", intake_id: intake.id },
-            extra: { error: claimError.message, code: claimError.code },
-          })
-          failed++
-          continue
-        }
-        if (!claimed) {
-          // 0 rows updated — intake was claimed by someone else between the read and write
-          logger.info("Intake already claimed, skipping", { intakeId: intake.id })
-          skipped++
-          continue
-        }
-
         // Check if AI drafts exist — if not, generate them first
         const { data: existingDrafts } = await supabase
           .from("document_drafts")
@@ -249,16 +232,7 @@ export async function GET(request: NextRequest) {
           draftsGenerated++
         }
 
-        // Release the cron claim before calling attemptAutoApproval.
-        // attemptAutoApproval has its own atomic claim (claimed_by IS NULL check).
-        // Holding the cron claim here would block it from claiming, causing it to
-        // return "already claimed by doctor" and never approve anything.
-        await supabase
-          .from("intakes")
-          .update({ claimed_by: null })
-          .eq("id", intake.id)
-          .eq("claimed_by", CRON_CLAIM_ID)
-
+        // attemptAutoApproval handles claiming via state machine internally
         const result = await attemptAutoApproval(intake.id)
         if (result.autoApproved) {
           approved++
@@ -279,54 +253,48 @@ export async function GET(request: NextRequest) {
           intakeId: intake.id,
           error: err instanceof Error ? err.message : String(err),
         })
-      } finally {
-        // Release the claim so the intake can be retried on the next cron run if it failed.
-        // Successful approvals change status to 'approved', so the claim field is irrelevant.
-        await supabase
-          .from("intakes")
-          .update({ claimed_by: null })
-          .eq("id", intake.id)
-          .eq("claimed_by", CRON_CLAIM_ID)
       }
+      // No finally block needed — state machine handles failure states
     }
 
-    // Check for intakes that just hit max attempts — alert so they don't get stuck silently
+    // Check for intakes that recently hit needs_doctor via max retries
     const { data: maxedOut } = await supabase
       .from("intakes")
       .select("id")
-      .eq("status", "paid")
-      .eq("ai_approved", false)
-      .eq("auto_approval_skipped", false)
-      .gte("auto_approval_attempts", MAX_AUTO_APPROVAL_ATTEMPTS)
+      .eq("auto_approval_state", "needs_doctor")
+      .like("auto_approval_state_reason", "max_retries%")
+      .gt("auto_approval_state_updated_at", eightHoursAgo)
       .limit(10)
 
     if (maxedOut && maxedOut.length > 0) {
       const ids = maxedOut.map(i => i.id.slice(0, 8)).join(", ")
-      Sentry.captureMessage(`${maxedOut.length} intake(s) hit auto-approval retry cap (${MAX_AUTO_APPROVAL_ATTEMPTS})`, {
+      Sentry.captureMessage(`${maxedOut.length} intake(s) hit auto-approval retry cap`, {
         level: "warning",
         tags: { subsystem: "cert-pipeline" },
         extra: { intakeIds: maxedOut.map(i => i.id) },
       })
-      logger.warn("Intakes hit auto-approval retry cap — falling to doctor queue", {
+      logger.warn("Intakes hit auto-approval retry cap — in doctor queue", {
         count: maxedOut.length,
         intakeIds: ids,
       })
     }
 
     logger.info("Retry auto-approval cron complete", {
-      total: medCertIntakes.length,
+      total: eligibleIntakes.length,
       approved,
       skipped,
       failed,
       draftsGenerated,
+      recovered,
     })
 
     return NextResponse.json({
-      processed: medCertIntakes.length,
+      processed: eligibleIntakes.length,
       approved,
       skipped,
       failed,
       draftsGenerated,
+      recovered,
       maxedOut: maxedOut?.length ?? 0,
     })
   } catch (error) {

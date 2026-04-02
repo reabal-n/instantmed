@@ -19,6 +19,10 @@ import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
+import {
+  claimForProcessing, markApproved, markNeedsDoctor,
+  markFailedRetrying, markIneligible,
+} from "./auto-approval-state"
 import type { CertReviewData } from "@/types/db"
 
 const log = createLogger("auto-approval-pipeline")
@@ -126,65 +130,6 @@ async function logAutoApprovalAudit(
   }
 }
 
-/**
- * Release the system auto-approval claim on an intake.
- * Called on every failure path after the claim is acquired.
- */
-async function releaseSystemClaim(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  intakeId: string
-): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from("intakes")
-      .update({ claimed_by: null, claimed_at: null })
-      .eq("id", intakeId)
-      .eq("claimed_by", SYSTEM_AUTO_APPROVE_ID)
-
-    if (error) {
-      log.warn("Failed to release system claim", { intakeId, error: error.message })
-      Sentry.captureMessage("Auto-approval: failed to release system claim", {
-        level: "warning",
-        tags: { subsystem: "cert-pipeline", intake_id: intakeId },
-        extra: { error: error.message, code: error.code },
-      })
-    }
-  } catch (err) {
-    log.warn("Exception releasing system claim", { intakeId, error: err })
-    Sentry.captureException(err, {
-      level: "warning",
-      tags: { subsystem: "cert-pipeline", intake_id: intakeId, stage: "release_claim" },
-    })
-  }
-}
-
-// ============================================================================
-// DETERMINISTIC FAILURE DETECTION
-// ============================================================================
-
-/**
- * Failure reasons that will never change on retry — the intake's answers
- * and patient data don't change, so re-evaluating is wasteful.
- * Non-deterministic failures (rate limit, daily cap, no doctor, pipeline error)
- * should continue retrying.
- */
-const DETERMINISTIC_FAILURE_PREFIXES = [
-  "emergency:", "patient_under_18", "wrong_service_type", "service_type_mismatch",
-  "mental_health:", "injury:", "chronic:", "pregnancy:",
-  "empty_symptom_text", "backdated_too_far",
-  "overlapping_cert_dates",
-  // AI clinical note flagged requiresReview — the draft won't change, so retrying is wasteful
-  "draft_requires_review:",
-  // Note: repeat_request_within_7d is NOT deterministic — it may become eligible
-  // after the 7-day window passes. The retry cron's 8-hour window means this
-  // won't change within a single retry cycle, but we don't mark it permanent.
-]
-
-function isDeterministicFailure(flags: string[]): boolean {
-  return flags.some(flag =>
-    DETERMINISTIC_FAILURE_PREFIXES.some(prefix => flag.startsWith(prefix))
-  )
-}
 
 // ============================================================================
 // MAIN PIPELINE
@@ -316,26 +261,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: true, autoApproved: false, reason: `Intake status is ${intake.status}, not paid` }
     }
 
-    // 3b. Atomic claim: set claimed_by='system-auto-approve' only if status is still 'paid' and unclaimed
-    // This prevents racing with a doctor who may claim the intake concurrently
-    const { data: claimRows, error: claimError } = await supabase
-      .from("intakes")
-      .update({
-        claimed_by: SYSTEM_AUTO_APPROVE_ID,
-        claimed_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .eq("status", "paid")
-      .is("claimed_by", null)
-      .select("id")
-
-    if (claimError || !claimRows || claimRows.length === 0) {
-      log.info("Auto-approval: could not claim intake (likely claimed by doctor)", { intakeId })
+    // 3b. Claim via state machine (CAS: pending|failed_retrying → attempting)
+    const claimed = await claimForProcessing(supabase, intakeId)
+    if (!claimed) {
+      log.info("Auto-approval: could not claim intake (CAS miss — already processing or claimed)", { intakeId })
       trackOutcome("skipped", "already_claimed")
-      return { success: true, autoApproved: false, reason: "Intake already claimed by doctor" }
+      return { success: true, autoApproved: false, reason: "Already claimed or processing" }
     }
-
-    // === FROM HERE: claim is held. Every failure path MUST release it. ===
 
     // 4. Extract answers
     const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
@@ -440,36 +372,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         flags: eligibility.disqualifyingFlags,
       })
 
-      // Mark deterministic failures so the retry cron stops re-evaluating
-      if (isDeterministicFailure(eligibility.disqualifyingFlags)) {
-        try {
-          await supabase
-            .from("intakes")
-            .update({
-              auto_approval_skipped: true,
-              auto_approval_skip_reason: eligibility.reason,
-            })
-            .eq("id", intakeId)
-        } catch (err) {
-          log.warn("Failed to set auto_approval_skipped (non-fatal)", { intakeId, error: err })
-        }
-        // Alert so ops knows this intake dropped to the doctor queue permanently
-        Sentry.captureMessage("Auto-approval: intake permanently dropped to doctor queue", {
-          level: "info",
-          tags: {
-            subsystem: "cert-pipeline",
-            intake_id: intakeId,
-            skip_reason: eligibility.disqualifyingFlags[0] ?? "unknown",
-          },
-          extra: {
-            reason: eligibility.reason,
-            disqualifyingFlags: eligibility.disqualifyingFlags,
-          },
-          fingerprint: ["cert-pipeline", "permanent-skip", eligibility.disqualifyingFlags[0] ?? "unknown"],
-        })
-      }
-
-      await releaseSystemClaim(supabase, intakeId)
+      // State machine decides: needs_doctor (deterministic) vs failed_retrying (transient)
+      await markIneligible(supabase, intakeId, eligibility.reason,
+        eligibility.disqualifyingFlags, (intake as Record<string, unknown>).auto_approval_attempts as number ?? 0)
       trackOutcome("not_eligible", eligibility.reason, { flags: eligibility.disqualifyingFlags })
       return { success: true, autoApproved: false, reason: eligibility.reason }
     }
@@ -502,7 +407,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         level: "error",
         tags: { subsystem: "cert-pipeline", intake_id: intakeId },
       })
-      await releaseSystemClaim(supabase, intakeId)
+      await markFailedRetrying(supabase, intakeId, "no_doctor_available")
       trackOutcome("failed", "no_doctor", { reason })
       return { success: false, autoApproved: false, reason: "No doctor available", error: reason }
     }
@@ -533,7 +438,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const reviewData = buildReviewDataFromAnswers(answersData, doctor.full_name)
     if (!reviewData) {
       log.warn("Auto-approval: could not build review data from answers", { intakeId })
-      await releaseSystemClaim(supabase, intakeId)
+      await markFailedRetrying(supabase, intakeId, "no_review_data")
       trackOutcome("failed", "no_review_data")
       return { success: false, autoApproved: false, reason: "Could not build review data", error: "Missing answer data" }
     }
@@ -546,7 +451,12 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         reviewData,
       })
       trackOutcome("dry_run", "would_approve", { doctor_id: doctor.id })
-      await releaseSystemClaim(supabase, intakeId)
+      // Transition back: attempting → pending (so it can be picked up again)
+      // Uses CAS guard to ensure we only roll back if still in "attempting"
+      await supabase.from("intakes")
+        .update({ auto_approval_state: "pending", auto_approval_state_updated_at: new Date().toISOString() })
+        .eq("id", intakeId)
+        .eq("auto_approval_state", "attempting")
       return { success: true, autoApproved: false, reason: "Dry run — would have approved" }
     }
 
@@ -570,31 +480,14 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const durationMs = Date.now() - startTime
 
     if (approvalResult.success) {
-      // Claim is consumed by the successful approval (status transitions to "approved")
-      // No need to release — the intake is no longer in a claimable state
+      // Mark approved via state machine (also sets ai_approved for backward compat)
+      await markApproved(supabase, intakeId)
+
       log.info("Auto-approval: certificate issued", {
         intakeId,
         certificateId: approvalResult.certificateId,
         durationMs,
         emailSent: approvalResult.emailSent,
-      })
-
-      // Structured Sentry event for monitoring dashboards
-      Sentry.captureMessage("Certificate issued via clinical decision support", {
-        level: "info",
-        tags: {
-          subsystem: "cert-pipeline",
-          intake_id: intakeId,
-          outcome: "approved",
-          approval_method: "ai_assisted",
-        },
-        extra: {
-          certificateId: approvalResult.certificateId,
-          doctorId: doctor.id,
-          durationMs,
-          emailSent: approvalResult.emailSent,
-        },
-        fingerprint: ["cert-pipeline", "ai-assisted", "success"],
       })
 
       await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued via clinical decision support", {
@@ -618,13 +511,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       }
     }
 
-    // Approval failed — release claim so doctor can review
+    // Pipeline failed — mark for retry
     log.warn("Auto-approval: approval pipeline failed", {
       intakeId,
       error: approvalResult.error,
       durationMs,
     })
-    await releaseSystemClaim(supabase, intakeId)
+    await markFailedRetrying(supabase, intakeId, `pipeline_error: ${approvalResult.error}`)
 
     const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${escapeMarkdownValue(approvalResult.error || "Unknown")}`
     sendTelegramAlert(alertMsg).catch(() => {})
@@ -637,6 +530,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       error: approvalResult.error,
     }
   } catch (error) {
+    // Unexpected error — mark for retry
     const durationMs = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -645,8 +539,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
 
-    // Release claim on unexpected errors
-    await releaseSystemClaim(supabase, intakeId)
+    await markFailedRetrying(supabase, intakeId, `unexpected: ${errorMessage}`)
 
     trackOutcome("failed", "unexpected_error", { error: errorMessage })
     return {

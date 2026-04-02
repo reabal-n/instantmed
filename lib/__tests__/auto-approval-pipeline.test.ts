@@ -104,6 +104,23 @@ vi.mock("@/lib/notifications/telegram", () => ({
   escapeMarkdownValue: (v: string) => v,
 }))
 
+const mockClaimForProcessing = vi.fn().mockResolvedValue(true)
+const mockMarkApproved = vi.fn().mockResolvedValue(true)
+const mockMarkNeedsDoctor = vi.fn().mockResolvedValue(true)
+const mockMarkFailedRetrying = vi.fn().mockResolvedValue(true)
+const mockMarkIneligible = vi.fn().mockResolvedValue(true)
+
+vi.mock("@/lib/clinical/auto-approval-state", () => ({
+  claimForProcessing: (...args: unknown[]) => mockClaimForProcessing(...args),
+  markApproved: (...args: unknown[]) => mockMarkApproved(...args),
+  markNeedsDoctor: (...args: unknown[]) => mockMarkNeedsDoctor(...args),
+  markFailedRetrying: (...args: unknown[]) => mockMarkFailedRetrying(...args),
+  markIneligible: (...args: unknown[]) => mockMarkIneligible(...args),
+  isDeterministicFailure: (flags: string[]) => flags.some(f =>
+    ["emergency:", "patient_under_18", "mental_health:", "injury:"].some(p => f.startsWith(p))
+  ),
+}))
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -222,6 +239,11 @@ describe("attemptAutoApproval orchestrator", () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9 })
     mockRecordRateLimitedAction.mockResolvedValue(undefined)
     mockExecuteCertApproval.mockReset()
+    mockClaimForProcessing.mockResolvedValue(true)
+    mockMarkApproved.mockResolvedValue(true)
+    mockMarkNeedsDoctor.mockResolvedValue(true)
+    mockMarkFailedRetrying.mockResolvedValue(true)
+    mockMarkIneligible.mockResolvedValue(true)
     supabaseQueryResults = {}
     setupSupabaseMock()
   })
@@ -342,25 +364,24 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.reason).toContain("not paid")
   })
 
-  it("skips when intake is already claimed by a doctor", async () => {
+  it("returns early when claim fails (CAS miss)", async () => {
     mockFeatureFlags.ai_auto_approve_enabled = true
-    supabaseQueryResults["intakes"] = makeIntakeChain({
-      claimData: [], // Empty array = claim failed (someone else has it)
-    })
+    mockClaimForProcessing.mockResolvedValueOnce(false) // CAS miss
+    supabaseQueryResults["intakes"] = makeIntakeChain()
 
     const attemptAutoApproval = await getAttemptAutoApproval()
     const result = await attemptAutoApproval(TEST_INTAKE_ID)
 
     expect(result.success).toBe(true)
     expect(result.autoApproved).toBe(false)
-    expect(result.reason).toBe("Intake already claimed by doctor")
+    expect(result.reason).toContain("Already claimed")
   })
 
   // --------------------------------------------------------------------------
   // 4. Deterministic failure marking
   // --------------------------------------------------------------------------
 
-  it("marks deterministic failures with auto_approval_skipped flag", async () => {
+  it("calls markIneligible for deterministic failures", async () => {
     mockFeatureFlags.ai_auto_approve_enabled = true
 
     // Create intake with emergency keyword (deterministic failure)
@@ -490,13 +511,16 @@ describe("attemptAutoApproval orchestrator", () => {
 
     // Verify rate limit actions were recorded
     expect(mockRecordRateLimitedAction).toHaveBeenCalledTimes(2)
+
+    // Verify state machine was called
+    expect(mockMarkApproved).toHaveBeenCalled()
   })
 
   // --------------------------------------------------------------------------
   // 8. Failed approval pipeline
   // --------------------------------------------------------------------------
 
-  it("releases claim and returns failure when approval pipeline errors", async () => {
+  it("marks failed_retrying when approval pipeline errors", async () => {
     mockFeatureFlags.ai_auto_approve_enabled = true
 
     supabaseQueryResults["intakes"] = makeIntakeChain()
@@ -521,13 +545,14 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.autoApproved).toBe(false)
     expect(result.reason).toBe("Approval pipeline failed")
     expect(result.error).toBe("PDF generation failed")
+    expect(mockMarkFailedRetrying).toHaveBeenCalled()
   })
 
   // --------------------------------------------------------------------------
   // 9. Unexpected errors
   // --------------------------------------------------------------------------
 
-  it("catches unexpected exceptions and releases claim", async () => {
+  it("catches unexpected exceptions and marks failed_retrying", async () => {
     mockFeatureFlags.ai_auto_approve_enabled = true
 
     // Make supabase throw on first call
@@ -542,6 +567,7 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.autoApproved).toBe(false)
     expect(result.reason).toBe("Unexpected error")
     expect(result.error).toBe("Connection refused")
+    expect(mockMarkFailedRetrying).toHaveBeenCalled()
   })
 })
 
@@ -665,61 +691,31 @@ describe("Auto-Approval Pipeline Helpers", () => {
     })
   })
 
-  describe("Claim lifecycle documentation", () => {
-    it("releaseSystemClaim pattern: claim uses system profile UUID for FK safety", async () => {
+  describe("System auto-approve identity", () => {
+    it("system profile UUID is valid for FK safety", async () => {
       const { SYSTEM_AUTO_APPROVE_ID } = await import("@/lib/constants")
       expect(SYSTEM_AUTO_APPROVE_ID).toBe("00000000-0000-0000-0000-000000000000")
       expect(SYSTEM_AUTO_APPROVE_ID).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
     })
   })
 
-  describe("isDeterministicFailure", () => {
+  describe("isDeterministicFailure (state module)", () => {
     it("classifies emergency and clinical flags as deterministic", async () => {
-      // Test via the eligibility engine — deterministic flags should be those
-      // that stem from patient data (age, symptoms, service type), not
-      // from system state (rate limits, no doctor, pipeline errors)
-      const { evaluateAutoApprovalEligibility } = await import("@/lib/clinical/auto-approval")
+      const actual = await vi.importActual<typeof import("@/lib/clinical/auto-approval-state")>("@/lib/clinical/auto-approval-state")
 
-      // Emergency symptoms = deterministic
-      const emergency = evaluateAutoApprovalEligibility(
-        { service_type: "med_certs", subtype: "work" },
-        {
-          symptoms: ["chest pain", "difficulty breathing"],
-          symptomDetails: "severe chest pain radiating to left arm",
-          duration: "1",
-          start_date: new Date().toISOString().split("T")[0],
-        },
-        { clinicalNote: null }
-      )
-      expect(emergency.eligible).toBe(false)
-      // Should have emergency flag
-      expect(emergency.disqualifyingFlags.some(f => f.startsWith("emergency:"))).toBe(true)
+      expect(actual.isDeterministicFailure(["emergency:chest_pain"])).toBe(true)
+      expect(actual.isDeterministicFailure(["patient_under_18"])).toBe(true)
+      expect(actual.isDeterministicFailure(["mental_health:depression"])).toBe(true)
+      expect(actual.isDeterministicFailure(["injury:fracture"])).toBe(true)
+      expect(actual.isDeterministicFailure(["draft_requires_review:flagged"])).toBe(true)
+    })
 
-      // Under 18 = deterministic
-      const minor = evaluateAutoApprovalEligibility(
-        { service_type: "med_certs", subtype: "work" },
-        {
-          symptoms: ["Cold"],
-          symptomDetails: "runny nose",
-          duration: "1",
-          start_date: new Date().toISOString().split("T")[0],
-        },
-        { clinicalNote: { status: "ready", content: { flags: { requiresReview: false, flagReason: null } } } },
-        { date_of_birth: new Date().toISOString().split("T")[0] } // born today = <18
-      )
-      expect(minor.eligible).toBe(false)
-      expect(minor.disqualifyingFlags).toContain("patient_under_18")
+    it("does not classify transient failures as deterministic", async () => {
+      const actual = await vi.importActual<typeof import("@/lib/clinical/auto-approval-state")>("@/lib/clinical/auto-approval-state")
 
-      // Wrong service type = deterministic
-      const wrongService = evaluateAutoApprovalEligibility(
-        { service_type: "consults", subtype: null },
-        { symptoms: ["Cold"], symptomDetails: "runny nose", duration: "1" },
-        { clinicalNote: null }
-      )
-      expect(wrongService.eligible).toBe(false)
-      expect(wrongService.disqualifyingFlags.some(f =>
-        f === "wrong_service_type" || f === "service_type_mismatch"
-      )).toBe(true)
+      expect(actual.isDeterministicFailure(["repeat_request_within_7d"])).toBe(false)
+      expect(actual.isDeterministicFailure(["no_doctor_available"])).toBe(false)
+      expect(actual.isDeterministicFailure(["pipeline_error"])).toBe(false)
     })
   })
 })

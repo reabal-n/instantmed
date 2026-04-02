@@ -292,6 +292,19 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       stripeCustomerId: stripeCustomerId,
     })
 
+    // Initialize auto-approval state for med certs
+    const serviceType = session.metadata?.category || session.metadata?.service_type
+    if (serviceType === "med_certs" || session.metadata?.service_slug?.startsWith("med-cert")) {
+      await supabase
+        .from("intakes")
+        .update({
+          auto_approval_state: "awaiting_drafts",
+          auto_approval_state_updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+        .is("auto_approval_state", null) // idempotent
+    }
+
     // Track funnel: payment completed
     // Fetch clerk_user_id so server-side PostHog distinctId matches client-side identify()
     const { data: phProfile } = await supabase
@@ -526,6 +539,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             clinicalNote: "clinicalNote" in result ? result.clinicalNote?.status : undefined,
             medCert: "medCert" in result ? result.medCert?.status : undefined,
           })
+
+          // Transition state: awaiting_drafts → pending
+          const { markDraftsReady } = await import("@/lib/clinical/auto-approval-state")
+          await markDraftsReady(supabase, intakeId)
 
           // Attempt auto-approval for med certs immediately after drafts are generated,
           // but ONLY when auto_approve_delay_minutes is 0. When a delay is configured,

@@ -147,6 +147,10 @@ export interface Intake {
   batch_reviewed_by: string | null
   // Retry tracking
   auto_approval_attempts: number
+  // Auto-approval state machine
+  auto_approval_state: "awaiting_drafts" | "pending" | "attempting" | "approved" | "failed_retrying" | "needs_doctor" | null
+  auto_approval_state_reason: string | null
+  auto_approval_state_updated_at: string | null
   // Client info
   client_ip: string | null
   client_user_agent: string | null
