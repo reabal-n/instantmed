@@ -47,6 +47,46 @@ export async function register() {
     console.warn("[WARNING] ENCRYPTION_KEY not set - PHI will be stored in plaintext")
   }
 
+  // Stripe live key validation — catch test keys shipped to production
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NODE_ENV === "production") {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? ""
+    const stripePriceVars = [
+      "STRIPE_PRICE_MEDCERT",
+      "STRIPE_PRICE_MEDCERT_2DAY",
+      "STRIPE_PRICE_MEDCERT_3DAY",
+      "STRIPE_PRICE_REPEAT_SCRIPT",
+      "STRIPE_PRICE_CONSULT",
+      "STRIPE_PRICE_CONSULT_ED",
+      "STRIPE_PRICE_CONSULT_HAIR_LOSS",
+      "STRIPE_PRICE_CONSULT_WOMENS_HEALTH",
+      "STRIPE_PRICE_CONSULT_WEIGHT_LOSS",
+    ]
+
+    const testKeyVars: string[] = []
+
+    if (stripeSecretKey.startsWith("sk_test_")) {
+      testKeyVars.push("STRIPE_SECRET_KEY (test mode key in production)")
+    }
+
+    for (const varName of stripePriceVars) {
+      const value = process.env[varName] ?? ""
+      if (value.startsWith("price_test_")) {
+        testKeyVars.push(`${varName} (test price ID in production)`)
+      }
+    }
+
+    if (testKeyVars.length > 0) {
+      // eslint-disable-next-line no-console
+      console.error("[CRITICAL] Stripe test keys detected in production:", testKeyVars)
+      throw new Error(
+        `Stripe test keys in production — payments will fail. Fix: ${testKeyVars.join(", ")}`
+      )
+    } else {
+      // eslint-disable-next-line no-console
+      console.log("[Startup] Stripe live key check passed")
+    }
+  }
+
   // Schema validation - detect drift between code and DB
   // Only run in Node.js runtime with Supabase configured
   if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NEXT_PUBLIC_SUPABASE_URL) {

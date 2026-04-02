@@ -7,7 +7,7 @@
 
 ### Model
 
-Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. `ENCRYPTION_KEY` (simpler module) verified at startup via `verifyEncryptionSetup()` in `instrumentation.ts`. PHI envelope encryption (`PHI_MASTER_KEY`) is NOT verified at startup — it fails at first use if misconfigured.
+Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. `ENCRYPTION_KEY` (simpler module) verified at startup via `verifyEncryptionSetup()` in `instrumentation.ts`. `PHI_MASTER_KEY` is validated at startup in production via `productionRequirements` in `lib/env.ts` (requires min 32 chars). If misconfigured, the server throws at startup before serving any requests — fail-fast, not fail-at-first-use.
 
 1. Generate a per-record data key
 2. Encrypt PHI with the data key (AES-256-GCM)
