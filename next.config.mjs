@@ -304,7 +304,7 @@ const sentryConfig = {
   widenClientFileUpload: false,
   hideSourceMaps: true,
   webpack: {
-    automaticVercelMonitors: true,
+    automaticVercelMonitors: false,
     treeshake: {
       removeDebugLogging: true
     },
