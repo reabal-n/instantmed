@@ -679,10 +679,68 @@ Doctor approves → executeCertApproval() → PDF render → Supabase Storage �
 ```
 
 ### Auto-Approval Pipeline
+
+Med cert only. Feature-flagged (`ai_auto_approve_enabled`), rate-limited, dry-run mode available.
+
+**State machine** — single `auto_approval_state` enum column replaces the old 6-column boolean soup:
+
+| State | Meaning |
+|-------|---------|
+| `awaiting_drafts` | Paid, AI drafts not yet generated |
+| `pending` | Drafts ready, waiting for cron |
+| `attempting` | Actively processing — IS the distributed lock |
+| `approved` | TERMINAL: cert issued via auto-approval |
+| `failed_retrying` | Transient failure, cron will retry |
+| `needs_doctor` | TERMINAL: deterministic failure OR retries exhausted (≥10) |
+
+**Transitions:**
 ```
-AI draft generated → attemptAutoApproval() → eligibility check → claim intake → build review data → executeCertApproval()
-Feature-flagged (ai_auto_approve_enabled), rate-limited, dry-run mode available
+payment webhook → awaiting_drafts → (drafts ready) → pending
+                                                          ↓
+                                                      cron picks up
+                                                          ↓
+                                                      attempting → (cert issued) → approved
+                                                          ↓
+                                             (deterministic fail) → needs_doctor
+                                                          ↓
+                                             (transient fail) → failed_retrying → cron retry
+                                                          ↓
+                                             (attempts ≥ 10) → needs_doctor
+
+Timeout recovery: attempting (stale > 10 min) → failed_retrying (cron)
 ```
+
+**Schema additions** (`intakes` table):
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `auto_approval_state` | `auto_approval_state` enum | Single source of truth |
+| `auto_approval_state_reason` | text | Failure reason for `failed_retrying` / `needs_doctor` |
+| `auto_approval_state_updated_at` | timestamptz | Enables timeout recovery |
+
+Kept: `auto_approval_attempts` (observability), `ai_approved`, `ai_approved_at` (read by 10+ files), `claimed_by`/`claimed_at` (doctor lock flows only).
+Dropped: `auto_approval_skipped`, `auto_approval_skip_reason` (replaced by state enum).
+
+Partial index on actionable states only: `idx_intakes_auto_approval_active` on `(auto_approval_state, paid_at) WHERE state IN ('pending', 'failed_retrying', 'attempting')`.
+
+**Modules:**
+
+| File | Role |
+|------|------|
+| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions — all Sentry/PostHog/Telegram observability lives here |
+| `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
+| `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
+
+**Race condition handling:**
+
+| Problem | Solution |
+|---------|----------|
+| Two cron instances, same intake | CAS: `UPDATE WHERE state = 'pending'` — only one wins |
+| Webhook + cron race | Webhook sets `awaiting_drafts`; cron only sees `pending`/`failed_retrying` |
+| Crashed pipeline orphan lock | Stale `attempting` → `failed_retrying` after 10 min |
+| Pipeline succeeds, no release needed | `markApproved()` is atomic — no release step |
+
+**Alerting:** `needs_doctor` (exhausted retries) and stale recovery trigger Telegram. Sentry: `warning` on exhausted retries and stale recovery; `info` on approval and deterministic `needs_doctor`.
 
 ---
 
