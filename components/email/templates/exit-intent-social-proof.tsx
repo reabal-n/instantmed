@@ -5,6 +5,7 @@ import {
   Button,
   Box,
   List,
+  colors,
 } from "../base-email"
 
 export interface ExitIntentSocialProofEmailProps {
@@ -63,7 +64,7 @@ export function ExitIntentSocialProofEmail({
 
       <Text muted small>
         Questions? Reply to this email or visit{" "}
-        <a href={`${appUrl}/faq`} style={{ color: "#0D9488", textDecoration: "none" }}>
+        <a href={`${appUrl}/faq`} style={{ color: colors.accent, textDecoration: "none" }}>
           our FAQ
         </a>
         .

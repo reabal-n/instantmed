@@ -13,6 +13,7 @@ import {
   Heading,
   List,
   SuccessBanner,
+  GoogleReviewCTA,
   colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
@@ -77,13 +78,7 @@ export function ConsultApprovedEmail({
         .
       </Text>
 
-      <Text muted small style={{ textAlign: "center" as const }}>
-        Had a good experience?{" "}
-        <a href={GOOGLE_REVIEW_URL} style={{ color: colors.accent, fontWeight: 500 }}>
-          Leave a quick Google review
-        </a>
-        {" "}&mdash; it helps other Australians find us.
-      </Text>
+      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
     </BaseEmail>
   )
 }

@@ -77,7 +77,7 @@ describe("Email Templates", () => {
     it("renders with base structure and patient name", () => {
       const html = render(<WelcomeEmail patientName="Sarah Chen" appUrl={APP_URL} />)
       expectBaseEmailStructure(html)
-      expectContains(html, "Sarah", "Welcome aboard")
+      expectContains(html, "Sarah", "welcome")
     })
 
     it("extracts first name correctly", () => {

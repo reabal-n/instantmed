@@ -4,6 +4,7 @@ import {
   Text,
   Button,
   Box,
+  colors,
 } from "../base-email"
 
 export interface ExitIntentLastChanceEmailProps {
@@ -40,7 +41,7 @@ export function ExitIntentLastChanceEmail({
         <Text style={{ margin: 0 }}>
           <strong>{service}</strong> — from {price}
           <br />
-          <span style={{ fontSize: "13px", color: "#78716C" }}>
+          <span style={{ fontSize: "13px", color: colors.textSecondary }}>
             2-minute form · Doctor-reviewed · Full refund if we can&apos;t help
           </span>
         </Text>
@@ -55,7 +56,7 @@ export function ExitIntentLastChanceEmail({
 
       <Text muted small>
         This is the last email in this series. If you&apos;d like to get in touch,{" "}
-        <a href={`${appUrl}/contact`} style={{ color: "#0D9488", textDecoration: "none" }}>
+        <a href={`${appUrl}/contact`} style={{ color: colors.accent, textDecoration: "none" }}>
           we&apos;re always available
         </a>
         .

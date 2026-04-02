@@ -4,8 +4,8 @@
   "description": "Online Doctor Australia — Medical certificates, prescriptions & consults from $19.95",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAFBFC",
-  "theme_color": "#3B82F6",
+  "background_color": "#F8F7F4",
+  "theme_color": "#2563EB",
   "icons": [
     {
       "src": "/branding/logo-192.png",

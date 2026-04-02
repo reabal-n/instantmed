@@ -32,29 +32,27 @@ export function StillReviewingEmail({
 
   return (
     <BaseEmail
-      previewText={`Update on your ${requestType} — still with our doctor`}
+      previewText={`Still on it — your ${requestType} is nearly done ⏳`}
       appUrl={appUrl}
     >
-      <Heading>Your request is still being reviewed</Heading>
+      <Heading>Still on it ⏳</Heading>
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Your <strong>{requestType}</strong> request is with our doctor and
-        taking a little longer than usual. We haven&apos;t forgotten about you
-        — our doctor is working through the queue and will complete your review
-        shortly.
+        Your <strong>{requestType}</strong> is taking a little longer than
+        usual — we&apos;re still on it. Our doctor is working through the
+        queue and will have your review done shortly.
       </Text>
 
       <Box variant="info">
         <Text small style={{ margin: 0 }}>
-          You&apos;ll receive a separate email the moment your request has been
-          reviewed. No action is needed on your end.
+          We&apos;ll email you the moment it&apos;s done. No action needed on your end.
         </Text>
       </Box>
 
       <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
-        View your request
+        Check your request
       </Button>
 
       <Text muted small>
@@ -69,4 +67,4 @@ export function StillReviewingEmail({
 }
 
 export const stillReviewingSubject = (requestType: string) =>
-  `Still reviewing your ${requestType} — thanks for your patience`
+  `Still on it — your ${requestType} ⏳`

@@ -35,71 +35,77 @@ export function renderFollowUpReminderEmail(props: FollowUpReminderEmailProps): 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #44403C; margin: 0; padding: 0; background-color: #FAFAF9; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FAFAF9;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #475569; margin: 0; padding: 0; background-color: #F8F7F4; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #F8F7F4;">
     <tr>
       <td style="padding: 48px 16px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #E7E5E4; overflow: hidden;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
           <tr>
-            <td style="padding: 32px 40px 0 40px;">
+            <td style="padding: 40px 40px 24px 40px; text-align: center;">
               <a href="${appUrl}" style="text-decoration: none;">
-                <img src="${appUrl}/branding/logo.png" alt="InstantMed" width="130" style="display: block; border: 0; outline: none; max-width: 130px; height: auto;" />
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                  <tr>
+                    <td style="vertical-align: middle; padding-right: 10px;">
+                      <img src="${appUrl}/branding/logo.png" alt="InstantMed" width="36" height="36" style="display: block; border: 0; outline: none; width: 36px; height: 36px; border-radius: 8px;" />
+                    </td>
+                    <td style="vertical-align: middle;">
+                      <img src="${appUrl}/branding/wordmark.png" alt="InstantMed" width="130" style="display: block; border: 0; outline: none; max-width: 130px; height: auto;" />
+                    </td>
+                  </tr>
+                </table>
               </a>
             </td>
           </tr>
-          <tr><td style="padding: 20px 40px 0 40px;"><div style="border-top: 1px solid #F5F5F4;"></div></td></tr>
+          <tr><td style="padding: 0 40px;"><div style="border-top: 1px solid #F1F5F9;"></div></td></tr>
           <tr>
-            <td style="padding: 28px 40px 36px 40px;">
-              <p style="font-size: 15px; color: #44403C; margin: 0 0 16px 0;">Hi ${firstName},</p>
-              <p style="font-size: 15px; color: #44403C; margin: 0 0 16px 0;">
+            <td style="padding: 32px 40px 40px 40px;">
+              <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0;">Hi ${firstName},</p>
+              <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0;">
                 Just checking in. It's been a few days since your medical certificate was approved —
                 hope you're on the mend.
               </p>
-              <p style="font-size: 15px; color: #44403C; margin: 0 0 24px 0;">
+              <p style="font-size: 15px; color: #475569; margin: 0 0 24px 0;">
                 If symptoms are hanging around or you need ongoing care, a GP consultation might be
                 worth considering. Same process — fill in a form, a doctor reviews it.
-              </p>
-              <p style="font-size: 14px; color: #78716C; text-align: center; margin: 0 0 24px 0; padding-top: 16px; border-top: 1px solid #F5F5F4;">
-                Had a good experience?
-                <a href="${GOOGLE_REVIEW_URL}" style="color: #0D9488; text-decoration: none; font-weight: 500;">Leave a quick Google review</a>
-                — it helps other Australians find us.
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px auto; width: 100%;">
                 <tr>
                   <td style="text-align: center;">
-                    <a href="${consultUrl}" style="display: inline-block; background-color: #0D9488; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Start a consultation</a>
+                    <a href="${consultUrl}" style="display: inline-block; background-color: #2563EB; color: #ffffff; padding: 16px 36px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(37,99,235,0.25);">Start a consultation</a>
                   </td>
                 </tr>
               </table>
-              <p style="font-size: 12px; color: #A8A29E; text-align: center; margin: 0 0 16px 0;">GP consultations from $49.95</p>
-              <p style="font-size: 13px; color: #78716C; margin: 0 0 20px 0;">
+              <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0 0 16px 0;">GP consultations from $49.95</p>
+              <div style="text-align: center; padding: 16px 0 4px; border-top: 1px solid #F1F5F9; margin: 4px 0 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #1E293B; line-height: 1.6;">
+                  ⭐ Happy with InstantMed?&#32;<a href="${GOOGLE_REVIEW_URL}" style="color: #2563EB; font-weight: 600; text-decoration: none;">Leave a quick Google review</a>&#32;— takes 30 seconds.
+                </p>
+              </div>
+              <p style="font-size: 13px; color: #64748B; margin: 0 0 20px 0;">
                 If you're all good — great. No action needed.
               </p>
-              <p style="font-size: 13px; color: #78716C; margin: 0 0 20px 0;">
+              <p style="font-size: 13px; color: #64748B; margin: 0 0 20px 0;">
                 Know someone who could use us?
-                <a href="${appUrl}/patient" style="color: #0D9488; text-decoration: none; font-weight: 500;">Refer a friend</a>
+                <a href="${appUrl}/patient" style="color: #2563EB; text-decoration: none; font-weight: 500;">Refer a friend</a>
                 and you both get $5 off your next request.
               </p>
-              <p style="font-size: 12px; color: #A8A29E; margin: 0;">
-                To stop these check-in emails, <a href="${unsubscribeUrl}" style="color: #0D9488; text-decoration: none;">unsubscribe here</a>.
+              <p style="font-size: 12px; color: #94A3B8; margin: 0;">
+                To stop these check-in emails, <a href="${unsubscribeUrl}" style="color: #2563EB; text-decoration: none;">unsubscribe here</a>.
               </p>
             </td>
           </tr>
           <tr>
-            <td style="padding: 24px 40px; border-top: 1px solid #F5F5F4; background: #FAFAF9;">
-              <p style="color: #A8A29E; font-size: 12px; text-align: center; margin: 0 0 6px 0;">
+            <td style="padding: 32px 40px; border-top: 1px solid #F1F5F9; background: #F8F7F4;">
+              <p style="color: #94A3B8; font-size: 12px; text-align: center; margin: 0 0 6px 0;">
                 Made with care in Australia 🌤️
               </p>
-              <p style="color: #A8A29E; font-size: 12px; text-align: center; margin: 0 0 8px 0;">
-                <a href="${appUrl}/privacy" style="color: #A8A29E; text-decoration: none;">Privacy</a>
-                <span style="margin: 0 6px; color: #E7E5E4;">&middot;</span>
-                <a href="${appUrl}/terms" style="color: #A8A29E; text-decoration: none;">Terms</a>
+              <p style="color: #94A3B8; font-size: 12px; text-align: center; margin: 0 0 8px 0;">
+                <a href="${appUrl}/privacy" style="color: #94A3B8; text-decoration: none;">Privacy</a>
+                <span style="margin: 0 6px; color: #E2E8F0;">&middot;</span>
+                <a href="${appUrl}/terms" style="color: #94A3B8; text-decoration: none;">Terms</a>
               </p>
-              <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0 0 4px 0;">
+              <p style="color: #94A3B8; font-size: 11px; text-align: center; margin: 0;">
                 ${COMPANY_NAME} &middot; ABN ${ABN}
-              </p>
-              <p style="color: #A8A29E; font-size: 11px; text-align: center; margin: 0;">
-                Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
               </p>
             </td>
           </tr>

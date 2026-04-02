@@ -13,49 +13,49 @@ import { COMPANY_NAME, ABN } from "@/lib/constants"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
-// Brand colors — warm, refined palette
+// Brand colors — aligned with Morning Canvas design system
 const colors = {
   // Core
-  primary: "#0C1220",       // Deep ink — headings, key text
-  accent: "#0D9488",        // Teal-600 — buttons, links, active
-  accentHover: "#0F766E",   // Teal-700
-  accentLight: "#F0FDFA",   // Teal-50 — success/accent backgrounds
-  accentBorder: "#99F6E4",  // Teal-200
+  primary: "#1E293B",       // Slate-800 — headings, key text (matches --text)
+  accent: "#2563EB",        // Blue-600 — buttons, links, active (matches --blue)
+  accentHover: "#1D4ED8",   // Blue-700
+  accentLight: "#EFF6FF",   // Blue-50 — accent backgrounds
+  accentBorder: "#BFDBFE",  // Blue-200
 
   // Surfaces
-  background: "#FAFAF9",    // Stone-50 — outer background
+  background: "#F8F7F4",    // Warm ivory — outer background (matches --bg)
   cardBg: "#ffffff",
-  surfaceSubtle: "#F5F5F4", // Stone-100 — info boxes, secondary surfaces
-  surfaceWarm: "#FAFAF9",   // Stone-50 — footer background
+  surfaceSubtle: "#F5F7F9", // Mist-100 — info boxes (matches --elevated)
+  surfaceWarm: "#F8F7F4",   // Warm ivory — footer background
 
   // Typography
-  text: "#1C1917",          // Stone-900 — headings
-  textBody: "#44403C",      // Stone-700 — body text
-  textSecondary: "#78716C", // Stone-500 — secondary, muted
-  textMuted: "#A8A29E",     // Stone-400 — footer, fine print
+  text: "#1E293B",          // Slate-800 — headings (matches --text)
+  textBody: "#475569",      // Slate-600 — body text (matches --muted)
+  textSecondary: "#64748B", // Slate-500 — secondary
+  textMuted: "#94A3B8",     // Slate-400 — footer, fine print
 
   // Borders
-  border: "#E5E5E5",        // Softer for premium feel
-  borderLight: "#F5F5F4",   // Stone-100
-  divider: "#E7E5E4",       // Stone-200 — section dividers
+  border: "#E2E8F0",        // Slate-200
+  borderLight: "#F1F5F9",   // Slate-100
+  divider: "#E2E8F0",       // Slate-200
 
   // Status
-  success: "#0D9488",       // Teal-600
-  successBg: "#F0FDFA",     // Teal-50
-  successBorder: "#99F6E4", // Teal-200
-  successText: "#0F766E",   // Teal-700
+  success: "#15803D",       // Green-700 (matches --green)
+  successBg: "#F0FDF4",     // Green-50
+  successBorder: "#BBF7D0", // Green-200
+  successText: "#15803D",   // Green-700
 
-  info: "#0369A1",          // Sky-700
-  infoBg: "#F0F9FF",        // Sky-50
-  infoBorder: "#BAE6FD",    // Sky-200
-  infoText: "#0369A1",      // Sky-700
+  info: "#2563EB",          // Blue-600 (matches --blue)
+  infoBg: "#EFF6FF",        // Blue-50
+  infoBorder: "#BFDBFE",    // Blue-200
+  infoText: "#1D4ED8",      // Blue-700
 
-  warning: "#B45309",       // Amber-700
+  warning: "#B45309",       // Amber-700 (matches --amber)
   warningBg: "#FFFBEB",     // Amber-50
   warningBorder: "#FDE68A", // Amber-200
   warningText: "#92400E",   // Amber-800
 
-  error: "#DC2626",         // Red-600
+  error: "#DC2626",         // Red-600 (matches --coral)
   errorBg: "#FEF2F2",       // Red-50
   errorBorder: "#FECACA",   // Red-200
   errorText: "#991B1B",     // Red-800
@@ -96,7 +96,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
             .email-card, .email-card p, .email-card td, .email-card li, .email-card h1, .email-card h2, .email-card h3, .email-card span {
               color: #e5e5e5 !important;
             }
-            .email-card a { color: #5DB8C9 !important; }
+            .email-card a { color: #60A5FA !important; }
           }
         `}</style>
       </head>
@@ -153,7 +153,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                   }}
                 >
                   <tbody>
-                    {/* Header — Logo */}
+                    {/* Header — Logo + Wordmark */}
                     <tr>
                       <td
                         style={{
@@ -168,20 +168,45 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                             display: "inline-block",
                           }}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`${appUrl}/branding/logo.png`}
-                            alt="InstantMed — Australian telehealth"
-                            width="90"
-                            height="auto"
-                            style={{
-                              display: "block",
-                              border: "0",
-                              outline: "none",
-                              maxWidth: "90px",
-                              height: "auto",
-                            }}
-                          />
+                          <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "0 auto" }}>
+                            <tbody>
+                              <tr>
+                                <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={`${appUrl}/branding/logo.png`}
+                                    alt="InstantMed"
+                                    width="36"
+                                    height="36"
+                                    style={{
+                                      display: "block",
+                                      border: "0",
+                                      outline: "none",
+                                      width: "36px",
+                                      height: "36px",
+                                      borderRadius: "8px",
+                                    }}
+                                  />
+                                </td>
+                                <td style={{ verticalAlign: "middle" }}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={`${appUrl}/branding/wordmark.png`}
+                                    alt="InstantMed"
+                                    width="130"
+                                    height="auto"
+                                    style={{
+                                      display: "block",
+                                      border: "0",
+                                      outline: "none",
+                                      maxWidth: "130px",
+                                      height: "auto",
+                                    }}
+                                  />
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </a>
                       </td>
                     </tr>
@@ -321,7 +346,7 @@ export function Text({ children, muted, small, style }: TextProps) {
   return (
     <p
       style={{
-        margin: "0 0 16px 0",
+        margin: "0 0 12px 0",
         fontSize: small ? "13px" : "15px",
         color: muted ? colors.textMuted : colors.textBody,
         lineHeight: "1.6",
@@ -342,7 +367,7 @@ interface ButtonProps {
 export function Button({ href, children, variant = "primary" }: ButtonProps) {
   const isPrimary = variant === "primary"
   return (
-    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "24px auto", width: "100%" }}>
+    <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "16px auto", width: "100%" }}>
       <tbody>
         <tr>
           <td style={{ textAlign: "center" as const }}>
@@ -350,13 +375,13 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
               href={href}
               style={{
                 display: "inline-block",
-                padding: isPrimary ? "16px 36px" : "14px 32px",
+                padding: isPrimary ? "14px 32px" : "12px 28px",
                 fontSize: "15px",
                 fontWeight: "600",
                 textDecoration: "none",
                 borderRadius: "12px",
                 letterSpacing: "0.01em",
-                boxShadow: isPrimary ? "0 2px 8px rgba(13,148,136,0.25)" : "none",
+                boxShadow: isPrimary ? "0 2px 8px rgba(37,99,235,0.25)" : "none",
                 ...(isPrimary
                   ? {
                       backgroundColor: colors.accent,
@@ -398,8 +423,8 @@ export function Box({ children, variant = "default" }: BoxProps) {
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
         borderRadius: "10px",
-        padding: "20px 24px",
-        margin: "24px 0",
+        padding: "16px 20px",
+        margin: "14px 0",
       }}
     >
       {children}
@@ -425,8 +450,8 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
         backgroundColor: c.bg,
         border: `1px solid ${c.border}`,
         borderRadius: "10px",
-        padding: "16px 24px",
-        marginBottom: "24px",
+        padding: "12px 18px",
+        marginBottom: "14px",
         display: "flex",
       }}
     >
@@ -492,22 +517,22 @@ export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
         backgroundColor: colors.surfaceSubtle,
         border: `1px solid ${colors.border}`,
         borderRadius: "10px",
-        padding: "24px 28px",
-        margin: "24px 0",
+        padding: "16px 20px",
+        margin: "14px 0",
         textAlign: "center" as const,
       }}
     >
-      <p style={{ margin: "0 0 6px 0", fontSize: "11px", color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
+      <p style={{ margin: "0 0 4px 0", fontSize: "11px", color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
         Verification Code
       </p>
       <p
         style={{
           margin: 0,
-          fontSize: "24px",
+          fontSize: "22px",
           fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace",
           fontWeight: "700",
           color: colors.text,
-          letterSpacing: "5px",
+          letterSpacing: "4px",
         }}
       >
         {code}
@@ -605,41 +630,66 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
   }
   const s = variantStyles[variant]
   return (
-    <div style={{ textAlign: "center" as const, padding: "8px 0 32px" }}>
+    <div style={{ textAlign: "center" as const, padding: "0 0 20px" }}>
       <div
         style={{
           display: "inline-block",
-          width: "56px",
-          height: "56px",
+          width: "48px",
+          height: "48px",
           borderRadius: "50%",
           backgroundColor: s.bg,
           border: `1px solid ${s.border}`,
-          lineHeight: "56px",
+          lineHeight: "48px",
           textAlign: "center" as const,
-          fontSize: "24px",
+          fontSize: "22px",
           color: s.iconColor,
-          marginBottom: "16px",
+          marginBottom: "12px",
         }}
       >
         {icon}
       </div>
       <h1
         style={{
-          margin: subtitle ? "0 0 6px 0" : "0",
-          fontSize: "24px",
+          margin: subtitle ? "0 0 4px 0" : "0",
+          fontSize: "22px",
           fontWeight: "700",
           color: colors.text,
-          letterSpacing: "-0.5px",
+          letterSpacing: "-0.4px",
           lineHeight: "1.4",
         }}
       >
         {headline}
       </h1>
       {subtitle && (
-        <p style={{ margin: 0, fontSize: "14px", color: colors.textMuted }}>
+        <p style={{ margin: 0, fontSize: "13px", color: colors.textMuted }}>
           {subtitle}
         </p>
       )}
+    </div>
+  )
+}
+
+interface GoogleReviewCTAProps {
+  href: string
+}
+
+export function GoogleReviewCTA({ href }: GoogleReviewCTAProps) {
+  return (
+    <div
+      style={{
+        textAlign: "center" as const,
+        padding: "16px 0 4px",
+        borderTop: `1px solid ${colors.borderLight}`,
+        margin: "4px 0 0 0",
+      }}
+    >
+      <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
+        ⭐ Happy with InstantMed?{" "}
+        <a href={href} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
+          Leave a quick Google review
+        </a>
+        {" "}— takes 30 seconds.
+      </p>
     </div>
   )
 }

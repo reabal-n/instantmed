@@ -20,7 +20,7 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #FAFBFC 0%, #EFF6FF 50%, #F0FDF4 100%)',
+          background: 'linear-gradient(135deg, #F8F7F4 0%, #EFF6FF 50%, #F7F3EC 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >

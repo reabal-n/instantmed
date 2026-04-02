@@ -31,33 +31,26 @@ export function WelcomeEmail({
       previewText="Welcome to InstantMed — good to have you 👍"
       appUrl={appUrl}
     >
-      <Heading>Welcome aboard, {firstName}</Heading>
-
-      <Text>Hi {firstName},</Text>
+      <Heading>Hey {firstName}, welcome 👋</Heading>
 
       <Text>
-        Thanks for creating your InstantMed account. We&apos;re a small
-        Australian telehealth team that makes it easy to get the healthcare
-        documents you need — from your phone, on your schedule.
-      </Text>
-
-      <Text>
-        No waiting rooms. No phone tag with receptionists. Just fill in a
-        form and a real doctor reviews it.
+        You&apos;re all set. No waiting rooms, no phone tag — just fill in
+        a short form and a real Australian doctor reviews it, usually within
+        the hour.
       </Text>
 
       <Box>
-        <Heading as="h3">Here&apos;s what you can do</Heading>
+        <Heading as="h3">What you can do with InstantMed</Heading>
         <List
           items={[
-            "Get medical certificates reviewed by a doctor within hours",
-            "Request prescriptions from registered Australian doctors",
-            "Access specialist consultations online",
+            "Medical certificates — from $19.95, reviewed within the hour",
+            "Repeat prescriptions — any Australian pharmacy",
+            "GP consultations — from $49.95, no video call needed",
           ]}
         />
       </Box>
 
-      <Button href={`${appUrl}/start`}>Get Started</Button>
+      <Button href={`${appUrl}/start`}>Get started</Button>
 
       <Text muted small>
         Questions? Reply to this email or visit our{" "}
@@ -70,4 +63,4 @@ export function WelcomeEmail({
   )
 }
 
-export const welcomeEmailSubject = "Welcome aboard — here's how InstantMed works"
+export const welcomeEmailSubject = "Welcome to InstantMed 👋"

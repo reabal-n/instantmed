@@ -17,7 +17,7 @@ export interface PaymentConfirmedEmailProps {
 }
 
 export function paymentConfirmedSubject(requestType: string, amount: string) {
-  return `Payment confirmed — ${amount} for your ${requestType} ✅`
+  return `Payment received — ${amount} for your ${requestType} ✅`
 }
 
 export function PaymentConfirmedEmail({
@@ -30,14 +30,13 @@ export function PaymentConfirmedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Payment confirmed — ${amount} for your ${requestType}`} appUrl={appUrl}>
-      <StatusBanner title="Payment confirmed" variant="success" />
+    <BaseEmail previewText={`Payment received — ${amount} for your ${requestType} ✅`} appUrl={appUrl}>
+      <StatusBanner title="Payment received ✅" variant="success" />
 
       <Text>Hi {firstName},</Text>
       <Text>
-        We&apos;ve received your payment of <strong>{amount}</strong> for your{" "}
-        {requestType} request. A doctor will review it shortly — we&apos;ll be
-        in touch the moment there&apos;s an update.
+        Got it — <strong>{amount}</strong> received for your {requestType}.
+        A doctor will review it shortly and we&apos;ll email you when it&apos;s done.
       </Text>
 
       <Box>
@@ -45,11 +44,10 @@ export function PaymentConfirmedEmail({
         <DetailRow label="Amount" value={amount} />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Track Your Request</Button>
+      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Track your request</Button>
 
       <Text muted small>
-        A receipt has been sent to your email. Need an invoice for tax purposes?
-        Download it from your{" "}
+        Need a tax invoice? Grab it from your{" "}
         <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
         </a>

@@ -28,7 +28,7 @@ export interface RequestReceivedEmailProps {
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `All sorted — your ${requestType} is with a doctor now`
+  return `All sorted — your ${requestType} is with a doctor now 👍`
 }
 
 export function RequestReceivedEmail({
@@ -43,7 +43,7 @@ export function RequestReceivedEmail({
 
   return (
     <BaseEmail
-      previewText={`All sorted — your ${requestType} request is with a doctor now`}
+      previewText={`Your ${requestType} is with a doctor — we'll be in touch shortly`}
       appUrl={appUrl}
     >
       <HeroBlock
@@ -56,10 +56,8 @@ export function RequestReceivedEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Payment confirmed — your <strong>{requestType}</strong> request is
-        now with a doctor for review. Most requests are wrapped up within a
-        couple of hours, and we&apos;ll email you the moment there&apos;s an
-        update.
+        Payment confirmed — your <strong>{requestType}</strong> is now with
+        a doctor. We&apos;ll email you the moment there&apos;s an update.
       </Text>
 
       <Box>
@@ -76,33 +74,25 @@ export function RequestReceivedEmail({
         <Heading as="h3">What happens next</Heading>
         <List
           items={[
-            "A doctor reviews your request (typically 1–2 hours)",
-            "You'll get an email as soon as a decision is made",
-            "If anything else is needed, the doctor will reach out directly",
+            "A doctor reviews your request (usually within an hour)",
+            "You'll get an email as soon as it's done",
+            "No phone call needed — we'll reach out if anything else is required",
           ]}
         />
       </Box>
 
       <Button href={`${appUrl}/patient/intakes/${requestId}`}>
-        Track Your Request
+        Track your request
       </Button>
 
       {isGuest && (
         <Box>
-          <Heading as="h3">Create your free account</Heading>
-          <Text>
-            Set up an account to get the most out of InstantMed — it only takes a minute:
+          <Heading as="h3">Save your details for next time</Heading>
+          <Text small>
+            Create a free account to track your request, download documents, and reorder faster.
           </Text>
-          <List
-            items={[
-              "Track your request status in real-time",
-              "Download your certificate the moment it's ready",
-              "Access your medical history anytime",
-              "Reorder faster next time",
-            ]}
-          />
           <Button href={`${appUrl}/auth/complete-account?intake_id=${requestId}`}>
-            Create Your Account
+            Create account
           </Button>
           <Text muted small style={{ textAlign: "center" as const }}>
             No pressure — your certificate will be emailed to you either way.
