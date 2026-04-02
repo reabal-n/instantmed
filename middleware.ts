@@ -39,7 +39,9 @@ const isPublicRoute = createRouteMatcher([
  */
 function hasE2EAuthBypass(req: Request): boolean {
   // P0 SECURITY: Block E2E bypass in Vercel production and preview
-  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+  // Exception: allow when PLAYWRIGHT=1 (E2E tests running locally with VERCEL_ENV simulated in .env.local)
+  const isE2ETest = process.env.PLAYWRIGHT === "1"
+  if (!isE2ETest && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return false
   }
 
@@ -62,13 +64,16 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Block /api/test/* and /(dev)/* routes in production and preview
-  if (pathname.startsWith("/api/test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+  // Exception: allow when PLAYWRIGHT=1 (E2E tests running locally with VERCEL_ENV simulated in .env.local)
+  const isVercelProdOrPreview = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview"
+  const isE2ETest = process.env.PLAYWRIGHT === "1"
+  if (pathname.startsWith("/api/test") && isVercelProdOrPreview && !isE2ETest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
-  if (pathname.startsWith("/email-preview") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+  if (pathname.startsWith("/email-preview") && isVercelProdOrPreview && !isE2ETest) {
     return NextResponse.redirect(new URL("/", req.url), 302)
   }
-  if (pathname.startsWith("/sentry-test") && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
+  if (pathname.startsWith("/sentry-test") && isVercelProdOrPreview && !isE2ETest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

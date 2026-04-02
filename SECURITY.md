@@ -156,15 +156,9 @@ FOR SELECT USING (
 | `attachments` | Private | Upload/view own | View all | Draft intakes only |
 | `documents` | Public (signed URLs, 7-day expiry) | Via signed URL | INSERT | No one (immutable) |
 
-### Public Asset Security — OPEN ISSUE
+### Public Asset Security — Resolved
 
-**⚠️ `/public/branding/eSignature.jpg` is publicly accessible.** This file contains the treating doctor's personal handwritten signature. It is currently served as a static file at `https://instantmed.com.au/branding/eSignature.jpg` — no auth required, no rate limiting.
-
-**Required action:** Move to private Supabase Storage (`attachments` bucket or a dedicated `signatures` bucket with strict RLS). Reference it only from server-side PDF generation (`lib/pdf/`) via a signed URL fetched at render time. Remove from `/public/branding/` and redeploy.
-
-**Risk:** Signature forgery. Publicly accessible signatures can be extracted and applied to documents without authorisation.
-
-**Status:** Resolved 2026-04-01. `/public/branding/eSignature.jpg` deleted. The signature in generated PDFs is embedded in the static template files (`/public/templates/*.pdf`) — not dynamically injected. Doctor portal signature uploads use `signature_storage_path` in Supabase private Storage, not the public branding folder.
+eSignature file (`/public/branding/eSignature.jpg`) was deleted 2026-04-01. Signatures in generated PDFs are embedded in the static template files (`/public/templates/*.pdf`), not dynamically injected. Doctor portal signature uploads use `signature_storage_path` in Supabase private Storage.
 
 ### Testing RLS
 

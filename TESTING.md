@@ -8,8 +8,8 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | 268+ |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 42+ |
+| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | 921+ |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 43+ |
 
 **Coverage threshold:** 40% (enforced by Vitest config).
 
@@ -104,6 +104,23 @@ When `PLAYWRIGHT=1` is set:
 - **Stripe:** use test mode keys — no real charges
 - **Rate limiting:** Redis TTLs may need manual reset between tests if hitting limits
 - **Auth:** bypass cookie accepted by middleware
+- **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
+
+### E2E Intake Reset RPC
+
+The `validate_intake_status_transition` trigger blocks terminal-state resets (e.g. `approved → paid`), which breaks E2E test cleanup that needs to reuse intakes across test runs.
+
+**Solution:** `e2e_reset_intake_status(p_intake_id UUID, p_status TEXT)` — a Supabase RPC that bypasses the trigger using a transaction-local flag.
+
+```ts
+// Call via service role client only — not from browser/patient context
+const { error } = await supabase.rpc('e2e_reset_intake_status', {
+  p_intake_id: intakeId,
+  p_status: 'paid',
+})
+```
+
+**Security:** `service_role` only. `authenticated` and `anon` are explicitly revoked. The bypass flag (`app.e2e_reset`) is transaction-local — it expires at transaction end and cannot leak across requests. Migration: `20260402000003_add_e2e_intake_reset_rpc.sql`.
 
 ### What to E2E Test
 

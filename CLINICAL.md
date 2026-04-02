@@ -297,7 +297,7 @@ Patients must be informed at intake of:
 
 | APP | Principle | Status |
 |-----|-----------|--------|
-| 1 | Open and transparent management | Privacy policy published; collection notice at intake; complaint handling via privacy@ |
+| 1 | Open and transparent management | Privacy policy published; collection notice at intake; complaint handling via complaints@instantmed.com.au |
 | 2 | Anonymity/pseudonymity | N/A -- healthcare requires identification (documented justification) |
 | 3 | Collection of solicited info | Only necessary data collected; consent obtained; lawful collection direct from patient |
 | 4 | Unsolicited information | Support team procedures in place |
@@ -308,8 +308,8 @@ Patients must be informed at intake of:
 | 9 | Government identifiers | Medicare number use limited to eligibility; not used as internal ID |
 | 10 | Quality of personal info | Patient can update profile; Medicare validation |
 | 11 | Security | TLS + AES-256-GCM + RLS + retention policy |
-| 12 | Access to personal info | Request via privacy@; 30-day SLA; PDF/JSON export |
-| 13 | Correction | Request via privacy@; clinical corrections require clinician review; audit trail maintained |
+| 12 | Access to personal info | Request via complaints@instantmed.com.au; 30-day SLA; PDF/JSON export |
+| 13 | Correction | Request via complaints@instantmed.com.au; clinical corrections require clinician review; audit trail maintained |
 
 ### Third-Party Data Processors
 

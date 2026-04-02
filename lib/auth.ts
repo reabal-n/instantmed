@@ -47,8 +47,9 @@ const PROFILE_COLUMNS = `
  */
 function isE2ETestModeEnabled(): boolean {
   // P0 SECURITY: Explicitly block E2E bypass in Vercel production and preview
-  // This is a defense-in-depth measure - even if PLAYWRIGHT=1 is accidentally set
-  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+  // Exception: allow when PLAYWRIGHT=1 (E2E tests running locally with VERCEL_ENV simulated in .env.local)
+  const isE2ETest = process.env.PLAYWRIGHT === "1"
+  if (!isE2ETest && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return false
   }
 

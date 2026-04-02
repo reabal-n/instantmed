@@ -248,6 +248,10 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
 | QA Sampling | `/api/cron/qa-sampling` | Daily | Sample 10% of approved intakes from last 24h for quality review |
 | Data Retention | `/api/cron/data-retention` | Daily | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
+| Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
+| Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
+| IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit sitemap URLs to IndexNow for Bing/Yandex indexing |
+| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 5 min | Retry failed auto-approval attempts (feature-flagged) |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 
 ---
@@ -308,10 +312,12 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 
 | Condition | Threshold | Reason Code |
 |-----------|-----------|-------------|
-| Paid but not picked up | > 5 minutes | `paid_no_review` |
+| Paid but not picked up | > 4 hours (warning), > 8 hours (critical) | `paid_no_review` |
 | In review or pending info | > 60 minutes | `review_timeout` |
 | Approved but no delivery email | > 10 minutes | `delivery_pending` |
 | Approved but delivery email failed | Any | `delivery_failed` |
+
+**Escalation:** The `stale-queue` cron monitors `paid_no_review`. At 4h: Sentry warning. At 8h: Sentry critical + email escalation to `support@instantmed.com.au` with intake details (ID, service type, patient name, hours waiting).
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable Sentry warnings).
 
@@ -368,11 +374,16 @@ WHERE i.status = 'approved'
 
 | Alert | Condition | Channel |
 |-------|-----------|---------|
-| SLA Breach | Intake waiting > 60 min | Sentry (email alert, immediate) |
+| SLA Warning | Intake waiting > 4h | Sentry warning |
+| SLA Critical | Intake waiting > 8h | Sentry critical + Resend email to support@ |
 | Queue Critical | > 50 pending intakes | Sentry (email alert) |
 | AI Down | Failure rate > 25% | Sentry (email alert) |
 | Payment DLQ | > 5 items | Sentry (email alert) |
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
+| Business Alerts | Failed payments, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
+| Payment Notifications | Successful checkout | Telegram (real-time) |
+
+**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron, payment webhook, and health-check cron.
 
 ### Health Endpoints
 
@@ -397,11 +408,26 @@ All previously identified gaps have been resolved:
 
 | Priority | Gap | Status |
 |----------|-----|--------|
-| ~~HIGH~~ | ~~Crons lack Sentry error capture~~ | ✅ All 20 crons have `Sentry.captureException` |
+| ~~HIGH~~ | ~~Crons lack Sentry error capture~~ | ✅ All 21 crons have `Sentry.captureException` |
 | ~~HIGH~~ | ~~`intake_id` not in Sentry tags~~ | ✅ In tags via `captureApiError`, `captureServerError`, `captureCheckoutError` |
 | ~~HIGH~~ | ~~No checkout latency tracking~~ | ✅ Latency tracked with >5s threshold alert in `lib/stripe/checkout.ts` |
 | ~~MEDIUM~~ | ~~Email send failures not in Sentry~~ | ✅ Captured in `lib/email/send-email.ts` (lines 376, 541, 585) |
 | ~~MEDIUM~~ | ~~`service_type` not in Sentry tags~~ | ✅ In tags via `captureApiError`, `captureServerError`, `captureCheckoutError` |
+
+---
+
+## Environment Variables
+
+Required env vars validated at startup via Zod in `lib/env.ts`:
+
+- **Supabase**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`
+- **Clerk**: `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` (9 price IDs)
+- **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+- **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`
+- **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- **AI**: `ANTHROPIC_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
+- **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional)
 
 ---
 
@@ -430,8 +456,7 @@ supabase db push --project-ref X   # Apply migrations
 | Channel | Purpose |
 |---------|---------|
 | `support@instantmed.com.au` | Patient support (general) |
-| `complaints@instantmed.com.au` | Formal complaints (14-day SLA, AHPRA escalation path) |
-| `privacy@instantmed.com.au` | Data access/correction/deletion requests (30-day SLA) |
+| `complaints@instantmed.com.au` | Formal complaints + data access/correction/deletion requests (14-day SLA, AHPRA escalation path) |
 | `0450 722 549` | Phone support |
 
 ### Infrastructure Plans
@@ -580,7 +605,7 @@ pnpm build
 
 - Load `CLINICAL.md`.
 - `lib/clinical/intake-validation.ts` still hard-blocks Schedule 8 substances.
-- AI prompts in `lib/ai/` — temperature settings correct per CLAUDE.md AI Configuration table?
+- AI prompts in `lib/ai/` — temperature settings correct per ARCHITECTURE.md AI Configuration table?
 - Consent flows intact (safety consent merged into review step, not standalone).
 
 ### 5. Database & Data Layer

@@ -128,28 +128,30 @@ async function checkStorageObjectExists(storagePath: string): Promise<boolean> {
 
 async function resetIntakeForRetest(intakeId: string) {
   const supabase = getSupabaseClient()
-  
+
   // Delete any existing issued certificates
   await supabase
     .from("issued_certificates")
     .delete()
     .eq("intake_id", intakeId)
-  
+
   // Delete any existing intake documents
   await supabase
     .from("intake_documents")
     .delete()
     .eq("intake_id", intakeId)
-  
-  // Reset intake status to paid
-  await supabase
-    .from("intakes")
-    .update({ 
-      status: "paid",
-      claimed_by: null,
-      claimed_at: null,
-    })
-    .eq("id", intakeId)
+
+  // Force-reset intake status to 'paid' using the E2E bypass RPC.
+  // The direct UPDATE approach is blocked by the validate_intake_status_transition
+  // trigger when the intake is in a terminal state (cancelled, approved, etc.).
+  // The RPC sets a transaction-local flag that bypasses the trigger.
+  const { error: resetError } = await supabase.rpc("e2e_reset_intake_status", {
+    p_intake_id: intakeId,
+    p_status: "paid",
+  })
+  if (resetError) {
+    throw new Error(`resetIntakeForRetest failed: ${resetError.message}`)
+  }
 }
 
 // ============================================================================
@@ -178,8 +180,8 @@ test.describe("Medical Certificate Approval Flow", () => {
     await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
     await waitForPageLoad(page)
     
-    // Verify we're on the document builder page
-    await expect(page.getByText(/certificate|document/i).first()).toBeVisible({ timeout: 10000 })
+    // Verify we're on the document builder page (approve button presence confirms correct route)
+    await expect(page.locator('[data-testid="approve-button"]')).toBeVisible({ timeout: 10000 })
 
     // 2. Fill in the certificate form
     // Fill reason/condition (required field)
@@ -208,10 +210,13 @@ test.describe("Medical Certificate Approval Flow", () => {
     
     await approveButton.click()
 
-    // 4. Wait for success message
-    const successMessage = page.locator('[data-testid="success-message"]')
-    await expect(successMessage).toBeVisible({ timeout: 30000 })
-    await expect(successMessage).toContainText(/generated|sent|approved/i)
+    // 4. Wait for approval outcome message.
+    // The component shows "success-message" when email sends, "warning-message"
+    // when email fails (expected in E2E — Resend isn't wired to test inboxes).
+    // Both indicate the certificate was approved successfully.
+    const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
+    await expect(outcomeMessage).toBeVisible({ timeout: 30000 })
+    await expect(outcomeMessage).toContainText(/certificate|approved|sent|email/i)
 
     // 5. Verify database outcomes
     // Wait a moment for DB writes to complete

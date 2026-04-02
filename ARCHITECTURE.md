@@ -72,6 +72,65 @@ interface StructuredIntake {
 
 ---
 
+## Intake Status State Machine
+
+**Enforced at DB level** via `validate_intake_status_transition` trigger. Any status update that violates these transitions raises a Postgres exception. No override exists outside E2E tests (see TESTING.md → E2E Intake Reset RPC).
+
+```
+                              ┌─────────────┐
+                              │    draft     │
+                              └──────┬───────┘
+                                     │
+                              ┌──────▼───────┐     ┌────────────────┐
+                              │pending_payment├────►│checkout_failed │
+                              └──────┬───────┘     └───────┬────────┘
+                                     │                     │ (retry)
+                                     │◄────────────────────┘
+                              ┌──────▼───────┐
+                              │     paid     │
+                              └──┬───────┬───┘
+                                 │       │
+                          ┌──────▼──┐  ┌─▼──────────┐
+                          │in_review│  │  approved   │ (direct approval)
+                          └──┬──┬───┘  └──┬──────┬──┘
+                             │  │         │      │
+              ┌──────────────┘  │    ┌────▼──┐ ┌─▼───────────┐
+              │                 │    │completed│ │awaiting_script│
+        ┌─────▼─────┐    ┌─────▼──┐ └────────┘ └──────┬──────┘
+        │pending_info│    │declined│                    │
+        └─────┬─────┘    └────────┘             ┌──────▼──┐
+              │                                 │completed │
+        ┌─────▼────┐                            └─────────┘
+        │escalated │
+        └──────────┘
+```
+
+### Transition Rules
+
+| From | Valid next states |
+|------|-----------------|
+| `draft` | `pending_payment`, `cancelled` |
+| `pending_payment` | `paid`, `checkout_failed`, `cancelled`, `expired` |
+| `checkout_failed` | `pending_payment`, `cancelled` |
+| `paid` | `in_review`, `approved`, `cancelled` |
+| `in_review` | `approved`, `declined`, `pending_info`, `escalated`, `cancelled` |
+| `pending_info` | `in_review`, `paid`, `cancelled`, `expired` |
+| `approved` | `completed`, `awaiting_script`, `cancelled` |
+| `awaiting_script` | `completed`, `cancelled` |
+| `escalated` | `in_review`, `declined`, `cancelled` |
+| `declined` | *(terminal)* |
+| `completed` | *(terminal)* |
+| `cancelled` | *(terminal)* |
+| `expired` | *(terminal)* |
+
+**Terminal states** (`declined`, `completed`, `cancelled`, `expired`) accept no further transitions. Every non-terminal state can transition to `cancelled`.
+
+**Valid initial states** (INSERT): `draft`, `pending_payment` only.
+
+**Trigger:** `validate_intake_status_transition` on `intakes` table. `SECURITY DEFINER`, runs on INSERT and UPDATE. Skips validation if status unchanged.
+
+---
+
 ## Payments & Checkout
 
 ### Payment Flow
@@ -176,7 +235,7 @@ app/actions/approve-cert.ts
   2. Idempotency check (existing cert?)
   3. Fetch active template from certificate_templates
   4. Snapshot clinic_identity + doctor_identity
-  5. Render PDF (lib/pdf/med-cert-pdf-v2.tsx + lib/pdf/med-cert-render.ts)
+  5. Render PDF (lib/pdf/template-renderer.ts — pdf-lib overlay on static template)
   6. Upload to private Supabase Storage bucket
   7. INSERT issued_certificates (template_id, snapshots, pdf_hash SHA256)
   8. Log to certificate_audit_log
@@ -208,7 +267,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `issued_certificates` | System | Immutable record with template + identity snapshots |
 | `template_audit_log` | System | Append-only change log |
 
-**Certificate types:** `med_cert_work`, `med_cert_uni`, `med_cert_carer`. **Also generates:** pathology/imaging referral documents (`lib/pdf/referral-template.tsx`, HTML print-optimized with urgency levels). Versioning: any change -> new version (monotonic per type). Activation is atomic (deactivate old + activate new in transaction). Partial unique index enforces one active per type. Issued certificates lock to `template_id` + `template_version` with optional `template_config_snapshot` for guaranteed re-render. Certificates are immutable except status (valid -> revoked | superseded). Idempotency key: `SHA256(intake_id + doctor_id + date)`.
+**Certificate types:** `med_cert_work`, `med_cert_uni`, `med_cert_carer`. **Also generates:** pathology/imaging referral documents (`lib/pdf/referral-template.tsx`, HTML print-optimized with urgency levels). Versioning: any change -> new version (monotonic per type). Activation is atomic (deactivate old + activate new in transaction). Partial unique index enforces one active per type. Issued certificates lock to `template_id` + `template_version` with optional `template_config_snapshot` for guaranteed re-render. Certificates are immutable except status (valid -> revoked | superseded). Idempotency via `cert_number` UNIQUE constraint (`generateCertificateNumber()` → `MC-YYYY-XXXXXXXX`) and `cert_ref` (`generateCertificateRef()` → `TYPE-YYYYMMDD-XXXXXXXX`). PDF integrity: SHA-256 hash stored on `issued_certificates`.
 
 ---
 
@@ -346,18 +405,33 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 
 ### API Routes by Domain
 
-**65 total routes.** Webhooks, cron jobs, and admin routes stay separate. Patient and doctor routes use RESTful patterns.
+**240 total routes (pages + API).** Webhooks, cron jobs, and admin routes stay separate. Patient and doctor routes use RESTful patterns.
 
 | Domain | Routes | Key Endpoints |
 |--------|--------|---------------|
 | **Admin** (4) | `/api/admin/*` | `approve`, `decline`, `make-doctor` (dev only), `webhook-dlq` |
 | **AI** (5) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `form-validation`, `review-summary`, `symptom-suggestions` |
-| **Cron** (11) | `/api/cron/*` | `abandoned-checkouts`, `release-stale-claims`, `expire-certificates`, `process-email-retries`, `stale-queue`, `health-check`, `dlq-monitor`, `cleanup-orphaned-storage`, `emergency-flags`, `retry-drafts`, `scheduled-maintenance` |
+| **Cron** (21) | `/api/cron/*` | See OPERATIONS.md for full cron table |
 | **Doctor** (9) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `drafts/[intakeId]`, `monitoring-stats`, `personal-stats`, `script-sent`, `export`, `log-view-duration` |
 | **Patient** (10) | `/api/patient/*` | `documents/[id]/download`, `get-invoices`, `download-invoice`, `messages` (GET/POST), `profile` (PATCH), `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (3) | `/api/med-cert/*` | `preview` (GET), `render` (POST), `submit` (POST) |
 | **Webhooks** (3) | `/api/stripe/webhook`, `/api/webhooks/clerk`, `/api/webhooks/resend` | One per provider, separate signature verification |
 | **Misc** (12) | Various | `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
+
+### Server-Only Module Pattern
+
+Any function that uses `createServiceRoleClient()` or accesses PHI directly must be in a `"server-only"` module. This prevents accidental client-bundle inclusion of service role keys.
+
+**Pattern:**
+```ts
+// lib/db/patient-count.ts
+import "server-only"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+export async function getPatientCountFromDB(): Promise<number> { ... }
+```
+
+**Rule:** If a linter or build error says "server-only import in client component" — the fix is to split the function into its own `server-only` file, not to suppress the error or remove the import guard.
 
 ---
 
@@ -377,9 +451,9 @@ Custom abstraction layer at `components/uix/`. Import everything from `@/compone
 
 Also re-exports common shadcn/Radix primitives: `Spinner`, `Progress`, `Skeleton`, `Chip`, `Badge`, `Tabs`, `Tab`, `Switch`, `Checkbox`, `Select`, `SelectItem`, `Tooltip`, `Popover`, `Divider`, `Spacer`, and full table primitives.
 
-**Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs glass components).
+**Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (155 primitives), `components/shared/` (73 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Service Page Patterns
 
@@ -439,6 +513,37 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 ---
 
+## AI Configuration
+
+**Provider:** Anthropic Claude via Vercel AI SDK (`lib/ai/provider.ts`). Key: `ANTHROPIC_API_KEY` (preferred) or `VERCEL_AI_GATEWAY_API_KEY` (production gateway).
+
+All AI usage is documentation-assistance only. Safety logic is deterministic (not AI). See CLINICAL.md → AI Boundary Rules.
+
+### Model Configs
+
+| Config key | Model | Temperature | Max tokens | Used for |
+|-----------|-------|-------------|------------|---------|
+| `clinical` | `claude-sonnet-4-20250514` | 0.1 | 2,000 | Medical cert drafts, clinical note generation |
+| `advanced` | `claude-sonnet-4-20250514` | 0.2 | 4,000 | Review summary, complex documentation |
+| `conversational` | `claude-sonnet-4-20250514` | 0.5 | 1,000 | Chat intake dialogue |
+| `creative` | `claude-sonnet-4-20250514` | 0.7 | 500 | Symptom suggestions, intelligent completions |
+
+**Helpers:** `getDefaultModel()` → clinical · `getAdvancedModel()` → advanced · `getConversationalModel()` → conversational · `getCreativeModel()` → creative.
+
+**PII sanitization:** All prompts pass through `sanitizePromptInput()` before being sent. Strips Medicare numbers, AU phone numbers, email addresses, and DOB patterns. Clinical notes are sent with patient identifiers removed — patient identity is never in the AI context.
+
+### AI Endpoints
+
+| Route | Config used | Purpose |
+|-------|-------------|---------|
+| `/api/ai/chat-intake` | conversational | Conversational intake collection |
+| `/api/ai/chat-intake/validate` | clinical | Validate + normalize chat-collected fields |
+| `/api/ai/review-summary` | advanced | Doctor-facing intake summary |
+| `/api/ai/form-validation` | clinical | Validate free-text intake answers |
+| `/api/ai/symptom-suggestions` | creative | Autocomplete symptom descriptions |
+
+---
+
 ## Testing Architecture
 
 See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypass, and coverage rules.
@@ -452,7 +557,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 563 files, 144 routes
+### `app/` — 571 files, 240 routes
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
@@ -461,7 +566,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
 | `app/api/` | API routes | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
-| `app/api/cron/` | Scheduled jobs | `email-dispatcher/` (5min), `daily-audit/`, `queue-monitor/`, `sla-monitor/` |
+| `app/api/cron/` | Scheduled jobs (21) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | `handlers/checkout-session-completed.ts` (main payment handler) |
 | `app/request/` | Unified intake flow | Single page, step-based wizard |
 | `app/(dev)/` | Dev-only routes | Email preview, Sentry test — blocked in production by middleware |
@@ -475,13 +580,13 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 355 files
+### `components/` — 394 files
 
 | Directory | Count | Purpose |
 |-----------|-------|---------|
-| `ui/` | 60 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
+| `ui/` | 67 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | 11 | Abstractions (DataTable, UserCard, StatusBadge, etc.) |
-| `shared/` | 31 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
+| `shared/` | 39 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
 | `request/` | 32 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | 20 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
 | `doctor/` | — | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
@@ -495,7 +600,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `ui/morning/` | — | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
 | `ui/skeletons.tsx` | — | TableSkeleton, CardSkeleton, FormSkeleton |
 
-### `lib/` — 324 files
+### `lib/` — 334 files
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
@@ -534,7 +639,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (useMediaQuery, useMounted, etc.) |
 | `e2e/` | 43 Playwright specs, `helpers/` (seed/teardown, auth bypass) |
-| `supabase/migrations/` | 178 SQL migrations |
+| `supabase/migrations/` | 183 SQL migrations |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---
@@ -576,6 +681,36 @@ Feature-flagged (ai_auto_approve_enabled), rate-limited, dry-run mode available
 ```
 
 ---
+
+## AI Configuration
+
+Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (fallback: direct Anthropic).
+
+| Profile | Model | Temp | Use |
+|---------|-------|------|-----|
+| clinical | claude-sonnet-4-20250514 | 0.1 | Medical documentation — high accuracy |
+| conversational | claude-sonnet-4-20250514 | 0.5 | Chat intake — balanced |
+| creative | claude-sonnet-4-20250514 | 0.7 | Suggestions — more variety |
+| advanced | claude-sonnet-4-20250514 | 0.2 | Complex medical analysis |
+
+## Key Pages
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Marketing homepage (hero, service picker, how-it-works, testimonials, FAQ) |
+| `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
+| `/faq` | 19 FAQs across 5 categories |
+| `/contact` | Contact form → support@instantmed.com.au |
+| `/terms` | Terms of Service (Feb 2026) |
+| `/privacy` | Privacy Policy (Feb 2026) |
+| `/conditions/[slug]` | Health condition pages |
+| `/symptoms/[slug]` | Symptom pages |
+| `/guides/[slug]` | How-to health guides |
+| `/compare/[slug]` | Service comparison pages |
+| `/medications/[slug]` | Medication information pages |
+| `/intent/[slug]` | High-intent search query landing pages |
+| `/for/[audience]` | Audience segment pages (students, parents, etc.) |
+| `/locations/[city]` | Location-based pages |
 
 ## File Size Reference (largest client components)
 
