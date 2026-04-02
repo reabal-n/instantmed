@@ -163,18 +163,10 @@ export async function GET(request: NextRequest) {
     const esc = escapeMarkdownValue
     const alertPromises: Promise<void>[] = []
 
-    if (queueHealth.slaBreached) {
-      const msg = `*InstantMed Health Alert*\n\n🚨 SLA BREACH: ${queueHealth.queueSize} items in queue, oldest ${queueHealth.oldestRequestAgeMinutes}min`
-      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:sla_breach", msg).catch(() => {}))
-    }
     if (!cronHealth.healthy && cronHealth.overdue.length > 0) {
       const names = cronHealth.overdue.map(o => esc(o.jobName)).join(", ")
       const msg = `*InstantMed Health Alert*\n\n⚠️ ${cronHealth.overdue.length} cron jobs overdue: ${names}`
       alertPromises.push(sendDedupedAlert(redis, "telegram:alert:cron_overdue", msg).catch(() => {}))
-    }
-    if (unreviewedAutoApproved > 0) {
-      const msg = `*InstantMed Batch Review*\n\n📋 ${unreviewedAutoApproved} auto\\-reviewed cert\\(s\\) pending doctor batch review \\(24h\\+\\)\\. Open /doctor/dashboard to review\\.`
-      alertPromises.push(sendDedupedAlert(redis, "telegram:alert:batch_review_overdue", msg).catch(() => {}))
     }
 
     await Promise.all(alertPromises)
