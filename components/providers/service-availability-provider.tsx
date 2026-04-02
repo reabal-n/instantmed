@@ -67,9 +67,10 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
 
   useEffect(() => {
     // Defer until after first paint — don't race with critical resources
-    const id = requestIdleCallback
-      ? requestIdleCallback(() => doFetch(), { timeout: 2000 })
-      : setTimeout(() => doFetch(), 0)
+    const id =
+      typeof requestIdleCallback !== "undefined"
+        ? requestIdleCallback(() => doFetch(), { timeout: 2000 })
+        : setTimeout(() => doFetch(), 0)
 
     function doFetch() {
       fetch("/api/availability")
@@ -87,7 +88,7 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
     }
 
     return () => {
-      if (requestIdleCallback) cancelIdleCallback(id as number)
+      if (typeof requestIdleCallback !== "undefined") cancelIdleCallback(id as number)
       else clearTimeout(id as ReturnType<typeof setTimeout>)
     }
   }, [])
