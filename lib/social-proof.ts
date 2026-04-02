@@ -161,44 +161,6 @@ export function getPatientCount(now: Date = new Date()): number {
   return Math.floor(ANCHOR_COUNT + progress * TOTAL_GROWTH)
 }
 
-/**
- * Returns the real patient count from the database, cached for 1 hour.
- *
- * Counts all intakes with payment_status = 'paid' and status in
- * ('approved', 'completed') — i.e. patients who paid and received a document.
- * Falls back to the interpolated count if the DB query fails.
- *
- * SERVER-ONLY. Use /api/patient-count for client components.
- */
-export async function getPatientCountFromDB(): Promise<number> {
-  try {
-    // Dynamic import keeps this out of any client bundle
-    const { unstable_cache } = await import("next/cache")
-    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-
-    const cached = unstable_cache(
-      async () => {
-        const supabase = createServiceRoleClient()
-        const { count, error } = await supabase
-          .from("intakes")
-          .select("*", { count: "exact", head: true })
-          .eq("payment_status", "paid")
-          .in("status", ["approved", "completed"])
-
-        if (error || count === null) {
-          return null
-        }
-        return count
-      },
-      ["patient-count-db"],
-      { revalidate: 3600, tags: ["patient-count"] }, // 1-hour cache
-    )
-
-    const count = await cached()
-    if (count === null) return getPatientCount()
-    // Always show at least the interpolated count to avoid appearing smaller
-    return Math.max(count, getPatientCount())
-  } catch {
-    return getPatientCount()
-  }
-}
+// getPatientCountFromDB has moved to @/lib/social-proof-server (server-only).
+// Import it from there in API routes and Server Components.
+// Client components should use /api/patient-count via usePatientCount().
