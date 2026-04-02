@@ -297,6 +297,7 @@ const sentryConfig = {
   org: process.env.SENTRY_ORG || "instantmed",
   project: process.env.SENTRY_PROJECT || "instantmed",
   silent: !process.env.CI,
+  silenceErrors: true,
   // widenClientFileUpload disabled — adds significant memory overhead to
   // builds (contributes to 8GB heap requirement). Default source map upload
   // covers the standard _next/static directory which is sufficient.
