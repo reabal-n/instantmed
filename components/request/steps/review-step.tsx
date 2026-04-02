@@ -5,13 +5,12 @@
  * Shows all collected information for patient to verify
  */
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Edit2, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
-import { usePostHog } from "posthog-js/react"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface ReviewStepProps {
@@ -113,12 +112,6 @@ function ReviewSection({
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
-  const posthog = usePostHog()
-
-  // Track review step views
-  useEffect(() => {
-    posthog?.capture('review_step_viewed', { service_type: serviceType })
-  }, [posthog, serviceType])
 
   // Build review sections based on service type
   const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []

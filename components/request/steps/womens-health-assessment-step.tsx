@@ -41,6 +41,7 @@ export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHea
     case 'uti':
       return <UTIAssessment onNext={onNext} onBack={onBack} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} isBlocked={isBlocked} setIsBlocked={setIsBlocked} blockReason={blockReason} setBlockReason={setBlockReason} router={router} />
     case 'period_pain':
+      return <PeriodPainAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
     case 'other':
     default:
       return <GeneralWomensAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
@@ -445,6 +446,157 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
       <div className="space-y-2">
         <Label className="text-sm font-medium">Anything else relevant?</Label>
         <Textarea value={utiDetails} onChange={(e) => setAnswer("utiDetails", e.target.value)} placeholder="Optional: how long symptoms, previous UTIs..." className="min-h-[80px] resize-none" />
+      </div>
+
+      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+    </div>
+  )
+}
+
+// Period pain assessment
+function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
+  onNext: () => void
+  answers: Record<string, unknown>
+  setAnswer: (key: string, value: unknown) => void
+  errors: Record<string, string>
+  setErrors: (errors: Record<string, string>) => void
+}) {
+  const periodPainSeverity = (answers.periodPainSeverity as string) || ""
+  const periodPainTiming = (answers.periodPainTiming as string) || ""
+  const periodPainTreated = answers.periodPainTreated as string[] | undefined
+  const periodPainImpact = (answers.periodPainImpact as string) || ""
+  const periodPainDetails = (answers.periodPainDetails as string) || ""
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+    if (!periodPainSeverity) newErrors.periodPainSeverity = "Please select pain severity"
+    if (!periodPainTiming) newErrors.periodPainTiming = "Please select when pain starts"
+    if (!periodPainImpact) newErrors.periodPainImpact = "Please select impact on daily activities"
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleNext = () => {
+    if (validate()) onNext()
+  }
+
+  const toggleTreatment = (treatment: string) => {
+    const current = periodPainTreated || []
+    if (current.includes(treatment)) {
+      setAnswer("periodPainTreated", current.filter(t => t !== treatment))
+    } else {
+      setAnswer("periodPainTreated", [...current, treatment])
+    }
+  }
+
+  const isComplete = periodPainSeverity && periodPainTiming && periodPainImpact
+
+  const TREATMENTS = [
+    { key: 'ibuprofen', label: 'Ibuprofen / Nurofen' },
+    { key: 'naproxen', label: 'Naproxen / Ponstan (mefenamic acid)' },
+    { key: 'paracetamol', label: 'Paracetamol' },
+    { key: 'ocp', label: 'Oral contraceptive pill' },
+    { key: 'heat', label: 'Heat pad / hot water bottle' },
+    { key: 'none', label: 'Nothing tried yet' },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <Alert variant="default" className="border-primary/20 bg-primary/5">
+        <Sparkles className="w-4 h-4" />
+        <AlertDescription className="text-xs">
+          Tell us about your period pain so the doctor can recommend appropriate treatment.
+        </AlertDescription>
+      </Alert>
+
+      {/* Severity */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          How would you describe the pain severity?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup value={periodPainSeverity} onValueChange={(v) => setAnswer("periodPainSeverity", v)} className="space-y-2" aria-label="Period pain severity">
+          {[
+            { value: 'mild', label: 'Mild', description: 'Noticeable but manageable without medication' },
+            { value: 'moderate', label: 'Moderate', description: 'Needs pain relief, limits some activities' },
+            { value: 'severe', label: 'Severe', description: 'Strong medication needed, significant limitation' },
+            { value: 'debilitating', label: 'Debilitating', description: 'Unable to function normally, may miss work or school' },
+          ].map((opt) => (
+            <label key={opt.value} className={cn("flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainSeverity === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+              <RadioGroupItem value={opt.value} className="mt-0.5" />
+              <div>
+                <span className="text-sm font-medium">{opt.label}</span>
+                <span className="text-xs text-muted-foreground block">{opt.description}</span>
+              </div>
+            </label>
+          ))}
+        </RadioGroup>
+        {errors.periodPainSeverity && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainSeverity}</p>}
+      </div>
+
+      {/* Timing */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          When does the pain typically start?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup value={periodPainTiming} onValueChange={(v) => setAnswer("periodPainTiming", v)} className="space-y-2" aria-label="When does period pain start">
+          {[
+            { value: 'before', label: 'Before my period starts (1–2 days before)' },
+            { value: 'day1', label: 'On day 1 of my period' },
+            { value: 'day2_3', label: 'Day 2–3 of my period' },
+            { value: 'throughout', label: 'Throughout most of my period' },
+          ].map((opt) => (
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainTiming === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+              <RadioGroupItem value={opt.value} />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </RadioGroup>
+        {errors.periodPainTiming && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainTiming}</p>}
+      </div>
+
+      {/* Treatments tried */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">What have you tried for pain relief?</Label>
+        <p className="text-xs text-muted-foreground -mt-1">Toggle on anything you&apos;ve used.</p>
+        <div className="space-y-2">
+          {TREATMENTS.map((t) => (
+            <div key={t.key} className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
+              <Label htmlFor={`pp-${t.key}`} className="text-sm cursor-pointer leading-snug flex-1">{t.label}</Label>
+              <Switch
+                id={`pp-${t.key}`}
+                checked={periodPainTreated?.includes(t.key) ?? false}
+                onCheckedChange={() => toggleTreatment(t.key)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Impact */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          How does it affect your daily activities?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup value={periodPainImpact} onValueChange={(v) => setAnswer("periodPainImpact", v)} className="space-y-2" aria-label="Impact on daily activities">
+          {[
+            { value: 'none', label: 'Minimal impact — I can carry on as normal' },
+            { value: 'reduced', label: 'Reduced capacity — I slow down but manage' },
+            { value: 'stops_activities', label: 'Stops some activities — rest or light duties only' },
+            { value: 'cannot_function', label: 'I can\'t function — miss work, school, or social plans' },
+          ].map((opt) => (
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainImpact === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+              <RadioGroupItem value={opt.value} />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </RadioGroup>
+        {errors.periodPainImpact && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainImpact}</p>}
+      </div>
+
+      {/* Additional info */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Anything else relevant?</Label>
+        <Textarea value={periodPainDetails} onChange={(e) => setAnswer("periodPainDetails", e.target.value)} placeholder="Optional: associated symptoms (nausea, bloating), suspected endometriosis, cycle regularity..." className="min-h-[80px] resize-none" />
       </div>
 
       <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>

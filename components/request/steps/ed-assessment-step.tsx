@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, AlertCircle, ShieldCheck, CalendarDays, Clock } from "lucide-react"
+import { Heart, AlertCircle, ShieldCheck, CalendarDays, Clock, Activity } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -48,6 +48,8 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
   const edAdditionalInfo = (answers.edAdditionalInfo as string) || ""
   const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
   const edPreference = (answers.edPreference as string) || ""
+  const edHypertension = answers.edHypertension as boolean | undefined
+  const edDiabetes = answers.edDiabetes as boolean | undefined
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -212,6 +214,39 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
             {errors.edMorningErections}
           </p>
         )}
+      </div>
+
+      {/* Health background — cardiovascular/metabolic */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-muted-foreground" />
+          <Label className="text-sm font-medium">Health background</Label>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-1">
+          These conditions are common contributors to ED and affect medication management.
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
+            <Label htmlFor="edHypertension" className="text-sm cursor-pointer leading-snug flex-1">
+              High blood pressure (hypertension)
+            </Label>
+            <Switch
+              id="edHypertension"
+              checked={edHypertension === true}
+              onCheckedChange={(checked) => setAnswer("edHypertension", checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
+            <Label htmlFor="edDiabetes" className="text-sm cursor-pointer leading-snug flex-1">
+              Type 1 or type 2 diabetes
+            </Label>
+            <Switch
+              id="edDiabetes"
+              checked={edDiabetes === true}
+              onCheckedChange={(checked) => setAnswer("edDiabetes", checked)}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Medication preference */}

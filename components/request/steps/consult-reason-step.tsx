@@ -26,27 +26,23 @@ interface ConsultReasonStepProps {
   onComplete: () => void
 }
 
+// General consult only — specialty subtypes (ED, hair loss, women's health, weight loss)
+// have dedicated flows accessed from the service hub, not from here.
 const CONSULT_CATEGORIES = [
   { value: "skin", label: "Skin condition", description: "Rash, acne, eczema, or other skin concern" },
   { value: "infection", label: "Infection", description: "May need antibiotics or antiviral treatment" },
   { value: "new_medication", label: "Starting new medication", description: "Need a new prescription or recommendation" },
+  { value: "mental_health", label: "Mental health", description: "Anxiety, depression, stress, or mood concerns" },
   { value: "general", label: "Other / General concern", description: "Something else not listed above" },
-  { value: "ed", label: "Erectile dysfunction", description: "ED assessment and treatment" },
-  { value: "hair_loss", label: "Hair loss", description: "Hair loss assessment and treatment" },
-  { value: "weight_loss", label: "Weight loss", description: "Weight management consultation" },
-  { value: "womens_health", label: "Women's health", description: "Women's health concern" },
 ] as const
 
-// Map hub subtypes to category values (hub uses underscores: hair_loss, womens_health, weight_loss)
+// Map hub subtypes to category values — only for the general subtype path
 const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
   'skin': 'skin',
   'infection': 'infection',
   'new_medication': 'new_medication',
-  'ed': 'ed',
-  'hair_loss': 'hair_loss',
-  'womens_health': 'womens_health',
-  'weight_loss': 'weight_loss',
+  'mental_health': 'mental_health',
 }
 
 // Subtype-specific guidance and placeholders
@@ -89,6 +85,11 @@ const CATEGORY_GUIDANCE: Record<string, {
     placeholder: "Describe your concern, relevant symptoms, and any relevant menstrual or reproductive history...",
     helperText: "Include cycle regularity, any current contraception, and symptom timing.",
     suggestedTopics: ["Main concern", "Symptom timing", "Current contraception", "Relevant history"],
+  },
+  mental_health: {
+    placeholder: "Describe what you're experiencing — e.g., anxiety, low mood, sleep issues — how long, and how it's affecting your daily life...",
+    helperText: "Include how long you've been experiencing this, what triggers it, and any previous treatment.",
+    suggestedTopics: ["Main symptoms", "Duration", "Impact on daily life", "Previous treatment"],
   },
   general: {
     placeholder: "Describe your health concern — this could be a referral, general health question, or anything else...",
