@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,22 @@ import {
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 const baseUrl = 'https://instantmed.com.au'
+
+const employerLogos = [
+  { name: 'Woolworths', src: '/logos/woolworths.png', width: 90, maxWidth: 90 },
+  { name: 'Coles', src: '/logos/coles.png', width: 70, maxWidth: 70 },
+  { name: 'Telstra', src: '/logos/telstra.png', width: 80, maxWidth: 80 },
+  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png', width: 50, maxWidth: 50 },
+  { name: 'ANZ', src: '/logos/ANZ.png', width: 60, maxWidth: 60 },
+  { name: 'Westpac', src: '/logos/westpac.png', width: 80, maxWidth: 80 },
+  { name: 'NAB', src: '/logos/nab.png', width: 60, maxWidth: 60 },
+  { name: 'Amazon', src: '/logos/amazon.png', width: 90, maxWidth: 90 },
+  { name: 'BHP', src: '/logos/BHP.png', width: 60, maxWidth: 60 },
+  { name: 'Bunnings', src: '/logos/bunnings.png', width: 90, maxWidth: 90 },
+  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png', width: 70, maxWidth: 70 },
+  { name: "McDonald's", src: '/logos/mcdonalds.png', width: 40, maxWidth: 40 },
+  { name: 'Sonic Healthcare', src: '/logos/sonichealthcare.png', width: 110, maxWidth: 110 },
+]
 
 export const metadata: Metadata = {
   title: "Are Online Medical Certificates Valid? | Employer Acceptance",
@@ -84,6 +101,30 @@ export default function EmployerAcceptancePage() {
                 Online medical certificates from AHPRA-registered doctors are legally valid
                 and accepted by all Australian employers. Here&apos;s why.
               </p>
+            </div>
+          </section>
+
+          {/* Employer Logos */}
+          <section className="px-4 py-12 border-b border-border/30 dark:border-white/10">
+            <div className="mx-auto max-w-5xl">
+              <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
+                Accepted by Australia&apos;s leading employers
+              </p>
+              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
+                {employerLogos.map((logo) => (
+                  <div key={logo.name} className="flex items-center justify-center rounded-lg bg-white dark:bg-white/90 border border-border/30 dark:border-transparent px-3 py-2 shadow-sm">
+                    <Image
+                      src={logo.src}
+                      alt={logo.name}
+                      width={logo.width}
+                      height={32}
+                      unoptimized
+                      style={{ maxWidth: logo.maxWidth }}
+                      className="h-7 w-auto object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
