@@ -298,14 +298,16 @@ const sentryConfig = {
   project: process.env.SENTRY_PROJECT || "instantmed",
   silent: !process.env.CI,
   silenceErrors: true,
-  // Disable Sentry's Vercel deployment monitors — they fail when SENTRY_PROJECT
-  // can't be resolved during build and block the deployment check gate.
-  automaticVercelMonitors: false,
   // widenClientFileUpload disabled — adds significant memory overhead to
   // builds (contributes to 8GB heap requirement). Default source map upload
   // covers the standard _next/static directory which is sufficient.
   widenClientFileUpload: false,
   hideSourceMaps: true,
+  webpack: {
+    // Disable Sentry's Vercel deployment monitors — they fail when org/project
+    // can't be resolved at build time and block the deployment check gate.
+    automaticVercelMonitors: false,
+  },
 };
 
 // Apply bundle analyzer, then optionally Sentry
