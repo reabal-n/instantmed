@@ -248,7 +248,7 @@ export default function CorporatePage() {
                   {[
                     { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: "From $29.95", href: "/prescriptions" },
                     { title: "Hair Loss", desc: "Discreet treatment options", price: "From $29.95", href: "/hair-loss" },
-                    { title: "Weight Management", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-management" },
+                    { title: "Weight Loss", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-loss" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
                       <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-all">

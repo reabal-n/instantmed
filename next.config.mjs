@@ -155,6 +155,9 @@ const nextConfig = {
         destination: "/conditions/:path*",
         permanent: true
       },
+      // Canonical service route consolidation
+      { source: "/weight-management", destination: "/weight-loss", permanent: true },
+      { source: "/weight-management/:path*", destination: "/weight-loss/:path*", permanent: true },
       // Public image path migration — old root paths redirected
       { source: "/:filename(asian-australian-woman-professional-headshot-smili.jpg)", destination: "/images/people/:filename", permanent: true },
       { source: "/:filename(asian-woman-professional-headshot-warm-smile.jpg)", destination: "/images/people/:filename", permanent: true },

@@ -4,7 +4,7 @@
     {
       "name": "dev",
       "runtimeExecutable": "/bin/sh",
-      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed && PATH=/opt/homebrew/bin:/usr/bin:/bin PLAYWRIGHT=1 /Users/rey/Library/pnpm/.tools/pnpm/10.23.0/bin/pnpm dev"],
+      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed/.worktrees/platform-cleanup && PATH=/opt/homebrew/bin:/usr/bin:/bin /opt/homebrew/bin/pnpm dev"],
       "port": 3000,
       "autoPort": true
     }

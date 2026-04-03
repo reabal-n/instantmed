@@ -235,7 +235,7 @@ export const footerLinks = {
     { label: "Medical Certificates", href: "/medical-certificate" },
     { label: "Repeat Prescriptions", href: "/prescriptions" },
     { label: "General Consult", href: "/general-consult" },
-    { label: "Weight Management", href: "/weight-management" },
+    { label: "Weight Loss", href: "/weight-loss" },
     { label: "Hair Loss", href: "/hair-loss" },
   ],
   company: [

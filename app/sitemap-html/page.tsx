@@ -58,7 +58,7 @@ function buildSections(): SitemapSection[] {
     title: "Services",
     links: [
       { label: "Weight Loss", href: "/weight-loss" },
-      { label: "Weight Management", href: "/weight-management" },
+      { label: "Weight Loss", href: "/weight-loss" },
       { label: "Hair Loss", href: "/hair-loss" },
       { label: "Consult", href: "/consult" },
       { label: "Repeat Prescriptions", href: "/repeat-prescriptions" },
