@@ -71,6 +71,8 @@ storybook-static
 # Audit/debug screenshots
 *.png
 !public/branding/*.png
+!public/logos/*.png
+!public/images/**/*.png
 
 node_modules
 node_modules 2

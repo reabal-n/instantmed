@@ -395,10 +395,9 @@ className="bg-white dark:bg-card border border-border
 ### Trust Logos
 
 ```tsx
-// AHPRA, TGA, Medicare SVGs from /public/logos/
-// Use Next.js Image with unoptimized prop for SVGs
-<Image src="/logos/AHPRA.svg" unoptimized
-       className="h-8 w-auto dark:brightness-0 dark:invert" />
+// AHPRA, TGA, Medicare PNGs from /public/logos/
+<Image src="/logos/AHPRA.png"
+       className="h-8 w-auto rounded dark:bg-white/90 dark:p-0.5" />
 ```
 
 ---
@@ -520,12 +519,12 @@ Three regulatory logos displayed on service and marketing pages:
 
 | Logo | Source | Width |
 |------|--------|-------|
-| AHPRA | `/logos/AHPRA.svg` | 100px |
-| TGA | `/logos/TGA.svg` | 80px |
-| Medicare | `/logos/medicare.svg` | 90px |
+| AHPRA | `/logos/AHPRA.png` | 100px |
+| TGA | `/logos/TGA.png` | 80px |
+| Medicare | `/logos/medicare.png` | 90px |
+| RACGP | `/logos/RACGP.png` | 90px |
 
-Dark mode: `dark:brightness-0 dark:invert` to convert to white.
-Always use `unoptimized` prop with Next.js Image for SVGs.
+Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs with transparent backgrounds.
 
 ---
 
