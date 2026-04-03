@@ -96,20 +96,19 @@ ALTER TABLE referral_events  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral_credits ENABLE ROW LEVEL SECURITY;
 
 -- Patients can see referral events they're part of
+-- auth.uid() returns uuid; clerk_user_id is text — must cast: (auth.uid())::text = clerk_user_id
 CREATE POLICY "referral_events_select_own" ON referral_events
   FOR SELECT USING (
-    referrer_id = (SELECT id FROM profiles WHERE clerk_user_id = auth.uid() LIMIT 1)
+    referrer_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
     OR
-    referred_id = (SELECT id FROM profiles WHERE clerk_user_id = auth.uid() LIMIT 1)
+    referred_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
   );
 
--- Patients can see their own credits
 CREATE POLICY "referral_credits_select_own" ON referral_credits
   FOR SELECT USING (
-    profile_id = (SELECT id FROM profiles WHERE clerk_user_id = auth.uid() LIMIT 1)
+    profile_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
   );
 
--- Service role can do everything (webhook, cron)
 CREATE POLICY "referral_events_service_role_all" ON referral_events
   FOR ALL USING (auth.role() = 'service_role');
 
