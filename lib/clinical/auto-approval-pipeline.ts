@@ -20,7 +20,7 @@ import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import {
-  claimForProcessing, markApproved, markNeedsDoctor,
+  claimForProcessing, markApproved,
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
 import type { CertReviewData } from "@/types/db"

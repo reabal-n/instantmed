@@ -47,10 +47,10 @@ export function NavigationProgress() {
         <motion.div
           className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-accent-teal"
           initial={{ scaleX: 0, transformOrigin: "left" }}
-          animate={{ scaleX: 0.7 }}
+          animate={{ scaleX: 0.85 }}
           exit={{ scaleX: 1, opacity: 0 }}
           transition={{
-            scaleX: { duration: 2, ease: "easeOut" },
+            scaleX: { duration: 0.4, ease: "easeOut" },
             opacity: { duration: 0.15, delay: 0 },
           }}
         />

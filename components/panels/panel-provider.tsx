@@ -40,7 +40,7 @@ interface PanelContextValue {
 const PanelContext = createContext<PanelContextValue | null>(null)
 
 export function PanelProvider({ children }: { children: ReactNode }) {
-  const prefersReducedMotion = useReducedMotion()
+  const _prefersReducedMotion = useReducedMotion()
   const [activePanel, setActivePanel] = useState<Panel | null>(null)
 
   const openPanel = useCallback((panel: Panel) => {

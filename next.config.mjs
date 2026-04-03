@@ -12,31 +12,17 @@ const nextConfig = {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
   },
-  eslint: {
-    // ESLint runs in CI, skip during build to avoid node_modules package issues
-    ignoreDuringBuilds: true
-  },
-  // Body size limits to prevent abuse
+  // Body size limits to prevent abuse (experimental in Next.js 16)
   experimental: {
     serverActions: {
       bodySizeLimit: '1mb',
     },
   },
-  // Note: webpack config only applies when running `next dev` without --turbopack.
-  // Turbopack ignores this block entirely. The config is guarded to suppress the
-  // "Webpack is configured while Turbopack is not" warning.
-  ...(process.env.TURBOPACK ? {} : {
-    webpack: (config, { dev }) => {
-      if (dev) {
-        // Fix: React module race condition in dev mode (Next.js #70703).
-        config.optimization = {
-          ...config.optimization,
-          splitChunks: false,
-        };
-      }
-      return config;
-    },
-  }),
+  // webpack config only applies when explicitly running with --webpack flag.
+  // Turbopack (the v16 default) ignores this block entirely.
+  webpack: (config) => {
+    return config;
+  },
   images: {
     // Enable Next.js Image Optimization
     unoptimized: false,
@@ -248,7 +234,7 @@ const nextConfig = {
             "style-src 'self' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://api.dicebear.com https://img.clerk.com https://*.clerk.com",
-            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au",
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://pagead2.googlesyndication.com",
             "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com",
             "object-src 'none'",
             "report-uri /api/csp-report",

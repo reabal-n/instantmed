@@ -14,9 +14,9 @@ interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  sm: { iconSize: 28, textHeight: 17, textWidth: 110 },
-  md: { iconSize: 32, textHeight: 20, textWidth: 130 },
-  lg: { iconSize: 38, textHeight: 24, textWidth: 155 },
+  sm: { iconSize: 22, textHeight: 10, textWidth: 63 },
+  md: { iconSize: 26, textHeight: 12, textWidth: 76 },
+  lg: { iconSize: 32, textHeight: 14, textWidth: 91 },
 }
 
 export function BrandLogo({
@@ -31,12 +31,11 @@ export function BrandLogo({
   const content = (
     <span className="flex items-center gap-2">
       <Image
-        src="/branding/logo.svg"
+        src="/branding/logo.png"
         alt="InstantMed"
         width={iconSize}
         height={iconSize}
         className="rounded-lg object-contain transition-opacity duration-200 group-hover:opacity-80"
-        style={{ filter: "drop-shadow(0 0 8px rgba(37,99,235,0.35))" }}
         priority
         unoptimized
       />
@@ -47,7 +46,7 @@ export function BrandLogo({
           width={textWidth}
           height={textHeight}
           className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
-          style={{ filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
+          style={{ width: textWidth, height: textHeight, filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
           priority
           unoptimized
         />

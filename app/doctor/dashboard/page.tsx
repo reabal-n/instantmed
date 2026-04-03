@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics, getRecentlyCompletedIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
@@ -5,66 +6,44 @@ import { QueueClient } from "../queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
 import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
+import { Skeleton } from "@/components/ui/skeleton"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("doctor-dashboard")
-
-export const dynamic = "force-dynamic"
 
 export const metadata = {
   title: "Doctor Dashboard",
 }
 
-export default async function DoctorDashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; pageSize?: string }>
-}) {
-  // Layout enforces doctor/admin role — use cached profile
-  const { profile } = (await getAuthenticatedUserWithProfile())!
-
-  const params = await searchParams
-  const page = Math.max(1, parseInt(params.page || "1", 10))
-  const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
-
-  // Fetch data in parallel — graceful degradation via allSettled
+/** Stats section — fetches monitoring stats, SLA, identity, AI metrics, earnings */
+async function DoctorStatsSection({ profileId }: { profileId: string }) {
   const results = await Promise.allSettled([
-    getDoctorQueue({ page, pageSize, doctorId: profile.id }),
     getIntakeMonitoringStats(),
     getSlaBreachIntakes(),
-    getDoctorIdentity(profile.id),
-    getAIApprovedIntakes({ limit: 20 }),
+    getDoctorIdentity(profileId),
     getAutoApprovalMetrics(),
-    getRecentlyCompletedIntakes({ limit: 8 }),
     getTodayEarnings(),
   ])
 
-  const queueResult = results[0].status === "fulfilled"
+  const monitoringStats = results[0].status === "fulfilled"
     ? results[0].value
-    : { data: [], total: 0, page: 1, pageSize }
-  const monitoringStats = results[1].status === "fulfilled"
-    ? results[1].value
     : { todaySubmissions: 0, queueSize: 0, paidCount: 0, pendingCount: 0, approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, oldestInQueueMinutes: null }
-  const slaData = results[2].status === "fulfilled"
-    ? results[2].value
+  const slaData = results[1].status === "fulfilled"
+    ? results[1].value
     : { breached: 0, approaching: 0 }
-  const doctorIdentity = results[3].status === "fulfilled"
+  const doctorIdentity = results[2].status === "fulfilled"
+    ? results[2].value
+    : null
+  const autoApprovalMetrics = results[3].status === "fulfilled"
     ? results[3].value
     : null
-  const aiApprovedIntakes = results[4].status === "fulfilled"
-    ? results[4].value
-    : []
-  const autoApprovalMetrics = results[5].status === "fulfilled"
-    ? results[5].value
-    : null
-  const recentlyCompleted = results[6].status === "fulfilled" ? results[6].value : []
-  const todayEarnings = results[7].status === "fulfilled" ? results[7].value : 0
+  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
 
   // Log failures for monitoring
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      const names = ["queue", "monitoring", "sla", "identity", "ai-approved", "ai-metrics", "recently-completed", "today-earnings"]
-      log.error(`Failed to fetch ${names[index]} data`, { profileId: profile.id }, result.reason)
+      const names = ["monitoring", "sla", "identity", "ai-metrics", "today-earnings"]
+      log.error(`Failed to fetch ${names[index]} data`, { profileId }, result.reason)
     }
   })
 
@@ -83,6 +62,151 @@ export default async function DoctorDashboardPage({
   const missingFields: string[] = []
   if (!doctorIdentity?.provider_number) missingFields.push("Provider Number")
   if (!doctorIdentity?.ahpra_number) missingFields.push("AHPRA Registration Number")
+
+  return (
+    <>
+      {!identityComplete && (
+        <IdentityIncompleteBanner missingFields={missingFields} />
+      )}
+      <DashboardErrorBoundary fallbackTitle="Unable to load stats">
+        <IntakeMonitor initialStats={enrichedMonitoringStats} />
+      </DashboardErrorBoundary>
+    </>
+  )
+}
+
+/** Queue section — fetches the review queue and AI-approved intakes */
+async function DoctorQueueSection({
+  profileId,
+  page,
+  pageSize,
+}: {
+  profileId: string
+  page: number
+  pageSize: number
+}) {
+  const results = await Promise.allSettled([
+    getDoctorQueue({ page, pageSize, doctorId: profileId }),
+    getDoctorIdentity(profileId),
+    getAIApprovedIntakes({ limit: 20 }),
+    getRecentlyCompletedIntakes({ limit: 8 }),
+    getTodayEarnings(),
+  ])
+
+  const queueResult = results[0].status === "fulfilled"
+    ? results[0].value
+    : { data: [], total: 0, page: 1, pageSize }
+  const doctorIdentity = results[1].status === "fulfilled"
+    ? results[1].value
+    : null
+  const aiApprovedIntakes = results[2].status === "fulfilled"
+    ? results[2].value
+    : []
+  const recentlyCompleted = results[3].status === "fulfilled" ? results[3].value : []
+  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
+
+  // Log failures for monitoring
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      const names = ["queue", "identity", "ai-approved", "recently-completed", "today-earnings"]
+      log.error(`Failed to fetch ${names[index]} data`, { profileId }, result.reason)
+    }
+  })
+
+  const identityComplete = isDoctorIdentityComplete(doctorIdentity)
+
+  return (
+    <DashboardErrorBoundary fallbackTitle="Unable to load queue">
+      <QueueClient
+        intakes={queueResult.data}
+        doctorId={profileId}
+        identityComplete={identityComplete}
+        pagination={{
+          page: queueResult.page,
+          pageSize: queueResult.pageSize,
+          total: queueResult.total,
+        }}
+        aiApprovedIntakes={aiApprovedIntakes}
+        recentlyCompleted={recentlyCompleted}
+        todayEarnings={todayEarnings}
+      />
+    </DashboardErrorBoundary>
+  )
+}
+
+function StatsSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-border/50 bg-card p-4 space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3.5 w-20" />
+            <Skeleton className="h-4 w-4 rounded" />
+          </div>
+          <Skeleton className="h-8 w-12" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function QueueSkeleton() {
+  return (
+    <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+      <div className="p-4 pb-3 border-b border-border/40 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-3.5 w-52" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20 rounded-lg" />
+            <Skeleton className="h-8 w-20 rounded-lg" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-8 w-20 rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="divide-y divide-border/30">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-3 px-4 py-3">
+            <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default async function DoctorDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>
+}) {
+  // Layout enforces doctor/admin role — use cached profile
+  const { profile } = (await getAuthenticatedUserWithProfile())!
+
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page || "1", 10))
+  const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
 
   return (
     <div className="space-y-4">
@@ -105,32 +229,15 @@ export default async function DoctorDashboardPage({
         </div>
       </div>
 
-      {/* Identity Incomplete Banner */}
-      {!identityComplete && (
-        <IdentityIncompleteBanner missingFields={missingFields} />
-      )}
+      {/* Stats — streams in first (fast queries) */}
+      <Suspense fallback={<StatsSkeleton />}>
+        <DoctorStatsSection profileId={profile.id} />
+      </Suspense>
 
-      {/* Live Stats */}
-      <DashboardErrorBoundary fallbackTitle="Unable to load stats">
-        <IntakeMonitor initialStats={enrichedMonitoringStats} />
-      </DashboardErrorBoundary>
-
-      {/* Queue */}
-      <DashboardErrorBoundary fallbackTitle="Unable to load queue">
-        <QueueClient
-          intakes={queueResult.data}
-          doctorId={profile.id}
-          identityComplete={identityComplete}
-          pagination={{
-            page: queueResult.page,
-            pageSize: queueResult.pageSize,
-            total: queueResult.total,
-          }}
-          aiApprovedIntakes={aiApprovedIntakes}
-          recentlyCompleted={recentlyCompleted}
-          todayEarnings={todayEarnings}
-        />
-      </DashboardErrorBoundary>
+      {/* Queue — streams in after stats */}
+      <Suspense fallback={<QueueSkeleton />}>
+        <DoctorQueueSection profileId={profile.id} page={page} pageSize={pageSize} />
+      </Suspense>
     </div>
   )
 }

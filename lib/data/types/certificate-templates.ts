@@ -29,6 +29,6 @@ export { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 /**
  * Get template type display name
  */
-export function getTemplateTypeName(type: TemplateType): string {
+export function getTemplateTypeName(_type: TemplateType): string {
   return "Medical Certificate"
 }

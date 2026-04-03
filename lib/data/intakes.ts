@@ -1,5 +1,5 @@
 import "server-only"
-import { unstable_cache } from "next/cache"
+import { unstable_cache, revalidateTag } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
@@ -85,74 +85,81 @@ async function triggerStatusEmail(
  * Returns intakes sorted by created_at descending (newest first).
  * Supports optional pagination for scalability.
  */
-export async function getPatientIntakes(
+export function getPatientIntakes(
   patientId: string,
   options?: { status?: IntakeStatus; page?: number; pageSize?: number }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
-  const supabase = createServiceRoleClient()
-  // Validate page number - must be >= 1, cap at reasonable max
   const page = Math.max(1, Math.min(options?.page ?? 1, 1000))
-  const pageSize = Math.min(options?.pageSize ?? 20, 100) // Cap at 100
-  const offset = (page - 1) * pageSize
+  const pageSize = Math.min(options?.pageSize ?? 20, 100)
+  const statusKey = options?.status ?? "all"
 
-  // Build base query conditions
-  let countQuery = supabase
-    .from("intakes")
-    .select("id", { count: "exact", head: true })
-    .eq("patient_id", patientId)
+  return unstable_cache(
+    async () => {
+      const supabase = createServiceRoleClient()
+      const offset = (page - 1) * pageSize
 
-  if (options?.status) {
-    countQuery = countQuery.eq("status", options.status)
-  }
+      // Build base query conditions
+      let countQuery = supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("patient_id", patientId)
 
-  // Get total count first
-  const { count, error: countError } = await countQuery
-
-  if (countError) {
-    logger.error("Error fetching patient intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
-  }
-
-  // Build data query with service join for UI display
-  let query = supabase
-    .from("intakes")
-    .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, doctor_notes_enc, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
-    .eq("patient_id", patientId)
-    .order("created_at", { ascending: false })
-    .range(offset, offset + pageSize - 1)
-
-  if (options?.status) {
-    query = query.eq("status", options.status)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    logger.error("Error fetching patient intakes", {}, toError(error))
-    return { data: [], total: count ?? 0, page, pageSize }
-  }
-
-  // Decrypt PHI fields (doctor_notes) before returning
-  const unwrapped = await Promise.all(
-    (data || []).map(async (row) => {
-      const doctorNotes = await readDoctorNotes({
-        doctor_notes: row.doctor_notes,
-        doctor_notes_enc: (row as Record<string, unknown>).doctor_notes_enc as never,
-      })
-      return {
-        ...row,
-        doctor_notes: doctorNotes,
-        service: Array.isArray(row.service) ? row.service[0] : row.service,
+      if (options?.status) {
+        countQuery = countQuery.eq("status", options.status)
       }
-    })
-  )
 
-  return {
-    data: unwrapped as unknown as IntakeWithPatient[],
-    total: count ?? 0,
-    page,
-    pageSize,
-  }
+      // Get total count first
+      const { count, error: countError } = await countQuery
+
+      if (countError) {
+        logger.error("Error fetching patient intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+        return { data: [] as IntakeWithPatient[], total: 0, page, pageSize }
+      }
+
+      // Build data query with service join for UI display
+      let query = supabase
+        .from("intakes")
+        .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, doctor_notes_enc, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
+        .eq("patient_id", patientId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + pageSize - 1)
+
+      if (options?.status) {
+        query = query.eq("status", options.status)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        logger.error("Error fetching patient intakes", {}, toError(error))
+        return { data: [] as IntakeWithPatient[], total: count ?? 0, page, pageSize }
+      }
+
+      // Decrypt PHI fields (doctor_notes) before returning
+      const unwrapped = await Promise.all(
+        (data || []).map(async (row) => {
+          const doctorNotes = await readDoctorNotes({
+            doctor_notes: row.doctor_notes,
+            doctor_notes_enc: (row as Record<string, unknown>).doctor_notes_enc as never,
+          })
+          return {
+            ...row,
+            doctor_notes: doctorNotes,
+            service: Array.isArray(row.service) ? row.service[0] : row.service,
+          }
+        })
+      )
+
+      return {
+        data: unwrapped as unknown as IntakeWithPatient[],
+        total: count ?? 0,
+        page,
+        pageSize,
+      }
+    },
+    [`patient-intakes-${patientId}-${statusKey}-${page}-${pageSize}`],
+    { tags: ["patient-intakes", `patient-intakes-${patientId}`], revalidate: 30 }
+  )()
 }
 
 /**
@@ -1257,6 +1264,10 @@ export async function updateIntakeStatus(
     })
   }
 
+  // Revalidate patient dashboard caches after status mutations
+  revalidateTag("patient-intakes", "max")
+  revalidateTag("patient-dashboard", "max")
+
   return data as unknown as Intake
 }
 
@@ -1449,6 +1460,10 @@ export async function declineIntake(
     logger.error("Error declining intake", {}, toError(error))
     return false
   }
+
+  // Revalidate patient dashboard caches after decline
+  revalidateTag("patient-intakes", "max")
+  revalidateTag("patient-dashboard", "max")
 
   return true
 }
@@ -1687,50 +1702,56 @@ interface DashboardPrescription {
   status: "active" | "expired"
 }
 
-export async function getPatientDashboardData(patientId: string): Promise<{
+export const getPatientDashboardData = (patientId: string): Promise<{
   intakes: DashboardIntake[]
   prescriptions: DashboardPrescription[]
   error: string | null
-}> {
-  const supabase = createServiceRoleClient()
+}> => {
+  return unstable_cache(
+    async () => {
+      const supabase = createServiceRoleClient()
 
-  const [intakesResult, prescriptionsResult] = await Promise.all([
-    supabase
-      .from("intakes")
-      .select(`id, status, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
-      .eq("patient_id", patientId)
-      .order("created_at", { ascending: false })
-      .limit(20),
+      const [intakesResult, prescriptionsResult] = await Promise.all([
+        supabase
+          .from("intakes")
+          .select(`id, status, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
+          .eq("patient_id", patientId)
+          .order("created_at", { ascending: false })
+          .limit(20),
 
-    supabase
-      .from("prescriptions")
-      .select("id, medication_name, dosage_instructions, issued_date, expiry_date, status")
-      .eq("patient_id", patientId)
-      .order("issued_date", { ascending: false })
-      .limit(10),
-  ])
+        supabase
+          .from("prescriptions")
+          .select("id, medication_name, dosage_instructions, issued_date, expiry_date, status")
+          .eq("patient_id", patientId)
+          .order("issued_date", { ascending: false })
+          .limit(10),
+      ])
 
-  if (intakesResult.error) {
-    logger.error("Failed to fetch dashboard intakes", {}, toError(intakesResult.error))
-  }
-  if (prescriptionsResult.error) {
-    logger.error("Failed to fetch dashboard prescriptions", {}, toError(prescriptionsResult.error))
-  }
+      if (intakesResult.error) {
+        logger.error("Failed to fetch dashboard intakes", {}, toError(intakesResult.error))
+      }
+      if (prescriptionsResult.error) {
+        logger.error("Failed to fetch dashboard prescriptions", {}, toError(prescriptionsResult.error))
+      }
 
-  const fetchError = intakesResult.error || prescriptionsResult.error
-    ? "Unable to load some data. Please refresh the page or try again later."
-    : null
+      const fetchError = intakesResult.error || prescriptionsResult.error
+        ? "Unable to load some data. Please refresh the page or try again later."
+        : null
 
-  const intakes = (intakesResult.data || []).map(row => ({
-    ...row,
-    service: Array.isArray(row.service) ? row.service[0] : row.service,
-  })) as DashboardIntake[]
+      const intakes = (intakesResult.data || []).map(row => ({
+        ...row,
+        service: Array.isArray(row.service) ? row.service[0] : row.service,
+      })) as DashboardIntake[]
 
-  return {
-    intakes,
-    prescriptions: (prescriptionsResult.data || []) as DashboardPrescription[],
-    error: fetchError,
-  }
+      return {
+        intakes,
+        prescriptions: (prescriptionsResult.data || []) as DashboardPrescription[],
+        error: fetchError,
+      }
+    },
+    [`patient-dashboard-${patientId}`],
+    { tags: ["patient-dashboard", `patient-dashboard-${patientId}`], revalidate: 60 }
+  )()
 }
 
 // ============================================

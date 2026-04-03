@@ -274,7 +274,7 @@ export async function updateFeatureFlag(
     logger.info("[FeatureFlags] Flag updated", { key, value, updatedBy })
 
     // Immediately invalidate cache so kill switches take effect
-    revalidateTag("feature-flags")
+    revalidateTag("feature-flags", "max")
 
     return { success: true }
   } catch (error) {

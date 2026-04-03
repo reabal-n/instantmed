@@ -192,7 +192,7 @@ export async function updateOperationalConfig(
       },
     })
 
-    revalidateTag("feature-flags")
+    revalidateTag("feature-flags", "max")
     return { success: true }
   } catch (error) {
     logger.error("Unexpected error", {}, toError(error))

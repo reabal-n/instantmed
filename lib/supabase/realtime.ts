@@ -44,7 +44,6 @@ export function useSupabaseRealtime({ table, event = "*", filter, onPayload, ena
     const channelName = `realtime:${table}:${filter || "all"}`
 
     const channel = client.channel(channelName).on(
-      // @ts-expect-error -- supabase-js types don't expose postgres_changes as a literal
       "postgres_changes",
       {
         event,

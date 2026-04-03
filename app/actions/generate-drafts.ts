@@ -17,8 +17,6 @@ import { generateMedCertDraft } from "./drafts/generate-med-cert"
 import { generateRepeatRxDraft } from "./drafts/generate-repeat-rx"
 import { generateConsultDraft } from "./drafts/generate-consult"
 
-export type { GenerateDraftsResult }
-
 /**
  * Generate AI drafts for an intake
  *

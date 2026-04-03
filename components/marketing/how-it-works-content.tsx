@@ -11,7 +11,6 @@ import {
   Shield,
   CreditCard,
   Send,
-  ChevronDown,
 } from "lucide-react"
 import Link from "next/link"
 

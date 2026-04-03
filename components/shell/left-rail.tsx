@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
   FileText,
@@ -21,11 +21,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { cn } from '@/lib/utils'
-import { usePanel } from '@/components/panels'
 
 /**
  * LeftRail - Persistent navigation for authenticated areas
- * 
+ *
  * Philosophy:
  * - Always visible (dimmed when panel active)
  * - Minimal, focused actions
@@ -38,13 +37,12 @@ interface LeftRailProps {
   userName: string
   userAvatar?: string
   userRole: 'patient' | 'doctor'
-  onNewRequest?: () => void
 }
 
-export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftRailProps) {
+export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const pathname = usePathname()
-  const { isPanelOpen } = usePanel()
+  const router = useRouter()
 
   // LeftRail is only used by the patient layout (AuthenticatedShell).
   // Doctor layout uses DashboardSidebar instead.
@@ -58,12 +56,15 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
     { icon: Settings, label: 'Settings', href: '/patient/settings' },
   ]
 
+  const handleNewRequest = () => {
+    router.push('/patient/new-request')
+  }
+
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed left-0 top-0 h-screen bg-background border-r border-border transition-all duration-300 z-40 hidden lg:flex flex-col",
         isExpanded ? "w-60" : "w-16",
-        isPanelOpen && "opacity-60 pointer-events-none"
       )}
     >
       {/* Header */}
@@ -91,9 +92,9 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             {userAvatar ? (
-              <Image 
-                src={userAvatar} 
-                alt={userName} 
+              <Image
+                src={userAvatar}
+                alt={userName}
                 className="w-full h-full rounded-full object-cover"
                 width={40}
                 height={40}
@@ -129,7 +130,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
               "w-full bg-primary text-white hover:bg-primary/90",
               !isExpanded && "aspect-square p-0"
             )}
-            onClick={onNewRequest}
+            onClick={handleNewRequest}
           >
             {isExpanded ? (
               <>
@@ -151,7 +152,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
           const isActive = item.href === '/patient'
             ? pathname === '/patient' || pathname === '/patient/'
             : pathname === item.href || pathname?.startsWith(item.href + '/')
-          
+
           return (
             <Link
               key={item.href}
@@ -159,8 +160,8 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-lg mb-1.5 transition-colors",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                isActive 
-                  ? "bg-primary/10 text-primary font-medium" 
+                isActive
+                  ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:bg-muted"
               )}
               title={!isExpanded ? item.label : undefined}
@@ -187,7 +188,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
         </a>
         {isExpanded && (
           <p className="text-xs text-muted-foreground text-center">
-            InstantMed © {new Date().getFullYear()}
+            InstantMed &copy; {new Date().getFullYear()}
           </p>
         )}
       </div>

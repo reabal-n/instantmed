@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   FileText,
@@ -68,9 +68,16 @@ const adminNavItems: NavItem[] = [
 ]
 
 function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
+  const router = useRouter()
+  const handleMouseEnter = useCallback(() => {
+    router.prefetch(item.href)
+  }, [router, item.href])
+
   return (
     <Link
       href={item.href}
+      prefetch={true}
+      onMouseEnter={handleMouseEnter}
       className={cn(
         "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
         isActive

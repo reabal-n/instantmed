@@ -1406,7 +1406,7 @@ async function generateAndUploadPdfForCertificate(
       return { success: false, error: "Certificate missing required date fields" }
     }
 
-    const { formatDateLong, formatShortDate, formatShortDateSafe, addDays } = await import("@/lib/format")
+    const { formatDateLong, formatShortDate, formatShortDateSafe } = await import("@/lib/format")
 
     const certificateType = cert.certificate_type as "work" | "study" | "carer"
 

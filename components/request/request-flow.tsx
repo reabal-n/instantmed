@@ -24,7 +24,6 @@ import { usePostHog } from "posthog-js/react"
 import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
-import { SkeletonForm } from "@/components/ui/skeleton"
 import { StepRouter } from "./step-router"
 import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
@@ -117,11 +116,6 @@ interface RequestFlowProps {
   healthProfile?: HealthProfilePrefill | null
 }
 
-// Skeleton loading component for step transitions
-// Uses shared SkeletonForm for consistency
-function StepSkeleton() {
-  return <SkeletonForm />
-}
 
 export function RequestFlow({
   initialService,
@@ -147,7 +141,6 @@ export function RequestFlow({
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
@@ -411,11 +404,7 @@ export function RequestFlow({
     })
     
     if (currentStepIndex > 0) {
-      setIsTransitioning(true)
-      setTimeout(() => {
-        prevStep()
-        setIsTransitioning(false)
-      }, 150)
+      prevStep()
     } else {
       router.back()
     }
@@ -450,11 +439,7 @@ export function RequestFlow({
       }
     }
 
-    setIsTransitioning(true)
-    setTimeout(() => {
-      nextStep()
-      setIsTransitioning(false)
-    }, 150)
+    nextStep()
   }, [analyticsServiceType, currentStepId, currentStepIndex, nextStep, posthog, effectiveService, answers])
 
   // Handle flow completion with tracking
@@ -543,11 +528,7 @@ export function RequestFlow({
       to_index: stepIndex,
     })
     
-    setIsTransitioning(true)
-    setTimeout(() => {
-      goToStep(stepId as Parameters<typeof goToStep>[0])
-      setIsTransitioning(false)
-    }, 150)
+    goToStep(stepId as Parameters<typeof goToStep>[0])
   }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog])
 
   // Handle swipe gestures for mobile navigation
@@ -588,7 +569,7 @@ export function RequestFlow({
   // to respect their validation state
   useKeyboardNavigation({
     onBack: handleBack,
-    enabled: !showExitConfirm && !isTransitioning,
+    enabled: !showExitConfirm,
   })
 
   // Handle exit with confirmation for unsaved changes
@@ -673,7 +654,7 @@ export function RequestFlow({
   const slideVariants = {
     enter: (dir: number) => (prefersReducedMotion
       ? { opacity: 0 }
-      : { x: dir > 0 ? 300 : -300, opacity: 0 }
+      : { x: dir > 0 ? 40 : -40, opacity: 0 }
     ),
     center: {
       x: 0,
@@ -681,7 +662,7 @@ export function RequestFlow({
     },
     exit: (dir: number) => (prefersReducedMotion
       ? { opacity: 0 }
-      : { x: dir > 0 ? -300 : 300, opacity: 0 }
+      : { x: dir > 0 ? -40 : 40, opacity: 0 }
     ),
   }
 
@@ -800,39 +781,28 @@ export function RequestFlow({
 
         {/* Step content with animated transitions */}
         <AnimatePresence mode="wait" custom={direction}>
-          {isTransitioning ? (
-            <motion.div
-              key="skeleton"
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <StepSkeleton />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={currentStepId}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { duration: prefersReducedMotion ? 0 : 0.3, ease: [0, 0, 0.2, 1] },
-                opacity: { duration: prefersReducedMotion ? 0 : 0.2 },
-              }}
-            >
-              <StepRouter
-                serviceType={effectiveService}
-                currentStepId={currentStepId}
-                componentPath={currentStep.componentPath}
-                direction={direction}
-                onNext={handleNext}
-                onBack={handleBack}
-                onComplete={handleComplete}
-              />
-            </motion.div>
-          )}
+          <motion.div
+            key={currentStepId}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { duration: prefersReducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] },
+              opacity: { duration: prefersReducedMotion ? 0 : 0.15 },
+            }}
+          >
+            <StepRouter
+              serviceType={effectiveService}
+              currentStepId={currentStepId}
+              componentPath={currentStep.componentPath}
+              direction={direction}
+              onNext={handleNext}
+              onBack={handleBack}
+              onComplete={handleComplete}
+            />
+          </motion.div>
         </AnimatePresence>
       </motion.main>
 

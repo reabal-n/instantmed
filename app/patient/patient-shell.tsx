@@ -1,10 +1,10 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotion } from '@/components/ui/motion'
 import { AuthenticatedShell } from '@/components/shell'
-import { usePanel, SessionPanel } from '@/components/panels'
-import { ServiceSelector } from '@/components/patient/service-selector'
 import { GlobalIntakeNotifications } from '@/components/patient/global-intake-notifications'
 import { MobileNav } from '@/components/ui/mobile-nav'
 
@@ -32,47 +32,25 @@ interface PatientShellProps {
  * and can safely call usePanel().
  */
 function PatientShellContent({ children, patientId }: { children: ReactNode; patientId: string }) {
-  const { openPanel, closePanel } = usePanel()
-  const router = useRouter()
-  const openPanelRef = useRef(openPanel)
-  openPanelRef.current = openPanel
-
-  // Listen for 'patient:new-request' custom events from the parent shell
-  useEffect(() => {
-    const handler = () => {
-      openPanelRef.current({
-        id: 'service-selector',
-        type: 'session',
-        component: (
-          <SessionPanel maxWidth="md">
-            <ServiceSelector
-              onSelectService={(service) => {
-                // Close panel first, then soft-navigate (no full page reload)
-                closePanel()
-                if (service === 'medical-certificate') {
-                  router.push('/request?service=med-cert')
-                } else if (service === 'prescription') {
-                  router.push('/request?service=prescription')
-                } else if (service === 'consultation') {
-                  router.push('/request?service=consult')
-                }
-              }}
-            />
-          </SessionPanel>
-        )
-      })
-    }
-
-    window.addEventListener('patient:new-request', handler)
-    return () => window.removeEventListener('patient:new-request', handler)
-  }, [closePanel, router])
+  const pathname = usePathname()
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <>
       <GlobalIntakeNotifications patientId={patientId} />
       {/* Session timeout warning removed - Clerk handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 lg:pb-8">
-        {children}
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={pathname}
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={prefersReducedMotion ? {} : { opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </div>
       <MobileNav />
     </>
@@ -80,19 +58,11 @@ function PatientShellContent({ children, patientId }: { children: ReactNode; pat
 }
 
 export function PatientShell({ children, user }: PatientShellProps) {
-  const handleNewRequest = useCallback(() => {
-    // Dispatch custom event that PatientShellContent will pick up
-    // This bridges the gap: the left rail button is outside PanelProvider,
-    // but the panel open call needs to happen inside PanelProvider
-    window.dispatchEvent(new CustomEvent('patient:new-request'))
-  }, [])
-
   return (
     <AuthenticatedShell
       userName={user.name}
       userAvatar={user.avatar}
       userRole="patient"
-      onNewRequest={handleNewRequest}
     >
       <PatientShellContent patientId={user.id}>
         {children}
