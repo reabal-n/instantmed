@@ -16,7 +16,7 @@ import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 3600 // ISR: revalidate every hour
 
 // ============================================
 // SUBURB DATA (SEO pages) — location-based
