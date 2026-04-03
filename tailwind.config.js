@@ -1,3 +1,12 @@
+// NOTE: Tailwind v4 is CSS-first (see app/globals.css @theme inline block).
+// This file is STILL LOADED by @tailwindcss/postcss for backwards compatibility.
+// Do NOT delete — it provides:
+//   - Custom shadow utilities: shadow-soft, shadow-glass, shadow-dashboard-*, shadow-glow-*
+//   - Custom animations: animate-marquee, animate-shimmer, animate-aurora, animate-scroll
+//   - addVariablesForColors plugin (exposes all colors as CSS vars for JS access)
+//   - Custom screens xs/tablet/3xl (defined but not actively used as responsive prefixes)
+// When migrating fully to v4 CSS-first, move these to @theme inline in app/globals.css first.
+
 const {
   default: flattenColorPalette,
 } = require("tailwindcss/lib/util/flattenColorPalette");
