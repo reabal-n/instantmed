@@ -73,8 +73,8 @@ export interface TemplatePdfResult {
 const LAYOUT = {
   /** Title Y — centered, large, below top divider */
   titleY: 285,
-  /** Issue date Y — right-aligned, below title */
-  issueDateY: 315,
+  /** Issue date Y — right-aligned, between top divider (~230) and title (~285) */
+  issueDateY: 248,
   /** Where "To whom it may concern," starts */
   anchorY: 380,
   /** Gap between salutation and body paragraph */
@@ -87,14 +87,14 @@ const LAYOUT = {
   bodyX: 72,
   /** Max text width for body paragraphs */
   bodyWidth: 450,
-  /** Certificate ID Y — between bottom divider (~628pt) and footer text (~650pt) */
-  certIdY: 636,
+  /** Certificate ID Y — below footer text, near bottom edge */
+  certIdY: 820,
   /** Right margin */
   rightMargin: 50,
   /** Maximum Y before body text would collide with doctor block (~535pt) */
   maxBodyY: 530,
-  /** QR code: top-origin Y, right-aligned. Sits beside footer text (starts ~650pt) */
-  qrY: 650,
+  /** QR code: top-origin Y, right-aligned. Bottom-right corner above footer. */
+  qrY: 745,
   /** QR code rendered size in points */
   qrSize: 55,
   /** Font sizes */
@@ -244,9 +244,10 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
     const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+    const fontMono = await pdfDoc.embedFont(StandardFonts.Courier)
 
     const textColor = rgb(0.15, 0.15, 0.15)
-    const lightGrey = rgb(0.55, 0.55, 0.55)
+    const darkNavy = rgb(0.05, 0.08, 0.28)
 
     const drawLine = (text: string, x: number, topY: number, font: PDFFont, size: number, color = textColor) => {
       page.drawText(text, { x, y: ty(topY), size, font, color })
@@ -271,7 +272,7 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     const titleWidth = fontBold.widthOfTextAtSize(title, LAYOUT.fontSize.title)
     drawLine(title, (PAGE_WIDTH - titleWidth) / 2, LAYOUT.titleY, fontBold, LAYOUT.fontSize.title)
 
-    // ---- Issue date (right-aligned) ----
+    // ---- Issue date (right-aligned, between top divider and title) ----
     const dateWidth = fontRegular.widthOfTextAtSize(sanitisedInput.issueDate, LAYOUT.fontSize.issueDate)
     drawLine(sanitisedInput.issueDate, PAGE_WIDTH - LAYOUT.rightMargin - dateWidth, LAYOUT.issueDateY, fontRegular, LAYOUT.fontSize.issueDate)
 
@@ -296,10 +297,10 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block." }
     }
 
-    // ---- Certificate ID (centered, light grey, small) ----
+    // ---- Certificate ID (centered, dark navy, monospace, below footer) ----
     const certIdLabel = `CERTIFICATE ID: ${sanitisedInput.certificateRef}`
-    const certIdWidth = fontRegular.widthOfTextAtSize(certIdLabel, LAYOUT.fontSize.certId)
-    drawLine(certIdLabel, (PAGE_WIDTH - certIdWidth) / 2, LAYOUT.certIdY, fontRegular, LAYOUT.fontSize.certId, lightGrey)
+    const certIdWidth = fontMono.widthOfTextAtSize(certIdLabel, LAYOUT.fontSize.certId)
+    drawLine(certIdLabel, (PAGE_WIDTH - certIdWidth) / 2, LAYOUT.certIdY, fontMono, LAYOUT.fontSize.certId, darkNavy)
 
     // ---- QR code (right of footer text) ----
     const verifyUrl = `https://instantmed.com.au/verify/${sanitisedInput.certificateRef}`

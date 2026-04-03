@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
 import { useUser, useClerk } from "@clerk/nextjs"
@@ -24,7 +24,7 @@ interface NavbarProps {
   userName?: string
 }
 
-const navGlowVariants = {
+const navGlowVariants: Variants = {
   initial: { opacity: 0 },
   hover: {
     opacity: 1,

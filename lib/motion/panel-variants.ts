@@ -5,9 +5,10 @@
  * Smooth, slow enough to notice, fast enough not to annoy.
  */
 
+import type { Variants } from 'framer-motion'
 import { duration, easing } from '@/lib/motion'
 
-export const backdropVariants = {
+export const backdropVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -15,7 +16,7 @@ export const backdropVariants = {
   },
 }
 
-export const sessionPanelVariants = {
+export const sessionPanelVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 20,
@@ -38,7 +39,7 @@ export const sessionPanelVariants = {
   },
 }
 
-export const drawerVariants = (side: 'left' | 'right') => ({
+export const drawerVariants = (side: 'left' | 'right'): Variants => ({
   hidden: {
     x: side === 'right' ? '100%' : '-100%',
     opacity: 0,
@@ -58,7 +59,7 @@ export const drawerVariants = (side: 'left' | 'right') => ({
   },
 })
 
-export const sheetVariants = (side: 'left' | 'right') => ({
+export const sheetVariants = (side: 'left' | 'right'): Variants => ({
   hidden: {
     x: side === 'right' ? '100%' : '-100%',
   },
@@ -75,7 +76,7 @@ export const sheetVariants = (side: 'left' | 'right') => ({
   },
 })
 
-export const floatingBarVariants = {
+export const floatingBarVariants: Variants = {
   hidden: {
     y: 100,
     opacity: 0,

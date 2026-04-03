@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
@@ -16,7 +16,7 @@ const backVariants = {
   hover: { rotateX: 0, opacity: 1 },
 }
 
-const glowVariants = {
+const glowVariants: Variants = {
   initial: { opacity: 0, scale: 0.8 },
   hover: {
     opacity: 1,
