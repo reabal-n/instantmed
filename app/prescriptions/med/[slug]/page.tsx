@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
@@ -94,7 +93,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
           { name: med.name, url: `${baseUrl}/prescriptions/med/${slug}` },
         ]}
       />
-      <Script
+      <script
         id={`med-page-schema-${slug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(medPageSchema) }}

@@ -1,4 +1,3 @@
-import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
@@ -322,8 +321,8 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
 
   return (
     <>
-      <Script id={`faq-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
-      <Script id={`local-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }} />
+      <script id={`faq-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <script id={`local-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Medical Certificates", url: "https://instantmed.com.au/medical-certificate" },

@@ -1,3 +1,4 @@
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
@@ -53,7 +54,7 @@ export default function TradiesPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

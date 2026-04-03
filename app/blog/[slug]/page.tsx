@@ -276,7 +276,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />
+      <script id="article-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

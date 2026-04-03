@@ -1,5 +1,6 @@
 'use client'
 
+import Script from "next/script"
 import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
@@ -161,7 +162,7 @@ export function WeightLossClient() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

@@ -1,4 +1,3 @@
-import Script from "next/script"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 import { GOOGLE_REVIEWS } from "@/lib/social-proof"
@@ -125,7 +124,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
   }
 
   return (
-    <Script
+    <script
       id="organization-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -172,7 +171,7 @@ export function MedicalServiceSchema({
   }
 
   return (
-    <Script
+    <script
       id={`service-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -202,7 +201,7 @@ export function FAQSchema({ faqs }: FAQSchemaProps) {
   }
 
   return (
-    <Script
+    <script
       id="faq-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -230,7 +229,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   }
 
   return (
-    <Script
+    <script
       id="breadcrumb-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -276,7 +275,7 @@ export function LocalBusinessSchema({ city, state, baseUrl = "https://instantmed
   }
 
   return (
-    <Script
+    <script
       id={`local-business-schema-${city.toLowerCase()}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -343,7 +342,7 @@ export function ArticleSchema({
   }
 
   return (
-    <Script
+    <script
       id="article-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -381,7 +380,7 @@ export function ReviewAggregateSchema({
   }
 
   return (
-    <Script
+    <script
       id="review-aggregate-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -454,7 +453,7 @@ export function HowToSchema({
   }
 
   return (
-    <Script
+    <script
       id="howto-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -579,7 +578,7 @@ export function SpeakableSchema({
   }
 
   return (
-    <Script
+    <script
       id={`speakable-schema-${name.toLowerCase().replace(/\s+/g, "-").slice(0, 30)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -607,7 +606,7 @@ export function WebSiteSchema({ baseUrl = "https://instantmed.com.au" }: { baseU
   }
 
   return (
-    <Script
+    <script
       id="website-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -658,7 +657,7 @@ export function MedicalConditionSchema({
   }
 
   return (
-    <Script
+    <script
       id={`condition-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -725,7 +724,7 @@ export function ServiceSchema({
   }
 
   return (
-    <Script
+    <script
       id={`service-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
@@ -766,7 +765,7 @@ export function HealthArticleSchema({
   }
 
   return (
-    <Script
+    <script
       id={`health-article-schema-${url.replace(/\//g, "-")}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}

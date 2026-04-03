@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { CenteredHero } from "@/components/heroes"
 import { FeatureGrid, IconChecklist, AccordionSection, CTABanner } from "@/components/sections"
 import { DoctorsGuideSection } from "@/components/marketing/sections/doctors-guide-section"
 import type { FeatureItem, ChecklistItem } from "@/components/sections/types"
 import type { FAQGroup } from "@/components/ui/faq-list"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {

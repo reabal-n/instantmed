@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { CenteredHero } from "@/components/heroes"
 import { AccordionSection, CTABanner } from "@/components/sections"
 

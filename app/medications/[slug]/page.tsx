@@ -1,4 +1,3 @@
-import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
@@ -418,8 +417,8 @@ export default async function MedicationPage({ params }: PageProps) {
 
   return (
     <>
-      <Script id={`drug-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(drugSchema) }} />
-      <Script id={`page-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchema) }} />
+      <script id={`drug-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(drugSchema) }} />
+      <script id={`page-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchema) }} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
