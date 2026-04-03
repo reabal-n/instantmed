@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { DocumentPremium, PillPremium, StethoscopePremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
@@ -61,14 +61,14 @@ const trustSignals = [
 function useServicePickerVariants() {
   const prefersReducedMotion = useReducedMotion()
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: { staggerChildren: prefersReducedMotion ? 0 : 0.12 },
     },
   }
 
-  const itemVariants = prefersReducedMotion
+  const itemVariants: Variants = prefersReducedMotion
     ? { hidden: {}, visible: {} }
     : {
         hidden: { y: 30, scale: 0.95 },

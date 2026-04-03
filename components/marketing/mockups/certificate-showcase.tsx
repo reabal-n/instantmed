@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { BadgeCheck, Shield } from "lucide-react"
 
@@ -21,14 +21,14 @@ export function CertificateShowcaseMockup() {
   const dateShort = `${String(day).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${year}`
   const dateLong = `${day} ${month} ${year}`
 
-  const stagger = {
+  const stagger: Variants = {
     hidden: {},
     visible: {
       transition: { staggerChildren: animate ? 0.08 : 0 },
     },
   }
 
-  const fadeUp = animate
+  const fadeUp: Variants = animate
     ? {
         hidden: { opacity: 0, y: 8 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
