@@ -158,6 +158,13 @@ const nextConfig = {
       // Canonical service route consolidation
       { source: "/weight-management", destination: "/weight-loss", permanent: true },
       { source: "/weight-management/:path*", destination: "/weight-loss/:path*", permanent: true },
+      // Redirect-only pages moved to edge — no React rendering cost
+      { source: "/gp-consult", destination: "/consult", permanent: true },
+      { source: "/consult/request", destination: "/request?service=consult", permanent: false },
+      { source: "/prescriptions/request", destination: "/request?service=prescription", permanent: false },
+      { source: "/prescriptions/new", destination: "/request?service=consult", permanent: false },
+      { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
+      { source: "/admin/settings", destination: "/admin/features", permanent: true },
       // Public image path migration — old root paths redirected
       { source: "/:filename(asian-australian-woman-professional-headshot-smili.jpg)", destination: "/images/people/:filename", permanent: true },
       { source: "/:filename(asian-woman-professional-headshot-warm-smile.jpg)", destination: "/images/people/:filename", permanent: true },
