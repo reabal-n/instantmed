@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import {
   ArrowRight,
   Clock,
@@ -11,55 +11,16 @@ import {
   Stethoscope,
   FileText,
   Users,
-  Zap,
-  BookOpen,
+  Zap
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
-import { PRICING_DISPLAY } from "@/lib/constants"
 
 const conditions = conditionsData
-
-/**
- * Shared FAQs that apply to all condition pages.
- * Merged with condition-specific FAQs to reach 10-12 total per page.
- */
-const SHARED_CONDITION_FAQS: Array<{ q: string; a: string }> = [
-  {
-    q: "Do employers accept online medical certificates?",
-    a: "Yes. Medical certificates issued by AHPRA-registered doctors through telehealth are legally equivalent to certificates from an in-person GP visit. Under the Fair Work Act, employers must accept valid medical certificates regardless of how the consultation was conducted. We haven't had one rejected yet.",
-  },
-  {
-    q: "How does the doctor review process work?",
-    a: "You fill in a short health questionnaire about your symptoms and medical history. An AHPRA-registered Australian doctor reviews your request and makes an independent clinical decision — approve, request more information, or decline. Medical certificates are typically issued in under 30 minutes. Other requests are reviewed within 1–2 hours during operating hours.",
-  },
-  {
-    q: "Are telehealth medical certificates legally valid in Australia?",
-    a: "Absolutely. Telehealth consultations are recognised under Australian law, and certificates issued through telehealth carry the same legal weight as those from a face-to-face appointment. Our doctors are registered with AHPRA and authorised to issue medical certificates via telehealth.",
-  },
-  {
-    q: "What information appears on the medical certificate?",
-    a: "Your certificate includes your name, the date(s) you're unfit for work, and the doctor's details and signature. It does not include your diagnosis or any clinical details — your employer only needs to know that a doctor has assessed you and determined you're unfit for duties. Your privacy is protected.",
-  },
-  {
-    q: "What happens if my request is declined?",
-    a: "If the reviewing doctor determines they can't issue a certificate based on your clinical presentation, you'll receive a full refund. No questions, no hassle. The doctor may also recommend you visit a GP in person if your situation needs a more thorough assessment.",
-  },
-  {
-    q: "Can I get a medical certificate for a past illness?",
-    a: "We can issue certificates for recent illness in some circumstances, but our doctors need to be satisfied that backdating is clinically appropriate. If you've already recovered, mention the dates you were unwell in your request and the doctor will make a judgement. Certificates for illness more than a few days ago are harder to justify clinically.",
-  },
-  {
-    q: "How do I get a medical certificate for carer's leave?",
-    a: "Select the carer's leave option when you start your request. You'll need to describe who you're caring for and their condition. The doctor will issue a certificate confirming you need to provide care to an immediate family or household member — the same as you'd get from a GP clinic, without the waiting room.",
-  },
-]
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -70,8 +31,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const condition = conditions[slug]
   if (!condition) return {}
 
-  const title = `${condition.name} | Online Doctor Assessment`
-  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Confidential telehealth.`
+  const title = `${condition.name} | Online Doctor Assessment | InstantMed`
+  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Fast, confidential telehealth.`
 
   return {
     title,
@@ -85,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ],
     openGraph: {
       title: `${condition.name} - Online Doctor Assessment | InstantMed`,
-      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Assessed by AHPRA-registered Australian doctors.`,
+      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Australian doctors available now.`,
       url: `https://instantmed.com.au/conditions/${slug}`,
     },
     alternates: {
@@ -106,11 +67,8 @@ export default async function ConditionPage({ params }: PageProps) {
     notFound()
   }
 
-  // Merge condition-specific FAQs with shared FAQs (condition-specific first)
-  const allFaqs = [...condition.commonQuestions, ...SHARED_CONDITION_FAQS]
-
   // Transform FAQs for schema
-  const faqSchemaData = allFaqs.map(faq => ({
+  const faqSchemaData = condition.commonQuestions.map(faq => ({
     question: faq.q,
     answer: faq.a
   }))
@@ -118,12 +76,6 @@ export default async function ConditionPage({ params }: PageProps) {
   return (
     <>
       {/* SEO Structured Data */}
-      <MedicalConditionSchema
-        name={condition.name}
-        description={condition.description}
-        url={`/conditions/${slug}`}
-        symptoms={condition.symptoms}
-      />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema 
         items={[
@@ -133,9 +85,8 @@ export default async function ConditionPage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
-        <ContentPageTracker pageType="condition" slug={slug} serviceRecommendation="med-cert" />
 
         <main className="flex-1 pt-20">
           {/* Breadcrumbs */}
@@ -156,22 +107,21 @@ export default async function ConditionPage({ params }: PageProps) {
             {/* Background decoration */}
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-info-light rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
               {/* Trust indicators */}
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <Badge variant="default" shape="pill" size="lg" icon={<Shield className="w-4 h-4" />}>
-                  AHPRA Registered Doctors
-                </Badge>
-                <Badge variant="success" shape="pill" size="lg" icon={<Clock className="w-4 h-4" />}>
-                  Avg. {condition.stats.avgTime} response
-                </Badge>
+                <SectionPill>AHPRA Registered Doctors</SectionPill>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-medium">Avg. {condition.stats.avgTime} response</span>
+                </div>
               </div>
 
               {/* Main heading */}
-              <h1 className="text-4xl sm:text-5xl font-semibold text-center text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
                 {condition.name}
               </h1>
 
@@ -188,7 +138,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  {PRICING_DISPLAY.FROM_MED_CERT} · No appointment needed
+                  From $19.95 · No appointment needed
                 </p>
               </div>
 
@@ -199,7 +149,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   <span>AHPRA-registered doctors</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-success" />
+                  <Zap className="w-4 h-4 text-emerald-600" />
                   <span>Response in ~{condition.stats.avgTime}</span>
                 </div>
               </div>
@@ -209,7 +159,7 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* Symptoms Section */}
           <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Symptoms of {condition.name}
               </h2>
 
@@ -232,20 +182,20 @@ export default async function ConditionPage({ params }: PageProps) {
           {/* Can We Help Section */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 How We Can Help
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {/* What we can help with */}
-                <div className="bg-success-light/30 border border-success-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-semibold text-success mb-4 flex items-center gap-2">
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" />
                     What we can help with
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.yes.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-success">
+                      <li key={i} className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300">
                         <CheckCircle2 className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -254,14 +204,14 @@ export default async function ConditionPage({ params }: PageProps) {
                 </div>
 
                 {/* What needs in-person care */}
-                <div className="bg-warning-light/30 border border-warning-border rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-semibold text-warning mb-4 flex items-center gap-2">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     What needs in-person care
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.no.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-warning">
+                      <li key={i} className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
                         <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -278,7 +228,7 @@ export default async function ConditionPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 {/* When to see a doctor */}
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                     <Stethoscope className="w-5 h-5 text-primary" />
                     When to see a doctor
                   </h2>
@@ -296,21 +246,21 @@ export default async function ConditionPage({ params }: PageProps) {
 
                 {/* Emergency warning */}
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
                     Seek emergency care if
                   </h2>
-                  <div className="bg-destructive-light border border-destructive-border rounded-xl p-4 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                     <ul className="space-y-3">
                       {condition.whenEmergency.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-destructive">
+                        <li key={i} className="flex items-start gap-2 text-red-700 dark:text-red-300">
                           <AlertTriangle className="w-4 h-4 mt-1 shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-4 pt-4 border-t border-destructive-border">
-                      <p className="text-sm font-medium text-destructive">
+                    <div className="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
+                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
                         Call 000 or go to your nearest emergency department
                       </p>
                     </div>
@@ -320,201 +270,15 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Doctor's Perspective — unique clinical insight */}
-          {condition.doctorPerspective && (
-            <section className="px-4 py-16">
-              <div className="mx-auto max-w-3xl">
-                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Stethoscope className="w-5 h-5 text-primary" />
-                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Doctor&apos;s perspective</span>
-                  </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">
-                    A GP&apos;s take on {condition.name}
-                  </h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
-                    <p>{condition.doctorPerspective}</p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-3.5 h-3.5" />
-                      Clinically reviewed by the InstantMed Medical Team
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      Last updated: {condition.reviewedDate ? new Date(condition.reviewedDate + "-01").toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "March 2026"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Recovery Timeline */}
-          {condition.recoveryTimeline && (
-            <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
-              <div className="mx-auto max-w-4xl">
-                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
-                  Recovery & Return to Work
-                </h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Clock className="w-5 h-5 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">Typical recovery</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.typical}</p>
-                  </div>
-                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
-                    <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center mb-4">
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">Returning to work</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.returnToWork}</p>
-                  </div>
-                  <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6">
-                    <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center mb-4">
-                      <AlertTriangle className="w-5 h-5 text-warning" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">When to reassess</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{condition.recoveryTimeline.whenToReassess}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Self-Care Tips */}
-          {condition.selfCareTips && condition.selfCareTips.length > 0 && (
-            <section className="px-4 py-16">
-              <div className="mx-auto max-w-3xl">
-                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
-                  Self-Care for {condition.name}
-                </h2>
-                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-6 sm:p-8">
-                  <ul className="space-y-4">
-                    {condition.selfCareTips.map((tip, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                        </div>
-                        <span className="text-muted-foreground leading-relaxed">{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Australian Health Statistics */}
-          {condition.auStats && condition.auStats.length > 0 && (
-            <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
-              <div className="mx-auto max-w-3xl">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-6 text-center">
-                  {condition.name} in Australia
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {condition.auStats.map((stat, i) => (
-                    <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/10">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <BookOpen className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{stat}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* E-E-A-T fallback for conditions without doctor perspective */}
-          {!condition.doctorPerspective && (
-            <section className="px-4 py-16">
-              <div className="mx-auto max-w-3xl">
-                <div className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-2xl p-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Shield className="w-5 h-5 text-primary" />
-                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Medically reviewed</span>
-                  </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">
-                    Understanding {condition.name}
-                  </h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground space-y-3">
-                    <p>{condition.description}</p>
-                    <p>{condition.searchIntent}</p>
-                    <p>
-                      All assessments on InstantMed are conducted by AHPRA-registered Australian doctors.
-                      If your symptoms fall outside what can be safely managed via telehealth, your doctor will
-                      advise you to seek in-person care — your safety always comes first.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-3.5 h-3.5" />
-                      Clinically reviewed by the InstantMed Medical Team
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      Last updated: {condition.reviewedDate ? new Date(condition.reviewedDate + "-01").toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "March 2026"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Helpful Articles */}
-          <section className="px-4 py-8">
-            <div className="mx-auto max-w-3xl">
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-                <span className="text-muted-foreground font-medium">Helpful reading:</span>
-                {condition.serviceType === "med-cert" || condition.serviceType === "both" ? (
-                  <>
-                    <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
-                      How to get a med cert for work
-                    </Link>
-                    <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-primary hover:underline">
-                      Getting a med cert online
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
-                      Telehealth guide
-                    </Link>
-                    <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
-                      When to use telehealth
-                    </Link>
-                  </>
-                )}
-                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
-                  Telehealth vs GP
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Clinical Governance */}
-          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              All clinical decisions are made by AHPRA-registered doctors following{" "}
-              <Link href="/clinical-governance" className="text-primary hover:underline">
-                our clinical governance framework
-              </Link>
-              . We never automate clinical decisions.
-            </p>
-          </div>
-
           {/* FAQ Section */}
-          <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
+          <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Common Questions About {condition.name}
               </h2>
 
               <div className="space-y-4">
-                {allFaqs.map((faq, i) => (
+                {condition.commonQuestions.map((faq, i) => (
                   <div 
                     key={i}
                     className="bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none border border-border/50 dark:border-white/15 rounded-xl p-6"
@@ -527,149 +291,10 @@ export default async function ConditionPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Related Conditions & Symptoms */}
-          {condition.relatedConditions.length > 0 && (
-            <section className="px-4 py-16 bg-muted/50 dark:bg-white/[0.06]">
-              <div className="mx-auto max-w-4xl">
-                <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
-                  Related Health Topics
-                </h2>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Related condition pages */}
-                  {condition.relatedConditions
-                    .filter((relSlug) => conditions[relSlug])
-                    .map((relSlug) => {
-                      const related = conditions[relSlug]
-                      return (
-                        <Link
-                          key={relSlug}
-                          href={`/conditions/${relSlug}`}
-                          className="flex items-start gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15 hover:border-primary/30 transition-colors group"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                            <Stethoscope className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">
-                              {related.name}
-                            </span>
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                              {related.description}
-                            </p>
-                          </div>
-                        </Link>
-                      )
-                    })}
-
-                  {/* Link to symptoms hub if related conditions reference symptom-type slugs */}
-                  {condition.relatedConditions
-                    .filter((relSlug) => !conditions[relSlug])
-                    .slice(0, 4)
-                    .map((symptomSlug) => (
-                      <Link
-                        key={symptomSlug}
-                        href={`/symptoms/${symptomSlug}`}
-                        className="flex items-center gap-3 p-4 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none rounded-xl border border-border/50 dark:border-white/15 hover:border-primary/30 transition-colors group"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-info-light flex items-center justify-center shrink-0">
-                          <BookOpen className="w-4 h-4 text-info" />
-                        </div>
-                        <span className="font-medium text-foreground group-hover:text-primary transition-colors capitalize">
-                          {symptomSlug.replace(/-/g, " ")}
-                        </span>
-                      </Link>
-                    ))}
-                </div>
-
-                {/* Cross-links to other page types + landing pages */}
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
-                  {(condition.serviceType === "med-cert" || condition.serviceType === "both") && (
-                    <>
-                      <Link
-                        href="/medical-certificate"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Medical certificates →
-                      </Link>
-                      <span className="text-muted-foreground">·</span>
-                    </>
-                  )}
-                  {(condition.serviceType === "consult" || condition.serviceType === "both") && (
-                    <>
-                      <Link
-                        href="/general-consult"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        GP consultations →
-                      </Link>
-                      <span className="text-muted-foreground">·</span>
-                    </>
-                  )}
-                  <Link
-                    href="/prescriptions"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Repeat prescriptions →
-                  </Link>
-                  <span className="text-muted-foreground">·</span>
-                  <Link
-                    href="/conditions"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    All conditions →
-                  </Link>
-                  <span className="text-muted-foreground">·</span>
-                  <Link
-                    href="/symptoms"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Browse by symptom →
-                  </Link>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Related Reading — contextual guide/blog cross-links */}
-          <section className="px-4 py-8">
-            <div className="mx-auto max-w-3xl">
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-                <span className="text-muted-foreground font-medium">Related reading:</span>
-                {(condition.serviceType === "med-cert" || condition.serviceType === "both") && (
-                  <>
-                    <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
-                      Med cert for work
-                    </Link>
-                    <Link href="/blog/medical-certificate-online-australia" className="text-primary hover:underline">
-                      Online med certs in Australia
-                    </Link>
-                    <Link href="/blog/employer-accept-online-medical-certificate" className="text-primary hover:underline">
-                      Do employers accept online med certs?
-                    </Link>
-                  </>
-                )}
-                {(condition.serviceType === "consult" || condition.serviceType === "both") && (
-                  <>
-                    <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
-                      Telehealth vs GP
-                    </Link>
-                    <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
-                      When to use telehealth
-                    </Link>
-                  </>
-                )}
-                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
-                  Telehealth guide
-                </Link>
-              </div>
-            </div>
-          </section>
-
           {/* Final CTA Section */}
-          <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
+          <section className="px-4 py-20 bg-gradient-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-semibold text-foreground mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Ready to get help?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
@@ -702,9 +327,6 @@ export default async function ConditionPage({ params }: PageProps) {
               </div>
             </div>
           </section>
-
-          {/* Medical Disclaimer */}
-          <MedicalDisclaimer reviewedDate={condition.reviewedDate || "2026-03"} />
         </main>
 
         <Footer />

@@ -14,7 +14,7 @@ export interface DashboardEmptyProps {
 
 /**
  * DashboardEmpty
- * 
+ *
  * Empty state component for dashboards.
  * Shows when there's no data to display.
  */
@@ -27,9 +27,11 @@ export function DashboardEmpty({
 }: DashboardEmptyProps) {
   return (
     <div className={cn("dashboard-empty", className)}>
-      <LottieAnimation name="empty-state" size={100} className="mx-auto" />
+      <div className="mb-4">
+        <LottieAnimation name="empty-state" size={80} loop={false} />
+      </div>
       {icon && (
-        <div className="mb-4 p-4 rounded-full bg-muted/50 text-muted-foreground">
+        <div className="mb-4 p-3 rounded-full bg-muted/50 text-muted-foreground">
           {icon}
         </div>
       )}

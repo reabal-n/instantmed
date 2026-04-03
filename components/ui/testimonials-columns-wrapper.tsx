@@ -4,18 +4,20 @@ import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/components/ui/motion";
+import { SectionPill } from "@/components/ui/section-pill";
 
 type Testimonial = {
   text: string;
   image: string;
   name: string;
-  role?: string;
+  role: string;
 };
 
 interface TestimonialsColumnsWrapperProps {
   testimonials: Testimonial[];
   title?: string;
   subtitle?: string;
+  badgeText?: string;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ export function TestimonialsColumnsWrapper({
   testimonials,
   title = "What our users say",
   subtitle = "See what our customers have to say about us.",
+  badgeText = "Testimonials",
   className,
 }: TestimonialsColumnsWrapperProps) {
   const prefersReducedMotion = useReducedMotion()
@@ -39,13 +42,17 @@ export function TestimonialsColumnsWrapper({
     <section className={cn("relative", className)}>
       <div className="container z-10 mx-auto px-4">
         <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ y: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tighter text-center text-foreground">
+          <div className="flex justify-center">
+            <SectionPill>{badgeText}</SectionPill>
+          </div>
+
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
             {title}
           </h2>
           <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">

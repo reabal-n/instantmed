@@ -8,9 +8,9 @@
 import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { Button } from '@/components/uix'
-import { FAQList } from '@/components/ui/faq-list'
 import { SectionPill } from '@/components/ui/section-pill'
+import { Button } from '@/components/uix'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import {
   AlertCircle,
   Check,
@@ -56,14 +56,13 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <div className="mb-6">
                 <SectionPill>
                   {pageType === 'condition' ? 'Health Condition'
-                   : pageType === 'certificate' ? 'Certificate Type'
-                   : pageType === 'benefit' ? 'Why Choose Us'
-                   : pageType === 'resource' ? 'Information & FAQ'
-                   : 'Health Info'}
+                    : pageType === 'certificate' ? 'Certificate Type'
+                    : pageType === 'benefit' ? 'Why Choose Us'
+                    : 'Information & FAQ'}
                 </SectionPill>
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-semibold text-foreground mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
                 {page.h1}
               </h1>
 
@@ -91,13 +90,13 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {/* Symptoms */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     Common symptoms
                   </h2>
                   <ul className="space-y-3">
                     {condPage.symptoms.map((symptom, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                        <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                         <span className="text-muted-foreground">{symptom}</span>
                       </li>
                     ))}
@@ -105,9 +104,9 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* When to See GP (Red Flags) */}
-                <div className="mb-16 p-6 bg-destructive-light rounded-lg border border-destructive-border">
+                <div className="mb-16 p-6 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
                   <div className="flex items-start gap-3 mb-4">
-                    <AlertCircle className="h-6 w-6 text-destructive shrink-0 mt-0" />
+                    <AlertCircle className="h-6 w-6 text-red-600 shrink-0 mt-0 dark:text-red-400" />
                     <h3 className="text-lg font-semibold text-foreground">
                       When to see a doctor in person
                     </h3>
@@ -115,7 +114,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <ul className="space-y-2">
                     {condPage.whenToSeeGP.map((flag, idx) => (
                       <li key={idx} className="text-muted-foreground flex items-start gap-2">
-                        <span className="text-destructive font-semibold mt-0.5">•</span>
+                        <span className="text-red-600 dark:text-red-400 font-bold mt-0.5">•</span>
                         <span>{flag}</span>
                       </li>
                     ))}
@@ -124,7 +123,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* When We Can Help */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     When we can help
                   </h2>
                   <ul className="space-y-3">
@@ -139,7 +138,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* How We Help */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     How it works
                   </h2>
                   <div className="space-y-4">
@@ -147,7 +146,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                       <div key={idx} className="flex gap-4">
                         <div className="shrink-0">
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20">
-                            <span className="text-primary font-semibold">
+                            <span className="text-primary font-bold">
                               {idx + 1}
                             </span>
                           </div>
@@ -161,7 +160,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-info-light rounded-lg border border-primary dark:border-primary">
+                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-primary dark:border-primary">
                   <h3 className="font-semibold text-foreground mb-4">
                     Important disclaimers
                   </h3>
@@ -181,13 +180,13 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {/* Use Cases */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     Use cases
                   </h2>
                   <ul className="space-y-3">
                     {certPage.useCases.map((useCase, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                        <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                         <span className="text-muted-foreground">{useCase}</span>
                       </li>
                     ))}
@@ -196,7 +195,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
                 {/* How to Use */}
                 <div className="mb-16">
-                  <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">
                     How to use your certificate
                   </h2>
                   <div className="space-y-4">
@@ -212,7 +211,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Backdating */}
-                <div className="mb-16 p-6 bg-warning-light rounded-lg border border-warning-border">
+                <div className="mb-16 p-6 bg-dawn-50 dark:bg-dawn-950/30 rounded-lg border border-dawn-200 dark:border-dawn-800">
                   <h3 className="font-semibold text-foreground mb-2">
                     📅 Can we backdate certificates?
                   </h3>
@@ -222,7 +221,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-destructive-light rounded-lg border border-destructive-border">
+                <div className="mb-16 p-6 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
                   <h3 className="font-semibold text-foreground mb-4">
                     Important disclaimers
                   </h3>
@@ -242,7 +241,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {benefitPage.sections.map((section, idx) => (
                   <div key={idx} className="mb-12">
-                    <h2 className="text-2xl font-semibold mb-4 text-foreground">
+                    <h2 className="text-2xl font-bold mb-4 text-foreground">
                       {section.title}
                     </h2>
                     <p className="text-muted-foreground leading-relaxed">
@@ -258,7 +257,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               <>
                 {resourcePage.sections.map((section, idx) => (
                   <div key={idx} className="mb-12">
-                    <h2 className="text-2xl font-semibold mb-4 text-foreground">
+                    <h2 className="text-2xl font-bold mb-4 text-foreground">
                       {section.title}
                     </h2>
                     <p className="text-muted-foreground leading-relaxed">
@@ -271,7 +270,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
             {/* CTA Section */}
             <div className="mt-16 p-8 bg-linear-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
-              <h2 className="text-2xl font-semibold mb-4 text-foreground">
+              <h2 className="text-2xl font-bold mb-4 text-foreground">
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-6">
@@ -290,13 +289,26 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         {/* FAQ Section */}
         <section className="py-20 bg-muted/50 dark:bg-muted/10">
           <div className="container mx-auto px-4 max-w-3xl">
-            <h2 className="text-3xl font-semibold mb-12 text-center text-foreground">
+            <h2 className="text-3xl font-bold mb-12 text-center text-foreground">
               Frequently asked questions
             </h2>
 
-            <FAQList
-              items={page.faqs.map((faq) => ({ question: faq.q, answer: faq.a }))}
-            />
+            <Accordion type="single" collapsible defaultValue="0">
+              {page.faqs.map((faq, idx) => (
+                <AccordionItem
+                  key={idx.toString()}
+                  value={idx.toString()}
+                  className="border-b border-border last:border-0"
+                >
+                  <AccordionTrigger>{faq.q}</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {faq.a}
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </section>
       </main>

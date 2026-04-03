@@ -1,8 +1,6 @@
 # DESIGN_SYSTEM.md — InstantMed
 
-> **Load every session.** Single source of truth for all visual and layout decisions. The design system is law.
-
-> **Motion & interactions:** Animations, easing curves, Framer Motion patterns, UI states, loading sequences, and dark mode interaction rules live in `INTERACTIONS.md`. Load both files for any UI/frontend work.
+> **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
 > Brand essence: "Clarity emerging." Calm authority. Morning light. Good judgment. If it feels impressive but loud — kill it. If it resembles crypto/AI SaaS — kill it. If it feels like wellness marketing — kill it.
 
@@ -14,48 +12,51 @@
 
 ## 1. Color
 
-> **Variable naming:** The design system uses conceptual names below for clarity. The actual Tailwind/shadcn CSS variables in `globals.css` use shadcn convention: `--background` (= `--bg`), `--card` (= `--surface`), `--popover` (= `--overlay`). Use Tailwind classes: `bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`.
-
 ```css
 :root {
   /* -- Backgrounds (light mode — the default) -- */
-  --bg:           #F8F7F4;   /* warm ivory — Tailwind: bg-background */
-  --surface:      #FFFFFF;   /* pure white cards — Tailwind: bg-card / bg-white */
-  --elevated:     #F5F7F9;   /* hover states, nested regions — Tailwind: bg-muted (mist-100) */
-  --overlay:      #FFFFFF;   /* dropdowns, tooltips — Tailwind: bg-popover */
+  --bg:           #F8F7F4;   /* warm ivory page background — never pure white */
+  --surface:      #FFFFFF;   /* card surfaces — pure white for contrast against ivory */
+  --elevated:     #F2F0EC;   /* hover states, nested regions */
+  --overlay:      #ECEAE5;   /* dropdowns, tooltips */
 
   /* -- Backgrounds (dark mode — "Quiet Night Sky") -- */
-  --bg-dark:      #0B1120;   /* dark:bg-background */
-  --surface-dark: rgba(17, 24, 39, 0.75);  /* dark:bg-card — translucent */
-  --overlay-dark: rgba(17, 24, 39, 0.90);  /* dark:bg-popover — translucent */
+  --bg-dark:      #0B1120;
+  --surface-dark: #111827;   /* maps to dark:bg-card */
+  --elevated-dark:#1A2332;
+  --overlay-dark: #1F2D42;
 
   /* -- Borders -- */
-  --border:         rgba(203, 213, 225, 0.50);  /* slate-300 at 50% — Tailwind: border-border */
-  --border-dark:    rgba(148, 163, 184, 0.12);  /* slate-400 at 12% — dark mode */
+  --border:         rgba(0, 0, 0, 0.07);    /* border-border/50 */
+  --border-em:      rgba(0, 0, 0, 0.12);
+  --border-focus:   rgba(59, 130, 246, 0.40);
+  --border-dark:    rgba(255,255,255,0.07);
+  --border-dark-em: rgba(255,255,255,0.15);  /* dark:border-white/15 */
 
   /* -- Text -- */
-  --text:      #1E293B;   /* text-foreground (slate-800) */
-  --muted:     #475569;   /* text-muted-foreground (slate-600) */
-  --text-dark: #E8EEF4;
-  --muted-dark:#94A3B8;
+  --text:      #1A1A2E;
+  --muted:     #6B7280;
+  --muted2:    #9CA3AF;
+  --text-dark: #E8EDF5;
+  --muted-dark:#8FA3BF;
 
   /* -- Semantic -- */
-  --blue:         #2563EB;   /* primary (WCAG AA 5.17:1 with white) */
+  --blue:         #3B82F6;   /* primary */
   --blue-light:   #EFF6FF;
   --blue-border:  rgba(59,130,246,0.20);
 
   --teal:         #5DB8C9;   /* dark mode primary accent */
   --teal-light:   rgba(93,184,201,0.12);
 
-  --green:        #15803D;   /* success (WCAG AA 5.02:1 on white) */
+  --green:        #22C55E;   /* success */
   --green-light:  #F0FDF4;
   --green-border: rgba(34,197,94,0.20);
 
-  --coral:        #DC2626;   /* destructive (WCAG AA 4.63:1 on white) */
+  --coral:        #F87171;   /* destructive */
   --coral-light:  #FEF2F2;
   --coral-border: rgba(248,113,113,0.20);
 
-  --amber:        #B45309;   /* warning (WCAG AA 5.02:1 on white) */
+  --amber:        #F59E0B;   /* warning */
   --amber-light:  #FFFBEB;
   --amber-border: rgba(245,158,11,0.20);
 
@@ -65,6 +66,12 @@
   --service-rx:       #22C55E;
   --service-hair:     #F59E0B;
   --service-weight:   #EC4899;
+
+  /* -- Order status -- */
+  --status-pending:    var(--amber);
+  --status-processing: var(--blue);
+  --status-complete:   var(--green);
+  --status-rejected:   var(--coral);
 
   /* -- Trust signal -- */
   --trust-bg:     rgba(34,197,94,0.06);
@@ -76,54 +83,17 @@
   --morning-peach: #F5C6A0;
   --morning-ivory: #F7F3EC;
   --morning-champ: #E8D5A3;
-
-  /* -- Custom palettes (sky, dawn, ivory, peach, champagne) -- */
-  /* Defined in tailwind.config.js (custom morning spectrum values) AND
-     globals.css @theme (Tailwind v4 overrides). Note: dawn-* in globals.css
-     uses amber tones (#F59E0B), while tailwind.config.js uses peach tones
-     (#F5A962). CSS values take precedence at runtime in Tailwind v4. */
 }
 ```
-
-### Semantic Tint Tokens
-
-Every semantic color has light background, border, and text variants. These handle dark mode automatically via CSS variables — no need for explicit `dark:` overrides.
-
-```css
-/* Available for each semantic: success, warning, destructive, info */
-bg-{semantic}-light    /* Light tinted background (alerts, badges, pills) */
-border-{semantic}-border /* Subtle tinted border */
-text-{semantic}         /* Status text color */
-
-/* Trust signals */
-bg-trust-bg  border-trust-border  text-trust-text
-
-/* Service type tokens */
-text-service-medcert  text-service-rx  text-service-hair  text-service-weight  text-service-referral
-```
-
-**Usage:** Always prefer semantic tokens over raw Tailwind palette colors. Use `bg-success-light` not `bg-green-50`, `text-destructive` not `text-red-600`, etc. Third-party brand colors (Stripe, social media) are exceptions.
-
-### Background System
-
-The page background is layered — not a flat color:
-
-1. `body { background: transparent }` — body has no background
-2. `<MeshGradientCanvas />` — global animated canvas element (renders in `app/layout.tsx`) provides the morning gradient backdrop on all pages
-3. `--background: #F8F7F4` — warm ivory fallback (shows when canvas hasn't loaded, or in non-marketing areas like portals)
-4. Cards use `bg-white dark:bg-card` — pure white for contrast against the canvas/ivory background
-
-Never set `background` directly on `body` or `html`. Never use `bg-white` on the page wrapper — only on card surfaces.
 
 ### Rules
 
 - Light mode is default. Dark mode ("Quiet Night Sky") supported site-wide — marketing, SEO pages, and app shell.
-- Page backgrounds use warm ivory (`#F8F7F4`). Card surfaces use pure white for contrast.
-- **Prohibited:** purple/violet (except `--service-referral` and AI indicators in internal portals), neon, dark navy on marketing pages.
+- Page backgrounds use warm ivory (`--bg`). Card surfaces use pure white (`--surface`) for contrast.
+- **Prohibited:** purple/violet (except `--service-referral`), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
-- Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces. Exception: `dark:shadow-black/40` on image containers.
+- Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces.
 - Semantic colors convey status. Never use decoratively.
-- **No raw Tailwind palette colors** for status states. Use semantic tokens (`bg-success-light`, `text-warning`, `border-destructive-border`). Raw colors (`bg-green-50`, `text-red-600`) are only for decorative/distinct-hue needs (charts, avatars, brand colors).
 
 ---
 
@@ -137,11 +107,10 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 | Class | Size | Weight | Tracking | Use |
 |-------|------|--------|----------|-----|
-| display-xl | 68px | 400 | -0.04em | Homepage hero only — `lg:` breakpoint |
-| display | 56px | 400 | -0.035em | Hero headlines, large section titles |
-| h1 | 40px | 600 | -0.03em | Page titles |
-| h2 | 28px | 600 | -0.025em | Section headings |
-| h3 | 18px | 600 | -0.015em | Card titles |
+| display | 48px | 300 | -0.03em | Hero headlines |
+| h1 | 36px | 600 | -0.025em | Page titles |
+| h2 | 24px | 600 | -0.02em | Section headings |
+| h3 | 18px | 600 | -0.01em | Card titles |
 | body | 16px | 400 | — | Body text (non-negotiable minimum on patient flows) |
 | small | 14px | 400 | — | Secondary text |
 | label | 13px | 500 | — | Form labels |
@@ -151,13 +120,11 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 ### Rules
 
-- **3-step contrast rule:** Heading and body text must differ by at least 3 scale steps. Never put h3 directly next to display — use an intermediary or increase body size.
 - Body 16px minimum on all patient-facing flows. Non-negotiable.
-- Weights: 400 (body + display), 500 (label), 600 (headings), 700 (email templates only). Loaded weights: 400, 500, 600, 700.
-- Negative tracking on all headings. The larger the text, the tighter the tracking.
+- Weights: 300 (display only), 400 (body), 500 (label), 600 (headings). Never 700+.
+- Negative tracking on all headings.
 - Sentence case everywhere. All caps only on overline.
 - Emoji: max 1 per block. Never in headings. Never medical emoji.
-- Line height: display/h1 use `leading-[1.1]`, h2/h3 use `leading-[1.25]`, body uses `leading-relaxed`.
 
 ---
 
@@ -187,10 +154,10 @@ Container: `max-w-6xl mx-auto px-4 sm:px-6 lg:px-8` (standard) / `max-w-3xl` (co
 ## 4. Border Radius — Squircle-preferred
 
 ```
-6px   rounded-sm     Badges, tags
-10px  rounded-lg     Buttons, inputs (--radius base)
+6px   rounded-md     Badges, tags
+10px  rounded-lg     Buttons, inputs
 14px  rounded-xl     Cards, modals
-18px  rounded-2xl    Hero panels, feature containers
+20px  rounded-2xl    Hero panels, feature containers
 9999px rounded-full  Pills, avatars, toggles
 ```
 
@@ -198,65 +165,48 @@ Rounded/squircle geometry only. No sharp corners anywhere.
 
 ---
 
-## 5. Elevation — Solid Depth
+## 5. Elevation — Solid Depth (dub.co pattern)
 
 The core surface pattern. Every card, panel, and container uses this system. **No glass, no backdrop-blur on content surfaces.**
-
-Cards use a two-layer shadow system + an inner top-edge highlight for dimensional presence. This creates real physical weight without frosted glass.
 
 ### Card Tiers
 
 ```tsx
-// Tier 1: Standard card (most common — dashboards, list items)
+// Tier 1: Standard card (most common)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl"
 
-// Tier 2: Elevated card (feature cards, pricing, service cards)
-// Two-layer shadow + inner highlight for depth
+// Tier 2: Elevated card (feature cards, pricing, treatments)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
-           shadow-[0_2px_8px_rgba(37,99,235,0.06),0_1px_3px_rgba(37,99,235,0.04)]
-           [box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]
-           dark:shadow-none rounded-2xl
-           hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
-           transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+           shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl
+           hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.08]
+           transition-all duration-300"
 
 // Tier 3: Highlighted card (popular/featured, with ring)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
-           ring-2 ring-primary
-           shadow-[0_4px_16px_rgba(37,99,235,0.12),0_1px_4px_rgba(37,99,235,0.08)]
-           [box-shadow:inset_0_1px_0_rgba(255,255,255,0.9)]
-           dark:shadow-none rounded-2xl
-           hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(37,99,235,0.16),0_4px_8px_rgba(37,99,235,0.10)]
-           transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+           ring-2 ring-primary shadow-lg shadow-primary/[0.1]
+           hover:shadow-xl hover:shadow-primary/[0.15]
+           hover:-translate-y-1 transition-all duration-300 rounded-2xl"
 
 // Section background (subtle tinted region)
 className="bg-muted/50 dark:bg-white/[0.06]"
 ```
 
-### Inner Highlight
-
-The inner top-edge highlight (`inset 0 1px 0 rgba(255,255,255,0.8)`) simulates ambient light hitting the top of the card. Use on all Tier 2+ marketing cards. **Do not use in portals.**
-
-In Tailwind: `[box-shadow:inset_0_1px_0_rgba(255,255,255,0.8)]` combined with the outer shadow using a comma-separated value.
-
 ### Card Hover
 
-Marketing cards: **2px lift** (`-translate-y-0.5`) with panel easing. Use `duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]` — not `ease-out`.
+All marketing cards use a standard hover pattern:
 
 ```
-hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06)]
-transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300
 ```
 
 ### Dark Mode Card Pattern
 
-In dark mode, cards use translucent backgrounds with border contrast instead of shadows:
-- Background: `dark:bg-card` — maps to `rgba(17, 24, 39, 0.75)` (75% opacity, not fully solid)
+In dark mode, cards rely on border contrast rather than shadows:
+- Background: `dark:bg-card` (maps to `--surface-dark`)
 - Border: `dark:border-white/15` (subtle white edge)
 - Shadow: `dark:shadow-none` (no shadows in dark mode)
 - Hover: border brightening only, no shadow
-
-**Note:** Dark mode cards are intentionally translucent (75% opacity) despite the "solid depth" philosophy. The translucency allows the dark background to show through subtly. This is the only surface exception — all light mode cards remain fully solid (`bg-white`).
 
 ### Trust Badge Pills
 
@@ -272,8 +222,7 @@ className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06]
 `backdrop-blur` is **only** permitted on functional overlays:
 - Sticky mobile CTA bars (`backdrop-blur-lg`)
 - Mobile navigation menus
-- Modal/dialog overlays
-- Popovers, dropdowns, selects
+- Modal overlays
 
 Never on content cards, sections, or marketing surfaces.
 
@@ -396,13 +345,6 @@ className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
 
 // Mono pill (codes, references)
 // font-mono text-xs tracking-wider
-
-// Trust signal pill (hero footer, inline trust signals with icons)
-// Use for: refund guarantee, timing claims, regulatory signals
-className="inline-flex items-center gap-1.5 text-xs text-muted-foreground
-           bg-muted/50 border border-border/50 rounded-full px-3 py-1.5
-           hover:border-primary/30 hover:text-foreground transition-colors duration-200"
-// Icon: w-3 h-3, use text-success for refund/guarantee, text-primary for timing/regulatory
 ```
 
 ---
@@ -412,32 +354,33 @@ className="inline-flex items-center gap-1.5 text-xs text-muted-foreground
 ### Button
 
 ```tsx
-// Base Button component (components/ui/button.tsx) — uses CVA variants:
-// Primary: bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:bg-primary/90
-// Outline: border border-input bg-white dark:bg-card
-// Ghost: hover:bg-muted/50
-// All variants: active:scale-[0.97], transition-all duration-200
+// Primary
+className="bg-primary hover:bg-primary/90 text-primary-foreground
+           shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
+           active:scale-[0.98] transition-all"
 
-// Marketing CTA override — add glow classes on top of Button for hero/landing CTAs:
-className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
-           active:scale-[0.98] active:shadow-md active:shadow-primary/15"
+// Secondary / Outline
 ```
-
-**Note:** The glow shadow (`shadow-primary/25`) is NOT in the base `Button` component — it's applied inline on marketing pages (hero CTAs, how-it-works, sticky CTA bars). Use the base Button for app UI; add glow classes only on marketing surfaces.
 
 ### CTA Button Glow
 
-Marketing CTAs only (not the base Button component):
-- **At rest:** `shadow-lg shadow-primary/25` — button is visually prominent
-- **On hover:** `shadow-xl shadow-primary/40` — glow blooms, draws the eye
-- **On press:** `scale-[0.98] shadow-md shadow-primary/15` — physically depresses
+All primary marketing CTAs use a consistent shadow glow:
 
 ```
-shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40
-active:scale-[0.98] active:shadow-md active:shadow-primary/15
+shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
 ```
 
 Secondary CTAs on colored backgrounds: `shadow-lg hover:shadow-xl` (no color tint).
+
+```tsx
+// Secondary / Outline
+className="bg-foreground hover:bg-foreground/90 text-background"
+// or
+variant="outline" // shadcn default
+
+// Ghost
+variant="ghost" // shadcn default
+```
 
 ### Input
 
@@ -460,203 +403,88 @@ className="bg-white dark:bg-card border border-border
 
 ---
 
-## 11. Brand Assets & Core Components
+## 11. Motion
 
-### Logo System
-
-**Files:** All brand assets live in `/public/branding/`.
-
-| File | Use |
-|------|-----|
-| `logo.svg` | Icon mark — single file, used in both light and dark mode |
-| `wordmark.png` | Text lockup (dark mode: `dark:brightness-0 dark:invert`) |
-| `logo-512.png` | Static/meta contexts (OG image, manifest) |
-| `logo-192.png` | PWA icon |
-| `seal.svg` | Trust/certification contexts |
-| `favicon.ico` | Browser tab |
-
-**Always use `BrandLogo` from `@/components/shared/brand-logo` — never import logo files directly in UI.**
-
-### BrandLogo Component
-
-```tsx
-import { BrandLogo } from "@/components/shared/brand-logo"
-
-// Default — sm size, links to /
-<BrandLogo />
-
-// Sizes
-<BrandLogo size="sm" />   // 28px icon — navbar
-<BrandLogo size="md" />   // 32px icon — standard
-<BrandLogo size="lg" />   // 38px icon — hero/splash
-
-// Icon only (no wordmark)
-<BrandLogo iconOnly />
-
-// Non-link usage
-<BrandLogo href={undefined} />
+```css
+--ease-out:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+--ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 ```
 
-- Uses single `logo.svg` for both themes (no theme-switching needed — the icon works on both backgrounds)
-- Wordmark inverts on dark mode via `dark:brightness-0 dark:invert` — no separate dark wordmark file needed
-- Always links to `/` by default — pass `href={undefined}` to render as a `div`
+### Durations
 
-**Never** import logo SVGs directly into components. **Never** use `<img>` — always `next/image`.
+| Duration | Use |
+|----------|-----|
+| 150ms | Hover colour, border transitions |
+| 200ms | Button states, badge changes |
+| 300ms | Card lifts, input focus, list entry |
+| 400ms | Page section entrance, modal open |
+| 500ms | Hero entrance — hard ceiling |
 
----
+No bounce. No elastic. Max scale: 1.02x. Patients don't need theatrics.
 
-### SkyToggle (Dark Mode Toggle)
-
-```tsx
-import SkyToggle from "@/components/ui/sky-toggle"
-
-// Default size — use in navbar
-<SkyToggle />
-
-// Custom size (controls CSS --toggle-size)
-<SkyToggle size={24} />  // smaller
-<SkyToggle size={36} />  // larger
-```
-
-- Animates sun → moon with clouds/stars CSS animation
-- Respects `prefers-reduced-motion` (transitions reduced to 0.01s, not disabled — the state change still renders)
-- Handles SSR hydration via `useSyncExternalStore` — renders a muted placeholder until mounted
-- **Only use in the navbar.** One instance per page.
-
----
-
-### MeshGradientCanvas (Page Background)
+### Framer Motion Patterns
 
 ```tsx
-import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas"
-
-// Placed once in app/layout.tsx — renders globally
-<MeshGradientCanvas />
-```
-
-- Fixed position, `z-index: -10`, `pointer-events: none` — fully inert
-- Automatically returns `null` on portal routes (`/patient`, `/doctor`, `/admin`) — no configuration needed
-- Disabled on mobile (< 768px) — decorative only, saves main thread
-- Respects `useReducedMotion()` — disables parallax and animation, keeps static blobs
-- Three light blobs (sky blue, soft peach, ivory) + three dark blobs (deep navy variants)
-- **Do not add additional instances.** One global render in `app/layout.tsx` only.
-- **Do not use on portal pages** — the component handles this automatically, but don't fight it.
-
----
-
-### WordReveal (Scroll-Triggered Heading Animation)
-
-```tsx
-import { WordReveal } from "@/components/ui/morning/word-reveal"
-
-<WordReveal text="Get a medical certificate today" />
-
-// With highlight words
-<WordReveal
-  text="Doctor reviewed. Delivered fast."
-  highlightWords={["Doctor reviewed"]}
-  highlightClassName="text-primary"
+// Section entrance
+<motion.div
+  initial={{ opacity: 0, y: 10 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
 />
 
-// Custom element and timing
-<WordReveal
-  text="Your health, handled."
-  as="h2"
-  staggerDelay={0.08}
-  wordDuration={0.5}
+// Staggered children
+<motion.div
+  initial={{ opacity: 0, y: 8 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
 />
+
+// Card hover — CSS-only preferred over framer for simple lifts
+className="hover:-translate-y-1 transition-all duration-300"
+
+// Button press
+<motion.button whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }} />
 ```
 
-**Props:** `text` (string), `highlightWords` (string[], words to apply `highlightClassName`), `highlightClassName` (string), `as` (h1/h2/h3/p/span — default h1), `staggerDelay` (seconds between words, default 0.06), `wordDuration` (per-word animation duration, default 0.4).
+### Reduced Motion
 
-- Words animate from `opacity: 0, y: 20` to `opacity: 1, y: 0` using `useInView` (triggers once on scroll into view)
-- Use in hero headings and major section headlines — not in body copy or repeated lists
-
----
-
-### PerspectiveTiltCard (Mouse-Tracked 3D Card)
+**Critical:** Always respect `prefers-reduced-motion`. Use `useReducedMotion()` hook.
 
 ```tsx
-import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card"
+const prefersReducedMotion = useReducedMotion()
 
-// Default — solid variant
-<PerspectiveTiltCard>
-  <YourCardContent />
-</PerspectiveTiltCard>
+// CORRECT: empty object disables animation
+initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
 
-// Variants
-<PerspectiveTiltCard variant="glass" />     // glass surface
-<PerspectiveTiltCard variant="solid" />     // bg-white / dark:bg-card
-<PerspectiveTiltCard variant="gradient" />  // morning gradient fill
-<PerspectiveTiltCard variant="outline" />   // border only
-
-// Tuning
-<PerspectiveTiltCard maxRotation={4} spotlightOpacity={0.1} />
+// WRONG: false is not valid for initial prop
+initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}  // DO NOT USE
 ```
 
-**Props:** `children`, `className`, `maxRotation` (max tilt degrees, default 6), `spotlightOpacity` (radial highlight intensity, default 0.15), `variant` (glass/solid/gradient/outline).
+### Rules
 
-- Mouse-tracked via `useMotionValue` + `useSpring` (stiffness: 120, damping: 20) — smooth, not snappy
-- Spotlight overlay follows cursor as a radial gradient (white → transparent)
-- Use for feature cards, pricing cards, testimonial cards — not for interactive form elements
-- Respects `pointer: coarse` — tilt stays neutral on touch devices
+- `viewport={{ once: true }}` on every scroll-triggered animation. Always.
+- `whileHover` scale never beyond 1.02.
+- Never rotate, never elastic, never parallax on content.
 
 ---
 
-### ClipPathImage (Scroll-Reveal Image)
+## 12. Lottie Animations
+
+Use `LottieAnimation` from `@/components/ui/lottie-animation` for empty states, success, error, and loading feedback.
+
+Available animations: `confetti`, `empty-state`, `error`, `loading-files`, `loading`, `notification`, `success`.
 
 ```tsx
-import { ClipPathImage } from "@/components/ui/morning/clip-path-image"
-
-// Default — reveals from bottom
-<ClipPathImage src="/images/doctor.jpg" alt="Doctor" width={600} height={400} />
-
-// Directional reveal
-<ClipPathImage src="/images/hero.jpg" alt="Hero" width={800} height={500} direction="left" />
+<LottieAnimation name="empty-state" size={100} loop={false} />
 ```
 
-**Props:** `src`, `alt`, `width`, `height`, `className`, `priority` (passed to `next/image`), `direction` (bottom/left/right/top — default bottom).
-
-- Animates `clip-path` from fully hidden → fully visible over 0.5s with a subtle 1.02 → 1 scale
-- Use for editorial images, hero photography, how-it-works illustrations — not UI screenshots or logos
+Respects `useReducedMotion`. Lazy-loads `lottie-web`. Use `loop={false}` for one-time feedback (success, error), `loop={true}` for ongoing states (loading).
 
 ---
 
-### NavigationProgress (Route Transition Bar)
-
-```tsx
-import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
-
-// Place once in app/layout.tsx — renders globally
-<NavigationProgress />
-```
-
-- Fixed to the top of the viewport. Uses `bg-accent-teal` (teal accent color).
-- Only visible after the first navigation — doesn't flash on initial page load
-- Tracks `pathname` changes and `click` events to detect navigation start
-- Fades out via `AnimatePresence` after route completes
-- **One instance only.** Already placed in `app/layout.tsx` — do not add more.
-
----
-
-### MorningSkyBackground (Full-Page Sky Gradient)
-
-```tsx
-import { MorningSkyBackground } from "@/components/ui/morning/morning-sky-background"
-
-// Alternative to MeshGradientCanvas — use on specific pages, not globally
-<MorningSkyBackground className="opacity-60" />
-```
-
-- Fixed, full viewport-height background with a higher-fidelity sky scene than `MeshGradientCanvas`
-- **Light mode:** warm morning gradient + 3 cloud shapes (60-90s drift) + warm dawn accent
-- **Dark mode:** deep navy gradient + scattered star specks + teal nebula wash
-- Use on splash/landing pages where you want a richer sky scene — not as a global layout background
-- Do not use alongside `MeshGradientCanvas` on the same page — they conflict visually
-
----
-
-## 12. Layout
+## 13. Layout
 
 ### Grids
 
@@ -686,7 +514,7 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 
 ---
 
-## 13. Trust Logos
+## 14. Trust Logos
 
 Three regulatory logos displayed on service and marketing pages:
 
@@ -701,7 +529,7 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 14. Voice & Copy Rules
+## 15. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|
@@ -712,28 +540,22 @@ Always use `unoptimized` prop with Next.js Image for SVGs.
 
 ---
 
-## 15. Do / Don't
+## 16. Do / Don't
 
 | Do | Don't |
 |----|-------|
 | Solid white cards with sky-toned shadows | Glass morphism / backdrop-blur on cards |
 | `bg-white dark:bg-card` for all card surfaces | `bg-card/60 dark:bg-white/5 backdrop-blur` |
 | `shadow-md shadow-primary/[0.06]` for depth | Black box-shadow anywhere |
-| `hover:-translate-y-0.5` for card interaction | No interaction on hover |
-| `MeshGradientCanvas` global canvas as page background | Setting `background` on `body` or `html` directly |
-| `bg-white dark:bg-card` for all card surfaces | `bg-card/60 backdrop-blur` — semi-transparent cards are glass morphism |
-| Static single headline in heroes | Rotating/cycling text in h1 — kills LCP and conversion |
-| Trust signal pills with icons in hero footer | Plain text dot-separated trust row |
+| `hover:-translate-y-1` for card interaction | No interaction on hover |
+| Morning gradient — radial, hero background only | Full gradient page background |
 | Split or centered hero (context-dependent) | One rigid hero layout for everything |
 | Full dark mode support (`dark:` variants) | Dark mode limited to dashboard only |
 | 16px body on patient flows | 14px — too small for anxious patients |
 | Squircle / rounded corners | Any sharp geometry |
 | Source Sans 3 for everything | Inter, Roboto, serif, decorative |
 | `scale: 0.98` on press | `scale: 0.95` — too aggressive |
-| `initial={{}}` for reduced motion on `motion.*` | Hardcoded `initial={{ opacity: 0 }}` without reduced-motion check |
-| `bg-success-light`, `text-warning`, `border-destructive-border` | `bg-green-50`, `text-amber-600`, `border-red-200` — raw palette colors |
-| `bg-success`, `text-success` for live status dots | `bg-emerald-500` raw color |
-| `font-semibold` (600) max weight in UI | `font-extrabold` (800) — 700 is loaded but reserved for email templates only |
+| `initial={{}}` for reduced motion | `initial={false}` — invalid prop |
 | `viewport={{ once: true }}` always | Animating on every scroll pass |
 | Product mockups as section anchors | Illustration-only grids |
 | 48px min tap target on mobile | Small hit areas on patient forms |

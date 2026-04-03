@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock, BookOpen } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
@@ -35,9 +36,8 @@ export default function GuidesIndexPage() {
           {/* Hero */}
           <section className="px-4 py-16 border-b border-border dark:border-border">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                <BookOpen className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Healthcare Guides</span>
+              <div className="mb-6">
+                <SectionPill>Healthcare Guides</SectionPill>
               </div>
               <h1 className="text-4xl font-semibold text-foreground mb-4">
                 Practical Healthcare Guides

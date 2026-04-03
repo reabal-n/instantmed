@@ -2,15 +2,16 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { 
-  Bell, 
-  FileText, 
-  CreditCard, 
-  Pill, 
-  AlertCircle, 
+import {
+  Bell,
+  FileText,
+  CreditCard,
+  Pill,
+  AlertCircle,
   CheckCheck,
   Settings
 } from "lucide-react"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -224,6 +225,7 @@ export function NotificationsClient({ notifications: initialNotifications, patie
       {/* Notifications List */}
       {filteredNotifications.length === 0 ? (
         <div className="text-center py-16">
+          <LottieAnimation name="notification" size={80} loop={false} className="mx-auto mb-2" />
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
             <Bell className="h-8 w-8 text-muted-foreground" />
           </div>

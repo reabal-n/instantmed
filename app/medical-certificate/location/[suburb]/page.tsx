@@ -2,7 +2,8 @@ import Script from "next/script"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, Zap, Building2, GraduationCap, HardHat } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Clock, Shield, Star, CheckCircle2, Zap, Building2, GraduationCap, HardHat } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -336,9 +337,8 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* Hero */}
           <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm mb-6">
-                <MapPin className="h-4 w-4" />
-                {data.name}, {data.stateShort}
+              <div className="mb-6">
+                <SectionPill>{data.name}, {data.stateShort}</SectionPill>
               </div>
 
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">

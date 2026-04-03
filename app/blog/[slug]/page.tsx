@@ -2,6 +2,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowLeft, User, Clock, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -292,9 +293,9 @@ export default async function BlogPostPage({ params }: PageProps) {
                 Back to Health Guides
               </Link>
 
-              <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary mb-4">
-                {post.category}
-              </span>
+              <div className="mb-4">
+                <SectionPill>{post.category}</SectionPill>
+              </div>
 
               <h1 className="text-2xl font-semibold sm:text-3xl mb-4">
                 {post.title}

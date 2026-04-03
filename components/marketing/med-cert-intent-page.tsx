@@ -476,7 +476,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               <Button
                 asChild
                 size="sm"
-                className="px-5 font-semibold shadow-lg shadow-primary/25 shrink-0"
+                className="px-5 font-semibold shadow-lg shadow-primary/20 shrink-0"
               >
                 <Link href={ctaHref}>
                   {isDisabled ? 'Contact us' : 'Get started'}

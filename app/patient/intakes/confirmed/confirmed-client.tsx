@@ -2,8 +2,8 @@
 
 import { useEffect } from "react"
 import { Check, Mail, Clock, ArrowRight } from "lucide-react"
-import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { Card } from "@/components/ui/card"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { capture } from "@/lib/analytics/capture"
@@ -15,8 +15,7 @@ interface ConfirmedClientProps {
   serviceName?: string
 }
 
-export function ConfirmedClient({ intakeId, email, serviceName }: ConfirmedClientProps) {
-  const isMedCert = serviceName?.toLowerCase().includes("cert") ?? false
+export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: ConfirmedClientProps) {
   useEffect(() => {
     // Track guest confirmation view
     capture("guest_confirmation_viewed", {
@@ -27,16 +26,14 @@ export function ConfirmedClient({ intakeId, email, serviceName }: ConfirmedClien
 
   return (
     <Card className="p-8 text-center">
-      <LottieAnimation name="confetti" size={80} loop={false} className="mx-auto -mb-2" />
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-light mb-6">
-        <Check className="w-8 h-8 text-success" />
+      <LottieAnimation name="success" size={80} loop={false} className="mx-auto mb-2" />
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-6">
+        <Check className="w-8 h-8 text-emerald-500" />
       </div>
 
       <h1 className="text-2xl font-semibold tracking-tight mb-2">Request Confirmed</h1>
       <p className="text-muted-foreground mb-6">
-        {isMedCert
-          ? "Your payment was successful. Check your email shortly for your certificate."
-          : "Your payment was successful. A doctor will review your request shortly."}
+        Your payment was successful. A doctor will review your request shortly.
       </p>
 
       <div className="space-y-4 text-left bg-muted/30 rounded-xl p-4 mb-6">
@@ -63,15 +60,13 @@ export function ConfirmedClient({ intakeId, email, serviceName }: ConfirmedClien
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">
-              {isMedCert
-                ? "Certificates are typically delivered in under 30 minutes."
-                : "Medical certificates are typically delivered in under 30 minutes. Other requests are typically reviewed within 1–2 hours."}
+              Most requests are reviewed within 30 minutes during business hours
             </p>
           </div>
         </div>
       </div>
 
-      <div className="text-left bg-info-light border border-info-border rounded-xl p-4 mb-6">
+      <div className="text-left bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">How does this work?</span>{" "}
           A real doctor reviews your request and decides based on your symptoms and history. 

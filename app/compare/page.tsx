@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Scale, Zap, Building2, Globe } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Zap, Building2, Globe } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
@@ -56,9 +57,8 @@ export default function CompareIndexPage() {
           {/* Hero */}
           <section className="px-4 py-16 bg-white dark:bg-card border-b border-border/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                <Scale className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Honest Comparisons</span>
+              <div className="mb-6">
+                <SectionPill>Honest Comparisons</SectionPill>
               </div>
               <h1 className="text-4xl font-semibold text-foreground mb-4">
                 Compare Your Healthcare Options

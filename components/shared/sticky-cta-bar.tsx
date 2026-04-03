@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { X, Clock } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -58,8 +57,14 @@ export function StickyCTABar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isDismissed, handleScroll])
 
-  // Don't show on pages with their own sticky CTA, request flows, or portals
-  if (!pathname || pathname.startsWith("/medical-certificate") || pathname.includes("/request") || pathname.startsWith("/patient") || pathname.startsWith("/doctor")) {
+  // Don't show on request flows, portals, or pages with their own sticky CTA
+  if (
+    !pathname ||
+    pathname.includes("/request") ||
+    pathname.startsWith("/patient") ||
+    pathname.startsWith("/doctor") ||
+    pathname.startsWith("/medical-certificate")
+  ) {
     return null
   }
 

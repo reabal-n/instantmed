@@ -192,6 +192,10 @@ export function TrackingClient({
               </p>
             </div>
 
+            {(intake.status === "approved" || intake.status === "completed") && (
+              <LottieAnimation name="success" size={60} loop={false} className="mx-auto -mb-2" />
+            )}
+
             <Badge
               variant={
                 intake.status === "approved" || intake.status === "completed"

@@ -4,9 +4,8 @@ import { useState, useEffect } from "react"
 import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 
 /**
  * Error Recovery Components
@@ -119,14 +118,14 @@ export function ErrorBanner({
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
       className={cn(
         "rounded-xl border p-4",
         errorType === "validation"
-          ? "bg-warning-light border-warning-border"
-          : "bg-destructive-light border-destructive-border",
+          ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20"
+          : "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20",
         className
       )}
     >
@@ -137,8 +136,8 @@ export function ErrorBanner({
         <div className={cn(
           "shrink-0 mt-0.5",
           errorType === "validation"
-            ? "text-warning"
-            : "text-destructive"
+            ? "text-amber-600 dark:text-amber-400"
+            : "text-red-600 dark:text-red-400"
         )}>
           {config.icon}
         </div>
@@ -147,16 +146,16 @@ export function ErrorBanner({
           <h4 className={cn(
             "font-medium",
             errorType === "validation"
-              ? "text-warning"
-              : "text-destructive"
+              ? "text-amber-800 dark:text-amber-200"
+              : "text-red-800 dark:text-red-200"
           )}>
             {config.title}
           </h4>
           <p className={cn(
             "text-sm mt-1",
             errorType === "validation"
-              ? "text-warning"
-              : "text-destructive"
+              ? "text-amber-700 dark:text-amber-300"
+              : "text-red-700 dark:text-red-300"
           )}>
             {config.description}
           </p>
@@ -181,7 +180,7 @@ export function ErrorBanner({
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
-                    initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
+                    initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
                     className="overflow-hidden"
@@ -245,7 +244,7 @@ interface FieldErrorProps {
 export function FieldError({ error, suggestions, className }: FieldErrorProps) {
   return (
     <div className={cn("text-sm", className)}>
-      <p className="text-destructive flex items-center gap-1">
+      <p className="text-red-600 dark:text-red-400 flex items-center gap-1">
         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
         {error}
       </p>
@@ -302,7 +301,7 @@ export function NetworkStatus() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: -50 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -50 }}
         className={cn(

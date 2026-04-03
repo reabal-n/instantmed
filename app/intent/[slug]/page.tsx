@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import {
   ArrowRight,
   Clock,
@@ -11,8 +11,7 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import {
   getIntentPageBySlug,
@@ -70,9 +69,9 @@ function renderContentBlock(block: ContentBlock) {
     return (
       <div
         key={block.id}
-        className="p-4 rounded-xl bg-warning-light/30 border border-warning-border"
+        className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
       >
-        <p className="text-sm text-warning">
+        <p className="text-sm text-amber-800 dark:text-amber-200">
           <strong>Important:</strong> {block.content as string}
         </p>
       </div>
@@ -96,7 +95,6 @@ export default async function IntentPage({ params }: PageProps) {
 
   return (
     <>
-      <HealthArticleSchema title={page.title} description={page.description} url={`/intent/${slug}`} />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
@@ -111,7 +109,6 @@ export default async function IntentPage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />
-        <ContentPageTracker pageType="intent" slug={slug} />
 
         <main className="flex-1 pt-20">
           <div className="px-4 pt-6">
@@ -130,22 +127,19 @@ export default async function IntentPage({ params }: PageProps) {
           <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-info-light rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
             </div>
 
             <div className="mx-auto max-w-4xl">
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <Shield className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">AHPRA Registered Doctors</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success-light border border-success-border/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <Clock className="w-4 h-4 text-success" />
+                <SectionPill>AHPRA Registered Doctors</SectionPill>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                  <Clock className="w-4 h-4 text-emerald-600" />
                   <span className="text-sm font-medium">Usually under 1 hour</span>
                 </div>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-semibold text-center text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
                 {page.h1}
               </h1>
 
@@ -178,7 +172,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* Content blocks */}
           <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 What You Need to Know
               </h2>
 
@@ -198,7 +192,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
 
@@ -220,7 +214,7 @@ export default async function IntentPage({ params }: PageProps) {
           {page.links.related.length > 0 && (
             <section className="px-4 py-12 bg-muted/30">
               <div className="mx-auto max-w-4xl">
-                <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+                <h2 className="text-xl font-bold text-foreground mb-6 text-center">
                   Related Resources
                 </h2>
                 <div className="flex flex-wrap justify-center gap-4">
@@ -253,39 +247,10 @@ export default async function IntentPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Guides & Content Cross-Links */}
-          <section className="px-4 py-8">
-            <div className="mx-auto max-w-3xl">
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-                <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
-                  Med cert guide
-                </Link>
-                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
-                  Telehealth guide
-                </Link>
-                <Link href="/compare/telehealth-vs-gp" className="text-primary hover:underline">
-                  Telehealth vs GP
-                </Link>
-                <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
-                  Telehealth vs GP (article)
-                </Link>
-                <Link href="/blog/repeat-prescription-online-australia" className="text-primary hover:underline">
-                  Repeat scripts online
-                </Link>
-                <Link href="/conditions" className="text-primary hover:underline">
-                  All conditions
-                </Link>
-                <Link href="/symptoms" className="text-primary hover:underline">
-                  Symptom checker
-                </Link>
-              </div>
-            </div>
-          </section>
-
           {/* Final CTA */}
           <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-semibold text-foreground mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Ready to get started?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
@@ -316,9 +281,6 @@ export default async function IntentPage({ params }: PageProps) {
               </div>
             </div>
           </section>
-
-          {/* Medical Disclaimer */}
-          <MedicalDisclaimer reviewedDate="2026-03" />
         </main>
 
         <Footer />

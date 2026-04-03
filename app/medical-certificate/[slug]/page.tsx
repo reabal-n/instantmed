@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Shield, Star, CheckCircle2, Zap } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Shield, Star, CheckCircle2, Zap } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import {
@@ -277,9 +278,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
           <section className="relative px-4 py-16 md:py-24 overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-blue-500/5" />
             <div className="relative mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-6">
-                <MapPin className="h-4 w-4" />
-                {data.localFlair}
+              <div className="mb-6">
+                <SectionPill>{data.localFlair}</SectionPill>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-semibold mb-4">

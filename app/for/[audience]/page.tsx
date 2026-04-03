@@ -1,16 +1,13 @@
 import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
-import { SectionPill } from "@/components/ui/section-pill"
 import { ArrowRight, Shield, Zap, Clock, Star } from "lucide-react"
+import { SectionPill } from "@/components/ui/section-pill"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getAudiencePageConfig, getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 interface PageProps {
   params: Promise<{ audience: string }>
@@ -49,6 +46,7 @@ export default async function AudiencePage({ params }: PageProps) {
     notFound()
   }
 
+  const _Icon = config.icon
   const baseUrl = "https://instantmed.com.au"
 
   const faqSchemaData = config.faqs.map((faq) => ({
@@ -58,7 +56,6 @@ export default async function AudiencePage({ params }: PageProps) {
 
   return (
     <>
-      <HealthArticleSchema title={config.h1} description={config.metadata.description} url={`/for/${config.slug}`} />
       <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
@@ -70,7 +67,6 @@ export default async function AudiencePage({ params }: PageProps) {
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
-        <ContentPageTracker pageType="audience" slug={audience} />
 
         <main className="flex-1 pt-20">
           {/* Hero */}
@@ -78,9 +74,11 @@ export default async function AudiencePage({ params }: PageProps) {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="mb-4"><SectionPill>{config.badgeLabel}</SectionPill></div>
+                  <div className="mb-4">
+                    <SectionPill>{config.badgeLabel}</SectionPill>
+                  </div>
 
-                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     {config.h1}
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
@@ -121,7 +119,7 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
                   Why {config.badgeLabel.replace("For ", "").toLowerCase()} choose InstantMed
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -143,7 +141,7 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
                   What people say
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -154,7 +152,7 @@ export default async function AudiencePage({ params }: PageProps) {
                     >
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
                         ))}
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
@@ -164,9 +162,6 @@ export default async function AudiencePage({ params }: PageProps) {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Individual experiences may vary. All requests are subject to doctor assessment.
-                </p>
               </div>
             </div>
           </section>
@@ -175,7 +170,7 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
                   How it works
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -201,7 +196,7 @@ export default async function AudiencePage({ params }: PageProps) {
                   ].map((item) => (
                     <div key={item.step} className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl text-center p-4">
                       <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
-                        <span className="font-semibold text-lg text-primary-foreground">{item.step}</span>
+                        <span className="font-bold text-lg text-primary-foreground">{item.step}</span>
                       </div>
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
@@ -219,7 +214,7 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
                   Quick answers
                 </h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
@@ -235,8 +230,8 @@ export default async function AudiencePage({ params }: PageProps) {
                   <div className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15">
                     <h3 className="text-sm font-semibold mb-1.5">What does it cost?</h3>
                     <p className="text-xs text-muted-foreground">
-                      Medical certificates from {PRICING_DISPLAY.MED_CERT} (1 day) or {PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from
-                      {" "}{PRICING_DISPLAY.REPEAT_SCRIPT}.
+                      Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from
+                      $29.95.
                     </p>
                   </div>
                 </div>
@@ -244,93 +239,12 @@ export default async function AudiencePage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Industry Context — deep unique content for SEO */}
-          {config.industryContext && config.industryContext.length > 0 && (
-            <section className="px-4 py-12 sm:px-6">
-              <div className="mx-auto max-w-3xl space-y-4">
-                {config.industryContext.map((paragraph, i) => (
-                  <p key={i} className="text-muted-foreground leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Common Conditions for this audience */}
-          {config.commonConditions && config.commonConditions.length > 0 && (
-            <section className="px-4 py-12 sm:px-6 bg-muted/30 dark:bg-white/[0.03]">
-              <div className="mx-auto max-w-3xl">
-                <h2 className="text-xl font-semibold mb-6 text-center">
-                  Common Reasons {config.badgeLabel.replace("For ", "")} Need a Certificate
-                </h2>
-                <div className="space-y-3">
-                  {config.commonConditions.map((condition) => (
-                    <Link
-                      key={condition.slug}
-                      href={`/conditions/${condition.slug}`}
-                      className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 hover:border-primary/30 transition-all"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <Shield className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">
-                          {condition.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">{condition.why}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Workplace Rights */}
-          {config.workplaceRights && config.workplaceRights.length > 0 && (
-            <section className="px-4 py-12 sm:px-6">
-              <div className="mx-auto max-w-3xl">
-                <h2 className="text-xl font-semibold mb-6 text-center">
-                  Your Workplace Rights
-                </h2>
-                <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6">
-                  <ul className="space-y-3">
-                    {config.workplaceRights.map((right, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
-                          <Zap className="w-3 h-3 text-success" />
-                        </div>
-                        <span className="text-sm text-muted-foreground leading-relaxed">{right}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-4 pt-4 border-t border-border/30 text-xs text-muted-foreground">
-                    Source: Fair Work Ombudsman (fairwork.gov.au). This information is general in nature.
-                    Check your specific award or enterprise agreement for details.
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Clinical Governance */}
-          <div className="mx-auto max-w-3xl px-4 py-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              All clinical decisions are made by AHPRA-registered doctors following{" "}
-              <Link href="/clinical-governance" className="text-primary hover:underline">
-                our clinical governance framework
-              </Link>
-              . We never automate clinical decisions.
-            </p>
-          </div>
-
           {/* CTA */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="bg-primary/5 dark:bg-card border border-primary/20 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in under 30 minutes</h2>
+                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     No appointments. No waiting rooms. Just results.
                   </p>
@@ -344,89 +258,39 @@ export default async function AudiencePage({ params }: PageProps) {
                     </Button>
                   </Link>
                   <p className="mt-4 text-xs text-muted-foreground">
-                    {PRICING_DISPLAY.FROM_MED_CERT} • 8am-10pm, 7 days
+                    From $19.95 • 8am-10pm, 7 days
                   </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Related Resources & Cross-Links */}
-          <section className="px-4 py-12 border-t">
-            <div className="mx-auto max-w-3xl">
-              <div className="grid gap-6 sm:grid-cols-2 mb-8">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Helpful Guides</h3>
-                  <ul className="space-y-2">
-                    <li>
-                      <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-sm text-primary hover:underline">
-                        How to get a med cert for work
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/guides/how-to-get-sick-note-for-uni" className="text-sm text-primary hover:underline">
-                        Getting a sick note for uni
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/guides/telehealth-guide-australia" className="text-sm text-primary hover:underline">
-                        Telehealth guide for Australians
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-sm text-primary hover:underline">
-                        How to get a med cert online
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Common Conditions</h3>
-                  <ul className="space-y-2">
-                    <li>
-                      <Link href="/conditions/cold-and-flu" className="text-sm text-primary hover:underline">
-                        Cold & Flu
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/conditions/back-pain" className="text-sm text-primary hover:underline">
-                        Back Pain
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/conditions/migraine" className="text-sm text-primary hover:underline">
-                        Migraine
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/conditions/mental-health-day" className="text-sm text-primary hover:underline">
-                        Mental Health
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  <Link href="/for/students" className="text-primary hover:underline">Students</Link>
-                  {" • "}
-                  <Link href="/for/tradies" className="text-primary hover:underline">Tradies</Link>
-                  {" • "}
-                  <Link href="/for/corporate" className="text-primary hover:underline">Corporate</Link>
-                  {" • "}
-                  <Link href="/for/shift-workers" className="text-primary hover:underline">Shift Workers</Link>
-                  {" • "}
-                  <Link href="/medical-certificate" className="text-primary hover:underline">Medical Certificates</Link>
-                  {" • "}
-                  <Link href="/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
-                </p>
-              </div>
+          {/* Related */}
+          <section className="px-4 py-8 border-t">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm text-muted-foreground">
+                <Link href="/for/students" className="text-primary hover:underline">
+                  Students
+                </Link>
+                {" • "}
+                <Link href="/for/tradies" className="text-primary hover:underline">
+                  Tradies
+                </Link>
+                {" • "}
+                <Link href="/for/corporate" className="text-primary hover:underline">
+                  Corporate
+                </Link>
+                {" • "}
+                <Link href="/for/shift-workers" className="text-primary hover:underline">
+                  Shift Workers
+                </Link>
+                {" • "}
+                <Link href="/medical-certificate" className="text-primary hover:underline">
+                  Medical Certificate
+                </Link>
+              </p>
             </div>
           </section>
-
-          {/* Medical Disclaimer */}
-          <MedicalDisclaimer reviewedDate="2026-03" />
 
           <LiveWaitTime variant="strip" services={["med-cert"]} />
           <StatsStrip className="bg-muted/20 border-y border-border/30" />
