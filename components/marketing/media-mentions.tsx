@@ -10,28 +10,32 @@ const regulatoryPartners = [
     name: 'AHPRA',
     description: 'AHPRA-registered doctors',
     logo: '/logos/AHPRA.png',
-    width: 100,
+    width: 90,
+    maxWidth: 90,
     isSvg: false,
   },
   {
     name: 'TGA',
     description: 'TGA-compliant prescribing',
     logo: '/logos/TGA.png',
-    width: 80,
+    width: 72,
+    maxWidth: 72,
     isSvg: false,
   },
   {
     name: 'Medicare',
     description: 'Medicare Australia',
     logo: '/logos/medicare.png',
-    width: 90,
+    width: 56,
+    maxWidth: 56,
     isSvg: false,
   },
   {
     name: 'RACGP',
     description: 'RACGP-aligned protocols',
     logo: '/logos/RACGP.png',
-    width: 90,
+    width: 80,
+    maxWidth: 80,
     isSvg: false,
   },
 ]
@@ -54,7 +58,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
           <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
             Regulated by
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+          <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 md:gap-14">
             {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
@@ -65,15 +69,16 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
                 className="flex flex-col items-center gap-2 group"
                 title={partner.description}
               >
-                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-5 py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
+                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-4 py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
                   <Image
                     src={partner.logo}
                     alt={partner.description}
                     width={partner.width}
                     height={40}
                     unoptimized
+                    style={{ maxWidth: partner.maxWidth }}
                     className={cn(
-                      "h-9 w-auto object-contain",
+                      "h-8 w-auto object-contain",
                       partner.isSvg
                         ? "dark:brightness-0 dark:invert"
                         : "rounded dark:bg-white/90 dark:p-0.5"
@@ -117,6 +122,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
                   width={partner.width}
                   height={40}
                   unoptimized
+                  style={{ maxWidth: partner.maxWidth }}
                   className={cn(
                     "h-8 w-auto object-contain",
                     partner.isSvg
