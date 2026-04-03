@@ -213,7 +213,7 @@ upgrade-insecure-requests;
 
 **Why `challenges.cloudflare.com`:** Required by Stripe Checkout for bot protection challenges during payment flows. This is Stripe's embedded Cloudflare challenge, not a standalone Turnstile implementation.
 
-**Why `unsafe-inline` (no `unsafe-eval` in prod):** `unsafe-inline` required by Next.js 15 for hydration scripts and dynamic imports. `unsafe-eval` added only in dev/test for HMR. Nonce-based CSP not fully supported in Next.js 15 production. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
+**Why `unsafe-inline` (no `unsafe-eval` in prod):** `unsafe-inline` required by Next.js 16 for hydration scripts and dynamic imports. `unsafe-eval` added only in dev/test for HMR. Nonce-based CSP not fully supported in Next.js 16 production. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
 
 **CSP violation reporting:** A separate `Content-Security-Policy-Report-Only` header (stricter, no `unsafe-inline`) reports violations to `/api/csp-report` via `report-uri`. The main enforced CSP does **not** include `report-uri`.
 

@@ -107,6 +107,20 @@ initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
 - Never rotate, never elastic, never parallax on content.
 - Panel curve (`[0.16, 1, 0.3, 1]`) for drawers/sheets. Primary ease-out (`[0, 0, 0.2, 1]`) for everything else. Import from `lib/motion.ts`.
 
+**Framer Motion v12 — explicit `Variants` type required:** In v12, `TargetAndTransition` extends `DOMKeyframesDefinition`, which causes TypeScript to reject `transition` inside inline variant objects (CSS `transition` property conflict). Always annotate variant objects explicitly:
+```ts
+import { type Variants } from 'framer-motion'
+
+const myVariants: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }, // ✅ compiles
+}
+
+// ❌ Without annotation — TS2322 error on the transition property
+const myVariants = { hidden: { ... }, visible: { ..., transition: { ... } } }
+```
+This is a compile-time type issue only — runtime behaviour is unchanged.
+
 ---
 
 ## Premium Interactions — Design Spec

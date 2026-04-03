@@ -50,7 +50,7 @@ pnpm ci               # Full CI: install → lint → test → build
 
 ## Tech Stack
 
-Next.js 15 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk auth · Stripe payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI
+Next.js 16 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk v7 auth · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v12
 
 ## Code Conventions
 

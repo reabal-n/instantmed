@@ -570,7 +570,7 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 
 ---
 
-You are performing a comprehensive daily audit of the InstantMed codebase and production environment. This is a Next.js 15 / React 19 / Supabase / Clerk / Stripe telehealth platform preparing for whitelabel.
+You are performing a comprehensive daily audit of the InstantMed codebase and production environment. This is a Next.js 16 / React 19 / Supabase / Clerk v7 / Stripe v22 telehealth platform preparing for whitelabel.
 
 **Instructions:** Load `CLAUDE.md` first. Run every check below. Use subagents in parallel where checks are independent. Auto-fix safe mechanical issues (dead imports, unused variables, lint violations, type errors). For anything that changes logic, behavior, or public APIs — report it but do NOT fix it. Commit safe fixes in grouped commits (one per category).
 
