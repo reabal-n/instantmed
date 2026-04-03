@@ -43,6 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Lighthouse / audit reports
+lighthouse-report.json
+lighthouse-report*.json
 .env*.local
 
 # Sentry Config File
