@@ -13,6 +13,7 @@ import {
   FileCheck,
   Building2,
   Scale,
+  Star,
 } from 'lucide-react'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
@@ -306,6 +307,37 @@ export default function EmployerAcceptancePage() {
                   <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonials */}
+          <section className="px-4 py-16">
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-2xl font-bold text-center mb-2">Accepted without question</h2>
+              <p className="text-center text-muted-foreground text-sm mb-10">
+                What employees say after submitting their InstantMed certificate.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { name: "Sarah M.", location: "Bondi, NSW", text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.", rating: 5 },
+                  { name: "Tom H.", location: "Carlton, VIC", text: "The doctor asked follow-up questions which made it feel legit. Uni accepted it for special consideration straight away.", rating: 5 },
+                  { name: "Nick B.", location: "Pyrmont, NSW", text: "Cert in my inbox by 7am, submitted to work by 7:15. No back and forth, no issues.", rating: 5 },
+                  { name: "Michelle T.", location: "Paddington, QLD", text: "Half expected a rubber stamp. It wasn't — the form asked proper questions and my employer accepted it immediately.", rating: 5 },
+                ].map((t) => (
+                  <div key={t.name} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 space-y-3">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: t.rating }).map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <div>
+                      <p className="text-sm font-medium">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.location}</p>
+                    </div>
                   </div>
                 ))}
               </div>

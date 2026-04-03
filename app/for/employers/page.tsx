@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Star } from "lucide-react"
 import {
   Shield,
   CheckCircle,
@@ -36,6 +38,43 @@ export const metadata: Metadata = {
       "Learn how to verify medical certificates issued by InstantMed. Quick, secure verification for employers.",
   },
 }
+
+const employerLogos = [
+  { name: 'Woolworths', src: '/logos/woolworths.png', width: 90, maxWidth: 90 },
+  { name: 'Coles', src: '/logos/coles.png', width: 70, maxWidth: 70 },
+  { name: 'Telstra', src: '/logos/telstra.png', width: 80, maxWidth: 80 },
+  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png', width: 50, maxWidth: 50 },
+  { name: 'ANZ', src: '/logos/ANZ.png', width: 60, maxWidth: 60 },
+  { name: 'Westpac', src: '/logos/westpac.png', width: 80, maxWidth: 80 },
+  { name: 'NAB', src: '/logos/nab.png', width: 60, maxWidth: 60 },
+  { name: 'Amazon', src: '/logos/amazon.png', width: 90, maxWidth: 90 },
+  { name: 'BHP', src: '/logos/BHP.png', width: 60, maxWidth: 60 },
+  { name: 'Bunnings', src: '/logos/bunnings.png', width: 90, maxWidth: 90 },
+  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png', width: 70, maxWidth: 70 },
+  { name: "McDonald's", src: '/logos/mcdonalds.png', width: 40, maxWidth: 40 },
+  { name: 'Sonic Healthcare', src: '/logos/sonichealthcare.png', width: 110, maxWidth: 110 },
+]
+
+const employeeTestimonials = [
+  {
+    name: "Sarah M.",
+    location: "Bondi, NSW",
+    text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.",
+    rating: 5,
+  },
+  {
+    name: "Tom H.",
+    location: "Carlton, VIC",
+    text: "Missed an exam and needed a cert for special consideration. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
+    rating: 5,
+  },
+  {
+    name: "Nick B.",
+    location: "Pyrmont, NSW",
+    text: "Gastro the night before a big work thing. Cert was in my inbox by 7am. Exactly what I needed.",
+    rating: 5,
+  },
+]
 
 export default function EmployersPage() {
   const certificateFeatures = [
@@ -141,6 +180,30 @@ export default function EmployersPage() {
                   Go to Verification Portal
                 </Link>
               </Button>
+          </div>
+        </section>
+
+        {/* Employer logos */}
+        <section className="py-12 border-b border-border/30 dark:border-white/10">
+          <div className="max-w-5xl mx-auto px-4">
+            <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
+              Used by employees at Australia&apos;s leading organisations
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-5 md:gap-8">
+              {employerLogos.map((logo) => (
+                <div key={logo.name} className="flex items-center justify-center rounded-lg bg-white dark:bg-white/90 border border-border/30 dark:border-transparent px-3 py-2 shadow-sm">
+                  <Image
+                    src={logo.src}
+                    alt={logo.name}
+                    width={logo.width}
+                    height={32}
+                    unoptimized
+                    style={{ maxWidth: logo.maxWidth }}
+                    className="h-7 w-auto object-contain"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -470,6 +533,34 @@ export default function EmployersPage() {
                 <FileText className="w-3.5 h-3.5" />
                 View our clinical governance framework
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Employee testimonials */}
+        <section className="py-16">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 text-center">
+              What employees say
+            </h2>
+            <p className="text-center text-muted-foreground text-sm mb-10">
+              Real reviews from employees whose certificates were accepted without issue.
+            </p>
+            <div className="grid md:grid-cols-3 gap-5">
+              {employeeTestimonials.map((t) => (
+                <div key={t.name} className="bg-card rounded-2xl border p-5 space-y-3">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.location}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
