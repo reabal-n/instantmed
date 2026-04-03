@@ -294,7 +294,7 @@ const nextConfig = {
 
 // Sentry configuration
 const sentryConfig = {
-  org: process.env.SENTRY_ORG || "instantmed",
+  org: process.env.SENTRY_ORG || "reys-projects",
   project: process.env.SENTRY_PROJECT || "instantmed",
   silent: !process.env.CI,
   silenceErrors: true,
