@@ -60,7 +60,7 @@ export const legacyPosts: Record<string, LegacyPost> = {
     date: "2024-01-10",
     readTime: "7 min",
     category: "Prescriptions",
-    image: "/prescription-medication-pharmacy.jpg",
+    image: "/images/people/prescription-medication-pharmacy.jpg",
     relatedLinks: [
       { href: "/request?service=prescription", text: "Request a Prescription" },
       { href: "/locations", text: "Available in 25+ cities" },
