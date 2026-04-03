@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
+import { Suspense } from "react"
 import { Source_Sans_3, JetBrains_Mono } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
@@ -17,6 +18,7 @@ import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
 import { LazyOverlays } from "@/components/shared/lazy-overlays"
+import { ReferralCapture } from "@/components/shared/referral-capture"
 import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
 import { UrgentNoticeBanner } from "@/components/shared/urgent-notice-banner"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
@@ -148,7 +150,7 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="preconnect" href="https://us.posthog.com" />
-          <link rel="dns-prefetch" href="https://api.dicebear.com" />
+          <link rel="preconnect" href="https://api.dicebear.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
           {/* Google Consent Mode v2 - must load BEFORE gtag */}
@@ -209,6 +211,9 @@ export default function RootLayout({
                 <Analytics />
                 <WebVitalsReporter />
                 <ServiceWorkerRegistration />
+                <Suspense fallback={null}>
+                  <ReferralCapture />
+                </Suspense>
                 <CookieBanner />
                 </ServiceAvailabilityProvider>
           </ThemeProvider>

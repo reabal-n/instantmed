@@ -14,6 +14,13 @@ const logger = createLogger("cron-stale-queue")
 const STALE_THRESHOLD_HOURS = 4 // Patients expect "within an hour"
 const CRITICAL_THRESHOLD_HOURS = 8
 
+function formatServiceType(category: string | null): string {
+  if (category === "medical_certificate") return "medical certificate"
+  if (category === "prescription") return "prescription"
+  if (category === "consultation") return "consultation"
+  return "request"
+}
+
 /**
  * Stale Queue Monitor
  * 
@@ -63,10 +70,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Categorize by severity
-    const criticalIntakes = staleIntakes?.filter(i => 
+    const criticalIntakes = staleIntakes?.filter(i =>
       i.paid_at && new Date(i.paid_at) < criticalThreshold
     ) || []
-    const warningIntakes = staleIntakes?.filter(i => 
+    const warningIntakes = staleIntakes?.filter(i =>
       i.paid_at && new Date(i.paid_at) >= criticalThreshold
     ) || []
 
@@ -76,6 +83,73 @@ export async function GET(request: NextRequest) {
       const hoursWaiting = (now.getTime() - paidAt.getTime()) / (1000 * 60 * 60)
       return { id: i.id, serviceType: i.category || 'unknown', hoursWaiting: Math.round(hoursWaiting * 10) / 10 }
     }) || []
+
+    // ── Patient delay notification emails ────────────────────────────────────
+    // Send a "we're running late" email to patients who have been waiting 4h+
+    // but haven't yet received a delay notification. Uses delay_notification_sent_at
+    // as a guard so we only send once per intake.
+    let delayEmailsSent = 0
+    try {
+      const { data: delayEmailCandidates } = await supabase
+        .from("intakes")
+        .select(`
+          id, category,
+          patient:profiles!patient_id(full_name, email)
+        `)
+        .eq("status", "paid")
+        .lt("paid_at", staleThreshold.toISOString())
+        .is("delay_notification_sent_at", null)
+        .not("patient_id", "is", null)
+        .limit(20)
+
+      if (delayEmailCandidates && delayEmailCandidates.length > 0) {
+        const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
+          await Promise.all([
+            import("@/lib/email/send-email"),
+            import("@/components/email/templates/still-reviewing"),
+            import("react"),
+          ])
+
+        await Promise.allSettled(
+          delayEmailCandidates.map(async (intake) => {
+            const patientRaw = intake.patient as
+              | { full_name: string; email: string }[]
+              | { full_name: string; email: string }
+              | null
+            const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
+            if (!patient?.email) return
+
+            const requestType = formatServiceType(intake.category as string | null)
+
+            try {
+              await sendEmail({
+                to: patient.email,
+                toName: patient.full_name || undefined,
+                subject: stillReviewingSubject(requestType),
+                template: React.createElement(StillReviewingEmail, {
+                  patientName: patient.full_name || "there",
+                  requestType,
+                  requestId: intake.id,
+                }),
+                emailType: "still_reviewing",
+                intakeId: intake.id,
+              })
+              // Mark sent so we don't send on the next cron run
+              await supabase
+                .from("intakes")
+                .update({ delay_notification_sent_at: new Date().toISOString() })
+                .eq("id", intake.id)
+              delayEmailsSent++
+            } catch (err) {
+              logger.error("Failed to send patient delay notification", { intakeId: intake.id }, err as Error)
+            }
+          }),
+        )
+      }
+    } catch (delayEmailError) {
+      logger.error("Error in patient delay email block", {}, delayEmailError as Error)
+      // Non-blocking — ops alerting below must still run
+    }
 
     // Alert based on severity
     if (criticalIntakes.length > 0) {
@@ -254,6 +328,7 @@ export async function GET(request: NextRequest) {
       oldest_wait_hours: waitTimes[0]?.hoursWaiting,
       stale_in_review_count: staleInReviewCount,
       stuck_awaiting_script_count: stuckScriptCount,
+      delay_emails_sent: delayEmailsSent,
       alert_sent: true,
       checked_at: now.toISOString(),
     })

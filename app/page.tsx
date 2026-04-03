@@ -16,7 +16,6 @@ import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { ReferralCapture } from '@/components/shared/referral-capture'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import Link from 'next/link'
 import { CTABanner, SectionHeader } from '@/components/sections'
@@ -114,11 +113,6 @@ export default async function HomePage() {
         description="Get medical certificates in under 30 minutes, 24/7. Repeat medication and doctor consults online from $19.95. AHPRA-registered Australian doctors."
         url="/"
       />
-
-      {/* Capture ?ref= referral param into cookie for attribution */}
-      <Suspense fallback={null}>
-        <ReferralCapture />
-      </Suspense>
 
       {/* Client component for hash navigation */}
       <HashScrollHandler />

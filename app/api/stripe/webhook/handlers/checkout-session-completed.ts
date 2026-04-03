@@ -417,7 +417,117 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       }
     }
 
-    // STEP 4b: Mark exit-intent captures as converted (non-critical)
+    // STEP 4b: Award referral credits on first payment (non-critical)
+    // If this checkout included a referral_code, check if this is the referred user's first payment.
+    // If so: mark referral_event completed + award $5 to both referrer and referred.
+    try {
+      const referralCode = session.metadata?.referral_code
+      if (referralCode && patientId) {
+        // Is this the referred user's first payment?
+        const { count: priorPayments } = await supabase
+          .from("intakes")
+          .select("id", { count: "exact", head: true })
+          .eq("patient_id", patientId)
+          .eq("payment_status", "paid")
+          .neq("id", intakeId) // exclude the current one
+
+        const isFirstPayment = (priorPayments ?? 0) === 0
+
+        if (isFirstPayment) {
+          // Look up referrer by code
+          const { data: referrer } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("referral_code", referralCode)
+            .maybeSingle()
+
+          if (referrer && referrer.id !== patientId) {
+            // Create or find the referral_event (upsert — idempotent if webhook retries)
+            const { data: existingEvent } = await supabase
+              .from("referral_events")
+              .select("id, status")
+              .eq("referrer_id", referrer.id)
+              .eq("referred_id", patientId)
+              .maybeSingle()
+
+            if (!existingEvent) {
+              // First time we've seen this pair — create event + award credits
+              const { data: newEvent } = await supabase
+                .from("referral_events")
+                .insert({
+                  referrer_id: referrer.id,
+                  referred_id: patientId,
+                  status: "credited",
+                  completed_at: new Date().toISOString(),
+                  credited_at: new Date().toISOString(),
+                  intake_id: intakeId,
+                })
+                .select("id")
+                .single()
+
+              if (newEvent) {
+                // Award $5 to referrer
+                await supabase.from("referral_credits").insert({
+                  profile_id: referrer.id,
+                  referral_event_id: newEvent.id,
+                  credit_cents: 500,
+                  credit_type: "referrer",
+                })
+                // Award $5 to referred patient
+                await supabase.from("referral_credits").insert({
+                  profile_id: patientId,
+                  referral_event_id: newEvent.id,
+                  credit_cents: 500,
+                  credit_type: "referred",
+                })
+                log.info("Referral credits awarded", {
+                  referrerId: referrer.id,
+                  referredId: patientId,
+                  intakeId,
+                })
+              }
+            } else if (existingEvent.status === "pending") {
+              // Referral event exists but not yet credited — complete it
+              await supabase
+                .from("referral_events")
+                .update({
+                  status: "credited",
+                  completed_at: new Date().toISOString(),
+                  credited_at: new Date().toISOString(),
+                  intake_id: intakeId,
+                })
+                .eq("id", existingEvent.id)
+
+              await Promise.all([
+                supabase.from("referral_credits").insert({
+                  profile_id: referrer.id,
+                  referral_event_id: existingEvent.id,
+                  credit_cents: 500,
+                  credit_type: "referrer",
+                }),
+                supabase.from("referral_credits").insert({
+                  profile_id: patientId,
+                  referral_event_id: existingEvent.id,
+                  credit_cents: 500,
+                  credit_type: "referred",
+                }),
+              ])
+              log.info("Referral credits awarded (existing event)", {
+                referrerId: referrer.id,
+                referredId: patientId,
+                intakeId,
+              })
+            }
+            // If status is already 'credited', idempotent — do nothing
+          }
+        }
+      }
+    } catch (referralErr) {
+      // Never fail the payment flow over referral logic
+      log.error("Referral credit error (non-fatal)", { intakeId }, referralErr as Error)
+    }
+
+    // STEP 4c: Mark exit-intent captures as converted (non-critical)
     // If this customer previously triggered an exit-intent nurture, stop further emails
     try {
       const customerEmail = session.customer_details?.email || session.customer_email
