@@ -1,6 +1,5 @@
 'use client'
 
-import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, StatsStrip } from "@/components/marketing"

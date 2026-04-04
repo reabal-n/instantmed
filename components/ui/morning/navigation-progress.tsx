@@ -2,26 +2,33 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion";
+// framer-motion removed — module factory race condition in root layout chunk.
+// Progress bar uses CSS transition triggered via requestAnimationFrame.
 
 export function NavigationProgress() {
   const pathname = usePathname();
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [scaleX, setScaleX] = useState(0);
   const prefersReducedMotion = useReducedMotion();
-
-  // Track whether the user has navigated at least once
   const initialPathRef = useRef(pathname);
+
   useEffect(() => {
     if (pathname !== initialPathRef.current) {
       setHasNavigated(true);
     }
     setIsNavigating(false);
+    setScaleX(0);
   }, [pathname]);
 
-  // Only attach the click listener after the first navigation has occurred,
-  // or lazily on first click — attach always but keep the handler cheap
+  // Trigger CSS transition one frame after mount to animate from 0 → 0.85
+  useEffect(() => {
+    if (!isNavigating) return;
+    const raf = requestAnimationFrame(() => setScaleX(0.85));
+    return () => cancelAnimationFrame(raf);
+  }, [isNavigating]);
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest("a");
@@ -32,29 +39,23 @@ export function NavigationProgress() {
       ) {
         setHasNavigated(true);
         setIsNavigating(true);
+        setScaleX(0);
       }
     };
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, [pathname]);
 
-  if (prefersReducedMotion) return null;
-  if (!hasNavigated) return null;
+  if (prefersReducedMotion || !hasNavigated || !isNavigating) return null;
 
   return (
-    <AnimatePresence>
-      {isNavigating && (
-        <motion.div
-          className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-accent-teal"
-          initial={{ scaleX: 0, transformOrigin: "left" }}
-          animate={{ scaleX: 0.85 }}
-          exit={{ scaleX: 1, opacity: 0 }}
-          transition={{
-            scaleX: { duration: 0.4, ease: "easeOut" },
-            opacity: { duration: 0.15, delay: 0 },
-          }}
-        />
-      )}
-    </AnimatePresence>
+    <div
+      className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-accent-teal"
+      style={{
+        transformOrigin: "left",
+        transform: `scaleX(${scaleX})`,
+        transition: "transform 0.4s ease-out",
+      }}
+    />
   );
 }

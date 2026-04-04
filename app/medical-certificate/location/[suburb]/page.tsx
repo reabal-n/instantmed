@@ -321,8 +321,10 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
 
   return (
     <>
-      <script id={`faq-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
-      <script id={`local-schema-${suburb}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }} />
+      <script id={`faq-schema-${suburb}`} type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <script id={`local-schema-${suburb}`} type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Medical Certificates", url: "https://instantmed.com.au/medical-certificate" },

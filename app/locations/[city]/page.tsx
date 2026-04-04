@@ -597,8 +597,10 @@ export default async function CityPage({ params }: PageProps) {
 
   return (
     <>
-      <script id="local-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
-      <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <script id="local-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
+      <script id="faq-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://instantmed.com.au" },
         { name: "Locations", url: "https://instantmed.com.au/locations" },

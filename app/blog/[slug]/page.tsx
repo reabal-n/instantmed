@@ -223,6 +223,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         )}
         <script
           type="application/ld+json"
+        suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }}
         />
 
@@ -276,7 +277,8 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <>
-      <script id="article-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />
+      <script id="article-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

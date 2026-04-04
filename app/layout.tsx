@@ -23,7 +23,7 @@ import { ServiceAvailabilityProvider } from "@/components/providers/service-avai
 import { UrgentNoticeBanner } from "@/components/shared/urgent-notice-banner"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
 import { MotionProvider } from "@/components/providers/motion-provider"
-import Script from "next/script"
+import { GoogleTags } from "@/components/providers/google-tags"
 import "./globals.css"
 
 const sourceSans = Source_Sans_3({
@@ -154,45 +154,11 @@ export default function RootLayout({
           <link rel="preconnect" href="https://api.dicebear.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
-          {/* Google Consent Mode v2 - must load BEFORE gtag */}
-          <Script id="google-consent-mode" strategy="beforeInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              window.gtag = gtag;
-              gtag('consent', 'default', {
-                'ad_storage': 'denied',
-                'ad_user_data': 'denied',
-                'ad_personalization': 'denied',
-                'analytics_storage': 'granted',
-                'functionality_storage': 'granted',
-                'personalization_storage': 'denied',
-                'security_storage': 'granted',
-                'wait_for_update': 500
-              });
-            `}
-          </Script>
-
-          {/* Google tag (gtag.js) — afterInteractive so tag fires for verification */}
-          <Script
-            src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-            strategy="afterInteractive"
-          />
-          <Script id="google-gtag" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              window.gtag = gtag;
-              gtag('js', new Date());
-              gtag('config', 'AW-17795889471', {
-                'allow_enhanced_conversions': true
-              });
-            `}
-          </Script>
-          <OrganizationSchema />
-          <WebSiteSchema />
         </head>
         <body className="font-sans antialiased text-foreground">
+          <OrganizationSchema />
+          <WebSiteSchema />
+          <GoogleTags />
           <PostHogLoader>
           <MotionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

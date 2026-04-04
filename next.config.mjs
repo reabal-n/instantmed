@@ -17,6 +17,20 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '1mb',
     },
+    // Ensure framer-motion sub-modules (proxy.mjs, AnimatePresence, hooks) are
+    // bundled into a single optimised chunk rather than split into separate
+    // factory chunks. Prevents Turbopack's module factory race condition in dev
+    // where page-level chunks reference framer-motion sub-modules whose factory
+    // chunks aren't in the page's TURBOPACK_CHUNK_LISTS. (Next.js #70703)
+    optimizePackageImports: ['framer-motion'],
+  },
+  // Redirect next-themes to a patched local copy that uses useInsertionEffect
+  // instead of rendering React.createElement("script", ...), which throws in
+  // React 19 dev mode: "Encountered a script tag while rendering React component"
+  turbopack: {
+    resolveAlias: {
+      'next-themes': './lib/next-themes-patched.mjs',
+    },
   },
   // webpack config only applies when explicitly running with --webpack flag.
   // Turbopack (the v16 default) ignores this block entirely.
@@ -249,10 +263,10 @@ const nextConfig = {
         }, {
           key: "Content-Security-Policy",
           value: standardCSP.join("; ")
-        }, {
-          // Report-Only CSP: stricter policy (no unsafe-inline) that reports violations
-          // without blocking anything. Used to monitor what would break if we tightened the
-          // main CSP. Violations are logged to Sentry via /api/csp-report.
+        },
+        // Report-Only CSP: production only — dev generates too many false violations
+        // from Turbopack HMR (eval), PostHog workers (blob), and inline dev tooling.
+        ...(isDev ? [] : [{
           key: "Content-Security-Policy-Report-Only",
           value: [
             "default-src 'self'",
@@ -265,7 +279,7 @@ const nextConfig = {
             "object-src 'none'",
             "report-uri /api/csp-report",
           ].join("; ")
-        }]
+        }])]
       },
       // Cache static assets for 1 year (immutable)
       {

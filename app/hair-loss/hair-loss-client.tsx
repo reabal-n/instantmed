@@ -300,6 +300,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
     <MarketingPageShell>
       <script
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
 

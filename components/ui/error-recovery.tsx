@@ -5,7 +5,8 @@ import { AlertCircle, RefreshCw, WifiOff, ServerOff, ChevronDown, Copy, Check } 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+// framer-motion removed — module factory race condition in root layout chunk.
+// motion/AnimatePresence replaced with CSS transitions.
 
 /**
  * Error Recovery Components
@@ -102,8 +103,6 @@ export function ErrorBanner({
 }: ErrorBannerProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-
   if (!error) return null
 
   const errorType = type || detectErrorType(error)
@@ -117,10 +116,7 @@ export function ErrorBanner({
   }
 
   return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+    <div
       className={cn(
         "rounded-xl border p-4",
         errorType === "validation"
@@ -177,26 +173,24 @@ export function ErrorBanner({
                 Technical details
               </button>
               
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="mt-2 p-2 rounded bg-black/5 dark:bg-white/5 text-xs font-mono text-muted-foreground flex items-start justify-between gap-2">
-                      <code className="break-all">{errorMessage}</code>
-                      <button
-                        onClick={copyError}
-                        className="shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
-                      >
-                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </motion.div>
+              <div
+                className={cn(
+                  "grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none",
+                  isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                 )}
-              </AnimatePresence>
+              >
+                <div className="overflow-hidden">
+                  <div className="mt-2 p-2 rounded bg-black/5 dark:bg-white/5 text-xs font-mono text-muted-foreground flex items-start justify-between gap-2">
+                    <code className="break-all">{errorMessage}</code>
+                    <button
+                      onClick={copyError}
+                      className="shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -228,7 +222,7 @@ export function ErrorBanner({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -265,7 +259,6 @@ export function FieldError({ error, suggestions, className }: FieldErrorProps) {
 export function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true)
   const [showBanner, setShowBanner] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const handleOnline = () => {
@@ -296,34 +289,27 @@ export function NetworkStatus() {
     }
   }, [])
 
-  if (!showBanner) return null
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -50 }}
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 py-2 px-4 text-center text-sm font-medium",
-          isOnline
-            ? "bg-green-500 text-white"
-            : "bg-red-500 text-white"
-        )}
-      >
-        {isOnline ? (
-          <span className="flex items-center justify-center gap-2">
-            <Check className="w-4 h-4" />
-            You&apos;re back online
-          </span>
-        ) : (
-          <span className="flex items-center justify-center gap-2">
-            <WifiOff className="w-4 h-4" />
-            No internet connection — your changes will be saved when you reconnect
-          </span>
-        )}
-      </motion.div>
-    </AnimatePresence>
+    <div
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 py-2 px-4 text-center text-sm font-medium",
+        "transition-[opacity,transform] duration-300 motion-reduce:transition-none",
+        showBanner ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none",
+        isOnline ? "bg-green-500 text-white" : "bg-red-500 text-white"
+      )}
+    >
+      {isOnline ? (
+        <span className="flex items-center justify-center gap-2">
+          <Check className="w-4 h-4" />
+          You&apos;re back online
+        </span>
+      ) : (
+        <span className="flex items-center justify-center gap-2">
+          <WifiOff className="w-4 h-4" />
+          No internet connection — your changes will be saved when you reconnect
+        </span>
+      )}
+    </div>
   )
 }
 

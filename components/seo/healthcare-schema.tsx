@@ -2,6 +2,25 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 import { GOOGLE_REVIEWS } from "@/lib/social-proof"
 
+/**
+ * Renders JSON-LD structured data via a div wrapper.
+ *
+ * React 19 throws "Encountered a script tag while rendering React component"
+ * when it creates a <script> DOM node during client rendering/hydration.
+ * Using dangerouslySetInnerHTML on a <div> tells React to set innerHTML
+ * directly — React never creates the inner <script> node itself.
+ *
+ * Google parses JSON-LD from anywhere in the document, including inside divs.
+ */
+function JsonLdScript({ id, data }: { id: string; data: Record<string, unknown> }) {
+  return (
+    <div
+      id={id}
+      dangerouslySetInnerHTML={{ __html: `<script type="application/ld+json">${safeJsonLd(data)}</script>` }}
+    />
+  )
+}
+
 interface OrganizationSchemaProps {
   baseUrl?: string
 }
@@ -123,13 +142,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     }
   }
 
-  return (
-    <script
-      id="organization-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="organization-schema" data={schema} />
 }
 
 interface MedicalServiceSchemaProps {
@@ -142,11 +155,11 @@ interface MedicalServiceSchemaProps {
 /**
  * Schema.org structured data for individual medical services
  */
-export function MedicalServiceSchema({ 
-  name, 
-  description, 
+export function MedicalServiceSchema({
+  name,
+  description,
   price,
-  baseUrl = "https://instantmed.com.au" 
+  baseUrl = "https://instantmed.com.au"
 }: MedicalServiceSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -170,13 +183,7 @@ export function MedicalServiceSchema({
     }
   }
 
-  return (
-    <script
-      id={`service-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`service-schema-${name.toLowerCase().replace(/\s+/g, '-')}`} data={schema} />
 }
 
 interface FAQSchemaProps {
@@ -200,13 +207,7 @@ export function FAQSchema({ faqs }: FAQSchemaProps) {
     }))
   }
 
-  return (
-    <script
-      id="faq-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="faq-schema" data={schema} />
 }
 
 interface BreadcrumbSchemaProps {
@@ -228,13 +229,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
     }))
   }
 
-  return (
-    <script
-      id="breadcrumb-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="breadcrumb-schema" data={schema} />
 }
 
 interface LocalBusinessSchemaProps {
@@ -274,13 +269,7 @@ export function LocalBusinessSchema({ city, state, baseUrl = "https://instantmed
     description: `Online telehealth services for ${city} residents. Get medical certificates and prescriptions from Australian doctors.`
   }
 
-  return (
-    <script
-      id={`local-business-schema-${city.toLowerCase()}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`local-business-schema-${city.toLowerCase()}`} data={schema} />
 }
 
 interface ArticleSchemaProps {
@@ -341,13 +330,7 @@ export function ArticleSchema({
     }
   }
 
-  return (
-    <script
-      id="article-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="article-schema" data={schema} />
 }
 
 interface ReviewAggregateSchemaProps {
@@ -360,11 +343,11 @@ interface ReviewAggregateSchemaProps {
 /**
  * Schema.org aggregate rating for reviews
  */
-export function ReviewAggregateSchema({ 
-  ratingValue, 
-  reviewCount, 
-  bestRating = 5, 
-  worstRating = 1 
+export function ReviewAggregateSchema({
+  ratingValue,
+  reviewCount,
+  bestRating = 5,
+  worstRating = 1
 }: ReviewAggregateSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -379,13 +362,7 @@ export function ReviewAggregateSchema({
     }
   }
 
-  return (
-    <script
-      id="review-aggregate-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="review-aggregate-schema" data={schema} />
 }
 
 interface HowToStep {
@@ -452,13 +429,7 @@ export function HowToSchema({
     }
   }
 
-  return (
-    <script
-      id="howto-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="howto-schema" data={schema} />
 }
 
 /**
@@ -577,13 +548,7 @@ export function SpeakableSchema({
     },
   }
 
-  return (
-    <script
-      id={`speakable-schema-${name.toLowerCase().replace(/\s+/g, "-").slice(0, 30)}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`speakable-schema-${name.toLowerCase().replace(/\s+/g, "-").slice(0, 30)}`} data={schema} />
 }
 
 /**
@@ -605,13 +570,7 @@ export function WebSiteSchema({ baseUrl = "https://instantmed.com.au" }: { baseU
     inLanguage: "en-AU",
   }
 
-  return (
-    <script
-      id="website-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id="website-schema" data={schema} />
 }
 
 // ============================================================================
@@ -656,13 +615,7 @@ export function MedicalConditionSchema({
     mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}${url}` },
   }
 
-  return (
-    <script
-      id={`condition-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`condition-schema-${name.toLowerCase().replace(/\s+/g, "-")}`} data={schema} />
 }
 
 // ============================================================================
@@ -723,13 +676,7 @@ export function ServiceSchema({
     },
   }
 
-  return (
-    <script
-      id={`service-schema-${name.toLowerCase().replace(/\s+/g, "-")}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`service-schema-${name.toLowerCase().replace(/\s+/g, "-")}`} data={schema} />
 }
 
 // ============================================================================
@@ -764,11 +711,5 @@ export function HealthArticleSchema({
     mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}${url}` },
   }
 
-  return (
-    <script
-      id={`health-article-schema-${url.replace(/\//g, "-")}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  )
+  return <JsonLdScript id={`health-article-schema-${url.replace(/\//g, "-")}`} data={schema} />
 }

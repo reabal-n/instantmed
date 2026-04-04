@@ -54,7 +54,8 @@ export default function ShiftWorkersPage() {
 
   return (
     <>
-      <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <script id="faq-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

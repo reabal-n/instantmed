@@ -70,7 +70,7 @@ export function MedCertPatientEmail({
 
       {referralCode && (
         <Box variant="info">
-          <Heading as="h3" style={{ marginTop: 0 }}>Give a friend $5 off</Heading>
+          <Heading as="h3">Give a friend $5 off</Heading>
           <Text style={{ marginBottom: "12px" }}>
             Know someone who might need a medical certificate? Share your link — they get $5 off their first request, and you get $5 credit too.
           </Text>

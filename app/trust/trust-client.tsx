@@ -128,6 +128,7 @@ export default function TrustPage() {
     <div className="min-h-screen">
       <script
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{
           __html: safeJsonLd({
             "@context": "https://schema.org",

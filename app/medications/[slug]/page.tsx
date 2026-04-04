@@ -417,8 +417,10 @@ export default async function MedicationPage({ params }: PageProps) {
 
   return (
     <>
-      <script id={`drug-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(drugSchema) }} />
-      <script id={`page-schema-${slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchema) }} />
+      <script id={`drug-schema-${slug}`} type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(drugSchema) }} />
+      <script id={`page-schema-${slug}`} type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchema) }} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

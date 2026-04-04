@@ -162,7 +162,8 @@ export function WeightLossClient() {
 
   return (
     <>
-      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <Script id="faq-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

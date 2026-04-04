@@ -96,6 +96,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
       <script
         id={`med-page-schema-${slug}`}
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(medPageSchema) }}
       />
 

@@ -173,6 +173,7 @@ export function PricingClient() {
     <div className="flex min-h-screen flex-col">
       <script
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }}
       />
       <Navbar variant="marketing" />

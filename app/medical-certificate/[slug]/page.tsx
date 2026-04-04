@@ -269,6 +269,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
       <div className="flex min-h-screen flex-col bg-foreground text-background">

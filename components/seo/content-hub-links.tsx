@@ -20,12 +20,12 @@ const SERVICE_LINKS: Record<string, {
 }> = {
   "med-cert": {
     conditions: [
-      { href: "/conditions/cold-and-flu", label: "Cold & Flu", description: "One of the most common reasons for a sick note" },
-      { href: "/conditions/gastro", label: "Gastro", description: "Stomach bugs that keep you home from work" },
-      { href: "/conditions/back-pain", label: "Back Pain", description: "Certificates for acute and chronic back issues" },
-      { href: "/conditions/migraine", label: "Migraine", description: "When a headache stops you from working" },
-      { href: "/conditions/mental-health-day", label: "Mental Health", description: "Mental health days are valid medical leave" },
-      { href: "/conditions/covid-19", label: "COVID-19", description: "Isolation and recovery certificates" },
+      { href: "/medical-certificate/flu", label: "Flu", description: "One of the most common reasons for a sick note" },
+      { href: "/medical-certificate/gastro", label: "Gastro", description: "Stomach bugs that keep you home from work" },
+      { href: "/medical-certificate/back-pain", label: "Back Pain", description: "Certificates for acute and chronic back issues" },
+      { href: "/medical-certificate/migraine", label: "Migraine", description: "When a headache stops you from working" },
+      { href: "/medical-certificate/anxiety", label: "Anxiety / Mental Health", description: "Mental health days are valid medical leave" },
+      { href: "/medical-certificate/covid", label: "COVID-19", description: "Isolation and recovery certificates" },
     ],
     symptoms: [
       { href: "/symptoms/sore-throat", label: "Sore Throat" },
@@ -38,7 +38,7 @@ const SERVICE_LINKS: Record<string, {
     guides: [
       { href: "/guides/how-to-get-medical-certificate-for-work", label: "How to get a medical certificate for work" },
       { href: "/guides/telehealth-guide-australia", label: "Telehealth guide for Australians" },
-      { href: "/guides/when-to-use-telehealth", label: "When to use telehealth" },
+      { href: "/prescriptions", label: "Need a repeat prescription? →" },
     ],
     blog: [
       { href: "/blog/medical-certificate-online-australia", label: "Can you get a med cert online in Australia?" },
@@ -65,8 +65,8 @@ const SERVICE_LINKS: Record<string, {
     ],
     guides: [
       { href: "/guides/how-to-get-repeat-prescription-online", label: "How to get a repeat prescription online" },
-      { href: "/guides/telehealth-guide-australia", label: "Telehealth guide for Australians" },
       { href: "/guides/escript-vs-paper-prescription", label: "eScript vs paper prescription" },
+      { href: "/medical-certificate", label: "Need a medical certificate? →" },
     ],
     blog: [
       { href: "/blog/repeat-prescription-online-australia", label: "How to get a repeat prescription online" },
@@ -93,7 +93,7 @@ const SERVICE_LINKS: Record<string, {
     guides: [
       { href: "/guides/telehealth-guide-australia", label: "Telehealth guide for Australians" },
       { href: "/guides/when-to-use-telehealth", label: "When to use telehealth" },
-      { href: "/guides/how-to-get-medical-certificate-for-work", label: "Getting a medical certificate" },
+      { href: "/medical-certificate", label: "Need a medical certificate? →" },
     ],
     blog: [
       { href: "/blog/telehealth-vs-gp-australia", label: "Telehealth vs GP: what's actually different?" },
