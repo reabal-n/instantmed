@@ -142,6 +142,7 @@ export default function RootLayout({
         lang="en-AU"
         className={`${sourceSans.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
+        style={{ backgroundColor: '#f8f7f4' }}
       >
         <head>
           {/* Preconnect to critical third-party origins — Clerk and Sentry (LCP savings) */}
@@ -191,7 +192,7 @@ export default function RootLayout({
           <OrganizationSchema />
           <WebSiteSchema />
         </head>
-        <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
+        <body className="font-sans antialiased text-foreground">
           <PostHogLoader>
           <MotionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
