@@ -236,6 +236,8 @@ const nextConfig = {
       "frame-ancestors 'self'",
       // Don't upgrade insecure requests in dev (localhost is http)
       ...(isDev ? [] : ["upgrade-insecure-requests"]),
+      // Report violations to Sentry via /api/csp-report (prod only — no value flooding from localhost)
+      ...(isDev ? [] : ["report-uri /api/csp-report"]),
     ];
     return [
       // All routes - security headers + CSP
