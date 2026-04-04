@@ -164,7 +164,7 @@ export function AboutClient() {
                       alt={tech.name}
                       width={tech.width}
                       height={32}
-                      unoptimized
+
                       style={{ maxWidth: tech.maxWidth }}
                       className="h-7 w-auto object-contain rounded dark:bg-white/90 dark:p-0.5"
                     />

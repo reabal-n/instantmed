@@ -119,7 +119,7 @@ export default function EmployerAcceptancePage() {
                       alt={logo.name}
                       width={logo.width}
                       height={32}
-                      unoptimized
+
                       style={{ maxWidth: logo.maxWidth }}
                       className="h-7 w-auto object-contain"
                     />
