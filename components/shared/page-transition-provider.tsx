@@ -30,9 +30,9 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
     <AnimatePresence initial={false}>
       <motion.div
         key={pathname}
-        initial={{ opacity: 0 }}
+        initial={{ opacity: 0.5 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
       >
         {children}
       </motion.div>

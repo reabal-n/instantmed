@@ -10,7 +10,6 @@ import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
-import { MagneticButton } from '@/components/ui/magnetic-button'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
@@ -67,18 +66,16 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-                >
-                  <Link href="/request?service=med-cert">
-                    Get your medical certificate
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </MagneticButton>
+              <Button
+                asChild
+                size="lg"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+              >
+                <Link href="/request?service=med-cert">
+                  Get your medical certificate
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
               <Link
                 href="/request?service=prescription"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"

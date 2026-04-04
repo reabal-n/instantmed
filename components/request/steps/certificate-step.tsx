@@ -215,9 +215,9 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         label="Start date"
         required
         hint="When does your absence start?"
-        helpContent={{ 
-          title: "Which date should I choose?", 
-          content: "Select the first day you were unwell or unable to work/study. Backdating is not permitted." 
+        helpContent={{
+          title: "Which date should I choose?",
+          content: "Select the first day you were unwell or unable to work/study. You can select up to 2 days ago. For earlier dates, a consultation is required."
         }}
       >
         <Input
@@ -225,7 +225,8 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           value={startDate}
           onChange={(e) => setAnswer("startDate", e.target.value)}
           className="h-11 mt-2"
-          min={new Date().toISOString().split("T")[0]}
+          min={(() => { const d = new Date(); d.setDate(d.getDate() - 2); return d.toISOString().split("T")[0] })()}
+          max={new Date().toISOString().split("T")[0]}
         />
       </FormField>
 

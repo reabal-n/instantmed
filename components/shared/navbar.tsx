@@ -37,7 +37,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [_servicesDropdownOpen, _setServicesDropdownOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { theme } = useTheme()

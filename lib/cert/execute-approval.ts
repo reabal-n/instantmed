@@ -529,6 +529,13 @@ export async function executeCertApproval(
       { name: "intake_id", value: intakeId },
       { name: "cert_type", value: certificateType },
     ],
+    attachments: [
+      {
+        filename: `Medical_Certificate_${certificateRef}.pdf`,
+        content: pdfBuffer.toString("base64"),
+        contentType: "application/pdf",
+      },
+    ],
   })
 
   // Track email status

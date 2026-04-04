@@ -66,7 +66,19 @@ export function DoctorAvailabilityPill() {
     return () => clearInterval(interval)
   }, [])
 
-  if (!mounted) return null
+  // Render a static placeholder matching the pill height to prevent hero layout shift on hydration
+  if (!mounted) {
+    return (
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 opacity-0 pointer-events-none select-none" aria-hidden="true">
+          <span className="flex items-center gap-2 text-xs font-medium text-emerald-700">
+            <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500" />
+            Doctors online now
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.div

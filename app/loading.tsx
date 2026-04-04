@@ -1,14 +1,14 @@
-import { PremiumLoader } from "@/components/ui/loader"
-
+// Minimal root loading state — NavigationProgress bar (in layout.tsx) handles
+// the visual loading feedback. A full-screen loader here causes a jarring flash
+// on every navigation. Transparent placeholder keeps layout stable.
 export default function Loading() {
   return (
-    <main 
-      className="min-h-screen bg-hero flex items-center justify-center px-4"
+    <div
+      className="min-h-[60vh]"
       aria-busy="true"
       aria-live="polite"
     >
-      <span className="sr-only" role="status">Loading page content</span>
-      <PremiumLoader text="Loading" />
-    </main>
+      <span className="sr-only" role="status">Loading</span>
+    </div>
   )
 }

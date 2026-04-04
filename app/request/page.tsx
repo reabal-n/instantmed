@@ -35,10 +35,12 @@ export default async function RequestPage({
   const initialService = mapServiceParam(params.service)
   const isMedCert = initialService === "med-cert"
 
-  // Check maintenance mode before anything else
-  const maintenance = await isMaintenanceMode()
-  const outsideHours = await isOutsideBusinessHours()
-  const atCapacity = await isAtCapacity()
+  // Check operational status — run in parallel, none depends on the others
+  const [maintenance, outsideHours, atCapacity] = await Promise.all([
+    isMaintenanceMode(),
+    isOutsideBusinessHours(),
+    isAtCapacity(),
+  ])
 
   if (maintenance.enabled) {
     return (

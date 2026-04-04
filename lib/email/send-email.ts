@@ -75,6 +75,8 @@ interface SendEmailParams {
   replyTo?: string
   tags?: { name: string; value: string }[]
   headers?: Record<string, string>
+  // Optional file attachments (base64-encoded)
+  attachments?: { filename: string; content: string; contentType?: string }[]
 }
 
 interface SendEmailResult {
@@ -343,6 +345,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     replyTo = CONTACT_EMAIL,
     tags = [],
     headers,
+    attachments,
   } = params
 
   // Add Sentry context
@@ -489,6 +492,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       ...tags,
     ],
     ...(headers && Object.keys(headers).length > 0 && { headers }),
+    ...(attachments && attachments.length > 0 && { attachments }),
   }
 
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
