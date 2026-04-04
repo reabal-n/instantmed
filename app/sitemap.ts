@@ -74,15 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/jury-duty",
   ]
 
-  // ── Medications (educational + service pages) ──
-  const medicationInfoSlugs = [
-    "amoxicillin", "metformin", "sildenafil", "trimethoprim", "doxycycline",
-    "sertraline", "pantoprazole", "omeprazole", "azithromycin", "citalopram",
-    "escitalopram", "fluoxetine", "loratadine", "cetirizine", "salbutamol",
-    "prednisolone", "naproxen", "diclofenac", "famotidine",
-    "amoxicillin-clavulanate", "cephalexin", "gabapentin", "propranolol",
-    "oral-contraceptive",
-  ]
+  // ── Medications (service pages only — /medications/* redirects to / per next.config) ──
   const prescriptionMedSlugs = getAllMedications().map(m => m.slug)
 
   // ── Conditions + symptoms (medical content) ──
@@ -131,7 +123,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const audiencePages = [
-    "students", "tradies", "corporate", "shift-workers",
     "nurses", "teachers", "hospitality", "retail",
     "office-workers", "parents", "remote-workers", "gig-workers",
   ]
@@ -228,14 +219,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Audience pages
     ...audiencePages.map((slug) => ({
       url: `${baseUrl}/for/${slug}`,
-      lastModified: CONTENT_ENRICHED_MARCH_2026,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    })),
-
-    // Medication info pages (educational)
-    ...medicationInfoSlugs.map((slug) => ({
-      url: `${baseUrl}/medications/${slug}`,
       lastModified: CONTENT_ENRICHED_MARCH_2026,
       changeFrequency: "monthly" as const,
       priority: 0.6,

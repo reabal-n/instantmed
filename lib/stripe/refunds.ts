@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/nextjs"
 const logger = createLogger("stripe-refunds")
 
 // Categories eligible for auto-refund on decline
-const REFUND_ELIGIBLE_CATEGORIES = ["medical_certificate", "prescription"]
+const REFUND_ELIGIBLE_CATEGORIES = ["medical_certificate", "prescription", "consult"]
 
 interface RefundResult {
   refunded: boolean
