@@ -14,6 +14,8 @@ import {
   requestDeclinedEmailSubject,
   RefundIssuedEmail,
   refundIssuedEmailSubject,
+  DeclineReengagementEmail,
+  declineReengagementSubject,
 } from "@/components/email/templates"
 
 // ============================================
@@ -93,6 +95,43 @@ export async function sendRefundIssuedEmail(params: SendRefundIssuedEmailParams)
     },
     tags: [
       { name: "category", value: "refund_issued" },
+      { name: "intake_id", value: intakeId },
+    ],
+  })
+}
+
+// ============================================
+// DECLINE RE-ENGAGEMENT
+// ============================================
+
+interface SendDeclineReengagementEmailParams {
+  to: string
+  patientName: string
+  patientId: string
+  intakeId: string
+  declinedService: string
+}
+
+export async function sendDeclineReengagementEmail(params: SendDeclineReengagementEmailParams) {
+  const { to, patientName, patientId, intakeId, declinedService } = params
+
+  return sendEmail({
+    to,
+    toName: patientName,
+    subject: declineReengagementSubject(),
+    template: DeclineReengagementEmail({
+      patientName,
+      declinedService,
+      appUrl: env.appUrl,
+    }),
+    emailType: "decline_reengagement",
+    intakeId,
+    patientId,
+    metadata: {
+      declined_service: declinedService,
+    },
+    tags: [
+      { name: "category", value: "decline_reengagement" },
       { name: "intake_id", value: intakeId },
     ],
   })

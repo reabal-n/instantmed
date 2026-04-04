@@ -139,42 +139,6 @@ export function AboutClient() {
         {/* Regulatory logos */}
         <MediaMentions variant="strip" className="bg-muted/30" />
 
-        {/* Tech Stack */}
-        <section className="px-4 py-12 border-b border-border/30 dark:border-white/10">
-          <div className="mx-auto max-w-4xl">
-            <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
-              Built with
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-6">
-              {[
-                { name: 'Next.js', logo: '/logos/next.js.png', width: 80, maxWidth: 80 },
-                { name: 'Supabase', logo: '/logos/supabase.png', width: 110, maxWidth: 110 },
-                { name: 'Vercel', logo: '/logos/vercel.png', width: 80, maxWidth: 80 },
-                { name: 'Stripe', logo: '/logos/stripe.png', width: 60, maxWidth: 60 },
-                { name: 'Clerk', logo: '/logos/clerk.png', width: 70, maxWidth: 70 },
-                { name: 'Anthropic', logo: '/logos/anthropic.png', width: 100, maxWidth: 100 },
-                { name: 'Claude', logo: '/logos/claude.png', width: 70, maxWidth: 70 },
-                { name: 'eRx', logo: '/logos/eRx.png', width: 50, maxWidth: 50 },
-              ].map((tech) => (
-                <div key={tech.name} className="flex flex-col items-center gap-2 group">
-                  <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-4 py-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
-                    <Image
-                      src={tech.logo}
-                      alt={tech.name}
-                      width={tech.width}
-                      height={32}
-
-                      style={{ maxWidth: tech.maxWidth }}
-                      className="h-7 w-auto object-contain rounded dark:bg-white/90 dark:p-0.5"
-                    />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground/70 font-medium tracking-wide uppercase">{tech.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* FAQs */}
         <AccordionSection
           pill="FAQs"

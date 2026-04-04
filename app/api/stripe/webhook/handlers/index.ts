@@ -6,6 +6,8 @@ import { handleAsyncPaymentFailed } from "./checkout-session-async-payment-faile
 import { handleChargeRefunded } from "./charge-refunded"
 import { handlePaymentIntentFailed } from "./payment-intent-payment-failed"
 import { handleChargeDisputeCreated } from "./charge-dispute-created"
+import { handleInvoicePaymentSucceeded } from "./invoice-payment-succeeded"
+import { handleCustomerSubscriptionDeleted } from "./customer-subscription-deleted"
 
 export type { WebhookContext, HandlerResult }
 
@@ -23,4 +25,6 @@ export const handlers: ReadonlyMap<string, WebhookHandler> = new Map([
   ["charge.refunded", handleChargeRefunded],
   ["payment_intent.payment_failed", handlePaymentIntentFailed],
   ["charge.dispute.created", handleChargeDisputeCreated],
+  ["invoice.payment_succeeded", handleInvoicePaymentSucceeded],
+  ["customer.subscription.deleted", handleCustomerSubscriptionDeleted],
 ])

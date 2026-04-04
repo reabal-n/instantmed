@@ -111,6 +111,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink href="/blog" isActive={isActivePath("/blog")}>
                     Health Guides
                   </AnimatedNavLink>
+                  <AnimatedNavLink href="/pricing" isActive={isActivePath("/pricing")}>
+                    Pricing
+                  </AnimatedNavLink>
 
                   <UserMenu
                     variant="marketing"

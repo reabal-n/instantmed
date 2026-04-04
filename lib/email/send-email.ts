@@ -57,6 +57,7 @@ export type EmailType =
   | "still_reviewing"
   | "exit_intent_social_proof"
   | "exit_intent_last_chance"
+  | "decline_reengagement"
 
 interface SendEmailParams {
   to: string

@@ -527,6 +527,32 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       log.error("Referral credit error (non-fatal)", { intakeId }, referralErr as Error)
     }
 
+    // STEP 4b2: Mark referral credits as redeemed if a coupon was applied (non-critical)
+    // The checkout flow creates a Stripe coupon from unspent credits and stores the
+    // coupon ID + credit IDs in session metadata. Now that payment succeeded, mark
+    // those credits as applied so they aren't double-spent on the next checkout.
+    try {
+      const couponId = session.metadata?.referral_coupon_id
+      if (couponId && patientId) {
+        const { error: creditErr } = await supabase
+          .from("referral_credits")
+          .update({
+            applied_at: new Date().toISOString(),
+            applied_intake_id: intakeId,
+          })
+          .eq("profile_id", patientId)
+          .is("applied_at", null)
+
+        if (!creditErr) {
+          log.info("Referral credits marked as applied", { couponId, intakeId, patientId })
+        } else {
+          log.warn("Failed to mark referral credits as applied", { couponId, intakeId, error: creditErr.message })
+        }
+      }
+    } catch {
+      // Non-blocking — credit marking is best-effort, credits can be reconciled later
+    }
+
     // STEP 4c: Mark exit-intent captures as converted (non-critical)
     // If this customer previously triggered an exit-intent nurture, stop further emails
     try {
@@ -543,6 +569,36 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       }
     } catch {
       // Non-blocking — nurture suppression is best-effort
+    }
+
+    // STEP 4d: Create subscription record if this was a subscription checkout
+    if (session.metadata?.is_subscription === "true" && session.subscription) {
+      try {
+        const stripeSubId = typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription?.id
+        const custId = typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id
+
+        if (stripeSubId && custId && patientId) {
+          await supabase.from("subscriptions").upsert({
+            profile_id: patientId,
+            stripe_subscription_id: stripeSubId,
+            stripe_customer_id: custId,
+            status: "active",
+            credits_remaining: 1,
+            current_period_start: new Date().toISOString(),
+            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          }, { onConflict: "stripe_subscription_id" })
+
+          log.info("Subscription record created", { subscriptionId: stripeSubId, patientId })
+        }
+      } catch (subError) {
+        log.error("Failed to create subscription record", { intakeId },
+          subError instanceof Error ? subError : undefined)
+        // Non-blocking — subscription record can be reconciled later
+      }
     }
 
     // STEP 5: Send payment notification + confirmation email (non-critical)

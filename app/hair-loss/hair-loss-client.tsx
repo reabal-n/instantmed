@@ -276,7 +276,7 @@ function TreatmentOptions() {
             size="lg"
             className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
           >
-            <Link href="/request?service=consult">
+            <Link href="/request?service=consult&subtype=hair_loss">
               Start Consultation
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
@@ -322,7 +322,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                 size="lg"
                 className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
               >
-                <Link href="/request?service=consult">
+                <Link href="/request?service=consult&subtype=hair_loss">
                   Start Consultation
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
@@ -412,7 +412,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
             title="Ready to Get Started?"
             subtitle="Complete a confidential consultation in minutes. Our doctors are ready to help."
             ctaText="Start Consultation"
-            ctaHref="/request?service=consult"
+            ctaHref="/request?service=consult&subtype=hair_loss"
           />
         </main>
 

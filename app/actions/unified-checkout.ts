@@ -125,6 +125,12 @@ function transformAnswers(
   transformed.accuracy_confirmed = answers.confirmedAccuracy
   transformed.terms_agreed = answers.agreedToTerms
 
+  // Priority fee flag
+  transformed.is_priority = answers.isPriority === true
+
+  // Subscription toggle for repeat scripts
+  transformed.subscribe_and_save = answers.subscribeAndSave === true
+
   // Safety rule fields: provide defaults for fields referenced by safety rules
   // but not directly collected by intake forms (emergency_symptoms, symptom_severity).
   // If the patient didn't report any emergency symptoms, default to empty array (none).

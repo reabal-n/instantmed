@@ -26,6 +26,7 @@ import {
 } from "@/lib/audit/compliance-audit"
 import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 import { cookies } from "next/headers"
+import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")
 
@@ -443,6 +444,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
+    const isPriority = input.answers.is_priority === true
+    const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+
     const intakeData: Record<string, unknown> = {
       patient_id: patientId,
       service_id: service.id,
@@ -451,6 +455,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       amount_cents: service.price_cents,
       category: input.category,
       subtype: input.subtype,
+      is_priority: isPriority,
       idempotency_key: input.idempotencyKey, // P1 FIX: Always required
       stripe_price_id: priceId || null, // Store for retry pricing consistency
       // Attribution: store UTM params for payment attribution in PostHog
@@ -615,37 +620,73 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const cookieStore = await cookies()
     const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
 
-    const sessionParams = {
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: "payment" as const,
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: {
-        intake_id: intake.id,
-        patient_id: patientId,
-        category: input.category,
-        subtype: input.subtype,
-        service_slug: serviceSlug,
-        ...(refCode ? { referral_code: refCode } : {}),
-        ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
-      },
-      customer: stripeCustomerId || undefined,
-      customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
-      customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
-      // Enable saved payment methods for returning customers
-      payment_intent_data: {
-        setup_future_usage: "on_session" as const,
-      },
-      // Show saved payment methods for returning customers
-      saved_payment_method_options: stripeCustomerId ? {
-        payment_method_save: "enabled" as const,
-      } : undefined,
+    // Apply referral credit as Stripe coupon if patient has unspent credits
+    const referralCoupon = await createReferralCouponIfEligible(patientId, service.price_cents)
+
+    // Subscription mode: use recurring price for repeat scripts when opted in
+    const isSubscription = input.answers.subscribe_and_save === true
+    const subscriptionPriceId = process.env.STRIPE_PRICE_REPEAT_RX_MONTHLY
+
+    const lineItems: Array<{ price: string; quantity: number }> = isSubscription && subscriptionPriceId
+      ? [{ price: subscriptionPriceId, quantity: 1 }]
+      : [{ price: priceId, quantity: 1 }]
+
+    if (isPriority && priorityPriceId) {
+      lineItems.push({ price: priorityPriceId, quantity: 1 })
     }
+
+    const sessionMetadata = {
+      intake_id: intake.id,
+      patient_id: patientId,
+      category: input.category,
+      subtype: input.subtype,
+      service_slug: serviceSlug,
+      ...(refCode ? { referral_code: refCode } : {}),
+      ...(referralCoupon ? {
+        referral_coupon_id: referralCoupon.couponId,
+        referral_discount_cents: String(referralCoupon.discountCents),
+      } : {}),
+      ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
+      ...(isPriority ? { is_priority: "true" } : {}),
+      ...(isSubscription ? { is_subscription: "true" } : {}),
+    }
+
+    const sessionParams = isSubscription && subscriptionPriceId
+      ? {
+          // Subscription checkout
+          line_items: lineItems,
+          ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
+          mode: "subscription" as const,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+          subscription_data: {
+            metadata: sessionMetadata,
+          },
+          metadata: sessionMetadata,
+          customer: stripeCustomerId || undefined,
+          customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
+          customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
+        }
+      : {
+          // One-time payment checkout
+          line_items: lineItems,
+          ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
+          mode: "payment" as const,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+          metadata: sessionMetadata,
+          customer: stripeCustomerId || undefined,
+          customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
+          customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
+          // Enable saved payment methods for returning customers
+          payment_intent_data: {
+            setup_future_usage: "on_session" as const,
+          },
+          // Show saved payment methods for returning customers
+          saved_payment_method_options: stripeCustomerId ? {
+            payment_method_save: "enabled" as const,
+          } : undefined,
+        }
 
     // 10. Create Stripe checkout session with idempotency key
     let session
@@ -894,6 +935,12 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const cookieStore = await cookies()
     const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
 
+    // Apply referral credit as Stripe coupon on retry too
+    const priceCents = service?.price_cents ?? 0
+    const referralCoupon = priceCents > 0
+      ? await createReferralCouponIfEligible(patientId, priceCents)
+      : null
+
     const sessionParams = {
       line_items: [
         {
@@ -901,6 +948,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
           quantity: 1,
         },
       ],
+      ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
       mode: "payment" as const,
       success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
@@ -912,6 +960,10 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         subtype: intake.subtype || "",
         service_slug: serviceSlugForSafety || "",
         ...(refCode ? { referral_code: refCode } : {}),
+        ...(referralCoupon ? {
+          referral_coupon_id: referralCoupon.couponId,
+          referral_discount_cents: String(referralCoupon.discountCents),
+        } : {}),
       },
       customer: authUser.profile.stripe_customer_id || undefined,
       customer_email: !authUser.profile.stripe_customer_id && patientEmail ? patientEmail : undefined,

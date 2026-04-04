@@ -6,6 +6,8 @@ import {
   Pill,
   Stethoscope,
   ChevronDown,
+  Scale,
+  Sparkles,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -20,6 +22,8 @@ export const services: Array<{ serviceId: ServiceId; title: string; href: string
   { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificates", description: "Work, uni & carer's leave", icon: FileText },
   { serviceId: "scripts", title: "Repeat Medication", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
   { serviceId: "consult", title: "General Consult", href: "/general-consult", description: "New medication & dose changes", icon: Stethoscope },
+  { serviceId: "consult", title: "Weight Loss", href: "/weight-loss", description: "Doctor-led weight management", icon: Scale },
+  { serviceId: "consult", title: "Hair Loss", href: "/hair-loss", description: "Discreet hair loss treatment", icon: Sparkles },
 ]
 
 interface ServicesDropdownProps {

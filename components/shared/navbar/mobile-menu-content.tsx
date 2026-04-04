@@ -8,6 +8,7 @@ import {
   Settings,
   Shield,
   ListChecks,
+  DollarSign,
 } from "lucide-react"
 import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
 import { services } from "@/components/shared/navbar/services-dropdown"
@@ -53,6 +54,11 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
         <AnimatedMobileMenu.Item
           item={{ label: "Health Guides", href: "/blog", icon: <FileText className="h-5 w-5" /> }}
           index={5}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "Pricing", href: "/pricing", icon: <DollarSign className="h-5 w-5" /> }}
+          index={6}
           onClose={onClose}
         />
       </>

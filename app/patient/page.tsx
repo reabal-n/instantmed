@@ -4,6 +4,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { getPatientDashboardData } from "@/lib/data/intakes"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export const metadata: Metadata = {
@@ -67,7 +68,24 @@ async function PatientDashboardContent({
   fullName: string
   profileData: ProfileData
 }) {
-  const { intakes, prescriptions, error } = await getPatientDashboardData(patientId)
+  const [dashboardData, subscriptionData] = await Promise.all([
+    getPatientDashboardData(patientId),
+    (async () => {
+      try {
+        const { data } = await createServiceRoleClient()
+          .from("subscriptions")
+          .select("id, status, credits_remaining, current_period_end")
+          .eq("profile_id", patientId)
+          .eq("status", "active")
+          .single()
+        return data
+      } catch {
+        return null
+      }
+    })(),
+  ])
+
+  const { intakes, prescriptions, error } = dashboardData
 
   return (
     <PanelDashboard
@@ -77,6 +95,7 @@ async function PatientDashboardContent({
       prescriptions={prescriptions}
       error={error}
       profileData={profileData}
+      subscription={subscriptionData}
     />
   )
 }

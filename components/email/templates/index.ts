@@ -116,3 +116,7 @@ export type { ExitIntentSocialProofEmailProps } from "./exit-intent-social-proof
 // --- Exit Intent Last Chance (email 3 of nurture sequence) ---
 export { ExitIntentLastChanceEmail, exitIntentLastChanceSubject } from "./exit-intent-last-chance"
 export type { ExitIntentLastChanceEmailProps } from "./exit-intent-last-chance"
+
+// --- Decline Re-Engagement (2h post-decline) ---
+export { DeclineReengagementEmail, declineReengagementSubject } from "./decline-reengagement"
+export type { DeclineReengagementEmailProps } from "./decline-reengagement"

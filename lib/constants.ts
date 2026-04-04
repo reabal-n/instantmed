@@ -47,6 +47,7 @@ export const PRICING = {
   WEIGHT_LOSS: 79.95,     // Weight loss consultation
   REFERRAL: 29.95,
   PATHOLOGY: 29.95,
+  PRIORITY_FEE: 9.95,    // Express review fee
 } as const
 
 // Formatted pricing strings for display — use these everywhere in UI/SEO/marketing
@@ -63,6 +64,7 @@ export const PRICING_DISPLAY = {
   WEIGHT_LOSS: `$${PRICING.WEIGHT_LOSS.toFixed(2)}`,
   REFERRAL: `$${PRICING.REFERRAL.toFixed(2)}`,
   PATHOLOGY: `$${PRICING.PATHOLOGY.toFixed(2)}`,
+  PRIORITY_FEE: `$${PRICING.PRIORITY_FEE.toFixed(2)}`,
   // Common display patterns
   FROM_MED_CERT: `From $${PRICING.MED_CERT.toFixed(2)}`,
   FROM_SCRIPT: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,

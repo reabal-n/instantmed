@@ -20,6 +20,7 @@ import { usePanel, DrawerPanel } from "@/components/panels"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
+import { SubscriptionCard } from "@/components/patient/subscription-card"
 import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
@@ -55,6 +56,13 @@ interface Prescription {
   status: "active" | "expired"
 }
 
+interface SubscriptionData {
+  id: string
+  status: string
+  credits_remaining: number
+  current_period_end: string | null
+}
+
 interface PatientDashboardProps {
   fullName: string
   patientId: string
@@ -62,6 +70,7 @@ interface PatientDashboardProps {
   prescriptions?: Prescription[]
   error?: string | null
   profileData?: ProfileData
+  subscription?: SubscriptionData | null
 }
 
 /** Resolve status config from lib/status.ts — single source of truth */
@@ -76,6 +85,7 @@ export function PanelDashboard({
   prescriptions = [],
   error,
   profileData,
+  subscription,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const router = useRouter()
@@ -188,6 +198,11 @@ export function PanelDashboard({
             })
           }
         />
+      )}
+
+      {/* Subscription Card */}
+      {subscription && subscription.status === "active" && (
+        <SubscriptionCard subscription={subscription} />
       )}
 
       {/* Error State */}

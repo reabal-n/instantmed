@@ -184,7 +184,7 @@ export function WeightLossClient() {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
               <Button asChild size="lg" className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
-                <Link href="/request?service=consult">
+                <Link href="/request?service=consult&subtype=weight_loss">
                   Start Consultation
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
@@ -283,7 +283,7 @@ export function WeightLossClient() {
                   <p className="text-xs text-muted-foreground mb-4">
                     Not sure which is right for you? Our doctors will help you choose the best option.
                   </p>
-                  <Link href="/request?service=consult">
+                  <Link href="/request?service=consult&subtype=weight_loss">
                     <Button className="bg-primary hover:bg-primary/90 text-xs h-9">
                       Start Consultation
                       <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -414,7 +414,7 @@ export function WeightLossClient() {
             title="Ready to Start Your Journey?"
             subtitle="Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option."
             ctaText="Start Consultation"
-            ctaHref="/request?service=consult"
+            ctaHref="/request?service=consult&subtype=weight_loss"
           />
         </main>
 

@@ -12,7 +12,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
-import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill } from "lucide-react"
+import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill, Stethoscope } from "lucide-react"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
@@ -55,6 +55,23 @@ const services = [
     icon: Pill,
     color: "#4f46e5",
   },
+  {
+    name: "Consultation",
+    price: PRICING.HAIR_LOSS,
+    priceLabel: `From $${PRICING.HAIR_LOSS}`,
+    priceSubtext: `Hair loss: $${PRICING.HAIR_LOSS} · Weight loss: $${PRICING.WEIGHT_LOSS}`,
+    description: "New scripts, specialist areas",
+    features: [
+      "Hair loss & weight management",
+      "New medication prescribing",
+      "Doctor-led treatment plans",
+      "Ongoing support available",
+    ],
+    popular: false,
+    href: "/general-consult",
+    icon: Stethoscope,
+    color: "#059669",
+  },
 ]
 
 const comparisonItems = [
@@ -63,7 +80,7 @@ const comparisonItems = [
   { label: "AHPRA-registered doctors", us: true, them: true },
   { label: "Same-day turnaround", us: true, them: false },
   { label: "Full refund if declined", us: true, them: false },
-  { label: "No subscriptions or memberships", us: true, them: false },
+  { label: "No lock-in contracts", us: true, them: false },
   { label: "Accepted by all employers", us: true, them: true },
   { label: "E-scripts to any pharmacy", us: true, them: false },
 ]
@@ -182,8 +199,8 @@ export function PricingClient() {
         {/* Hero */}
         <StatsHero
           pill="Simple pricing"
-          title="Pay per consult. No subscriptions."
-          highlightWords={["subscriptions"]}
+          title="Pay per consult. No hidden fees."
+          highlightWords={["hidden fees"]}
           subtitle="Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help."
           stats={[
             { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "Refund if declined" },
@@ -194,8 +211,8 @@ export function PricingClient() {
 
         {/* Pricing Cards */}
         <section ref={pricingCardsRef} className="px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-3xl">
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className="mx-auto max-w-5xl">
+            <div className="grid md:grid-cols-3 gap-6">
               {services.map((service) => (
                 <div
                   key={service.name}

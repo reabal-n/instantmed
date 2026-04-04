@@ -10,8 +10,9 @@ import { usePostHog } from "posthog-js/react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, Zap, RefreshCw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton } from "@/components/shared/checkout-button"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
@@ -19,7 +20,7 @@ import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
-import { PRICING as APP_PRICING, MED_CERT_DURATIONS } from "@/lib/constants"
+import { PRICING as APP_PRICING, MED_CERT_DURATIONS, PRICING_DISPLAY } from "@/lib/constants"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 // Prices sourced from lib/constants.ts (single source of truth)
@@ -70,6 +71,9 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
+  const [isPriority, setIsPriority] = useState(false)
+  const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
+  const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
 
   useEffect(() => {
     getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {})
@@ -110,8 +114,9 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
     posthog?.capture('checkout_initiated', {
       service_type: serviceType,
-      price_dollars: price,
+      price_dollars: price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0),
       consult_subtype: consultSubtype,
+      is_priority: isPriority,
     })
     trackFunnelStep('checkout', serviceType)
 
@@ -122,6 +127,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         agreedToTerms: true,
         confirmedAccuracy: true,
         telehealthConsentGiven: true,
+        isPriority,
+        subscribeAndSave: subscribeAndSave && isRepeatScript,
       }
       // Capture UTM params + referrer for payment attribution
       const params = new URLSearchParams(window.location.search)
@@ -234,18 +241,43 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
 
         {/* Price section */}
-        <div className="pt-3 border-t">
-          <div className="flex justify-between items-baseline">
+        <div className="pt-3 border-t space-y-1">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">{displayLabel}</span>
+            <span className="font-medium">
+              {subscribeAndSave ? (
+                <>
+                  <span className="line-through text-muted-foreground/60 mr-1">${price.toFixed(2)}</span>
+                  $19.95
+                </>
+              ) : (
+                `$${price.toFixed(2)}`
+              )}
+            </span>
+          </div>
+          {isPriority && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Express Review</span>
+              <span className="font-medium">${APP_PRICING.PRIORITY_FEE.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex justify-between items-baseline pt-2 border-t border-dashed">
             <div>
               <span className="font-medium">Total</span>
-              <span className="text-xs text-muted-foreground ml-2">one-time fee</span>
+              <span className="text-xs text-muted-foreground ml-2">
+                {subscribeAndSave ? "/month" : "one-time fee"}
+              </span>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-semibold text-primary">${price.toFixed(2)}</span>
+              <span className="text-2xl font-semibold text-primary">
+                ${((subscribeAndSave ? 19.95 : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}
+              </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Pay after your request is created.
+          <p className="text-xs text-muted-foreground">
+            {subscribeAndSave
+              ? "First script processed immediately. Cancel anytime."
+              : "Pay after your request is created."}
           </p>
         </div>
       </motion.div>
@@ -286,6 +318,68 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </p>
         </div>
       )}
+
+      {/* Subscribe & Save toggle — repeat scripts only */}
+      {isRepeatScript && (
+        <motion.div variants={stagger.item}>
+          <div
+            className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+              subscribeAndSave
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/40"
+            }`}
+            onClick={() => setSubscribeAndSave(!subscribeAndSave)}
+          >
+            <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
+              <Switch
+                checked={subscribeAndSave}
+                onCheckedChange={setSubscribeAndSave}
+              />
+            </span>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Subscribe & save</span>
+                <Badge variant="secondary" className="text-xs font-semibold text-primary bg-primary/10">
+                  Save ${(price - 19.95).toFixed(2)}/mo
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                $19.95/mo instead of ${price.toFixed(2)} per script. Includes 1 repeat per month. Cancel anytime.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Express review toggle */}
+      <motion.div variants={stagger.item}>
+        <div
+          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+            isPriority
+              ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-500/60"
+              : "border-border hover:border-amber-300/60"
+          }`}
+          onClick={() => setIsPriority(!isPriority)}
+        >
+          <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
+            <Switch
+              checked={isPriority}
+              onCheckedChange={setIsPriority}
+            />
+          </span>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="text-sm font-medium">Express Review</span>
+              <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Jump to the front of the queue. Your request gets priority review by our doctors.
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Single combined consent */}
       <motion.div variants={stagger.item}>
@@ -333,7 +427,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             onClick={handleCheckout}
             isLoading={isProcessing}
             disabled={!canCheckout}
-            price={`$${price.toFixed(2)}`}
+            price={`$${((subscribeAndSave ? 19.95 : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
             label="Continue to payment"
             loadingLabel="Processing..."
             variant="prominent"
