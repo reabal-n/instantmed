@@ -87,7 +87,8 @@ export async function executeCertApproval(
         id,
         full_name,
         email,
-        date_of_birth
+        date_of_birth,
+        referral_code
       ),
       answers:intake_answers(
         answers
@@ -157,7 +158,7 @@ export async function executeCertApproval(
   // When skipClaim=true (auto-approval), we proceed without claiming.
   // The atomicApproveCertificate RPC validates intake state internally.
 
-  const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null } | null
+  const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null; referral_code: string | null } | null
   if (!patient || !patient.email) {
     return { success: false, error: "Patient email not found" }
   }
@@ -515,6 +516,7 @@ export async function executeCertApproval(
       verificationCode,
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
       appUrl: env.appUrl,
+      referralCode: patient.referral_code || undefined,
     }),
     emailType: "med_cert_patient",
     intakeId,

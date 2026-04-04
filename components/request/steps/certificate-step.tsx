@@ -194,6 +194,22 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
             </div>
           )}
 
+          {/* 1-day upsell nudge */}
+          {duration === "1" && (
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
+              <p className="text-xs text-amber-800 dark:text-amber-300 leading-snug">
+                Most patients choose 2 days — $10 more covers you tomorrow too.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAnswer("duration", "2")}
+                className="shrink-0 text-xs font-semibold text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100 transition-colors whitespace-nowrap"
+              >
+                Switch to 2-day →
+              </button>
+            </div>
+          )}
+
           {!duration && (
             <p className="text-xs text-muted-foreground text-center">
               No waiting rooms. Reviewed by a doctor within ~1 hour.

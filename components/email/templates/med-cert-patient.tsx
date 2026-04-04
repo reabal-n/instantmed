@@ -28,6 +28,7 @@ export interface MedCertPatientEmailProps {
   verificationCode?: string
   certType?: "work" | "study" | "carer"
   appUrl?: string
+  referralCode?: string
 }
 
 export function MedCertPatientEmail({
@@ -37,6 +38,7 @@ export function MedCertPatientEmail({
   verificationCode,
   certType: _certType = "work",
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  referralCode,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -64,6 +66,30 @@ export function MedCertPatientEmail({
 
       {verificationCode && (
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
+      )}
+
+      {referralCode && (
+        <Box variant="info">
+          <Heading as="h3" style={{ marginTop: 0 }}>Give a friend $5 off</Heading>
+          <Text style={{ marginBottom: "12px" }}>
+            Know someone who might need a medical certificate? Share your link — they get $5 off their first request, and you get $5 credit too.
+          </Text>
+          <a
+            href={`${appUrl}?ref=${referralCode}`}
+            style={{
+              display: "inline-block",
+              backgroundColor: colors.accent,
+              color: "#ffffff",
+              fontWeight: 600,
+              fontSize: "14px",
+              padding: "10px 20px",
+              borderRadius: "8px",
+              textDecoration: "none",
+            }}
+          >
+            Share your referral link →
+          </a>
+        </Box>
       )}
 
       <Box>
