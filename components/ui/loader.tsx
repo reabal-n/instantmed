@@ -95,7 +95,7 @@ export function PremiumLoader({
         {/* Logo container */}
         <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/25">
           <Image
-            src="/branding/logo.svg"
+            src="/branding/logo.png"
             alt="InstantMed"
             width={64}
             height={64}
