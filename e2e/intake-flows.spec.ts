@@ -350,6 +350,71 @@ test.describe("Intake: Medical Certificate — full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
+// 1b · MEDICAL CERTIFICATE — Certificate Step Defaults
+// ---------------------------------------------------------------------------
+
+test.describe("Intake: Certificate Step — defaults and date range", () => {
+  test("2-day duration is pre-selected by default", async ({ page }) => {
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Certificate details/i)
+
+    // The 2-day radio button must be pre-checked without any user interaction
+    const twoDayBtn = page.getByRole("radio", { name: /2 days/i })
+    await expect(twoDayBtn).toHaveAttribute("aria-checked", "true")
+  })
+
+  test("date picker accepts a date 2 days ago and Continue becomes enabled", async ({ page }) => {
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Certificate details/i)
+
+    // Select cert type (required to enable Continue)
+    await clickChip(page, /^Work$/i)
+
+    // 2-day duration is pre-selected — no action needed
+    // Fill start date as exactly 2 days ago (boundary of allowed range)
+    const twoDaysAgo = new Date()
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+    const dateStr = twoDaysAgo.toISOString().split("T")[0]
+
+    await page.locator('input[type="date"]').fill(dateStr)
+
+    // Continue should be enabled: certType set, duration defaulted, startDate valid
+    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
+    await expect(continueBtn).toBeEnabled({ timeout: 3000 })
+  })
+
+  test("selecting 1-day shows upsell nudge, switching to 2-day dismisses it", async ({ page }) => {
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Certificate details/i)
+
+    // Select 1-day — nudge should appear
+    await page.getByRole("radio", { name: /1 day/i }).click()
+    await expect(
+      page.getByText(/Most patients choose 2 days/i)
+    ).toBeVisible({ timeout: 2000 })
+
+    // Click the Switch button — nudge should disappear
+    await page.getByRole("button", { name: /Switch to 2-day/i }).click()
+    await expect(
+      page.getByText(/Most patients choose 2 days/i)
+    ).not.toBeVisible()
+
+    // 2-day button is now selected
+    await expect(page.getByRole("radio", { name: /2 days/i }))
+      .toHaveAttribute("aria-checked", "true")
+  })
+})
+
+// ---------------------------------------------------------------------------
 // 2 · REPEAT PRESCRIPTION — Full Flow
 // ---------------------------------------------------------------------------
 

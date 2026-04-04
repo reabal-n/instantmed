@@ -233,6 +233,79 @@ test.describe("Doctor Approval Email Pipeline", () => {
 })
 
 // ============================================================================
+// TESTS: PDF ATTACHMENT INTEGRITY
+// ============================================================================
+
+test.describe("PDF Attachment Integrity", () => {
+  test.beforeEach(async ({ page }) => {
+    test.skip(!isDbAvailable(), "Database not available")
+    const result = await loginAsOperator(page)
+    expect(result.success, `E2E login should succeed: ${result.error}`).toBe(true)
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
+    await deleteEmailOutboxForIntake(SEEDED_INTAKE_ID)
+  })
+
+  test.afterEach(async ({ page }) => {
+    await logoutTestUser(page)
+  })
+
+  test("approved certificate PDF is a valid non-corrupted PDF with correct filename", async ({ page }) => {
+    // 1. Approve the certificate via doctor flow
+    await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
+    await waitForPageLoad(page)
+
+    const reasonTextarea = page.locator('textarea').first()
+    if (await reasonTextarea.isVisible()) {
+      await reasonTextarea.fill("PDF integrity check — automated E2E test")
+    }
+
+    const approveButton = page.locator('[data-testid="approve-button"]')
+    await expect(approveButton).toBeVisible()
+    await expect(approveButton).toBeEnabled()
+    await approveButton.click()
+    await page.locator('[data-testid="success-message"], [data-testid="warning-message"]').waitFor({ timeout: 30000 })
+
+    // 2. Fetch the issued certificate record
+    const certificate = await waitForIssuedCertificate(SEEDED_INTAKE_ID, 15000)
+    expect(certificate, "Issued certificate must exist after approval").not.toBeNull()
+
+    const storagePath = certificate!.storage_path
+    expect(storagePath, "Certificate must have a storage_path").toBeTruthy()
+
+    // 3. Filename must match expected pattern: Medical_Certificate_<REF>.pdf
+    const filename = storagePath.split("/").pop()!
+    expect(filename, `Filename should match Medical_Certificate_*.pdf, got: ${filename}`)
+      .toMatch(/^Medical_Certificate_[A-Z0-9-]+\.pdf$/i)
+
+    // 4. Create a short-lived signed URL
+    const supabase = getSupabaseClient()
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(storagePath, 60)
+
+    expect(signedUrlError, `Signed URL generation failed: ${signedUrlError?.message}`).toBeNull()
+    expect(signedUrlData?.signedUrl, "Signed URL must be non-empty").toBeTruthy()
+
+    // 5. Download the PDF and verify it's a valid, non-corrupted PDF
+    const response = await page.request.get(signedUrlData!.signedUrl)
+    expect(response.status(), "PDF download must return HTTP 200").toBe(200)
+
+    const contentType = response.headers()["content-type"] ?? ""
+    expect(contentType, "Response must be application/pdf").toContain("application/pdf")
+
+    const body = await response.body()
+    expect(body.length, "PDF must have non-trivial content (>1KB)").toBeGreaterThan(1024)
+
+    // All valid PDFs begin with the magic bytes %PDF
+    const pdfHeader = body.slice(0, 4).toString("ascii")
+    expect(pdfHeader, `File must start with %PDF magic bytes, got: ${pdfHeader}`).toBe("%PDF")
+
+    // eslint-disable-next-line no-console
+    console.log(`[E2E] PDF verified: ${filename} — ${body.length} bytes, header: ${pdfHeader}`)
+  })
+})
+
+// ============================================================================
 // TESTS: EMAIL OUTBOX DATA INTEGRITY
 // ============================================================================
 
