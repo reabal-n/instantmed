@@ -16,7 +16,7 @@ import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("cron-indexnow")
 
-const INDEXNOW_KEY = "b4d7f2a1e9c34568af12de89c7654321"
+const INDEXNOW_KEY = process.env.INDEXNOW_KEY || ""
 const HOST = "instantmed.com.au"
 const KEY_LOCATION = `https://${HOST}/${INDEXNOW_KEY}.txt`
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
@@ -28,6 +28,11 @@ export const maxDuration = 30
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  if (!INDEXNOW_KEY) {
+    logger.error("INDEXNOW_KEY env var not configured", {})
+    return NextResponse.json({ error: "IndexNow not configured" }, { status: 500 })
+  }
 
   try {
     // Fetch sitemap from live site

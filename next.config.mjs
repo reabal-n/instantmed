@@ -26,7 +26,7 @@ const nextConfig = {
   },
   // Redirect next-themes to a patched local copy that uses useInsertionEffect
   // instead of rendering React.createElement("script", ...), which throws in
-  // React 19 dev mode: "Encountered a script tag while rendering React component"
+  // React 19 dev mode. Upstream v0.4.6 still triggers the issue in this context.
   turbopack: {
     resolveAlias: {
       'next-themes': './lib/next-themes-patched.mjs',

@@ -2,40 +2,12 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
-import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 import { toError } from "@/lib/errors"
 import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 
 const logger = createLogger("cron-repeat-rx-reminders")
-
-async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    return async () => {}
-  }
-  try {
-    const { Redis } = await import("@upstash/redis")
-    const redis = Redis.fromEnv()
-    const lockKey = "cron:repeat-rx-reminders:lock"
-    const lockValue = `${Date.now()}-${crypto.randomUUID()}`
-    const acquired = await redis.set(lockKey, lockValue, { nx: true, ex: 3600 })
-    if (!acquired) {
-      logger.warn("Cron lock already held, skipping run")
-      return null
-    }
-    return async () => {
-      try {
-        const current = await redis.get(lockKey)
-        if (current === lockValue) await redis.del(lockKey)
-      } catch { /* ignore release errors */ }
-    }
-  } catch (error) {
-    logger.error("Failed to acquire cron lock", {})
-    captureRedisWarning(error, { operation: "lock", keyPrefix: "cron:repeat-rx-reminders", subsystem: "cron_lock" })
-    return async () => {}
-  }
-}
 
 /**
  * Cron: Repeat prescription reminders
@@ -48,9 +20,9 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  const releaseLock = await acquireCronLock()
-  if (releaseLock === null) {
-    return NextResponse.json({ sent: 0, skipped: true, message: "Lock held by another run" })
+  const lock = await acquireCronLock("repeat-rx-reminders")
+  if (!lock.acquired) {
+    return NextResponse.json({ sent: 0, skipped: true, message: lock.existingLockAge ? `Lock held for ${lock.existingLockAge}s` : "Lock held by another run" })
   }
 
   try {
@@ -172,6 +144,6 @@ export async function GET(request: NextRequest) {
     captureCronError(toError(error), { jobName: "repeat-rx-reminders" })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   } finally {
-    await releaseLock()
+    await releaseCronLock("repeat-rx-reminders")
   }
 }

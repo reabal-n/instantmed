@@ -144,7 +144,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Curated testimonials**: 47 realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
 - **Doctor model**: System supports multiple doctors but currently operates with one. Don't advertise team size beyond what's real
 - **Dev routes blocked in prod**: Middleware blocks `/api/test/*`, `/email-preview*`, `/sentry-test*` in production/preview (exception: `PLAYWRIGHT=1`). Note: `(dev)` route group files (e.g. `app/(dev)/cert-preview`) resolve to `/cert-preview` and are **not** blocked by middleware
-- **Supabase migrations**: 188. Use `supabase db push`. May need `supabase migration repair` for drift
+- **Supabase migrations**: Squashed to 1 baseline (was 191). Use `supabase db push`. May need `supabase migration repair` for drift
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
 
