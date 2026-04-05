@@ -16,7 +16,6 @@ import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock, trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
-import { completeTranscript } from "@/lib/chat/audit-trail"
 import {
   logRequestCreated,
   logTermsConsentGiven,
@@ -574,41 +573,6 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         // Don't block checkout if fraud flag save fails - just log
         logger.error("Failed to save fraud flags", { intakeId: intake.id },
           fraudSaveError instanceof Error ? fraudSaveError : undefined)
-      }
-    }
-
-    // 6c. Link chat transcript to intake if chat session ID provided
-    if (input.chatSessionId) {
-      try {
-        const linkResult = await completeTranscript(input.chatSessionId, intake.id, 'submitted')
-        if (linkResult.success) {
-          logger.info("Chat transcript linked to intake", { 
-            intakeId: intake.id, 
-            chatSessionId: input.chatSessionId 
-          })
-          // Add Sentry breadcrumb for successful linkage (aids debugging)
-          const Sentry = await import("@sentry/nextjs")
-          Sentry.addBreadcrumb({
-            category: "chat-transcript",
-            message: "Transcript linked to intake",
-            level: "info",
-            data: {
-              intakeId: intake.id,
-              sessionId: input.chatSessionId,
-            },
-          })
-        } else {
-          logger.warn("Chat transcript link returned failure", { 
-            intakeId: intake.id, 
-            chatSessionId: input.chatSessionId 
-          })
-        }
-      } catch (transcriptError) {
-        // Non-blocking - don't fail checkout if transcript linking fails
-        logger.warn("Failed to link chat transcript to intake", { 
-          intakeId: intake.id, 
-          chatSessionId: input.chatSessionId 
-        }, transcriptError instanceof Error ? transcriptError : undefined)
       }
     }
 

@@ -39,7 +39,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <DoctorAvailabilityPill />
+          <DoctorAvailabilityPill alwaysAvailable={config.serviceId === 'med-cert'} />
         </motion.div>
 
         <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12 xl:gap-14')}>

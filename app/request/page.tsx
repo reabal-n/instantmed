@@ -5,7 +5,7 @@ import { decryptProfilePhi } from "@/lib/data/profiles"
 import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
-import { isOutsideBusinessHours, isAtCapacity } from "@/lib/operational-config"
+import { isAtCapacity } from "@/lib/operational-config"
 import { trackOperationalBlock } from "@/lib/posthog-server"
 import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
@@ -33,12 +33,10 @@ export default async function RequestPage({
 }) {
   const params = await searchParams
   const initialService = mapServiceParam(params.service)
-  const isMedCert = initialService === "med-cert"
 
   // Check operational status — run in parallel, none depends on the others
-  const [maintenance, outsideHours, atCapacity] = await Promise.all([
+  const [maintenance, atCapacity] = await Promise.all([
     isMaintenanceMode(),
-    isOutsideBusinessHours(),
     isAtCapacity(),
   ])
 
@@ -78,37 +76,10 @@ export default async function RequestPage({
     )
   }
 
-  // Outside business hours (med certs are 24/7 — auto-approved)
-  if (outsideHours.closed && !isMedCert) {
-    trackOperationalBlock({ blockType: "business_hours", source: "request_page" })
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center">
-            <svg className="w-8 h-8 text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground mb-3">
-              We&apos;re closed
-            </h1>
-            <p className="text-muted-foreground leading-relaxed">
-              We&apos;re outside our operating hours. We&apos;ll be back at {outsideHours.nextOpen ?? "8am"} AEST.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Back to home
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Business hours: no longer block the request page.
+  // Med certs are 24/7 (auto-approved). Prescriptions/consults accept
+  // submissions anytime — the navbar banner already sets expectations
+  // about next-business-day review for doctor-dependent services.
 
   // At capacity
   if (atCapacity) {

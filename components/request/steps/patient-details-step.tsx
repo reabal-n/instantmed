@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
+import { usePostHog } from "posthog-js/react"
 import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,7 @@ interface PatientDetailsStepProps {
 
 export default function PatientDetailsStep({ serviceType, onNext }: PatientDetailsStepProps) {
   const { firstName, lastName, email, phone, dob, answers, setIdentity, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [showAutofillBanner, setShowAutofillBanner] = useState(false)
@@ -199,6 +201,15 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
+      // Identify user in PostHog as soon as we have their email — stitches
+      // all prior anonymous events (page views, step completions) to this person.
+      // Safe to call even if already identified (PostHog deduplicates).
+      if (email) {
+        posthog?.identify(email, {
+          email,
+          name: `${firstName} ${lastName}`.trim() || undefined,
+        })
+      }
       onNext()
     } else {
       // Scroll to first error field for better UX
@@ -421,11 +432,10 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </span>
       </div>
 
-      {/* Continue button */}
+      {/* Continue button — always clickable so validate() fires and surfaces errors */}
       <Button
         onClick={handleNext}
         className="w-full h-12"
-        disabled={!canContinue}
       >
         Continue
       </Button>

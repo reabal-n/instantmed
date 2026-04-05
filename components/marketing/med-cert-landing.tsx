@@ -408,7 +408,7 @@ function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <DoctorAvailabilityPill />
+              <DoctorAvailabilityPill alwaysAvailable />
             </motion.div>
 
             {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}

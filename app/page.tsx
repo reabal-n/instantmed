@@ -25,6 +25,7 @@ import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
 import { TotalPatientsCounter } from '@/components/marketing/total-patients-counter'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
+import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
 
 export const revalidate = 3600
 
@@ -121,6 +122,9 @@ export default async function HomePage() {
       <ReturningPatientBanner className="mx-4 mt-2" />
 
       <Navbar variant="marketing" />
+
+      {/* After-hours banner — promotes 24/7 med certs when doctors are offline */}
+      <AfterHoursMedCertBanner />
 
       {/* Maintenance banner — streamed independently, doesn't block hero */}
       <Suspense fallback={null}>

@@ -134,26 +134,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 6. SLA breaches (intakes past their sla_deadline)
-    const { count: slaBreaches } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["paid", "in_review"])
-      .not("sla_deadline", "is", null)
-      .lt("sla_deadline", now.toISOString())
-
-    if (slaBreaches && slaBreaches > 0) {
-      alerts.push({
-        metric: "sla_breach",
-        severity: slaBreaches >= 5 ? "critical" : "warning",
-        detail: `${slaBreaches} intakes past SLA deadline`,
-      })
-      trackBusinessMetric({
-        metric: "sla_breach",
-        severity: slaBreaches >= 5 ? "critical" : "warning",
-        metadata: { count: slaBreaches },
-      })
-    }
+    // SLA queue monitoring is handled by the stale-queue cron (Telegram reminders to doctor)
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
@@ -211,7 +192,6 @@ export async function GET(request: NextRequest) {
         bounced_emails: bouncedEmails || 0,
         stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
-        sla_breaches: slaBreaches || 0,
       },
       checked_at: now.toISOString(),
     })

@@ -50,18 +50,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/clinical-governance",
     "/our-doctors",
     "/how-we-decide",
-    "/repeat-prescriptions",
     "/hair-loss",
-    "/gp-consult",
     "/refund-policy",
     "/cookie-policy",
   ]
+  // Removed from staticPages: /repeat-prescriptions (redirects → /prescriptions), /gp-consult (redirects → /consult)
+  // These redirect pages should not appear in the sitemap — GSC treats them as "Page with redirect" errors.
 
   const servicePages = [
     "/consult",
-    "/gp-consult",
     "/weight-loss",
-    "/hair-loss",
     "/medical-certificate/work",
     "/medical-certificate/study",
     "/medical-certificate/carer",

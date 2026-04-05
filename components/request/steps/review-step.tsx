@@ -6,12 +6,13 @@
  */
 
 import { useState } from "react"
-import { Edit2, ChevronDown, ChevronUp } from "lucide-react"
+import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { PRICING } from "@/lib/constants"
 
 interface ReviewStepProps {
   serviceType: UnifiedServiceType
@@ -108,6 +109,25 @@ function ReviewSection({
       </div>
     </div>
   )
+}
+
+function getPriceForService(serviceType: UnifiedServiceType, answers: Record<string, unknown>): number {
+  if (serviceType === 'med-cert') {
+    const duration = String(answers.duration || '2')
+    if (duration === '1') return PRICING.MED_CERT
+    if (duration === '3') return PRICING.MED_CERT_3DAY
+    return PRICING.MED_CERT_2DAY
+  }
+  if (serviceType === 'prescription' || serviceType === 'repeat-script') return PRICING.REPEAT_SCRIPT
+  if (serviceType === 'consult') {
+    const subtype = String(answers.consultSubtype || '')
+    if (subtype === 'ed') return PRICING.MENS_HEALTH
+    if (subtype === 'hair_loss') return PRICING.HAIR_LOSS
+    if (subtype === 'womens_health') return PRICING.WOMENS_HEALTH
+    if (subtype === 'weight_loss') return PRICING.WEIGHT_LOSS
+    return PRICING.CONSULT
+  }
+  return PRICING.CONSULT
 }
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
@@ -546,7 +566,18 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
-        <div className="rounded-2xl border border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5 p-4">
+        {/* Price summary — show before CTA so there's no payment surprise */}
+        {(() => {
+          const price = getPriceForService(serviceType, answers)
+          return (
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-muted/40 dark:bg-white/5 border border-border/40">
+              <span className="text-sm text-muted-foreground">Total today</span>
+              <span className="text-base font-semibold text-foreground">${price.toFixed(2)}</span>
+            </div>
+          )
+        })()}
+
+        <div className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'}`}>
           <div className="flex items-center gap-3">
             <Switch
               id="safety-consent"
@@ -557,15 +588,27 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
             </Label>
           </div>
+          {!safetyConfirmed && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-[calc(2.5rem+0.75rem)]">
+              Toggle to confirm and continue to payment
+            </p>
+          )}
         </div>
 
         <Button onClick={onNext} className="w-full h-12" disabled={!safetyConfirmed}>
           Continue to payment
         </Button>
 
-        <p className="text-[11px] text-muted-foreground/70 text-center">
-          Reviewed by a real Australian doctor · Full refund if we can&apos;t help
-        </p>
+        <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/70">
+          <span className="flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3" />
+            AHPRA-registered doctor
+          </span>
+          <span className="flex items-center gap-1">
+            <RefreshCw className="w-3 h-3" />
+            Full refund if declined
+          </span>
+        </div>
       </div>
     </div>
   )
