@@ -386,6 +386,7 @@ Role assignment methods: SQL update on `profiles` table (production), or Clerk d
 | `document_drafts` | Certificate/document draft editing | `intakes.id` via `request_id` |
 | `issued_certificates` | Issued certs with template snapshots | `intakes.id` |
 | `certificate_audit_log` | Issuance/download/verify events | `issued_certificates.id` |
+| `subscriptions` | Repeat Rx monthly subscriptions (Stripe) | `profiles.id` via `profile_id` |
 
 **Relationship hierarchy:**
 ```
@@ -398,6 +399,7 @@ profiles
   +-- patient_messages (patient_id, sender_id)
   +-- email_preferences (profile_id)
   +-- referrals (referrer_id, referee_id)
+  +-- subscriptions (profile_id)
 ```
 
 All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
@@ -414,7 +416,8 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 | **Doctor** (13) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `certificates/[intakeId]/download`, `drafts/[intakeId]`, `intakes/[id]/review-data`, `monitoring-stats`, `onboarding-status`, `script-sent`, `scripts` (index + `[id]`), `export`, `log-view-duration` |
 | **Patient** (14) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `refill-prescription`, `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
-| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/clerk`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification |
+| **Stripe Portal** (1) | `/api/stripe/customer-portal` | POST → creates Stripe billing portal session for subscription management |
+| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/clerk`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification; webhook handlers include `invoice.payment_succeeded`, `customer.subscription.deleted` |
 | **Misc** (12) | Various | `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
 
 ### Server-Only Module Pattern

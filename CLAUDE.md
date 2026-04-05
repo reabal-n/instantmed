@@ -103,6 +103,8 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | Hair loss | $39.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
 | Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
 | Weight loss | $79.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
+| Repeat Rx subscription | $19.95/mo | `STRIPE_PRICE_REPEAT_RX_MONTHLY` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
 | Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |
 
@@ -111,6 +113,10 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 **Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See ARCHITECTURE.md for full step sequences.
 
 **Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor inputs into Parchment (external eScript) → Doctor toggles "Script Sent" → Patient notified via email.
+
+**Repeat Rx subscription:** $19.95/mo via Stripe subscription. "Subscribe & Save" toggle on checkout (default ON for repeat scripts). Webhook handlers: `invoice.payment_succeeded` (reset credits), `customer.subscription.deleted` (mark cancelled). Subscription record created in `checkout.session.completed`. Patient dashboard shows subscription card with Stripe Customer Portal link.
+
+**Priority fee (Express Review):** $9.95 add-on toggle on checkout. Adds second line item to Stripe session. Sets `is_priority` on intake → doctor queue sorts priority-first.
 
 **Certificate pipeline:** Doctor approves → PDF generated → Uploaded to private Supabase Storage → Patient emailed dashboard link (not attachment). See ARCHITECTURE.md for 9-step generation flow.
 
@@ -138,7 +144,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Curated testimonials**: 47 realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
 - **Doctor model**: System supports multiple doctors but currently operates with one. Don't advertise team size beyond what's real
 - **Dev routes blocked in prod**: Middleware blocks `/api/test/*`, `/email-preview*`, `/sentry-test*` in production/preview (exception: `PLAYWRIGHT=1`). Note: `(dev)` route group files (e.g. `app/(dev)/cert-preview`) resolve to `/cert-preview` and are **not** blocked by middleware
-- **Supabase migrations**: 187. Use `supabase db push`. May need `supabase migration repair` for drift
+- **Supabase migrations**: 188. Use `supabase db push`. May need `supabase migration repair` for drift
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
 
