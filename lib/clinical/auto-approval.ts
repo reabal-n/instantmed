@@ -398,18 +398,14 @@ export function evaluateAutoApprovalEligibility(
   }
 
   // 10. Backdating check (start date should not be > 1 day in the past)
-  // Use AEST date strings and UTC-based arithmetic. setDate() is locale-sensitive —
-  // in UTC+11, new Date("YYYY-MM-DD") is UTC midnight, so getDate() returns the local
-  // date (day+1) and setDate(-1) produces T13:00Z instead of T00:00Z, making the
-  // boundary comparison off by 13 hours. String comparison of ISO dates is exact.
+  // Compare AEST date strings — patients are Australian so the reference clock is Sydney.
+  // Subtract 24h from now and re-express in AEST to get "yesterday in Sydney".
   const startDateStr = extractStartDate(answers)
   if (startDateStr) {
-    const todayAest = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
-    const oneDayAgoStr = new Date(new Date(todayAest + "T00:00:00Z").getTime() - 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0]
+    const yesterdayAest = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      .toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
 
-    if (startDateStr < oneDayAgoStr) {
+    if (startDateStr < yesterdayAest) {
       flags.push("backdated_too_far")
     }
   }

@@ -325,19 +325,14 @@ describe("evaluateAutoApprovalEligibility", () => {
   })
 
   it("allows start date yesterday (1 day back)", () => {
-    // Mirror production logic: compute yesterday in AEST using UTC arithmetic.
-    // setDate() is locale-sensitive and produces wrong results in UTC+ timezones
-    // when the date string is parsed as UTC midnight.
-    const todayAest = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
-    const yesterdayStr = new Date(new Date(todayAest + "T00:00:00Z").getTime() - 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0]
+    // Mirror production logic: subtract 24h from now, express in Sydney timezone
+    const yesterdayAest = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      .toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
-      makeAnswers({ start_date: yesterdayStr }),
+      makeAnswers({ start_date: yesterdayAest }),
       makeReadyDraft()
     )
-    // Should not be flagged for backdating
     expect(result.disqualifyingFlags).not.toContain("backdated_too_far")
   })
 
