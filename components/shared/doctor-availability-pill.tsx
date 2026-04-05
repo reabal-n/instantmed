@@ -20,6 +20,30 @@ function isWithinHours(): boolean {
   return hour >= OPEN_HOUR && hour < CLOSE_HOUR
 }
 
+function getTimeUntilOpen(): { hours: number; minutes: number } {
+  const aest = getAESTTime()
+  const currentHour = aest.getHours()
+  const currentMinute = aest.getMinutes()
+
+  let hoursUntil: number
+  let minutesUntil: number
+
+  if (currentHour >= CLOSE_HOUR) {
+    hoursUntil = 24 - currentHour + OPEN_HOUR
+    minutesUntil = 60 - currentMinute
+    if (minutesUntil === 60) { minutesUntil = 0 } else { hoursUntil -= 1 }
+  } else if (currentHour < OPEN_HOUR) {
+    hoursUntil = OPEN_HOUR - currentHour - 1
+    minutesUntil = 60 - currentMinute
+    if (minutesUntil === 60) { minutesUntil = 0; hoursUntil += 1 }
+  } else {
+    hoursUntil = 0
+    minutesUntil = 0
+  }
+
+  return { hours: hoursUntil, minutes: minutesUntil }
+}
+
 function useHasMounted() {
   return useSyncExternalStore(
     () => () => {},
@@ -50,6 +74,7 @@ interface DoctorAvailabilityPillProps {
 
 export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvailabilityPillProps) {
   const [isOnline, setIsOnline] = useState(true)
+  const [countdown, setCountdown] = useState<{ hours: number; minutes: number }>({ hours: 0, minutes: 0 })
   // Start at 1 (safe SSR value) — useEffect sets real random count client-side
   // to avoid server/client Math.random() hydration mismatch
   const [visitors, setVisitors] = useState(1)
@@ -58,7 +83,11 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
 
   useEffect(() => {
     if (alwaysAvailable) return
-    const updateStatus = () => setIsOnline(isWithinHours())
+    const updateStatus = () => {
+      const online = isWithinHours()
+      setIsOnline(online)
+      if (!online) setCountdown(getTimeUntilOpen())
+    }
     updateStatus()
     const interval = setInterval(updateStatus, 60000)
     return () => clearInterval(interval)
@@ -159,10 +188,14 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
           <>
             <Moon className="w-4 h-4 text-muted-foreground/60" />
             <span className="text-sm font-medium text-foreground">
-              Doctors back at 8am AEST
+              {countdown.hours > 0
+                ? `Doctors back in ${countdown.hours}h ${countdown.minutes}m`
+                : countdown.minutes > 0
+                  ? `Doctors back in ${countdown.minutes}m`
+                  : 'Doctors back at 8am AEST'}
             </span>
             <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              Submit now — reviewed first thing in the morning
+              Submit now — reviewed first thing
             </span>
           </>
         )}

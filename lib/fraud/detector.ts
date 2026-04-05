@@ -232,40 +232,6 @@ export async function checkRollingWindowCertificates(
 }
 
 /**
- * HIGH: Track chat restarts for fraud detection
- * Users who abandon and restart may be testing what triggers flags
- */
-export async function checkChatRestarts(
-  patientId: string,
-  _sessionId: string
-): Promise<FraudFlag | null> {
-  const supabase = getServiceClient()
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-
-  // Count abandoned sessions in the last hour
-  const { count } = await supabase
-    .from("chat_sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-    .eq("status", "abandoned")
-    .gte("abandoned_at", oneHourAgo.toISOString())
-
-  if (count && count >= 3) {
-    return {
-      type: "chat_restart_abuse",
-      severity: count >= 5 ? "high" : "medium",
-      details: {
-        abandonedCount: count,
-        period: "1_hour",
-        reason: "Multiple abandoned chat sessions may indicate flag-testing behavior",
-      },
-    }
-  }
-
-  return null
-}
-
-/**
  * MEDIUM: Lower thresholds with soft flags
  * Catches patterns below hard thresholds for cumulative risk scoring
  */
@@ -354,7 +320,6 @@ export async function runFraudChecks(params: {
   subtype: string
   formStartTime?: Date
   formEndTime?: Date
-  chatSessionId?: string
 }): Promise<FraudCheckResult> {
   const flags: FraudFlag[] = []
 
@@ -392,12 +357,6 @@ export async function runFraudChecks(params: {
   if (params.category === "medical_certificate") {
     const rollingWindow = await checkRollingWindowCertificates(params.patientId)
     if (rollingWindow) flags.push(rollingWindow)
-  }
-
-  // HIGH: Chat restart abuse detection
-  if (params.chatSessionId) {
-    const chatRestarts = await checkChatRestarts(params.patientId, params.chatSessionId)
-    if (chatRestarts) flags.push(chatRestarts)
   }
 
   // MEDIUM: Soft flags for cumulative risk

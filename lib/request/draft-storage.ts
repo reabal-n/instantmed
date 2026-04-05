@@ -32,8 +32,6 @@ export interface DraftData {
   // Safety
   safetyConfirmed?: boolean
   safetyTimestamp?: string | null
-  // Chat linkage
-  chatSessionId?: string | null
 }
 
 /**
@@ -233,7 +231,6 @@ export function migrateLegacyDraft(): DraftData | null {
       dob: legacyState.dob,
       safetyConfirmed: legacyState.safetyConfirmed,
       safetyTimestamp: legacyState.safetyTimestamp,
-      chatSessionId: legacyState.chatSessionId,
     }
     
     // Write to new key

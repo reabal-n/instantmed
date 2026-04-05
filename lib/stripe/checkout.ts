@@ -42,7 +42,6 @@ interface CreateCheckoutInput {
   answers: Record<string, unknown>
   serviceSlug?: string // Service slug to look up service_id
   idempotencyKey: string // P1 FIX: Required - client-generated key to prevent duplicate submissions
-  chatSessionId?: string // Session ID from AI chat flow for transcript linking
   attribution?: {
     utm_source?: string
     utm_medium?: string

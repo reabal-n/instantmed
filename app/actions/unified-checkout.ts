@@ -30,7 +30,6 @@ interface UnifiedCheckoutInput {
     dateOfBirth?: string
     phone?: string
   }
-  chatSessionId?: string // Session ID from AI chat flow for transcript linking
   attribution?: {
     utm_source?: string
     utm_medium?: string
@@ -192,7 +191,7 @@ function validateAnswersServerSide(
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity, chatSessionId, attribution, posthogDistinctId } = input
+  const { serviceType, answers, identity, attribution, posthogDistinctId } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
@@ -236,7 +235,6 @@ export async function createCheckoutFromUnifiedFlow(
         .update(`${authResult.profile.id}:${serviceType}:${finalSubtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(transformedAnswers)}`)
         .digest("hex")
         .slice(0, 32),
-      chatSessionId, // Pass chat session ID for transcript linking
       attribution,
       posthogDistinctId,
     })

@@ -63,7 +63,7 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 }
 
 export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServiceType }) {
-  const { answers, getIdentity, setConsent, chatSessionId, authContext } = useRequestStore()
+  const { answers, getIdentity, setConsent, authContext } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -143,7 +143,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         serviceType,
         answers: answersWithConsents,
         identity,
-        chatSessionId: chatSessionId || undefined,
         attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
       })
