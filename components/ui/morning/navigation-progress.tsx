@@ -2,9 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useReducedMotion } from "@/components/ui/motion";
 // framer-motion removed — module factory race condition in root layout chunk.
 // Progress bar uses CSS transition triggered via requestAnimationFrame.
+// useReducedMotion inlined here (not imported from motion.tsx) to avoid
+// co-bundling with the framer-motion chunk, which causes factory unavailability
+// during Turbopack's first cold load (Next.js #70703).
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
 
 export function NavigationProgress() {
   const pathname = usePathname();
