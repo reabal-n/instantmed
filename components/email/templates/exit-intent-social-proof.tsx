@@ -51,7 +51,7 @@ export function ExitIntentSocialProofEmail({
 
       <Text>
         Every request is reviewed by an AHPRA-registered doctor — no bots, no
-        auto-approvals. You fill in a 2-minute form, a real doctor reviews it,
+        shortcuts. You fill in a 2-minute form, a real doctor reviews it,
         and your document lands in your inbox. That&apos;s it.
       </Text>
 

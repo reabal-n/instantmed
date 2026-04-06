@@ -255,7 +255,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
           }`}>
             {symptomDetails.length >= 20 
               ? `${symptomDetails.length} characters` 
-              : `${symptomDetails.length}/20 min`
+              : `${symptomDetails.length}/20 characters`
             }
           </p>
         </div>

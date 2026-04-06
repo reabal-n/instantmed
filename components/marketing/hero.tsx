@@ -76,12 +76,16 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Link
-                href="/request?service=prescription"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 px-8 text-base font-semibold"
               >
-                Renew medication
-              </Link>
+                <Link href="/request?service=prescription">
+                  Renew medication
+                </Link>
+              </Button>
             </motion.div>
 
             {/* Trust signals */}

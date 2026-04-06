@@ -59,7 +59,7 @@ export function AfterHoursMedCertBanner() {
                 It&apos;s late — but med certs are available 24/7.
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Auto-approved. In your inbox in minutes.
+                Reviewed fast. In your inbox in minutes.
               </p>
             </div>
 

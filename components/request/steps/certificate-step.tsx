@@ -244,6 +244,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           min={(() => { const d = new Date(); d.setDate(d.getDate() - 2); return d.toISOString().split("T")[0] })()}
           max={new Date().toISOString().split("T")[0]}
         />
+        <p className="text-xs text-muted-foreground mt-1">DD/MM/YYYY</p>
       </FormField>
 
       {/* Continue button */}

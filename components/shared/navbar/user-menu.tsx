@@ -23,7 +23,6 @@ import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { NotificationBell } from "@/components/shared/notification-bell"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { services } from "@/components/shared/navbar/services-dropdown"
-import SkyToggle from "@/components/ui/sky-toggle"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 interface UserMenuProps {
@@ -53,7 +52,6 @@ export function UserMenu({
   if (variant === "marketing") {
     return (
       <div className="ml-2 flex items-center gap-2">
-        <SkyToggle size={8} />
         <Button
           asChild
           size="sm"

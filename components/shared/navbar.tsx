@@ -13,7 +13,6 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from "@/components/uix"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { cn } from "@/lib/utils"
-import SkyToggle from "@/components/ui/sky-toggle"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
@@ -172,9 +171,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         }
         footer={
           <div className="space-y-3">
-            <div className="flex justify-center py-2">
-              <SkyToggle size={14} />
-            </div>
             {variant === "marketing" && (
               <>
                 {isClerkLoaded && user ? (

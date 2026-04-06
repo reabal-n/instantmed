@@ -221,9 +221,9 @@ export default function EmployersPage() {
                   with AHPRA-registered doctors.
                 </p>
                 <p className="text-muted-foreground">
-                  Every request is reviewed by a qualified Australian GP who makes an 
-                  independent clinical decision. We do not auto-approve requests — each 
-                  case is assessed individually based on the information provided.
+                  Every request is reviewed by a qualified Australian GP who makes an
+                  independent clinical decision. Each case is assessed individually
+                  based on the information provided.
                 </p>
                 <div className="pt-4 border-t space-y-2">
                   <div className="flex items-center gap-3 text-sm">

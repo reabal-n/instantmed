@@ -355,7 +355,7 @@ export function QueueTable({
                 AI-Approved Certificates ({aiApprovedIntakes.length})
               </h3>
             </div>
-            <p className="text-xs text-muted-foreground">Auto-approved by AI. Review and revoke if needed.</p>
+            <p className="text-xs text-muted-foreground">AI-reviewed. Please verify and revoke if needed.</p>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">
             {aiApprovedIntakes.map((intake) => {
