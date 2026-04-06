@@ -17,7 +17,7 @@ export interface GuestCompleteAccountEmailProps {
 }
 
 export function guestCompleteAccountSubject(requestType: string) {
-  return `Your ${requestType} is underway — set up your account to track it`
+  return `Your ${requestType} is underway. Set up your account to track it`
 }
 
 export function GuestCompleteAccountEmail({
@@ -57,7 +57,7 @@ export function GuestCompleteAccountEmail({
 
       <Box variant="info">
         <p style={{ margin: 0, fontSize: "13px", color: colors.infoText }}>
-          No pressure — your certificate will be emailed to you when it&apos;s ready,
+          No pressure. Your certificate will be emailed to you when it&apos;s ready,
           even if you don&apos;t create an account.
         </p>
       </Box>

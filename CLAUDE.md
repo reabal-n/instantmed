@@ -15,7 +15,7 @@
 | Support | support@instantmed.com.au · 0450 722 549 |
 | Complaints | complaints@instantmed.com.au (14-day SLA, AHPRA escalation) |
 | Doctor model | Supports multiple doctors. Do not expose individual doctor names on marketing pages. |
-| Hours | 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. |
+| Hours | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. |
 | Eligibility | Australia only · 18+ (parental consent for minors) · Medicare optional for med certs, required for Rx/consults |
 
 ## Satellite Documentation

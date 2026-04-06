@@ -26,7 +26,7 @@ export interface IntakeSubmittedEmailProps {
 }
 
 export function intakeSubmittedSubject(requestType: string) {
-  return `Got it — your ${requestType} is being reviewed`
+  return `Got it, your ${requestType} is being reviewed`
 }
 
 export function IntakeSubmittedEmail({
@@ -48,7 +48,7 @@ export function IntakeSubmittedEmail({
 
       <Text>
         Your <strong>{requestType}</strong> request has been submitted. A doctor
-        will review it soon — most requests are wrapped up within a couple of hours.
+        will review it soon. Most requests are wrapped up within a couple of hours.
       </Text>
 
       <Box>
@@ -67,7 +67,7 @@ export function IntakeSubmittedEmail({
         />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+      <Button href={`${appUrl}/track/${requestId}`}>
         Track Your Request
       </Button>
 

@@ -17,7 +17,7 @@ export interface PaymentConfirmedEmailProps {
 }
 
 export function paymentConfirmedSubject(requestType: string, amount: string) {
-  return `Payment received — ${amount} for your ${requestType} ✅`
+  return `Payment received, ${amount} for your ${requestType} ✅`
 }
 
 export function PaymentConfirmedEmail({
@@ -30,12 +30,12 @@ export function PaymentConfirmedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Payment received — ${amount} for your ${requestType} ✅`} appUrl={appUrl}>
+    <BaseEmail previewText={`Payment received, ${amount} for your ${requestType} ✅`} appUrl={appUrl}>
       <StatusBanner title="Payment received ✅" variant="success" />
 
       <Text>Hi {firstName},</Text>
       <Text>
-        Got it — <strong>{amount}</strong> received for your {requestType}.
+        Got it. <strong>{amount}</strong> received for your {requestType}.
         A doctor will review it shortly and we&apos;ll email you when it&apos;s done.
       </Text>
 
@@ -44,7 +44,7 @@ export function PaymentConfirmedEmail({
         <DetailRow label="Amount" value={amount} />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Track your request</Button>
+      <Button href={`${appUrl}/track/${requestId}`}>Track your request</Button>
 
       <Text muted small>
         Need a tax invoice? Grab it from your{" "}

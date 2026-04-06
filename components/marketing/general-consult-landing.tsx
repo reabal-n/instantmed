@@ -102,7 +102,7 @@ const PRICING_FEATURES = [
 const SOCIAL_PROOF_STATS = [
   { icon: Clock, value: 2, suffix: " hrs", label: "avg response", color: "text-primary" },
   { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
-  { icon: Users, value: SOCIAL_PROOF.doctorCombinedYears, suffix: "+", label: "years experience", color: "text-success" },
+  { icon: Users, value: 100, suffix: "%", label: "AHPRA verified", color: "text-success" },
   { icon: ShieldCheck, value: 100, suffix: "%", label: "refund guarantee", color: "text-success" },
 ]
 

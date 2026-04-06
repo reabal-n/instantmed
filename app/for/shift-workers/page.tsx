@@ -38,7 +38,7 @@ export default function ShiftWorkersPage() {
         name: "Can I get a medical certificate outside normal business hours?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Our service operates 8am-10pm AEST, 7 days a week. Most certificates are issued within 15 minutes during these hours — perfect for shift workers who need documentation outside typical GP hours.",
+          text: "Yes. Medical certificates are available 24/7 — submit at any time and receive your certificate within 15 minutes. Perfect for shift workers who need documentation at any hour.",
         },
       },
       {
@@ -74,7 +74,7 @@ export default function ShiftWorkersPage() {
                     Medical Certificates When GPs Are Closed
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong> — anytime between 8am-10pm, 7 days a week.
+                    Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong>, 24 hours a day, 7 days a week.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Works around your roster • All employers accept • AHPRA doctors
@@ -91,7 +91,7 @@ export default function ShiftWorkersPage() {
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Clock className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
+                      <span className="font-medium text-muted-foreground">24/7, every day</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-blue-600" />
@@ -116,7 +116,7 @@ export default function ShiftWorkersPage() {
                     <div className="flex flex-col items-center">
                       <Sun className="h-5 w-5 mb-2 text-blue-600" />
                       <div className="text-xs font-medium text-blue-700">Early mornings</div>
-                      <div className="text-xs text-muted-foreground">From 8am</div>
+                      <div className="text-xs text-muted-foreground">Any time</div>
                     </div>
                     <div className="flex flex-col items-center">
                       <Coffee className="h-5 w-5 mb-2 text-blue-600" />
@@ -126,7 +126,7 @@ export default function ShiftWorkersPage() {
                     <div className="flex flex-col items-center">
                       <Moon className="h-5 w-5 mb-2 text-blue-600" />
                       <div className="text-xs font-medium text-blue-700">Evenings</div>
-                      <div className="text-xs text-muted-foreground">Until 10pm</div>
+                      <div className="text-xs text-muted-foreground">Around the clock</div>
                     </div>
                     <div className="flex flex-col items-center">
                       <Star className="h-5 w-5 mb-2 text-blue-600" />
@@ -175,7 +175,7 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       title: "GPs don&apos;t work your hours",
-                      desc: "Finish a night shift at 6am and can&apos;t see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
+                      desc: "Finish a night shift at 6am and need a certificate? Submit at 6am and get it before you go home — we&apos;re available 24/7.",
                     },
                     {
                       title: "No time to wait",
@@ -296,11 +296,11 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       q: "What are your hours?",
-                      a: "We're available 8am-10pm AEST, 7 days a week including public holidays. Most certificates are issued within 15 minutes during these hours.",
+                      a: "Medical certificates are available 24/7 — submit at any hour and receive your certificate within 15 minutes.",
                     },
                     {
-                      q: "I work nights — can I get a cert after 10pm?",
-                      a: "Submissions received after 10pm will be processed from 8am the next morning. You can submit anytime, but review happens during operating hours.",
+                      q: "I work nights — can I get a cert at 3am?",
+                      a: "Yes. Medical certificates are available 24/7. Submit at 3am and your certificate will be ready within 15 minutes.",
                     },
                     {
                       q: "Will my employer accept this?",
@@ -340,7 +340,7 @@ export default function ShiftWorkersPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • 8am-10pm, 7 days</p>
+                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Available 24/7</p>
                 </div>
               </div>
             </div>

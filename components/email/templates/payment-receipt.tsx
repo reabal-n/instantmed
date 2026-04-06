@@ -40,7 +40,7 @@ export function PaymentReceiptEmail({
 
   return (
     <BaseEmail
-      previewText={`Payment confirmed — ${amount} for ${serviceName} ✅`}
+      previewText={`Payment confirmed, ${amount} for ${serviceName} ✅`}
       appUrl={appUrl}
     >
       <SuccessBanner title="Payment confirmed" />
@@ -92,5 +92,5 @@ export function PaymentReceiptEmail({
 }
 
 export function paymentReceiptEmailSubject(serviceName: string) {
-  return `Payment confirmed — ${serviceName}`
+  return `Payment confirmed: ${serviceName}`
 }

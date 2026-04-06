@@ -103,7 +103,7 @@ export function ServicePicker() {
           <h2 className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight mb-4">
             What do you need?
           </h2>
-          <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-6">
             Flat pricing. No hidden fees. No account needed to start.
           </p>
           
@@ -112,7 +112,7 @@ export function ServicePicker() {
             {trustSignals.map((signal, index) => (
               <motion.div
                 key={signal.text}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground"
                 initial={prefersReducedMotion ? {} : { y: 10 }}
                 whileInView={{ y: 0 }}
                 viewport={{ once: true }}
@@ -192,7 +192,7 @@ export function ServicePicker() {
                             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                               {service.title}
                             </h3>
-                            <p className="text-xs text-muted-foreground">From ${displayPrice.toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground">From ${displayPrice.toFixed(2)}</p>
                           </div>
                         </div>
 
@@ -200,8 +200,8 @@ export function ServicePicker() {
                         {service.benefits && (
                           <ul className="space-y-1 mb-3 flex-1">
                             {service.benefits.map((benefit, idx) => (
-                              <li key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                                <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
+                              <li key={idx} className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                                <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                                 <span>{benefit}</span>
                               </li>
                             ))}

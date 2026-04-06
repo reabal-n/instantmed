@@ -116,7 +116,7 @@ export function WomensHealthApprovedEmail({
         />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+      <Button href={`${appUrl}/track/${requestId}`}>
         View Request Details
       </Button>
 

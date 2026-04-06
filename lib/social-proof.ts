@@ -67,9 +67,6 @@ export const SOCIAL_PROOF = {
   operatingHoursEnd: 22,
   doctorCount: 1,
 
-  // ── Doctor Credibility ──
-  doctorCombinedYears: 15,
-
   // ── Outcome Stats ──
   sameDayDeliveryPercent: 94,
   certApprovalPercent: 97,
@@ -101,7 +98,7 @@ export const SOCIAL_PROOF_DISPLAY = {
   adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
   gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
-  doctorExperience: `${SOCIAL_PROOF.doctorCombinedYears}+ years GP experience`,
+  doctorExperience: "Experienced AHPRA-registered GPs",
   sameDayDelivery: `${SOCIAL_PROOF.sameDayDeliveryPercent}% delivered same day`,
   certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
   scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,
@@ -136,10 +133,10 @@ export const GOOGLE_REVIEWS: {
   placeId: "7941901494114695128",
   /** Short link for patients to leave a review — share this directly */
   reviewsUrl: "https://g.page/r/CWqy3A7IKcX6EAE/review",
-  /** Real rating from Google dashboard — update before enabling */
-  rating: 0,
-  /** Real review count from Google dashboard — update before enabling */
-  count: 0,
+  /** Real rating from Google dashboard */
+  rating: 5.0,
+  /** Real review count from Google dashboard */
+  count: 3,
 }
 
 // ─── Counter Logic ─────────────────────────────────────────────────

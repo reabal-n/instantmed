@@ -75,7 +75,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   description: 'Get a valid medical certificate for work, university, or official purposes. Reviewed by AHPRA-registered doctors, delivered same-day.',
   
   heroTitle: 'Get a medical certificate without the waiting room',
-  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email — typically within an hour.',
+  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email, typically within an hour.',
   heroImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=500&fit=crop&q=80',
   heroImageAlt: 'Healthcare professional reviewing medical documents on tablet',
   
@@ -90,7 +90,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     {
       step: 1,
       title: 'Tell us about your absence',
-      description: 'Select the type of certificate you need and the dates. Answer a few quick health questions — takes about 2 minutes.',
+      description: 'Select the type of certificate you need and the dates. Answer a few quick health questions. Takes about 2 minutes.',
       icon: 'ClipboardList',
     },
     {
@@ -154,7 +154,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     },
     {
       question: 'Is my information kept private?',
-      answer: 'Absolutely. We use bank-level encryption and comply with Australian privacy laws. Your certificate will only show a general category (e.g., "medical condition") — not specific diagnosis details — unless you request otherwise.',
+      answer: 'Absolutely. We use bank-level encryption and comply with Australian privacy laws. Your certificate will only show a general category (e.g., "medical condition"), not specific diagnosis details, unless you request otherwise.',
     },
   ],
   
@@ -250,7 +250,7 @@ export const commonScriptsConfig: ServiceConfig = {
     },
     {
       question: 'What\'s an e-script?',
-      answer: 'An e-script (electronic prescription) is a QR code sent to your phone via SMS or email. You show this at any pharmacy to collect your medication — no paper script needed.',
+      answer: 'An e-script (electronic prescription) is a QR code sent to your phone via SMS or email. You show this at any pharmacy to collect your medication. No paper script needed.',
     },
     {
       question: 'Can I send the script to any pharmacy?',

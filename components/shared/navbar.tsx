@@ -173,7 +173,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         footer={
           <div className="space-y-3">
             <div className="flex justify-center py-2">
-              <SkyToggle size={20} />
+              <SkyToggle size={14} />
             </div>
             {variant === "marketing" && (
               <>

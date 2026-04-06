@@ -239,7 +239,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
             </div>
             <div>
               <p className="text-sm font-medium">Business Hours</p>
-              <p className="text-sm text-muted-foreground">Mon - Sun: 8am - 10pm AEST</p>
+              <p className="text-sm text-muted-foreground">Med certs: 24/7 · Rx &amp; Consults: 8am–10pm AEST</p>
             </div>
           </div>
           <div className="flex items-start gap-4 pt-2 border-t border-border/50">

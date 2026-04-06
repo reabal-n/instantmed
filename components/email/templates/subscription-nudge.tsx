@@ -67,7 +67,7 @@ export function SubscriptionNudgeEmail({
       </Button>
 
       <Text muted small>
-        Not ready yet? No worries — this is just a reminder. You can request
+        Not ready yet? No worries, this is just a reminder. You can request
         a one-off script anytime.
       </Text>
 
@@ -149,7 +149,7 @@ export function renderSubscriptionNudgeEmail(props: SubscriptionNudgeEmailProps)
                 </tr>
               </table>
               <p style="font-size: 12px; color: #94A3B8; margin: 24px 0 8px 0;">
-                Not ready yet? No worries — this is just a reminder. You can request a one-off script anytime.
+                Not ready yet? No worries, this is just a reminder. You can request a one-off script anytime.
               </p>
               <p style="font-size: 12px; color: #94A3B8; margin: 0;">
                 Questions? Reply to this email or visit our <a href="${appUrl}/contact" style="color: #2563EB; font-weight: 500; text-decoration: none;">help centre</a>.

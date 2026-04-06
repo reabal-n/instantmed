@@ -117,23 +117,23 @@ export const ERRORS = {
   invalidEmail: "That doesn't look quite right. Mind checking the email?",
 
   // Medicare
-  medicareInvalid: "Medicare number doesn't look right — should be 10 digits.",
+  medicareInvalid: "Medicare number doesn't look right. Should be 10 digits.",
   medicareIncomplete: (remaining: number) => `${remaining} more digit${remaining === 1 ? "" : "s"} to go.`,
   medicareStartDigit: "Medicare numbers start with 2, 3, 4, 5 or 6.",
   irnInvalid: "IRN should be 1-9. It's the little number next to your name.",
-  expiryInvalid: "Check the expiry on your card — might've lapsed.",
+  expiryInvalid: "Check the expiry on your card. Might've lapsed.",
 
   // Payment
   paymentFailed: "Payment didn't go through. Try a different card?",
   paymentDeclined: "Card was declined. Got another one handy?",
-  paymentCancelled: "No worries — your details are saved. Come back whenever.",
+  paymentCancelled: "No worries, your details are saved. Come back whenever.",
 
   // Forms
   required: "This one's required. Mind filling it in?",
   tooShort: (min: number) => `Needs at least ${min} characters.`,
-  tooLong: (max: number) => `Keep it under ${max} characters — we're not writing a novel.`,
+  tooLong: (max: number) => `Keep it under ${max} characters. We're not writing a novel.`,
   invalidPhone: "That phone number doesn't look quite right.",
-  invalidDate: "Check the date format — DD/MM/YYYY.",
+  invalidDate: "Check the date format: DD/MM/YYYY.",
 
   // Permissions
   notAuthorized: "You don't have access to this. Need to sign in?",
@@ -161,7 +161,7 @@ export const SUCCESS = {
   requestSubmitted: {
     title: "Request submitted",
     subtitle: "A doctor will review this shortly.",
-    body: "We'll email you when your document is ready — usually within an hour (8am–10pm AEST).",
+    body: "We'll email you when your document is ready, usually within an hour (8am–10pm AEST).",
   },
 
   // Account
@@ -229,7 +229,7 @@ export const FORM = {
   name: {
     label: "Full name",
     placeholder: "As it appears on your Medicare card",
-    helper: "Must match your Medicare card — they're picky about that",
+    helper: "Must match your Medicare card. They're picky about that.",
   },
   phone: {
     label: "Phone",
@@ -244,7 +244,7 @@ export const FORM = {
   // Request-specific
   notes: {
     label: "Anything else?",
-    placeholder: "Optional — anything that might help...",
+    placeholder: "Optional, anything that might help...",
     helper: "More detail = faster review",
   },
   symptoms: {
@@ -254,7 +254,7 @@ export const FORM = {
   medication: {
     label: "Which medication?",
     placeholder: "Start typing...",
-    helper: "Brand name or generic — whatever's on the box",
+    helper: "Brand name or generic, whatever's on the box",
   },
 } as const
 
@@ -264,7 +264,7 @@ export const FORM = {
 export const TOOLTIPS = {
   medicare: "We need this to verify your identity. Encrypted, secure, never shared.",
   irn: "The small number (1-9) next to your name. Usually overlooked.",
-  priority: "Jump the queue — doctor reviews within 15 minutes.",
+  priority: "Jump the queue. Doctor reviews within 15 minutes.",
   securePayment: "Payments go through Stripe. We never see your card details.",
   doctorReview: "Every request reviewed by an AHPRA-registered Australian GP. The real deal.",
 } as const
@@ -290,8 +290,8 @@ export const STATUS = {
 // ============================================
 export const TIME = {
   turnaround: "Usually under an hour",
-  turnaroundLong: "Most requests done within 1 hour (8am-10pm AEST)",
-  hours: "8am — 10pm AEST, 7 days",
+  turnaroundLong: "Most requests done within 1 hour (Rx/Consults: 8am–10pm AEST)",
+  hours: "Med certs: 24/7 · Rx & Consults: 8am–10pm AEST, 7 days",
   afterHours: "After hours? We'll get to it first thing.",
   priority: "15-minute priority review",
   estimatedWait: (minutes: number) =>
@@ -305,7 +305,7 @@ export const TIME = {
 // ============================================
 export const EMAIL_SUBJECTS = {
   requestReceived: "Got your request",
-  paymentConfirmed: "Payment confirmed — on it",
+  paymentConfirmed: "Payment confirmed, on it",
   inReview: "A doctor is on it",
   approved: "Your request is approved",
   documentReady: "Your document is ready",

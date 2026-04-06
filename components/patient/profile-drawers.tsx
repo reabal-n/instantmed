@@ -435,7 +435,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
         <div>
           <h3 className="font-semibold text-foreground">Medicare card</h3>
           <p className="text-sm text-muted-foreground">
-            Optional — needed for prescriptions & referrals
+            Optional. Needed for prescriptions & referrals.
           </p>
         </div>
       </div>

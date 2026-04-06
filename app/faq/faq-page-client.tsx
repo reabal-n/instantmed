@@ -23,7 +23,7 @@ const faqCategories = [
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 1\u20132 hours during our operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
+        a: "Medical certificates are reviewed within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1\u20132 hours during operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
       },
       {
         q: "How do I know if I need an in-person visit instead?",

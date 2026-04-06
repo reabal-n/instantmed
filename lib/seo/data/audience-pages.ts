@@ -44,13 +44,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Nurses & Healthcare Workers",
     h1: "Medical Certificates for Nurses",
     heroSubtext:
-      "Hospital shifts don't match GP hours. Get your medical certificate online — 8am-10pm, 7 days. Accepted by all healthcare employers.",
+      "Hospital shifts don't match GP hours. Get your medical certificate online — available 24/7. Accepted by all healthcare employers.",
     heroTagline: "Works around your roster • Hospitals accept • AHPRA doctors",
     icon: Stethoscope,
     metadata: {
       title: "Medical Certificates for Nurses | Online",
       description:
-        "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, usually under 1 hour. Accepted by hospitals and aged care. 8am-10pm, 7 days.",
+        "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, available 24/7. Accepted by hospitals and aged care.",
       keywords: [
         "medical certificate nurses",
         "nurse sick certificate",
@@ -65,11 +65,11 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can I get a certificate between shifts?",
-        a: "Yes. We're available 8am-10pm AEST, 7 days a week. Complete the form during your break or before your next shift.",
+        a: "Yes. Medical certificates are available 24/7. Complete the form during your break or after any shift.",
       },
       {
         q: "What if I work night shift?",
-        a: "Submit your request anytime. If it's after 10pm, we'll process it from 8am. You can also submit in the morning after a night shift.",
+        a: "Medical certificates are available 24/7 — submit at any hour and receive your certificate within 30 minutes, including after a night shift.",
       },
       {
         q: "How much does a medical certificate cost?",
@@ -196,7 +196,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I need a certificate before 8am for a morning absence?",
-        a: "Our hours are 8am-10pm AEST. If you know you will be unwell, submit your request the evening before. Otherwise, submit at 8am and you will typically have your certificate within an hour.",
+        a: "Medical certificates are available 24/7. Submit at any time — even at 5am before school — and you will typically have your certificate within 30 minutes.",
       },
       {
         q: "Can I get a multi-day certificate?",
@@ -250,7 +250,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Hospitality Workers",
     h1: "Medical Certificates for Hospitality",
     heroSubtext:
-      "Chefs, waitstaff, hotel workers — your hours don't match GP clinics. Get your certificate online, 8am-10pm, 7 days.",
+      "Chefs, waitstaff, hotel workers — your hours don't match GP clinics. Get your certificate online, available 24/7.",
     heroTagline: "Works around your roster • Restaurants & hotels accept • 7 days",
     icon: Coffee,
     metadata: {
@@ -271,7 +271,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "I work weekends — can I get a cert then?",
-        a: "Yes. We're available 8am-10pm, 7 days a week including weekends.",
+        a: "Yes. Medical certificates are available 24/7 including weekends.",
       },
       {
         q: "What if I need it before my evening shift?",
@@ -351,7 +351,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Retail Workers",
     h1: "Medical Certificates for Retail",
     heroSubtext:
-      "Supermarkets, shops, warehouses — get your medical certificate online. No need to miss work to see a GP. 8am-10pm, 7 days.",
+      "Supermarkets, shops, warehouses — get your medical certificate online. No need to miss work to see a GP. Available 24/7.",
     heroTagline: "Works around your roster • All retailers accept • Usually under 1 hour",
     icon: ShoppingBag,
     metadata: {
@@ -372,7 +372,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "I work irregular hours — when can I get one?",
-        a: "We're available 8am-10pm AEST, 7 days. Submit when it suits you — before work, on a break, or after your shift.",
+        a: "Medical certificates are available 24/7. Submit when it suits you — before work, on a break, or after your shift.",
       },
       {
         q: "How much does a medical certificate cost?",
@@ -396,7 +396,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can I get a certificate on a weekend or public holiday?",
-        a: "Yes. We operate 8am-10pm AEST, 7 days a week — including weekends and public holidays. Retail never stops, and neither do we.",
+        a: "Yes. Medical certificates are available 24/7 — including weekends and public holidays. Retail never stops, and neither do we.",
       },
       {
         q: "Can I get a carer's leave certificate?",
@@ -778,7 +778,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "When are you available?",
-        a: "8am-10pm AEST, 7 days a week. Submit when it suits you — between gigs or when you're resting.",
+        a: "Medical certificates are available 24/7. Submit when it suits you — between gigs or when you're resting.",
       },
       {
         q: "How much does a medical certificate cost?",

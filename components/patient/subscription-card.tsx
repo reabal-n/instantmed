@@ -64,7 +64,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
           <span>
             {subscription.credits_remaining > 0
               ? `${subscription.credits_remaining} script credit remaining`
-              : "No credits — next script at full price"}
+              : "No credits. Next script at full price."}
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

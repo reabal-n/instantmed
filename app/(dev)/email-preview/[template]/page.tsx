@@ -78,7 +78,7 @@ const templates: Record<string, {
   },
   "guest-complete-account": {
     name: "Guest Complete Account",
-    subject: "Your medical certificate is underway — set up your account to track it",
+    subject: "Your medical certificate is underway. Set up your account to track it",
     render: () => (
       <GuestCompleteAccountEmail
         patientName={mock.patientName}
@@ -91,7 +91,7 @@ const templates: Record<string, {
   },
   "verification-code": {
     name: "Verification Code",
-    subject: "Your InstantMed verification code — 847291",
+    subject: "Your InstantMed verification code: 847291",
     render: () => (
       <VerificationCodeEmail
         code="847291"
@@ -105,7 +105,7 @@ const templates: Record<string, {
   // Request flow
   "intake-submitted": {
     name: "Intake Submitted",
-    subject: "Got it — your medical certificate is being reviewed",
+    subject: "Got it, your medical certificate is being reviewed",
     render: () => (
       <IntakeSubmittedEmail
         patientName={mock.patientName}
@@ -117,7 +117,7 @@ const templates: Record<string, {
   },
   "request-received": {
     name: "Request Received",
-    subject: "All sorted — your medical certificate is with a doctor now",
+    subject: "All sorted, your medical certificate is with a doctor now",
     render: () => (
       <RequestReceivedEmail
         patientName={mock.patientName}
@@ -131,7 +131,7 @@ const templates: Record<string, {
   },
   "still-reviewing": {
     name: "Still Reviewing",
-    subject: "Still reviewing your medical certificate — thanks for your patience",
+    subject: "Still reviewing your medical certificate, thanks for your patience",
     render: () => (
       <StillReviewingEmail
         patientName={mock.patientName}
@@ -290,7 +290,7 @@ const templates: Record<string, {
   // Payments
   "payment-confirmed": {
     name: "Payment Confirmed",
-    subject: "Payment confirmed — $29.95 for your medical certificate",
+    subject: "Payment confirmed, $29.95 for your medical certificate",
     render: () => (
       <PaymentConfirmedEmail
         patientName={mock.patientName}
@@ -303,7 +303,7 @@ const templates: Record<string, {
   },
   "payment-receipt": {
     name: "Payment Receipt",
-    subject: "Payment receipt — Medical Certificate",
+    subject: "Payment confirmed: Medical Certificate",
     render: () => (
       <PaymentReceiptEmail
         patientName={mock.patientName}
@@ -318,7 +318,7 @@ const templates: Record<string, {
   },
   "payment-failed": {
     name: "Payment Failed",
-    subject: "Heads up — there was a hiccup with your medical certificate payment",
+    subject: "Heads up: there was a hiccup with your medical certificate payment",
     render: () => (
       <PaymentFailedEmail
         patientName={mock.patientName}
@@ -331,7 +331,7 @@ const templates: Record<string, {
   },
   "payment-retry": {
     name: "Payment Retry",
-    subject: "Just a heads up — your payment needs another go",
+    subject: "Just a heads up: your payment needs another go",
     render: () => (
       <PaymentRetryEmail
         patientName={mock.patientName}
@@ -396,7 +396,7 @@ const templates: Record<string, {
   },
   "abandoned-checkout-followup": {
     name: "Abandoned Checkout Followup (24h)",
-    subject: "Last call — your Medical Certificate request expires soon",
+    subject: "Last call: your Medical Certificate request expires soon",
     render: () => (
       <AbandonedCheckoutFollowupEmail
         patientName={mock.patientName}

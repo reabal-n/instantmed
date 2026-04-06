@@ -28,7 +28,7 @@ export interface RequestReceivedEmailProps {
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `All sorted — your ${requestType} is with a doctor now 👍`
+  return `All sorted, your ${requestType} is with a doctor now 👍`
 }
 
 export function RequestReceivedEmail({
@@ -43,20 +43,20 @@ export function RequestReceivedEmail({
 
   return (
     <BaseEmail
-      previewText={`Your ${requestType} is with a doctor — we'll be in touch shortly`}
+      previewText={`Your ${requestType} is with a doctor. We'll be in touch shortly`}
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
         headline="You're all set 👍"
-        subtitle={`${requestType} — ${amount}`}
+        subtitle={`${requestType} · ${amount}`}
         variant="info"
       />
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Payment confirmed — your <strong>{requestType}</strong> is now with
+        Payment confirmed. Your <strong>{requestType}</strong> is now with
         a doctor. We&apos;ll email you the moment there&apos;s an update.
       </Text>
 
@@ -76,12 +76,12 @@ export function RequestReceivedEmail({
           items={[
             "A doctor reviews your request (usually within an hour)",
             "You'll get an email as soon as it's done",
-            "No phone call needed — we'll reach out if anything else is required",
+            "No phone call needed. We'll reach out if anything else is required.",
           ]}
         />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>
+      <Button href={`${appUrl}/track/${requestId}`}>
         Track your request
       </Button>
 
@@ -95,7 +95,7 @@ export function RequestReceivedEmail({
             Create account
           </Button>
           <Text muted small style={{ textAlign: "center" as const }}>
-            No pressure — your certificate will be emailed to you either way.
+            No pressure. Your certificate will be emailed to you either way.
           </Text>
         </Box>
       )}

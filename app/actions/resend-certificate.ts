@@ -79,7 +79,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
     
     if (certificate) {
       // Use centralized email system
-      const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
+      const dashboardUrl = `${env.appUrl}/track/${intakeId}`
 
       // Generate signed download URL (7-day expiry) so patient can download without login
       let downloadUrl: string | undefined

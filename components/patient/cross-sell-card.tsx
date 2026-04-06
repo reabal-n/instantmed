@@ -22,7 +22,7 @@ function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | n
     case "med_certs":
       return {
         headline: "Need a prescription renewal?",
-        description: "A doctor reviews repeat medication requests the same way — no appointment needed.",
+        description: "A doctor reviews repeat medication requests the same way. No appointment needed.",
         price: "from $29.95",
         href: "/request?service=prescription",
         cta: "Renew a prescription",

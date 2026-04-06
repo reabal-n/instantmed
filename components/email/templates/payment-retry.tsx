@@ -14,7 +14,7 @@ export interface PaymentRetryEmailProps {
 }
 
 export function paymentRetrySubject() {
-  return "Just a heads up — your payment needs another go"
+  return "Just a heads up: your payment needs another go"
 }
 
 export function PaymentRetryEmail({
@@ -31,7 +31,7 @@ export function PaymentRetryEmail({
       <Text>Hi {patientName},</Text>
       <Text>
         We noticed your previous payment for your {requestType} request didn&apos;t go through.
-        No worries — you can try again using the link below.
+        No worries, you can try again using the link below.
       </Text>
 
       <Box>
@@ -102,7 +102,7 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
               <h1 style="font-size: 24px; font-weight: 600; color: #1E293B; margin: 0 0 16px 0; letter-spacing: -0.5px;">Complete your payment</h1>
               <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0;">Hi ${patientName},</p>
               <p style="font-size: 15px; color: #475569; margin: 0 0 24px 0;">
-                We noticed your previous payment for your ${requestType} request didn't go through. No worries — you can try again using the link below.
+                We noticed your previous payment for your ${requestType} request didn't go through. No worries, you can try again using the link below.
               </p>
               <div style="background: #F5F7F9; border: 1px solid #E2E8F0; border-radius: 10px; padding: 20px 24px; margin: 0 0 24px 0;">
                 <p style="margin: 0; font-size: 14px; color: #475569;"><strong style="color: #1E293B;">Amount due:</strong> ${amount}</p>

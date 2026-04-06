@@ -66,7 +66,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
     await incrementEmailRetry(certificateId)
 
     // Generate email template as React element
-    const dashboardUrl = `${env.appUrl}/patient/intakes/${certificate.intake_id}`
+    const dashboardUrl = `${env.appUrl}/track/${certificate.intake_id}`
     const emailTemplate = MedCertPatientEmail({
       patientName: certificate.patient_name,
       dashboardUrl,

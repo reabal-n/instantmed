@@ -1,6 +1,6 @@
 import "server-only"
 import { z } from "zod"
-import { COMPANY_NAME, CONTACT_EMAIL_NOREPLY, CONTACT_EMAIL_ADMIN } from "@/lib/constants"
+import { COMPANY_NAME, CONTACT_EMAIL, CONTACT_EMAIL_ADMIN } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("env")
@@ -192,7 +192,7 @@ export function getResendApiKey(): string {
  * Format: "Name <email@domain.com>"
  */
 export function getResendFromEmail(): string {
-  const raw = process.env.RESEND_FROM_EMAIL || `${COMPANY_NAME} <${CONTACT_EMAIL_NOREPLY}>`
+  const raw = process.env.RESEND_FROM_EMAIL || `${COMPANY_NAME} <${CONTACT_EMAIL}>`
   // Strip wrapping quotes — a common env var misconfiguration that causes Resend 422 errors
   return raw.replace(/^["']|["']$/g, "")
 }

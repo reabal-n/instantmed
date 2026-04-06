@@ -23,7 +23,7 @@ export interface VerificationCodeEmailProps {
 }
 
 export const verificationCodeSubject = (code: string) =>
-  `Your InstantMed verification code — ${code}`
+  `Your InstantMed verification code: ${code}`
 
 export function VerificationCodeEmail({
   code,
@@ -36,7 +36,7 @@ export function VerificationCodeEmail({
       previewText={`Your InstantMed verification code is ${code}`}
       appUrl={appUrl}
     >
-      <Text>Here&apos;s your verification code — enter it where prompted to continue:</Text>
+      <Text>Here&apos;s your verification code. Enter it where prompted to continue:</Text>
 
       {/* Code block */}
       <div

@@ -25,7 +25,7 @@ const intents = [
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
   { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
   { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },
-  { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Available 8am-10pm AEST, 7 days including weekends" },
+  { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Med certs 24/7 · Rx & Consults 8am-10pm AEST, 7 days" },
   { slug: "hair-loss-treatment-online", name: "Hair Loss Treatment", description: "Doctor-reviewed treatment plans for hair thinning" },
   { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with same-day eScript" },
 ]

@@ -61,7 +61,7 @@ export function NeedsMoreInfoEmail({
         </table>
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`}>Respond Now</Button>
+      <Button href={`${appUrl}/track/${requestId}`}>Respond Now</Button>
 
       <Text muted small>
         No rush, but responding soon helps us process your request faster.

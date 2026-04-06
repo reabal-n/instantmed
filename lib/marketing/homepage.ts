@@ -7,6 +7,8 @@ export const siteConfig = {
   name: "InstantMed",
   tagline: "Online doctor consultations, reviewed by real GPs.",
   operatingHours: {
+    medCerts: "24/7",
+    rxConsults: "8am – 10pm AEST",
     weekdays: "8am – 10pm AEST",
     weekends: "8am – 10pm AEST",
     publicHolidays: "8am – 10pm AEST",
@@ -61,7 +63,7 @@ export const serviceCategories = [
     title: "Medical Certificates",
     shortTitle: "Med Certs",
     benefitQuestion: "Too sick to see a doctor in person?",
-    description: "Get a valid certificate for work, uni, or carer's leave — without leaving bed",
+    description: "Get a valid certificate for work, uni, or carer's leave, without leaving bed",
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
@@ -100,20 +102,20 @@ export const serviceCategories = [
   {
     id: "consult",
     slug: "consult",
-    title: "General Consult",
+    title: "Doctor Consultation",
     shortTitle: "Consult",
     benefitQuestion: "Have a health concern?",
-    description: "Talk to a doctor about something new or ongoing",
+    description: "Speak with a GP about a new symptom, ongoing issue, or health question",
     icon: "Stethoscope",
     color: "blue",
     priceFrom: 49.95,
     href: "/request?service=consult",
     popular: false,
-    cta: "Start a consult",
+    cta: "Talk to a doctor",
     benefits: [
-      "Chat about something bothering you",
-      "Get advice on next steps",
-      "Prescriptions if it makes sense",
+      "Discuss symptoms or health concerns",
+      "Get a diagnosis and treatment plan",
+      "Prescriptions or referrals if needed",
     ],
   },
 ]
@@ -165,7 +167,7 @@ export const howItWorks = [
 export const featuredServices = [
   {
     title: "Medical Certificates",
-    description: "Feeling too sick to visit a GP? Get a valid, employer-accepted certificate from an AHPRA-registered doctor — without leaving bed.",
+    description: "Feeling too sick to visit a GP? Get a valid, employer-accepted certificate from an AHPRA-registered doctor, without leaving bed.",
     priceFrom: 19.95,
     href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
@@ -182,7 +184,7 @@ export const featuredServices = [
 export const faqItems = [
   {
     question: "How is this different from seeing a doctor in person?",
-    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
+    answer: "Every request is reviewed by a real Australian doctor, registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
   },
   {
     question: "What if the doctor says no?",
@@ -198,11 +200,11 @@ export const faqItems = [
   },
   {
     question: "How much does it cost compared to a GP?",
-    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save — and definitely save time.`,
+    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save, and definitely save time.`,
   },
   {
     question: "What services does InstantMed offer?",
-    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. General consultations for new or ongoing health concerns. Plus specialised pathways for hair loss, weight management, and women's health. All reviewed by a real doctor — no exceptions.",
+    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. Doctor consultations for new or ongoing health concerns. We also offer focused services for hair loss, weight management, and women's health. Every request is reviewed by a real doctor.",
   },
   {
     question: "Is there a subscription or ongoing fees?",
@@ -214,19 +216,19 @@ export const faqItems = [
   },
   {
     question: "How do prescriptions work?",
-    answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia — no paper scripts, no fax machines, no carrier pigeons.",
+    answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia. No paper scripts, no fax machines, no carrier pigeons.",
   },
   {
     question: "Are you available on weekends and after hours?",
-    answer: "Yes. We're open 8am to 10pm AEST, seven days a week — including weekends and public holidays. Because getting sick doesn't wait for Monday.",
+    answer: "Yes. We're open 8am to 10pm AEST, seven days a week, including weekends and public holidays. Because getting sick doesn't wait for Monday.",
   },
   {
     question: "Who are the doctors?",
-    answer: "Every request is reviewed by an AHPRA-registered Australian GP — qualified, experienced, and actively practising. We don't use overseas doctors, nurse practitioners, or AI to make clinical decisions. A real doctor reviews every single request.",
+    answer: "Every request is reviewed by an AHPRA-registered Australian GP, qualified, experienced, and actively practising. We don't use overseas doctors, nurse practitioners, or AI to make clinical decisions. A real doctor reviews every single request.",
   },
   {
     question: "Does my employer see my diagnosis?",
-    answer: "No. Your medical certificate states the dates you're unfit for work — not why. Your employer doesn't see your diagnosis, your symptoms, or anything you told the doctor. Your health information is encrypted and stays between you and your treating doctor.",
+    answer: "No. Your medical certificate states the dates you're unfit for work, not why. Your employer doesn't see your diagnosis, your symptoms, or anything you told the doctor. Your health information is encrypted and stays between you and your treating doctor.",
   },
 ]
 
@@ -274,5 +276,5 @@ export const slaPolicy = {
     "High-demand periods (public holidays, flu season)",
   ],
   escalationNote: "If your request needs clarification, a doctor may message you or offer a brief call at no extra charge.",
-  refundNote: "If we can't help you, you'll receive a full refund — no questions asked.",
+  refundNote: "If we can't help you, you'll receive a full refund. No questions asked.",
 }

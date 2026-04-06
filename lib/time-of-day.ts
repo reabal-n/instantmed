@@ -127,5 +127,5 @@ export function getEstimatedResponseTime(service?: string): string {
  * Format business hours for display
  */
 export function getBusinessHoursDisplay(): string {
-  return "8am–10pm AEST, 7 days"
+  return "8am–10pm AEST, 7 days (med certs: 24/7)"
 }

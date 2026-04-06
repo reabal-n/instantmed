@@ -122,7 +122,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   {
     slug: "still_reviewing",
     name: "Still Reviewing",
-    subject: "Still reviewing your request — thanks for your patience",
+    subject: "Still reviewing your request, thanks for your patience",
     availableTags: ["patientName", "requestType", "requestId"],
     sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123" },
     render: (d) => React.createElement(StillReviewingEmail, {

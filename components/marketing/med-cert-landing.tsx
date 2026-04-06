@@ -143,25 +143,8 @@ function ClosingCountdown() {
       const openHour = SOCIAL_PROOF.operatingHoursStart // 8
       const closeHour = SOCIAL_PROOF.operatingHoursEnd   // 22
 
-      if (hour < openHour) {
-        // Before open
-        const minsUntilOpen = (openHour - hour) * 60 - minute
-        const h = Math.floor(minsUntilOpen / 60)
-        const m = minsUntilOpen % 60
-        setLabel(`Opens in ${h}h ${m}m`)
-      } else if (hour >= closeHour) {
-        setLabel("Opens at 8am AEST")
-      } else {
-        // During operating hours — show closing countdown
-        const minsUntilClose = (closeHour - hour) * 60 - minute
-        if (minsUntilClose <= 120) {
-          const h = Math.floor(minsUntilClose / 60)
-          const m = minsUntilClose % 60
-          setLabel(h > 0 ? `Closes in ${h}h ${m}m` : `Closes in ${m}m`)
-        } else {
-          setLabel(null) // No urgency needed when plenty of time
-        }
-      }
+      // Med certs are 24/7 — no closing countdown needed
+      setLabel(null)
     }
 
     update()
@@ -236,7 +219,7 @@ function ContextualMessage() {
     } else if (day === 0 && hour >= 17) {
       setMessage("Get sorted tonight \u2014 certificate ready before Monday morning.")
     } else if (day >= 1 && day <= 5 && hour >= 18) {
-      setMessage("Too late for a GP? We\u2019re open until 10pm AEST, seven days.")
+      setMessage("Too late for a GP? Medical certificates are available 24/7.")
     } else if ((day === 0 || day === 6) && hour >= 8 && hour < 17) {
       setMessage("Weekend and your GP is closed? We\u2019re open right now.")
     } else {
@@ -473,7 +456,7 @@ function HeroSection({
                 </p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3 shrink-0" />
-                  Open today {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
+                  Available 24/7
                 </p>
                 <ClosingCountdown />
                 <ContextualMessage />
@@ -756,7 +739,7 @@ export function MedCertLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              Need a certificate today? Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST.
+              Medical certificates available 24/7.
             </p>
             <Button
               asChild
@@ -789,7 +772,7 @@ export function MedCertLanding() {
           <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
             <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
               <p className="text-sm text-muted-foreground hidden xl:block">
-                Medical Certificate · Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST · 7 days
+                Medical Certificate · Available 24/7
               </p>
               <div className="flex items-center gap-3 ml-auto">
                 <span className="text-sm text-muted-foreground">

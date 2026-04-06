@@ -86,7 +86,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       }
 
       // Send email using the same approach as initial approval
-      const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
+      const dashboardUrl = `${env.appUrl}/track/${intakeId}`
 
       // Generate signed download URL (72h expiry) so patient can download without login
       let downloadUrl: string | undefined

@@ -8,7 +8,7 @@
 export const REPEAT_RX_COPY = {
   titles: {
     main: "Repeat Prescription",
-    subtitle: "Get your regular medication renewed by an Australian doctor — without the wait.",
+    subtitle: "Get your regular medication renewed by an Australian doctor, without the wait.",
   },
 
   auth: {

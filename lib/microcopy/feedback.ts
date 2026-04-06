@@ -13,7 +13,7 @@ export const FEEDBACK_MESSAGES = {
   // Success states
   paymentReceived: "Payment received 👍",
   certificateIssued: "Certificate issued",
-  prescriptionApproved: "Request approved — e-script sent separately",
+  prescriptionApproved: "Request approved, e-script sent separately",
   saved: "Saved",
   submitted: "Submitted. A doctor will review this soon.",
   updated: "Updated",
@@ -29,7 +29,7 @@ export const FEEDBACK_MESSAGES = {
   
   // Empty states
   noDocuments: "No documents here yet 📄",
-  noRequests: "No requests yet — let\u2019s change that.",
+  noRequests: "No requests yet. Let\u2019s change that.",
   noNotifications: "All caught up.",
   noMessages: "No messages yet.",
   noPrescriptions: "No prescriptions yet.",

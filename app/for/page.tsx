@@ -58,7 +58,7 @@ const audienceFaqs = [
   },
   {
     question: "Is the service available outside business hours?",
-    answer: "We're available 8am to 10pm AEST, 7 days a week — including weekends and public holidays. Handy if you work odd hours or realise on a Sunday night that you need a certificate for Monday.",
+    answer: "Medical certificates are available 24/7 — submit at any hour and receive your certificate within 15 minutes. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
   },
   {
     question: "Can my company set up a corporate account?",

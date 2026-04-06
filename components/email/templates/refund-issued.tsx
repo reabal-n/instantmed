@@ -57,7 +57,7 @@ export function RefundIssuedEmail({
         </Text>
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${requestId}`} variant="secondary">
+      <Button href={`${appUrl}/track/${requestId}`} variant="secondary">
         View Request Details
       </Button>
 

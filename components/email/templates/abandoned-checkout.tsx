@@ -18,7 +18,7 @@ export interface AbandonedCheckoutEmailProps {
 }
 
 export function abandonedCheckoutSubject(serviceName: string) {
-  return `Hey, you left something behind — your ${serviceName} request is waiting`
+  return `Hey, you left something behind. Your ${serviceName} request is waiting`
 }
 
 export function AbandonedCheckoutEmail({
@@ -31,13 +31,13 @@ export function AbandonedCheckoutEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`No rush — your ${serviceName} request is still here ⏱️`} appUrl={appUrl}>
+    <BaseEmail previewText={`No rush, your ${serviceName} request is still here ⏱️`} appUrl={appUrl}>
       <Heading>Your request is still here</Heading>
 
       <Text>Hi {firstName},</Text>
       <Text>
         You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
-        but didn&apos;t finish checkout. No worries — everything is saved and
+        but didn&apos;t finish checkout. No worries, everything is saved and
         ready when you are.
       </Text>
 
@@ -113,7 +113,7 @@ export function renderAbandonedCheckoutEmail(props: AbandonedCheckoutEmailProps)
               <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0;">Hi ${firstName},</p>
               <p style="font-size: 15px; color: #475569; margin: 0 0 20px 0;">
                 You started a <strong>${serviceName}</strong> request about ${hoursAgo} hours ago
-                but didn't finish checkout. No worries — everything is saved and ready when you are.
+                but didn't finish checkout. No worries, everything is saved and ready when you are.
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto; width: 100%;">
                 <tr>

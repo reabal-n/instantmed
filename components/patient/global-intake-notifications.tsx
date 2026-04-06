@@ -32,7 +32,7 @@ const STATUS_MESSAGES: Record<string, { title: string; description: string; type
   },
   awaiting_script: {
     title: "Prescription approved",
-    description: "Your eScript is being prepared — watch for an SMS.",
+    description: "Your eScript is being prepared. Watch for an SMS.",
     type: "success",
   },
   completed: {

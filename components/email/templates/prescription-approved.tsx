@@ -66,7 +66,7 @@ export function PrescriptionApprovedEmail({
         />
       </Box>
 
-      <Button href={`${appUrl}/patient/intakes/${intakeId}`}>
+      <Button href={`${appUrl}/track/${intakeId}`}>
         View request details
       </Button>
 

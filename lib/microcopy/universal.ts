@@ -227,7 +227,7 @@ export const COPY = {
   // Notes (optional)
   notes: {
     heading: "Anything else?",
-    subtitle: "Optional — helps the doctor understand your situation",
+    subtitle: "Optional. Helps the doctor understand your situation.",
     placeholder: "Add any extra details here...",
   },
 

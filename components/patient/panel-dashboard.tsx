@@ -167,7 +167,7 @@ export function PanelDashboard({
         <p className="text-muted-foreground text-base">
           {pendingIntakes.length > 0
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
-            : "All caught up — nothing needs your attention. 👍"}
+            : "All caught up. Nothing needs your attention. 👍"}
         </p>
       </div>
 
@@ -209,7 +209,7 @@ export function PanelDashboard({
       {error && (
         <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border flex items-center gap-3">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
-          <p className="text-sm text-destructive">Something went wrong loading your data. Try refreshing — if it keeps happening, <a href="/contact" className="underline font-medium">let us know</a>.</p>
+          <p className="text-sm text-destructive">Something went wrong loading your data. Try refreshing. If it keeps happening, <a href="/contact" className="underline font-medium">let us know</a>.</p>
         </div>
       )}
 
@@ -442,7 +442,7 @@ function IntakeCard({
   return (
     <button
       onClick={onClick}
-      aria-label={`View ${serviceName} — ${config.label}`}
+      aria-label={`View ${serviceName}, ${config.label}`}
       className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary/60 hover:shadow-lg transition-all text-left group hover-lift"
     >
       <div className="flex items-center justify-between">
@@ -483,12 +483,12 @@ function IntakeCard({
 
 /** What's Next guidance — moved from card to drawer for cleaner list view */
 const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
-  paid: { message: "A doctor will review your request shortly — we'll email you when it's done." },
-  in_review: { message: "A doctor is reviewing your request now. Hang tight — shouldn't be long." },
+  paid: { message: "A doctor will review your request shortly. We'll email you when it's done." },
+  in_review: { message: "A doctor is reviewing your request now. Hang tight, shouldn't be long." },
   pending_info: { message: "The doctor has a question for you. Please respond so we can keep things moving.", actionLabel: "Respond now" },
-  approved: { message: "All approved — your document is ready to download.", actionLabel: "View & download" },
-  declined: { message: "This request wasn't approved — you can view the reason below.", actionLabel: "View details" },
-  awaiting_script: { message: "Your prescription is being prepared — we'll let you know when it's ready." },
+  approved: { message: "All approved. Your document is ready to download.", actionLabel: "View & download" },
+  declined: { message: "This request wasn't approved. You can view the reason below.", actionLabel: "View details" },
+  awaiting_script: { message: "Your prescription is being prepared. We'll let you know when it's ready." },
   completed: { message: "This request is complete. Your documents are available.", actionLabel: "View documents" },
   cancelled: { message: "This request was cancelled. No charge was made." },
 }

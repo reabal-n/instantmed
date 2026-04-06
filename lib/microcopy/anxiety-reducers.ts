@@ -16,7 +16,7 @@ export const ANXIETY_REDUCERS = {
 
   // Process clarity
   process: {
-    whatHappens: "A real GP reviews every request — not a bot, not an algorithm",
+    whatHappens: "A real GP reviews every request. Not a bot, not an algorithm.",
     moreInfo: "If they need more info, they'll reach out",
     decline: "If we can't help, full refund. No awkward conversations.",
   },
@@ -31,16 +31,16 @@ export const ANXIETY_REDUCERS = {
   // Celebration moments
   celebration: {
     submitted: "Request submitted. A doctor will take a look shortly.",
-    approved: "All sorted — your request has been approved.",
+    approved: "All sorted. Your request has been approved.",
     documentReady: "Your document is ready. Check your email or download below.",
   },
 
   // Error messages that help
   errors: {
-    medicare: "Medicare number should be 10 digits — grab your card",
+    medicare: "Medicare number should be 10 digits. Grab your card.",
     email: "That doesn't look like an email address",
     password: "Password needs at least 8 characters",
-    network: "Connection dropped — your progress is saved, try again",
+    network: "Connection dropped. Your progress is saved, try again.",
     generic: "Something went sideways. Don't worry, your data is safe.",
   },
 

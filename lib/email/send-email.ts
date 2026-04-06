@@ -805,7 +805,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
 
     // Render the template
     const { MedCertPatientEmail } = await import("@/components/email/templates")
-    const dashboardUrl = `${env.appUrl}/patient/intakes/${cert.intake_id}`
+    const dashboardUrl = `${env.appUrl}/track/${cert.intake_id}`
 
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,

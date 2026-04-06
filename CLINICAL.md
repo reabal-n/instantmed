@@ -28,7 +28,7 @@ InstantMed is **not a prescribing system**. It is an intake, triage, and documen
 | **Age** | 18+ minimum. Parental/guardian consent for minors (Terms section 2) |
 | **Medicare** | Optional for med certs. Required for prescriptions and consultations |
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
-| **Hours** | 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
+| **Hours** | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
 | **Med cert duration** | Max 3 days asynchronous. >3 days requires phone call — no override |
 | **Refund on decline** | Med certs + prescriptions: auto-refund. Consults: not refunded |
 | **Follow-up** | `flagged_for_followup` field exists. Decline triggers refund + redirection. No automated follow-up |

@@ -19,7 +19,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       'AHPRA-registered doctors · Accepted by all employers · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
     ],
-    ctaText: `Get your certificate — ${PRICING_DISPLAY.MED_CERT}`,
+    ctaText: `Get your certificate - ${PRICING_DISPLAY.MED_CERT}`,
     ctaHref: '/request?service=med-cert',
     images: {
       primary: '/images/medcert-1.jpeg',
@@ -118,7 +118,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   
   pricing: {
     title: 'One flat fee. Save $40–70 vs a GP.',
-    subtitle: 'One flat fee — no hidden costs. Full refund if we can\'t help.',
+    subtitle: 'One flat fee, no hidden costs. Full refund if we can\'t help.',
     price: 19.95,
     originalPrice: 70,
     features: [
@@ -237,7 +237,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
     ],
-    ctaText: `Renew your medication — ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+    ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
     images: {
       primary: '/images/rptrx-1.jpeg',
@@ -337,7 +337,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   imageSection: {
     title: 'Your medication, sent to any pharmacy',
     highlightWords: ['any pharmacy'],
-    description: 'Once approved, your medication token is sent straight to your phone. Present it at any pharmacy in Australia — no paper needed, no waiting. PBS subsidies apply at the counter.',
+    description: 'Once approved, your medication token is sent straight to your phone. Present it at any pharmacy in Australia. No paper needed, no waiting. PBS subsidies apply at the counter.',
     imageSrc: '/images/rptrx-2.jpeg',
     imageAlt: 'Prescription medication ready for pharmacy collection',
     imagePosition: 'right' as const,
@@ -422,11 +422,11 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     items: [
       {
         question: 'What medications can you prescribe?',
-        answer: 'We can prescribe most common repeat medications — blood pressure, cholesterol, contraceptives, asthma inhalers, reflux, thyroid, and more. We cannot prescribe Schedule 8 medications (opioids, stimulants) or benzodiazepines.',
+        answer: 'We can prescribe most common repeat medications: blood pressure, cholesterol, contraceptives, asthma inhalers, reflux, thyroid, and more. We cannot prescribe Schedule 8 medications (opioids, stimulants) or benzodiazepines.',
       },
       {
         question: 'Is the eScript accepted at any pharmacy?',
-        answer: 'Yes. eScripts are the national standard in Australia. Take your phone to any pharmacy and they\'ll scan it directly — no paper needed.',
+        answer: 'Yes. eScripts are the national standard in Australia. Take your phone to any pharmacy and they\'ll scan it directly. No paper needed.',
       },
       {
         question: 'Do I need a previous prescription?',
@@ -469,7 +469,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       'AHPRA-registered doctors · Medication & referrals if needed · Full refund if we can\'t help',
       'No account required · Full refund if we can\'t help',
     ],
-    ctaText: `Start your consult — ${PRICING_DISPLAY.CONSULT}`,
+    ctaText: `Start your consult - ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
     highlightBadge: {
       text: 'Medication if clinically appropriate',
@@ -545,7 +545,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   howItWorks: {
     title: 'Three steps. A real doctor.',
-    subtitle: 'Start with a questionnaire, then a doctor assesses your situation — often with a brief call.',
+    subtitle: 'Start with a questionnaire, then a doctor assesses your situation, often with a brief call.',
     steps: [
       {
         number: '1',
@@ -600,7 +600,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   pricing: {
     title: 'One flat fee. Save $30–70 vs a clinic.',
-    subtitle: `${PRICING_DISPLAY.CONSULT} flat fee — no gap fees, no surprises. Same quality of care as in-person.`,
+    subtitle: `${PRICING_DISPLAY.CONSULT} flat fee. No gap fees, no surprises. Same quality of care as in-person.`,
     price: 49.95,
     originalPrice: 120,
     features: [
@@ -684,7 +684,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       },
       {
         question: 'How is this different from a GP visit?',
-        answer: 'You get the same quality of care from an AHPRA-registered GP — just without the waiting room. The main limitation is the doctor can\'t physically examine you, so some conditions may still need an in-person visit.',
+        answer: 'You get the same quality of care from an AHPRA-registered GP, just without the waiting room. The main limitation is the doctor can\'t physically examine you, so some conditions may still need an in-person visit.',
       },
       {
         question: 'What if my issue needs in-person care?',

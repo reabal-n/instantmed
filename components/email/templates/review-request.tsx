@@ -35,14 +35,14 @@ export function ReviewRequestEmail({
 
       <Text>
         Glad we could help with your <strong>{serviceName}</strong>. If you had
-        a good experience, we&apos;d really appreciate a quick Google review — it
+        a good experience, we&apos;d really appreciate a quick Google review. It
         helps other Aussies find us and takes about 30 seconds.
       </Text>
 
       <Button href={GOOGLE_REVIEW_URL}>Leave a Review ⭐</Button>
 
       <Text muted small>
-        Already left one? Legend — thanks so much. You can ignore this email.
+        Already left one? Legend, thanks so much. You can ignore this email.
       </Text>
 
       <Text muted small>
@@ -97,7 +97,7 @@ export function renderReviewRequestEmail(props: ReviewRequestEmailProps): string
               <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0;">Hi ${firstName},</p>
               <p style="font-size: 15px; color: #475569; margin: 0 0 20px 0;">
                 Glad we could help with your <strong>${serviceName}</strong>. If you had
-                a good experience, we'd really appreciate a quick Google review — it
+                a good experience, we'd really appreciate a quick Google review. It
                 helps other Aussies find us and takes about 30 seconds.
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto; width: 100%;">
@@ -108,7 +108,7 @@ export function renderReviewRequestEmail(props: ReviewRequestEmailProps): string
                 </tr>
               </table>
               <p style="font-size: 12px; color: #94A3B8; margin: 24px 0 8px 0;">
-                Already left one? Legend — thanks so much. You can ignore this email.
+                Already left one? Legend, thanks so much. You can ignore this email.
               </p>
               <p style="font-size: 12px; color: #94A3B8; margin: 0;">
                 Questions? Reply to this email or visit our <a href="${appUrl}/contact" style="color: #2563EB; font-weight: 500; text-decoration: none;">help centre</a>.

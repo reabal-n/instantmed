@@ -13,7 +13,7 @@ const howItWorksFaqs = [
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
   { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs. Prescriptions are sent as eScripts via SMS — take your phone to any pharmacy. Consultation notes are available in your dashboard." },
   { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
-  { question: "What hours are you open?", answer: "8am–10pm AEST, 7 days a week including public holidays." },
+  { question: "What hours are you open?", answer: "Medical certificates are available 24/7. Prescriptions and consultations are available 8am–10pm AEST, 7 days a week including public holidays." },
   { question: "How is this different from calling a GP clinic?", answer: "No appointments, no waiting rooms, no phone queues. You submit your request when it suits you, and a doctor reviews it without you needing to be available at a specific time." },
   { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
   { question: "What can't you do online?", answer: "We can't prescribe Schedule 8 medications (opioids, stimulants, benzodiazepines), issue WorkCover certificates, or manage conditions requiring physical examination. If your situation needs in-person care, we'll tell you and refund you." },

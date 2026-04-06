@@ -503,7 +503,7 @@ export async function executeCertApproval(
 
   // 8. Send email notification
   Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId, hasDownloadUrl: !!downloadUrl } })
-  const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
+  const dashboardUrl = `${env.appUrl}/track/${intakeId}`
 
   const emailResult = await sendEmail({
     to: patient.email,

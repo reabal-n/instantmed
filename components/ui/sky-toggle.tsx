@@ -34,7 +34,7 @@ const SkyToggle = ({ size = 30 }: SkyToggleProps) => {
   }
 
   return (
-    <div className={`sky-toggle-${scopeId}`}>
+    <div className={`sky-toggle-${scopeId}`} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
       <style>{getStyles(size, scopeId)}</style>
       <label className="theme-switch">
         <input

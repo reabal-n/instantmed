@@ -12,7 +12,7 @@ export interface FollowUpReminderEmailProps {
   appUrl?: string
 }
 
-export const followUpReminderSubject = "Checking in — how are you feeling?"
+export const followUpReminderSubject = "Checking in: how are you feeling?"
 
 /**
  * Render the follow-up reminder email to an HTML string.

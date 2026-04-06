@@ -41,9 +41,8 @@ export function DoctorProfileSection() {
               AHPRA-registered GPs
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {SOCIAL_PROOF.doctorCombinedYears}+ years of GP experience. Every request is
-              reviewed and approved by a registered Australian doctor — no automated
-              clinical decisions.
+              Every request is reviewed and approved by an experienced,
+              AHPRA-registered Australian doctor. No automated clinical decisions.
             </p>
             <p className="mt-3 text-xs text-muted-foreground/70">
               Verify any doctor&apos;s registration on the{" "}

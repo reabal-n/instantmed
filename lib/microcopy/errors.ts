@@ -12,7 +12,7 @@
 export const ERROR_MESSAGES = {
   // Form validation
   invalidEmail: "That doesn't look quite right. Mind checking it once more?",
-  requiredField: "Looks like something was skipped — can you fill this in?",
+  requiredField: "Looks like something was skipped. Can you fill this in?",
   passwordTooShort: "That password's a bit short. Try at least 8 characters.",
   passwordMismatch: "Those passwords don't match. Give it another go.",
   invalidPhone: "That number doesn't look right. Check and try again.",
@@ -33,10 +33,10 @@ export const ERROR_MESSAGES = {
   timeoutError: "That took too long. Try again.",
   
   // Authentication
-  sessionExpired: "You've been signed out — happens sometimes. Please log in again.",
+  sessionExpired: "You've been signed out. Happens sometimes. Please log in again.",
   invalidCredentials: "Those details don't match. Double-check and try again.",
   accountLocked: "Too many attempts. Give it a few minutes, then try again.",
-  emailNotVerified: "Check your email first — there's a link there to verify your account.",
+  emailNotVerified: "Check your email first. There's a link there to verify your account.",
   
   // Payment
   paymentFailed: "Payment didn't go through. Check your details and try again.",

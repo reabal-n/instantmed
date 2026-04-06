@@ -117,6 +117,9 @@ export function WhatHappensNext({
                 ? `Your ${serviceName.toLowerCase()} request is being reviewed by our doctors.`
                 : "Your request is being reviewed by our doctors."}
           </p>
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            Check your junk or spam folder if you don't see our email within a few minutes.
+          </p>
 
           {/* Reassurance badge */}
           <motion.div
@@ -163,7 +166,7 @@ export function WhatHappensNext({
                 <p className="font-medium text-sm">Queue position: #{queuePosition}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {queuePosition <= 3
-                    ? "You're near the front — should be reviewed very soon"
+                    ? "You're near the front. Should be reviewed very soon."
                     : `${queuePosition} requests ahead of yours`}
                 </p>
               </div>

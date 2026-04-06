@@ -14,7 +14,7 @@ import { CONTACT_EMAIL } from "@/lib/constants"
  *
  * Environment variables required:
  * - RESEND_API_KEY (server-only, never NEXT_PUBLIC_)
- * - RESEND_FROM_EMAIL (e.g., "InstantMed <noreply@instantmed.com.au>")
+ * - RESEND_FROM_EMAIL (e.g., "InstantMed <support@instantmed.com.au>")
  * - NEXT_PUBLIC_APP_URL (for generating links)
  */
 

@@ -13,7 +13,7 @@ export const MED_CERT_COPY = {
   // GLOBAL
   // ============================================================================
   global: {
-    turnaround: "Usually reviewed within 1 hour (8am–10pm AEST)",
+    turnaround: "Usually reviewed within 30 minutes, available 24/7",
     doctorReview: "An AHPRA-registered GP will review your request",
     noGuarantee: "Certificates are issued at the doctor's clinical discretion",
     mayRequest: "The doctor may request additional information if needed",
@@ -24,7 +24,7 @@ export const MED_CERT_COPY = {
   // ============================================================================
   emergency: {
     heading: "Safety check",
-    body: "This is a non-urgent telehealth service. If you have chest pain, difficulty breathing, thoughts of self-harm, or any life-threatening symptoms — please call 000 or go to your nearest emergency department.",
+    body: "This is a non-urgent telehealth service. If you have chest pain, difficulty breathing, thoughts of self-harm, or any life-threatening symptoms, please call 000 or go to your nearest emergency department.",
     checkbox: "I confirm this is not a medical emergency",
     callout: {
       title: "Need immediate help?",
@@ -99,7 +99,7 @@ export const MED_CERT_COPY = {
     // Other details
     otherLabel: "Please describe briefly",
     otherPlaceholder: "What are you experiencing?",
-    otherHint: "Keep it brief — the doctor will review",
+    otherHint: "Keep it brief. The doctor will review.",
     
     // Carer-specific
     carerSection: {
