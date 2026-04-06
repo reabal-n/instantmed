@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { SectionHeader } from "./section-header";
 import type { SectionProps } from "./types";
-import { scrollRevealConfig } from "@/components/ui/motion";
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 
 const MotionAccordionItem = motion.create(AccordionItem);
 
