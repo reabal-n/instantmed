@@ -1,7 +1,7 @@
 /**
- * Auto-Approval State Machine — Atomic State Transitions
+ * AI Review State Machine — Atomic State Transitions
  *
- * Every auto-approval state change in the system goes through this module.
+ * Every AI review state change in the system goes through this module.
  * Uses CAS (compare-and-swap) pattern: UPDATE ... WHERE state = expected.
  * If 0 rows updated, someone else transitioned first — return false.
  *
@@ -54,7 +54,7 @@ type SupabaseClient = {
 }
 
 /**
- * Atomically transition an intake's auto-approval state.
+ * Atomically transition an intake's AI review state.
  * Returns true if transition succeeded, false if the intake was already in a different state.
  */
 async function transitionState(

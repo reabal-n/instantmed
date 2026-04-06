@@ -250,7 +250,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit sitemap URLs to IndexNow for Bing/Yandex indexing |
-| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
+| Retry AI Review | `/api/cron/retry-auto-approval` | Every 3 min | Retry AI review processing via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
 | Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via email_log |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 
@@ -660,7 +660,7 @@ Using Vercel MCP, PostHog MCP, and Sentry MCP:
 - **Vercel:** Runtime logs last 24h — filter error/warning, categorize.
 - **PostHog:** Error tracking issues last 24h. Key funnel anomalies (intake → checkout → approval).
 - **Sentry:** Unresolved issues by frequency. Flag new issues since last audit.
-- **Cron jobs:** health-check, retry-auto-approval, SLA monitoring — check for errors.
+- **Cron jobs:** health-check, AI review retry (`retry-auto-approval`), SLA monitoring — check for errors.
 
 ### 11. Whitelabel Readiness
 

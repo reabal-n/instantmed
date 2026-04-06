@@ -29,7 +29,7 @@ export function isWithinBusinessHours(): boolean {
 
 /**
  * Get time-aware status message
- * @param service - Optional service type. Med certs are 24/7 (auto-approved).
+ * @param service - Optional service type. Med certs are 24/7.
  */
 export function getAvailabilityMessage(service?: string): {
   isActive: boolean
@@ -40,7 +40,7 @@ export function getAvailabilityMessage(service?: string): {
   const isActive = isWithinBusinessHours()
   const isMedCert = service === "med-cert" || service === "medical_certificate"
 
-  // Med certs are always active (24/7 auto-approved)
+  // Med certs are always active (24/7)
   if (isMedCert) {
     return {
       isActive: true,
@@ -96,7 +96,7 @@ export function getAvailabilityMessage(service?: string): {
 export function getEstimatedResponseTime(service?: string): string {
   const isMedCert = service === "med-cert" || service === "medical_certificate"
 
-  // Med certs are 24/7 auto-approved
+  // Med certs are 24/7
   if (isMedCert) {
     return "under 30 minutes"
   }

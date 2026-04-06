@@ -1,5 +1,5 @@
 /**
- * AI Auto-Approval Pipeline Orchestrator
+ * AI Review Pipeline Orchestrator
  *
  * Called after AI drafts are generated for a med cert intake.
  * Evaluates eligibility, builds review data, and executes the
@@ -46,7 +46,7 @@ export interface AutoApprovalResult {
 
 /**
  * Build CertReviewData from intake answers and doctor profile.
- * Used by auto-approval to construct the same data a doctor would enter in the review modal.
+ * Used by AI review to construct the same data a doctor would enter in the review modal.
  */
 function buildReviewDataFromAnswers(
   answers: Record<string, unknown> | null,
@@ -78,7 +78,7 @@ function buildReviewDataFromAnswers(
   }
 
   if (!medicalReason) {
-    // No substantive symptom text — don't auto-approve with a generic placeholder.
+    // No substantive symptom text — don't approve with a generic placeholder.
     // The eligibility engine should catch this (empty_symptom_text), but defense-in-depth.
     return null
   }
@@ -111,7 +111,7 @@ function formatClinicalNoteContent(content: Record<string, unknown>): string | n
 }
 
 /**
- * Sync AI clinical note to intake.doctor_notes after auto-approval.
+ * Sync AI clinical note to intake.doctor_notes after AI review.
  * Uses PHI dual-write (plaintext + encrypted) matching the manual flow.
  * Non-fatal: if sync fails, the cert is already issued — log and continue.
  */
@@ -124,7 +124,7 @@ async function syncClinicalNoteAfterAutoApproval(
   try {
     const formattedNotes = formatClinicalNoteContent(draftContent)
     if (!formattedNotes) {
-      log.warn("Auto-approval: clinical note content empty, skipping sync", { intakeId, draftId })
+      log.warn("AI review: clinical note content empty, skipping sync", { intakeId, draftId })
       return
     }
 
@@ -139,17 +139,17 @@ async function syncClinicalNoteAfterAutoApproval(
       .eq("id", intakeId)
 
     if (error) {
-      log.error("Auto-approval: failed to sync clinical note to intake", { intakeId, draftId, error: error.message })
-      Sentry.captureMessage("Auto-approval clinical note sync failed", {
+      log.error("AI review: failed to sync clinical note to intake", { intakeId, draftId, error: error.message })
+      Sentry.captureMessage("AI review clinical note sync failed", {
         level: "warning",
         tags: { subsystem: "auto-approval", intake_id: intakeId },
         extra: { draftId, error: error.message },
       })
     } else {
-      log.info("Auto-approval: clinical note synced to intake.doctor_notes", { intakeId, draftId })
+      log.info("AI review: clinical note synced to intake.doctor_notes", { intakeId, draftId })
     }
   } catch (err) {
-    log.error("Auto-approval: unexpected error syncing clinical note", { intakeId, draftId, error: err })
+    log.error("AI review: unexpected error syncing clinical note", { intakeId, draftId, error: err })
     Sentry.captureException(err, {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId, stage: "clinical_note_sync" },
@@ -158,7 +158,7 @@ async function syncClinicalNoteAfterAutoApproval(
 }
 
 /**
- * Log to the ai_audit_log table for compliance tracking.
+ * Log to ai_audit_log for compliance tracking.
  */
 async function logAutoApprovalAudit(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -188,7 +188,7 @@ async function logAutoApprovalAudit(
     })
   } catch (err) {
     // Audit log failures are non-fatal for the approval flow but must be visible
-    log.warn("Failed to log auto-approval audit", { intakeId, error: err })
+    log.warn("Failed to log AI review audit", { intakeId, error: err })
     Sentry.captureException(err, {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId, stage: "audit_log" },
@@ -202,7 +202,7 @@ async function logAutoApprovalAudit(
 // ============================================================================
 
 /**
- * Attempt auto-approval for a med cert intake.
+ * Attempt AI review for a med cert intake.
  *
  * Call this after AI draft generation succeeds.
  * Returns { autoApproved: true } if the cert was issued, or
@@ -237,7 +237,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   const featureFlags = await getFeatureFlags()
   if (!featureFlags.ai_auto_approve_enabled) {
     log.warn(
-      "Auto-approval feature flag is OFF — intake will remain in doctor queue. " +
+      "AI review feature flag is OFF — intake will remain in doctor queue. " +
       "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
       { intakeId },
     )
@@ -247,7 +247,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
   const isDryRun = featureFlags.auto_approve_dry_run
   if (isDryRun) {
-    log.info("Auto-approval running in DRY RUN mode — will evaluate but NOT issue certificates", { intakeId })
+    log.info("AI review running in DRY RUN mode — will evaluate but NOT issue certificates", { intakeId })
   }
 
   // 1b. System-level rate limiting (configurable via admin dashboard)
@@ -257,8 +257,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     action: "auto_approve",
   })
   if (!rateLimitResult.allowed) {
-    log.warn("Auto-approval rate limit hit", { intakeId, remaining: rateLimitResult.remaining })
-    Sentry.captureMessage("Auto-approval rate limit exceeded", {
+    log.warn("AI review rate limit hit", { intakeId, remaining: rateLimitResult.remaining })
+    Sentry.captureMessage("AI review rate limit exceeded", {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
@@ -273,8 +273,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     action: "auto_approve_daily",
   })
   if (!dailyRateLimitResult.allowed) {
-    log.warn("Auto-approval daily cap hit", { intakeId })
-    Sentry.captureMessage(`Auto-approval daily cap exceeded (${featureFlags.auto_approve_daily_cap}/day)`, {
+    log.warn("AI review daily cap hit", { intakeId })
+    Sentry.captureMessage(`AI review daily cap exceeded (${featureFlags.auto_approve_daily_cap}/day)`, {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
@@ -353,7 +353,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const patientRaw = intake.patient as unknown
     const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { date_of_birth: string | null } | null
 
-    // Count previous successful auto-approvals for this patient (trust building)
+    // Count previous successful AI reviews for this patient (trust building)
     const patientId = intake.patient_id
 
     // Run patient history queries in parallel for performance

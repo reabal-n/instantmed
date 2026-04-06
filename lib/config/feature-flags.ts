@@ -49,7 +49,7 @@ export const flags = {
   // e.g., "weight_loss,mens_health"
   DISABLE_CONSULT_SUBTYPES: process.env.DISABLE_CONSULT_SUBTYPES || "",
   
-  // AI auto-approval: controlled via DB feature flag (ai_auto_approve_enabled)
+  // AI review: controlled via DB feature flag (ai_auto_approve_enabled)
   // Toggle from /admin/features dashboard. Env var ENABLE_AI_AUTO_APPROVE is
   // only used to seed the initial DB value; runtime reads come from getFeatureFlags().
 

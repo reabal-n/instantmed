@@ -292,7 +292,7 @@ export function IntakeDetailClient({
       // Save clinical notes first
       await saveDoctorNotesAction(intake.id, doctorNotes)
 
-      // Auto-approve any pending AI drafts — collapses the separate draft
+      // Accept any pending AI drafts — collapses the separate draft
       // approval step so the doctor doesn't need 3 clicks to approve a cert
       const pendingDrafts = aiDrafts.filter(d => d.status === "ready" && !d.approved_at && !d.rejected_at)
       for (const draft of pendingDrafts) {

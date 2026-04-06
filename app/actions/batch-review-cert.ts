@@ -1,10 +1,10 @@
 "use server"
 
 /**
- * Batch Review — Mark Auto-Reviewed Certificate as Doctor-Reviewed
+ * Batch Review — Mark AI-Reviewed Certificate as Doctor-Reviewed
  *
- * Allows doctors to confirm they've reviewed an auto-approved certificate.
- * Part of AHPRA compliance: every auto-approved cert must be doctor-reviewed
+ * Allows doctors to confirm they've reviewed an AI-reviewed certificate.
+ * Part of AHPRA compliance: every AI-processed cert must be doctor-reviewed
  * within 24 hours. This action records the review timestamp and doctor ID.
  */
 
@@ -22,7 +22,7 @@ export interface BatchReviewResult {
 }
 
 /**
- * Mark a single auto-approved intake as batch-reviewed by the doctor.
+ * Mark a single AI-reviewed intake as batch-reviewed by the doctor.
  */
 export async function markBatchReviewed(intakeId: string): Promise<BatchReviewResult> {
   const user = await requireRoleOrNull(["doctor", "admin"])
@@ -52,7 +52,7 @@ export async function markBatchReviewed(intakeId: string): Promise<BatchReviewRe
 }
 
 /**
- * Mark multiple auto-approved intakes as batch-reviewed in one action.
+ * Mark multiple AI-reviewed intakes as batch-reviewed in one action.
  * Used by the "Confirm All Reviewed" button on the doctor dashboard.
  */
 export async function markAllBatchReviewed(): Promise<BatchReviewResult> {

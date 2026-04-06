@@ -159,7 +159,7 @@ These must remain human-only regardless of future AI capabilities:
 4. **Decline reason determination** -- requires clinical reasoning
 5. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
 
-**Exception — Med cert auto-approval:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs — prescriptions and consults always require human review. See ARCHITECTURE.md → Auto-Approval Pipeline.
+**Exception — Med cert AI review:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be AI-reviewed and issued via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs — prescriptions and consults always require human review. See ARCHITECTURE.md → AI Review Pipeline.
 
 ### Architecture Enforcement
 
@@ -167,7 +167,7 @@ These must remain human-only regardless of future AI capabilities:
 |----------|------|
 | **File separation** | `lib/clinical/` = deterministic safety logic (no AI); `lib/ai/` = documentation assistance only |
 | **Output status** | All AI outputs marked `pending_review`; doctors must explicitly approve before use |
-| **Audit logging** | Two tables: `ai_audit_log` (auto-approval pipeline, with `input_hash`/`output_hash` for content integrity) and `ai_chat_audit_log` (chat interactions, with `user_input_preview`/`ai_output_preview` truncated previews). Full chat transcripts stored in `ai_chat_transcripts` (JSONB). |
+| **Audit logging** | Two tables: `ai_audit_log` (AI review pipeline, with `input_hash`/`output_hash` for content integrity) and `ai_chat_audit_log` (chat interactions, with `user_input_preview`/`ai_output_preview` truncated previews). Full chat transcripts stored in `ai_chat_transcripts` (JSONB). |
 | **System prompts** | Must include: "You are a documentation assistant only. You DO NOT make clinical decisions. You DO NOT approve or deny requests. You DO NOT recommend treatments or medications. All output requires doctor review before use." |
 
 ### AI Input/Output Rules

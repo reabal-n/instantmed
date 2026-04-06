@@ -345,14 +345,14 @@ export function QueueTable({
         )}
       </div>
 
-      {/* AI-Approved Review Section — above pagination so doctors always see it */}
+      {/* AI-Reviewed Section — above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
         <Card className="border-violet-200/50 dark:border-violet-500/20">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
               <h3 className="text-sm font-semibold text-foreground">
-                AI-Approved Certificates ({aiApprovedIntakes.length})
+                AI-Reviewed Certificates ({aiApprovedIntakes.length})
               </h3>
             </div>
             <p className="text-xs text-muted-foreground">AI-reviewed. Please verify and revoke if needed.</p>

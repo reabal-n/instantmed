@@ -24,13 +24,13 @@ function formatRequestType(category: string | null, subtype: string | null): str
 /**
  * GET /api/cron/retry-auto-approval
  *
- * Picks up med cert intakes that were paid but not auto-approved
+ * Picks up med cert intakes that were paid but not AI-reviewed
  * (e.g. because the webhook timed out, draft gen was slow, or a transient error).
  * Runs every 3 minutes. Only processes intakes 2-30 minutes old to avoid
  * racing with the webhook's own attempt.
  *
  * If AI drafts are missing (e.g. webhook was killed before generating them),
- * this cron will generate them first, then attempt auto-approval.
+ * this cron will generate them first, then attempt AI review.
  *
  * Required env: CRON_SECRET
  */
@@ -114,22 +114,22 @@ export async function GET(request: NextRequest) {
     }
   } catch (followUpError) {
     logger.error("Error in still-reviewing follow-up block", {}, followUpError as Error)
-    // Don't return early — auto-approval should still run
+    // Don't return early — AI review should still run
   }
 
   // Quick bail if feature flag is off
   const flags = await getFeatureFlags()
   if (!flags.ai_auto_approve_enabled) {
     logger.warn(
-      "Auto-approval feature flag is OFF — skipping all auto-approval processing. " +
+      "AI review feature flag is OFF — skipping all AI review processing. " +
       "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
     )
-    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled via feature flag" })
+    return NextResponse.json({ skipped: true, reason: "AI review disabled via feature flag" })
   }
 
   try {
     // -----------------------------------------------------------------------
-    // Auto-approval: find intakes eligible for AI review via state machine
+    // AI review: find intakes eligible for processing via state machine
     // -----------------------------------------------------------------------
     const delayMinutes = Math.max(1, flags.auto_approve_delay_minutes)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
           .limit(1)
 
         if (!existingDrafts || existingDrafts.length === 0) {
-          logger.info("No AI drafts found, generating before auto-approval", { intakeId: intake.id })
+          logger.info("No AI drafts found, generating before AI review", { intakeId: intake.id })
           const draftResult = await generateDraftsForIntake(intake.id)
           if (!draftResult.success) {
             logger.warn("Draft generation failed in retry cron", {
@@ -232,24 +232,24 @@ export async function GET(request: NextRequest) {
           draftsGenerated++
         }
 
-        // attemptAutoApproval handles claiming via state machine internally
+        // AI review handles claiming via state machine internally
         const result = await attemptAutoApproval(intake.id)
         if (result.autoApproved) {
           approved++
-          logger.info("Retry auto-approval succeeded", {
+          logger.info("Retry AI review succeeded", {
             intakeId: intake.id,
             certificateId: result.certificateId,
           })
         } else {
           skipped++
-          logger.info("Retry auto-approval skipped", {
+          logger.info("Retry AI review skipped", {
             intakeId: intake.id,
             reason: result.reason,
           })
         }
       } catch (err) {
         failed++
-        logger.warn("Retry auto-approval error", {
+        logger.warn("Retry AI review error", {
           intakeId: intake.id,
           error: err instanceof Error ? err.message : String(err),
         })
@@ -268,18 +268,18 @@ export async function GET(request: NextRequest) {
 
     if (maxedOut && maxedOut.length > 0) {
       const ids = maxedOut.map(i => i.id.slice(0, 8)).join(", ")
-      Sentry.captureMessage(`${maxedOut.length} intake(s) hit auto-approval retry cap`, {
+      Sentry.captureMessage(`${maxedOut.length} intake(s) hit AI review retry cap`, {
         level: "warning",
         tags: { subsystem: "cert-pipeline" },
         extra: { intakeIds: maxedOut.map(i => i.id) },
       })
-      logger.warn("Intakes hit auto-approval retry cap — in doctor queue", {
+      logger.warn("Intakes hit AI review retry cap — in doctor queue", {
         count: maxedOut.length,
         intakeIds: ids,
       })
     }
 
-    logger.info("Retry auto-approval cron complete", {
+    logger.info("Retry AI review cron complete", {
       total: eligibleIntakes.length,
       approved,
       skipped,
@@ -301,7 +301,7 @@ export async function GET(request: NextRequest) {
     Sentry.captureException(error)
     const err = error instanceof Error ? error : new Error(String(error))
     captureCronError(err, { jobName: "retry-auto-approval" })
-    logger.error("Unexpected error in retry-auto-approval cron", { error: err.message })
+    logger.error("Unexpected error in retry AI review cron", { error: err.message })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

@@ -204,7 +204,7 @@ export async function refreshFeatureFlagsAction() {
 }
 
 // ============================================================================
-// AUTO-APPROVE STATS
+// AI REVIEW STATS
 // ============================================================================
 
 export interface AutoApproveStats {
@@ -236,7 +236,7 @@ export async function getAutoApproveStatsAction(): Promise<AutoApproveStats> {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   const sevenDaysAgoISO = sevenDaysAgo.toISOString()
 
-  // Fetch today's auto-approve audit entries
+  // Fetch today's AI review audit entries
   const [todayResult, weekResult, recentResult] = await Promise.all([
     supabase
       .from("ai_audit_log")

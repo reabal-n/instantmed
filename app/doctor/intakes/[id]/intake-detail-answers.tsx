@@ -190,7 +190,7 @@ export function IntakeDetailAnswers({
         </Card>
       )}
 
-      {/* Safety Flags — informational only (auto-approve already validated eligibility) */}
+      {/* Safety Flags — informational only (AI review already validated eligibility) */}
       {hasRedFlags && (
         <Card className="border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10">
           <CardHeader className="py-3 px-4">

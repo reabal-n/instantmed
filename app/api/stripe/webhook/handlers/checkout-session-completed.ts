@@ -292,7 +292,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       stripeCustomerId: stripeCustomerId,
     })
 
-    // Initialize auto-approval state for med certs
+    // Initialize AI review state for med certs
     const serviceType = session.metadata?.category || session.metadata?.service_type
     if (serviceType === "med_certs" || session.metadata?.service_slug?.startsWith("med-cert")) {
       await supabase
@@ -691,10 +691,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       }
     }
 
-    // STEP 6: Generate AI drafts + attempt auto-approval (background)
+    // STEP 6: Generate AI drafts + attempt AI review (background)
     // Uses Next.js after() to keep the function alive after the response is sent.
-    // This ensures draft generation + auto-approval actually completes on Vercel.
-    // Fallback: retry-auto-approval cron (every 3 min) catches any that slip through.
+    // This ensures draft generation + AI review actually completes on Vercel.
+    // Fallback: retry cron (every 3 min) catches any that slip through.
     after(async () => {
       try {
         const result = await generateDraftsForIntake(intakeId)
@@ -710,9 +710,9 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           const { markDraftsReady } = await import("@/lib/clinical/auto-approval-state")
           await markDraftsReady(supabase, intakeId)
 
-          // Attempt auto-approval for med certs immediately after drafts are generated,
+          // Attempt AI review for med certs immediately after drafts are generated,
           // but ONLY when auto_approve_delay_minutes is 0. When a delay is configured,
-          // the retry-auto-approval cron enforces it — calling here would bypass it.
+          // the retry cron enforces it — calling here would bypass it.
           // The cron (every 3 min) also catches any slipped-through cases regardless.
           try {
             const { getFeatureFlags } = await import("@/lib/feature-flags")
@@ -720,21 +720,21 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             if (flags.auto_approve_delay_minutes === 0) {
               const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
               const autoResult = await attemptAutoApproval(intakeId)
-              log.info("Auto-approval attempted", {
+              log.info("AI review attempted", {
                 intakeId,
                 autoApproved: autoResult.autoApproved,
                 reason: autoResult.reason,
                 certificateId: autoResult.certificateId,
               })
             } else {
-              log.info("Auto-approval deferred to cron — delay is configured", {
+              log.info("AI review deferred to cron — delay is configured", {
                 intakeId,
                 delayMinutes: flags.auto_approve_delay_minutes,
               })
             }
           } catch (autoErr) {
-            // Never fail — auto-approval failure just means doctor reviews manually
-            log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {
+            // Never fail — AI review failure just means doctor reviews manually
+            log.warn("AI review error (non-fatal, falls back to doctor queue)", {
               intakeId,
               error: autoErr instanceof Error ? autoErr.message : String(autoErr),
             })

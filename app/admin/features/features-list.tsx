@@ -586,12 +586,12 @@ export function FeaturesList({
         </Card>
       )}
 
-      {/* AI Auto-Approve Med Certs */}
+      {/* AI Med Cert Review */}
       <Card className={flags.ai_auto_approve_enabled ? "border-violet-300 bg-violet-50/30" : ""}>
         <CardHeader className="px-6 pt-6">
           <CardTitle className="text-base flex items-center gap-2">
             <Stethoscope className="h-4 w-4" />
-            AI Auto-Approve Med Certs
+            AI Med Cert Review
             {flags.ai_auto_approve_enabled && (
               <Badge className="ml-2 bg-violet-100 text-violet-700 border-violet-200">ACTIVE</Badge>
             )}
@@ -609,10 +609,10 @@ export function FeaturesList({
                 <Stethoscope className={`h-5 w-5 ${flags.ai_auto_approve_enabled ? "text-violet-600" : "text-muted-foreground"}`} />
               </div>
               <div>
-                <p className="font-medium">Auto-Approval Status</p>
+                <p className="font-medium">AI Review Status</p>
                 <p className="text-sm text-muted-foreground">
                   {flags.ai_auto_approve_enabled
-                    ? "Eligible med certs are auto-approved and delivered"
+                    ? "Eligible med certs are AI-reviewed and delivered"
                     : "All med certs require manual doctor review (default)"}
                 </p>
               </div>
@@ -632,7 +632,7 @@ export function FeaturesList({
           {/* Settings (shown when enabled) */}
           {flags.ai_auto_approve_enabled && (
             <div className="space-y-4 p-5 rounded-lg border bg-violet-50/20">
-              <p className="text-sm font-medium">Auto-Approve Settings</p>
+              <p className="text-sm font-medium">AI Review Settings</p>
 
               {/* Delay */}
               <div className="flex flex-wrap items-center gap-3">
@@ -761,7 +761,7 @@ export function FeaturesList({
               {/* Last approved */}
               {autoApproveStats.lastApprovedAt && (
                 <p className="text-xs text-muted-foreground">
-                  Last auto-approved:{" "}
+                  Last AI-reviewed:{" "}
                   {new Date(autoApproveStats.lastApprovedAt).toLocaleString("en-AU", {
                     dateStyle: "medium",
                     timeStyle: "short",
@@ -807,7 +807,7 @@ export function FeaturesList({
           )}
 
           <p className="text-xs text-muted-foreground">
-            Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail.
+            Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All AI-reviewed certs are logged to the audit trail.
           </p>
         </CardContent>
       </Card>
