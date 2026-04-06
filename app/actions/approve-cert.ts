@@ -66,7 +66,7 @@ export async function approveAndSendCert(
     }
 
     // SELF-APPROVAL PREVENTION: Checked here because we need both auth + intake data
-    // The shared executeCertApproval doesn't have this check since AI review uses a system doctor
+    // The shared executeCertApproval doesn't have this check since auto-approval uses a system doctor
     // We pass the doctorProfile.id and let the shared function handle intake fetching,
     // but we need to do a lightweight self-approval check first
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")

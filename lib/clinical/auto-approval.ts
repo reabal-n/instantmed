@@ -1,7 +1,7 @@
 /**
- * AI Review Eligibility Engine
+ * AI Auto-Approval Eligibility Engine
  *
- * Deterministic evaluation of whether a med cert intake is safe for AI review.
+ * Deterministic evaluation of whether a med cert intake is safe for auto-approval.
  * Uses existing triage rules + additional safety keyword checks.
  * Returns eligible=true ONLY when ALL checks pass.
  *
@@ -74,7 +74,7 @@ interface PatientInfo {
 
 // ============================================================================
 // HARD-BLOCK KEYWORD LISTS
-// Always block AI review regardless of co-symptoms.
+// Always block auto-approval regardless of co-symptoms.
 // ============================================================================
 
 const MENTAL_HEALTH_KEYWORDS = [
@@ -112,7 +112,7 @@ const PREGNANCY_KEYWORDS = [
 // SOFT-BLOCK KEYWORD LISTS
 // Only block when the keyword is the patient's sole symptom (no co-symptoms).
 // If the patient has 2+ structured symptoms, these are recorded as soft flags
-// for doctor batch review but do NOT prevent AI review.
+// for doctor batch review but do NOT prevent auto-approval.
 // ============================================================================
 
 const SOFT_BLOCK_MENTAL_HEALTH = [
@@ -233,11 +233,11 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
 // ============================================================================
 
 /**
- * Evaluate whether a med cert intake is eligible for AI review.
+ * Evaluate whether a med cert intake is eligible for AI auto-approval.
  *
  * Checks (ALL must pass):
  * 1. Service type is med_certs
- * 2. Patient is 18+ (minors always require doctor review)
+ * 2. Patient is 18+ (minors never auto-approved)
  * 3. No emergency symptoms in text
  * 4. No red flag patterns in text
  * 5. No mental health keywords
@@ -274,11 +274,11 @@ export function evaluateAutoApprovalEligibility(
     checksApplied: ELIGIBILITY_CHECK_MANIFEST,
   })
 
-  // Service-type mismatch: only med certs are eligible for AI review
+  // Service-type mismatch: only med certs are eligible for auto-approval
   if (intake.service_type !== "med_certs") {
     return result({
       eligible: false,
-      reason: `Service type ${intake.service_type} is not eligible for AI review`,
+      reason: `Service type ${intake.service_type} is not eligible for auto-approval`,
       disqualifyingFlags: ["service_type_mismatch"],
       softFlags: [],
     })
@@ -428,19 +428,19 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // TUNING: For 1-day certificates with mild common symptoms, allow AI review
+  // TUNING: For 1-day certificates with mild common symptoms, allow auto-approval
   // even if soft-block keywords are present. These are the most common and lowest-risk requests.
   const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softFlags.includes(f))
   if (hasOnlySoftFlags && durationDays === 1) {
     return result({
       eligible: true,
-      reason: "1-day certificate with mild symptoms — AI-reviewed",
+      reason: "1-day certificate with mild symptoms — auto-approved",
       disqualifyingFlags: [],
       softFlags: flags,
     })
   }
 
-  // TRUST: Returning patients with prior successful AI reviews get relaxed thresholds
+  // TRUST: Returning patients with prior successful auto-approvals get relaxed thresholds
   const previousApprovals = options?.previousApprovalCount ?? 0
   if (previousApprovals >= 2 && hasOnlySoftFlags) {
     return result({

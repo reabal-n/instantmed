@@ -386,7 +386,7 @@ export async function getDoctorQueue(
 }
 
 /**
- * Get AI review metrics for admin monitoring.
+ * Get auto-approval metrics for admin monitoring.
  * Queries ai_audit_log for today's auto-approval activity.
  */
 export async function getAutoApprovalMetrics(): Promise<{
@@ -447,7 +447,7 @@ export async function getAutoApprovalMetrics(): Promise<{
       todayRevoked,
     }
   } catch (err) {
-    logger.error("Error fetching AI review metrics", {}, toError(err))
+    logger.error("Error fetching auto-approval metrics", {}, toError(err))
     return {
       todayAttempted: 0,
       todayApproved: 0,

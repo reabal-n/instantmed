@@ -31,7 +31,7 @@ export interface IntakeMonitorStats {
   oldestInQueueMinutes: number | null
   slaBreached?: number
   slaApproaching?: number
-  // AI review metrics
+  // AI auto-approval metrics
   aiApprovedToday?: number
   aiRevokedToday?: number
   aiAttemptedToday?: number
@@ -100,7 +100,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
     ? Math.round((stats.approvedToday / (stats.approvedToday + stats.declinedToday)) * 100)
     : null
 
-  // AI review hit rate: approved / eligible (attempted - ineligible)
+  // AI auto-approval hit rate: approved / eligible (attempted - ineligible)
   const aiEligibleAttempts = (stats.aiAttemptedToday ?? 0) - (stats.aiIneligibleToday ?? 0)
   const aiHitRate = aiEligibleAttempts > 0
     ? Math.min(100, Math.round(((stats.aiApprovedToday ?? 0) / aiEligibleAttempts) * 100))

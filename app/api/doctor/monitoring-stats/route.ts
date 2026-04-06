@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch stats, SLA data, and AI review metrics in parallel
+    // Fetch stats, SLA data, and auto-approval metrics in parallel
     const [stats, slaData, autoApprovalMetrics, todayEarnings] = await Promise.all([
       getIntakeMonitoringStats(),
       getSlaBreachIntakes(),

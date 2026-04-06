@@ -67,7 +67,7 @@ function getRandomVisitors(): number {
 interface DoctorAvailabilityPillProps {
   /**
    * When true, always shows the online/available state regardless of business hours.
-   * Use on med cert pages — med certs are genuinely 24/7.
+   * Use on med cert pages — auto-approval means they're genuinely 24/7.
    */
   alwaysAvailable?: boolean
 }
@@ -122,7 +122,7 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
     )
   }
 
-  // Always-available state — med certs (genuinely 24/7)
+  // Always-available state — med certs (auto-approved, genuinely 24/7)
   if (alwaysAvailable) {
     return (
       <motion.div

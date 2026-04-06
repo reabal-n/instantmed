@@ -77,7 +77,7 @@ export default async function RequestPage({
   }
 
   // Business hours: no longer block the request page.
-  // Med certs are 24/7 (AI-reviewed). Prescriptions/consults accept
+  // Med certs are 24/7 (auto-approved). Prescriptions/consults accept
   // submissions anytime — the navbar banner already sets expectations
   // about next-business-day review for doctor-dependent services.
 
@@ -185,8 +185,6 @@ export default async function RequestPage({
   }
 
   let profileDateOfBirth: string | null = null
-  let profileMedicareDecrypted: string | null = null
-  let profilePhoneDecrypted: string | null = null
   if (profile) {
     try {
       const decrypted = decryptProfilePhi(profile as unknown as Record<string, unknown>)
@@ -194,19 +192,12 @@ export default async function RequestPage({
       profileDateOfBirth = dob
         ? (typeof dob === "string" ? dob : dob instanceof Date ? dob.toISOString().split("T")[0] : null)
         : null
-      const medicare = decrypted.medicare_number
-      profileMedicareDecrypted = typeof medicare === "string" ? medicare : null
-      const phone = decrypted.phone
-      profilePhoneDecrypted = typeof phone === "string" ? phone : null
     } catch {
       profileDateOfBirth = null
-      profileMedicareDecrypted = null
-      profilePhoneDecrypted = null
     }
   }
   const hasCompleteIdentity = !!profile && !!profileDateOfBirth
   const hasAddress = !!(profile?.address_line1 && profile?.suburb && profile?.state && profile?.postcode)
-  const hasPhone = !!profilePhoneDecrypted
 
   return (
     <RequestFlow
@@ -217,14 +208,13 @@ export default async function RequestPage({
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}
-      hasMedicare={!!profileMedicareDecrypted}
+      hasMedicare={!!profile?.medicare_number}
       hasAddress={hasAddress}
-      hasPhone={hasPhone}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
-      userPhone={profilePhoneDecrypted ?? undefined}
+      userPhone={profile?.phone ?? undefined}
       profileDateOfBirth={profileDateOfBirth ?? undefined}
-      profileMedicare={profileMedicareDecrypted ?? undefined}
+      profileMedicare={profile?.medicare_number ?? undefined}
       profileAddress={hasAddress ? {
         addressLine1: profile!.address_line1!,
         suburb: profile!.suburb!,

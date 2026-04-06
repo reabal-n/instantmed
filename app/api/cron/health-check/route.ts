@@ -120,8 +120,8 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    // 6. Batch Review Enforcement — alert if AI-reviewed certs go un-reviewed for 24h+
-    // AHPRA compliance: doctors must review AI-processed certificates within a reasonable window
+    // 6. Batch Review Enforcement — alert if auto-approved certs go un-reviewed for 24h+
+    // AHPRA compliance: doctors must review auto-approved certificates within a reasonable window
     let unreviewedAutoApproved = 0
     try {
       const supabase = createServiceRoleClient()
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine overall health
-    // Doctor inactivity is no longer a health signal — med certs are AI-reviewed 24/7,
+    // Doctor inactivity is no longer a health signal — med certs are auto-approved 24/7,
     // so doctor activity is only relevant for prescriptions/consults during business hours.
     const isHealthy =
       queueHealth.isHealthy &&
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
 
     // Push critical alerts to Telegram for real-time ops visibility.
     // Each alert type is deduplicated via Redis — at most one per 2 hours.
-    // NOTE: Doctor inactivity alerts removed — med certs are AI-reviewed,
+    // NOTE: Doctor inactivity alerts removed — med certs are auto-approved,
     // so doctor inactivity outside business hours is expected and normal.
     const esc = escapeMarkdownValue
     const alertPromises: Promise<void>[] = []

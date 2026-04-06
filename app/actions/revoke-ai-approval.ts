@@ -1,7 +1,7 @@
 "use server"
 
 /**
- * Revoke AI Review Approval
+ * Revoke AI Auto-Approval
  *
  * Allows a doctor to revoke an AI-approved certificate during batch review.
  * The certificate is revoked via the existing revocation flow, and the

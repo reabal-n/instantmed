@@ -132,7 +132,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
     }
 
-    // Business hours (med certs are 24/7)
+    // Business hours (med certs are 24/7 — auto-approved)
     if (input.category !== "medical_certificate") {
       const outsideHours = await isOutsideBusinessHours()
       if (outsideHours.closed) {

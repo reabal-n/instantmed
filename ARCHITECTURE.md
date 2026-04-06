@@ -618,12 +618,12 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
 | `lib/ai/` | AI integration | `provider.ts` (model profiles), prompts, clinical note generation |
 | `lib/cert/` | Certificate pipeline | `execute-approval.ts` (9-step approval), PDF → storage → email |
-| `lib/clinical/` | Clinical logic | `auto-approval.ts` (AI review eligibility), `auto-approval-pipeline.ts` (AI review orchestrator), `auto-approval-state.ts` (AI review state machine — CAS transitions), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
+| `lib/clinical/` | Clinical logic | `auto-approval.ts` (eligibility), `auto-approval-pipeline.ts` (orchestrator), `auto-approval-state.ts` (state machine — CAS transitions), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
 | `lib/data/` | Supabase queries | `intakes.ts`, `issued-certificates.ts`, `documents.ts`, `intake-answers.ts` — all use `createServiceRoleClient()` |
 | `lib/email/` | Email system | `send-email.ts` (1505 lines, dispatcher), `email-dispatcher.ts` (cron processor) |
 | `lib/flow/` | Intake flow logic | `safety/` (safety rules), `draft/` (localStorage drafts) |
 | `lib/pdf/` | PDF generation | `template-renderer.ts` (pdf-lib overlay on static templates in `/public/templates/`) |
-| `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (AI review limits). Fallback: in-memory Map |
+| `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (auto-approval limits). Fallback: in-memory Map |
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |
 | `lib/security/` | Encryption | `phi-encryption.ts` (AES-256-GCM), `phi-field-wrappers.ts` (data layer wrappers) |
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
@@ -681,7 +681,7 @@ createClient()                     → Supabase with user session (client-side)
 Doctor approves → executeCertApproval() → PDF render → Supabase Storage → email with dashboard link
 ```
 
-### AI Review Pipeline
+### Auto-Approval Pipeline
 
 Med cert only. Feature-flagged (`ai_auto_approve_enabled`), rate-limited, dry-run mode available.
 
@@ -692,7 +692,7 @@ Med cert only. Feature-flagged (`ai_auto_approve_enabled`), rate-limited, dry-ru
 | `awaiting_drafts` | Paid, AI drafts not yet generated |
 | `pending` | Drafts ready, waiting for cron |
 | `attempting` | Actively processing — IS the distributed lock |
-| `approved` | TERMINAL: cert issued via AI review |
+| `approved` | TERMINAL: cert issued via auto-approval |
 | `failed_retrying` | Transient failure, cron will retry |
 | `needs_doctor` | TERMINAL: deterministic failure OR retries exhausted (≥10) |
 
@@ -717,7 +717,7 @@ Timeout recovery: attempting (stale > 10 min) → failed_retrying (cron)
 
 | Column | Type | Purpose |
 |--------|------|---------|
-| `auto_approval_state` | `auto_approval_state` enum | Single source of truth for AI review state |
+| `auto_approval_state` | `auto_approval_state` enum | Single source of truth |
 | `auto_approval_state_reason` | text | Failure reason for `failed_retrying` / `needs_doctor` |
 | `auto_approval_state_updated_at` | timestamptz | Enables timeout recovery |
 
@@ -730,9 +730,9 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 
 | File | Role |
 |------|------|
-| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions — all Sentry/PostHog/Telegram observability |
-| `lib/clinical/auto-approval-pipeline.ts` | AI review orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
-| `lib/clinical/auto-approval.ts` | AI review eligibility engine |
+| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions — all Sentry/PostHog/Telegram observability lives here |
+| `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
+| `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
 **Race condition handling:**
 

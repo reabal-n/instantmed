@@ -138,16 +138,16 @@ export interface Intake {
   prescription_sent_channel: string | null
   // AI draft status
   ai_draft_status: string | null
-  // AI review
+  // AI auto-approval
   ai_approved: boolean
   ai_approved_at: string | null
   ai_approval_reason: string | null
-  // Batch review (doctor reviews AI-processed certs within 24h)
+  // Batch review (doctor reviews auto-approved certs within 24h)
   batch_reviewed_at: string | null
   batch_reviewed_by: string | null
   // Retry tracking
   auto_approval_attempts: number
-  // AI review state machine
+  // Auto-approval state machine
   auto_approval_state: "awaiting_drafts" | "pending" | "attempting" | "approved" | "failed_retrying" | "needs_doctor" | null
   auto_approval_state_reason: string | null
   auto_approval_state_updated_at: string | null
