@@ -9,6 +9,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import { autoLinkParagraph } from "@/lib/seo/auto-linker"
 
 // Geo coordinates for each city (latitude, longitude)
 const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
@@ -686,7 +687,7 @@ export default async function CityPage({ params }: PageProps) {
                   <div className="mx-auto max-w-2xl">
                     <h2 className="text-xl font-bold mb-4">{section.title}</h2>
                     {section.paragraphs.map((p, i) => (
-                      <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
+                      <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{autoLinkParagraph(p)}</p>
                     ))}
                   </div>
                 </section>

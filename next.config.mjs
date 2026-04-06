@@ -169,6 +169,12 @@ const nextConfig = {
         destination: "/conditions/:path*",
         permanent: true
       },
+      // Condition-location combos → parent condition pages (thin content consolidation)
+      {
+        source: "/conditions/:slug/:city",
+        destination: "/conditions/:slug",
+        permanent: true
+      },
       // Canonical service route consolidation
       { source: "/weight-management", destination: "/weight-loss", permanent: true },
       { source: "/weight-management/:path*", destination: "/weight-loss/:path*", permanent: true },

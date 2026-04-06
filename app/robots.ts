@@ -56,6 +56,16 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [
+      `${baseUrl}/sitemap.xml`,
+      `${baseUrl}/conditions/sitemap.xml`,
+      `${baseUrl}/symptoms/sitemap.xml`,
+      `${baseUrl}/locations/sitemap.xml`,
+      `${baseUrl}/guides/sitemap.xml`,
+      `${baseUrl}/blog/sitemap.xml`,
+      `${baseUrl}/compare/sitemap.xml`,
+      `${baseUrl}/intent/sitemap.xml`,
+      `${baseUrl}/for/sitemap.xml`,
+    ],
   }
 }

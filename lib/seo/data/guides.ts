@@ -39,7 +39,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Medical Certificate for Work in Australia",
     slug: "how-to-get-medical-certificate-for-work",
     description: "A complete guide to getting a valid medical certificate for work in Australia. Learn your options, what employers accept, and the fastest ways to get one.",
-    lastUpdated: "January 2025",
+    lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one — from your regular GP to telehealth services that can have you sorted in under an hour.",
     steps: [
@@ -122,7 +122,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Sick Note for University in Australia",
     slug: "how-to-get-sick-note-for-uni",
     description: "Need a medical certificate for a missed exam, assignment extension, or university absence? Here's how to get one quickly and what your university will accept.",
-    lastUpdated: "January 2025",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "Whether you've missed an exam, need an assignment extension, or have been too unwell to attend classes, most Australian universities require a medical certificate as supporting documentation. This guide explains how to get one and what universities typically accept.",
     steps: [
@@ -192,7 +192,7 @@ export const guides: Record<string, GuideData> = {
     title: "Complete Guide to Telehealth in Australia",
     slug: "telehealth-guide-australia",
     description: "Everything you need to know about telehealth in Australia — what it is, how it works, what can be treated, and how to choose a telehealth service.",
-    lastUpdated: "January 2025",
+    lastUpdated: "April 2026",
     readTime: "8 min read",
     intro: "Telehealth has transformed healthcare access in Australia, especially since 2020. Whether you're in a remote area, have mobility issues, or simply prefer the convenience, telehealth offers a legitimate alternative to in-person GP visits for many health concerns. Here's everything you need to know.",
     steps: [
@@ -278,7 +278,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Medical Certificate for Centrelink",
     slug: "medical-certificate-centrelink",
     description: "Need a medical certificate for Centrelink or a government agency? Learn what's required for each payment type, how to get one, and avoid common mistakes.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "7 min read",
     intro: "Centrelink and Services Australia require medical certificates in a range of situations — from meeting mutual obligation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and getting the wrong certificate can delay your payments. This guide covers what each situation needs and the fastest way to get compliant documentation.",
     steps: [
@@ -353,7 +353,7 @@ export const guides: Record<string, GuideData> = {
     title: "When to Use Telehealth vs See a Doctor In Person",
     slug: "when-to-use-telehealth",
     description: "Not sure if telehealth is right for your situation? Learn when online consultations work well and when you need to see a doctor in person.",
-    lastUpdated: "January 2025",
+    lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Telehealth has expanded healthcare access, but it's not right for every situation. Understanding when to use telehealth versus when to see a doctor in person helps you get the right care efficiently.",
     steps: [
@@ -390,7 +390,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Repeat Prescription Online in Australia",
     slug: "how-to-get-repeat-prescription-online",
     description: "Need a repeat prescription but can't get to your GP? Learn how to get prescriptions renewed online in Australia.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "Repeat prescriptions for stable conditions can often be renewed via telehealth. If you're running low on medication and can't get a GP appointment, online services may be able to help — as long as your condition is suitable for remote assessment.",
     steps: [
@@ -427,7 +427,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Medical Certificate for Carer's Leave in Australia",
     slug: "medical-certificate-for-carers-leave",
     description: "Need time off to care for a sick family member? Learn your carer's leave entitlements, how to get a medical certificate, and what your employer can and can't ask.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "When a family member or household member is ill and needs your care, you're entitled to take time off work under Australian law. If your employer requests evidence, you'll need a medical certificate — but it works differently from a personal sick leave certificate. Here's everything you need to know about carer's leave documentation.",
     steps: [
@@ -493,7 +493,7 @@ export const guides: Record<string, GuideData> = {
     title: "Telehealth First Time: A Complete Guide for Australians",
     slug: "telehealth-first-time-guide",
     description: "Never used telehealth before? This guide walks you through your first online doctor consultation step by step.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "Telehealth — seeing a doctor online — has become common in Australia. If you haven't tried it yet, this guide explains what to expect, how to prepare, and what you can get from your first consultation.",
     steps: [
@@ -529,7 +529,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Claim a Medicare Rebate for Telehealth",
     slug: "how-to-claim-medicare-rebate-telehealth",
     description: "Can you claim Medicare for telehealth? Learn how rebates work for online doctor consultations in Australia.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "4 min read",
     intro: "Medicare rebates for telehealth depend on the service and your situation. Bulk-billed telehealth is free; private services may allow you to claim a rebate. This guide explains how it works.",
     steps: [
@@ -565,7 +565,7 @@ export const guides: Record<string, GuideData> = {
     title: "What Employers Can and Can't Ask For in a Medical Certificate",
     slug: "medical-certificate-employer-requirements",
     description: "Understanding your rights: what employers can request in a medical certificate and what they cannot demand.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "Employers can request evidence when you take sick leave, but there are limits. This guide explains what they can ask for, what you're required to provide, and your privacy rights.",
     steps: [
@@ -601,7 +601,7 @@ export const guides: Record<string, GuideData> = {
     title: "eScript vs Paper Prescription in Australia: Complete Guide",
     slug: "escript-vs-paper-prescription",
     description: "Everything you need to know about electronic prescriptions (eScripts) in Australia — how they work, where they're accepted, repeats, and common questions.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Australia has largely transitioned from paper prescriptions to electronic prescriptions (eScripts). Instead of a paper script you can lose or forget, you receive a QR code on your phone that any pharmacy can scan. Here's how the system works, what happens with repeats, and answers to common questions.",
     steps: [
@@ -667,7 +667,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Medical Certificate for a Mental Health Day",
     slug: "mental-health-certificate-australia",
     description: "Mental health days are legitimate sick leave in Australia. Learn how to get a medical certificate for mental health without an in-person visit.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "Feeling burned out, overwhelmed, or unable to face work? In Australia, taking a mental health day is your right under the Fair Work Act. Personal/carer's leave covers both physical and mental health — no distinction. Here's how to get a medical certificate without having to explain yourself in a waiting room.",
     steps: [
@@ -705,7 +705,7 @@ export const guides: Record<string, GuideData> = {
     title: "How to Get a Medical Certificate for Surgery Recovery",
     slug: "medical-certificate-for-surgery-recovery",
     description: "Need time off work after surgery? Learn how to get a medical certificate covering your recovery period in Australia.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "4 min read",
     intro: "If you've had surgery — whether minor day surgery or a major procedure — you'll likely need time off work to recover. Your surgeon should provide initial documentation, but if you need additional time or a separate certificate, here's how to get one.",
     steps: [
@@ -742,7 +742,7 @@ export const guides: Record<string, GuideData> = {
     title: "Getting Prescriptions Through Telehealth in Australia",
     slug: "telehealth-for-prescriptions-australia",
     description: "Can you get a prescription through telehealth? Learn what medications can be prescribed online and how the process works.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Yes, Australian doctors can prescribe medications through telehealth consultations. It's legal, regulated, and increasingly common. But there are rules about what can and can't be prescribed online. Here's what you need to know.",
     steps: [
@@ -780,7 +780,7 @@ export const guides: Record<string, GuideData> = {
     title: "What Can Employers Ask About Your Medical Certificate?",
     slug: "what-employers-can-ask-medical-certificate",
     description: "Know your rights. Learn what information employers can and cannot request regarding your medical certificate in Australia.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "5 min read",
     intro: "You've submitted a medical certificate but your boss wants more detail. What are they entitled to ask? In Australia, there are clear rules about what employers can and can't request. Knowing your rights means you can push back when appropriate.",
     steps: [
@@ -818,7 +818,7 @@ export const guides: Record<string, GuideData> = {
     title: "Do Casual Workers Need Medical Certificates?",
     slug: "medical-certificate-casual-workers",
     description: "Guide for casual employees on when medical certificates are required and your entitlements under Australian workplace law.",
-    lastUpdated: "March 2026",
+    lastUpdated: "April 2026",
     readTime: "4 min read",
     intro: "Casual employment in Australia is different from full-time or part-time work. You don't get paid sick leave — but that doesn't mean medical certificates don't matter. Some employers still require them, and having documentation protects you. Here's what casual workers need to know.",
     steps: [

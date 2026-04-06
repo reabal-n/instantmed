@@ -17,7 +17,7 @@ import { guides, GUIDE_INDEX } from "@/lib/seo/data/guides"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, HealthArticleSchema, HowToSchema } from "@/components/seo/healthcare-schema"
 import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 
@@ -72,6 +72,15 @@ export default async function GuidePage({ params }: PageProps) {
     <>
       <HealthArticleSchema title={guide.title} description={guide.description} url={`/guides/${slug}`} />
       <FAQSchema faqs={faqSchemaData} />
+      <HowToSchema
+        name={guide.title}
+        description={guide.description}
+        totalTime={`PT${parseInt(guide.readTime) * 2}M`}
+        steps={guide.steps.map(step => ({
+          name: step.title,
+          text: step.content,
+        }))}
+      />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
@@ -324,7 +333,7 @@ export default async function GuidePage({ params }: PageProps) {
           </section>
 
           {/* Medical Disclaimer */}
-          <MedicalDisclaimer reviewedDate="2026-03" />
+          <MedicalDisclaimer reviewedDate="2026-04" />
         </main>
 
         <Footer />
