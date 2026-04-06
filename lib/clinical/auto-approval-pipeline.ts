@@ -16,6 +16,7 @@ import { executeCertApproval } from "@/lib/cert/execute-approval"
 import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
@@ -88,6 +89,71 @@ function buildReviewDataFromAnswers(
     startDate,
     endDate,
     medicalReason,
+  }
+}
+
+/**
+ * Format clinical note JSON content into SOAP-format text for intake.doctor_notes.
+ * Matches the format used by the manual review flow (components/doctor/review/utils.ts).
+ */
+function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
+  const c = content as Record<string, string>
+  const sections: string[] = []
+  const subj = c.presentingComplaint?.trim() || ""
+  const obj = c.historyOfPresentIllness?.trim() || ""
+  const assess = c.relevantInformation?.trim() || ""
+  const plan = c.certificateDetails?.trim() || ""
+  if (subj) sections.push(`Subjective:\n${subj}`)
+  if (obj) sections.push(`Objective:\n${obj}`)
+  if (assess) sections.push(`Assessment:\n${assess}`)
+  if (plan) sections.push(`Plan:\n${plan}`)
+  return sections.length > 0 ? sections.join("\n\n") : null
+}
+
+/**
+ * Sync AI clinical note to intake.doctor_notes after auto-approval.
+ * Uses PHI dual-write (plaintext + encrypted) matching the manual flow.
+ * Non-fatal: if sync fails, the cert is already issued — log and continue.
+ */
+async function syncClinicalNoteAfterAutoApproval(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string,
+  draftId: string,
+  draftContent: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const formattedNotes = formatClinicalNoteContent(draftContent)
+    if (!formattedNotes) {
+      log.warn("Auto-approval: clinical note content empty, skipping sync", { intakeId, draftId })
+      return
+    }
+
+    const phiFields = await prepareDoctorNotesWrite(formattedNotes)
+
+    const { error } = await supabase
+      .from("intakes")
+      .update({
+        ...phiFields,
+        synced_clinical_note_draft_id: draftId,
+      })
+      .eq("id", intakeId)
+
+    if (error) {
+      log.error("Auto-approval: failed to sync clinical note to intake", { intakeId, draftId, error: error.message })
+      Sentry.captureMessage("Auto-approval clinical note sync failed", {
+        level: "warning",
+        tags: { subsystem: "auto-approval", intake_id: intakeId },
+        extra: { draftId, error: error.message },
+      })
+    } else {
+      log.info("Auto-approval: clinical note synced to intake.doctor_notes", { intakeId, draftId })
+    }
+  } catch (err) {
+    log.error("Auto-approval: unexpected error syncing clinical note", { intakeId, draftId, error: err })
+    Sentry.captureException(err, {
+      level: "warning",
+      tags: { subsystem: "auto-approval", intake_id: intakeId, stage: "clinical_note_sync" },
+    })
   }
 }
 
@@ -482,6 +548,16 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     if (approvalResult.success) {
       // Mark approved via state machine (also sets ai_approved for backward compat)
       await markApproved(supabase, intakeId)
+
+      // 12. Sync AI clinical note to intake.doctor_notes (non-fatal)
+      if (clinicalNoteDraft) {
+        await syncClinicalNoteAfterAutoApproval(
+          supabase,
+          intakeId,
+          clinicalNoteDraft.id,
+          clinicalNoteDraft.content as Record<string, unknown>,
+        )
+      }
 
       log.info("Auto-approval: certificate issued", {
         intakeId,
