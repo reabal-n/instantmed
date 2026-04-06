@@ -15,6 +15,7 @@ import {
   Heading,
   List,
   GoogleReviewCTA,
+  ReferralCTA,
   colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
@@ -70,6 +71,7 @@ export function PrescriptionApprovedEmail({
       </Button>
 
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
 
       <Text muted small>
         Questions? Reply to this email or visit our{" "}

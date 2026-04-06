@@ -14,6 +14,7 @@ import {
   List,
   SuccessBanner,
   GoogleReviewCTA,
+  ReferralCTA,
   colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
@@ -93,6 +94,7 @@ export function ScriptSentEmail({
       </Text>
 
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

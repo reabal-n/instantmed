@@ -516,7 +516,6 @@ export async function executeCertApproval(
       verificationCode,
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
       appUrl: env.appUrl,
-      referralCode: patient.referral_code || undefined,
     }),
     emailType: "med_cert_patient",
     intakeId,

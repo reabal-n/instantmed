@@ -3,6 +3,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendViaResend } from "./resend"
 import { renderAbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
+import { renderAbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/components/email/templates/abandoned-checkout-followup"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
@@ -158,6 +159,125 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
 }
 
 /**
+ * Find intakes that received the 1h nudge but not the 24h followup
+ * Targets intakes 24-48 hours old
+ */
+export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
+  const supabase = createServiceRoleClient()
+
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      category,
+      subtype,
+      created_at,
+      guest_email,
+      patient:profiles!patient_id(email, first_name)
+    `)
+    .eq("status", "pending_payment")
+    .or("payment_status.eq.pending,payment_status.is.null")
+    .gte("created_at", fortyEightHoursAgo)
+    .lte("created_at", twentyFourHoursAgo)
+    .not("abandoned_email_sent_at", "is", null)
+    .is("abandoned_followup_sent_at", null)
+
+  if (error) {
+    logger.error("Failed to fetch abandoned followups", { error: error.message })
+    return []
+  }
+
+  return (data || []).map(item => {
+    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
+    const guestEmail = (item as { guest_email?: string }).guest_email
+    return {
+      ...item,
+      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient)
+    }
+  }) as AbandonedIntake[]
+}
+
+/**
+ * Send the 24h abandoned checkout followup email (last call with social proof)
+ */
+export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promise<boolean> {
+  const appUrl = getAppUrl()
+  const patient = intake.patient
+
+  if (!patient?.email) {
+    logger.warn("Skipping abandoned followup email - no patient email", { intakeId: intake.id })
+    return false
+  }
+
+  if (intake.patient_id) {
+    const canSend = await canSendMarketingEmail(intake.patient_id)
+    if (!canSend) {
+      logger.info("Skipping abandoned followup email - user opted out", { intakeId: intake.id })
+      return false
+    }
+  }
+
+  const patientName = patient.first_name || "there"
+  const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
+  const resumeUrl = `${appUrl}/patient/intakes/${intake.id}?retry=true`
+
+  const html = renderAbandonedCheckoutFollowupEmail({
+    patientName,
+    serviceName,
+    resumeUrl,
+    appUrl,
+  })
+
+  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
+
+  const result = await sendViaResend({
+    to: patient.email,
+    subject: abandonedCheckoutFollowupSubject(serviceName),
+    html,
+    tags: [
+      { name: "category", value: "abandoned_checkout_followup" },
+      { name: "intake_id", value: intake.id },
+    ],
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  })
+
+  try {
+    const supabase = createServiceRoleClient()
+    await supabase.from("email_outbox").insert({
+      email_type: "abandoned_checkout_followup",
+      to_email: patient.email,
+      intake_id: intake.id,
+      patient_id: intake.patient_id,
+      subject: abandonedCheckoutFollowupSubject(serviceName),
+      status: result.success ? 'sent' : 'failed',
+      provider_message_id: result.id,
+      sent_at: result.success ? new Date().toISOString() : null,
+      error_message: result.error,
+      metadata: { category: intake.category },
+    })
+  } catch { /* non-blocking */ }
+
+  if (result.success) {
+    const supabase = createServiceRoleClient()
+    await supabase
+      .from("intakes")
+      .update({ abandoned_followup_sent_at: new Date().toISOString() })
+      .eq("id", intake.id)
+
+    logger.info("Sent abandoned followup email", { intakeId: intake.id, email: patient.email })
+  }
+
+  return result.success
+}
+
+/**
  * Acquire a distributed lock to prevent concurrent cron runs
  * Returns a release function if lock acquired, null otherwise
  */
@@ -207,36 +327,44 @@ async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
 
 /**
  * Process all abandoned checkouts and send recovery emails
- * Call this from a cron job
+ * Handles both the 1h nudge and the 24h followup in a single cron run
  */
-export async function processAbandonedCheckouts(): Promise<{ sent: number; failed: number; skipped?: boolean }> {
+export async function processAbandonedCheckouts(): Promise<{ sent: number; failed: number; followupSent: number; followupFailed: number; skipped?: boolean }> {
   // Acquire distributed lock to prevent concurrent runs
   const releaseLock = await acquireCronLock()
   if (releaseLock === null) {
-    return { sent: 0, failed: 0, skipped: true }
+    return { sent: 0, failed: 0, followupSent: 0, followupFailed: 0, skipped: true }
   }
-  
+
   try {
+    // Process 1h nudges
     const abandonedIntakes = await findAbandonedCheckouts()
-  
     let sent = 0
     let failed = 0
-  
+
     for (const intake of abandonedIntakes) {
       const success = await sendAbandonedCheckoutEmail(intake)
-      if (success) {
-        sent++
-      } else {
-        failed++
-      }
-    
-      // Small delay between emails to avoid rate limits
+      if (success) { sent++ } else { failed++ }
       await new Promise(resolve => setTimeout(resolve, 100))
     }
-  
-    logger.info("Processed abandoned checkouts", { sent, failed, total: abandonedIntakes.length })
-  
-    return { sent, failed }
+
+    // Process 24h followups
+    const followupIntakes = await findAbandonedFollowups()
+    let followupSent = 0
+    let followupFailed = 0
+
+    for (const intake of followupIntakes) {
+      const success = await sendAbandonedFollowupEmail(intake)
+      if (success) { followupSent++ } else { followupFailed++ }
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    logger.info("Processed abandoned checkouts", {
+      sent, failed, followupSent, followupFailed,
+      total: abandonedIntakes.length + followupIntakes.length,
+    })
+
+    return { sent, failed, followupSent, followupFailed }
   } finally {
     await releaseLock()
   }

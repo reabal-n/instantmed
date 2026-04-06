@@ -694,5 +694,29 @@ export function GoogleReviewCTA({ href }: GoogleReviewCTAProps) {
   )
 }
 
+interface ReferralCTAProps {
+  appUrl: string
+}
+
+export function ReferralCTA({ appUrl }: ReferralCTAProps) {
+  return (
+    <div
+      style={{
+        textAlign: "center" as const,
+        padding: "16px 0 4px",
+        borderTop: `1px solid ${colors.borderLight}`,
+        margin: "4px 0 0 0",
+      }}
+    >
+      <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
+        Know someone who could use InstantMed?{" "}
+        <a href={`${appUrl}/referrals`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
+          Refer a friend — you both get $5 off
+        </a>
+      </p>
+    </div>
+  )
+}
+
 // Export colors for use in templates
 export { colors, fontFamily }

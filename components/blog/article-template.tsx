@@ -188,29 +188,21 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
       <h2 className="text-xl font-semibold text-foreground mb-6" id="faq">
         Frequently Asked Questions
       </h2>
-      <div className="space-y-4" itemScope itemType="https://schema.org/FAQPage">
+      <div className="space-y-4">
         {faqs.map((faq, i) => {
           const faqId = generateFaqId(faq.question, i)
           return (
-            <details 
+            <details
               key={i}
               id={faqId}
               className="group border border-border rounded-xl overflow-hidden scroll-mt-24"
-              itemScope
-              itemProp="mainEntity"
-              itemType="https://schema.org/Question"
             >
               <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-muted/50 list-none">
-                <span itemProp="name">{faq.question}</span>
+                <span>{faq.question}</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <div 
-                className="px-4 pb-4 text-muted-foreground"
-                itemScope
-                itemProp="acceptedAnswer"
-                itemType="https://schema.org/Answer"
-              >
-                <span itemProp="text">{faq.answer}</span>
+              <div className="px-4 pb-4 text-muted-foreground">
+                <span>{faq.answer}</span>
               </div>
             </details>
           )
