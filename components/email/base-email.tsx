@@ -710,7 +710,7 @@ export function ReferralCTA({ appUrl }: ReferralCTAProps) {
     >
       <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
         Know someone who could use InstantMed?{" "}
-        <a href={`${appUrl}/referrals`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
+        <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
           Refer a friend — you both get $5 off
         </a>
       </p>

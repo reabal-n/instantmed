@@ -171,6 +171,30 @@ const templates = [
     description: "Notification of earned referral credit",
     category: "engagement",
   },
+  {
+    slug: "abandoned-checkout-followup",
+    name: "Abandoned Checkout Followup (24h)",
+    description: "Last-call email sent 24h after abandoned checkout with social proof",
+    category: "engagement",
+  },
+  {
+    slug: "review-request",
+    name: "Review Request (Day 2)",
+    description: "Warm Google review ask sent 2 days after approval",
+    category: "engagement",
+  },
+  {
+    slug: "review-followup",
+    name: "Review Followup (Day 7)",
+    description: "Gentle review nudge sent 7 days after approval (last ask)",
+    category: "engagement",
+  },
+  {
+    slug: "subscription-nudge",
+    name: "Subscription Nudge (Day 30)",
+    description: "Repeat Rx subscription upsell sent 30 days after approval",
+    category: "engagement",
+  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {

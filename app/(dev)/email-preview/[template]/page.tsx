@@ -33,10 +33,14 @@ import { PaymentFailedEmail } from "@/components/email/templates/payment-failed"
 import { PaymentRetryEmail } from "@/components/email/templates/payment-retry"
 import { RefundIssuedEmail } from "@/components/email/templates/refund-issued"
 import { AbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
+import { AbandonedCheckoutFollowupEmail } from "@/components/email/templates/abandoned-checkout-followup"
 import { RepeatRxReminderEmail } from "@/components/email/templates/repeat-rx-reminder"
 import { ReferralCreditEmail } from "@/components/email/templates/referral-credit"
 import { GuestCompleteAccountEmail } from "@/components/email/templates/guest-complete-account"
 import { VerificationCodeEmail } from "@/components/email/templates/verification-code"
+import { ReviewRequestEmail } from "@/components/email/templates/review-request"
+import { ReviewFollowupEmail } from "@/components/email/templates/review-followup"
+import { SubscriptionNudgeEmail } from "@/components/email/templates/subscription-nudge"
 
 export const dynamic = "force-dynamic"
 
@@ -386,6 +390,49 @@ const templates: Record<string, {
         patientName={mock.patientName}
         creditAmount="$5.00"
         friendName="Tom Wilson"
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "abandoned-checkout-followup": {
+    name: "Abandoned Checkout Followup (24h)",
+    subject: "Last call — your Medical Certificate request expires soon",
+    render: () => (
+      <AbandonedCheckoutFollowupEmail
+        patientName={mock.patientName}
+        serviceName="Medical Certificate"
+        resumeUrl={`${mock.appUrl}/request?resume=${mock.requestId}`}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "review-request": {
+    name: "Review Request (Day 2)",
+    subject: "Quick favour? ⭐",
+    render: () => (
+      <ReviewRequestEmail
+        patientName={mock.patientName}
+        serviceName="Medical Certificate"
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "review-followup": {
+    name: "Review Followup (Day 7)",
+    subject: "Still happy with us? 😊",
+    render: () => (
+      <ReviewFollowupEmail
+        patientName={mock.patientName}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "subscription-nudge": {
+    name: "Subscription Nudge (Day 30)",
+    subject: "Time for your next script? Save with a subscription",
+    render: () => (
+      <SubscriptionNudgeEmail
+        patientName={mock.patientName}
         appUrl={mock.appUrl}
       />
     ),
