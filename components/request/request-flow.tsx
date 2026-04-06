@@ -100,6 +100,8 @@ interface RequestFlowProps {
   hasCompleteIdentity?: boolean
   hasMedicare: boolean
   hasAddress: boolean
+  /** Profile has a phone number — required for prescriptions + consults */
+  hasPhone?: boolean
   /** User email for pre-filling */
   userEmail?: string
   /** User name for pre-filling */
@@ -127,6 +129,7 @@ export function RequestFlow({
   hasCompleteIdentity,
   hasMedicare,
   hasAddress,
+  hasPhone,
   userEmail,
   userName,
   userPhone,
@@ -186,8 +189,8 @@ export function RequestFlow({
 
   // Initialize auth context in store for step navigation
   useEffect(() => {
-    setAuthContext({ isAuthenticated, hasProfile, hasMedicare, hasAddress })
-  }, [isAuthenticated, hasProfile, hasMedicare, hasAddress, setAuthContext])
+    setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone })
+  }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, setAuthContext])
 
   // Pre-fill identity from auth if available
   useEffect(() => {
@@ -314,9 +317,10 @@ export function RequestFlow({
     hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
     hasMedicare,
     hasAddress,
+    hasPhone,
     serviceType: effectiveService || 'med-cert',
     answers,
-  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, effectiveService, answers])
+  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, effectiveService, answers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {

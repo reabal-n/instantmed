@@ -6,7 +6,7 @@ import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
 
 const profileUpdateSchema = z.object({
-  full_name: z.string().min(1).max(200).optional(),
+  full_name: z.string().min(1).max(200).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
   street_address: z.string().max(500).optional(),
   address_line1: z.string().max(500).optional(),
@@ -62,7 +62,7 @@ export async function PATCH(request: Request) {
       updated_at: new Date().toISOString(),
     }
 
-    if (full_name !== undefined) updateData.full_name = full_name
+    if (full_name !== undefined && full_name !== null) updateData.full_name = full_name
     if (phone !== undefined) updateData.phone = phone || null
     // Support both field names from client (street_address is legacy, address_line1 is canonical)
     const addressValue = address_line1 !== undefined ? address_line1 : street_address

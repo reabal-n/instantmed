@@ -411,9 +411,25 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
       {/* Error message */}
       {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        error.toLowerCase().includes("account already exists") ? (
+          <Alert variant="destructive">
+            <AlertDescription className="space-y-2">
+              <p>An account already exists with this email address.</p>
+              <p>
+                <a
+                  href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
+                  className="underline font-medium hover:opacity-80"
+                >
+                  Sign in to continue →
+                </a>
+              </p>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )
       )}
 
       {/* Spacer for sticky CTA on mobile */}

@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield } from "lucide-react"
+import { useClerk } from "@clerk/nextjs"
+import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -118,7 +119,15 @@ export function DoctorMobileNav({ className }: { className?: string }) {
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { signOut } = useClerk()
   const [moreOpen, setMoreOpen] = useState(false)
+
+  const handleSignOut = async () => {
+    setMoreOpen(false)
+    await signOut()
+    router.push('/')
+    router.refresh()
+  }
 
   const isMoreActive = moreMenuItems.some(
     (item) => pathname === item.href || pathname?.startsWith(item.href + "/")
@@ -167,6 +176,13 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                   </button>
                 )
               })}
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-colors text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm">Sign out</span>
+              </button>
             </nav>
           </div>
         </div>

@@ -143,6 +143,12 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
     [posthog],
   )
 
+  const handleClearAllDrafts = useCallback(() => {
+    posthog?.capture("all_drafts_cleared", { count: drafts.length })
+    drafts.forEach((d) => clearDraft(d.serviceType))
+    setDrafts([])
+  }, [drafts, posthog])
+
   const handleSelectService = useCallback(
     (service: UnifiedServiceType, consultSubtype?: string) => {
       posthog?.capture("service_selected", {
@@ -177,6 +183,23 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
         {/* Draft Banners */}
         <AnimatePresence>
+          {drafts.length > 1 && (
+            <motion.div
+              key="clear-all"
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-end mb-1"
+            >
+              <button
+                type="button"
+                onClick={handleClearAllDrafts}
+                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+              >
+                Clear all drafts
+              </button>
+            </motion.div>
+          )}
           {drafts.map((draft) => (
             <motion.div
               key={draft.serviceType}

@@ -230,10 +230,10 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       <FormField
         label="Start date"
         required
-        hint="When does your absence start?"
+        hint="Certificates cover existing absences only — future dates are not available"
         helpContent={{
           title: "Which date should I choose?",
-          content: "Select the first day you were unwell or unable to work/study. You can select up to 2 days ago. For earlier dates, a consultation is required."
+          content: "Select the first day you were unwell or unable to work/study. You can select up to 2 days ago. Future dates cannot be certified — for a planned or future absence, a consultation is required."
         }}
       >
         <Input

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
+import { useClerk } from '@clerk/nextjs'
 import {
   Home,
   FileText,
@@ -17,6 +18,7 @@ import {
   Bell,
   MessageSquare,
   ExternalLink,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/shared/brand-logo'
@@ -43,6 +45,13 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
+  const { signOut } = useClerk()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/')
+    router.refresh()
+  }
 
   // LeftRail is only used by the patient layout (AuthenticatedShell).
   // Doctor layout uses DashboardSidebar instead.
@@ -186,6 +195,17 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
           <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           {isExpanded && "Back to InstantMed.com.au"}
         </a>
+        <button
+          onClick={handleSignOut}
+          className={cn(
+            "flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors w-full",
+            isExpanded ? "mb-3" : "justify-center mb-2",
+          )}
+          title="Sign out"
+        >
+          <LogOut className="w-3.5 h-3.5 shrink-0" />
+          {isExpanded && "Sign out"}
+        </button>
         {isExpanded && (
           <p className="text-xs text-muted-foreground text-center">
             InstantMed &copy; {new Date().getFullYear()}

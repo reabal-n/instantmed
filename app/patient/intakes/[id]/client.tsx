@@ -257,7 +257,7 @@ export function IntakeDetailClient({
   }
 
   // Check if cancellation is allowed (only unpaid requests)
-  const canCancel = ["draft", "pending_payment"].includes(intake.status)
+  const canCancel = ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
 
   // Check if resend is available
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
@@ -325,8 +325,8 @@ export function IntakeDetailClient({
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
                     </div>
-                    <Button 
-                      onClick={handleRetryPayment} 
+                    <Button
+                      onClick={handleRetryPayment}
                       disabled={isPending}
                       className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
                     >
@@ -338,6 +338,44 @@ export function IntakeDetailClient({
                       ) : (
                         <>
                           Complete Payment
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Checkout Failed - Retry CTA */}
+          {intake.status === "checkout_failed" && (
+            <Card className="border-destructive/30 bg-linear-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/20">
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <div className="rounded-full bg-destructive/10 p-3 shrink-0">
+                    <XCircle className="h-6 w-6 text-destructive" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h3 className="text-base font-semibold text-red-900 dark:text-red-200">Payment didn&apos;t go through</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Your information has been saved. Try again with the same or a different card — no need to re-enter your details.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleRetryPayment}
+                      disabled={isPending}
+                      className="w-full sm:w-auto"
+                    >
+                      {isPending ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Try payment again
                         </>
                       )}
                     </Button>

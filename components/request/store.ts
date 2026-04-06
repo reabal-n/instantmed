@@ -70,8 +70,12 @@ export interface IdentityData {
 export interface AuthContext {
   isAuthenticated: boolean
   hasProfile: boolean
+  /** True when profile has complete identity (incl. date_of_birth) — mirrors RequestFlow prop */
+  hasCompleteIdentity?: boolean
   hasMedicare: boolean
   hasAddress: boolean
+  /** True when profile has a phone number — required for prescriptions + consults */
+  hasPhone?: boolean
 }
 
 export interface RequestActions {
