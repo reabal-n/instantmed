@@ -277,37 +277,75 @@ export const guides: Record<string, GuideData> = {
   "medical-certificate-centrelink": {
     title: "How to Get a Medical Certificate for Centrelink",
     slug: "medical-certificate-centrelink",
-    description: "Need a medical certificate for Centrelink or a government agency? Learn what's required, how to get one, and what doctors can certify.",
-    lastUpdated: "January 2025",
-    readTime: "5 min read",
-    intro: "Centrelink and other government agencies sometimes require medical certificates to support claims for payments, exemptions, or participation requirements. This guide explains what you need and how to get a certificate that meets government requirements.",
+    description: "Need a medical certificate for Centrelink or a government agency? Learn what's required for each payment type, how to get one, and avoid common mistakes.",
+    lastUpdated: "March 2026",
+    readTime: "7 min read",
+    intro: "Centrelink and Services Australia require medical certificates in a range of situations — from meeting mutual obligation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and getting the wrong certificate can delay your payments. This guide covers what each situation needs and the fastest way to get compliant documentation.",
     steps: [
       {
-        title: "Check what Centrelink requires",
-        content: "Centrelink's requirements vary depending on your situation — JobSeeker participation requirements, Disability Support Pension, Carer Payment, or other claims. The certificate may need to specify your condition, how it affects your capacity, and the period it applies to. Check your Centrelink correspondence or the Services Australia website for specific requirements.",
-        tips: ["Requirements differ by payment type", "Some forms need a specific format", "Centrelink may have their own certificate template"]
+        title: "Identify which Centrelink situation applies to you",
+        content: "Centrelink uses medical certificates differently depending on your payment type. For JobSeeker Payment, a certificate can temporarily exempt you from mutual obligation activities (looking for work, attending appointments). For Disability Support Pension (DSP), medical evidence supports your initial claim or review. For Carer Payment, certificates document the condition of the person you care for. For Parenting Payment, certificates can support exemptions from participation requirements. Check your Centrelink online account or latest correspondence to confirm exactly what's been requested.",
+        tips: [
+          "JobSeeker: Certificate exempts you from activities for a set period (usually 1–13 weeks)",
+          "DSP: Requires comprehensive medical evidence — often from a GP who knows your history",
+          "Carer Payment: Certificate is about the care recipient, not you",
+          "If in doubt, call Centrelink (132 850) and ask what format they need before seeing a doctor"
+        ]
+      },
+      {
+        title: "Understand what the certificate needs to include",
+        content: "Standard medical certificates (date, 'unfit for work', doctor details) are often insufficient for Centrelink purposes. Centrelink frequently needs certificates that specify your condition, how it affects your functional capacity, the expected duration, and whether it's temporary or permanent. For participation exemptions, the certificate should state that you're unable to meet your obligations due to your medical condition. Some payment types require a Centrelink-specific form (e.g. SU415 for DSP medical evidence) rather than a standard certificate.",
+        tips: [
+          "Ask your doctor to include functional impact — not just a diagnosis",
+          "Specify the time period clearly (from date X to date Y)",
+          "For DSP claims, Centrelink has specific forms your doctor needs to complete",
+          "A generic 'unfit for work' certificate may not be accepted — include detail"
+        ]
       },
       {
         title: "See a doctor who can assess your condition",
-        content: "You need a registered Australian doctor who has assessed your condition. For some Centrelink requirements, a telehealth doctor can provide a certificate if they've reviewed your situation. For ongoing conditions or complex claims, Centrelink may prefer or require a doctor who knows your history.",
-        tips: ["Telehealth may be suitable for straightforward certificates", "Complex claims may need your regular GP", "The doctor must have assessed you — they can't certify conditions they haven't reviewed"]
+        content: "For straightforward short-term exemptions (e.g. you have the flu and can't attend an appointment), a telehealth doctor can assess and issue an appropriate certificate. For ongoing or complex claims — DSP applications, long-term exemptions, functional assessments — Centrelink typically expects evidence from a doctor who knows your history. Your regular GP is usually the best option for these. If you don't have a regular GP, a telehealth service can provide initial documentation while you establish ongoing care.",
+        tips: [
+          "Telehealth works for: short-term exemptions, acute illness, straightforward certificates",
+          "Your regular GP is better for: DSP applications, long-term conditions, functional assessments",
+          "The doctor must have assessed you — pre-dated or backdated certificates have limits",
+          "If you need a Centrelink-specific form completed, confirm the doctor can do this before your appointment"
+        ]
       },
       {
-        title: "Provide the certificate to Centrelink",
-        content: "Centrelink accepts certificates via their app, online services, or in person. Upload a clear copy or photo of the certificate. Keep the original for your records. Submit before any deadlines — late certificates can affect your payments.",
-        tips: ["Use the Centrelink app for quick upload", "Keep a copy for your records", "Note any reference numbers Centrelink provides"]
+        title: "Submit the certificate to Centrelink",
+        content: "Centrelink accepts medical certificates through several channels: the myGov app (upload a photo or scan), the Centrelink online portal, in person at a Centrelink office, or by post. The myGov app is fastest — you can photograph the certificate and submit immediately. Always submit before any deadlines stated in your correspondence. Late submissions can result in payment suspensions or participation failures being recorded.",
+        tips: [
+          "MyGov app upload is the fastest method — usually processed within 1–2 business days",
+          "Keep the original certificate and a digital copy for your records",
+          "Note any reference numbers or confirmation receipts from the submission",
+          "If your payment is suspended pending a certificate, submit ASAP — delays cost you money"
+        ]
+      },
+      {
+        title: "Follow up if there are issues",
+        content: "If Centrelink rejects your certificate or requests additional information, don't panic. Common rejection reasons include: certificate doesn't specify functional capacity, wrong date range, certificate doesn't match the requested format, or the condition needs more detailed documentation. Contact Centrelink to understand exactly what's missing, then see your doctor again with that specific feedback. Most issues can be resolved with a revised certificate.",
+        tips: [
+          "Ask Centrelink specifically what was wrong — vague feedback wastes time",
+          "Take Centrelink's feedback letter to your doctor so they know what to include",
+          "If you disagree with a decision, you have the right to request a review",
+          "Free legal help is available through Legal Aid and community legal centres"
+        ]
       }
     ],
     importantNotes: [
-      "Centrelink requirements can change — always check current requirements",
-      "Certificates must be from a doctor who has assessed you",
-      "Backdating has limits — doctors can only certify what they've assessed",
-      "For DSP or complex claims, Centrelink may request additional evidence"
+      "Centrelink requirements differ by payment type — always check what's specifically required before seeing a doctor",
+      "Standard 'unfit for work' certificates are often insufficient — Centrelink frequently needs functional capacity details",
+      "For DSP claims, Centrelink has specific medical forms (SU415) that your doctor needs to complete",
+      "Backdating has strict limits — doctors can only certify conditions they've actually assessed",
+      "If you're having trouble getting the right documentation, community legal centres can help for free"
     ],
     faqs: [
-      { q: "Can I get a Centrelink medical certificate online?", a: "Yes, for many situations. If a telehealth doctor can assess your condition and provide an appropriate certificate, it will be valid. Some complex claims may need in-person assessment." },
-      { q: "What if Centrelink rejects my certificate?", a: "Centrelink may reject certificates that don't meet their requirements (e.g. wrong format, missing information). Check their feedback and get a new certificate if needed. Your doctor can help ensure it meets requirements." },
-      { q: "How long is a Centrelink medical certificate valid?", a: "It depends on your situation. Some certificates cover a specific period (e.g. 2 weeks). For ongoing conditions, Centrelink may accept certificates covering longer periods. Check your specific requirements." }
+      { q: "Can I get a Centrelink medical certificate online?", a: "Yes, for short-term exemptions and acute illness. A telehealth doctor can assess your condition and issue a certificate that meets Centrelink requirements for temporary exemptions. For complex claims like DSP, you'll likely need your regular GP." },
+      { q: "What if Centrelink rejects my certificate?", a: "Ask Centrelink specifically what's missing. Common issues: not enough detail about functional capacity, wrong date range, or needing a Centrelink-specific form instead of a standard certificate. Take their feedback to your doctor and get a revised certificate." },
+      { q: "How long is a Centrelink medical certificate valid?", a: "It depends on the situation. Short-term exemptions typically cover 1–13 weeks. For ongoing conditions, Centrelink may request updated evidence every 3–6 months. DSP evidence is assessed as part of the claim process and may need updating at reviews." },
+      { q: "Do I need a certificate to defer a Centrelink appointment?", a: "If you're too unwell to attend a Centrelink appointment, you should call them beforehand to reschedule. A medical certificate can support your reason but calling ahead is usually sufficient for a single missed appointment." },
+      { q: "Can Centrelink access my medical records?", a: "Not without your consent. Centrelink can only see the certificates and forms you provide. However, for DSP claims, you may be asked to consent to Centrelink requesting information from your treating doctors. You have the right to understand what information will be shared." }
     ],
     cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Australian doctors` }
   },
@@ -386,38 +424,68 @@ export const guides: Record<string, GuideData> = {
     cta: { text: "Request a repeat prescription", href: "/prescriptions", subtext: `${PRICING_DISPLAY.FROM_SCRIPT} · eScript to your phone` }
   },
   "medical-certificate-for-carers-leave": {
-    title: "How to Get a Medical Certificate for Carer's Leave",
+    title: "How to Get a Medical Certificate for Carer's Leave in Australia",
     slug: "medical-certificate-for-carers-leave",
-    description: "Need to document carer's leave for work? Learn how to get a medical certificate when caring for a sick family member.",
+    description: "Need time off to care for a sick family member? Learn your carer's leave entitlements, how to get a medical certificate, and what your employer can and can't ask.",
     lastUpdated: "March 2026",
-    readTime: "4 min read",
-    intro: "Carer's leave allows you to take time off to care for a sick family member or dependant. Some employers require a medical certificate to approve it. This guide explains how to get one and what it should include.",
+    readTime: "6 min read",
+    intro: "When a family member or household member is ill and needs your care, you're entitled to take time off work under Australian law. If your employer requests evidence, you'll need a medical certificate — but it works differently from a personal sick leave certificate. Here's everything you need to know about carer's leave documentation.",
     steps: [
       {
-        title: "Understand carer's leave entitlements",
-        content: "Under the Fair Work Act, you're entitled to carer's leave (from your personal/carer's leave balance) when you need to care for an immediate family or household member who is ill. This is separate from your own sick leave.",
-        tips: ["Usually 10 days per year for full-time employees", "Covers children, spouse, parents, household members", "Same leave balance as personal sick leave"]
+        title: "Understand your carer's leave entitlements",
+        content: "Under the Fair Work Act 2009, all full-time and part-time employees are entitled to 10 days of paid personal/carer's leave per year, which accumulates and rolls over. Carer's leave comes from the same pool as your personal sick leave. You can take carer's leave when an immediate family member (spouse, child, parent, grandparent, sibling) or household member is ill, injured, or facing an unexpected emergency. Casual employees are entitled to 2 days of unpaid carer's leave per occasion.",
+        tips: [
+          "10 days per year for full-time employees, pro-rata for part-time",
+          "Same leave balance as personal sick leave — they share a pool",
+          "Covers immediate family AND household members (including de facto partners)",
+          "Casual employees get 2 days unpaid per occasion — no accumulation",
+          "You don't need to exhaust your own sick leave before using carer's leave"
+        ]
       },
       {
-        title: "Get a certificate if your employer requires one",
-        content: "A carer's leave certificate documents that the person you were caring for needed care — not that you were sick. You describe the situation (e.g. your child had gastro) and the doctor issues a certificate. Telehealth can assess and issue without you leaving the person you're caring for.",
-        tips: ["Certificate states the person needed care", "Doesn't disclose their diagnosis unless necessary", "Can often be done via telehealth"]
+        title: "Know when a certificate is required",
+        content: "Your employer can request evidence that you needed to provide care. This is most common for absences of 2+ consecutive days, but some workplace policies require evidence from day one. The evidence needs to show that the person required care — not that you yourself were unwell. A medical certificate, statutory declaration, or pharmacy receipt can all serve as evidence, though most employers prefer a certificate.",
+        tips: [
+          "Most employers require evidence for 2+ days, but check your workplace policy",
+          "A statutory declaration is a legal alternative to a medical certificate",
+          "Evidence needs to document the care recipient's need — not your own health",
+          "Keep text messages and pharmacy receipts as backup evidence"
+        ]
+      },
+      {
+        title: "Get a medical certificate via telehealth",
+        content: "Telehealth is particularly suited to carer's leave certificates because you probably can't leave the person you're caring for. You describe who needs care, their symptoms or condition, and how they require your assistance. The doctor assesses the situation and issues a certificate stating that the person needed care. The certificate doesn't need to include the care recipient's specific diagnosis — only that they required care.",
+        tips: [
+          "Complete the form from home — no need to leave the person you're caring for",
+          "You describe the situation on behalf of the care recipient",
+          "The certificate states they needed care, not necessarily what was wrong",
+          "If the care recipient is a child, you complete the form as the parent/guardian"
+        ]
       },
       {
         title: "Submit to your employer",
-        content: "Forward the certificate to HR or your manager. Carer's leave is a protected entitlement — your employer cannot unreasonably refuse it when properly documented.",
-        tips: ["Submit promptly", "Keep a copy for your records", "Check your workplace policy for any specific requirements"]
+        content: "Forward the certificate to HR or your manager as soon as practical. Carer's leave is a protected entitlement under the Fair Work Act — your employer cannot unreasonably refuse it when you provide the required evidence. They can ask when you expect to return and whether the person's condition is ongoing, but they cannot demand the care recipient's diagnosis or medical details.",
+        tips: [
+          "Submit promptly — ideally before or on the day of your absence",
+          "Keep a copy for your records (digital and physical)",
+          "Your employer can ask when you'll be back but not the diagnosis",
+          "If your employer refuses legitimate carer's leave, contact Fair Work on 13 13 94"
+        ]
       }
     ],
     importantNotes: [
-      "Carer's leave is a legal entitlement",
-      "The certificate documents the care recipient's need, not your illness",
-      "Telehealth is useful when you can't leave the person you're caring for"
+      "Carer's leave is a legally protected entitlement — employers cannot unreasonably refuse it with valid evidence",
+      "The certificate documents the care recipient's need, not your own illness",
+      "You don't need to be a 'carer' in the Centrelink sense — any immediate family or household member qualifies",
+      "Telehealth is ideal because you can get the certificate without leaving the person you're caring for",
+      "If you're regularly taking carer's leave, talk to your employer about flexible work arrangements — you may have additional rights"
     ],
     faqs: [
-      { q: "Can I get a carer's leave certificate online?", a: "Yes. You describe who needed care and their situation. The doctor assesses and can issue a certificate. Useful when you can't leave to see a GP." },
-      { q: "What if my child is the one who's sick?", a: "Same process. You complete the form on their behalf. The certificate documents that they needed care, supporting your carer's leave." },
-      { q: "Do I need to say what was wrong with them?", a: "The certificate typically states that the person needed care. Specific diagnosis may or may not be included — the doctor will include what's appropriate." }
+      { q: "Can I get a carer's leave certificate online?", a: "Yes. You describe who needs care and their situation. The doctor assesses and issues a certificate confirming the person required care. This is especially practical when you can't leave the unwell person to visit a GP." },
+      { q: "What if my child is the one who's sick?", a: "Same process. You complete the form on their behalf as the parent or guardian. The certificate documents that your child needed care. This covers common situations like childhood gastro, fever, or any illness requiring a parent at home." },
+      { q: "Do I need to say what was wrong with them?", a: "The certificate states that the person needed care. A specific diagnosis is not required — your employer only needs to know that a family or household member was unwell and required your care. Privacy protections apply to the care recipient just as they would to you." },
+      { q: "Can I take carer's leave for a mental health crisis?", a: "Yes. If a family member is experiencing a mental health episode that requires your care and supervision, carer's leave applies. The certificate documents the need for care without disclosing the nature of the condition." },
+      { q: "Can both parents take carer's leave for the same child?", a: "Both parents can take carer's leave simultaneously if the situation warrants it (e.g. a seriously ill child). Each parent uses their own leave balance and provides their own evidence." }
     ],
     cta: { text: "Get a carer's leave certificate", href: "/medical-certificate/carer", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · No need to leave home` }
   },
@@ -530,38 +598,68 @@ export const guides: Record<string, GuideData> = {
     cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Valid for all employers` }
   },
   "escript-vs-paper-prescription": {
-    title: "eScript vs Paper Prescription: What's the Difference?",
+    title: "eScript vs Paper Prescription in Australia: Complete Guide",
     slug: "escript-vs-paper-prescription",
-    description: "eScripts are replacing paper prescriptions in Australia. Learn how they work and why they're often more convenient.",
+    description: "Everything you need to know about electronic prescriptions (eScripts) in Australia — how they work, where they're accepted, repeats, and common questions.",
     lastUpdated: "March 2026",
-    readTime: "4 min read",
-    intro: "Electronic prescriptions (eScripts) have become the standard in Australia. Instead of a paper script, you receive a QR code or token on your phone. Here's how they compare to the old paper system.",
+    readTime: "6 min read",
+    intro: "Australia has largely transitioned from paper prescriptions to electronic prescriptions (eScripts). Instead of a paper script you can lose or forget, you receive a QR code on your phone that any pharmacy can scan. Here's how the system works, what happens with repeats, and answers to common questions.",
     steps: [
       {
-        title: "How eScripts work",
-        content: "When a doctor prescribes medication, they can send an eScript to your phone via SMS or through an app. You get a QR code or token. Take it to any pharmacy — they scan it and dispense your medication. No paper to lose or forget.",
-        tips: ["Works at any pharmacy in Australia", "Can be resent if you lose it", "Repeats can be in the same token"]
+        title: "How eScripts work in practice",
+        content: "When a doctor prescribes medication — whether in person or via telehealth — they generate an electronic prescription. You receive an SMS or email containing a QR code (called a 'token'). Walk into any pharmacy in Australia, show the QR code on your phone, and the pharmacist scans it to dispense your medication. The entire system is managed through the Australian Digital Health Agency's Electronic Prescription Service, which all pharmacies are connected to.",
+        tips: [
+          "You receive the token instantly via SMS — no waiting for paper",
+          "The QR code contains encrypted prescription details the pharmacist can read",
+          "eScripts are stored on the prescription exchange — they don't 'live' on your phone",
+          "If you delete the SMS, the prescription still exists and can be retrieved"
+        ]
       },
       {
-        title: "Advantages over paper",
-        content: "eScripts can't be lost or damaged. You can have them resent. They work with telehealth — no need to collect a paper script. Repeats can be included in one token. They're accepted everywhere.",
-        tips: ["No lost prescriptions", "Perfect for telehealth", "Same legal standing as paper"]
+        title: "How repeats work with eScripts",
+        content: "If your doctor prescribes repeats, they're all encoded in the same token. When the pharmacist dispenses your first supply, the remaining repeats stay in the system. For your next repeat, you can return to any pharmacy — they look up the prescription by your details or a new token. Some pharmacy apps (like MedView or your pharmacy's app) can manage your repeat reminders automatically. You don't need to keep the original SMS for repeats, though it's handy for the first fill.",
+        tips: [
+          "Repeats are tracked digitally — no separate paper repeat forms",
+          "Any pharmacy can access your remaining repeats (with your consent)",
+          "Pharmacy apps can send you reminders when repeats are due",
+          "Your pharmacist can tell you how many repeats remain"
+        ]
       },
       {
-        title: "When you might still get paper",
-        content: "Some older systems or specific situations may still use paper. But for most Australians, eScripts are the norm. If you prefer paper, ask your doctor — but eScripts are usually more convenient.",
-        tips: ["Most scripts are now electronic", "Paper is still valid if issued", "Pharmacies accept both"]
+        title: "Advantages over paper prescriptions",
+        content: "eScripts solve several long-standing problems with paper prescriptions. You can't lose them (they're digital and retrievable). They work seamlessly with telehealth — no need to visit a clinic to collect paper. You're not locked into one pharmacy — any pharmacy nationwide can fill them. Doctors can issue them after-hours without you needing to pick up paper. And they're more secure — harder to forge or alter than paper scripts.",
+        tips: [
+          "No lost prescriptions — the token can be reissued if needed",
+          "Use any pharmacy in Australia — no geographic lock-in",
+          "Perfect for telehealth — prescription arrives on your phone within minutes",
+          "More secure than paper — encrypted and tamper-resistant",
+          "Environmentally better — no paper waste"
+        ]
+      },
+      {
+        title: "When you might still encounter paper",
+        content: "While eScripts are now the default, some situations may still involve paper prescriptions. A small number of very old prescribing systems haven't transitioned yet. Some patients prefer paper — you can ask your doctor for a printed version. Certain hospital discharge prescriptions may still be on paper. And some compounding pharmacies prefer paper for complex preparations. In all cases, paper scripts remain legally valid alongside eScripts.",
+        tips: [
+          "You can request a paper script if you prefer — just ask your doctor",
+          "Some hospital discharge scripts may still be paper",
+          "Paper and electronic prescriptions have identical legal standing",
+          "Pharmacies accept both — they won't refuse a valid paper script"
+        ]
       }
     ],
     importantNotes: [
-      "eScripts are legally equivalent to paper prescriptions",
-      "All Australian pharmacies can dispense from eScripts",
-      "You don't need a smartphone — the token can be printed"
+      "eScripts are legally equivalent to paper prescriptions under Australian law",
+      "All Australian pharmacies — chains and independents — can dispense from eScripts",
+      "You don't need a smartphone — the token code can be read out or printed",
+      "eScripts work for PBS (subsidised) and private prescriptions",
+      "Schedule 8 (controlled substance) prescriptions have additional requirements that vary by state"
     ],
     faqs: [
-      { q: "Do all pharmacies accept eScripts?", a: "Yes. eScripts are the standard. Any pharmacy can scan the QR code or enter the token." },
-      { q: "What if I lose my eScript?", a: "Contact your doctor or the service that issued it. They can resend it. One advantage of eScripts — they're digital and resendable." },
-      { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked in." }
+      { q: "Do all pharmacies accept eScripts?", a: "Yes. Every community pharmacy in Australia is connected to the Electronic Prescription Service. This includes all chains (Chemist Warehouse, Priceline, TerryWhite) and independent pharmacies." },
+      { q: "What if I lose my eScript SMS?", a: "The prescription still exists on the prescription exchange. Contact your doctor or telehealth service to resend the token. Alternatively, your pharmacist can look up the prescription using your details." },
+      { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked into one pharmacy. This is especially useful when travelling or if your regular pharmacy is closed." },
+      { q: "How do I know how many repeats I have left?", a: "Ask your pharmacist — they can check the system. Many pharmacy apps also track your active prescriptions and remaining repeats." },
+      { q: "Can someone else collect my medication with my eScript?", a: "Yes. You can forward the SMS token to a family member or friend. They present it at the pharmacy with appropriate identification. The same process as having someone collect a paper script on your behalf." }
     ],
     cta: { text: "Get an eScript", href: "/prescriptions", subtext: "Prescriptions sent to your phone" }
   },
@@ -793,8 +891,8 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "medical-certificate-centrelink",
     title: "How to Get a Medical Certificate for Centrelink",
-    description: "Need a medical certificate for Centrelink or a government agency? Learn what's required, how to get one, and what doctors can certify.",
-    readTime: "5 min read",
+    description: "Need a medical certificate for Centrelink? Learn what each payment type requires, avoid common mistakes, and get compliant documentation fast.",
+    readTime: "7 min read",
     category: "Medical Certificates",
   },
   {
@@ -814,8 +912,8 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "medical-certificate-for-carers-leave",
     title: "How to Get a Medical Certificate for Carer's Leave",
-    description: "Need to document carer's leave for work? Learn how to get a medical certificate when caring for a sick family member.",
-    readTime: "4 min read",
+    description: "Need time off to care for a sick family member? Learn your entitlements, how to get a certificate, and what your employer can and can't ask.",
+    readTime: "6 min read",
     category: "Medical Certificates",
   },
   {
@@ -841,9 +939,9 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   },
   {
     slug: "escript-vs-paper-prescription",
-    title: "eScript vs Paper Prescription: What's the Difference?",
-    description: "eScripts are replacing paper prescriptions in Australia. Learn how they work and why they're often more convenient.",
-    readTime: "4 min read",
+    title: "eScript vs Paper Prescription in Australia",
+    description: "Everything about electronic prescriptions (eScripts) — how they work, where they're accepted, how repeats work, and common questions.",
+    readTime: "6 min read",
     category: "Prescriptions",
   },
   {

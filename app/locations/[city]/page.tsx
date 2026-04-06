@@ -2,12 +2,13 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { ArrowRight, Clock, Shield, Star, CheckCircle2, HelpCircle } from "lucide-react"
+import { ArrowRight, Clock, Shield, Star, CheckCircle2, HelpCircle, Activity } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 
 // Geo coordinates for each city (latitude, longitude)
 const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
@@ -508,7 +509,8 @@ export default async function CityPage({ params }: PageProps) {
   }
 
   const geo = GEO_COORDS[city] || GEO_COORDS.sydney
-  const faqs = CITY_FAQS[city] || DEFAULT_FAQS
+  const deepContent = DEEP_CITY_CONTENT[city]
+  const faqs = [...(CITY_FAQS[city] || DEFAULT_FAQS), ...(deepContent?.additionalFaqs ?? [])]
   const cityContent = CITY_CONTENT[city]
 
   // Enhanced Local Business Schema for SEO
@@ -655,6 +657,61 @@ export default async function CityPage({ params }: PageProps) {
                 </p>
               </div>
             </section>
+          )}
+
+          {/* Deep city content — health stats + editorial sections */}
+          {deepContent && (
+            <>
+              {/* Health Stats Strip */}
+              <section className="px-4 py-10 bg-muted/30">
+                <div className="mx-auto max-w-3xl">
+                  <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+                    {deepContent.healthStats.map((stat) => (
+                      <div key={stat.label} className="text-center p-3 rounded-xl bg-background border">
+                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                          <Activity className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+                        </div>
+                        <p className="text-lg font-bold">{stat.value}</p>
+                        <p className="text-xs text-muted-foreground">{stat.context}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Deep editorial sections */}
+              {deepContent.sections.map((section) => (
+                <section key={section.title} className="px-4 py-10">
+                  <div className="mx-auto max-w-2xl">
+                    <h2 className="text-xl font-bold mb-4">{section.title}</h2>
+                    {section.paragraphs.map((p, i) => (
+                      <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              {/* Pharmacy & eScript info */}
+              <section className="px-4 py-10 bg-muted/30">
+                <div className="mx-auto max-w-2xl">
+                  <h2 className="text-xl font-bold mb-4">{deepContent.pharmacyInfo.title}</h2>
+                  {deepContent.pharmacyInfo.paragraphs.map((p, i) => (
+                    <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
+                  ))}
+                </div>
+              </section>
+
+              {/* Telehealth regulations */}
+              <section className="px-4 py-10">
+                <div className="mx-auto max-w-2xl">
+                  <h2 className="text-xl font-bold mb-4">{deepContent.telehealthRegulations.title}</h2>
+                  {deepContent.telehealthRegulations.paragraphs.map((p, i) => (
+                    <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
+                  ))}
+                </div>
+              </section>
+            </>
           )}
 
           {/* Services */}

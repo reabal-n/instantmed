@@ -795,4 +795,358 @@ export const DEEP_CITY_CONTENT: Record<string, DeepCityContent> = {
       { q: "Can hospitality workers get same-day certificates?", a: `Yes. Most certificates are issued within 1–2 hours. We're available 8am–10pm AEST, 7 days, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
+
+  "central-coast": {
+    healthStats: [
+      { label: "Population", value: "340K+", context: "NSW's third largest urban area" },
+      { label: "Avg GP wait", value: "3–7 days", context: "Longer in Wyong and northern suburbs" },
+      { label: "Bulk-billing rate", value: "~65%", context: "Lower than Sydney average" },
+      { label: "Commuter population", value: "30K+", context: "Daily Sydney commuters with limited time" },
+    ],
+    sections: [
+      {
+        title: "Healthcare on the Central Coast",
+        paragraphs: [
+          "The Central Coast stretches from the Hawkesbury River to Lake Macquarie, encompassing major centres like Gosford, Wyong, Tuggerah, Erina, and The Entrance. With 340,000+ residents, it's NSW's third largest urban area — but healthcare infrastructure hasn't kept pace with population growth, particularly in the northern corridor around Warnervale and Hamlyn Terrace.",
+          "GP availability varies dramatically across the region. Gosford and Erina have reasonable clinic density, but wait times for non-urgent appointments are still 3–5 days. The Wyong, Toukley, and The Entrance areas have fewer practices serving larger catchments. Many residents end up at emergency departments for issues that a GP could easily handle — including medical certificates.",
+          "An estimated 30,000+ Central Coast residents commute to Sydney daily. For these workers, taking time off to see a local GP often means losing a full day — the commute home, the wait at the clinic, and the commute back. Telehealth lets them handle routine healthcare needs during a lunch break or after hours.",
+        ],
+      },
+      {
+        title: "Central Coast Workers and Students",
+        paragraphs: [
+          "The Central Coast has a significant retail, hospitality, and aged care workforce, alongside the large Sydney commuter population. Shift workers at facilities like Wyong Hospital, aged care homes across the region, and hospitality venues along the coast face the same scheduling challenges as anywhere — GP clinic hours don't align with irregular rosters.",
+          "University of Newcastle's Central Coast campus in Ourimbah and TAFE NSW's Gosford and Wyong campuses serve thousands of students. All accept medical certificates from AHPRA-registered doctors for special consideration and assessment extensions. For students juggling study and part-time work, telehealth provides a practical alternative to competing for limited clinic appointments.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts on the Central Coast",
+      paragraphs: [
+        "The Central Coast has extensive pharmacy coverage across Gosford, Erina, Tuggerah, Wyong, and The Entrance. All major chains — Chemist Warehouse, Priceline, TerryWhite Chemmart — and independent pharmacies accept eScripts. Extended-hours pharmacies are available in Erina Fair and Tuggerah Westfield shopping centres.",
+        "When InstantMed issues a prescription, you receive a QR code via SMS that any pharmacy on the Coast can scan. No need to carry a paper script — just show your phone.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in NSW",
+      paragraphs: [
+        "NSW follows national AHPRA and Medical Board guidelines for telehealth. The NSW Government has actively supported telehealth adoption, recognising its role in reducing emergency department presentations and improving access in growth areas like the Central Coast.",
+        "Prescribing follows TGA national regulations. eScripts are accepted at all NSW pharmacies. Schedule 8 medications require in-person assessment and cannot be prescribed via telehealth through InstantMed.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the whole Central Coast?", a: "Yes — Gosford, Wyong, Tuggerah, Erina, The Entrance, Terrigal, Woy Woy, Avoca, and everywhere in between. It's an online service, so your exact location doesn't matter." },
+      { q: "Can I get a certificate on the train to Sydney?", a: "Yes. Many Central Coast commuters complete the form during their commute. Your certificate is emailed as a PDF you can forward to your employer." },
+      { q: "Are certificates accepted by Central Coast employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers — local, Sydney-based, or anywhere else." },
+    ],
+  },
+
+  parramatta: {
+    healthStats: [
+      { label: "Population", value: "270K+", context: "Sydney's second CBD" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Among the longest in Greater Sydney" },
+      { label: "Bulk-billing rate", value: "~60%", context: "Low and declining in the CBD area" },
+      { label: "Worker population", value: "120K+", context: "Western Sydney's employment hub" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Western Sydney",
+        paragraphs: [
+          "Parramatta and Greater Western Sydney face some of the most acute GP access challenges in the country. The region's population has grown rapidly — driven by new housing developments in areas like Marsden Park, Box Hill, and Schofields — but medical infrastructure has lagged well behind. Same-day GP appointments are rare, and many practices have closed their books to new patients entirely.",
+          "Parramatta CBD alone hosts over 120,000 workers on any given weekday. For these workers, getting a medical certificate means either taking a sick day to visit a GP (which defeats the purpose) or finding an after-hours clinic and waiting 2–3 hours. Western Sydney's after-hours clinics are among the busiest in NSW, with demand consistently outstripping capacity.",
+          "The cultural diversity of Western Sydney adds another dimension. Many residents prefer GPs who speak their language, which further narrows available appointment options. For straightforward needs like medical certificates — where the clinical assessment is standardised and documentation-based — telehealth removes the language-matching bottleneck while still delivering the same clinical outcome.",
+        ],
+      },
+      {
+        title: "Western Sydney's Workforce",
+        paragraphs: [
+          "Western Sydney's economy is built on logistics, healthcare, education, and construction. Workers at Westmead Hospital, the Parramatta justice precinct, the growing Aerotropolis, and the countless warehouses across the region work shifts and irregular hours. The standard GP model — book an appointment 4 days out, show up during business hours — doesn't serve this workforce.",
+          "Western Sydney University's Parramatta campuses serve tens of thousands of students, many of whom are first-in-family university students balancing study with work and family obligations. Telehealth medical certificates for special consideration applications mean one less barrier between them and their degree.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Western Sydney",
+      paragraphs: [
+        "Parramatta and Western Sydney have strong pharmacy coverage, with multiple Chemist Warehouse, Priceline, and TerryWhite locations in Westfield Parramatta, Parramatta CBD, and throughout the suburbs. All accept eScripts.",
+        "Extended-hours pharmacies operate in most Western Sydney shopping centres. When InstantMed issues a prescription, you receive a QR code via SMS — present it at any pharmacy to have your medication dispensed immediately.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in NSW",
+      paragraphs: [
+        "NSW follows national AHPRA telehealth standards. Western Sydney has been identified as a priority area for healthcare access improvements. Telehealth is recognised as a critical component of primary care delivery in high-growth, underserviced regions.",
+        "All prescribing follows TGA national regulations. eScripts are accepted at every pharmacy in Western Sydney and across NSW.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can I use InstantMed from my office in Parramatta?", a: "Yes. Complete the form from anywhere — your office, the train, or home. The certificate is emailed as a PDF." },
+      { q: "Is InstantMed faster than a Western Sydney GP?", a: `Most certificates are reviewed within 1 hour. Compared to a 4–7 day GP wait in Western Sydney, that's a significant improvement. From ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Do Westmead Hospital and other employers accept these?", a: "Yes. All Australian employers — including NSW Health, hospitals, universities, and private companies — accept certificates from AHPRA-registered doctors." },
+    ],
+  },
+
+  toowoomba: {
+    healthStats: [
+      { label: "Population", value: "140K+", context: "Queensland's largest inland city" },
+      { label: "Avg GP wait", value: "3–5 days", context: "Better than Brisbane but declining" },
+      { label: "Bulk-billing rate", value: "~72%", context: "Higher than capital cities but falling" },
+      { label: "Service area", value: "Darling Downs", context: "Healthcare hub for surrounding regions" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Darling Downs",
+        paragraphs: [
+          "Toowoomba sits atop the Great Dividing Range and serves as the healthcare hub for the entire Darling Downs region — from Dalby and Chinchilla to the west, Warwick to the south, and Gatton to the east. While the city itself has reasonable GP coverage, demand from the broader region stretches local capacity. Same-day appointments are possible but increasingly difficult to secure, particularly during winter flu season.",
+          "The region's agricultural workforce — grain, cotton, and cattle — often works remotely on properties where driving to town for a GP appointment means a round trip of several hours. For workers on farms and feedlots across the Downs, telehealth isn't a convenience; it's the only practical way to get a medical certificate without losing a full day of work.",
+          "Toowoomba's growth as a regional hub has attracted new residents from Brisbane and interstate, but GP supply hasn't grown proportionally. Several practices have waiting lists for new patients. For straightforward healthcare needs, telehealth provides immediate access without the wait.",
+        ],
+      },
+      {
+        title: "Students and Workers in Toowoomba",
+        paragraphs: [
+          "The University of Southern Queensland's Toowoomba campus is a major regional university, and TAFE Queensland's Toowoomba campus serves vocational students from across the Downs. Both accept telehealth-issued medical certificates for academic support applications.",
+          "Toowoomba's economy relies on agriculture, education, healthcare (with Toowoomba Hospital a major employer), and a growing logistics sector. Many workers in these industries have irregular hours or work in locations distant from clinics. InstantMed provides flexible access to medical certificates and prescriptions on their schedule.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Toowoomba",
+      paragraphs: [
+        "Toowoomba has good pharmacy coverage across the CBD, Grand Central Shopping Centre, and suburban areas. Chemist Warehouse, Priceline, and independent pharmacies all accept eScripts. Pharmacies in surrounding towns like Dalby, Warwick, and Gatton also accept eScripts from telehealth consultations.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in Regional Queensland",
+      paragraphs: [
+        "Queensland Health has identified the Darling Downs as a priority region for telehealth expansion. National AHPRA standards apply to all telehealth consultations. Prescribing follows TGA guidelines, with eScripts accepted at all Queensland pharmacies.",
+        "The Queensland Government's rural and remote health strategy explicitly supports telehealth as a way to improve healthcare access for communities beyond the south-east corner.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can I use InstantMed from a farm on the Downs?", a: "Yes — anywhere with internet access. Many farming properties have mobile coverage or satellite internet, both of which work with InstantMed." },
+      { q: "Does InstantMed serve Dalby, Warwick, and Gatton?", a: "Yes. We serve all of the Darling Downs and Southern Downs — your location doesn't matter as long as you have internet." },
+      { q: "Are certificates accepted by agricultural employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and accepted by all Australian employers, including farming operations, feedlots, and agribusiness companies." },
+    ],
+  },
+
+  ballarat: {
+    healthStats: [
+      { label: "Population", value: "115K+", context: "Victoria's third largest city" },
+      { label: "Avg GP wait", value: "3–5 days", context: "Growing gap due to population increase" },
+      { label: "Bulk-billing rate", value: "~62%", context: "Below Victorian and national averages" },
+      { label: "Distance to Melbourne", value: "115km", context: "Over 1 hour drive to the nearest major hospital network" },
+    ],
+    sections: [
+      {
+        title: "Healthcare Access in Ballarat and the Goldfields",
+        paragraphs: [
+          "Ballarat is growing fast — it's one of regional Australia's fastest-growing cities, attracting families and professionals priced out of Melbourne's housing market. But healthcare supply hasn't kept pace. Several GP practices have closed their books to new patients, and those accepting new patients often have wait times of 5+ days for non-urgent appointments.",
+          "The city serves as a healthcare hub for the Central Highlands and Goldfields region, drawing patients from Daylesford, Creswick, Bacchus Marsh, and beyond. This catchment demand puts additional pressure on local clinics. Ballarat Health Services provides hospital-level care, but for routine needs like medical certificates, the system is overloaded.",
+          "For the estimated 5,000+ Ballarat residents who commute to Melbourne for work, healthcare access is doubly complicated. You're unwell, you can't get a same-day GP appointment in Ballarat, and you certainly can't make the 90-minute drive to a Melbourne clinic. Telehealth solves this in minutes.",
+        ],
+      },
+      {
+        title: "Workers and Students",
+        paragraphs: [
+          "Federation University's Ballarat campus is the city's major university, supplemented by TAFE and a growing education sector. All Victorian universities accept telehealth medical certificates for special consideration applications.",
+          "Ballarat's economy spans manufacturing, healthcare, retail, and a significant public sector presence (including CFA and local government). Workers across these sectors benefit from telehealth when GP access is limited — particularly shift workers and those in remote-start roles.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Ballarat",
+      paragraphs: [
+        "Ballarat has good pharmacy coverage in the CBD, Stockland Wendouree, and suburban areas. Chemist Warehouse, Priceline, and local independent pharmacies all accept eScripts. Extended-hours options are available in the Stockland centre.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in Regional Victoria",
+      paragraphs: [
+        "Victoria follows national AHPRA standards for telehealth. The Victorian Government has invested in rural and regional telehealth as part of its healthcare strategy, recognising growing access gaps in cities like Ballarat.",
+        "Prescribing follows TGA national regulations. eScripts are universally accepted across Victorian pharmacies. Schedule 8 medications require in-person assessment.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can Melbourne commuters from Ballarat use InstantMed?", a: "Yes — many do. Complete the form from home or the train. Your certificate is emailed as a PDF you can forward to your employer." },
+      { q: "Is InstantMed cheaper than a Ballarat GP?", a: `With bulk-billing rates around 62% in Ballarat, many GP visits now cost $50–$80 out of pocket. Medical certificates from InstantMed start at ${PRICING_DISPLAY.MED_CERT} — often cheaper and always faster.` },
+      { q: "Does InstantMed serve Daylesford and Bacchus Marsh?", a: "Yes. We serve all of regional Victoria — anywhere with internet access." },
+    ],
+  },
+
+  bendigo: {
+    healthStats: [
+      { label: "Population", value: "100K+", context: "Victoria's fourth largest city" },
+      { label: "Avg GP wait", value: "3–5 days", context: "Increasing as population grows" },
+      { label: "Bulk-billing rate", value: "~60%", context: "One of the lowest in regional Victoria" },
+      { label: "Growth rate", value: "1.8% p.a.", context: "Outpacing healthcare supply" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Goldfields-Loddon Region",
+        paragraphs: [
+          "Bendigo is the major service centre for the Goldfields-Loddon region of Victoria, serving not just its 100,000+ residents but communities from Castlemaine and Kyneton to Echuca and Swan Hill. Bendigo Health provides hospital services, but GP access is under significant strain. The city's population growth of ~1.8% per year has outpaced the recruitment of new GPs, with several practices either full or operating with reduced hours.",
+          "Bulk-billing in Bendigo has dropped below 60% — one of the lowest rates in regional Victoria. A standard GP consultation can cost $50–$80 out of pocket after Medicare rebate. For a straightforward medical certificate that requires a 5-minute clinical assessment, the economics of the traditional GP model don't stack up.",
+          "The ripple effect extends beyond Bendigo itself. Residents in Heathcote, Castlemaine, and the Loddon Shire often travel to Bendigo for healthcare. Adding a 30–60 minute drive each way to a 5-day wait makes telehealth a practical alternative for routine needs.",
+        ],
+      },
+      {
+        title: "Bendigo's Workforce",
+        paragraphs: [
+          "Bendigo's economy is anchored by healthcare (Bendigo Health is the largest employer), education (La Trobe University Bendigo), retail, agriculture, and a growing creative sector. Shift workers at the hospital and aged care facilities, university staff, and agricultural workers all benefit from telehealth when clinic schedules don't align with work rosters.",
+          "La Trobe University Bendigo serves thousands of students from across regional Victoria. Medical certificates from AHPRA-registered doctors are accepted for all academic support applications. For students juggling study, part-time work, and the realities of regional living, telehealth provides a practical solution.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Bendigo",
+      paragraphs: [
+        "Bendigo has comprehensive pharmacy coverage across the CBD, Lansell Square, and suburban centres. All major chains and independent pharmacies accept eScripts. Extended-hours options are available in Bendigo Marketplace and Lansell Square.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in Regional Victoria",
+      paragraphs: [
+        "Victoria's telehealth framework follows national AHPRA standards. Regional Victoria has been a focus area for telehealth investment by the Victorian Government, particularly for communities where GP access is declining.",
+        "Prescribing follows TGA national regulations. eScripts work at all Victorian pharmacies, including those in smaller towns across the Goldfields-Loddon region.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed serve Castlemaine and Kyneton?", a: "Yes. We serve all of regional Victoria — Castlemaine, Kyneton, Heathcote, Echuca, and everywhere in between." },
+      { q: "Is telehealth adequate for a medical certificate?", a: "For straightforward illnesses (cold, flu, gastro, migraine), yes. Telehealth medical certificates have the same legal validity as in-person ones. If physical examination is needed, we'll recommend an in-person visit — and you won't be charged." },
+      { q: "Can La Trobe Bendigo students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept certificates from AHPRA-registered doctors for special consideration and assessment extensions." },
+    ],
+  },
+
+  launceston: {
+    healthStats: [
+      { label: "Population", value: "90K+", context: "Tasmania's second largest city" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Among the longest in Tasmania" },
+      { label: "Bulk-billing rate", value: "~55%", context: "Lowest of any major Tasmanian centre" },
+      { label: "GP shortfall", value: "Significant", context: "Tasmania has the worst GP-to-population ratio nationally" },
+    ],
+    sections: [
+      {
+        title: "Tasmania's GP Crisis",
+        paragraphs: [
+          "Tasmania has the worst GP-to-population ratio of any Australian state, and Launceston sits at the sharp end of this crisis. Northern Tasmania has experienced multiple clinic closures in recent years, leaving thousands of residents unable to find a regular GP. Walk-in appointments are often unavailable, and new patient registrations have waiting lists that stretch for months.",
+          "The problem is structural: Tasmania's ageing population requires more GP services, but the state struggles to attract and retain doctors. Junior doctors trained in Tasmania often leave for better-paying positions on the mainland. The result is a shrinking GP workforce serving a population with growing healthcare needs.",
+          "For residents of Northern Tasmania — from Launceston to Devonport, Burnie, and the North-East — getting a straightforward medical certificate can mean a multi-day wait or a drive to the nearest clinic with availability. Telehealth doesn't replace the ongoing GP relationship, but it handles routine needs immediately.",
+        ],
+      },
+      {
+        title: "Students and Workers in Northern Tasmania",
+        paragraphs: [
+          "The University of Tasmania's Launceston campus (Newnham and Inveresk) serves thousands of students. UTAS accepts telehealth medical certificates for all academic support applications. Given the difficulty of finding a GP in Launceston, telehealth is increasingly the practical choice for students needing timely documentation.",
+          "Launceston's economy is anchored by healthcare (Launceston General Hospital), education, agriculture, and tourism. The growing wine and food tourism sector in the Tamar Valley adds seasonal employment demand. Workers across all these sectors benefit from telehealth access when GP appointments are scarce.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Launceston",
+      paragraphs: [
+        "Launceston has pharmacy coverage in the CBD, Prospect, Kings Meadows, and Mowbray. All major chains and independent pharmacies accept eScripts. Devonport and Burnie pharmacies also accept eScripts from telehealth consultations.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in Tasmania",
+      paragraphs: [
+        "Tasmania follows national AHPRA telehealth standards. The Tasmanian Government has identified telehealth as a critical tool for addressing the state's GP shortage, particularly in Northern Tasmania.",
+        "Prescribing follows TGA national regulations. eScripts work across all Tasmanian pharmacies. The Tasmanian health system has been among the most supportive of telehealth adoption nationally.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can I use InstantMed if I can't find a GP in Launceston?", a: "Yes. InstantMed is ideal for routine healthcare needs when GP availability is limited. For ongoing conditions, we still recommend establishing a GP relationship — but for medical certificates and straightforward prescriptions, we can help right now." },
+      { q: "Does InstantMed serve Devonport and Burnie?", a: "Yes. We serve all of Tasmania — Launceston, Devonport, Burnie, the North-East, and the North-West Coast." },
+      { q: "Are certificates accepted by Tasmanian employers?", a: "Yes. All Australian employers, including Tasmanian government agencies, accept certificates from AHPRA-registered doctors regardless of consultation method." },
+    ],
+  },
+
+  "albury-wodonga": {
+    healthStats: [
+      { label: "Population", value: "95K+", context: "Cross-border twin cities" },
+      { label: "Avg GP wait", value: "3–5 days", context: "Consistent across both sides" },
+      { label: "Bulk-billing rate", value: "~62%", context: "Below both state averages" },
+      { label: "Cross-border", value: "NSW/VIC", context: "Healthcare systems straddle state line" },
+    ],
+    sections: [
+      {
+        title: "Cross-Border Healthcare Challenges",
+        paragraphs: [
+          "Albury-Wodonga sits on the Murray River, straddling the NSW-Victoria border. This geographic quirk creates unique healthcare complications. Residents on the Albury (NSW) side may find it easier to see a GP in Wodonga (VIC), or vice versa. Hospital catchments, health district boundaries, and some state-specific health programs don't neatly align with where people actually live and work.",
+          "Despite being a combined population of 95,000+, the twin cities face GP access challenges common to regional Australia. Several practices have restricted new patient intakes, and same-day appointments are rarely available for non-urgent needs. The nearest major tertiary hospitals are in Melbourne (3+ hours) and Canberra (3.5 hours).",
+          "Telehealth simplifies the cross-border complexity. An AHPRA-registered doctor can issue certificates that are valid in both states — no need to worry about whether your GP is registered in NSW or Victoria. The same applies to eScripts, which work at pharmacies on both sides of the river.",
+        ],
+      },
+      {
+        title: "Workers and Students in the Region",
+        paragraphs: [
+          "Charles Sturt University's Albury-Wodonga campus and TAFE NSW/GOTAFE serve the region's student population. Both accept telehealth medical certificates for academic support applications.",
+          "The region's economy spans agriculture, manufacturing, defence (Bandiana and Bonegilla), and a significant healthcare sector (Albury Wodonga Health). Workers across these industries face the usual regional challenges with GP access. Telehealth provides a practical supplement, particularly for shift workers and those in time-sensitive situations.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Albury-Wodonga",
+      paragraphs: [
+        "Both Albury and Wodonga have strong pharmacy networks. The Albury CBD, Wodonga Plaza, and suburban centres all have Chemist Warehouse, Priceline, and independent pharmacy options. All accept eScripts from telehealth consultations, regardless of which side of the border you're on.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Across State Borders",
+      paragraphs: [
+        "AHPRA registration is national — doctors registered with AHPRA can provide telehealth services to patients in any state. For Albury-Wodonga residents, this means the same telehealth consultation and certificate are valid whether you live in NSW or Victoria.",
+        "Prescribing follows national TGA regulations. eScripts work identically in both states. PBS pricing applies at all pharmacies regardless of state.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does it matter which side of the border I live on?", a: "No. AHPRA registration is national, so our doctors can treat patients in both NSW and Victoria. Your certificate is valid for employers in both states." },
+      { q: "Can I fill my eScript on either side of the border?", a: "Yes. eScripts work at any Australian pharmacy — Albury, Wodonga, or anywhere else." },
+      { q: "Are certificates accepted by Albury Wodonga Health?", a: "Yes. As an AHPRA-issued certificate, it's accepted by all employers in the region, including Albury Wodonga Health and other healthcare providers." },
+    ],
+  },
+
+  ipswich: {
+    healthStats: [
+      { label: "Population", value: "230K+", context: "One of Australia's fastest growing regions" },
+      { label: "Avg GP wait", value: "3–6 days", context: "Increasing with population growth" },
+      { label: "Bulk-billing rate", value: "~75%", context: "Higher than Brisbane average" },
+      { label: "Growth rate", value: "2.5% p.a.", context: "Healthcare infrastructure can't keep up" },
+    ],
+    sections: [
+      {
+        title: "Growth Outpacing Healthcare in Ipswich",
+        paragraphs: [
+          "Ipswich is one of Australia's fastest growing local government areas. The city and its surrounding suburbs — Springfield, Ripley Valley, Redbank Plains, Goodna — have seen explosive population growth driven by affordable housing compared to Brisbane. New developments are appearing faster than medical centres, leaving large populations underserviced.",
+          "Springfield in particular has grown from farmland to a planned city of 45,000+ in barely a decade, with a target population of 86,000. Healthcare infrastructure is still catching up. While Springfield has some medical centres, demand far outstrips supply. Many residents drive 20–30 minutes to find a GP with same-day availability.",
+          "Ipswich Hospital and the new Springfield Central hospital development will improve acute care access, but for routine GP needs — medical certificates, repeat prescriptions, straightforward consultations — the bottleneck remains. Telehealth fills this gap immediately.",
+        ],
+      },
+      {
+        title: "Ipswich's Workforce",
+        paragraphs: [
+          "Ipswich's economy spans defence (RAAF Base Amberley), logistics (Swanbank and Ebenezer industrial areas), healthcare, retail, and construction. Many of these workers have shift-based or physically demanding roles where GP clinic hours don't align with their schedule.",
+          "The University of Southern Queensland has an Ipswich campus, and TAFE Queensland's Ipswich and Springfield campuses serve vocational students. All accept telehealth-issued medical certificates. For students and workers in Ipswich, telehealth means one less obstacle in managing health and employment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies in Ipswich",
+      paragraphs: [
+        "Ipswich has pharmacy coverage across the CBD, Riverlink Shopping Centre, Springfield Orion, and suburban centres. All major chains accept eScripts. Springfield and Ripley Valley pharmacies are growing with the population.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth in Queensland",
+      paragraphs: [
+        "Queensland follows national AHPRA telehealth standards. South-East Queensland's growth corridors — including Ipswich and Springfield — have been identified as priority areas for healthcare access improvements.",
+        "Prescribing follows TGA national regulations. eScripts are accepted at all Queensland pharmacies.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Springfield and Ripley Valley?", a: "Yes. We cover all of the Ipswich region — Springfield, Ripley Valley, Redbank Plains, Goodna, and everywhere else. It's an online service, so your location doesn't matter." },
+      { q: "Can RAAF Amberley personnel use InstantMed?", a: "Yes, for personal medical needs (not Defence medical assessments). Our certificates are valid for civilian employment purposes and personal record-keeping." },
+      { q: "How fast can I get a certificate in Ipswich?", a: `Most certificates are reviewed within 1 hour. From ${PRICING_DISPLAY.MED_CERT} — typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
+    ],
+  },
 }
