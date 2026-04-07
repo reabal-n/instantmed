@@ -34,6 +34,21 @@ IMPORTANT RULES:
 - Do not recommend or mention any medications
 - Keep each section concise (1-2 sentences)
 
+FLAGGING POLICY (requiresReview):
+- Set requiresReview=true ONLY when the clinical content itself raises a concern
+  (e.g. red-flag symptoms, mental-health distress, contradictions between fields,
+  symptoms outside the scope of telehealth med certs).
+- Do NOT set requiresReview=true based on language quality, spelling, grammar,
+  brevity, typos, or "atypical" phrasing of the free-text "Additional Symptoms"
+  field. Patients describe symptoms in their own words — that is normal.
+- When the patient has selected 2 or more structured symptoms, treat the
+  structured selections as the primary clinical signal. The free-text
+  "Additional Symptoms" field is supplementary context only — ignore it for
+  flagging purposes if it is unclear or non-substantive.
+- If you cannot draft the Subjective section from the structured fields alone,
+  use a neutral summary (e.g. "Patient reports [symptom list] for [duration].")
+  rather than flagging for review.
+
 OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact structure.
 Do NOT include "Subjective:", "Objective:" etc in the values - we add those when displaying.
 {

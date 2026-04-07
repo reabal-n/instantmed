@@ -7,6 +7,7 @@
  */
 
 import { z } from "zod"
+import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 
 export interface ValidationResult {
   isValid: boolean
@@ -116,8 +117,14 @@ export const symptomsStepSchema = z.object({
     .min(1, "Please select at least one symptom"),
   symptomDetails: z
     .string()
-    .refine((v) => (v?.trim().length ?? 0) >= 20, {
-      message: "Please provide more detail about your symptoms (minimum 20 characters)",
+    .superRefine((v, ctx) => {
+      const result = validateSymptomTextQuality(v)
+      if (!result.valid) {
+        ctx.addIssue({
+          code: "custom",
+          message: result.reason ?? "Please provide more detail about your symptoms",
+        })
+      }
     }),
   symptomDuration: nonEmptyString("Please indicate how long you've had these symptoms"),
 })

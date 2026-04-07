@@ -23,6 +23,7 @@ import { FormField } from "../form-field"
 import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
+import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface SymptomsStepProps {
@@ -107,8 +108,9 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     if (symptoms.length === 0) newErrors.symptoms = "Please select at least one symptom"
-    if (!symptomDetails || symptomDetails.length < 20) {
-      newErrors.symptomDetails = "Please describe your symptoms (minimum 20 characters)"
+    const qualityResult = validateSymptomTextQuality(symptomDetails)
+    if (!qualityResult.valid) {
+      newErrors.symptomDetails = qualityResult.reason ?? "Please describe your symptoms"
     }
     if (!symptomDuration) newErrors.symptomDuration = "Please indicate how long you've had these symptoms"
     setErrors(newErrors)
@@ -124,7 +126,8 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   }, [validate, symptoms, onNext])
 
   const isCarer = certType === "carer"
-  const isComplete = symptoms.length > 0 && symptomDuration && symptomDetails.length >= 20
+  const detailsQuality = validateSymptomTextQuality(symptomDetails)
+  const isComplete = symptoms.length > 0 && symptomDuration && detailsQuality.valid
   const hasNoErrors = Object.keys(errors).length === 0
   const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
   const canContinue = isComplete && hasNoErrors && !emergencyRequiresAck
@@ -225,10 +228,10 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
         label={isCarer ? "Describe their symptoms in more detail" : "Describe your symptoms in more detail"}
         required
         error={touched.symptomDetails ? errors.symptomDetails : undefined}
-        hint="Minimum 20 characters"
-        helpContent={{ 
-          title: "What should I include?", 
-          content: "Describe how the symptoms affect you, when they started, and any relevant details. This helps the doctor write an accurate certificate." 
+        hint="Plain English — e.g. &ldquo;fever and headache since yesterday&rdquo;"
+        helpContent={{
+          title: "What should I include?",
+          content: "Describe how the symptoms affect you, when they started, and any relevant details. This helps the doctor write an accurate certificate."
         }}
       >
         <Textarea
@@ -243,18 +246,18 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
         />
         <div className="flex items-center justify-between mt-1.5 gap-2">
           <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
-            <div 
+            <div
               className={`h-full rounded-full transition-all duration-300 ${
-                symptomDetails.length >= 20 ? 'bg-primary' : 'bg-primary/50'
+                detailsQuality.valid ? 'bg-primary' : 'bg-primary/50'
               }`}
               style={{ width: `${Math.min((symptomDetails.length / 20) * 100, 100)}%` }}
             />
           </div>
           <p className={`text-xs shrink-0 ${
-            symptomDetails.length >= 20 ? 'text-primary' : 'text-muted-foreground'
+            detailsQuality.valid ? 'text-primary' : 'text-muted-foreground'
           }`}>
-            {symptomDetails.length >= 20 
-              ? `${symptomDetails.length} characters` 
+            {symptomDetails.length >= 20
+              ? `${symptomDetails.length} characters`
               : `${symptomDetails.length}/20 characters`
             }
           </p>
