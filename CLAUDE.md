@@ -52,6 +52,50 @@ pnpm ci               # Full CI: install → lint → test → build
 
 Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk v7 auth · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v11
 
+---
+
+## ⛔ Stack Pin Policy — DO NOT UPGRADE WITHOUT EXPLICIT USER APPROVAL
+
+> **Read this before touching `package.json`, `pnpm-lock.yaml`, or running `pnpm add` / `pnpm update` on any framework dep.**
+
+The following versions are **hard-pinned** in `package.json` (exact versions, no `^`) and `pnpm.overrides`. CI enforces them via `scripts/check-stack-pins.sh` — the build will fail if any drift.
+
+| Package | Pinned | Why this version |
+|---|---|---|
+| `next` | **15.5.14** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. |
+| `react` / `react-dom` | **18.3.1** | React 19 nullable `RefObject<T \| null>` typing breaks third-party libs (Clerk, Framer Motion 12). Wait until Next 17 makes React 19 the default. |
+| `framer-motion` | **11.18.2** | v12 requires React 19. |
+| `tailwindcss` / `@tailwindcss/postcss` | **4.2.2** | CSS-first config is working; don't risk a re-migration. |
+| Bundler | **Webpack** (NOT Turbopack) | Turbopack still has gaps in our codebase (module factory race conditions, framer-motion chunk bugs). |
+| Node | **20 LTS** | Stable; consider Node 22 LTS post-launch. |
+
+### Rules for Claude / any AI assistant working on this repo
+
+1. **NEVER** suggest or apply `pnpm add next@latest` (or react/tailwind/framer-motion). When you see an outdated version, that is **intentional**.
+2. **NEVER** rename `middleware.ts` → `proxy.ts`. Next 15 uses `middleware.ts`. The rename is a Next 16-only change.
+3. **NEVER** add a second arg to `revalidateTag()` (e.g. `revalidateTag("foo", "max")`). That's a Next 16-only API.
+4. **NEVER** type refs as `RefObject<T | null>`. Use `RefObject<T>` — React 18's `useRef<T>(null)` already returns the right type.
+5. **NEVER** add `--turbopack` or `--turbo` flags to dev/build scripts.
+6. **NEVER** edit `scripts/check-stack-pins.sh` to relax pins unless the user explicitly tells you "we are upgrading X to Y".
+7. **NEVER** bypass `--frozen-lockfile` or use `--no-frozen-lockfile` in CI.
+
+### Process for an intentional upgrade (when the user approves one)
+
+1. **One major upgrade per PR.** Never bundle Next + React + framer-motion in a single PR. (This is exactly how we got into the mess that took a week to undo.)
+2. **6-month soak rule.** A new major version doesn't enter the stack until it's been GA for 6+ months **and** the framework above it (e.g. Next) ships it as the default.
+3. Update **all of these in lockstep**:
+   - `package.json` `dependencies` / `devDependencies`
+   - `package.json` `pnpm.overrides`
+   - `scripts/check-stack-pins.sh` `EXPECTED_*` constants
+   - This Stack Pin Policy table
+   - Add a Gotchas entry if the upgrade has subtle behavioral changes
+4. **Verify the full intake flow E2E** before merging — typecheck/build alone is not enough.
+5. Reference the prior context: `docs/plans/2026-04-07-stable-stack-downgrade.md` and `~/.claude/projects/-Users-rey-Desktop-instantmed/memory/decisions.md`.
+
+If you are an AI and the user asks you to upgrade something on this list, **stop and confirm** before touching the lockfile. The user has been bitten by this and wants explicit acknowledgment.
+
+---
+
 ## Code Conventions
 
 ### Components & Styling
@@ -133,7 +177,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 ## Gotchas
 
 - **Build needs 8GB heap**: `NODE_OPTIONS='--max-old-space-size=8192'` set in build/typecheck scripts
-- **Stable stack — DO NOT upgrade casually**: We are pinned at Next 15.5.14, React 18.3.1, Framer Motion 11.18.2, webpack (NOT Turbopack). Next 16/React 19/Turbopack caused recurring dev-server crashes and required three local workaround files. Only upgrade after the next LTS cuts and after testing with the full intake flow + portals. See `docs/plans/2026-04-07-stable-stack-downgrade.md` and `~/.claude/projects/-Users-rey-Desktop-instantmed/memory/decisions.md`
+- **Stack pins are enforced in CI**: See the Stack Pin Policy section above. `scripts/check-stack-pins.sh` runs in `ci.yml` and fails the build if Next/React/Tailwind/Framer Motion drift. Read the policy before any dep change.
 - **Middleware filename**: Next 15 uses `middleware.ts` at repo root (NOT `proxy.ts` — that was Next 16's rename). Don't accept LLM/AI suggestions to rename it
 - **`revalidateTag` signature**: Next 15 takes a single tag arg — `revalidateTag("foo")`. Do NOT add a second `"max"` cache profile arg; that's a Next 16-only API
 - **`RefObject` typing**: With React 18 use `RefObject<HTMLDivElement>`, NOT `RefObject<HTMLDivElement | null>`. The `| null` is React 19 syntax — `useRef<T>(null)` returns `RefObject<T>` whose `.current` is already `T | null`
