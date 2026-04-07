@@ -10,6 +10,10 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image() {
+  const logoData = await fetch(
+    new URL('/branding/logo-512.png', 'https://instantmed.com.au')
+  ).then((res) => res.arrayBuffer()).catch(() => null)
+
   return new ImageResponse(
     (
       <div
@@ -33,20 +37,24 @@ export default async function Image() {
             marginBottom: '40px',
           }}
         >
-          <div
-            style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
-            }}
-          >
-            <span style={{ fontSize: '48px', fontWeight: 'bold', color: 'white' }}>I</span>
-          </div>
+          {logoData ? (
+            // @ts-expect-error — ArrayBuffer is valid in next/og img src
+            <img src={logoData} width={80} height={80} style={{ borderRadius: '20px' }} />
+          ) : (
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '20px',
+                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span style={{ fontSize: '48px', fontWeight: 'bold', color: 'white' }}>I</span>
+            </div>
+          )}
           <span style={{ fontSize: '56px', fontWeight: 'bold', color: '#1E293B' }}>
             InstantMed
           </span>

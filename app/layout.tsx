@@ -62,11 +62,12 @@ export const metadata: Metadata = {
     "InstantMed",
   ],
   icons: {
+    shortcut: "/favicon.ico",
     icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: { url: "/apple-icon.png", type: "image/png", sizes: "512x512" },
+    apple: { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },
   },
   authors: [{ name: "InstantMed" }],
   creator: "InstantMed",
