@@ -50,7 +50,7 @@ pnpm ci               # Full CI: install → lint → test → build
 
 ## Tech Stack
 
-Next.js 16 App Router · React 19 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk v7 auth · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v12
+Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk v7 auth · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v11
 
 ## Code Conventions
 
@@ -133,6 +133,10 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 ## Gotchas
 
 - **Build needs 8GB heap**: `NODE_OPTIONS='--max-old-space-size=8192'` set in build/typecheck scripts
+- **Stable stack — DO NOT upgrade casually**: We are pinned at Next 15.5.14, React 18.3.1, Framer Motion 11.18.2, webpack (NOT Turbopack). Next 16/React 19/Turbopack caused recurring dev-server crashes and required three local workaround files. Only upgrade after the next LTS cuts and after testing with the full intake flow + portals. See `docs/plans/2026-04-07-stable-stack-downgrade.md` and `~/.claude/projects/-Users-rey-Desktop-instantmed/memory/decisions.md`
+- **Middleware filename**: Next 15 uses `middleware.ts` at repo root (NOT `proxy.ts` — that was Next 16's rename). Don't accept LLM/AI suggestions to rename it
+- **`revalidateTag` signature**: Next 15 takes a single tag arg — `revalidateTag("foo")`. Do NOT add a second `"max"` cache profile arg; that's a Next 16-only API
+- **`RefObject` typing**: With React 18 use `RefObject<HTMLDivElement>`, NOT `RefObject<HTMLDivElement | null>`. The `| null` is React 19 syntax — `useRef<T>(null)` returns `RefObject<T>` whose `.current` is already `T | null`
 - **Controlled substances**: `isControlledSubstance(name)` in `lib/clinical/intake-validation.ts` detects Schedule 8 via regex patterns; UI passes the flag to `validateIntake()` which blocks progression. Both form and chat paths enforce this — no override
 - **PHI encryption**: AES-256-GCM field-level. Controlled by `PHI_ENCRYPTION_*` env vars. See SECURITY.md
 - **Rate limiting fallback**: Two systems — Redis (general API): fails open when unavailable. Doctor actions (DB-backed): falls back to in-memory `Map` with half limits
