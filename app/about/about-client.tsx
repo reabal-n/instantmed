@@ -76,7 +76,7 @@ export function AboutClient() {
         <ImageTextSplit
           title="Our Story"
           description="InstantMed was built to make everyday healthcare simpler. We believe getting a medical certificate or renewing a prescription shouldn't require taking half a day off work or sitting in a waiting room when you're already unwell."
-          imageSrc="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=800&q=80"
+          imageSrc="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80"
           imageAlt="Modern telehealth consultation"
           imagePosition="left"
         >

@@ -1,13 +1,17 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
-// Define protected routes that require authentication
+// Define protected routes that require authentication.
+// NOTE: trailing slash on `/api/patient/(.*)` is intentional — without it, the
+// matcher greedy-captures `/api/patient-count` (a public aggregate endpoint)
+// and Clerk returns 404 to unauth callers.
 const isProtectedRoute = createRouteMatcher([
   '/patient(.*)',
   '/doctor(.*)',
   '/admin(.*)',
   '/account(.*)',
-  '/api/patient(.*)',
+  '/api/patient/(.*)',
+  '/api/patients/(.*)',
   '/api/doctor(.*)',
   '/api/admin(.*)',
 ])

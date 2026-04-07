@@ -3,7 +3,6 @@
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { BadgeCheck, Users } from "lucide-react"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // COMPONENT

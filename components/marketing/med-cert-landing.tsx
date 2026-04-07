@@ -126,43 +126,6 @@ const RELATED_ARTICLES = [
 // SMALL COMPONENTS
 // =============================================================================
 
-/** Closing time countdown — shows "Closes in Xh Ym" during operating hours */
-function ClosingCountdown() {
-  const [label, setLabel] = useState<string | null>(null)
-
-  useEffect(() => {
-    function update() {
-      // AEST is UTC+10 (ignoring daylight savings edge — close enough)
-      const now = new Date()
-      const aestOffset = 10 * 60 // minutes
-      const utc = now.getTime() + now.getTimezoneOffset() * 60_000
-      const aest = new Date(utc + aestOffset * 60_000)
-      const hour = aest.getHours()
-      const minute = aest.getMinutes()
-
-      const openHour = SOCIAL_PROOF.operatingHoursStart // 8
-      const closeHour = SOCIAL_PROOF.operatingHoursEnd   // 22
-
-      // Med certs are 24/7 — no closing countdown needed
-      setLabel(null)
-    }
-
-    update()
-    const interval = setInterval(update, 60_000)
-    return () => clearInterval(interval)
-  }, [])
-
-  if (!label) return null
-
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-      <Clock className="h-3 w-3 shrink-0" />
-      {label}
-    </span>
-  )
-}
-
-
 /** Live activity ticker — rotates through recent certificate deliveries */
 function RecentActivityTicker() {
   const [index, setIndex] = useState(0)
@@ -458,7 +421,6 @@ function HeroSection({
                   <Clock className="h-3 w-3 shrink-0" />
                   Available 24/7
                 </p>
-                <ClosingCountdown />
                 <ContextualMessage />
               </div>
             </motion.div>
