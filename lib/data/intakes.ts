@@ -1265,8 +1265,8 @@ export async function updateIntakeStatus(
   }
 
   // Revalidate patient dashboard caches after status mutations
-  revalidateTag("patient-intakes", "max")
-  revalidateTag("patient-dashboard", "max")
+  revalidateTag("patient-intakes")
+  revalidateTag("patient-dashboard")
 
   return data as unknown as Intake
 }
@@ -1462,8 +1462,8 @@ export async function declineIntake(
   }
 
   // Revalidate patient dashboard caches after decline
-  revalidateTag("patient-intakes", "max")
-  revalidateTag("patient-dashboard", "max")
+  revalidateTag("patient-intakes")
+  revalidateTag("patient-dashboard")
 
   return true
 }

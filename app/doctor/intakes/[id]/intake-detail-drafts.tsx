@@ -22,7 +22,7 @@ interface IntakeDetailDraftsProps {
   isPending: boolean
   isRegenerating: boolean
   hasClinicalDraft: boolean
-  notesRef: React.RefObject<HTMLTextAreaElement | null>
+  notesRef: React.RefObject<HTMLTextAreaElement>
   onSaveNotes: () => void
   onGenerateOrRegenerateNote: () => void
 }

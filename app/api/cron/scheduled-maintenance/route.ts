@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Database error" }, { status: 500 })
       }
       newMode = true
-      revalidateTag("feature-flags", "max")
+      revalidateTag("feature-flags")
       log.info("Maintenance mode enabled (scheduled window started)")
     } else if (!inWindow && currentMode) {
       const { error } = await supabase
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Database error" }, { status: 500 })
       }
       newMode = false
-      revalidateTag("feature-flags", "max")
+      revalidateTag("feature-flags")
       log.info("Maintenance mode disabled (scheduled window ended)")
     }
 

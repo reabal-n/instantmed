@@ -372,7 +372,7 @@ function HeroSection({
   ctaRef,
   onCTAClick,
 }: {
-  ctaRef?: React.RefObject<HTMLDivElement | null>
+  ctaRef?: React.RefObject<HTMLDivElement>
   onCTAClick?: () => void
 }) {
   const prefersReducedMotion = useReducedMotion()

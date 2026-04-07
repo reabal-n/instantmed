@@ -41,7 +41,7 @@ export interface IntakeReviewContextValue {
   isAiPrefilled: boolean
   hasClinicalDraft: boolean
   isRegenerating: boolean
-  notesRef: RefObject<HTMLTextAreaElement | null>
+  notesRef: RefObject<HTMLTextAreaElement>
 
   // Pending state
   isPending: boolean

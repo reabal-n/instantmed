@@ -12,30 +12,11 @@ const nextConfig = {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
   },
-  // Body size limits to prevent abuse (experimental in Next.js 16)
+  // Body size limits to prevent abuse
   experimental: {
     serverActions: {
       bodySizeLimit: '1mb',
     },
-    // Ensure framer-motion sub-modules (proxy.mjs, AnimatePresence, hooks) are
-    // bundled into a single optimised chunk rather than split into separate
-    // factory chunks. Prevents Turbopack's module factory race condition in dev
-    // where page-level chunks reference framer-motion sub-modules whose factory
-    // chunks aren't in the page's TURBOPACK_CHUNK_LISTS. (Next.js #70703)
-    optimizePackageImports: ['framer-motion'],
-  },
-  // Redirect next-themes to a patched local copy that uses useInsertionEffect
-  // instead of rendering React.createElement("script", ...), which throws in
-  // React 19 dev mode. Upstream v0.4.6 still triggers the issue in this context.
-  turbopack: {
-    resolveAlias: {
-      'next-themes': './lib/next-themes-patched.mjs',
-    },
-  },
-  // webpack config only applies when explicitly running with --webpack flag.
-  // Turbopack (the v16 default) ignores this block entirely.
-  webpack: (config) => {
-    return config;
   },
   images: {
     // Enable Next.js Image Optimization
@@ -342,10 +323,7 @@ const sentryConfig = {
   },
 };
 
-// Apply bundle analyzer, then optionally Sentry
-// Skip Sentry's webpack plugin in dev — its RSC wrapper causes "Cannot read properties
-// of undefined (reading 'call')" during hydration (race condition with async chunks).
-// Sentry still initialises via instrumentation.ts; this only skips source maps & wrapping.
+// Apply bundle analyzer, then Sentry
 const withAnalyzer = bundleAnalyzer(nextConfig);
-const useSentry = process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NODE_ENV === 'production';
+const useSentry = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
 export default useSentry ? withSentryConfig(withAnalyzer, sentryConfig) : withAnalyzer;

@@ -373,7 +373,7 @@ function HeroSection({
   onCTAClick,
   isDisabled,
 }: {
-  ctaRef?: React.RefObject<HTMLDivElement | null>
+  ctaRef?: React.RefObject<HTMLDivElement>
   onCTAClick?: () => void
   isDisabled?: boolean
 }) {
