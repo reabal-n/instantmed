@@ -9,7 +9,6 @@ import {
   LiveWaitTime,
   StatsStrip,
 } from '@/components/marketing'
-import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
@@ -23,7 +22,10 @@ import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
 import { TotalPatientsCounter } from '@/components/marketing/total-patients-counter'
-import { RegulatoryPartners } from '@/components/marketing/media-mentions'
+import { RegulatorLogoMarquee } from '@/components/shared/regulator-logo-marquee'
+import { EmployerLogoMarquee } from '@/components/shared/employer-logo-marquee'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { TrustBadgeFloat } from '@/components/shared/trust-badge-float'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
 
@@ -144,8 +146,8 @@ export default async function HomePage() {
         {/* Live wait times - shows current doctor response times */}
         <LiveWaitTime variant="strip" />
 
-        {/* Trust badges - compact strip */}
-        <TrustBadgeSlider />
+        {/* Trust badges - regulator logo marquee */}
+        <RegulatorLogoMarquee className="px-4" />
 
         {/* Google reviews badge — renders only when GOOGLE_REVIEWS.enabled = true */}
         <div className="flex justify-center pb-2">
@@ -170,6 +172,9 @@ export default async function HomePage() {
           variant="section"
           stats={['experience', 'sameDay', 'returnRate', 'reviews']}
         />
+
+        {/* Employer logo marquee — reinforces that real workplaces accept our certs */}
+        <EmployerLogoMarquee className="py-4" />
 
         {/* Key stats strip */}
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
@@ -212,9 +217,6 @@ export default async function HomePage() {
           groups={faqGroups}
         />
 
-        {/* Regulatory credibility strip */}
-        <RegulatoryPartners variant="strip" />
-
         {/* Social proof before final CTA */}
         <div className="mx-auto max-w-4xl px-4 pb-4 flex justify-center">
           <TotalPatientsCounter variant="badge" />
@@ -227,7 +229,15 @@ export default async function HomePage() {
           ctaText="Get started"
           ctaHref="/request"
         />
+
+        {/* Pre-footer trust badges */}
+        <div className="flex justify-center pb-8">
+          <TrustBadgeRow preset="pre_cta" />
+        </div>
       </main>
+
+      {/* Floating trust badge — sticky bottom */}
+      <TrustBadgeFloat />
 
       <MarketingFooter />
     </div>

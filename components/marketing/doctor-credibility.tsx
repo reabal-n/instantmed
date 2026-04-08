@@ -5,6 +5,7 @@ import { useReducedMotion } from '@/components/ui/motion'
 import { Stethoscope, Clock, CheckCircle2, ShieldCheck, Users, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
 
 interface DoctorCredibilityProps {
   variant?: 'inline' | 'card' | 'section'
@@ -150,6 +151,8 @@ export function DoctorCredibility({
             )
           })}
         </div>
+
+        <TrustBadgeRow preset="doctor_credibility" className="mt-4" />
       </div>
     </section>
   )
