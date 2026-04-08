@@ -70,13 +70,14 @@ jobs:
       - name: Build
         env:
           # Lighthouse needs the build artifact to actually serve pages at
-          # runtime, so we wire the real Supabase + Clerk credentials in
-          # (same as the e2e job). Anon key is read-only and safe; the
-          # Lighthouse pages we audit are all public marketing routes.
+          # runtime, so we wire real Supabase + Clerk credentials (same as
+          # the e2e job). Test-mode keys only; no live money risk. Pages we
+          # audit are all public marketing routes.
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: pnpm build
 
@@ -89,6 +90,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: |
           lhci autorun \
