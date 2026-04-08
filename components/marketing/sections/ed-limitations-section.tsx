@@ -41,7 +41,7 @@ export function EDLimitationsSection() {
           <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center">
-                <CheckCircle2 className="h-4 w-4 text-success" />
+                <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">
                 What we can help with
@@ -53,7 +53,7 @@ export function EDLimitationsSection() {
                   key={item}
                   className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed"
                 >
-                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -64,7 +64,7 @@ export function EDLimitationsSection() {
           <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center">
-                <AlertCircle className="h-4 w-4 text-warning" />
+                <AlertCircle className="h-4 w-4 text-warning" aria-hidden="true" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">
                 When to see a GP in person
@@ -76,7 +76,7 @@ export function EDLimitationsSection() {
                   key={item}
                   className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed"
                 >
-                  <AlertCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
