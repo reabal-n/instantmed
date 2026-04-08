@@ -28,6 +28,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { TrustGuideSection } from "@/components/marketing/sections/trust-guide-section"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
@@ -156,10 +157,19 @@ export default function TrustPage() {
           imageSrc="/images/trust-hero.jpeg"
           imageAlt="Patient requesting a medical certificate from home"
         >
-          <p className="inline-flex items-center gap-2 text-xs text-muted-foreground/80 tracking-wide uppercase">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            100% Australian-based · AHPRA registered · Privacy Act compliant
-          </p>
+          <div className="flex flex-col gap-4">
+            <p className="inline-flex items-center gap-2 text-xs text-muted-foreground/80 tracking-wide uppercase">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              100% Australian-based · AHPRA registered · Privacy Act compliant
+            </p>
+            <div className="flex items-center gap-3">
+              <LegitScriptSeal size="md" />
+              <div className="text-xs text-muted-foreground">
+                <p className="font-medium text-foreground">LegitScript certified</p>
+                <p className="text-muted-foreground/80">Healthcare merchant verification</p>
+              </div>
+            </div>
+          </div>
         </SplitHero>
 
         {/* ── Stats Counter Strip ───────────────────────────── */}

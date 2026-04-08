@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 import { FooterAuth } from "@/components/shared/footer-auth"
 import { PaymentMethodIcons, StripeBadge } from "@/components/checkout/trust-badges"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { MapPin, Mail, Phone, Lock, Shield, Award, Eye, Pill } from "lucide-react"
 import { footerLinks } from "@/lib/marketing/homepage"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE, COMPANY_NAME, COMPANY_ADDRESS_SHORT, ABN } from "@/lib/constants"
@@ -17,9 +18,13 @@ const TapeDecoration = () => (
 function FooterTrustBadges() {
   return (
     <div className="flex flex-col items-center gap-4 py-6 border-t border-border/30 dark:border-border/50">
-      <div className="flex flex-col items-center gap-2">
-        <PaymentMethodIcons size="sm" />
-        <StripeBadge variant="powered-by" />
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <PaymentMethodIcons size="sm" />
+          <StripeBadge variant="powered-by" />
+        </div>
+        <div className="hidden sm:block h-10 w-px bg-border/50" aria-hidden="true" />
+        <LegitScriptSeal size="sm" />
       </div>
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">

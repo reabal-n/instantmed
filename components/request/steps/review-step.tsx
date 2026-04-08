@@ -10,6 +10,7 @@ import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { PRICING } from "@/lib/constants"
@@ -601,15 +602,18 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           Continue to payment
         </Button>
 
-        <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/70">
-          <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3" />
-            AHPRA-registered doctor
-          </span>
-          <span className="flex items-center gap-1">
-            <RefreshCw className="w-3 h-3" />
-            {serviceType === 'consult' ? "Money-back guarantee" : "Full refund if declined"}
-          </span>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4 text-[11px] text-muted-foreground/70">
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" />
+              AHPRA-registered doctor
+            </span>
+            <span className="flex items-center gap-1">
+              <RefreshCw className="w-3 h-3" />
+              {serviceType === 'consult' ? "Money-back guarantee" : "Full refund if declined"}
+            </span>
+          </div>
+          <LegitScriptSeal size="sm" />
         </div>
       </div>
     </div>
