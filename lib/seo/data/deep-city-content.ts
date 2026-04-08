@@ -1149,4 +1149,860 @@ export const DEEP_CITY_CONTENT: Record<string, DeepCityContent> = {
       { q: "How fast can I get a certificate in Ipswich?", a: `Most certificates are reviewed within 1 hour. From ${PRICING_DISPLAY.MED_CERT} — typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
     ],
   },
+
+  penrith: {
+    healthStats: [
+      { label: "Population", value: "220K+", context: "One of Western Sydney's largest cities" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Among the longest in Greater Sydney" },
+      { label: "Bulk-billing rate", value: "~68%", context: "Below the NSW average in outer growth corridors" },
+      { label: "After-hours access", value: "Stretched", context: "Few late-night bulk-billing options" },
+    ],
+    sections: [
+      {
+        title: "Healthcare Access in the Nepean and Blue Mountains Foothills",
+        paragraphs: [
+          "Penrith sits at the western edge of Greater Sydney, serving as the commercial and healthcare hub for the Nepean region and the foothills of the Blue Mountains. The Penrith LGA has grown dramatically over the past decade — from roughly 190,000 to more than 220,000 residents — while GP supply has barely moved. Large new housing developments in Jordan Springs, Caddens, and Werrington Downs have outpaced the arrival of new clinics, leaving residents in these suburbs driving 15–20 minutes to find same-day appointments.",
+          "The area's geographic spread creates its own pressures. Residents in St Marys, Kingswood, Glenmore Park, and Cranebrook often travel across the LGA just to reach a GP with capacity. Bulk-billing remains available in pockets, but many practices now charge gap fees of $30–$60, reflecting the national trend away from full bulk-billing. For a straightforward medical certificate or a repeat script, the combination of travel, waiting room time, and gap fees starts to look absurd compared with a 30-minute telehealth turnaround.",
+          "Nepean Hospital provides tertiary care for the region, but its emergency department regularly runs at capacity — partly because patients who cannot get timely GP access present at ED for issues that primary care should handle. The NSW Ministry of Health has publicly acknowledged Western Sydney as a Distribution Priority Area under the Modified Monash Model (MMM) framework, which is used nationally to identify workforce shortage regions. Telehealth is explicitly listed in NSW Health's strategy as a pressure valve for precisely this kind of imbalance.",
+        ],
+      },
+      {
+        title: "Penrith Commuters, Western Sydney Workers, and Students",
+        paragraphs: [
+          "A significant share of Penrith's working-age population commutes east on the T1 Western Line — to Parramatta, North Sydney, and the Sydney CBD — with door-to-door journey times of 60–90 minutes each way. For these commuters, losing a morning to a GP visit on top of a full workday is often simply not viable. Many of them complete their InstantMed intake on the train itself, have the certificate in their inbox by the time they reach Central, and skip the clinic entirely.",
+          "Penrith also has a large blue-collar workforce across logistics (the M4/M7 corridor is a major warehousing hub), construction, manufacturing, and trades — industries with early starts, long shifts, and little flexibility to sit in a waiting room. The growing Western Sydney International Airport and the surrounding Aerotropolis will only add to this workforce in the coming years. Telehealth is one of the few healthcare models that actually flexes around shift work and early-morning starts.",
+          "Western Sydney University's Kingswood and Penrith campuses, together with TAFE NSW Nirimba, serve tens of thousands of students, many of whom are first-in-family university students juggling study, part-time work, and family obligations. For special consideration applications, exam deferrals, and assignment extensions, all Western Sydney University campuses accept medical certificates from AHPRA-registered doctors — the consultation method does not affect validity.",
+        ],
+      },
+      {
+        title: "Medical Certificates and NSW Employment Law",
+        paragraphs: [
+          "Penrith employers — from logistics giants on the M4 corridor to NSW Health, from construction firms to local cafes along High Street — all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. The Act refers to certificates from 'registered health practitioners' and does not specify consultation method. A telehealth certificate from an AHPRA-registered doctor carries the same legal weight as one issued across a desk.",
+          "For casual retail and hospitality workers at Westfield Penrith, Nepean Village, or the Panthers precinct, a medical certificate can protect your shifts and demonstrate good faith to your employer even when you don't accrue sick leave. Telehealth is particularly useful for this demographic: same-day turnaround, no gap fees, no time off work to see a doctor about why you cannot come to work.",
+          "We never issue a certificate when the clinical situation is inappropriate for telehealth. If your symptoms suggest you need a physical examination — suspected chest infection, suspicious skin lesion, possible fracture — the doctor will refer you to in-person care and you will not be charged. The same filter applies whether you are in Penrith or anywhere else in the country.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a replacement for your regular GP relationship. For complex chronic disease management, screening, immunisations, dressings, injections, and any condition that requires hands-on physical examination, you still need a face-to-face GP. The Royal Australian College of General Practitioners (RACGP) is consistent on this point, and so are we. What telehealth replaces is the unnecessary clinic visit — the trip to the doctor for a sick note that takes a 5-minute clinical assessment, the repeat script for a stable medication you've been on for years, the routine UTI prescription for a recurrent condition you already know how to recognise.",
+          "For most people in Penrith, the telehealth-vs-in-person decision is not actually a tradeoff. You use telehealth for the things telehealth handles well, and you keep your local GP for everything else. The two models complement each other rather than competing. For people who don't currently have a regular GP — and there are many in Western Sydney, given how many practices have closed their books — telehealth is often the only practical pathway for routine needs while they wait for a clinic to take new patients.",
+          "If you do not have a regular GP and would like one, our doctors can also help guide you toward suitable practices in your area. We will not pressure you into anything, and there is no obligation. The point of InstantMed is to remove the friction from straightforward healthcare needs — not to create a parallel system that competes with traditional general practice.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Penrith",
+      paragraphs: [
+        "Penrith has strong pharmacy coverage through Westfield Penrith, Nepean Village, Lemongrove Shopping Village, and standalone outlets in St Marys, Kingswood, Glenmore Park, and Cranebrook. All major chains — Chemist Warehouse, Priceline, TerryWhite Chemmart, Amcal — accept eScripts, and virtually every independent pharmacy in the LGA has migrated off paper scripts. When an InstantMed doctor issues a prescription, you receive an SMS with a QR code that any of these pharmacies can scan in seconds.",
+        "Extended-hours options exist at Westfield Penrith and several Chemist Warehouse locations, with some trading until 9pm. For PBS-listed medications, you pay the standard PBS co-payment regardless of whether the underlying prescription came from a telehealth consultation or a face-to-face GP visit — there is no pricing penalty for using telehealth at the pharmacy counter.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "Telehealth in Penrith is governed by the same national framework that applies everywhere else in Australia — AHPRA registration, Medical Board of Australia guidelines, and TGA prescribing rules. There is no separate 'telehealth licence'. Any doctor providing telehealth consultations must hold current AHPRA registration, the same credential required to practise face-to-face in a clinic.",
+        "NSW Health has explicitly supported telehealth expansion as part of its Future Health strategy and has identified Western Sydney as a priority region for alternative primary care models. The Nepean Blue Mountains Local Health District has actively integrated telehealth into its care pathways to reduce unnecessary ED presentations and ease pressure on stretched primary care.",
+        "Controlled substances (Schedule 8 medications — strong opioids, stimulants, and similar) are outside the scope of what InstantMed will prescribe. These require in-person assessment and additional NSW Health authorities under the Poisons and Therapeutic Goods Act. Everything else most people need — antibiotics for confirmed infections, contraceptives, stable chronic medications, common symptom management — is within scope.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover all of the Penrith LGA?", a: "Yes. Penrith, St Marys, Kingswood, Glenmore Park, Cranebrook, Jordan Springs, Werrington, Caddens, Orchard Hills — and everywhere else in the Nepean. Telehealth is an online service, so your exact suburb does not matter as long as you have internet access." },
+      { q: "Can I use InstantMed on my commute into Parramatta or the CBD?", a: "Yes — many of our Western Sydney users submit their intake on the T1 Western Line. By the time you arrive at your destination, the certificate is typically already in your inbox as a PDF you can forward to your employer." },
+      { q: "Are InstantMed certificates accepted at Nepean Hospital and Western Sydney University?", a: "Yes. Nepean Hospital and all Western Sydney University campuses accept medical certificates from AHPRA-registered doctors for sick leave and academic consideration. The consultation method is not a factor in acceptance." },
+      { q: "Is InstantMed cheaper than seeing a Penrith GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with no gap fees or hidden charges. With many Penrith GPs now charging $30–$60 out of pocket after Medicare rebate, InstantMed is often the more affordable option for straightforward certificates and scripts.` },
+    ],
+  },
+
+  mackay: {
+    healthStats: [
+      { label: "Population", value: "85K+", context: "Gateway to the Bowen Basin and Whitsundays" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer during cyclone season and resource booms" },
+      { label: "Bulk-billing rate", value: "~65%", context: "Below the Queensland average" },
+      { label: "Workforce", value: "FIFO-heavy", context: "Significant shift and rotating roster population" },
+    ],
+    sections: [
+      {
+        title: "Healthcare for the Bowen Basin Gateway",
+        paragraphs: [
+          "Mackay is the largest city between Rockhampton and Townsville and the main service hub for the Bowen Basin coalfields — the engine room of Australia's metallurgical coal industry. This gives the city a healthcare demand profile unlike almost anywhere else in the country: a stable local population of roughly 85,000 plus a constantly rotating cohort of FIFO workers, their families, and visiting contractors. GP availability struggles to keep up with both groups, and same-day non-urgent appointments are genuinely hard to secure in the Mackay region.",
+          "Mackay Base Hospital provides the region's acute services, with a catchment that stretches from the Whitsundays down to Sarina and inland to the mining towns of Moranbah, Dysart, and Middlemount. For straightforward primary care needs, though — a two-day sick note, a repeat of a stable chronic medication, a UTI prescription — the hospital is not the right place. The Modified Monash Model (MMM) classifies central and north Queensland regional centres as workforce priority areas under the RACGP's rural generalist framework, reflecting how persistently under-resourced primary care is outside the capital cities.",
+          "Bulk-billing has declined across the city in line with the national trend. Many Mackay GPs now charge gap fees of $30–$60 per consultation, and some have closed their books to new patients entirely. For FIFO workers who rotate through Mackay only during their days off, establishing a regular GP relationship is often impractical — telehealth fills the gap with a consistent care model that travels with the patient.",
+        ],
+      },
+      {
+        title: "Shift Workers, FIFO Rosters, and Mining Industry Documentation",
+        paragraphs: [
+          "Mining companies operating in the Bowen Basin — BHP, Glencore, Peabody, Anglo American, and smaller contractors — have some of the strictest medical documentation requirements in the country. Fitness-for-duty protocols typically require a certificate from a registered medical practitioner for any unplanned absence, and the documentation bar for returning to site after illness is high. Our certificates include the doctor's name, AHPRA registration number, consultation date, and the recommended period of absence — everything a mining HR team needs.",
+          "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their one week off — when they are also trying to see family and rest — is a logistical headache. Telehealth lets you handle the documentation in 20–30 minutes from home, on a Saturday morning, without burning a full day of downtime. If you fall ill mid-swing at camp and have internet, you can start the intake from site and have a certificate ready for your supervisor before your next shift.",
+          "Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. The Fair Work Act covers all of these workers equally, and none of the relevant industrial instruments require that certificates come from face-to-face consultations. A telehealth certificate from an AHPRA-registered doctor is legally identical to one from a clinic down the road.",
+        ],
+      },
+      {
+        title: "Cyclone Season, Distance, and Why Telehealth Matters in Central Queensland",
+        paragraphs: [
+          "North and Central Queensland's cyclone season (November to April) brings genuine healthcare continuity issues. When roads flood, power goes down, and local clinics close, getting to a doctor becomes difficult or impossible. Telehealth keeps working as long as the mobile network is up — which it usually is even during and after significant weather events. For a resident in Proserpine, Airlie Beach, or Sarina dealing with a standard winter flu while the Bruce Highway is closed, a telehealth certificate is the only realistic option.",
+          "Distance is the other Central Queensland reality. The Bowen Basin mining towns are hours from Mackay by road. Residents of Moranbah and Dysart may see a GP only a few times a year and often coordinate visits around shopping trips into the city. InstantMed operates anywhere with internet — no town is too small and no mine site camp too remote, as long as there's coverage.",
+          "The James Cook University Mackay clinical school and CQUniversity's local presence mean Mackay also has a meaningful student population alongside its FIFO and resident workforce. JCU students rotate through Mackay Base Hospital and surrounding rural placements, often without an established local GP. For special consideration applications, exam deferrals, and assignment extensions, JCU and all other Australian universities accept medical certificates from AHPRA-registered doctors regardless of consultation method.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP for complex care. Chronic disease management, immunisations, screening, hands-on physical examinations, injections, and dressings all still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a flu that any doctor could clinically assess in five minutes, the renewal of a stable blood pressure tablet you have taken for years, the simple script for a recognised, recurrent issue.",
+          "For Mackay's FIFO workforce in particular, the telehealth model is often more clinically consistent than what they would otherwise piece together. A worker who rotates between Mackay, the mine site, and possibly a different town for rest periods can struggle to maintain a single GP relationship. Telehealth gives them a consistent care pathway for routine needs that does not depend on being in any particular town on any particular day.",
+          "We will always refer you to in-person care when the clinical situation needs it. If your symptoms suggest a physical examination is required — suspected chest infection, possible fracture, suspicious skin lesion — the doctor will tell you and you will not be charged for the telehealth consultation. The same filter applies in Mackay as everywhere else.",
+          "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You know what the certificate or script costs before you start the intake — there are no gap fees and no surprise add-ons at the end of the consultation. For Mackay families budgeting carefully and FIFO workers who need predictable healthcare costs, that matters as much as the time saved. Most certificates are reviewed within an hour during business hours, and the documentation arrives via email or SMS for forwarding directly to your supervisor or HR contact.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Mackay",
+      paragraphs: [
+        "Mackay has solid pharmacy coverage across the CBD, Caneland Central, Mt Pleasant, and the Northern Beaches. Chemist Warehouse, Priceline, TerryWhite Chemmart, and several independents all accept eScripts. Pharmacies in surrounding towns — Sarina, Proserpine, Airlie Beach, and inland communities like Moranbah and Dysart — also accept the QR code from your InstantMed prescription.",
+        "Extended-hours pharmacy availability in Mackay is more limited than in capital cities, but Caneland Central and a handful of CBD locations stay open into the early evening. Prescriptions issued via telehealth attract the same PBS co-payment as any other script — there is no pricing difference at the counter.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Queensland",
+      paragraphs: [
+        "Queensland follows national AHPRA and Medical Board of Australia standards for telehealth practice. Queensland Health has been one of the strongest state-level advocates for telehealth expansion, specifically because the state's geography makes traditional face-to-face primary care impractical for a large share of its population. Central and North Queensland are explicitly identified in Queensland Health's rural and remote strategy as priority regions for digital healthcare delivery.",
+        "Prescribing follows the national TGA framework. Most PBS-listed medications can be prescribed via telehealth and dispensed at any Queensland pharmacy using the eScript system. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment — these are not prescribed by InstantMed under any circumstances.",
+        "Medical certificates issued via telehealth in Queensland are legally identical to those from face-to-face consultations. There is no Queensland legislation that creates a distinction, and Queensland government departments, mining companies, and private employers all accept them under the Fair Work Act.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Do Bowen Basin mining companies accept telehealth certificates?", a: "Yes. Mining companies operating in Australia are bound by the Fair Work Act and accept certificates from AHPRA-registered doctors regardless of consultation method. Our certificates include all the details — AHPRA number, consultation date, recommended period of absence — that mining HR and site medics need for fitness-for-duty documentation." },
+      { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can start and finish the intake from site, and receive your certificate or eScript while still on your swing." },
+      { q: "Does InstantMed work during cyclone season in Mackay?", a: "Yes. Telehealth is actually more useful during severe weather — when clinics close, roads flood, or you simply cannot safely drive into town. As long as the mobile network is operational, InstantMed works." },
+      { q: "Is InstantMed available in the Whitsundays?", a: `Yes. Airlie Beach, Proserpine, Cannonvale, Bowen — anywhere in the Whitsundays with internet access. Pricing is identical regardless of location. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
+    ],
+  },
+
+  rockhampton: {
+    healthStats: [
+      { label: "Population", value: "80K+", context: "Central Queensland's largest inland city" },
+      { label: "Avg GP wait", value: "4–6 days", context: "Longer in surrounding CQ communities" },
+      { label: "Bulk-billing rate", value: "~68%", context: "Slightly below the Queensland average" },
+      { label: "Catchment", value: "200K+", context: "Serves the whole Central Queensland region" },
+    ],
+    sections: [
+      {
+        title: "Healthcare for the Capricorn Coast and Central Queensland",
+        paragraphs: [
+          "Rockhampton is the main service city for Central Queensland — a catchment that runs from Yeppoon and Emu Park on the Capricorn Coast inland through Gracemere, Mount Morgan, Biloela, and out to Emerald and the Central Highlands. With roughly 80,000 residents of its own and a broader catchment exceeding 200,000, the city's healthcare infrastructure — and particularly its primary care workforce — is chronically stretched. Finding a same-day GP appointment in Rockhampton is difficult for locals, and often impossible for visitors from surrounding communities who drive in for the day.",
+          "Rockhampton Hospital anchors the region's acute services, but its emergency department regularly handles presentations that a GP could manage in minutes — including people who need a simple medical certificate because their regular clinic could not see them for a week. This is a well-documented national pattern: when primary care access is constrained, ED becomes the fallback. Telehealth offers the alternative pathway for the straightforward, low-acuity needs that should never have landed in ED in the first place.",
+          "The Modified Monash Model (MMM) classifies inland Central Queensland as an area with genuine workforce shortage under the RACGP's rural generalist framework. Practically, that means fewer GPs per capita than metro areas, longer waits, and less choice. Telehealth does not replace the need for ongoing GP relationships for complex care — but for routine certificates, repeat scripts, and simple prescriptions, it is often the faster and more accessible option.",
+        ],
+      },
+      {
+        title: "Mining, Agriculture, and the CQ Workforce",
+        paragraphs: [
+          "Central Queensland's economy is built on beef (Rockhampton bills itself as the 'beef capital of Australia'), mining — particularly the coalfields around Blackwater, Moranbah, and Moura — and the transport and port infrastructure connecting them to global markets. Each of these industries is heavily shift-based. Feedlot operations, abattoirs, meatworks, port logistics, and coal haulage all run around the clock, and their workers need medical documentation that fits around rotating rosters, not 9-to-5 clinic hours.",
+          "For workers at JBS Rockhampton, Teys Australia, or any of the regional abattoirs, a medical certificate is often a requirement for any unplanned absence. Same-day clinic visits are difficult in a city where GP wait times stretch to a week. Telehealth can issue the certificate within hours, typically 30 minutes or less during business hours, and the result is emailed to you as a PDF you can forward directly to your shift supervisor.",
+          "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. All Australian universities, including CQU, accept certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions. The delivery method — telehealth or face-to-face — does not affect acceptance.",
+        ],
+      },
+      {
+        title: "Distance, Flooding, and Central Queensland Realities",
+        paragraphs: [
+          "The Fitzroy River floods. It's a regular feature of Central Queensland life, and when it does, travel in and out of Rockhampton can be disrupted for days. The Bruce Highway closures during the wet season affect everyone from Yeppoon to Mount Morgan. During these disruptions, getting to a GP is often impossible — but people still get sick, still need medical certificates, still need repeat scripts. Telehealth continues to work as long as the mobile network holds up, which it usually does.",
+          "For residents of the Capricorn Coast (Yeppoon, Emu Park, Keppel Sands), the Central Highlands (Emerald, Blackwater, Clermont), and smaller CQ communities, a GP appointment often involves a round trip of 60–120 minutes. For a 5-minute clinical assessment and a certificate, the travel alone is a disproportionate cost. Telehealth removes the travel entirely — the same clinical assessment, no drive, no waiting room.",
+          "The Capricorn Coast in particular has a substantial older population and a growing remote-work cohort who left larger cities for lifestyle reasons. Both groups are heavy telehealth users — older residents for repeat scripts on stable chronic medications, and remote workers who are accustomed to convenient metropolitan healthcare and were surprised by the regional reality. Telehealth bridges the gap for both demographics.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a replacement for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require a face-to-face consultation. What telehealth replaces is the unnecessary trip — the sick note for a standard flu, the repeat script for a stable medication, the routine prescription for a recurrent issue you already understand.",
+          "Central Queensland's distances make this distinction particularly valuable. A round trip of two or three hours for a five-minute clinical assessment is wasted time and fuel. Telehealth lets you reserve the in-person visits for the things that genuinely need them, and handle everything else in 20–30 minutes from home. For working families in the Rockhampton region, that often means the difference between getting healthcare done and putting it off another week.",
+          "If your situation is not appropriate for telehealth, the doctor will refer you to in-person care and you will not be charged for the consultation. We never issue a certificate when a physical examination is genuinely required.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for Central Queensland",
+        paragraphs: [
+          "GP economics in Rockhampton and Central Queensland have moved in line with the national trend. Bulk-billing has declined, gap fees of $30–$60 are common, and waiting times for non-urgent appointments stretch to a week. For households budgeting carefully — particularly those on agricultural or shift-based incomes — the combined cost of a routine GP visit (gap fee, fuel from outlying communities, lost work time) frequently exceeds what telehealth charges flat.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Rockhampton and broader Central Queensland residents, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Rockhampton",
+      paragraphs: [
+        "Rockhampton has pharmacy coverage across the CBD, Stockland Rockhampton, Allenstown, and North Rockhampton. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. In surrounding towns — Yeppoon, Emu Park, Mount Morgan, Biloela, Emerald — local pharmacies accept the QR code from an InstantMed prescription the same way they would any other eScript.",
+        "Extended-hours pharmacies are more limited outside the capital cities, but Stockland Rockhampton and several CBD locations stay open into the evening. After-hours prescription needs should still be prioritised over next-day care, and InstantMed's evening availability helps bridge that gap for non-urgent medications.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Queensland",
+      paragraphs: [
+        "Queensland's telehealth framework follows the same national AHPRA and Medical Board of Australia standards that apply everywhere in Australia. Queensland Health has been particularly active in promoting telehealth in Central Queensland, where distance and workforce shortages make traditional face-to-face primary care impractical for a substantial share of the population.",
+        "Prescribing via telehealth in Queensland follows TGA national rules. PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances — strong opioids, stimulants — require Queensland Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
+        "Certificates issued via telehealth carry the same legal weight in Queensland as those issued in person. There is no legislation creating a distinction, and Queensland government employers, mining companies, universities, and private businesses all accept them under the Fair Work Act.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the Capricorn Coast and Central Highlands?", a: "Yes. Yeppoon, Emu Park, Keppel Sands, Gracemere, Mount Morgan, Biloela, Emerald, Blackwater — anywhere in Central Queensland with internet access. Same service, same pricing." },
+      { q: "Can CQU students use InstantMed for special consideration?", a: "Yes. Central Queensland University, like all Australian universities, accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions." },
+      { q: "Can I use InstantMed during Rockhampton flooding?", a: "Yes. Telehealth works as long as you have mobile or internet access. It's one of the few healthcare pathways that keeps functioning when roads are cut and clinics are inaccessible." },
+      { q: "Is InstantMed cheaper than a Rockhampton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With many Rockhampton GPs now charging $30–$60 out of pocket, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  bunbury: {
+    healthStats: [
+      { label: "Population", value: "75K+", context: "Largest regional city in Western Australia" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer in the surrounding South-West" },
+      { label: "Bulk-billing rate", value: "~62%", context: "Among the lowest nationally — WA trend" },
+      { label: "Distance to Perth", value: "175km", context: "Roughly two hours by road" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the South-West of WA",
+        paragraphs: [
+          "Bunbury is Western Australia's second-largest urban area and the main service city for the South-West — a region that takes in Busselton, Margaret River, Augusta, Manjimup, and Collie. Despite being only two hours from Perth, the region operates in a genuinely different healthcare environment. Western Australia has one of the lowest GP-to-population ratios in the country, and Bunbury's bulk-billing rate sits around 62% — well below the national average. Gap fees of $40–$80 are common, and same-day appointments for non-urgent needs are rarely available.",
+          "The Modified Monash Model (MMM) classifies much of the South-West as a workforce priority area, reflecting persistent difficulty attracting and retaining GPs to regional WA. Bunbury Hospital (St John of God and the public South West Health Campus) provides acute and specialist services, but primary care is the pinch point. Residents often face a choice between waiting a week for a bulk-billed appointment locally, paying a premium for a same-day private consult, or driving two hours to Perth — which, for a simple sick note, is absurd.",
+          "For residents of Busselton, Dunsborough, Margaret River, Augusta, and the smaller Capes-region communities, Bunbury is the usual stop for GP care. A round trip from Margaret River to Bunbury is 160 kilometres and two-and-a-half hours of driving, not including the time waiting at the clinic. Telehealth collapses all of that into 20–30 minutes from home, without the fuel cost or the lost half-day.",
+        ],
+      },
+      {
+        title: "South-West Workers, Wine Region Tourism, and Students",
+        paragraphs: [
+          "The South-West's economy spans alumina refining and mining (Alcoa Wagerup, South32 Worsley), forestry and timber, dairy and beef, and one of Australia's most developed wine tourism regions. Each of these industries employs significant numbers of shift workers, seasonal staff, and people whose schedules simply don't align with traditional 9-to-5 GP clinic hours. Hospitality staff in Margaret River's cellar doors and restaurants, vineyard workers during vintage, and alumina refinery crews all benefit from telehealth's evening availability.",
+          "Edith Cowan University's South West campus in Bunbury and South Regional TAFE serve thousands of students across the region. Both accept medical certificates from AHPRA-registered doctors for all academic support applications — special consideration, exam deferrals, and assignment extensions. The consultation method does not affect validity.",
+          "For the growing remote-work population in the region — people who moved from Perth for lifestyle reasons and kept their city jobs — telehealth provides the same convenience they were used to in the metro area. There is no penalty for living in the South-West: same doctors, same pricing, same turnaround.",
+        ],
+      },
+      {
+        title: "Medical Certificates and WA Industrial Law",
+        paragraphs: [
+          "Western Australia has a dual industrial relations system. Most private-sector workers in Bunbury and the South-West are covered by the federal Fair Work Act, but some WA-specific employers fall under the state Industrial Relations Act. Both systems accept medical certificates from AHPRA-registered practitioners, and neither specifies that certificates must come from face-to-face consultations.",
+          "Mining and resources employers — particularly those with fitness-for-duty protocols — often have stricter internal documentation requirements, but they are bound by the same legal framework. A telehealth certificate from an AHPRA-registered doctor meets these requirements and includes all the standard details: doctor's name, AHPRA registration number, consultation date, and recommended period of absence.",
+          "Perth operates on Australian Western Standard Time (AWST, UTC+8), two hours behind the eastern states. InstantMed's operating window of 8am–10pm AEST translates to roughly 6am–8pm AWST. For Bunbury residents, that covers the entire working day and well into the evening — plenty of time to submit a request and receive your certificate before the next shift.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, screening, immunisations, hands-on physical examinations, dressings, and injections all still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a flu that any doctor could clinically assess in five minutes, the repeat script for a blood pressure tablet you have taken for years, the simple prescription for a recurrent issue you already recognise.",
+          "For residents of Margaret River, Augusta, and the smaller Capes communities, the practical difference is enormous. A round trip to a Bunbury GP for a routine certificate can absorb most of a working day, plus fuel and the inevitable waiting room time. Telehealth collapses that into a 20–30 minute process from home, with the same clinical standard and no compromise on the documentation. The two models work together — face-to-face for what genuinely needs it, telehealth for the routine middle.",
+          "If your symptoms or situation are inappropriate for a telehealth assessment, the doctor will tell you and refer you to in-person care. You will not be charged. The clinical filter is identical regardless of whether you live in Bunbury, Margaret River, or anywhere else we serve.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for the South-West",
+        paragraphs: [
+          "GP economics in WA's South-West have moved in line with the broader trend. Bulk-billing has declined to one of the lowest rates in the country, gap fees of $40–$80 are common, and waiting times for non-urgent appointments stretch to a week. For households across Bunbury, the Capes, and the broader South-West, the combined cost of a routine GP visit — fuel into Bunbury from outlying towns, the gap fee, lost work time, the wait — frequently exceeds what telehealth charges flat.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons at the end of the consultation. For families budgeting through the cost-of-living pressures that have hit regional WA particularly hard, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours (8am–10pm AEST, which is 6am–8pm AWST). The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Bunbury and South-West residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Bunbury",
+      paragraphs: [
+        "Bunbury has solid pharmacy coverage across the CBD, Bunbury Forum, Eaton Fair, and Treendale. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. In surrounding towns — Busselton, Dunsborough, Margaret River, Collie, Harvey, Australind — local pharmacies also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are limited in regional WA compared with Perth, but several locations in Bunbury Forum and the CBD trade into the early evening. Standard PBS co-payments apply to telehealth-issued scripts exactly as they would to face-to-face prescriptions — no pricing difference at the counter.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Western Australia",
+      paragraphs: [
+        "Western Australia follows the national AHPRA and Medical Board of Australia framework for telehealth. The WA Department of Health has explicitly supported telehealth as part of its digital health strategy, recognising that the state's scale and sparse population make traditional face-to-face primary care genuinely impossible for a significant share of residents.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth in WA, with eScripts accepted at every WA pharmacy. Schedule 8 medications — strong opioids, stimulants — require WA Department of Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
+        "The WA-specific Industrial Relations Act applies to some employees in the state, but it uses the same 'registered medical practitioner' language as the federal Fair Work Act when it comes to medical certificates. A telehealth certificate from an AHPRA-registered doctor is valid under both systems.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Busselton, Margaret River, and the Capes?", a: "Yes. Busselton, Dunsborough, Yallingup, Margaret River, Augusta, and all the smaller Capes-region communities. Any location in the South-West with internet access is covered." },
+      { q: "Does InstantMed operate on WA time?", a: "Our operating window is 8am–10pm AEST, which is 6am–8pm AWST — so most of the Western Australian working day is covered. Submissions made early in the WA morning are typically reviewed almost immediately." },
+      { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates are valid for all Australian employers under the Fair Work Act and include the AHPRA registration details needed for fitness-for-duty documentation." },
+      { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  "coffs-harbour": {
+    healthStats: [
+      { label: "Population", value: "75K+", context: "Mid North Coast's largest urban area" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer during peak tourist and holiday seasons" },
+      { label: "Bulk-billing rate", value: "~68%", context: "Declining in line with the national trend" },
+      { label: "Tourism", value: "Major", context: "Seasonal population surges strain primary care" },
+    ],
+    sections: [
+      {
+        title: "Healthcare on the Mid North Coast",
+        paragraphs: [
+          "Coffs Harbour is the largest city on the NSW Mid North Coast and the main service centre for a coastal strip that runs from Sawtell and Bellingen in the south to Woolgoolga, Red Rock, and Grafton in the north. The city has grown steadily over the past two decades — driven by sea-changers from Sydney, a growing retiree population, and steady regional migration — but GP supply has not kept pace. Same-day non-urgent appointments are uncommon, and several clinics have closed their books to new patients.",
+          "Coffs Harbour Health Campus provides hospital and specialist services for the region, but primary care is the bottleneck. The RACGP and national workforce data consistently identify the NSW Mid North Coast as an area of GP shortage under the Modified Monash Model (MMM), reflecting both the workforce gap and the operational impact on residents. Tourism adds seasonal pressure — during peak holiday periods (Christmas, Easter, school holidays, long weekends), the city's population can double, and local clinics get overwhelmed.",
+          "For residents of smaller Mid North Coast communities — Bellingen, Dorrigo, Urunga, Woolgoolga, Nambucca Heads — Coffs is the nearest substantial GP hub, but a round trip can easily swallow half a day. Telehealth removes that entirely. You get the same clinical assessment, the same type of certificate or eScript, without the drive and without the waiting room.",
+        ],
+      },
+      {
+        title: "Retirees, Remote Workers, and Hospitality",
+        paragraphs: [
+          "The Mid North Coast has one of the largest retiree populations per capita in NSW. Older residents typically use GP services more frequently, which further pressures same-day availability for everyone else. For the growing cohort of remote workers who have relocated from Sydney during and after the pandemic, the healthcare access gap is often a nasty surprise — they arrive expecting metropolitan-style convenience and find a week-long wait for a routine appointment.",
+          "The city's hospitality, retail, and tourism workforce relies heavily on medical certificates for absences during peak season. Getting a certificate the day you need it is critical — a delayed certificate often means a lost shift. Telehealth's same-day turnaround is the entire point: submit the intake in the morning, have the certificate in the inbox within an hour or two during business hours.",
+          "Southern Cross University's Coffs Harbour campus and TAFE NSW North Coast institutes serve thousands of students across the region. All accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity or acceptance.",
+        ],
+      },
+      {
+        title: "Medical Certificates Under NSW Law",
+        paragraphs: [
+          "NSW employers — from local councils and NSW Health facilities to the banana and blueberry farms that anchor the Coffs Harbour agricultural sector — operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both frameworks accept certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations.",
+          "Agricultural employers in the Coffs region — particularly the berry and banana growers — employ seasonal workers, working-holiday visa holders, and local permanent staff. Medical certificates are often required for any unplanned absence, and these employers accept telehealth certificates the same way any other employer does under the Fair Work Act.",
+          "We never issue a certificate when the clinical situation is not appropriate for telehealth. If your symptoms need a physical examination — suspected chest infection requiring auscultation, injury requiring imaging, suspicious skin lesion — the doctor will refer you to in-person care and you will not be charged.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for ongoing GP care. Chronic disease management, immunisations, screening, hands-on physical examinations, dressings, and injections all still require face-to-face consultations. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a blood pressure tablet you've been on for years, the routine UTI prescription for a recurrent issue you already recognise.",
+          "For residents of Bellingen, Dorrigo, and the Bellinger Valley, telehealth is particularly practical. The drive to Coffs Harbour for a routine certificate is short by Australian standards but still significant when you are unwell, and Dorrigo's elevation can make winter mornings genuinely unpleasant for sick people heading down the mountain. Telehealth eliminates that journey for the things that don't need it, while leaving in-person care available for everything that does.",
+          "If your symptoms suggest a physical examination is required, the doctor refers you to in-person care and you are not charged. We never issue a certificate when the clinical situation is inappropriate for telehealth assessment.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for the Mid North Coast",
+        paragraphs: [
+          "GP economics on the Mid North Coast have moved in line with the national trend — bulk-billing has declined, gap fees have grown, and waiting lists have lengthened. For a family in Sawtell or Woolgoolga, the combined cost of a routine GP visit — fuel into Coffs, the gap fee, lost work time, and the wait — frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully in a region where housing costs have grown faster than incomes, that predictability matters as much as the time savings.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Coffs and Mid North Coast residents, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Coffs Harbour",
+      paragraphs: [
+        "Coffs Harbour has extensive pharmacy coverage through Park Beach Plaza, Coffs Central, and the Jetty. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in Sawtell, Woolgoolga, Bellingen, Dorrigo, Urunga, and Nambucca Heads also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are available at Park Beach Plaza and Coffs Central. Standard PBS co-payments apply to telehealth-issued eScripts — no pricing difference at the pharmacy counter compared with a face-to-face prescription.",
+        "The eScript system has been universally adopted across the Mid North Coast since the national rollout. There is no longer any meaningful gap between pharmacies that accept paper scripts and those that accept eScripts — every community pharmacy on the coast handles them as a matter of routine. For visitors to Coffs Harbour staying in holiday accommodation, this means a prescription issued by an InstantMed doctor can be filled at the nearest pharmacy without requiring any prior arrangement, just by showing the QR code on your phone.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion under its Future Health strategy, and the Mid North Coast Local Health District has integrated telehealth into its care pathways to reduce ED presentations for low-acuity primary care needs.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services operating in NSW, including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au with a 14-day response SLA aligned with AHPRA requirements.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Bellingen, Dorrigo, and Nambucca Heads?", a: "Yes. Bellingen, Dorrigo, Urunga, Sawtell, Woolgoolga, Nambucca Heads, Grafton — anywhere on the Mid North Coast with internet access is covered." },
+      { q: "Can Southern Cross University students use InstantMed for special consideration?", a: "Yes. SCU's Coffs Harbour campus accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions — the same as all Australian universities." },
+      { q: "Are certificates accepted by Coffs banana and berry growers?", a: "Yes. All Australian employers, including agricultural businesses, must accept certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
+      { q: "How fast can I get a certificate during school holidays?", a: `Most certificates are reviewed within an hour during business hours, even during peak tourist periods. From ${PRICING_DISPLAY.MED_CERT} — and there's no seasonal pricing.` },
+    ],
+  },
+
+  bundaberg: {
+    healthStats: [
+      { label: "Population", value: "72K+", context: "Wide Bay–Burnett regional hub" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer in surrounding Wide Bay communities" },
+      { label: "Bulk-billing rate", value: "~72%", context: "Above QLD average but declining" },
+      { label: "Workforce mix", value: "Agriculture, tourism", context: "Shift-heavy across sugar, fishing, hospitality" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Wide Bay–Burnett Region",
+        paragraphs: [
+          "Bundaberg is the main service city for the Wide Bay–Burnett region of Queensland — a catchment that includes Childers, Gin Gin, Gayndah, Mundubbera, and the southern Burnett communities, plus the coastal strip out to Bargara, Moore Park, and the turtle-nesting beaches of Mon Repos. With a population of roughly 72,000 in the city and more than 160,000 across the broader Wide Bay region, demand on local GP services is persistent and growing. Same-day appointments are hard to come by, and several practices have restricted new patient intakes.",
+          "Bundaberg Hospital, currently being replaced by the new Bundaberg Hospital build on the Kensington site, provides acute care for the region. For primary care, though, the bottleneck is GP workforce. The Modified Monash Model (MMM) classifies Bundaberg and most of the Wide Bay–Burnett as a regional workforce priority area under the RACGP's rural generalist framework — meaning it is persistently short of GPs relative to its population.",
+          "For residents of the smaller Burnett communities — Gin Gin, Gayndah, Mundubbera, Monto — Bundaberg is often the nearest substantial GP hub. A round trip is measured in hours and fuel costs. For straightforward medical certificates, repeat scripts, and simple prescriptions, telehealth removes that journey entirely without sacrificing any of the clinical assessment.",
+        ],
+      },
+      {
+        title: "Sugar, Horticulture, and Wide Bay Workers",
+        paragraphs: [
+          "Bundaberg's economy runs on agriculture — sugarcane, macadamias, avocados, tomatoes, and the region's famous small crops. Harvest season brings a large influx of working-holiday visa holders and seasonal workers, and it intersects with the permanent workforce at the sugar mills, packing sheds, and processing facilities (Bundaberg Rum is only the most visible example). All of these are heavily shift-based industries where a 9-to-5 GP clinic visit doesn't fit the roster.",
+          "Medical certificates are a routine requirement for any unplanned absence from harvest, packing, or mill work. Telehealth can issue the certificate within hours, available as a PDF that workers can forward to their supervisor or labour hire provider. For working-holiday visa holders who don't have an established GP in the region, telehealth provides a consistent pathway that doesn't depend on finding a local clinic that can fit them in.",
+          "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Both accept medical certificates from AHPRA-registered doctors for special consideration and academic support. The consultation method is not a factor in acceptance.",
+        ],
+      },
+      {
+        title: "Tourism, the Southern Great Barrier Reef, and Seasonal Pressure",
+        paragraphs: [
+          "The Bundaberg region is a gateway to the southern Great Barrier Reef — Lady Elliot Island, Lady Musgrave Island, and the reefs accessible from the Town of 1770 and Agnes Water, just north of the Bundaberg LGA boundary. Marine tourism operators, dive businesses, and accommodation providers employ a seasonal workforce that peaks with turtle-nesting season (November to March) and school holiday periods. Like any seasonal tourism economy, the peaks strain local primary care.",
+          "For Bundaberg residents and visitors alike, telehealth provides a way around the clinic queue during peak times. The service is identical whether you are a permanent resident in East Bundaberg or a seasonal worker staying in Bargara — same doctors, same turnaround, same flat pricing.",
+          "The Mon Repos turtle rookery and the broader Bargara coastal strip attract international and interstate visitors throughout the warmer months. For visiting Australian residents who fall ill while staying in Bundaberg, telehealth provides a straightforward pathway to a medical certificate that is valid for their employer back home, regardless of which state they normally live in. There is no requirement to be a local resident to use the service.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already understand.",
+          "For Bundaberg's agricultural and seasonal workforce, the value is straightforward: a same-day certificate without a half-day trip into town and a multi-day wait for a clinic appointment. For the region's older residents, the value is repeat scripts on stable chronic medications without leaving the house — the eScript arrives via SMS for collection at the nearest pharmacy. For visitors, the value is access to an AHPRA-registered Australian doctor without needing a local patient relationship.",
+          "We never issue a certificate when a physical examination is genuinely required. If your situation needs in-person care, the doctor refers you to it and you are not charged for the telehealth consultation. The clinical filter is identical regardless of whether you are in Bundaberg, Childers, or anywhere else.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for the Wide Bay",
+        paragraphs: [
+          "GP economics in Bundaberg and the broader Wide Bay have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For households across the region — particularly those on agricultural incomes that fluctuate seasonally — the combined cost of a routine GP visit (gap fee, fuel from outlying towns, lost work time, the wait) frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your employer or labour hire provider directly. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Bundaberg and Wide Bay residents, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Bundaberg",
+      paragraphs: [
+        "Bundaberg has pharmacy coverage across the CBD, Hinkler Central, Stockland Bundaberg, Sugarland Shoppingtown, and the Bargara coastal strip. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Surrounding towns — Childers, Gin Gin, Gayndah, Mundubbera, Monto — have local pharmacies that accept the QR code from an InstantMed prescription.",
+        "Extended-hours options exist at Hinkler Central and Stockland Bundaberg. PBS co-payments on telehealth-issued scripts are identical to face-to-face prescriptions — there is no pricing difference at the counter.",
+        "eScript adoption across the Wide Bay has reached near-universal coverage. Every community pharmacy in Bundaberg and the surrounding region now handles the QR-code workflow as a matter of routine, and there is no need to phone ahead or make any special arrangement. For visitors to the region staying in holiday accommodation in Bargara, Moore Park, or further afield, this means a prescription issued by an InstantMed doctor can be filled at the nearest pharmacy in minutes.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Queensland",
+      paragraphs: [
+        "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, specifically because the state's vast geography makes face-to-face primary care impractical for a substantial share of its population. The Wide Bay–Burnett region is explicitly recognised in Queensland Health's regional strategy as an area benefiting from digital healthcare delivery.",
+        "Prescribing via telehealth in Queensland follows the national TGA framework. Most PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment — InstantMed does not prescribe these.",
+        "Medical certificates issued via telehealth are legally identical to those from face-to-face consultations in Queensland. There is no legislation that creates a distinction, and Queensland government departments, agricultural businesses, and private employers all accept them under the Fair Work Act.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the Burnett and Wide Bay regions?", a: "Yes. Childers, Gin Gin, Gayndah, Mundubbera, Monto, Bargara, Moore Park — anywhere in the Bundaberg LGA and broader Wide Bay–Burnett region with internet access is covered." },
+      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. As long as you are 18+ and in Australia, you can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
+      { q: "Is InstantMed cheaper than a Bundaberg GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With Queensland's bulk-billing rate declining, many GPs in the region now charge out-of-pocket fees — InstantMed's flat pricing is often more predictable.` },
+      { q: "Can I use InstantMed from Agnes Water or the Town of 1770?", a: "Yes. Agnes Water and the Town of 1770 are just outside the Bundaberg LGA, but telehealth works anywhere in Australia with internet access — including these coastal towns. Same service, same pricing." },
+    ],
+  },
+
+  "wagga-wagga": {
+    healthStats: [
+      { label: "Population", value: "65K+", context: "Largest inland city in NSW" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer in surrounding Riverina communities" },
+      { label: "Bulk-billing rate", value: "~65%", context: "Below the NSW average" },
+      { label: "Catchment", value: "Riverina-wide", context: "Serves a population of ~200K across the region" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Riverina",
+        paragraphs: [
+          "Wagga Wagga is the largest inland city in NSW and the healthcare hub for the Riverina — a catchment that stretches from Gundagai and Tumut in the east to Deniliquin and the Victorian border in the west, taking in Junee, Lockhart, Narrandera, and Leeton along the way. With 65,000 residents and a broader catchment of roughly 200,000, the city's primary care workforce is persistently stretched. Same-day appointments for non-urgent needs are hard to come by, and wait times of a week are routine.",
+          "Wagga Wagga Base Hospital provides acute and specialist services for the region, but the primary care pinch point is GP supply. The Modified Monash Model (MMM) classifies the Riverina as an area of genuine workforce shortage, reflecting the persistent difficulty of attracting and retaining GPs to inland NSW. Several Wagga practices have closed their books to new patients, and bulk-billing rates have declined in line with the national trend — gap fees of $30–$60 are increasingly common.",
+          "For residents of the smaller Riverina communities — Gundagai, Tumut, Junee, Lockhart, Narrandera, Leeton, Cootamundra — Wagga is the largest nearby GP hub. A round trip for a routine certificate or repeat script is often 90–120 minutes of driving, not including clinic waiting time. Telehealth collapses that into a 20–30 minute process from home without sacrificing any of the clinical assessment.",
+        ],
+      },
+      {
+        title: "Defence, Agriculture, and the Riverina Workforce",
+        paragraphs: [
+          "Wagga hosts two of the ADF's major training bases — RAAF Base Wagga (Forest Hill) and the Army Recruit Training Centre at Kapooka. Defence families, civilian contractors, and Defence-adjacent workers make up a substantial portion of the local population. Many are relocated from interstate and do not have an established GP relationship, which makes telehealth particularly practical for routine needs that don't require accessing the base medical system.",
+          "Beyond Defence, the Riverina economy runs on agriculture — wheat, canola, rice, cotton, beef, lamb, and increasingly wine in the foothills around Tumbarumba. Seasonal labour demands intersect with permanent shift work at regional processors like Teys Australia, JBS, and SunRice. Medical certificates for unplanned absences are a routine requirement, and telehealth delivers them faster than a regional GP clinic can book you in.",
+          "Charles Sturt University's main campus is in Wagga Wagga, making it one of the largest regional universities in Australia. CSU, along with TAFE NSW Riverina, serves thousands of students across the region. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions.",
+        ],
+      },
+      {
+        title: "Medical Certificates Under NSW Law",
+        paragraphs: [
+          "Wagga Wagga employers — from the Wagga Wagga City Council and NSW Health facilities, through to agricultural businesses, Defence contractors, and local retailers — all operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both accept certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
+          "For Defence families in Wagga, civilian medical certificates from AHPRA-registered doctors are valid for civilian employment and for family members. The base medical system handles serving personnel's duty-related healthcare, but partners, children, and personal matters outside duty are free to use civilian telehealth providers just like any other Australian resident.",
+          "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If that applies, the doctor will refer you to in-person care — including, where relevant, Wagga Wagga Base Hospital — and you will not be charged for the telehealth consultation.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "Wagga's value proposition for telehealth is twofold. First, the city itself has GP wait times that make same-day routine needs genuinely difficult — telehealth fills that gap. Second, Wagga is the regional service centre for hundreds of thousands of people across the broader Riverina, many of whom would otherwise need to drive 60–120 minutes for a routine certificate. For both groups, the time and cost savings are significant.",
+          "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. The clinical filter is identical regardless of whether you are in Wagga itself, Junee, Tumut, or anywhere in the broader Riverina.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for Riverina Residents",
+        paragraphs: [
+          "The economics of regional GP access have shifted in recent years. Bulk-billing has declined across the Riverina, gap fees have grown, and waiting times for non-urgent appointments have stretched to a week or more. For a working family in Junee or Cootamundra, the combined cost of a routine GP visit — fuel into Wagga, lost work time, the gap fee, the wait — frequently exceeds what telehealth charges flat. The arithmetic favours telehealth for routine certificate and script needs.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no surprise add-ons, and no bill shock at the end of the consultation. For families budgeting carefully in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it directly to your supervisor, employer, or HR contact. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Wagga and Riverina residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Wagga Wagga",
+      paragraphs: [
+        "Wagga has pharmacy coverage across the CBD, Marketplace Wagga Wagga, Sturt Mall, and South City. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in surrounding Riverina towns — Junee, Lockhart, Narrandera, Leeton, Gundagai, Tumut, Cootamundra — also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are available at Marketplace Wagga Wagga and several CBD locations. PBS co-payments apply to telehealth-issued eScripts identically to face-to-face prescriptions — no pricing difference at the counter.",
+        "eScript adoption across the Riverina is now universal. Every community pharmacy in Wagga and the surrounding region handles the QR-code workflow as a matter of routine, and there is no need to phone ahead or make any special arrangement. For Defence families at Kapooka or RAAF Wagga whose home pharmacy may be elsewhere in the country, the eScript also works seamlessly at any Australian pharmacy outside the Riverina — the QR code is portable, not tied to a specific location.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Murrumbidgee Local Health District — which covers Wagga Wagga and the broader Riverina — has integrated telehealth into its care pathways to ease pressure on stretched regional primary care.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the broader Riverina?", a: "Yes. Junee, Lockhart, Narrandera, Leeton, Gundagai, Tumut, Cootamundra, Tumbarumba — anywhere in the Riverina with internet access is covered. Same service, same pricing." },
+      { q: "Can Defence families at Kapooka or RAAF Wagga use InstantMed?", a: "Yes, for civilian healthcare needs and family members. Defence members should continue using the base medical system for duty-related healthcare, but civilian telehealth is appropriate for personal and family medical certificates and scripts." },
+      { q: "Can Charles Sturt University students use InstantMed?", a: "Yes. CSU accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions — the same as all Australian universities." },
+      { q: "Is InstantMed cheaper than a Wagga GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Wagga bulk-billing declining and gap fees of $30–$60 increasingly common, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  shepparton: {
+    healthStats: [
+      { label: "Population", value: "65K+", context: "Heart of the Goulburn Valley" },
+      { label: "Avg GP wait", value: "4–7 days", context: "Longer during harvest and in surrounding towns" },
+      { label: "Bulk-billing rate", value: "~62%", context: "Below the Victorian average" },
+      { label: "Distance to Melbourne", value: "180km", context: "Roughly two hours by road" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Goulburn Valley",
+        paragraphs: [
+          "Shepparton is the largest city in the Goulburn Valley and the main service hub for a region that includes Mooroopna, Kyabram, Tatura, Numurkah, Cobram, Seymour, and Benalla. With roughly 65,000 residents and a broader Goulburn Valley catchment well over 150,000, the city sits at a familiar regional Victorian intersection of rapid population change and constrained GP workforce. Same-day appointments are rare, several practices have stopped accepting new patients, and wait times stretch to a week or more for non-urgent needs.",
+          "Goulburn Valley Health anchors hospital and specialist services for the region, but the pinch point — as everywhere in regional Victoria — is primary care. The Modified Monash Model (MMM) classifies the Goulburn Valley as a workforce priority area, and the RACGP's regional and rural data consistently identifies the region as short of GPs relative to its population. Bulk-billing has declined in Shepparton in line with the national trend, with gap fees of $40–$70 now common.",
+          "For residents of the smaller Goulburn Valley communities — Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Nathalia — Shepparton is often the nearest GP hub. A round trip of 60–90 minutes plus waiting room time is a significant cost for a straightforward certificate. Telehealth eliminates the travel entirely without reducing the quality of the clinical assessment.",
+        ],
+      },
+      {
+        title: "Agriculture, Food Processing, and a Diverse Workforce",
+        paragraphs: [
+          "The Goulburn Valley is the food bowl of Victoria. Shepparton's economy is dominated by dairy, fruit (pears, apples, stone fruit), tomatoes, and processing industries including SPC, Campbell's, Unilever, and the dairy processors in Tatura. These are heavily shift-based industries, and harvest season brings a large influx of seasonal workers — including working-holiday visa holders — on top of the permanent workforce.",
+          "Medical certificates for unplanned absences are a constant requirement across these workplaces. For shift workers and seasonal staff, getting to a GP during business hours is often impossible — and for working-holiday visa holders without an established local GP, it's even harder. Telehealth provides a consistent pathway that works around rosters and does not require a local patient relationship.",
+          "Shepparton has one of the most culturally diverse populations in regional Australia, with established communities of Albanian, Iraqi, Afghan, Congolese, and Pacific Islander origin, alongside long-standing Italian and Greek communities. For residents who prefer a GP who shares their language, available appointments are often further narrowed. Telehealth — where the assessment is standardised and the documentation is consistent — removes the language-matching bottleneck for routine certificate and script needs.",
+        ],
+      },
+      {
+        title: "Students, Universities, and Workers Under Victorian Law",
+        paragraphs: [
+          "La Trobe University's Shepparton campus, together with GOTAFE Goulburn Ovens, serves thousands of regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity — the same rule that applies at every other Victorian university.",
+          "Shepparton employers — from the Greater Shepparton City Council and Goulburn Valley Health, through to SPC, Campbell's, and the dairy processors — all operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Medical certificates from AHPRA-registered doctors via telehealth are fully valid for leave purposes under all of them.",
+          "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest a physical exam is required, the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "For Shepparton's diverse population, telehealth has a particular advantage: the clinical assessment and the certificate are standardised, so the language barrier that often constrains access to a preferred local GP is not the same constraint here. The documentation produced is identical regardless of whether you would normally see a Greek-speaking, Arabic-speaking, or English-speaking GP. For routine certificate and script needs, that consistency matters.",
+          "If your symptoms or situation are not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged for the consultation. The clinical filter applies identically in Shepparton and every other location we serve.",
+        ],
+      },
+      {
+        title: "Cost, Time, and the Practical Case for Telehealth in the Goulburn Valley",
+        paragraphs: [
+          "The economics of GP access in regional Victoria have shifted significantly over the past five years. Bulk-billing has declined, gap fees have grown, and waiting times for non-urgent appointments have stretched. For a working family in Mooroopna or Tatura, the combined cost of a routine GP visit — fuel to drive to Shepparton, lost work time, gap fee, and the wait — frequently exceeds what telehealth charges flat. The math is straightforward and it usually favours telehealth for the routine middle of healthcare.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no bill shock, no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time savings.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it directly to your supervisor, employer, or labour hire provider. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Shepparton residents and workers across the Goulburn Valley, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Shepparton",
+      paragraphs: [
+        "Shepparton has pharmacy coverage across the CBD, Shepparton Marketplace, Riverside Plaza, and surrounding suburban centres. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Surrounding Goulburn Valley towns — Mooroopna, Tatura, Kyabram, Numurkah, Cobram — have local pharmacies that accept the QR code from an InstantMed prescription.",
+        "Extended-hours options exist at Shepparton Marketplace. Standard PBS co-payments apply to telehealth-issued eScripts — there is no pricing difference at the counter compared to a face-to-face prescription.",
+        "eScript adoption across the Goulburn Valley is now universal. Every community pharmacy in Shepparton and the surrounding region handles the QR-code workflow as a matter of routine, with no need to phone ahead or make any special arrangement. For seasonal workers and working-holiday visa holders moving through the region during harvest, this also means a prescription issued by an InstantMed doctor in Shepparton will work at any pharmacy elsewhere in the country once they leave — the QR code is portable and not tied to a specific location. The same applies to the substantial number of Goulburn Valley families who travel between Shepparton and Melbourne for work, family, or specialist appointments — your eScript follows you, not the other way around.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Victoria",
+      paragraphs: [
+        "Victoria follows the national AHPRA and Medical Board of Australia framework for telehealth. The Victorian Government has invested heavily in telehealth infrastructure and has explicitly identified regional Victoria — including the Goulburn Valley — as a priority area for digital healthcare delivery. The Goulburn Valley Primary Health Network has integrated telehealth into its service planning.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any Victorian pharmacy. Schedule 8 controlled substances require Victorian Department of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the Goulburn Valley?", a: "Yes. Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Seymour, Benalla — anywhere in the Goulburn Valley with internet access is covered." },
+      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
+      { q: "Can La Trobe Shepparton students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Is InstantMed cheaper than a Shepparton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Shepparton bulk-billing around 62% and gap fees of $40–$70 common, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  "hervey-bay": {
+    healthStats: [
+      { label: "Population", value: "55K+", context: "Fraser Coast's largest population centre" },
+      { label: "Avg GP wait", value: "4–8 days", context: "Among the longest in regional QLD" },
+      { label: "Bulk-billing rate", value: "~70%", context: "Declining as retiree demand grows" },
+      { label: "Demographic", value: "Older-skewing", context: "Significant retiree and seasonal population" },
+    ],
+    sections: [
+      {
+        title: "Healthcare on the Fraser Coast",
+        paragraphs: [
+          "Hervey Bay is the largest town on Queensland's Fraser Coast and the main service hub for a region that includes Maryborough, Burrum Heads, Poona, Tin Can Bay, and — for visitors — K'gari (formerly Fraser Island). The population is heavily skewed older than the national average: Hervey Bay is one of Australia's most popular retirement destinations, and the city's demographics reflect that. Older populations use GP services significantly more frequently than younger cohorts, which puts persistent pressure on local primary care.",
+          "The Modified Monash Model (MMM) classifies Hervey Bay and the broader Fraser Coast as a regional workforce priority area under the RACGP's rural generalist framework. Several practices have closed their books to new patients, and same-day appointments for non-urgent needs are rarely available. Wait times of a week or more are common, and in peak tourist and school-holiday seasons the pressure intensifies as the region's population swells with whale-watching visitors and K'gari tourists.",
+          "Hervey Bay Hospital provides acute services, but the primary care bottleneck is entirely a workforce issue. For straightforward certificates, repeat scripts, and non-urgent prescriptions, telehealth offers an immediate alternative that does not depend on securing a local clinic appointment. The service is identical whether you are a long-term resident or a visitor in town for a week of whale watching.",
+        ],
+      },
+      {
+        title: "Retirees, Working-Age Residents, and Seasonal Tourism",
+        paragraphs: [
+          "Hervey Bay's retiree population, combined with the established working-age community in Maryborough and the Fraser Coast's service industries, creates a mixed healthcare demand profile. For retirees who are generally comfortable with technology (a growing share), telehealth is a practical alternative to sitting in a waiting room — particularly for repeat scripts of stable medications like blood pressure or cholesterol tablets, where there is no clinical reason to attend in person.",
+          "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia — irregular hours, limited sick leave, and a real need for same-day certificates. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and these workers benefit most from telehealth's flexible availability.",
+          "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest you need an in-person assessment — suspected chest infection, suspicious skin lesion, joint injury — the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
+        ],
+      },
+      {
+        title: "Medical Certificates and Queensland Law",
+        paragraphs: [
+          "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all accept telehealth certificates.",
+          "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions — the same rule that applies at every Australian university.",
+          "Repeat prescription needs are particularly common in the Hervey Bay demographic. Rather than wait a week for a GP appointment simply to renew a stable medication, telehealth can handle the renewal in 20–30 minutes with an eScript sent directly to your phone for collection at any local pharmacy.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "For Hervey Bay's older residents in particular, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The whole process takes 20–30 minutes from your living room.",
+          "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. We never issue a certificate when a physical examination is genuinely required. The clinical filter applies identically regardless of the patient's age or location.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for the Fraser Coast",
+        paragraphs: [
+          "GP economics on the Fraser Coast have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For Hervey Bay residents — particularly those on fixed retiree incomes — predictability matters. The combined cost of a routine GP visit (gap fee, time, occasional travel) frequently exceeds what telehealth charges flat. For straightforward certificate and script needs, the arithmetic increasingly favours telehealth.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no surprise add-ons, and no bill shock at the end. For retirees and families budgeting on fixed or modest incomes, that predictability often matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Hervey Bay and Fraser Coast residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Hervey Bay",
+      paragraphs: [
+        "Hervey Bay has good pharmacy coverage across Stockland Hervey Bay, Pialba, Urangan, and the Esplanade. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Maryborough, Burrum Heads, and Tin Can Bay pharmacies also accept the QR code from an InstantMed prescription.",
+        "For repeat scripts on common medications — blood pressure tablets, cholesterol medication, reflux management — the process is particularly straightforward: consultation via telehealth, eScript issued in minutes, collection at any participating pharmacy with the QR code shown on your phone.",
+        "eScript adoption across the Fraser Coast is now universal. Every community pharmacy in Hervey Bay and the surrounding region handles the QR-code workflow as a matter of routine, with no need to phone ahead or make any special arrangement. For older residents who travel between Hervey Bay and family elsewhere in the country, the eScript also works seamlessly at any Australian pharmacy outside the region — the QR code is portable and not tied to a specific location.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Queensland",
+      paragraphs: [
+        "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, and the Wide Bay region — including the Fraser Coast — is identified in Queensland Health's regional strategy as benefiting significantly from digital healthcare delivery.",
+        "Prescribing via telehealth in Queensland follows the national TGA framework. Most PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and in-person assessment — InstantMed does not prescribe these.",
+        "The Queensland Office of the Health Ombudsman handles complaints about health services in Queensland, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can retirees in Hervey Bay use InstantMed?", a: "Yes. InstantMed is available to any Australian resident 18+. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications — no need to attend a clinic in person just to renew a prescription you have been on for years." },
+      { q: "Does InstantMed cover Maryborough and K'gari?", a: "Yes. Hervey Bay, Maryborough, Burrum Heads, Tin Can Bay, and K'gari (Fraser Island) — anywhere on the Fraser Coast with internet access is covered." },
+      { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Most certificates are reviewed within an hour during business hours. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
+      { q: "Are certificates accepted by Fraser Coast Regional Council and Hervey Bay Hospital?", a: "Yes. All Australian employers, including local councils and public hospitals, must accept certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
+    ],
+  },
+
+  mildura: {
+    healthStats: [
+      { label: "Population", value: "55K+", context: "Sunraysia's largest population centre" },
+      { label: "Avg GP wait", value: "4–8 days", context: "Among the longest in regional Victoria" },
+      { label: "Bulk-billing rate", value: "~60%", context: "Well below the Victorian average" },
+      { label: "Distance to Melbourne", value: "545km", context: "Roughly six hours by road" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Sunraysia and the Murray-Mallee",
+        paragraphs: [
+          "Mildura is the largest population centre in the Sunraysia region and sits at the intersection of three states — Victoria, New South Wales, and South Australia. The city serves as the healthcare hub for a catchment that extends across Wentworth, Robinvale, Swan Hill, Ouyen, Red Cliffs, and into the South Australian Riverland. Despite being a substantial regional centre, Mildura faces some of the most acute GP access challenges in regional Victoria. The Modified Monash Model (MMM) classifies the entire Sunraysia region as a workforce priority area, and that classification has translated into persistent shortages on the ground.",
+          "The region's geography is the underlying problem. Mildura is six hours by road from Melbourne and four from Adelaide. For GPs, it is one of the hardest regional postings to attract doctors to, and several practices in the city have closed their books to new patients. Bulk-billing has dropped below 60% — significantly lower than the Victorian average — and gap fees of $40–$70 are common. For a straightforward sick note, that economics is hard to justify.",
+          "Mildura Base Public Hospital provides acute services, but its emergency department regularly handles presentations that a GP could resolve in minutes, simply because people cannot get GP appointments in time. This is a well-documented pattern in regional Australia: when primary care is constrained, ED becomes the default. Telehealth offers the alternative pathway — same-day, clinically appropriate, and without ever setting foot in a waiting room.",
+        ],
+      },
+      {
+        title: "Horticulture, Seasonal Workers, and the Sunraysia Economy",
+        paragraphs: [
+          "Sunraysia is one of Australia's most productive horticultural regions — table grapes, wine grapes, citrus, almonds, stone fruit, and vegetables. The annual harvest season brings a huge influx of seasonal workers, including significant numbers of working-holiday visa holders and Pacific Australia Labour Mobility (PALM) scheme workers from Pacific island nations. Add this to the permanent workforce across packing sheds, wineries, transport operators, and processing facilities, and you get a heavily shift-based local labour market.",
+          "Medical certificates for unplanned absences during harvest are a routine operational requirement. For workers without an established local GP, securing a same-day appointment during peak season is essentially impossible. Telehealth provides a consistent pathway: 20–30 minute intake, clinical assessment by an AHPRA-registered Australian doctor, and a PDF certificate forwarded directly to the supervisor or labour hire provider. For PALM scheme workers in particular, the standardisation and reliability are valuable.",
+          "The region's cross-border nature — Mildura in Victoria, Wentworth just across the Murray in NSW, and Renmark only a couple of hours away in SA — means AHPRA's national registration framework is genuinely useful. A telehealth doctor registered with AHPRA can treat patients on any side of the border, and certificates are valid across all three states without any additional processing.",
+        ],
+      },
+      {
+        title: "Students and Workers Under Victorian Law",
+        paragraphs: [
+          "La Trobe University's Mildura campus, Latrobe Rural Clinical School, and SuniTAFE serve thousands of regional students. All accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity — the same rule that applies at every Australian university.",
+          "Mildura employers — from the Mildura Rural City Council and Mildura Base Hospital, through to the major horticultural operations, wineries, and processors — operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Both frameworks accept certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
+          "We never issue a certificate when the clinical situation is inappropriate for telehealth. If a physical examination is required, the doctor refers you to in-person care and you are not charged for the telehealth consultation. The filter applies identically in Mildura, Melbourne, and every other location we serve.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, dressings, and injections still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "Mildura's distance from major capital cities makes the in-person versus telehealth distinction especially valuable. Residents do not have the option of a quick alternative GP appointment in another suburb when their usual practice cannot fit them in. The next nearest substantial GP catchment is hours away. Telehealth lets people in Sunraysia handle routine needs immediately and save in-person appointments for the things that genuinely require them.",
+          "If your situation is not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged. The clinical filter is identical regardless of which side of the Murray you live on or how far you are from the nearest physical clinic.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for Sunraysia",
+        paragraphs: [
+          "Mildura GP economics have moved in line with the broader regional trend. Bulk-billing has declined to one of the lowest rates in regional Victoria, gap fees of $40–$80 are common, and waiting times for non-urgent appointments have stretched to a week or more. For a working family in Robinvale, Wentworth, or Red Cliffs, the combined cost of a routine GP visit — fuel, gap fee, lost work time, the wait — frequently exceeds what telehealth charges flat.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For households budgeting tightly in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Sunraysia residents, that is significantly faster than competing for a same-day clinic appointment in any of the three states the region touches.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Mildura",
+      paragraphs: [
+        "Mildura has pharmacy coverage across the CBD, Centro Mildura, Mildura Central, and Red Cliffs. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in surrounding Sunraysia and Murray-Mallee towns — Robinvale, Swan Hill, Ouyen, Wentworth, and the South Australian Riverland — also accept the QR code from an InstantMed prescription, regardless of which state issued it.",
+        "Extended-hours options exist at Centro Mildura and Mildura Central. Standard PBS co-payments apply to telehealth-issued eScripts — no pricing difference at the counter compared to a face-to-face prescription.",
+        "eScript adoption across Sunraysia and the broader Murray-Mallee is now universal. Every community pharmacy in the region handles the QR-code workflow as a matter of routine, with no need to phone ahead or make any special arrangement. The cross-border nature of the region is also worth noting — an eScript issued by an InstantMed doctor for a patient in Mildura works equally well at a pharmacy in Wentworth (NSW) or Renmark (SA), with no additional administrative steps and no state-line restrictions.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Victoria and the Cross-Border Murray",
+      paragraphs: [
+        "Victoria follows the national AHPRA and Medical Board of Australia framework for telehealth. AHPRA registration is national, which is particularly relevant in a cross-border region like Mildura: a doctor registered with AHPRA can treat patients in Victoria, NSW, and SA without needing additional state-specific licences, and certificates are valid in all three states.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any Australian pharmacy. Schedule 8 controlled substances require state health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Wentworth, Robinvale, and the Riverland?", a: "Yes. Wentworth (NSW), Robinvale, Red Cliffs, Ouyen, Swan Hill, and the SA Riverland — anywhere in Sunraysia and the Murray-Mallee with internet access is covered. Certificates are valid across state borders." },
+      { q: "Can PALM scheme and working-holiday visa holders use InstantMed?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
+      { q: "Can La Trobe Mildura students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Is InstantMed cheaper than a Mildura GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mildura bulk-billing rates around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  "port-macquarie": {
+    healthStats: [
+      { label: "Population", value: "50K+", context: "Mid North Coast's southern retiree hub" },
+      { label: "Avg GP wait", value: "5–8 days", context: "Among the longest in coastal NSW" },
+      { label: "Bulk-billing rate", value: "~65%", context: "Declining with retiree demand growth" },
+      { label: "Demographic", value: "Retiree-heavy", context: "One of the oldest populations by median age in NSW" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Hastings and Mid North Coast",
+        paragraphs: [
+          "Port Macquarie sits at the mouth of the Hastings River and is the largest population centre of the Port Macquarie-Hastings LGA. It is one of the fastest-growing regional centres in NSW, driven largely by sea-changers from Sydney and a significant retiree population. With roughly 50,000 residents in the town itself and a broader LGA approaching 90,000, healthcare demand consistently outstrips supply. The Mid North Coast has been identified as a priority workforce region under the Modified Monash Model (MMM), reflecting persistent difficulty attracting and retaining GPs to the region.",
+          "Bulk-billing has declined in line with the national trend. Several Port Macquarie practices have closed their books to new patients, and same-day appointments for non-urgent needs are hard to come by — wait times of a week are routine. For a demographic that includes a large share of older residents on multiple chronic medications, the delays compound. When a retiree needs a repeat script of a stable blood pressure tablet, sitting on a waiting list for a week is not a sensible healthcare model.",
+          "Port Macquarie Base Hospital provides acute and specialist care, but the bottleneck is squarely in primary care. Telehealth offers a same-day alternative for exactly the routine needs — repeat scripts, straightforward certificates, simple prescription renewals — that the traditional GP model handles slowly and expensively. It does not replace ongoing GP relationships for complex care, but it clears the queue for everyone.",
+        ],
+      },
+      {
+        title: "Retirees, Remote Workers, and Hospitality",
+        paragraphs: [
+          "Port Macquarie is one of Australia's most popular retirement destinations, and the population skews significantly older than the state average. Older Australians are increasingly comfortable with telehealth — the 2020–2021 pandemic period accelerated adoption across all age groups, and the retiree cohort in the Hastings is no exception. For repeat scripts on stable chronic medications, telehealth is often the preferred option: no drive, no waiting room, and the eScript arrives via SMS for collection at the nearest pharmacy.",
+          "The region has also become a magnet for remote workers since the pandemic. Many arrived from Sydney or inland NSW for lifestyle reasons and kept their city jobs. These residents often arrived expecting metropolitan healthcare convenience and were surprised to find a week-long wait for routine appointments. Telehealth restores the convenience they were used to without requiring a move back to the city.",
+          "Hospitality, retail, and the region's growing tourism sector employ a younger workforce with irregular hours and limited sick leave accrual. For these workers, a same-day certificate is critical — a delayed certificate often means a lost shift. Telehealth's same-day turnaround solves that specific problem.",
+        ],
+      },
+      {
+        title: "Medical Certificates and NSW Law",
+        paragraphs: [
+          "Port Macquarie-Hastings employers operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Local councils, NSW Health facilities, tourism operators, retailers, and private businesses all accept telehealth certificates.",
+          "Charles Sturt University's Port Macquarie campus serves regional students. CSU accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions — the same rule that applies at every Australian university.",
+          "We never issue a certificate when the clinical situation is inappropriate for telehealth. If your symptoms suggest a physical examination is required, the doctor refers you to in-person care and you are not charged. The clinical filter is identical regardless of the patient's age or location.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "For Port Macquarie's older residents, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The whole process takes 20–30 minutes from your living room.",
+          "For working-age residents and remote workers, the value is the time saved — the avoided commute to a clinic, the avoided wait, the avoided gap fee. Combined, these savings make telehealth a genuinely better option for the routine needs it handles well, and they leave in-person care available for everything that genuinely requires it.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for the Hastings",
+        paragraphs: [
+          "GP economics in the Port Macquarie-Hastings region have moved in line with the national trend. Bulk-billing has declined, gap fees have grown to $40–$80, and waiting times for non-urgent appointments have stretched to a week. For households on fixed retiree incomes or working families managing tight budgets, the combined cost of a routine GP visit — fuel, gap fee, lost time, the wait — frequently exceeds what telehealth charges flat.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For residents budgeting carefully in a region where housing and cost-of-living pressures have grown sharply, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Port Macquarie and Hastings residents, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Port Macquarie",
+      paragraphs: [
+        "Port Macquarie has pharmacy coverage across Port Central, Settlement City, Lakewood, and the CBD. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in surrounding communities — Wauchope, Laurieton, Camden Haven, Kempsey — also accept the QR code from an InstantMed prescription.",
+        "For repeat scripts on common medications (particularly chronic medications for the region's large retiree demographic), the process is especially useful: telehealth consultation, eScript issued in minutes, collection at the nearest pharmacy with the QR code on your phone. No need to leave the house except to collect the medication itself.",
+        "eScript adoption across the Mid North Coast is now universal. Every community pharmacy in the Port Macquarie-Hastings region handles the QR-code workflow as a matter of routine, and there is no need to phone ahead or make any special arrangement. For older residents who travel between Port Macquarie and family elsewhere in the country, the eScript also works seamlessly at any Australian pharmacy outside the region — the QR code is portable and not tied to a specific location.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion under its Future Health strategy, and the Mid North Coast Local Health District has integrated telehealth into its care pathways to reduce pressure on stretched regional primary care and ease ED demand.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Wauchope, Laurieton, and Camden Haven?", a: "Yes. Wauchope, Laurieton, Camden Haven, Kempsey, and all the surrounding Hastings communities. Anywhere on the Mid North Coast with internet access is covered." },
+      { q: "Is InstantMed suitable for retirees?", a: "Yes. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications — no need to attend a clinic in person just to renew a long-standing prescription." },
+      { q: "Can Charles Sturt University Port Macquarie students use InstantMed?", a: "Yes. CSU, like all Australian universities, accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Is InstantMed cheaper than a Port Macquarie GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Macquarie bulk-billing around 65% and increasing gap fees, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  dubbo: {
+    healthStats: [
+      { label: "Population", value: "43K+", context: "Hub of the Orana region of NSW" },
+      { label: "Avg GP wait", value: "5–8 days", context: "Longer in the surrounding Orana communities" },
+      { label: "Bulk-billing rate", value: "~60%", context: "Among the lowest in regional NSW" },
+      { label: "Catchment", value: "120K+", context: "Serves the whole Orana and Western Plains region" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Orana and Western Plains",
+        paragraphs: [
+          "Dubbo is the service hub for the Orana and Western Plains region of NSW — a vast catchment that extends from Mudgee in the east to Cobar and Bourke in the west, and from Coonamble and Walgett in the north down to Parkes and Forbes. With a city population of roughly 43,000 and a broader regional catchment of 120,000+, Dubbo's primary care workforce is under constant pressure. Same-day appointments for non-urgent needs are rarely available, and wait times of a week are routine. The Modified Monash Model (MMM) classifies Dubbo and the surrounding Orana region as a workforce priority area with genuine, persistent GP shortages.",
+          "Bulk-billing in Dubbo has dropped below 60% — among the lowest in regional NSW — and gap fees of $40–$70 are common. Several practices have restricted new patient intakes, and for the smaller Orana communities the nearest GP is often Dubbo itself. A round trip from Cobar, Nyngan, Coonamble, or Warren for a routine sick note is measured in hours of driving and fuel cost.",
+          "Dubbo Base Hospital provides tertiary referral services for the Western NSW Local Health District, covering an area larger than most European countries. But the primary care pinch point is not hospital capacity — it is GP supply. Telehealth offers the alternative pathway for straightforward certificates, repeat scripts, and simple prescription needs, collapsing a half-day round trip into a 20–30 minute process from home.",
+        ],
+      },
+      {
+        title: "Agriculture, Indigenous Health, and Western NSW Workers",
+        paragraphs: [
+          "The Orana economy runs on agriculture — wheat, cotton, sheep, and cattle across the Western Plains — together with mining services (Cobar copper and zinc, and the gold mines at Peak Hill and surrounds), transport, and regional healthcare. These industries are heavily shift-based, remote-work heavy, and often operate in locations where the nearest GP is hours away. Telehealth is not a convenience for this workforce — it is often the only practical way to get a medical certificate or repeat script without losing a full day of work.",
+          "The Orana region has significant Aboriginal and Torres Strait Islander populations, particularly in Dubbo, Wellington, and the northern communities. The Western NSW Primary Health Network works with Aboriginal Community Controlled Health Services across the region, and telehealth is recognised as a complementary pathway for routine healthcare needs. InstantMed is not a substitute for ACCHS care — those services provide culturally safe, comprehensive primary care — but for the specific use cases of medical certificates and straightforward scripts, telehealth can complement existing healthcare relationships.",
+          "Charles Sturt University's Dubbo campus and TAFE NSW's Dubbo campus serve thousands of regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method is not a factor in acceptance.",
+        ],
+      },
+      {
+        title: "Distance, Weather, and the Case for Telehealth in Western NSW",
+        paragraphs: [
+          "The Orana's geography is defining. Distances between towns are measured in hours, not kilometres. Wet-weather events can cut roads for days at a time, and drought years strain every service including healthcare delivery. Telehealth continues to work as long as the mobile network is up, which it usually is even during significant weather disruptions. For a farmer on a property north of Dubbo dealing with a standard winter flu while the roads are cut, a telehealth certificate is often the only realistic option.",
+          "Dubbo employers — from the Dubbo Regional Council and NSW Health facilities, through to agricultural businesses, mining services companies, and local retailers — all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both accept certificates from AHPRA-registered doctors regardless of consultation method. There is no legislation that creates a telehealth versus face-to-face distinction.",
+          "Dubbo's role as a regional service hub also means it has a substantial commuter and visitor population on any given weekday. Workers who travel in from smaller Orana towns for shift work, contractors, agribusiness representatives, and visitors handling family or property business all benefit from the same telehealth pathway as residents. Certificates and scripts work the same way regardless of where you sleep at night.",
+        ],
+      },
+      {
+        title: "What Telehealth Replaces — and What It Doesn't",
+        paragraphs: [
+          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip — the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "Western NSW's distances make this distinction matter more than in metropolitan settings. A round trip from Cobar, Bourke, or Walgett to Dubbo for a routine certificate is a full day. Telehealth lets people in these communities reserve in-person appointments for things that actually need them, and handle the routine middle of healthcare in 20–30 minutes from home.",
+          "If your situation is not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged for the consultation. The clinical filter is identical regardless of where in the Orana you live.",
+        ],
+      },
+      {
+        title: "Practical Cost and Time Comparison for Western NSW",
+        paragraphs: [
+          "GP economics in Western NSW have shifted significantly over recent years. Bulk-billing has declined to one of the lowest rates in regional NSW, gap fees have grown to $40–$70, and waiting times have stretched to a week or more. For households across the Orana — particularly those on agricultural incomes that fluctuate with the seasons — the combined cost of a routine GP visit frequently exceeds what telehealth charges flat.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting through drought years and rural cost-of-living pressures, that predictability matters as much as the time saved.",
+          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or contractor directly. The full process — from starting the intake to having the documentation in hand — typically takes 30–60 minutes. For Dubbo and broader Orana residents, that is significantly faster than securing a same-day clinic appointment.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Dubbo",
+      paragraphs: [
+        "Dubbo has pharmacy coverage across Dubbo Square, Orana Mall, and the CBD. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in surrounding Orana towns — Wellington, Narromine, Nyngan, Coonamble, Cobar, Warren, Parkes, Forbes — also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are more limited in regional NSW than in Sydney, but Dubbo Square and Orana Mall locations trade into the early evening. Standard PBS co-payments apply to telehealth-issued eScripts — no pricing difference at the counter compared to a face-to-face prescription.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Western NSW Local Health District has integrated telehealth into its service planning — specifically because the region's distances and workforce shortages make face-to-face primary care genuinely impractical for a substantial share of residents.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the broader Orana region?", a: "Yes. Wellington, Narromine, Nyngan, Coonamble, Cobar, Warren, Walgett, Parkes, Forbes, Mudgee — anywhere in the Orana and Western Plains with internet access is covered." },
+      { q: "Can farmers on remote properties use InstantMed?", a: "Yes, as long as you have mobile or internet access. Many Orana properties have Starlink, NBN fixed wireless, or mobile coverage — all of which work with InstantMed. You can complete the intake from the homestead without driving into town." },
+      { q: "Can Charles Sturt University Dubbo students use InstantMed?", a: "Yes. CSU and all Australian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
 }
