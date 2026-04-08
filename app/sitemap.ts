@@ -10,6 +10,12 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
  * (conditions/, symptoms/, locations/, etc.) for GSC per-type index visibility.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Top-of-funnel head-term pillar pages — priority 1.0
+  const pillarPages = [
+    "/online-doctor-australia",
+    "/telehealth-australia",
+  ]
+
   const staticPages = [
     "",
     "/medical-certificate",
@@ -66,6 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const prescriptionMedSlugs = getAllMedications().map(m => m.slug)
 
   return [
+    ...pillarPages.map((route) => ({
+      url: `${baseUrl}${route}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "weekly" as const,
+      priority: 1.0,
+    })),
     ...staticPages.map((route) => ({
       url: `${baseUrl}${route}`,
       lastModified: BUILD_DATE,

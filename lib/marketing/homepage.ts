@@ -251,6 +251,8 @@ export const footerLinks = {
     { label: "Sitemap", href: "/sitemap-html" },
   ],
   resources: [
+    { label: "Online Doctor Australia", href: "/online-doctor-australia" },
+    { label: "Telehealth Australia", href: "/telehealth-australia" },
     { label: "Health Conditions", href: "/conditions" },
     { label: "Symptoms Guide", href: "/symptoms" },
     { label: "How-To Guides", href: "/guides" },
