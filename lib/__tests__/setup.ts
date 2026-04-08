@@ -179,6 +179,12 @@ vi.mock('@sentry/nextjs', () => ({
   captureException: vi.fn(),
   setUser: vi.fn(),
   setExtra: vi.fn(),
+  setTag: vi.fn(),
+  setContext: vi.fn(),
+  addBreadcrumb: vi.fn(),
+  withScope: vi.fn((cb: (scope: { setTag: () => void; setContext: () => void; setExtra: () => void }) => void) => {
+    cb({ setTag: vi.fn(), setContext: vi.fn(), setExtra: vi.fn() })
+  }),
 }))
 
 // ============================================================================
