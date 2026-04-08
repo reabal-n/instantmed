@@ -4,6 +4,7 @@ import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { MapPin, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { statesData, getAllStateSlugs } from "@/lib/seo/data/states"
 
 export const metadata: Metadata = {
   title: "Online Doctor | All Australian Locations",
@@ -54,6 +55,8 @@ const cities = [
 ]
 
 export default function LocationsPage() {
+  const stateSlugs = getAllStateSlugs()
+
   return (
     <div className="flex min-h-screen flex-col">
       <BreadcrumbSchema items={[
@@ -67,9 +70,40 @@ export default function LocationsPage() {
           <div className="mx-auto max-w-4xl">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
             <p className="text-muted-foreground text-center max-w-xl mx-auto mb-12">
-              InstantMed is available in 25+ cities and regions nationwide. No matter where you are, we&apos;ve got you covered.
+              InstantMed is available in every Australian state and territory. Browse by state for regional
+              context, or jump straight to your closest city.
             </p>
 
+            {/* ─────────── Browse by state (primary hub entry) ─────────── */}
+            <h2 className="text-xl font-semibold text-foreground mb-5">Browse by state</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-14">
+              {stateSlugs.map((slug) => {
+                const state = statesData[slug]
+                return (
+                  <Link
+                    key={slug}
+                    href={`/locations/state/${slug}`}
+                    className="group flex flex-col p-5 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs uppercase tracking-wide font-semibold text-primary">
+                        {state.shortName}
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {state.fullName}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {state.population} · {state.cities.length}+ cities
+                    </p>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* ─────────── Browse by city ─────────── */}
+            <h2 className="text-xl font-semibold text-foreground mb-5">Or browse by city</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {cities.map((city) => (
                 <Link
