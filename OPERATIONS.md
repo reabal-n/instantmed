@@ -300,11 +300,176 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 - [ ] Doctor dashboard access works
 - [ ] Sentry receiving events; Stripe payments succeeding; emails delivering
 
-### Rollback
+### Rollback Runbook
 
-1. Revert Vercel deployment to previous version
-2. If DB issue: apply rollback migration
-3. Notify affected users via email
+**Decision tree (5 min triage):**
+
+```
+Production alert fires
+        |
+        v
+Is the issue in code, DB, or config?
+        |
+   +----+----+----------+
+   |         |          |
+  code      DB        config
+   |         |          |
+   v         v          v
+FULL      MIGRATION   VERCEL ENV
+ROLLBACK  ROLLBACK    ROLLBACK
+```
+
+**Severity classes:**
+- **P0** (PHI leak, payment corruption, auth bypass) → rollback immediately, investigate after
+- **P1** (broken flow for > 10% of users, Stripe webhook DLQ > 10 events) → rollback if fix not ready in 15 min
+- **P2** (degraded UX, non-critical feature broken) → fix forward, no rollback
+
+---
+
+#### 1. Code rollback (full Vercel deployment revert)
+
+**When:** a recent deploy introduced a regression.
+
+**Steps:**
+
+1. **Identify the last known-good deployment** — Vercel Dashboard → instantmed → Deployments → find the deployment tagged READY with a commit SHA *before* the bad one. Note its deployment URL.
+2. **Promote it** — click the three-dot menu on that deployment → **"Promote to Production"**. This takes ~10 seconds and switches the production alias (`instantmed.com.au`) back to the old build. No rebuild required.
+3. **Verify** — curl `https://instantmed.com.au/api/health` returns 200 within 30 seconds of promotion. Check Sentry error rate drops within 2 minutes.
+4. **Revert the bad commit on main** — so the next deploy doesn't reintroduce it:
+   ```bash
+   git revert <bad-commit-sha>
+   git push origin main
+   ```
+   This triggers a new deploy with the revert — verify it goes green in Vercel and CI before closing the incident.
+5. **Post-incident** — create a Sentry issue note with the bad commit SHA, the symptom, and the rollback time.
+
+**Common gotchas:**
+- Vercel promote is atomic and idempotent. You cannot "half-rollback."
+- If the bad deploy changed env vars (via `vercel env add`), the rollback does NOT revert those. Check Vercel env vars against git history.
+- Clerk sessions survive rollback. If the issue was middleware auth, **also revoke all sessions** (see section 4).
+
+---
+
+#### 2. Database migration rollback
+
+**When:** a migration broke RLS, corrupted data, or locked a table.
+
+**Reversibility matrix** (check before applying any migration to prod):
+
+| Migration type | Reversible? | Rollback path |
+|---|---|---|
+| `CREATE TABLE` | ✅ Yes | `DROP TABLE` |
+| `ADD COLUMN` (nullable) | ✅ Yes | `DROP COLUMN` |
+| `ADD COLUMN NOT NULL` (no default) | ⚠️ If you have the data | Requires backfill on rollback |
+| `CREATE INDEX` | ✅ Yes | `DROP INDEX` |
+| `CREATE POLICY` | ✅ Yes | `DROP POLICY` |
+| `ALTER POLICY` | ✅ Yes (if you saved the original) | `DROP` + recreate with saved definition |
+| `DROP TABLE` | ❌ **NO** | Restore from PITR backup |
+| `DROP COLUMN` | ❌ **NO** | Restore from PITR backup |
+| `UPDATE` (data migration) | ⚠️ Depends | Restore from PITR backup if no snapshot |
+| `GRANT` / `REVOKE` | ✅ Yes | Inverse statement |
+
+**Steps:**
+
+1. **Stop writes immediately** — if the issue is data corruption, set `DISABLE_INTAKE_EVENTS=true` in Vercel env to halt new intake creation while you investigate. This is a kill switch — see "Kill Switches" section.
+2. **Assess reversibility** — use the matrix above. If it's a `DROP` on a non-empty table, skip to step 5 (PITR restore).
+3. **Write the rollback migration** — in a NEW migration file named `<timestamp>_rollback_<original_name>.sql`. Never edit or delete the original migration — it's part of history.
+4. **Apply via Supabase MCP or CLI** — `mcp__supabase__apply_migration` or `supabase db push`. Verify with `mcp__supabase__get_advisors` that no new security lints appeared.
+5. **PITR restore** (only if irreversible) — Supabase Dashboard → Project → Database → Backups → select a point-in-time **before** the bad migration. This causes ~5 minutes of downtime. Coordinate with users via status page.
+6. **Fix forward** — write a corrected migration and re-apply.
+
+**Our recent example:** migration `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` is fully reversible because every statement is `DROP POLICY IF EXISTS` + `CREATE POLICY` + `REVOKE`. To roll back: write a new migration that `DROP`s the new policies and recreates the old permissive ones.
+
+---
+
+#### 3. Stripe webhook DLQ replay
+
+**When:** webhooks failed during the incident window and events need to be reprocessed.
+
+**How it works:** every failed webhook event lands in `webhook_dlq` (dead letter queue) with the full event payload. The admin panel at `/admin/ops/webhook-dlq` lists entries.
+
+**Steps:**
+
+1. **Check DLQ depth** — Vercel deploy logs or `/admin/ops/webhook-dlq` shows count. Sentry alerts fire at > 5 unprocessed events.
+2. **Investigate root cause** — click an entry, read the error. Common causes: signature verification failed (env var wrong), downstream DB error (migration issue), handler bug.
+3. **Fix the root cause** — don't replay until the underlying issue is resolved. Otherwise the replay just re-fails and doubles the queue.
+4. **Replay individually** — for each entry in DLQ, click "Retry." This POSTs the original payload back to `/api/stripe/webhook` with the original signature (re-verified idempotently via `tryClaimEvent`).
+5. **Bulk replay** — for > 10 entries, use the admin "Retry all" button. This processes sequentially with rate limiting to avoid overwhelming the downstream.
+6. **Verify** — DLQ depth returns to 0, Sentry alert clears, and the affected intakes show the expected state transitions in `intake_events` log.
+
+**Idempotency guarantee:** `tryClaimEvent` is a Supabase RPC that uses `INSERT ... ON CONFLICT` on `stripe_event_id`. A double-replay of the same event is a no-op.
+
+---
+
+#### 4. Clerk session revoke (auth incident)
+
+**When:** the rollback was auth-related and you need to force every user to re-authenticate.
+
+**Steps:**
+
+1. Clerk Dashboard → instantmed → Sessions → "Revoke all sessions."
+2. Confirm the warning dialog. This invalidates every JWT across all users immediately.
+3. Users will be redirected to `/auth/login` on their next request. Post an in-app banner (via `feature_flags` table) if the incident window is > 5 minutes.
+4. **This is irreversible** — users cannot "un-log-out" without signing back in. Only use for actual auth compromises.
+
+---
+
+#### 5. Vercel env var rollback
+
+**When:** a config change (env var edit/delete) broke production.
+
+**Steps:**
+
+1. Vercel Dashboard → instantmed → Settings → Environment Variables.
+2. **Scroll the audit log** (top right of the env vars page, "Recent changes") to find the last change before the incident.
+3. Restore the old value manually — Vercel does NOT automatically version env vars. You must remember the old value or recover from `.env.production` (if you pulled it recently) or from `git log` on `.env.local`.
+4. Trigger a new deployment — env vars only take effect on new builds. Either push an empty commit (`git commit --allow-empty -m "chore: redeploy after env rollback"`) or click "Redeploy" on the latest deployment in Vercel.
+
+**Prevention:** before editing any env var in production, pull the current value with `vercel env pull .env.production.backup` so you have a rollback copy.
+
+---
+
+#### 6. Comms template (P0/P1 only)
+
+When rolling back affects users, post a status update within 10 minutes of the rollback completing.
+
+**Status page (status.instantmed.com.au if configured):**
+```
+[INVESTIGATING] We're aware of an issue affecting [symptom]. Our team
+is investigating and we'll post an update within 15 minutes.
+```
+
+**Email to affected users (if > 50 users impacted):**
+```
+Subject: InstantMed service update
+
+Hi there,
+
+Between [start time] and [end time] AEST today, some users experienced
+[symptom]. We've resolved the issue and your account is back to
+normal. If you started a request during that window and haven't
+received your certificate or prescription, please reply to this email
+and we'll check your status manually.
+
+Apologies for the disruption,
+The InstantMed team
+```
+
+Send via Resend transactional — do NOT use a marketing email template (compliance risk).
+
+---
+
+#### 7. Post-incident checklist
+
+After every rollback, within 24 hours:
+
+- [ ] Sentry issue created with root cause, timeline, and commit SHAs
+- [ ] GitHub PR opened with the fix forward (if not already landed)
+- [ ] Incident duration noted (start of symptom → full recovery)
+- [ ] Number of affected users counted (via PostHog funnel drop-off comparison)
+- [ ] PostHog annotation added at both boundaries
+- [ ] CLAUDE.md or ARCHITECTURE.md updated if the incident revealed a documentation gap
+- [ ] If PHI-adjacent: logged in `compliance_audit_log` with incident classification per SECURITY.md
 
 ---
 
