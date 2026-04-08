@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 'lucide-react'
+import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
@@ -16,13 +16,15 @@ import { ConsultMockup } from '@/components/marketing/mockups/consult'
 const mockupMap: Record<string, React.ComponentType> = {
   'med-cert': CertificateMockup,
   'scripts': EScriptMockup,
-  'consult': ConsultMockup,
+  'ed': ConsultMockup,        // TODO: replaced with EDMockup in Task 5
+  'hair-loss': ConsultMockup, // TODO: replaced with HairLossMockup in Task 12
 }
 
 const iconMap = {
   FileText: DocumentPremium,
   Pill: PillPremium,
   Stethoscope: StethoscopePremium,
+  Sparkles: Sparkles,
 }
 
 const colorConfig: Record<string, { 
@@ -48,6 +50,12 @@ const colorConfig: Record<string, {
     accent: '#3B82F6',
     light: 'rgba(59, 130, 246, 0.08)',
     chipColor: 'primary'
+  },
+  violet: {
+    gradient: 'from-violet-400 to-purple-500',
+    accent: '#8B5CF6',
+    light: 'rgba(139, 92, 246, 0.08)',
+    chipColor: 'primary',
   },
 }
 
@@ -127,7 +135,7 @@ export function ServicePicker() {
 
         {/* Service Cards Grid */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
