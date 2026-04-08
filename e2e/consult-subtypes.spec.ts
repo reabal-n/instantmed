@@ -34,14 +34,14 @@ const CONSULT_SUBTYPES = [
     urlSubtype: 'ed',
     firstStepHeading: /erectile dysfunction|ED.*assessment/i,
     expectedPriceEnvVar: 'STRIPE_PRICE_CONSULT_ED',
-    displayPrice: '$39.95',
+    displayPrice: '$49.95',
   },
   {
     subtype: 'hair_loss',
     urlSubtype: 'hair_loss',
     firstStepHeading: /hair loss|pattern.*hair/i,
     expectedPriceEnvVar: 'STRIPE_PRICE_CONSULT_HAIR_LOSS',
-    displayPrice: '$39.95',
+    displayPrice: '$49.95',
   },
   {
     subtype: 'womens_health',
@@ -55,7 +55,7 @@ const CONSULT_SUBTYPES = [
     urlSubtype: 'weight_loss',
     firstStepHeading: /weight loss|weight.*assessment/i,
     expectedPriceEnvVar: 'STRIPE_PRICE_CONSULT_WEIGHT_LOSS',
-    displayPrice: '$79.95',
+    displayPrice: '$89.95',
   },
 ]
 
@@ -213,9 +213,9 @@ test.describe("Consult Sub-Services - Price Display on Hub", () => {
     await expect(page.getByText("ED treatment")).toBeVisible({ timeout: 5000 })
     
     // Check that different prices are displayed
-    // ED and Hair loss: $39.95
+    // ED and Hair loss: $49.95
     // Women's health: $59.95
-    // Weight loss: $79.95
+    // Weight loss: $89.95
     // General: $49.95
     
     // At minimum, we should see the consult section expanded with sub-services

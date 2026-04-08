@@ -10,7 +10,7 @@ InstantMed provides three core telehealth services to Australian residents (18+)
 
 2. **Prescriptions** — Repeat prescription requests for existing medications. A doctor reviews your history and, if appropriate, issues an electronic prescription (eScript) sent to your phone. From $29.95.
 
-3. **Doctor Consultations** — Text-based consultations for general health, weight management, hair loss, women's health, and more. No video call required. From $39.95.
+3. **Doctor Consultations** — Text-based consultations for general health, weight management, hair loss, women's health, and more. No video call required. From $49.95.
 
 ## Key Facts
 
@@ -42,10 +42,10 @@ InstantMed provides three core telehealth services to Australian residents (18+)
 | Repeat prescription | $29.95 |
 | New prescription | $49.95 |
 | General consultation | $49.95 |
-| Weight loss consultation | $79.95 |
+| Weight loss consultation | $89.95 |
 | Women's health consultation | $59.95 |
-| Hair loss consultation | $39.95 |
-| ED consultation | $39.95 |
+| Hair loss consultation | $49.95 |
+| ED consultation | $49.95 |
 
 ## Contact
 

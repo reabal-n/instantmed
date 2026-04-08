@@ -78,10 +78,10 @@ InstantMed offers text-based doctor consultations. No video call is required —
 ### Consultation Types
 
 - **General consultation** ($49.95) — General health concerns, follow-up care
-- **Weight management** ($79.95) — Weight loss assessment and treatment plans
+- **Weight management** ($89.95) — Weight loss assessment and treatment plans
 - **Women's health** ($59.95) — Contraception, menstrual issues, menopause
-- **Hair loss** ($39.95) — Male and female pattern hair loss
-- **ED consultation** ($39.95) — Erectile dysfunction assessment
+- **Hair loss** ($49.95) — Male and female pattern hair loss
+- **ED consultation** ($49.95) — Erectile dysfunction assessment
 - **Performance anxiety** — Situational anxiety assessment
 
 ### Consultation Process

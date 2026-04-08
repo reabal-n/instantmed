@@ -137,10 +137,10 @@ test.describe("Smoke: Price display at checkout step", () => {
     { service: "med-cert?duration=3", label: "Med cert 3-day", expectedPrice: "$39.95" },
     { service: "prescription", label: "Repeat prescription", expectedPrice: "$29.95" },
     { service: "consult&subtype=general", label: "General consult", expectedPrice: "$49.95" },
-    { service: "consult&subtype=ed", label: "ED consult", expectedPrice: "$39.95" },
-    { service: "consult&subtype=hair_loss", label: "Hair loss consult", expectedPrice: "$39.95" },
+    { service: "consult&subtype=ed", label: "ED consult", expectedPrice: "$49.95" },
+    { service: "consult&subtype=hair_loss", label: "Hair loss consult", expectedPrice: "$49.95" },
     { service: "consult&subtype=womens_health", label: "Women's health consult", expectedPrice: "$59.95" },
-    { service: "consult&subtype=weight_loss", label: "Weight loss consult", expectedPrice: "$79.95" },
+    { service: "consult&subtype=weight_loss", label: "Weight loss consult", expectedPrice: "$89.95" },
   ]
 
   for (const { service, label, expectedPrice } of cases) {

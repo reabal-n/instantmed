@@ -414,7 +414,7 @@ export const competitorComparisonArticles: Article[] = [
           'InstantMed medical certificate — $19.95 to $39.95 depending on duration (1-3 days). No Medicare rebate, but the total cost is often less than a private GP gap payment.',
           'InstantMed repeat prescription — $29.95. Again, no Medicare rebate, but predictable and often comparable to or less than a private GP gap.',
           'InstantMed general consultation — $49.95. This is where the comparison gets closer to GP pricing. For a complex issue, a bulk-billed GP is clearly cheaper (free). For a straightforward issue at a private GP, it is roughly comparable.',
-          'Specialised InstantMed consultations — $39.95 to $79.95 depending on the type. Competitive with private GP pricing for equivalent services.',
+          'Specialised InstantMed consultations — $49.95 to $89.95 depending on the type. Competitive with private GP pricing for equivalent services.',
         ],
       },
       {

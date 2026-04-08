@@ -41,10 +41,10 @@ export const PRICING = {
   REPEAT_SCRIPT: 29.95,   // Repeat prescription
   NEW_SCRIPT: 49.95,      // New prescription (same as consult)
   CONSULT: 49.95,         // General consultation
-  MENS_HEALTH: 39.95,     // ED consultation
+  MENS_HEALTH: 49.95,     // ED consultation
   WOMENS_HEALTH: 59.95,   // Women's health
-  HAIR_LOSS: 39.95,       // Hair loss consultation
-  WEIGHT_LOSS: 79.95,     // Weight loss consultation
+  HAIR_LOSS: 49.95,       // Hair loss consultation
+  WEIGHT_LOSS: 89.95,     // Weight loss consultation
   REFERRAL: 29.95,
   PATHOLOGY: 29.95,
   PRIORITY_FEE: 9.95,    // Express review fee

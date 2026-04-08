@@ -143,10 +143,10 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | Repeat prescription | $29.95 | `STRIPE_PRICE_REPEAT_SCRIPT` |
 | New prescription | $49.95 | Uses `STRIPE_PRICE_CONSULT` (routed via consult flow) |
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
-| ED consult | $39.95 | `STRIPE_PRICE_CONSULT_ED` |
-| Hair loss | $39.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
+| ED consult | $49.95 | `STRIPE_PRICE_CONSULT_ED` |
+| Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
 | Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
-| Weight loss | $79.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Weight loss | $89.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Repeat Rx subscription | $19.95/mo | `STRIPE_PRICE_REPEAT_RX_MONTHLY` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |

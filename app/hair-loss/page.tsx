@@ -6,7 +6,7 @@ import { HairLossClient } from "./hair-loss-client"
 export const metadata: Metadata = {
   title: "Hair Loss Treatment Online Australia",
   description:
-    "Consult an AHPRA-registered Australian doctor about hair loss treatment. Discreet online assessment, personalised treatment plan. From $39.95.",
+    "Consult an AHPRA-registered Australian doctor about hair loss treatment. Discreet online assessment, personalised treatment plan. From $49.95.",
   keywords: [
     "hair loss treatment australia",
     "hair loss treatment online",

@@ -301,15 +301,15 @@ describe("declineIntake", () => {
       expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_partial_intake-consult" })
     })
 
-    it("consult with $79.95 (weight loss) → 3997 cents partial refund", async () => {
+    it("consult with $89.95 (weight loss) → 4497 cents partial refund", async () => {
       mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 7995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_w", amount: 3997 } as never)
+      mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 8995 }))
+      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_w", amount: 4497 } as never)
 
       await declineIntake({ intakeId: "intake-weight" })
 
       const [refundParams] = getRefundCall()
-      expect(refundParams.amount).toBe(3997) // Math.floor(7995 / 2) — rounds down
+      expect(refundParams.amount).toBe(4497) // Math.floor(8995 / 2) — rounds down
     })
 
     it("consult with odd cent count → Math.floor rounds DOWN (never overpays)", async () => {
