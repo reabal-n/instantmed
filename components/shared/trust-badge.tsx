@@ -318,32 +318,8 @@ function AhpraBadge({ config, className }: { config: BadgeConfig; className?: st
   )
 }
 
-// refund — hexagonal stamp (Framer, emerald)
-function RefundBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
-  const Icon = config.icon
-  return (
-    <motion.div
-      className={cn(
-        'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border',
-        config.pillClass,
-        className,
-      )}
-      style={{
-        clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
-        padding: '6px 16px',
-      }}
-      initial={{ rotate: reducedMotion ? 0 : -3 }}
-      animate={{ rotate: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-    >
-      <Icon className={cn('w-3.5 h-3.5 shrink-0', config.iconColor)} aria-hidden="true" />
-      <span>{config.label}</span>
-    </motion.div>
-  )
-}
-
-// legally_valid — hexagonal stamp (Framer, indigo)
-function LegallyValidBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
+// refund / legally_valid — hexagonal stamp (Framer) — shared implementation
+function HexStampBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
     <motion.div
@@ -381,7 +357,7 @@ function AuDataBadge({ config, className }: { config: BadgeConfig; className?: s
       <span>{config.label}</span>
       {[0, 0.3, 0.6].map((delay, i) => (
         <span
-          key={i}
+          key={`dot-${i}`}
           className="w-1 h-1 rounded-full bg-blue-500 animate-pulse inline-block mx-px"
           style={{ animationDelay: `${delay}s` }}
         />
@@ -518,12 +494,10 @@ function SocialProofBadge({ config, className, reducedMotion }: { config: BadgeC
   const displayCount = useTransform(motionCount, Math.round)
 
   useEffect(() => {
-    if (!reducedMotion) {
-      const controls = animate(motionCount, count, { duration: 1.2, ease: 'easeOut' })
-      return controls.stop
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (reducedMotion) return
+    const controls = animate(motionCount, count, { duration: 1.2, ease: 'easeOut' })
+    return controls.stop
+  }, [reducedMotion]) // motionCount is a stable ref
 
   return (
     <div
@@ -569,9 +543,9 @@ function StyledBadge({ id, className }: { id: BadgeId; className?: string }) {
     case 'ahpra':
       return <AhpraBadge config={config} className={className} />
     case 'refund':
-      return <RefundBadge config={config} className={className} reducedMotion={reducedMotion} />
+      return <HexStampBadge config={config} className={className} reducedMotion={reducedMotion} />
     case 'legally_valid':
-      return <LegallyValidBadge config={config} className={className} reducedMotion={reducedMotion} />
+      return <HexStampBadge config={config} className={className} reducedMotion={reducedMotion} />
     case 'au_data':
       return <AuDataBadge config={config} className={className} />
     case 'stripe':
@@ -662,7 +636,7 @@ export function TrustBadgeGrid({ preset, badges, className }: TrustBadgeGridProp
                   )}>
                     <Icon className={cn('w-5 h-5', config.iconColor)} aria-hidden="true" />
                   </div>
-                  <TrustBadge id={id} variant={variant} />
+                  <TrustBadge id={id} variant="plain" />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">
