@@ -10,8 +10,18 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 // COMPONENT
 // =============================================================================
 
+type FAQItem = { readonly question: string; readonly answer: string }
+
 /** Section 5: FAQ with expanded items */
-export function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
+export function FaqCtaSection({
+  onFAQOpen,
+  faqs = MED_CERT_FAQ,
+  subtitle = "Everything you need to know about getting your certificate.",
+}: {
+  onFAQOpen?: (question: string, index: number) => void
+  faqs?: readonly FAQItem[]
+  subtitle?: string
+}) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
@@ -30,18 +40,18 @@ export function FaqCtaSection({ onFAQOpen }: { onFAQOpen?: (question: string, in
             Common questions
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-            Everything you need to know about getting your certificate.
+            {subtitle}
           </p>
         </motion.div>
 
         {/* Accordion — flat style, no double containers */}
         <FAQList
-          items={MED_CERT_FAQ}
+          items={faqs}
           itemClassName="border-b border-border/40 last:border-b-0 first:border-t first:border-t-border/40 rounded-none bg-transparent shadow-none px-0 hover:border-border/40 hover:shadow-none"
           onValueChange={(value) => {
             if (value && onFAQOpen) {
               const idx = parseInt(value, 10)
-              onFAQOpen(MED_CERT_FAQ[idx]?.question ?? "", idx)
+              onFAQOpen(faqs[idx]?.question ?? "", idx)
             }
           }}
         />

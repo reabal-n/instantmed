@@ -13,7 +13,7 @@ import { StepOneMockup, StepTwoMockup, StepThreeMockup } from "@/components/mark
 // DATA
 // =============================================================================
 
-const HOW_IT_WORKS_STEPS = [
+const MED_CERT_STEPS = [
   {
     number: "1",
     title: "Tell us what\u2019s going on",
@@ -45,7 +45,17 @@ const VIDEO_WALKTHROUGH_URL: string | null = null
 // =============================================================================
 
 /** Section 2: How It Works with animated FloatingCard mockups */
-export function HowItWorksSection({ onCTAClick }: { onCTAClick?: () => void }) {
+export function HowItWorksSection({
+  onCTAClick,
+  steps = MED_CERT_STEPS,
+  ctaText = "Get your certificate",
+  ctaHref = "/request?service=med-cert",
+}: {
+  onCTAClick?: () => void
+  steps?: typeof MED_CERT_STEPS
+  ctaText?: string
+  ctaHref?: string
+}) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
@@ -82,7 +92,7 @@ export function HowItWorksSection({ onCTAClick }: { onCTAClick?: () => void }) {
           {/* Desktop connector */}
           <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t-2 border-dashed border-primary/20" />
 
-          {HOW_IT_WORKS_STEPS.map((step, index) => {
+          {steps.map((step, index) => {
             const Mockup = stepMockups[index]
             return (
               <div key={step.number} className="relative">
@@ -129,8 +139,8 @@ export function HowItWorksSection({ onCTAClick }: { onCTAClick?: () => void }) {
             className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
             onClick={onCTAClick}
           >
-            <Link href="/request?service=med-cert">
-              Get your certificate <ArrowRight className="h-4 w-4" />
+            <Link href={ctaHref}>
+              {ctaText} <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">

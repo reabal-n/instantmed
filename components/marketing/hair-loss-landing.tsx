@@ -40,6 +40,7 @@ import {
 } from "@/lib/data/testimonials"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
+import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 
 // Below-fold lazy loads — keep initial bundle small
 const TestimonialsSection = dynamic(
@@ -113,6 +114,27 @@ const RECENT_ACTIVITY_ENTRIES = [
 ]
 
 const RELATED_ARTICLES: Array<{ title: string; href: string }> = []
+
+const HAIR_LOSS_HOW_IT_WORKS_STEPS = [
+  {
+    number: "1",
+    title: "Tell us what\u2019s going on",
+    description: "Quick health form, takes about 2 minutes. No account needed to start.",
+    badge: "~2 min",
+  },
+  {
+    number: "2",
+    title: "A real GP reviews it",
+    description: "AHPRA-registered doctor reviews your assessment. Same standards as in-person.",
+    badge: "~1 hour",
+  },
+  {
+    number: "3",
+    title: "Treatment plan delivered",
+    description: "eScript sent to your phone via SMS. Collect your treatment from any Australian pharmacy.",
+    badge: "Same day",
+  },
+]
 
 const TREATMENT_OPTIONS = [
   {
@@ -642,7 +664,12 @@ export function HairLossLanding() {
           <SocialProofStrip />
 
           {/* 2. How It Works */}
-          <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
+          <HowItWorksSection
+            onCTAClick={handleHowItWorksCTA}
+            steps={HAIR_LOSS_HOW_IT_WORKS_STEPS}
+            ctaText={`Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`}
+            ctaHref="/request?service=consult&subtype=hair_loss"
+          />
 
           {/* 2b. Treatment options — unique to hair loss, not on ED page */}
           <TreatmentOptions />
@@ -682,7 +709,11 @@ export function HairLossLanding() {
           <RegulatoryPartners className="py-12" />
 
           {/* 6. FAQ */}
-          <FaqCtaSection onFAQOpen={handleFAQOpen} />
+          <FaqCtaSection
+            onFAQOpen={handleFAQOpen}
+            faqs={HAIR_LOSS_FAQ}
+            subtitle="Everything you need to know about hair loss treatment online."
+          />
 
           {/* Referral awareness strip */}
           <div className="py-6 border-t border-border/30 dark:border-white/10">
@@ -699,7 +730,14 @@ export function HairLossLanding() {
           </div>
 
           {/* 7. Final CTA */}
-          <FinalCtaSection onCTAClick={handleFinalCTA} />
+          <FinalCtaSection
+            onCTAClick={handleFinalCTA}
+            title="Start treating hair loss today."
+            subtitle="Fill a short form. A doctor reviews it and — if appropriate — sends treatment straight to your phone. No call, no waiting room."
+            ctaText={`Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`}
+            ctaHref="/request?service=consult&subtype=hair_loss"
+            price={PRICING.HAIR_LOSS}
+          />
         </main>
 
         <MarketingFooter />
