@@ -17,7 +17,7 @@ const consults = [
     description:
       "Discreet assessment and treatment. Clinically proven medications prescribed if appropriate.",
     price: PRICING_DISPLAY.MENS_HEALTH,
-    href: "/request?service=consult&subtype=ed",
+    href: "/erectile-dysfunction",
   },
   {
     icon: Sparkles,
@@ -25,7 +25,7 @@ const consults = [
     description:
       "Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian GP.",
     price: PRICING_DISPLAY.HAIR_LOSS,
-    href: "/request?service=consult&subtype=hair-loss",
+    href: "/hair-loss",
   },
   {
     icon: Stethoscope,
