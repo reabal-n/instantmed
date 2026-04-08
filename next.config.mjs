@@ -133,12 +133,13 @@ const nextConfig = {
         destination: "/general-consult",
         permanent: true
       },
-      // Missing route redirects — prevent external 404s
+      // Short URL for ED landing — marketing/link-in-bio friendly
       {
-        source: "/erectile-dysfunction",
-        destination: "/general-consult",
+        source: "/ed",
+        destination: "/erectile-dysfunction",
         permanent: true
       },
+      // Missing route redirects — prevent external 404s
       {
         source: "/prescription",
         destination: "/prescriptions",
