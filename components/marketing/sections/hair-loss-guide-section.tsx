@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Brain, FlaskConical, Stethoscope, ShieldAlert, Monitor } from "lucide-react"
+import { BadgeCheck, Brain, FlaskConical, Stethoscope, ShieldAlert, Monitor, Repeat } from "lucide-react"
 
 // =============================================================================
 // DATA
@@ -18,6 +18,7 @@ const GUIDE_SECTIONS = [
       "Hair loss is one of the most common medical conditions in Australia — and one of the least discussed. Androgenetic alopecia (pattern hair loss) affects roughly 50% of men over 50 and around 40% of women experience noticeable thinning by menopause. Despite how common it is, many people treat it as a cosmetic concern rather than what it actually is: a medical condition with well-understood biology and effective treatments.",
       "The primary driver in most cases is dihydrotestosterone (DHT), a hormone derived from testosterone. DHT binds to receptors in hair follicles — particularly at the crown and temples in men — and gradually miniaturises them. Each growth cycle produces a thinner, shorter hair until the follicle eventually stops producing visible hair altogether. In women, the pattern is different: thinning tends to be diffuse across the top of the scalp rather than receding at the hairline.",
       "Doctors classify male pattern hair loss using the Norwood scale (seven stages from minor temple recession to extensive loss) and female pattern hair loss using the Ludwig scale (three stages of increasing diffuse thinning). These classification systems aren't just academic — they help determine which treatments are most appropriate and set realistic expectations. The single most important thing to understand: it is significantly easier to maintain existing hair than to regrow what's already been lost. Early intervention isn't marketing — it's biology.",
+      "Not all hair loss is pattern hair loss, and that distinction matters for treatment. Telogen effluvium is a diffuse shedding triggered by a physiological stress — major illness, rapid weight change, childbirth, surgery, or a traumatic life event — usually beginning two to three months after the trigger and resolving on its own over six to twelve months once the underlying cause is addressed. Alopecia areata is an autoimmune condition that causes well-defined circular patches of sudden hair loss and is clinically distinct from androgenetic alopecia in both appearance and treatment. Nutritional and medical factors — iron deficiency, thyroid dysfunction, severe calorie or protein restriction, and certain vitamin deficiencies — can cause or amplify hair thinning. A responsible consultation rules these out before prescribing long-term treatment for pattern hair loss, because the treatment that works beautifully for androgenetic alopecia does nothing for a thyroid problem.",
     ],
   },
   {
@@ -25,9 +26,11 @@ const GUIDE_SECTIONS = [
     icon: FlaskConical,
     title: "Evidence-based treatment options",
     paragraphs: [
+      "Both treatment categories used for pattern hair loss are TGA-registered in Australia. That means the Therapeutic Goods Administration has reviewed the safety, quality, and efficacy data before approving them for use — they are not supplements, wellness products, or unregulated compounded formulations. Decades of peer-reviewed randomised controlled trials support the mechanisms and outcomes described below, and every prescription we issue is for a TGA-approved product dispensed through an Australian pharmacy.",
       "There are two main categories of treatment for pattern hair loss, both supported by decades of clinical evidence. The first is an oral treatment that works by blocking the enzyme responsible for converting testosterone to DHT — the hormone that miniaturises hair follicles. By reducing DHT levels, this treatment slows or stops further hair loss and, in many cases, allows partially miniaturised follicles to recover. It's taken as a daily tablet and is most effective for hair loss at the crown and mid-scalp. Most people see reduced shedding within three months, with visible improvement by six to twelve months.",
       "The second approach is a topical treatment applied directly to the scalp. It works by stimulating blood flow to hair follicles and prolonging the growth phase of the hair cycle. Available in different strengths and formulations (liquid and foam), it's applied once or twice daily depending on the preparation. It's effective for both men and women, though the recommended strengths differ.",
       "Many people use both treatments together — the oral treatment addresses the hormonal cause while the topical treatment directly stimulates follicle activity. Your doctor will recommend the approach that makes sense for your specific pattern, severity, and medical history. One thing to be clear about: results take time. Three months is the minimum to see reduced shedding, and six to twelve months for meaningful regrowth. Anyone promising faster results is selling something other than medicine.",
+      "To put the timeline in one place: expect reduced shedding by three months, visible improvement by six months, and the full effect of treatment at around twelve months. Stopping treatment at month four because you haven't seen regrowth yet is the single most common reason hair loss treatment 'doesn't work' — you simply haven't given it long enough. Treatment is also a long-term commitment because the improvement you achieve persists only as long as you continue taking it. Within six to twelve months of stopping, hair loss typically resumes at the rate it would have without any treatment.",
     ],
   },
   {
@@ -38,6 +41,7 @@ const GUIDE_SECTIONS = [
       "A hair loss consultation starts with your medical history — not just your hair. Your doctor will ask about family history of hair loss (both sides matter, not just your father's), when you first noticed thinning, and how it's progressed. They'll also screen for other conditions that can cause or worsen hair loss: thyroid disorders, iron deficiency, hormonal imbalances, stress, and certain medications. Hair loss can be a symptom of something else entirely, and a responsible doctor checks before prescribing.",
       "You may be asked to provide photos of your scalp from specific angles. For pattern hair loss, photos are genuinely diagnostic — they show distribution, density, and miniaturisation in ways that are often more informative than a physical examination. Your doctor will assess whether your pattern is consistent with androgenetic alopecia or whether further investigation (blood tests, specialist referral) is warranted.",
       "Based on this assessment, your doctor creates a personalised treatment plan. This includes which treatment approach is appropriate, what strength and formulation to use, what results to realistically expect, and when to follow up. Not everyone is a candidate for every treatment — and a good consultation is as much about ruling things out as it is about prescribing.",
+      "Specifically, your doctor is looking at five things: the pattern of your hair loss (is it consistent with androgenetic alopecia, or is it diffuse, patchy, or scarring?), the duration and rate of progression (stable, slowly worsening, or accelerating?), your current medications and supplements (some can cause or contribute to shedding), your family history on both sides (your maternal grandfather's pattern is as relevant as your father's), and any recent health changes — thyroid symptoms, weight changes, stress, or recent illness. These aren't formality questions. Each one can change the treatment recommendation, and a few can rule out online treatment entirely in favour of an in-person review.",
     ],
   },
   {
@@ -48,6 +52,7 @@ const GUIDE_SECTIONS = [
       "Honesty about side effects isn't a liability — it's the reason you should trust a service. Oral treatments that block DHT can cause sexual side effects in a small percentage of users: approximately 1–2% may experience decreased libido, erectile difficulty, or reduced ejaculate volume. In the vast majority of cases, these effects are mild and resolve completely after stopping the medication. There are rare reports of persistent effects, though large-scale studies suggest this is uncommon.",
       "Topical treatments are generally well tolerated. The most common side effect is scalp irritation — dryness, flaking, or itching at the application site. Some people experience unwanted hair growth on areas adjacent to the application site (forehead, cheeks), which is why careful application matters. Rarely, topical treatments can cause dizziness or heart palpitations, particularly at higher strengths.",
       "Women should not use certain oral treatments for hair loss due to the risk of birth defects during pregnancy. This is a hard contraindication, not a precaution. Your doctor will discuss safe alternatives. For all treatments, ongoing monitoring is part of the process — your doctor adjusts the plan based on how you respond, both in terms of results and any side effects. A treatment that works brilliantly on paper but makes you miserable in practice isn't a good treatment.",
+      "Not everyone is a candidate for oral hair loss treatment. Women who are pregnant, breastfeeding, or may become pregnant must not take or handle oral DHT-blocking tablets — the risk of birth defects in a male fetus is clearly established and is a hard contraindication, not a precaution. People with significant liver disease generally shouldn't take oral hair loss treatment either, because the liver metabolises these medicines and impaired function can lead to higher blood levels and greater side-effect risk. Your doctor screens for these factors during the assessment and recommends a safer alternative where appropriate — topical treatment remains an option for most people who can't take the oral form.",
     ],
   },
   {
@@ -59,6 +64,17 @@ const GUIDE_SECTIONS = [
       "Follow-up is equally straightforward. Treatment monitoring means checking: is the shedding slowing? Is there visible improvement? Are there any side effects? All of this can be communicated through a brief questionnaire and updated photos. Regular check-ins are easy to schedule and don't require taking time off work or sitting in a waiting room.",
       "There's also a practical reality that matters: many men delay seeking treatment for hair loss because they find it embarrassing. Walking into a clinic and saying \"I'm losing my hair\" feels harder than it should. Online consultations remove that barrier entirely. You complete a medical questionnaire, upload photos, and a doctor reviews everything privately. No waiting room, no small talk, no judgement. Given that early treatment produces the best results, anything that gets people to act sooner is genuinely good medicine.",
     ],
+  },
+  {
+    id: "continuing-treatment",
+    icon: Repeat,
+    title: "Ongoing treatment and repeat prescriptions",
+    paragraphs: [
+      "Hair loss treatment is not a course — it's an ongoing commitment. Once you and your doctor land on a regimen that works, the goal is continuity. The improvement you achieve in the first twelve months is maintained only as long as you keep taking the treatment. Stopping is the fastest way to lose what you gained, typically within six to twelve months of your last dose.",
+      "Because of that reality, we've made the repeat prescription flow deliberately low-friction. After your initial consultation, you can request follow-up prescriptions through a short repeat questionnaire. An AHPRA-registered doctor confirms you're tolerating the treatment, screens for any new conditions or medications, and either re-issues the prescription or recommends a follow-up review. There's no need to retell your full history every time, but there's no 'approval on autopilot' either — each repeat is a fresh clinical decision made by a human doctor.",
+      "If you prefer set-and-forget, you can opt into a monthly repeat subscription. It schedules the doctor review and eScript issue for you each month at a flat fee, and you can pause or cancel at any time from your dashboard. Either way, the ongoing clinical responsibility stays with an Australian-registered doctor — not an algorithm, and not a form with a rubber stamp.",
+    ],
+    link: { href: "/prescriptions", label: "Request a repeat prescription" },
   },
 ] as const
 
@@ -126,6 +142,15 @@ export function HairLossGuideSection() {
                       </p>
                     ))}
                   </div>
+                  {"link" in section && section.link && (
+                    <Link
+                      href={section.link.href}
+                      className="inline-flex items-center gap-1 mt-4 text-sm font-medium text-primary hover:underline"
+                    >
+                      {section.link.label}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>
