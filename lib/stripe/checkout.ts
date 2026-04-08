@@ -13,7 +13,7 @@ import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
-import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/flow/safety/evaluate"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock, trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 import {

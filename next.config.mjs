@@ -164,6 +164,10 @@ const nextConfig = {
       { source: "/consult/request", destination: "/request?service=consult", permanent: false },
       { source: "/prescriptions/request", destination: "/request?service=prescription", permanent: false },
       { source: "/prescriptions/new", destination: "/request?service=consult", permanent: false },
+      // /flow was the deprecated parallel intake system — deleted in 2026-04-08.
+      // Any bookmarks or stale external links 301 to the canonical /request flow.
+      { source: "/flow", destination: "/request", permanent: true },
+      { source: "/flow/:path*", destination: "/request", permanent: true },
       { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
       { source: "/admin/settings", destination: "/admin/features", permanent: true },
       // Public image path migration — old root paths redirected

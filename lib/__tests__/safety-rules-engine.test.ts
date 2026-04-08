@@ -12,7 +12,7 @@ import {
   checkSafetyForServer,
   validateSafetyFieldsPresent,
   evaluateSafetyWithAdditionalInfo,
-} from "@/lib/flow/safety"
+} from "@/lib/safety"
 
 // ============================================
 // HELPERS

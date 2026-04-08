@@ -4,7 +4,7 @@ import { AlertTriangle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
-import type { SafetyEvaluationResult } from "@/lib/flow/safety"
+import type { SafetyEvaluationResult } from "@/lib/safety"
 
 interface SafetyBlockDialogProps {
   safetyBlock: SafetyEvaluationResult | null

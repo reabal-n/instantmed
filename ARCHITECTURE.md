@@ -62,7 +62,7 @@ interface StructuredIntake {
 | Client field-level | `components/request/steps/*.tsx` |
 | Server Zod schemas | `lib/validation/med-cert-schema.ts`, `repeat-script-schema.ts`, `schemas.ts` |
 | Pre-checkout | `lib/stripe/checkout.ts:93-136` |
-| Safety rules | `lib/flow/safety/evaluate.ts` |
+| Safety rules | `lib/safety/evaluate.ts` |
 
 **Normalization:** Form flow uses `transformAnswers()` in `unified-checkout.ts`. Chat flow uses `normalizeCollectedFields()` in `chat-validation.ts`. Both map frontend field names to backend columns.
 
@@ -621,7 +621,8 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/clinical/` | Clinical logic | `auto-approval.ts` (eligibility), `auto-approval-pipeline.ts` (orchestrator), `auto-approval-state.ts` (state machine — CAS transitions), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
 | `lib/data/` | Supabase queries | `intakes.ts`, `issued-certificates.ts`, `documents.ts`, `intake-answers.ts` — all use `createServiceRoleClient()` |
 | `lib/email/` | Email system | `send-email.ts` (1505 lines, dispatcher), `email-dispatcher.ts` (cron processor) |
-| `lib/flow/` | Intake flow logic | `safety/` (safety rules), `draft/` (localStorage drafts) |
+| `lib/safety/` | Safety & eligibility engine | `evaluate.ts`, `rules.ts`, `types.ts`. Used by `/request` flow + `lib/stripe/checkout.ts` pre-checkout gate. |
+| `lib/offline-queue.ts` | Client-side offline action queue | Used by `hooks/use-connection-status.ts` |
 | `lib/pdf/` | PDF generation | `template-renderer.ts` (pdf-lib overlay on static templates in `/public/templates/`) |
 | `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (auto-approval limits). Fallback: in-memory Map |
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |

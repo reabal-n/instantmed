@@ -44,7 +44,7 @@ import {
   type StepContext,
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
-import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/flow/safety"
+import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
