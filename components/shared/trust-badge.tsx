@@ -137,9 +137,9 @@ export function TrustBadgeGrid({ preset, badges, className }: TrustBadgeGridProp
                   <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
                     config.pillClass ? config.pillClass.split(' ').slice(0, 2).join(' ') : 'bg-muted'
                   )}>
-                    <Icon className={cn('w-5 h-5', config.iconColor)} />
+                    <Icon className={cn('w-5 h-5', config.iconColor)} aria-hidden="true" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground leading-tight">{config.label}</p>
+                  <TrustBadge id={id} variant={variant} />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">
