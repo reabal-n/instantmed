@@ -486,14 +486,14 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         title: 'Erectile Dysfunction',
         description: 'Discreet assessment and treatment for ED. Clinically proven medications prescribed if appropriate.',
         price: PRICING_DISPLAY.MENS_HEALTH,
-        href: '/request?service=consult',
+        href: '/erectile-dysfunction',
       },
       {
         icon: 'Sparkles',
         title: 'Hair Loss',
         description: 'Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian GP.',
         price: PRICING_DISPLAY.HAIR_LOSS,
-        href: '/request?service=consult',
+        href: '/hair-loss',
       },
       {
         icon: 'Stethoscope',
