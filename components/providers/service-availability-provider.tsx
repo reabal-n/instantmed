@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react"
 
-export type ServiceId = "med-cert" | "scripts" | "consult"
+export type ServiceId = "med-cert" | "scripts" | "consult" | "ed" | "hair-loss"
 
 interface AvailabilityState {
   maintenance_mode: boolean
@@ -102,6 +102,10 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
         case "scripts":
           return state.disable_repeat_scripts
         case "consult":
+          return state.disable_consults
+        case "ed":
+          return state.disable_consults
+        case "hair-loss":
           return state.disable_consults
         default:
           return false
