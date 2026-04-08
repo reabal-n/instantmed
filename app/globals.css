@@ -171,13 +171,17 @@ body {
   /* ================================
      SHADOW SYSTEM - 3 semantic levels
      resting (sm), hover (md), elevated/modals (lg)
+     Sky-tinted per DESIGN_SYSTEM.md §5 — never black on marketing
+     surfaces. Base hue is the primary blue (#3B82F6 / rgb 59 130 246).
+     Slightly higher alpha than black equivalents to preserve perceived
+     depth despite the warmer tint.
      ================================ */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
-  --shadow-2xl: 0 16px 40px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0 1px 2px rgba(59, 130, 246, 0.05);
+  --shadow-sm: 0 1px 3px rgba(59, 130, 246, 0.06), 0 1px 2px rgba(59, 130, 246, 0.04);
+  --shadow-md: 0 4px 12px rgba(59, 130, 246, 0.08), 0 1px 3px rgba(59, 130, 246, 0.05);
+  --shadow-lg: 0 8px 24px rgba(59, 130, 246, 0.10), 0 2px 6px rgba(59, 130, 246, 0.05);
+  --shadow-xl: 0 12px 32px rgba(59, 130, 246, 0.12), 0 4px 8px rgba(59, 130, 246, 0.07);
+  --shadow-2xl: 0 16px 40px rgba(59, 130, 246, 0.12), 0 4px 8px rgba(59, 130, 246, 0.05);
   --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   --shadow-glow-lg: 0 0 0 3px rgba(59, 130, 246, 0.1);
   
@@ -267,10 +271,12 @@ body {
   --background: #0B1120;
   --foreground: #E8EEF4;
   
-  /* Glass cards - translucent night panels */
-  --card: rgba(17, 24, 39, 0.75);
+  /* Card surfaces — solid per DESIGN_SYSTEM.md §5 ("solid depth, not
+     frosted glass"). Previously translucent rgba which created an
+     unintended glass effect on every card in dark mode. */
+  --card: #111827;
   --card-foreground: #E8EEF4;
-  --popover: rgba(17, 24, 39, 0.90);
+  --popover: #111827;
   --popover-foreground: #E8EEF4;
   
   /* Primary - calm teal glow */
