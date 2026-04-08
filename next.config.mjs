@@ -8,6 +8,11 @@ const bundleAnalyzer = withBundleAnalyzer({
 const nextConfig = {
   // SECURITY: Don't expose X-Powered-By header
   poweredByHeader: false,
+  // Dev-only: disable StrictMode's double-mount pattern. It causes scroll-reveal
+  // animations (BlurFade, motion-div variants) to play twice because useInView
+  // re-initializes on remount — a false-positive visual bug that doesn't exist
+  // in production. Prod still has React's dev-checks disabled anyway.
+  reactStrictMode: false,
   typescript: {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false

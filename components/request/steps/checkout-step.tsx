@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react"
-import { usePostHog } from "posthog-js/react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"

@@ -47,13 +47,6 @@ interface TelegramNotifyOptions {
   appUrl?: string
 }
 
-interface _MedCertNotifyOptions extends TelegramNotifyOptions {
-  certType?: string
-  duration?: string
-  startDate?: string
-  symptoms?: string
-}
-
 /**
  * Send a new-order notification to the doctor's Telegram.
  * Med cert requests include a clinical summary + Approve/Review buttons.
@@ -259,60 +252,6 @@ export async function answerCallbackQuery(
     }
   } catch (error) {
     log.error("Failed to answer callback query", {}, error instanceof Error ? error : new Error(String(error)))
-  }
-}
-
-/**
- * Send a queue reminder to the doctor when requests have been waiting 1h+.
- * Called by the stale-queue cron. Sends a single summary message (not per-intake).
- */
-export async function sendQueueReminderViaTelegram(opts: {
-  totalCount: number
-  items: Array<{ id: string; serviceType: string; hoursWaiting: number }>
-}): Promise<void> {
-  const token = getToken()
-  const chatId = getChatId()
-  if (!token || !chatId) return
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const queueUrl = `${appUrl}/doctor/queue`
-
-  const itemLines = opts.items
-    .map(i => `• ${escapeMarkdown(i.serviceType)} — ${escapeMarkdown(String(i.hoursWaiting))}h`)
-    .join("\n")
-
-  const overflow = opts.totalCount > opts.items.length
-    ? `\n_\\+${opts.totalCount - opts.items.length} more in queue_`
-    : ""
-
-  const message = [
-    `⏰ *${opts.totalCount} request${opts.totalCount !== 1 ? "s" : ""} awaiting review*`,
-    ``,
-    itemLines,
-    overflow,
-    ``,
-    `[Open queue →](${queueUrl})`,
-  ].join("\n")
-
-  try {
-    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: "MarkdownV2",
-        disable_web_page_preview: true,
-      }),
-    })
-    if (!response.ok) {
-      const body = await response.text()
-      log.error("Telegram queue reminder failed", { status: response.status, body })
-    } else {
-      log.info("Telegram queue reminder sent", { count: opts.totalCount })
-    }
-  } catch (error) {
-    log.error("Telegram queue reminder error", {}, error instanceof Error ? error : new Error(String(error)))
   }
 }
 

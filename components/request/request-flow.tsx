@@ -20,7 +20,7 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, X } from "lucide-react"
-import { usePostHog } from "posthog-js/react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"

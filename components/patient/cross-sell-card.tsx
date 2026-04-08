@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { usePostHog } from "posthog-js/react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import type { ServiceType } from "@/types/db"
 
 interface CrossSellCardProps {

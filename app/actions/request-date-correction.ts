@@ -5,7 +5,6 @@ import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
-import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 
 const logger = createLogger("date-correction")
 
@@ -96,10 +95,6 @@ export async function requestDateCorrection(
   }
 
   logger.info("Date correction requested", { intakeId, requestedStartDate, requestedEndDate })
-
-  // Notify doctor via Telegram
-  const msg = `*Date Correction Request*\n\nPatient: ${escapeMarkdownValue(authResult.profile.full_name || "Unknown")}\nIntake: ${intakeId.slice(0, 8)}\\.\\.\\.\nNew dates: ${escapeMarkdownValue(requestedStartDate)} to ${escapeMarkdownValue(requestedEndDate)}\nReason: ${escapeMarkdownValue(reason)}`
-  sendTelegramAlert(msg).catch(() => {})
 
   return { success: true }
 }

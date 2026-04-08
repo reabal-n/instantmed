@@ -13,7 +13,7 @@ import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
 
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/healthcare-schema"
-import { PostHogLoader } from "@/components/providers/posthog-loader"
+import { PostHogProvider } from "@/components/providers/posthog-provider"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
@@ -160,7 +160,7 @@ export default function RootLayout({
           <OrganizationSchema />
           <WebSiteSchema />
           <GoogleTags />
-          <PostHogLoader>
+          <PostHogProvider>
           <MotionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>
@@ -186,7 +186,7 @@ export default function RootLayout({
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
           </MotionProvider>
-          </PostHogLoader>
+          </PostHogProvider>
         </body>
       </html>
     </ClerkProvider>

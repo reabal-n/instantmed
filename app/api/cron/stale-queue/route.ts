@@ -4,12 +4,9 @@ import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { trackBusinessMetric } from "@/lib/posthog-server"
-import { sendQueueReminderViaTelegram } from "@/lib/notifications/telegram"
 
 const logger = createLogger("cron-stale-queue")
 
-// Doctor gets a Telegram reminder when requests have been waiting this long
-const DOCTOR_ALERT_THRESHOLD_HOURS = 1
 // Patients get a "still reviewing" email after this long
 const PATIENT_EMAIL_THRESHOLD_HOURS = 2
 
@@ -37,50 +34,25 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const now = new Date()
 
-    const doctorAlertThreshold = new Date(now.getTime() - DOCTOR_ALERT_THRESHOLD_HOURS * 60 * 60 * 1000)
     const patientEmailThreshold = new Date(now.getTime() - PATIENT_EMAIL_THRESHOLD_HOURS * 60 * 60 * 1000)
 
-    // ── Doctor Telegram reminder ─────────────────────────────────────────────
-    // If any paid intakes have been waiting 1h+, send the doctor a queue summary.
-    const { data: staleIntakes, count: staleCount } = await supabase
+    // ── Stale queue metrics (PostHog only) ──────────────────────────────────
+    const { count: staleCount } = await supabase
       .from("intakes")
-      .select("id, paid_at, status, category", { count: "exact" })
+      .select("id", { count: "exact", head: true })
       .eq("status", "paid")
       .eq("payment_status", "paid")
-      .lt("paid_at", doctorAlertThreshold.toISOString())
-      .order("paid_at", { ascending: true })
-      .limit(20)
+      .lt("paid_at", patientEmailThreshold.toISOString())
 
     const totalStale = staleCount ?? 0
 
     if (totalStale > 0) {
-      const waitItems = (staleIntakes ?? []).map(i => {
-        const paidAt = new Date(i.paid_at)
-        const hoursWaiting = Math.round(((now.getTime() - paidAt.getTime()) / (1000 * 60 * 60)) * 10) / 10
-        return {
-          id: i.id,
-          serviceType: formatServiceType(i.category as string | null),
-          hoursWaiting,
-        }
-      })
-
-      await sendQueueReminderViaTelegram({
-        totalCount: totalStale,
-        items: waitItems.slice(0, 5),
-      }).catch(err => logger.error("Failed to send Telegram queue reminder", {}, err as Error))
-
       trackBusinessMetric({
         metric: "queue_backup",
         severity: totalStale >= 5 ? "critical" : "warning",
-        metadata: { stale_count: totalStale, oldest_wait_hours: waitItems[0]?.hoursWaiting },
+        metadata: { stale_count: totalStale },
       })
-
-      logger.warn("Queue reminder sent to doctor", {
-        stale_count: totalStale,
-        oldest_wait_hours: waitItems[0]?.hoursWaiting,
-      })
-    } else {
-      logger.info("Queue health check passed — no stale intakes", {})
+      logger.warn("Stale intakes detected", { stale_count: totalStale })
     }
 
     // ── Patient delay emails ─────────────────────────────────────────────────

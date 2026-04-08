@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { usePostHog } from "posthog-js/react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"

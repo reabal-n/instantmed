@@ -10,7 +10,7 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { usePostHog } from "posthog-js/react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
