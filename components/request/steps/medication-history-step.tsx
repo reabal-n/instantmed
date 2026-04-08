@@ -11,7 +11,7 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { History, AlertTriangle, Stethoscope, ArrowLeft } from "lucide-react"
+import { History, Stethoscope, ArrowLeft } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -51,19 +51,19 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!prescriptionHistory) {
       newErrors.prescriptionHistory = "Please select when you were last prescribed this medication"
     }
-    
-    if (prescriptionHistory === "never") {
-      newErrors.prescriptionHistory = "This service is for repeat prescriptions only. For new medications, please book a consultation."
-    }
-    
+
+    // Note: prescriptionHistory === "never" is intentionally NOT a validation error.
+    // The inline upsell card below offers a one-click handoff to the new-prescription
+    // consult flow ($49.95) so we don't dead-end the patient at their decision point.
+
     if (hasSideEffects && !sideEffects.trim()) {
       newErrors.sideEffects = "Please describe the side effects you experienced"
     }
-    
+
     setErrors(newErrors)
     setTouched({ prescriptionHistory: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
@@ -121,17 +121,17 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
         </div>
       </FormField>
 
-      {/* Warning for never prescribed - improved with clear actions */}
+      {/* New medication detected — friendly upsell to consult flow */}
       {isNeverPrescribed && (
-        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 space-y-4">
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-4">
           <div className="flex gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <Stethoscope className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <AlertTitle className="text-sm font-medium text-warning">
-                This service is for repeat prescriptions only
+              <AlertTitle className="text-sm font-medium text-foreground">
+                Looks like a new prescription for you
               </AlertTitle>
-              <AlertDescription className="text-sm text-warning">
-                If you&apos;ve never been prescribed this medication before, you&apos;ll need a doctor consultation first.
+              <AlertDescription className="text-sm text-muted-foreground">
+                Since this isn&apos;t a repeat, our doctors need a quick consultation first to make sure it&apos;s safe and right for you. We&apos;ll carry your details over so you don&apos;t have to start again.
               </AlertDescription>
             </div>
           </div>
@@ -141,27 +141,27 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
                 // Encode medication context in URL for consult handoff (survives refresh)
                 const medicationName = answers.medicationName as string | undefined
                 const medicationStrength = answers.medicationStrength as string | undefined
-                
+
                 // Build URL with context params
                 const params = new URLSearchParams({
                   service: 'consult',
                   subtype: 'new-medication',
                 })
-                
+
                 // Add medication context if available
                 if (medicationName) {
-                  const medicationContext = medicationStrength 
+                  const medicationContext = medicationStrength
                     ? `${medicationName} ${medicationStrength}`
                     : medicationName
                   params.set('medication', medicationContext)
                 }
-                
+
                 router.push(`/request?${params.toString()}`)
               }}
               className="flex-1 gap-2"
             >
               <Stethoscope className="w-4 h-4" />
-              Book a consultation
+              Continue to consult ($49.95)
             </Button>
             <Button
               variant="outline"
@@ -172,7 +172,7 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
               className="flex-1 gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Go back and change
+              Back
             </Button>
           </div>
         </div>

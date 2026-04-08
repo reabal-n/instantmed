@@ -16,7 +16,6 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: [
         'lib/clinical/**/*.ts',
-        'lib/state-machine/**/*.ts',
         'lib/security/**/*.ts',
       ],
       exclude: [

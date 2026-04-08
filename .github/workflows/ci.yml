@@ -28,7 +28,7 @@ jobs:
         run: bash scripts/check-stack-pins.sh
 
       - name: Security audit
-        run: pnpm audit --audit-level=critical
+        run: pnpm audit --audit-level=high
 
       - name: Run lint
         run: pnpm lint
@@ -99,7 +99,7 @@ jobs:
             --assert.assertions.categories:accessibility="error" \
             --assert.assertions.categories:best-practices="warn" \
             --assert.assertions.categories:seo="error" \
-            --upload.target="temporary-public-storage" || true
+            --upload.target="temporary-public-storage"
 
       - name: Upload Lighthouse results
         uses: actions/upload-artifact@v4
@@ -133,7 +133,7 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run critical path E2E tests (Chromium)
+      - name: Run full E2E suite (Chromium)
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
@@ -144,14 +144,13 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          # Required for stripe-webhook.spec.ts and payment-smoke.spec.ts.
+          # Without this, those specs silently `test.skip()` and look like passes.
+          # Set in repo settings → Secrets → STRIPE_WEBHOOK_SECRET (use a dedicated
+          # test-mode webhook endpoint, not the production secret).
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           NEXT_PUBLIC_APP_URL: http://localhost:3001
-        run: |
-          pnpm exec playwright test \
-            --project=chromium \
-            e2e/flow-wizard.spec.ts \
-            e2e/service-hub.spec.ts \
-            e2e/consult-subtypes.spec.ts \
-            e2e/api.rbac.spec.ts
+        run: pnpm exec playwright test --project=chromium
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

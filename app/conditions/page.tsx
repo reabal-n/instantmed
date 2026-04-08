@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
 import { AccordionSection } from "@/components/sections"
+import { conditionsData, type ConditionData } from "@/lib/seo/data/conditions"
 
 export const metadata: Metadata = {
   title: "Health Conditions We Treat Online",
@@ -19,56 +20,25 @@ export const metadata: Metadata = {
   },
 }
 
-const conditions = [
-  {
-    slug: "cold-and-flu",
-    name: "Cold & Flu",
-    description: "Viral infections with fever, cough, and body aches",
-    services: ["Medical Certificate", "Symptom Assessment"]
-  },
-  {
-    slug: "gastro",
-    name: "Gastroenteritis",
-    description: "Stomach bug causing vomiting and diarrhea",
-    services: ["Medical Certificate", "Treatment Advice"]
-  },
-  {
-    slug: "back-pain",
-    name: "Back Pain",
-    description: "Lower, middle, or upper back pain and discomfort",
-    services: ["Medical Certificate", "Assessment", "Referrals"]
-  },
-  {
-    slug: "migraine",
-    name: "Migraine",
-    description: "Severe headaches with nausea and light sensitivity",
-    services: ["Medical Certificate", "Management Review"]
-  },
-  {
-    slug: "anxiety",
-    name: "Anxiety",
-    description: "Excessive worry affecting daily life and wellbeing",
-    services: ["Medical Certificate", "Support", "Referrals"]
-  },
-  {
-    slug: "uti",
-    name: "Urinary Tract Infection",
-    description: "Bladder infections causing painful urination",
-    services: ["Assessment", "Treatment"]
-  },
-  {
-    slug: "skin-rash",
-    name: "Skin Rash",
-    description: "Redness, itching, or changes in skin appearance",
-    services: ["Photo Assessment", "Treatment Advice"]
-  },
-  {
-    slug: "insomnia",
-    name: "Insomnia & Sleep Problems",
-    description: "Difficulty sleeping or staying asleep",
-    services: ["Medical Certificate", "Assessment", "Advice"]
-  },
-]
+// Map serviceType → user-facing tag chips on each card.
+// Single source of truth lives in lib/seo/data/conditions.ts.
+function getServiceTags(serviceType: ConditionData["serviceType"]): string[] {
+  if (serviceType === "med-cert") return ["Medical Certificate"]
+  if (serviceType === "consult") return ["Consultation", "Treatment Advice"]
+  return ["Medical Certificate", "Consultation"]
+}
+
+// Render every condition from the canonical data file so the hub stays in
+// sync with /conditions/[slug] and conditions/sitemap.ts. Sorted alphabetically
+// for predictability — no manual curation drift.
+const conditions = Object.values(conditionsData)
+  .map((c) => ({
+    slug: c.slug,
+    name: c.name,
+    description: c.description,
+    services: getServiceTags(c.serviceType),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name))
 
 const conditionsFaqs = [
   {
@@ -151,12 +121,12 @@ export default function ConditionsIndexPage() {
                   <Link
                     key={condition.slug}
                     href={`/conditions/${condition.slug}`}
-                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
                   >
                     <h2 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {condition.name}
                     </h2>
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                       {condition.description}
                     </p>
                     <div className="flex flex-wrap gap-2">

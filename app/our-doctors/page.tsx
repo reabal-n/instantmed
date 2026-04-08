@@ -16,27 +16,19 @@ export const metadata: Metadata = {
   },
 }
 
-interface DoctorProfile {
-  id: string
-  full_name: string
-  nominals: string | null
-  ahpra_number: string | null
-}
-
 export default async function OurDoctorsPage() {
-  // Fetch verified doctors with AHPRA numbers
+  // Multi-doctor model: we never expose individual doctor names on marketing
+  // pages (per CLAUDE.md Platform Identity + feedback_author.md). We only
+  // surface a count of AHPRA-verified consulting doctors.
   const supabase = createServiceRoleClient()
-  const { data: doctors } = await supabase
+  const { count } = await supabase
     .from("profiles")
-    .select("id, full_name, nominals, ahpra_number")
+    .select("id", { count: "exact", head: true })
     .in("role", ["doctor", "admin"])
     .eq("is_active", true)
     .not("ahpra_number", "is", null)
-    .order("full_name")
 
-  const verifiedDoctors: DoctorProfile[] = (doctors || []).filter(
-    (d) => d.full_name && d.ahpra_number
-  )
+  const verifiedDoctorCount = count ?? 0
 
-  return <OurDoctorsClient doctors={verifiedDoctors} />
+  return <OurDoctorsClient verifiedDoctorCount={verifiedDoctorCount} />
 }

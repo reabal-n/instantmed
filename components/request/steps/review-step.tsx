@@ -8,7 +8,7 @@
 import { useState } from "react"
 import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -578,19 +578,21 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         })()}
 
         <div className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'}`}>
-          <div className="flex items-center gap-3">
-            <Switch
+          <div className="flex items-start gap-3">
+            <Checkbox
               id="safety-consent"
               checked={safetyConfirmed}
-              onCheckedChange={setSafetyConfirmed}
+              onCheckedChange={(checked) => setSafetyConfirmed(checked === true)}
+              className="mt-0.5"
+              aria-label="Confirm this is not a medical emergency"
             />
             <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
               I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
             </Label>
           </div>
           {!safetyConfirmed && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-[calc(2.5rem+0.75rem)]">
-              Toggle to confirm and continue to payment
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-7">
+              Tick the box to confirm and continue to payment
             </p>
           )}
         </div>
@@ -606,7 +608,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           </span>
           <span className="flex items-center gap-1">
             <RefreshCw className="w-3 h-3" />
-            Full refund if declined
+            {serviceType === 'consult' ? "Money-back guarantee" : "Full refund if declined"}
           </span>
         </div>
       </div>

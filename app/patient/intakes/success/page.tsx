@@ -79,6 +79,7 @@ export default async function PaymentSuccessPage({
           amountCents={amountCents}
           isPriority={isPriority}
           patientEmail={patientEmail}
+          patientId={authUser?.profile?.id}
           queuePosition={queuePosition}
         />
       </div>

@@ -62,8 +62,14 @@ export interface DeclineResult {
 // Valid statuses that can be declined
 const DECLINABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info", "pending_review", "awaiting_script"]
 
-// Categories eligible for auto-refund on decline
-const REFUND_ELIGIBLE_CATEGORIES = ["medical_certificate", "prescription"]
+// Categories eligible for FULL auto-refund on decline (cheaper, lower-cost-of-goods services)
+const FULL_REFUND_CATEGORIES = ["medical_certificate", "prescription"]
+
+// Categories eligible for PARTIAL auto-refund on decline.
+// Consults: 50% refund acknowledges doctor review time was spent while still honoring
+// the "money-back guarantee if we can't help" promise on checkout.
+const PARTIAL_REFUND_CATEGORIES = ["consult"]
+const PARTIAL_REFUND_PERCENT = 0.5
 
 // ============================================================================
 // MAIN ACTION
@@ -202,14 +208,17 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     }
 
     const isPaid = intake.payment_status === "paid"
-    const isEligible = REFUND_ELIGIBLE_CATEGORIES.includes(intake.category || "")
+    const category = intake.category || ""
+    const isFullRefund = FULL_REFUND_CATEGORIES.includes(category)
+    const isPartialRefund = PARTIAL_REFUND_CATEGORIES.includes(category)
+    const isEligible = isFullRefund || isPartialRefund
     const isE2E = process.env.E2E_MODE === "true" || process.env.PLAYWRIGHT === "1"
 
     if (isPaid && isEligible && !skipRefund) {
       if (isE2E) {
         // Skip actual Stripe call in E2E mode
         refundResult = { status: "skipped_e2e" }
-        
+
         await supabase
           .from("intakes")
           .update({
@@ -220,12 +229,15 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
         logger.info("[Decline] Refund skipped (E2E mode)", { intakeId })
       } else {
-        // Process real refund
-        refundResult = await processRefund(intakeId, intake, actorId, timestamp)
+        // Process real refund — full for med cert/Rx, 50% for consults
+        const refundAmountCents = isPartialRefund && intake.amount_cents
+          ? Math.floor(intake.amount_cents * PARTIAL_REFUND_PERCENT)
+          : undefined // undefined = full refund
+        refundResult = await processRefund(intakeId, intake, actorId, timestamp, refundAmountCents)
       }
     } else if (isPaid && !isEligible) {
       refundResult = { status: "not_eligible" }
-      
+
       await supabase
         .from("intakes")
         .update({
@@ -326,7 +338,9 @@ async function processRefund(
     category: string | null
   },
   actorId: string,
-  timestamp: string
+  timestamp: string,
+  /** Refund amount in cents. Omit/undefined for full refund (Stripe default). */
+  amountCents?: number
 ): Promise<DeclineResult["refund"]> {
   const supabase = createServiceRoleClient()
 
@@ -375,18 +389,24 @@ async function processRefund(
       }
     }
 
-    // Process Stripe refund
-    const idempotencyKey = `refund_decline_${intakeId}`
+    // Process Stripe refund — partial refunds get a distinct idempotency key so
+    // a future full-refund retry isn't blocked by the partial-refund key.
+    const isPartial = amountCents !== undefined
+    const idempotencyKey = isPartial
+      ? `refund_decline_partial_${intakeId}`
+      : `refund_decline_${intakeId}`
 
     const refund = await stripe.refunds.create(
       {
         payment_intent: paymentIntentId,
+        ...(amountCents !== undefined ? { amount: amountCents } : {}),
         reason: "requested_by_customer",
         metadata: {
           intake_id: intakeId,
           category: intake.category || "unknown",
           declined_by: actorId,
-          refund_type: "decline",
+          refund_type: isPartial ? "decline_partial" : "decline",
+          ...(isPartial ? { partial_refund_percent: String(PARTIAL_REFUND_PERCENT) } : {}),
         },
       },
       { idempotencyKey }

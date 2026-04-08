@@ -17,7 +17,8 @@ export interface TextareaProps
 }
 
 const sizeClasses: Record<string, string> = {
-  default: "text-sm min-h-[100px]",
+  // text-base on default prevents iOS Safari focus zoom (16px minimum).
+  default: "text-base min-h-[100px]",
   sm: "text-xs min-h-[80px]",
   lg: "text-base min-h-[140px]",
 }

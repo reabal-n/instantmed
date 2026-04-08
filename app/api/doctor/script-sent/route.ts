@@ -4,6 +4,14 @@ import { requireApiRole } from "@/lib/auth"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+import {
+  logExternalPrescribingIndicated,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
+
+const log = createLogger("doctor-script-sent")
 
 const scriptSentSchema = z.object({
   intakeId: z.string().uuid().optional(),
@@ -14,6 +22,12 @@ const scriptSentSchema = z.object({
 }).refine(data => data.intakeId || data.requestId, {
   message: "Either intakeId or requestId is required",
 })
+
+function getRequestType(category: string | null): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (category === "prescription") return "repeat_rx"
+  return "intake"
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,6 +65,31 @@ export async function POST(request: NextRequest) {
 
     if (!success) {
       return NextResponse.json({ error: "Failed to update" }, { status: 500 })
+    }
+
+    // Log compliance audit event when marking a script as sent.
+    // Per CLINICAL.md Section 5 (Prescribing Boundary Evidence), every script
+    // sent through Parchment must be evidenced in compliance_audit_log so the
+    // platform can prove no in-platform prescribing occurred.
+    if (scriptSent) {
+      try {
+        const supabase = createServiceRoleClient()
+        const { data: intake } = await supabase
+          .from("intakes")
+          .select("category")
+          .eq("id", id)
+          .single()
+        const requestType = getRequestType(intake?.category ?? null)
+        await logExternalPrescribingIndicated(
+          id,
+          requestType,
+          authResult.profile.id,
+          parchmentReference || "parchment"
+        )
+      } catch (auditError) {
+        log.warn("Failed to log external_prescribing_indicated event", { intakeId: id }, auditError instanceof Error ? auditError : undefined)
+        // Don't fail the request — script status already saved
+      }
     }
 
     return NextResponse.json({ success: true })

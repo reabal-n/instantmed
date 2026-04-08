@@ -227,7 +227,9 @@ export default async function IntentPage({ params }: PageProps) {
                           : link.type === "intent"
                             ? `/intent/${link.slug}`
                             : link.type === "medication"
-                              ? `/medications/${link.slug}`
+                              // Canonical med pages live at /prescriptions/med/[slug].
+                              // /medications/* was deprecated and now 308s to /.
+                              ? `/prescriptions/med/${link.slug}`
                               : link.type === "category"
                                 ? `/${link.slug}`
                                 : `/intent/${link.slug}`

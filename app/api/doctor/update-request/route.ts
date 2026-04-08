@@ -6,8 +6,23 @@ import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import {
+  logTriageApproved,
+  logTriageDeclined,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
 
 const log = createLogger("update-intake")
+
+/**
+ * Map intake category → compliance RequestType. Mirrors the helper used in
+ * bulk-action and decline-intake so audit rows are consistent across paths.
+ */
+function getRequestType(category: string | null): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (category === "prescription") return "repeat_rx"
+  return "intake"
+}
 
 const updateRequestSchema = z.object({
   intake_id: z.string().uuid(),
@@ -56,7 +71,7 @@ export async function POST(request: NextRequest) {
     // SECURITY: Verify intake exists and doctor has ownership (assigned to them or unclaimed)
     const { data: currentIntake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, status, reviewing_doctor_id, payment_status")
+      .select("id, status, reviewing_doctor_id, payment_status, category")
       .eq("id", intake_id)
       .single()
 
@@ -122,6 +137,27 @@ export async function POST(request: NextRequest) {
     if (error) {
       log.error("Failed to update intake", { intake_id, error: error.message })
       return NextResponse.json({ error: "Failed to update request" }, { status: 500 })
+    }
+
+    // Log compliance audit event for the triage outcome.
+    // Required for AHPRA defensibility — every triage outcome must be
+    // reconstructable from the compliance_audit_log per SECURITY.md.
+    // Failures are warned but never block the response: the underlying
+    // intake update has already succeeded, and audit retry is downstream.
+    const requestType = getRequestType(currentIntake.category)
+    const auditMetadata = {
+      previousStatus: currentIntake.status,
+      newStatus: statusMap[action as keyof typeof statusMap],
+      notes: notes ? notes.substring(0, 200) : undefined,
+    }
+    if (action === "approve") {
+      await logTriageApproved(intake_id, requestType, profile.id, auditMetadata).catch((err) => {
+        log.warn("Failed to log triage_approved event", { intake_id }, err)
+      })
+    } else if (action === "decline") {
+      await logTriageDeclined(intake_id, requestType, profile.id, notes || "Declined").catch((err) => {
+        log.warn("Failed to log triage_declined event", { intake_id }, err)
+      })
     }
 
     // Process refund for declined intakes

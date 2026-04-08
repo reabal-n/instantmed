@@ -12,6 +12,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
 import { Check, Shield, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, Zap, RefreshCw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton } from "@/components/shared/checkout-button"
@@ -71,7 +72,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
-  const [isPriority, setIsPriority] = useState(false)
+  // Default Express Review ON for med-cert only — auto-approval flow with smallest base
+  // price. AOV uplift +50% on cheapest service, lowest dark-pattern surface because
+  // it's a near-instant service anyway. Patient can untoggle in one click.
+  const [isPriority, setIsPriority] = useState(serviceType === 'med-cert')
   const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
   const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
 
@@ -380,7 +384,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </motion.div>
 
-      {/* Single combined consent */}
+      {/* Single combined consent — Checkbox (not Switch) for legal acknowledgment semantics */}
       <motion.div variants={stagger.item}>
         <div
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
@@ -391,9 +395,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           onClick={() => handleConsentChange(!consentGiven)}
         >
           <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
-            <Switch
+            <Checkbox
               checked={consentGiven}
-              onCheckedChange={(checked) => handleConsentChange(checked)}
+              onCheckedChange={(checked) => handleConsentChange(checked === true)}
+              aria-label="Agree to Terms of Service and Privacy Policy"
             />
           </span>
           <p className="text-sm leading-relaxed cursor-pointer">
@@ -448,10 +453,14 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             variant="prominent"
           />
 
-          {/* Refund guarantee */}
+          {/* Refund guarantee — full for med cert/Rx, partial for consults */}
           <div className="flex items-center justify-center gap-2 text-xs text-primary">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="font-medium">Full refund if we can&apos;t help</span>
+            <span className="font-medium">
+              {serviceType === 'consult'
+                ? "Money-back guarantee if we can't help"
+                : "Full refund if we can't help"}
+            </span>
           </div>
 
           {/* Stripe + payment methods — single trust line */}

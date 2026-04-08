@@ -20,7 +20,9 @@ export interface InputProps
 }
 
 const sizeClasses: Record<string, string> = {
-  default: "h-10 text-sm",
+  // text-base on default prevents iOS Safari focus zoom (16px minimum).
+  // sm is used in admin/desktop tables only.
+  default: "h-11 text-base",
   sm: "h-9 text-xs",
   lg: "h-12 text-base",
 }

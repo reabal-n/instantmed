@@ -24,15 +24,6 @@ import {
   BadgeCheck,
 } from "lucide-react"
 
-/* ────────────────────────────── Types ────────────────────────────── */
-
-interface DoctorProfile {
-  id: string
-  full_name: string
-  nominals: string | null
-  ahpra_number: string | null
-}
-
 /* ────────────────────────────── Data ────────────────────────────── */
 
 const credentials: FeatureItem[] = [
@@ -159,10 +150,11 @@ const doctorFaqs: FAQGroup[] = [
 /* ────────────────────────────── Component ────────────────────────────── */
 
 interface OurDoctorsClientProps {
-  doctors: DoctorProfile[]
+  /** Count of AHPRA-verified consulting doctors. We never render individual names. */
+  verifiedDoctorCount: number
 }
 
-export default function OurDoctorsClient({ doctors }: OurDoctorsClientProps) {
+export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClientProps) {
   const allFaqs = doctorFaqs.flatMap((g) =>
     g.items.map((f) => ({ question: f.question, answer: f.answer }))
   )
@@ -204,51 +196,41 @@ export default function OurDoctorsClient({ doctors }: OurDoctorsClientProps) {
           columns={4}
         />
 
-        {/* Verified Doctor Profiles — bespoke section with schema.org/Physician microdata */}
-        {doctors.length > 0 && (
+        {/* Consulting team summary — multi-doctor model, no individual names.
+            We surface only a count + the credentialing standards every doctor
+            on the platform meets, per CLAUDE.md Platform Identity. */}
+        {verifiedDoctorCount > 0 && (
           <section className="py-20 px-4 bg-muted/30">
-            <div className="mx-auto max-w-3xl text-center mb-12">
+            <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-2xl font-semibold text-foreground sm:text-3xl mb-4">
-                Our consulting doctors
+                Our consulting team
               </h2>
-              <p className="text-muted-foreground">
-                Each doctor&apos;s AHPRA registration can be independently verified
-                on the public register.
+              <p className="text-muted-foreground mb-8">
+                Every doctor on InstantMed is AHPRA-registered, Australian-based,
+                and individually verified on the AHPRA public register before
+                they take a single request.
               </p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {doctors.map((doctor) => (
-                <div
-                  key={doctor.id}
-                  className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6 text-center"
-                  itemScope
-                  itemType="https://schema.org/Physician"
-                >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Stethoscope className="w-7 h-7 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-1" itemProp="name">
-                    Dr {doctor.full_name}
-                  </h3>
-                  {doctor.nominals && (
-                    <p className="text-sm text-muted-foreground mb-2" itemProp="qualifications">
-                      {doctor.nominals}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-primary mb-3">
-                    <BadgeCheck className="w-3.5 h-3.5" />
-                    <span>AHPRA Verified</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {doctor.ahpra_number}
+              <div className="inline-flex items-center gap-3 rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none px-6 py-5">
+                <BadgeCheck className="w-6 h-6 text-primary shrink-0" />
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground">
+                    AHPRA-verified consulting doctors
                   </p>
-                  <meta itemProp="medicalSpecialty" content="General Practice" />
-                  <link
-                    itemProp="sameAs"
-                    href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
-                  />
+                  <p className="text-xl font-semibold text-foreground">
+                    {verifiedDoctorCount}
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      currently active
+                    </span>
+                  </p>
                 </div>
-              ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-6 max-w-xl mx-auto">
+                Roster size varies based on demand. Every doctor — regardless
+                of when they joined — meets the same credentialing standards
+                listed above. Your treating doctor&apos;s name and AHPRA number
+                appear on every certificate or script we issue, so you can
+                independently verify them on the AHPRA register.
+              </p>
             </div>
           </section>
         )}

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { revalidatePath } from "next/cache"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
+import { getCurrentProfile, updateProfile } from "@/lib/data/profiles"
+import type { AustralianState } from "@/types/db"
 import { z } from "zod"
 
 const profileUpdateSchema = z.object({
@@ -23,10 +24,14 @@ export async function PATCH(request: Request) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const supabase = createServiceRoleClient()
-    const { userId: clerkUserId } = await auth()
+    // CSRF protection (matches the rest of /api/patient/* mutating routes)
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) return csrfError
 
-    if (!clerkUserId) {
+    // getCurrentProfile() resolves the caller from Clerk → profiles table.
+    // Returns null if unauthenticated or profile missing.
+    const profile = await getCurrentProfile()
+    if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -57,28 +62,29 @@ export async function PATCH(request: Request) {
       consent_myhr,
     } = parsed.data
 
-    // Build update object with only provided fields
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    }
+    // Build typed update payload — only include fields the client actually sent.
+    // updateProfile() runs encryptProfilePhi() over phone/DOB before writing,
+    // so this path stays compliant with PHI encryption requirements.
+    const updates: Parameters<typeof updateProfile>[1] = {}
 
-    if (full_name !== undefined && full_name !== null) updateData.full_name = full_name
-    if (phone !== undefined) updateData.phone = phone || null
+    if (full_name !== undefined && full_name !== null) updates.full_name = full_name
+    if (phone !== undefined) updates.phone = phone || null
     // Support both field names from client (street_address is legacy, address_line1 is canonical)
     const addressValue = address_line1 !== undefined ? address_line1 : street_address
-    if (addressValue !== undefined) updateData.address_line1 = addressValue
-    if (suburb !== undefined) updateData.suburb = suburb
-    if (state !== undefined) updateData.state = state
-    if (postcode !== undefined) updateData.postcode = postcode
-    if (date_of_birth !== undefined) updateData.date_of_birth = date_of_birth || null
-    if (consent_myhr !== undefined) updateData.consent_myhr = consent_myhr
+    if (addressValue !== undefined) updates.address_line1 = addressValue
+    if (suburb !== undefined) updates.suburb = suburb
+    if (state !== undefined) updates.state = state as AustralianState
+    if (postcode !== undefined) updates.postcode = postcode
+    if (date_of_birth !== undefined) updates.date_of_birth = date_of_birth || null
+    if (consent_myhr !== undefined) {
+      ;(updates as Record<string, unknown>).consent_myhr = consent_myhr
+    }
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(updateData)
-      .eq("clerk_user_id", clerkUserId)
+    const updated = await updateProfile(profile.id, updates)
 
-    if (error) throw error
+    if (!updated) {
+      return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
+    }
 
     revalidatePath("/patient/settings")
     revalidatePath("/account")

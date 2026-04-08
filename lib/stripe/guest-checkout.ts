@@ -514,6 +514,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         mode: "payment",
         success_url: successUrl,
         cancel_url: cancelUrl,
+        // Enable promo code field on Stripe checkout (campaigns, partner deals, win-back, etc.)
+        allow_promotion_codes: true,
         customer_email: input.guestEmail,
         customer_creation: "always",
         metadata: {

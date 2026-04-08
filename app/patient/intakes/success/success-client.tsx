@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
+import { ReferralCard } from "@/components/patient/referral-card"
 import { Mail, AlertTriangle, Check } from "lucide-react"
 import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
@@ -21,6 +22,7 @@ interface SuccessClientProps {
   amountCents?: number
   isPriority?: boolean
   patientEmail?: string
+  patientId?: string
   queuePosition?: number | null
 }
 
@@ -31,6 +33,7 @@ export function SuccessClient({
   amountCents,
   isPriority = false,
   patientEmail,
+  patientId,
   queuePosition: initialQueuePosition,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
@@ -321,15 +324,26 @@ export function SuccessClient({
   }
 
   // Payment confirmed - show the enhanced "What Happens Next" experience
+  // plus a peak-emotion referral nudge ("share while you wait").
   return (
-    <WhatHappensNext
-      intakeId={intakeId}
-      initialStatus={(status || "paid") as IntakeStatus}
-      serviceName={serviceName}
-      patientEmail={patientEmail}
-      isPriority={isPriority}
-      showConfetti={status === "paid"}
-      initialQueuePosition={initialQueuePosition}
-    />
+    <div className="space-y-6">
+      <WhatHappensNext
+        intakeId={intakeId}
+        initialStatus={(status || "paid") as IntakeStatus}
+        serviceName={serviceName}
+        patientEmail={patientEmail}
+        isPriority={isPriority}
+        showConfetti={status === "paid"}
+        initialQueuePosition={initialQueuePosition}
+      />
+      {patientId && (
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 font-medium">
+            While you wait
+          </p>
+          <ReferralCard patientId={patientId} />
+        </div>
+      )}
+    </div>
   )
 }

@@ -1,5 +1,5 @@
 import { getApiAuth } from "@/lib/auth"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { updateProfile } from "@/lib/data/profiles"
 import { NextResponse } from "next/server"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -37,22 +37,17 @@ export async function POST(request: Request) {
 
     const { fullName, phone, dateOfBirth } = parsed.data
 
-    const supabase = createServiceRoleClient()
+    // Route through the canonical updateProfile() so PHI fields (phone, DOB)
+    // are encrypted via encryptProfilePhi() before being written. Direct
+    // supabase.from("profiles").update(...) bypasses encryption — see
+    // launch blocker #3.
+    const updated = await updateProfile(authResult.profile.id, {
+      full_name: fullName,
+      phone: phone ?? null,
+      date_of_birth: dateOfBirth,
+    })
 
-    // Update patient profile
-    const { data: updated, error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        full_name: fullName,
-        phone,
-        date_of_birth: dateOfBirth,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", authResult.profile.id)
-      .select("id, full_name, phone, date_of_birth, updated_at")
-      .single()
-
-    if (updateError || !updated) {
+    if (!updated) {
       return NextResponse.json(
         { error: "Failed to update profile" },
         { status: 500 }
@@ -61,7 +56,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      profile: updated,
+      profile: {
+        id: updated.id,
+        full_name: updated.full_name,
+        phone: updated.phone,
+        date_of_birth: updated.date_of_birth,
+        updated_at: updated.updated_at,
+      },
       message: "Profile updated successfully",
     })
   } catch (_error) {
