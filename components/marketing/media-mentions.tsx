@@ -99,9 +99,9 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
     <section className={cn('py-12', className)}>
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-2">
             Regulated by Australian health authorities
-          </h3>
+          </h2>
           <p className="text-sm text-muted-foreground mb-8">
             All doctors are AHPRA-registered. Prescriptions are TGA-compliant.
           </p>

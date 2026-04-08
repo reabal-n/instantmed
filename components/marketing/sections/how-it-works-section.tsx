@@ -87,7 +87,10 @@ export function HowItWorksSection({ onCTAClick }: { onCTAClick?: () => void }) {
             return (
               <div key={step.number} className="relative">
                 <div className="text-center mb-4">
-                  <span className="text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none">
+                  <span
+                    aria-hidden="true"
+                    className="text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none"
+                  >
                     {step.number}
                   </span>
                 </div>

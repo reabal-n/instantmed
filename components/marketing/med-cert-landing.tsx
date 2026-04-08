@@ -487,9 +487,9 @@ function RelatedArticles() {
   return (
     <section aria-label="Related articles" className="py-12 lg:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
           Related reading
-        </h3>
+        </h2>
         <div className="flex flex-wrap justify-center gap-3">
           {RELATED_ARTICLES.map((article) => (
             <Link

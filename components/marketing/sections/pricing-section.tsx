@@ -209,7 +209,13 @@ function ComparisonTable() {
 
 function renderCell(value: string | boolean) {
   if (value === true) return <Check className="w-5 h-5 text-success mx-auto" />
-  if (value === false) return <span className="text-muted-foreground/40">—</span>
+  if (value === false)
+    return (
+      <span className="text-muted-foreground/70">
+        <span className="sr-only">Not included</span>
+        <span aria-hidden="true">—</span>
+      </span>
+    )
   return value
 }
 

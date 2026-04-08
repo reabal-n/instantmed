@@ -73,7 +73,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
           If they need more info, they&apos;ll reach out. If your request isn&apos;t approved, 
           you get a full refund.{" "}
           <a href="/how-we-decide" className="text-primary hover:underline font-medium">
-            Learn more →
+            Learn how we decide on requests →
           </a>
         </p>
       </div>

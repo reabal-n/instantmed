@@ -107,7 +107,7 @@ export function TrustStrip({
           badge
         )}
         {separators && i < badges.length - 1 && (
-          <span className="text-muted-foreground/30">|</span>
+          <span aria-hidden="true" className="text-muted-foreground/60">|</span>
         )}
       </span>
     )

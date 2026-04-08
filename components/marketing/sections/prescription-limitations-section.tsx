@@ -25,7 +25,7 @@ export function PrescriptionLimitationsSection() {
               "Medical emergencies \u2014 call 000",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
-                <span className="mt-0.5 text-muted-foreground/40 shrink-0">&times;</span>
+                <span aria-hidden="true" className="mt-0.5 text-muted-foreground/70 shrink-0">&times;</span>
                 {item}
               </li>
             ))}

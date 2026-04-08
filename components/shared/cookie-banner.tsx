@@ -238,11 +238,11 @@ export function CookieBanner() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground leading-snug">
                   We use cookies to keep things running smoothly.{" "}
-                  <Link 
-                    href="/privacy#cookies" 
+                  <Link
+                    href="/privacy#cookies"
                     className="text-primary hover:underline font-medium"
                   >
-                    Learn more
+                    Learn more about our cookie policy
                   </Link>
                 </p>
               </div>

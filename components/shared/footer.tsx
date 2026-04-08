@@ -103,7 +103,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           <div className="flex flex-col md:mx-4 md:flex-row gap-6 md:gap-16 items-start md:items-start">
             {/* Services column */}
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
-              <h4 className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</h4>
+              <p aria-hidden="true" className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</p>
               <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
                 {footerLinks.services.map((link) => (
                   <Link
@@ -119,7 +119,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
 
             {/* Company column */}
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Company">
-              <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Company</h4>
+              <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Company</p>
               <div className="flex gap-2 flex-wrap md:flex-col text-sm items-start">
                 {footerLinks.company.map((link) => (
                   <Link
@@ -136,7 +136,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             {/* Resources column — SEO hub pages for crawl discovery */}
             {isMarketing && (
               <nav className="flex flex-col gap-1 md:gap-4" aria-label="Resources">
-                <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Resources</h4>
+                <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Resources</p>
                 <div className="flex flex-col gap-2 text-sm items-start">
                   {footerLinks.resources.map((link) => (
                     <Link
@@ -154,7 +154,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             {/* Legal column */}
             {isMarketing && (
               <nav className="flex flex-col gap-1 md:gap-4" aria-label="Legal">
-                <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Legal</h4>
+                <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Legal</p>
                 <div className="flex flex-col gap-2 text-sm items-start">
                   {footerLinks.legal.map((link) => (
                     <Link

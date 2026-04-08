@@ -26,8 +26,8 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 text-sm no-underline ${className ?? ''}`}
-      aria-label={`${GOOGLE_REVIEWS.rating} stars on Google — ${GOOGLE_REVIEWS.count} reviews`}
     >
+      <span className="sr-only">Read our Google reviews — </span>
       {/* Google G mark */}
       <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -53,7 +53,7 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
-            className={`w-3 h-3 ${i <= Math.floor(stars) ? 'text-amber-400 fill-amber-400' : i - 0.5 <= stars ? 'text-amber-400 fill-amber-200' : 'text-muted-foreground/30 fill-muted-foreground/10'}`}
+            className={`w-3 h-3 ${i <= Math.floor(stars) ? 'text-amber-400 fill-amber-400' : i - 0.5 <= stars ? 'text-amber-400 fill-amber-200' : 'text-muted-foreground/60 fill-muted-foreground/20'}`}
           />
         ))}
       </span>

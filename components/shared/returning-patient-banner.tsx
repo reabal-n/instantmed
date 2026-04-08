@@ -60,9 +60,9 @@ export function ReturningPatientBanner({ className }: ReturningPatientBannerProp
             <Zap className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground mb-1">
+            <p className="font-semibold text-foreground mb-1">
               Welcome back, {patientData.firstName}!
-            </h3>
+            </p>
             <p className="text-sm text-muted-foreground mb-3">
               Your details are saved from your last visit. Get your {patientData.lastService} even faster.
             </p>

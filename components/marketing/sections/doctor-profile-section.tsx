@@ -36,9 +36,9 @@ export function DoctorProfileSection() {
               <BadgeCheck className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-medium text-primary">AHPRA Verified</span>
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <h2 className="text-lg font-semibold text-foreground mb-2">
               AHPRA-registered GPs
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Every request is reviewed and approved by an experienced,
               AHPRA-registered Australian doctor. No automated clinical decisions.

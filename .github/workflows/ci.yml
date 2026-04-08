@@ -95,17 +95,22 @@ jobs:
         run: |
           # We deliberately do NOT use --assert.preset="lighthouse:recommended"
           # because that enables every individual audit at "error" severity,
-          # which surfaced these pre-existing failures we need to fix in a
-          # dedicated design-system sweep:
-          #   - color-contrast (text-muted-foreground/30 on warm bg)
-          #   - heading-order (h1/h2 hierarchy in marketing sections)
-          #   - label-content-name-mismatch (form aria labels)
-          #   - link-text (generic "Learn more" CTAs without context)
-          # Until that sweep ships, we only assert at the category-score
-          # level (all warns). Reports still upload as artifacts so the
-          # individual audit failures are visible — they just don't block
-          # the build. Removed `|| true` so actual lhci infrastructure
-          # failures (timeouts, server crashes) still fail the job.
+          # which is too noisy (e.g. it flags legitimate third-party-SDK
+          # console warnings as best-practices failures). Instead we assert
+          # at the category-score level only.
+          #
+          # accessibility + seo are now gated at "error" severity after the
+          # 2026-04-08 design-system sweep that fixed:
+          #   - color-contrast (text-muted-foreground/30+/40 on warm ivory bg)
+          #   - heading-order (h1/h2 hierarchy in marketing sections +
+          #     accordion category level + footer h4 → p)
+          #   - label-content-name-mismatch (GoogleReviewsBadge aria-label
+          #     didn't contain its visible rating/count text)
+          #   - link-text (cookie-banner "Learn more" → descriptive text)
+          #
+          # performance + best-practices stay at "warn" — third-party SDKs
+          # (Clerk, PostHog, Sentry) hurt those scores but aren't blockers
+          # for a pre-launch telehealth marketing site.
           lhci autorun \
             --collect.startServerCommand="pnpm start" \
             --collect.url="http://localhost:3000/" \
@@ -114,9 +119,9 @@ jobs:
             --collect.url="http://localhost:3000/faq" \
             --collect.numberOfRuns=1 \
             --assert.assertions.categories:performance="warn" \
-            --assert.assertions.categories:accessibility="warn" \
+            --assert.assertions.categories:accessibility="error" \
             --assert.assertions.categories:best-practices="warn" \
-            --assert.assertions.categories:seo="warn" \
+            --assert.assertions.categories:seo="error" \
             --upload.target="temporary-public-storage"
 
       - name: Upload Lighthouse results

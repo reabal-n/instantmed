@@ -63,54 +63,61 @@ export function AccordionSection({
       )}
 
       <div ref={ref} className="mx-auto max-w-5xl space-y-10">
-        {groups.map((group, gi) => (
-          <div key={group.category ?? gi}>
-            {group.category && (
-              <motion.h3
-                className="mb-4 text-lg font-semibold text-foreground"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                animate={
-                  prefersReducedMotion
-                    ? {}
-                    : isInView
-                      ? { opacity: 1, y: 0 }
-                      : undefined
-                }
-                transition={{ duration: 0.3, delay: gi * 0.1 }}
-              >
-                {group.category}
-              </motion.h3>
-            )}
-            <Accordion type="single" collapsible className="space-y-3">
-              {group.items.map((item, ii) => (
-                <MotionAccordionItem
-                  key={item.question}
-                  value={`${gi}-${ii}`}
-                  className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-all hover:shadow-sm hover:shadow-primary/[0.04]"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                  animate={
-                    prefersReducedMotion
-                      ? {}
-                      : isInView
-                        ? { opacity: 1, y: 0 }
-                        : undefined
-                  }
-                  transition={{
-                    duration: 0.3,
-                    delay: gi * 0.1 + ii * 0.05,
-                  }}
-                >
-                  <AccordionTrigger className="text-sm font-semibold text-foreground">
-                    {item.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                    {item.answer}
-                  </AccordionContent>
-                </MotionAccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        ))}
+        {groups.map((group, gi) => {
+          // If the accordion is used without a SectionHeader (hideHeader or no
+          // title provided), the category becomes the top-level section heading
+          // (h2). Otherwise it's a subsection of the h2 SectionHeader (h3).
+          const isTopLevel = hideHeader || !title
+          const categoryAnimation = {
+            className:
+              "mb-4 text-lg font-semibold text-foreground" as const,
+            initial: prefersReducedMotion ? {} : { opacity: 0, y: 8 },
+            animate: prefersReducedMotion
+              ? {}
+              : isInView
+                ? { opacity: 1, y: 0 }
+                : undefined,
+            transition: { duration: 0.3, delay: gi * 0.1 },
+          }
+          return (
+            <div key={group.category ?? gi}>
+              {group.category &&
+                (isTopLevel ? (
+                  <motion.h2 {...categoryAnimation}>{group.category}</motion.h2>
+                ) : (
+                  <motion.h3 {...categoryAnimation}>{group.category}</motion.h3>
+                ))}
+              <Accordion type="single" collapsible className="space-y-3">
+                {group.items.map((item, ii) => (
+                  <MotionAccordionItem
+                    key={item.question}
+                    value={`${gi}-${ii}`}
+                    className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-all hover:shadow-sm hover:shadow-primary/[0.04]"
+                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                    animate={
+                      prefersReducedMotion
+                        ? {}
+                        : isInView
+                          ? { opacity: 1, y: 0 }
+                          : undefined
+                    }
+                    transition={{
+                      duration: 0.3,
+                      delay: gi * 0.1 + ii * 0.05,
+                    }}
+                  >
+                    <AccordionTrigger className="text-sm font-semibold text-foreground">
+                      {item.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                      {item.answer}
+                    </AccordionContent>
+                  </MotionAccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          )
+        })}
       </div>
     </section>
   );
