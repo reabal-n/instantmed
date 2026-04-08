@@ -1,6 +1,6 @@
 'use client'
 
-import { Shield, CheckCircle2, Lock, FileCheck, Stethoscope, Building2, GraduationCap, BookOpen } from 'lucide-react'
+import { Shield, CheckCircle2, Lock, FileCheck, Stethoscope, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ComplianceMarqueeProps {
@@ -9,15 +9,11 @@ interface ComplianceMarqueeProps {
 }
 
 const complianceItems = [
-  { icon: Shield, text: 'AHPRA Registered Doctors', highlight: true },
-  { icon: GraduationCap, text: 'Medical Director Oversight' },
-  { icon: CheckCircle2, text: 'TGA Compliant' },
-  { icon: BookOpen, text: 'RACGP-Aligned Protocols' },
-  { icon: Lock, text: 'Privacy Act Protected' },
   { icon: FileCheck, text: 'Legally Valid Certificates' },
   { icon: Stethoscope, text: 'Real Australian Doctors' },
-  { icon: Building2, text: 'Australian Owned' },
-  { icon: Shield, text: 'Secure & Encrypted' },
+  { icon: Building2, text: 'Australian Owned & Operated' },
+  { icon: Shield, text: 'AHPRA Registered Doctors', highlight: true },
+  { icon: Lock, text: 'Secure & Encrypted' },
   { icon: CheckCircle2, text: 'Medicare Compliant' },
 ]
 
