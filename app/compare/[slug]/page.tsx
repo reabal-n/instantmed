@@ -19,33 +19,15 @@ import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
+import {
+  COMPETITOR_COMPARISONS,
+  type ComparisonEntry,
+} from "@/lib/seo/data/competitor-comparisons"
 
-// Comparison pages for competitive SEO
-const comparisons: Record<string, {
-  title: string
-  slug: string
-  description: string
-  competitor: {
-    name: string
-    type: "gp" | "competitor" | "alternative"
-  }
-  heroText: string
-  comparisonTable: Array<{
-    feature: string
-    instantmed: string | boolean
-    competitor: string | boolean
-    winner?: "instantmed" | "competitor" | "tie"
-  }>
-  whenInstantMedBetter: string[]
-  whenCompetitorBetter: string[]
-  verdict: string
-  faqs: Array<{ q: string; a: string }>
-  guideContent: {
-    title: string
-    subtitle: string
-    sections: Array<{ id: string; title: string; paragraphs: string[] }>
-  }
-}> = {
+// Built-in comparisons — general telehealth educational pages.
+// Competitor-specific comparisons live in lib/seo/data/competitor-comparisons.ts
+// and are merged into `comparisons` below.
+const builtInComparisons: Record<string, ComparisonEntry> = {
   "telehealth-vs-gp": {
     title: "Telehealth vs In-Person GP: Which Should You Choose?",
     slug: "telehealth-vs-gp",
@@ -635,6 +617,22 @@ const comparisons: Record<string, {
   },
 }
 
+// Merge built-in comparisons with competitor comparisons.
+// Keys must stay unique across both sources — the competitor file uses
+// `instantmed-vs-*` slugs which don't collide with the built-in entries.
+const comparisons: Record<string, ComparisonEntry> = {
+  ...builtInComparisons,
+  ...COMPETITOR_COMPARISONS,
+}
+
+// Default keyword set for general (non-competitor) comparison pages.
+const DEFAULT_COMPARISON_KEYWORDS = [
+  'telehealth vs gp',
+  'online doctor comparison',
+  'telehealth australia',
+  'medical certificate online vs gp',
+]
+
 interface PageProps {
   params: Promise<{ slug: string }>
 }
@@ -647,12 +645,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: comparison.title,
     description: comparison.description,
-    keywords: [
-      'telehealth vs gp',
-      'online doctor comparison',
-      'telehealth australia',
-      'medical certificate online vs gp',
-    ],
+    keywords: comparison.keywords ?? DEFAULT_COMPARISON_KEYWORDS,
     openGraph: {
       title: comparison.title,
       description: comparison.description,
