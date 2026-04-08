@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Clock, ShieldCheck } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -10,6 +10,7 @@ import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
@@ -95,18 +96,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-success/30 hover:text-foreground transition-colors duration-200">
-                <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
-                Full refund if declined
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
-                <Clock className="w-3 h-3 text-primary shrink-0" />
-                Med certs in under 30 min, 24/7
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5 hover:border-primary/30 hover:text-foreground transition-colors duration-200">
-                <ShieldCheck className="w-3 h-3 text-primary shrink-0" />
-                AHPRA-registered doctors
-              </span>
+              <TrustBadgeRow preset="hero_generic" className="mt-4" />
             </motion.div>
           </div>
 

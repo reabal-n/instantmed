@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   ChevronDown,
   AlertCircle,
-  PhoneOff,
   Users,
   Clock,
   Star,
@@ -29,6 +28,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
@@ -432,19 +432,7 @@ function HeroSection({
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <span>
-                  AHPRA-registered doctors &middot; Accepted by all employers
-                  &middot; Full refund if we can&apos;t help
-                </span>
-              </p>
-              <div className="flex justify-center lg:justify-start">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary/80 dark:bg-primary/10 dark:border-primary/30 dark:text-primary/70">
-                  <PhoneOff className="h-3.5 w-3.5 shrink-0" />
-                  No call required
-                </div>
-              </div>
+              <TrustBadgeRow preset="hero_medcert" className="mt-3" />
             </motion.div>
 
             {/* Secondary anchor CTA — desktop only */}
