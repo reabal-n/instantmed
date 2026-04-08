@@ -358,14 +358,21 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("draft_not_ready"))).toBe(true)
   })
 
-  it("rejects when draft flags requiresReview=true", () => {
+  it("treats draft requiresReview=true as a soft flag (still eligible)", () => {
+    // ENGINE v2.1: AI draft requiresReview was demoted from hard block
+    // to soft flag because the AI model over-flags common mild symptoms
+    // (anxiety, fatigue, etc.) that are clinically appropriate for a
+    // standard 1-3 day cert. Doctor batch review still catches concerns
+    // post-approval. See lib/clinical/auto-approval.ts:418-432.
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers(),
       makeReadyDraft({ flags: { requiresReview: true, flagReason: "Ambiguous symptoms" } })
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("draft_requires_review"))).toBe(true)
+    expect(result.eligible).toBe(true)
+    expect(result.disqualifyingFlags).toHaveLength(0)
+    expect(result.softFlags.some(f => f.includes("draft_review_flag"))).toBe(true)
+    expect(result.softFlags.some(f => f.includes("Ambiguous symptoms"))).toBe(true)
   })
 
   // ---- Self-harm / suicide (defense-in-depth) ----

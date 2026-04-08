@@ -251,7 +251,7 @@ export async function getAutoApproveStatsAction(): Promise<AutoApproveStats> {
       .not("metadata->certificate_id", "is", null),
     supabase
       .from("ai_audit_log")
-      .select("id, intake_id, metadata, created_at")
+      .select("id, intake_id, reason, metadata, created_at")
       .eq("action", "auto_approve")
       .order("created_at", { ascending: false })
       .limit(10),
@@ -284,7 +284,7 @@ export async function getAutoApproveStatsAction(): Promise<AutoApproveStats> {
       id: e.id as string,
       intake_id: e.intake_id as string | null,
       eligible: (meta?.eligible as boolean) ?? (meta?.certificate_id != null),
-      reason: (meta?.reason as string) || (meta?.certificate_id ? "Certificate issued" : "Unknown"),
+      reason: (e.reason as string) || (meta?.certificate_id ? "Certificate issued" : "Unknown"),
       created_at: e.created_at as string,
     }
   })

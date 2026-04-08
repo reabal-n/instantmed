@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.0"
+export const ELIGIBILITY_ENGINE_VERSION = "2.1"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -45,7 +45,7 @@ export const ELIGIBILITY_CHECK_MANIFEST = [
   "backdating_within_1_day",
   "symptom_text_substantive",
   "ai_clinical_note_exists_and_ready",
-  "ai_draft_no_review_flag",
+  "ai_draft_review_flag_soft_only",
 ] as const
 
 // ============================================================================
@@ -421,10 +421,13 @@ export function evaluateAutoApprovalEligibility(
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 13. AI draft doesn't require review
+    // 13. AI draft review flag — soft flag only (doctor batch review still applies)
+    // Treating this as a hard block was too aggressive: the AI model flags "anxiety"
+    // and other common mild symptoms as requiring review even when clinically appropriate
+    // for a standard 1-3 day cert. Batch review catches any concerns post-approval.
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
-      flags.push(`draft_requires_review: ${draftFlags.flagReason || "unspecified"}`)
+      softFlags.push(`draft_review_flag: ${draftFlags.flagReason || "unspecified"}`)
     }
   }
 
