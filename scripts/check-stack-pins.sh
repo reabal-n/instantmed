@@ -72,15 +72,18 @@ check_pin() {
     return
   fi
 
-  # Reject any range syntax (^, ~, >, *, x)
-  if [[ "$actual" =~ [\^~\>*x] ]]; then
-    echo "FAIL: $name = '$actual' uses range syntax — must be exact ($expected)"
-    errors=$((errors + 1))
-    return
-  fi
-
+  # Single equality check is sufficient. We previously had a bracket-class
+  # regex to detect range syntax (^/~/>/*/x) but bash regex bracket-class
+  # parsing differs between bash 3 (macOS) and bash 5 (Ubuntu CI) and was
+  # producing false positives. If anyone introduces "^15.5.14" instead of
+  # "15.5.14", the equality check below catches it just as well — the
+  # error message is slightly less specific but the gate still holds.
   if [[ "$actual" != "$expected" ]]; then
-    echo "FAIL: $name = '$actual', expected '$expected' ($source)"
+    if [[ "$actual" == *"^"* || "$actual" == *"~"* || "$actual" == *">"* || "$actual" == *"*"* || "$actual" == *"x"* ]]; then
+      echo "FAIL: $name = '$actual' uses range syntax — must be exact ($expected)"
+    else
+      echo "FAIL: $name = '$actual', expected '$expected' ($source)"
+    fi
     errors=$((errors + 1))
     return
   fi
