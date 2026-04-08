@@ -30,7 +30,7 @@ InstantMed is **not a prescribing system**. It is an intake, triage, and documen
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
 | **Hours** | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
 | **Med cert duration** | Max 3 days asynchronous. >3 days requires phone call — no override |
-| **Refund on decline** | Med certs + prescriptions: auto-refund. Consults: not refunded |
+| **Refund on decline** | Med certs + prescriptions: **full auto-refund**. Consults: **50% partial auto-refund** via `decline-intake.ts` `PARTIAL_REFUND_PERCENT` = 0.5 (acknowledges doctor review time while honoring money-back guarantee). Updated 2026-04-08 — unit tested in `lib/__tests__/decline-intake.test.ts`. |
 | **Follow-up** | `flagged_for_followup` field exists. Decline triggers refund + redirection. No automated follow-up |
 
 ---
@@ -239,6 +239,22 @@ Allowed: "Reference only", "Helps with accuracy", "Doctor will review"
 ### Audit Position
 
 "Patients may optionally self-identify a medication name using a public reference list. The system does not recommend, select, or approve medications. All prescribing decisions occur independently within the clinician's prescribing platform."
+
+### Prescribing Boundary Evidence (compliance_audit_log)
+
+Every script handoff to Parchment (the external eScript system) is evidenced in `compliance_audit_log` via the `external_prescribing_indicated` event type. This creates an audit trail that InstantMed itself did not prescribe — the medication was handed off to a separately-licensed prescribing system.
+
+**Emission points (all added 2026-04-08 in commit `ae1c80822`):**
+
+| API route | When fired | Event type |
+|---|---|---|
+| `app/api/doctor/update-request/route.ts` | Doctor approves/declines an intake | `triage_approved` or `triage_declined` |
+| `app/api/doctor/script-sent/route.ts` | Doctor toggles "Script Sent" for a repeat Rx | `external_prescribing_indicated` (reference = parchment ID or "parchment") |
+| `app/api/doctor/scripts/[id]/route.ts` | Doctor transitions a script task to "sent" | `external_prescribing_indicated` (reference = "parchment") |
+
+Previously these mutations only updated the `intakes` row and logged to the observability logger — an AHPRA defensibility gap. The decline path via `app/actions/decline-intake.ts` already emitted `triage_declined` via `logTriageDeclined()`; now all doctor mutation routes are consistent.
+
+Every triage outcome and external prescribing handoff is now reconstructable from `compliance_audit_log` alone, per the core requirement: *"if an action affects clinical care or access to care, it must be reconstructable after the fact."*
 
 ---
 

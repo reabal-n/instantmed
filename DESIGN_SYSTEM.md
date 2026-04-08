@@ -92,7 +92,8 @@
 - Page backgrounds use warm ivory (`--bg`). Card surfaces use pure white (`--surface`) for contrast.
 - **Prohibited:** purple/violet (except `--service-referral`), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
-- Sky-toned shadows only: `shadow-primary/[0.06]`. Never black shadows on marketing surfaces.
+- **Sky-toned shadows only: `shadow-primary/[0.06]`.** Never black shadows on marketing surfaces. The global `--shadow-*` CSS tokens in `app/globals.css:175-183` are based on `rgba(59, 130, 246, ...)` (the primary blue at low alpha) — updated 2026-04-08 in commit `270e6c3a1`. Every `shadow-sm`/`shadow-md`/`shadow-lg` Tailwind utility now cascades through these sky-tinted values.
+- **Dark mode card surfaces are SOLID**, not translucent. `--card` and `--popover` are `#111827` (not `rgba(17, 24, 39, 0.75)`) — updated 2026-04-08 in the same commit. Previously the translucent rgba values created an unintended glass effect on every card in dark mode.
 - Semantic colors convey status. Never use decoratively.
 
 ---

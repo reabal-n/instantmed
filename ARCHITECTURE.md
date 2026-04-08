@@ -3,6 +3,29 @@
 > Canonical reference for system design, data flows, and integrations.
 > For clinical rules see CLINICAL.md · For security see SECURITY.md · For ops see OPERATIONS.md
 
+## Canonical Routes (Source of Truth)
+
+**There is one intake flow.** If you see an old reference to `/flow` or `/prescriptions/request` or `/consult/request`, those are deprecated paths that 301 via `next.config.mjs`. Edit the canonical target, not the redirect source.
+
+| Canonical | Aliases (301 redirect) | Notes |
+|---|---|---|
+| `/request` | `/flow`, `/flow/:path*`, `/prescriptions/request`, `/prescriptions/new`, `/consult/request` | Sole intake flow (commit `18e26f0b7` killed the parallel `/flow` system) |
+| `/medical-certificate` | `/medical-certificates`, `/medical-certificates/:path*` | Singular is canonical (`next.config.mjs`) |
+| `/prescriptions` | `/repeat-prescription`, `/repeat-prescription/:path*`, `/repeat-prescriptions`, `/repeat-prescriptions/:path*`, `/prescription` | |
+| `/` | `/medications`, `/medications/:path*` | Medications pages deleted 2026-04-08 (orphan duplicate of `/prescriptions/med/:slug`) |
+| `/consult` | `/gp-consult` | |
+| `/weight-loss` | `/weight-management`, `/weight-management/:path*` | |
+| `/auth/login` | `/auth/sign-in` | |
+| `/conditions/:slug` | `/health/:slug` | |
+| `/conditions/:slug` | `/conditions/:slug/:city` | Condition-location combos redirect to parent (thin content consolidation) |
+
+**Intake flow service slugs** (canonical values): `med-cert`, `prescription`, `consult`. Aliases (`medcert`, `repeat-rx`, `repeat-script`, `consultation`, `general-consult`) are normalized via `lib/request/draft-storage.ts:canonicalizeServiceType()`.
+
+**Location SEO structure:**
+- `/locations` — hub (browse by state OR by city)
+- `/locations/state/[state]` — 8 state hub pages (nsw/vic/qld/wa/sa/tas/act/nt), added 2026-04-08
+- `/locations/[city]` — 42 city pages
+
 ## Intake System
 
 ### Step-Based Wizard
@@ -556,8 +579,9 @@ All AI usage is documentation-assistance only. Safety logic is deterministic (no
 See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypass, and coverage rules.
 
 **Quick reference:**
-- Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`)
-- E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie
+- Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/` and `lib/security/` — `lib/state-machine/` was removed from the include list in 2026-04-08 since the directory no longer exists)
+- E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. **Full suite runs in CI** as of commit `ae1c80822` (previously only 4 of 47 specs ran). Requires `STRIPE_WEBHOOK_SECRET` (test-mode) in GitHub repo secrets or webhook tests silently skip.
+- Current test count: **987 passing** (942 before the 2026-04-08 audit sweep). New test files: `lib/__tests__/stripe-refunds.test.ts` (26 tests), `lib/__tests__/decline-intake.test.ts` (19 tests).
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
 ---
@@ -574,15 +598,16 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
 | `app/api/` | API routes | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (21) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
-| `app/api/stripe/webhook/` | Stripe handlers | `handlers/checkout-session-completed.ts` (main payment handler) |
-| `app/request/` | Unified intake flow | Single page, step-based wizard |
+| `app/api/stripe/webhook/` | Stripe handlers | 9 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`, `invoice-payment-succeeded`, `customer-subscription-deleted`. Registered in `handlers/index.ts`. |
+| `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview, Sentry test — blocked in production by middleware |
 | `app/blog/` | Health articles | ISR 12h, `[slug]/page.tsx` |
 | `app/conditions/[slug]/` | SEO: conditions | Programmatic from `lib/seo/data/` |
 | `app/symptoms/[slug]/` | SEO: symptoms | Programmatic from `lib/seo/data/` |
 | `app/guides/[slug]/` | SEO: guides | Programmatic from `lib/seo/data/` |
 | `app/for/[audience]/` | SEO: audience | students, parents, tradies, etc. |
-| `app/locations/[city]/` | SEO: location | Australian cities |
+| `app/locations/[city]/` | SEO: city pages | 42 Australian cities from `lib/seo/data/deep-city-content.ts` |
+| `app/locations/state/[state]/` | SEO: state hub pages | 8 states (nsw/vic/qld/wa/sa/tas/act/nt) from `lib/seo/data/states.ts`. Added 2026-04-08 for head-term SEO ("online doctor new south wales"). |
 | `app/intent/[slug]/` | SEO: high-intent | Search query landing pages |
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
@@ -646,8 +671,8 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 43 Playwright specs, `helpers/` (seed/teardown, auth bypass) |
-| `supabase/migrations/` | 184 SQL migrations |
+| `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
+| `supabase/migrations/` | 194 SQL migration files (squashed baseline + 193 incremental). Most recent: `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---

@@ -192,9 +192,13 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Curated testimonials**: 47 realistic testimonials with real Australian locations/occupations — not inflated, not user-submitted
 - **Doctor model**: System supports multiple doctors but currently operates with one. Don't advertise team size beyond what's real
 - **Dev routes blocked in prod**: Middleware blocks `/api/test/*`, `/email-preview*`, `/sentry-test*` in production/preview (exception: `PLAYWRIGHT=1`). Note: `(dev)` route group files (e.g. `app/(dev)/cert-preview`) resolve to `/cert-preview` and are **not** blocked by middleware
-- **Supabase migrations**: Squashed to 1 baseline (was 191). Use `supabase db push`. May need `supabase migration repair` for drift
+- **Supabase migrations**: Squashed to 1 baseline, then layered fixes on top. Current count: **194 migration files** (baseline + 193 incremental). Most recent: `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` (PHI RLS hardening, applied to live). Use `supabase db push`. May need `supabase migration repair` for drift. Note: Supabase's MCP `list_migrations` only shows what's been pushed via the migration tracker — not everything on disk.
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
+- **Canonical intake flow**: `/request` is the **sole** canonical intake. The `/flow` parallel system was deleted in 2026-04-08 (commit `18e26f0b7`). `/flow` and `/flow/:path*` now 301 to `/request` via `next.config.mjs`. Do not add any new logic under a `/flow/*` path, and do not reference `lib/flow/*` — safety engine lives at `lib/safety/` and offline queue at `lib/offline-queue.ts`.
+- **Redirect-only pages**: `/prescriptions/request`, `/prescriptions/new`, `/consult/request`, `/medical-certificates/*`, `/medications/*` all redirect to canonical routes via `next.config.mjs`. The `page.tsx` files still exist as defense-in-depth but their sibling client/action files were deleted in 2026-04-08 (commit `f53d336ec`). Do not recreate those client files.
+- **Stack pin check regex**: `scripts/check-stack-pins.sh` uses glob `[[ == *"^"* ]]` substring tests, NOT bash regex bracket classes (`[[ =~ [\^~\>*x] ]]`). The regex form is bash-version-dependent and produces false positives on bash 5 (Ubuntu CI). Fixed in commit `1e54d69ee` — don't revert it.
+- **CI runs the full e2e suite** via the fixed `scripts/check-stack-pins.sh` + proper env vars in `.github/workflows/ci.yml`. Requires repo secret `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and repo variable `E2E_ENABLED=true`. Without those, webhook specs silently `test.skip()` (see commit `ae1c80822`).
 
 ---
 

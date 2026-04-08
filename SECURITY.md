@@ -135,6 +135,8 @@ FOR SELECT USING (
 | `profiles` | Own (`auth_user_id = auth.uid()`) | SELECT all | SELECT all |
 | `intakes` | Own via `patient_id` chain | SELECT/UPDATE all | SELECT/UPDATE all |
 | `intake_answers` | Own via `intake_id` chain | SELECT all | SELECT/UPDATE all |
+| `intake_drafts` | **Owner-only** (authenticated role only) — no session_id fallback, no claim_guest policy | SELECT all (staff policy) | SELECT all (staff policy) |
+| `safety_audit_log` | **None** (direct client writes denied) | SELECT all | SELECT all |
 | `documents` | Own via `request_id` chain | SELECT/INSERT all | SELECT/INSERT all |
 | `ai_chat_transcripts` | Own (`patient_id = auth.uid()`) | SELECT all | SELECT all |
 | `patient_notes` | Own (except `note_type = 'admin'`) | SELECT/INSERT all, UPDATE own | SELECT/INSERT all, UPDATE own |
@@ -144,6 +146,14 @@ FOR SELECT USING (
 | `doctor_profiles` | None | Own only | All |
 | `notifications` | Own (`user_id`) | Own | Own |
 | `payments` | Own via intake chain | Via intake | All |
+
+**Hardened 2026-04-08** via migration `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` (applied to live Supabase):
+
+- `intake_drafts`: dropped the previous `intake_drafts_user_select` policy that used `user_id = auth.uid() OR session_id IS NOT NULL` (the OR clause was always true, allowing any direct Supabase client call to read every draft — a PHI exfiltration vector). Also dropped `intake_drafts_claim_guest` which let any authenticated user take ownership of anonymous drafts and then read their contents. All access now flows through the service-role API at `/api/flow/drafts/[draftId]` which validates ownership at the API layer.
+- `safety_audit_log`: dropped `safety_audit_authenticated_insert` (gated only on `session_id IS NOT NULL`, trivially bypassable) and replaced with a service_role-only INSERT policy. Prevents audit forgery (e.g. flipping `safety_outcome` from DECLINE to ALLOW to bypass clinical knockouts).
+- `log_safety_evaluation` (both overloads) and `cleanup_old_drafts`: `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated`. These are `SECURITY DEFINER` functions that could mutate `safety_audit_log` and `intake_drafts.safety_outcome` — they're only invoked from server-side code via the service role, so revoking client access is safe and necessary.
+
+See `OPERATIONS.md` §Rollback Runbook for the reversibility matrix and rollback path if any RLS change needs to be reverted.
 
 **Patient-visible audit events:** `intake_created`, `intake_submitted`, `payment_received`, `status_changed`, `document_generated`, `document_sent`. All other events blocked.
 

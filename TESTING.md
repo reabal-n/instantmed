@@ -8,12 +8,20 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | 816+ |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 329+ |
+| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | **987** passing (35 files) |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 46 specs — **full suite runs in CI** |
 
-**Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`).
+**Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
-**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). E2E runs in `ci.yml` gated by `vars.E2E_ENABLED` and also in `e2e-preview.yml` against Vercel preview deployments.
+**Recent additions (2026-04-08 audit sweep):**
+- `lib/__tests__/stripe-refunds.test.ts` — 26 tests covering every branch of `lib/stripe/refunds.ts` (eligibility gates, E2E short-circuit, payment intent resolution fallback, success path, Stripe failure path, Sentry reporting, idempotency key)
+- `lib/__tests__/decline-intake.test.ts` — 19 tests covering `app/actions/decline-intake.ts` (actor gate, idempotency, **refund amount math per category** including 50% partial refund for consults, E2E short-circuit, skipRefund flag)
+
+Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
+
+**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). **Full e2e suite runs in `ci.yml`** gated by `vars.E2E_ENABLED == 'true'` (updated 2026-04-08 — previously only 4 of 47 specs ran). Also runs in `e2e-preview.yml` against Vercel preview deployments.
+
+**Required CI secrets:** `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) — without this, webhook specs silently `test.skip()`. `E2E_ENABLED=true` variable required to gate the e2e job.
 
 ---
 
@@ -167,9 +175,10 @@ The certificate pipeline has strict idempotency and security requirements. These
 
 ## Coverage Rules
 
-- **Scoped thresholds** (Vitest config): 80% statements, 70% branches, 80% functions, 80% lines — applied to `lib/clinical/`, `lib/state-machine/`, `lib/security/` only
+- **Scoped thresholds** (Vitest config): 80% statements, 70% branches, 80% functions, 80% lines — applied to `lib/clinical/` and `lib/security/` only
+- `lib/state-machine/` was removed from the include list 2026-04-08 (directory no longer exists; state-machine logic lives in `lib/clinical/auto-approval-state.ts` which IS covered)
 - Run `pnpm test:coverage` to see per-file breakdown
-- Other directories are not gated but critical paths (checkout, certificate pipeline) should be tested via E2E
+- Other directories are not gated but critical paths (checkout, certificate pipeline, decline/refund) are tested via both unit tests (`stripe-refunds.test.ts`, `decline-intake.test.ts`) AND the full e2e suite
 
 ---
 
@@ -181,15 +190,21 @@ jobs:
   build:
     steps:
       - pnpm install --frozen-lockfile
-      - pnpm audit --audit-level=critical
+      - bash scripts/check-stack-pins.sh  # Fails if Next/React/Tailwind/FM drift
+      - pnpm audit --audit-level=high     # Was: critical (tightened 2026-04-08)
       - pnpm lint
-      - pnpm test --run --coverage    # Unit tests + coverage check
+      - pnpm test --run --coverage        # Unit tests + coverage check
       - bash scripts/check-route-conflicts.sh
-      - pnpm build                    # Production build (includes typecheck, 8GB heap)
-  e2e:                                # Gated by vars.E2E_ENABLED == 'true'
+      - pnpm build                        # Production build (includes typecheck, 8GB heap)
+  lighthouse:
     needs: build
     steps:
-      - playwright test --project=chromium (critical paths only)
+      - pnpm build                        # With real Supabase + Clerk secrets (not placeholders)
+      - lhci autorun                      # Category-score assertions only (no recommended preset)
+  e2e:                                    # Gated by vars.E2E_ENABLED == 'true'
+    needs: build
+    steps:
+      - playwright test --project=chromium   # FULL suite, all 46 specs
 
 # .github/workflows/e2e-preview.yml
 # Runs against Vercel preview deployment
@@ -197,7 +212,9 @@ steps:
   - pnpm e2e:chromium  # E2E against preview URL
 ```
 
-E2E runs in two places: (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium only, critical paths); (2) `e2e-preview.yml` against Vercel preview deployments. Unit tests and lint run on every push to main and all PRs.
+**E2E runs in two places:** (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium, **full 46-spec suite** — updated 2026-04-08); (2) `e2e-preview.yml` against Vercel preview deployments. Unit tests and lint run on every push to main and all PRs.
+
+**Lighthouse gates** (commit `99fc1c843`): category-score assertions only, all set to "warn" severity. The `lighthouse:recommended` preset was removed because it enabled every individual audit at "error" severity and blocked on pre-existing design-system issues (color-contrast, heading-order, label-content-name-mismatch, link-text) that need a dedicated sweep to fix. Reports still upload as artifacts so issues remain visible — they just don't block the build.
 
 ---
 
