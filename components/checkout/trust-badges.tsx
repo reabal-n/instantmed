@@ -9,7 +9,7 @@
  * - StripeBadge — Stripe branding badge
  * - PaymentMethodIcons — "Secured by Stripe" message
  * - AHPRAStatement — AHPRA registration badge (inline/card/minimal)
- * - CheckoutTrustStrip — Combined trust strip (compact/full/minimal)
+ * - CheckoutTrustStrip — Combined trust strip (delegates to TrustBadgeRow)
  * - CheckoutSecurityFooter — Full footer with payment + security + AHPRA
  * - DataSecurityStrip — For onboarding/data entry forms
  * - OnboardingTrustFooter — Bottom-of-step trust footer
@@ -18,12 +18,11 @@
 import {
   Lock,
   Shield,
-  ShieldCheck,
   Award,
-  MapPin,
   EyeOff
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 
 // ── Stripe ──────────────────────────────────────────────────────────
 
@@ -168,122 +167,18 @@ export function AHPRAStatement({
 
 // ── Combined Checkout Strips ────────────────────────────────────────
 
-export function CheckoutTrustStrip({
-  variant = "compact",
-  className
-}: {
-  variant?: "compact" | "full" | "minimal"
-  className?: string
-}) {
-  if (variant === "minimal") {
-    return (
-      <div className={cn(
-        "flex flex-wrap items-center justify-center gap-3 py-2 text-xs text-muted-foreground",
-        className
-      )}>
-        <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-emerald-600" />
-          <span>256-bit SSL Encrypted</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>PCI-DSS Compliant</span>
-        </div>
-        <AHPRAStatement variant="minimal" />
-      </div>
-    )
-  }
-
-  if (variant === "full") {
-    return (
-      <div className={cn("space-y-4", className)}>
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-xs text-muted-foreground">Accepted payment methods</span>
-          <PaymentMethodIcons size="md" />
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>256-bit SSL</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>PCI Compliant</span>
-          </div>
-          <StripeBadge variant="powered-by" />
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-          <AHPRAStatement variant="minimal" />
-          <div className="flex items-center gap-1.5">
-            <EyeOff className="w-3.5 h-3.5" />
-            <span>100% Confidential</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-blue-600" />
-            <span>Australian-owned & operated</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Compact variant (default)
-  return (
-    <div className={cn(
-      "flex flex-wrap items-center justify-center gap-4 py-3 text-xs text-muted-foreground",
-      className
-    )}>
-      <div className="flex items-center gap-1.5">
-        <Lock className="w-3.5 h-3.5 text-emerald-600" />
-        <span>SSL Encrypted</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-        <span>PCI Compliant</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <Award className="w-3.5 h-3.5 text-emerald-600" />
-        <span>AHPRA Doctors</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <MapPin className="w-3.5 h-3.5 text-blue-600" />
-        <span>Australian-owned</span>
-      </div>
-    </div>
-  )
+export function CheckoutTrustStrip({ className }: { className?: string }) {
+  return <TrustBadgeRow preset="checkout" className={className} />
 }
 
 export function CheckoutSecurityFooter({ className }: { className?: string }) {
   return (
-    <div className={cn(
-      "border-t border-border/50 pt-4 space-y-4",
-      className
-    )}>
+    <div className={cn('border-t border-border/50 pt-4 space-y-3', className)}>
       <div className="flex flex-col items-center gap-2">
         <PaymentMethodIcons />
         <StripeBadge variant="powered-by" />
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-emerald-600" />
-          <span>256-bit SSL</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>PCI Compliant</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <EyeOff className="w-3.5 h-3.5" />
-          <span>Confidential</span>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-        <AHPRAStatement variant="minimal" />
-        <div className="flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-blue-600" />
-          <span>Australian-owned</span>
-        </div>
-      </div>
+      <TrustBadgeRow preset="checkout" />
     </div>
   )
 }
@@ -361,24 +256,8 @@ export function DataSecurityStrip({
 
 export function OnboardingTrustFooter({ className }: { className?: string }) {
   return (
-    <div className={cn(
-      "flex flex-col items-center gap-2 pt-4 border-t border-border/30",
-      className
-    )}>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Secure & encrypted</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Award className="w-3.5 h-3.5 text-emerald-600" />
-          <span>AHPRA doctors</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-blue-600" />
-          <span>Australian-owned</span>
-        </div>
-      </div>
+    <div className={cn('flex flex-col items-center gap-2 pt-4 border-t border-border/30', className)}>
+      <TrustBadgeRow badges={['ssl', 'ahpra', 'privacy']} />
     </div>
   )
 }

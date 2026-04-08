@@ -4,8 +4,7 @@
  * Unified Trust Strip
  *
  * Compact row of trust indicators for intake flows, checkout, and headers.
- * Replaces 4 near-identical TrustStrip components that were scattered across
- * repeat-rx, med-cert, prescription, and compliance-marquee.
+ * Delegates to TrustBadgeRow from the primitive library.
  *
  * Usage:
  *   <TrustStrip />                          // Default: AHPRA + Encrypted + Private
@@ -14,48 +13,18 @@
  *   <TrustStrip tooltips={false} />          // Without tooltips (headers)
  */
 
-import { BadgeCheck, Lock, Shield, FileCheck } from "lucide-react"
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
+import type { BadgeId } from "@/lib/trust-badges"
 
 type BadgeType = "ahpra" | "encrypted" | "private" | "refund" | "tga"
 
-const BADGE_CONFIG: Record<BadgeType, {
-  icon: typeof BadgeCheck
-  iconColor: string
-  label: string
-  tooltip: string
-}> = {
-  ahpra: {
-    icon: BadgeCheck,
-    iconColor: "text-green-600",
-    label: "AHPRA doctors",
-    tooltip: "All doctors are AHPRA-registered",
-  },
-  encrypted: {
-    icon: Lock,
-    iconColor: "text-primary",
-    label: "Encrypted",
-    tooltip: "Bank-level 256-bit encryption protects your data",
-  },
-  private: {
-    icon: Shield,
-    iconColor: "text-blue-600",
-    label: "100% private",
-    tooltip: "We never sell your data",
-  },
-  refund: {
-    icon: Shield,
-    iconColor: "text-blue-600",
-    label: "Full refund if not approved",
-    tooltip: "Full refund if your request cannot be approved",
-  },
-  tga: {
-    icon: FileCheck,
-    iconColor: "text-primary",
-    label: "TGA compliant",
-    tooltip: "TGA-compliant prescribing and processes",
-  },
+const OLD_TO_NEW: Record<BadgeType, BadgeId> = {
+  ahpra: 'ahpra',
+  encrypted: 'ssl',
+  private: 'privacy',
+  refund: 'refund',
+  tga: 'tga',
 }
 
 const DEFAULT_BADGES: BadgeType[] = ["ahpra", "encrypted", "private"]
@@ -63,9 +32,9 @@ const DEFAULT_BADGES: BadgeType[] = ["ahpra", "encrypted", "private"]
 interface TrustStripProps {
   /** Which badges to show (default: ahpra, encrypted, private) */
   badges?: BadgeType[]
-  /** Show tooltips on hover (default: true) */
+  /** Show tooltips on hover (default: true — handled automatically by TrustBadgeRow) */
   tooltips?: boolean
-  /** Show pipe separators between items */
+  /** Show pipe separators between items (no-op in new impl) */
   separators?: boolean
   /** Additional classes */
   className?: string
@@ -73,58 +42,16 @@ interface TrustStripProps {
 
 export function TrustStrip({
   badges = DEFAULT_BADGES,
-  tooltips = true,
-  separators = false,
+  tooltips: _tooltips,
+  separators: _separators,
   className,
 }: TrustStripProps) {
-  const content = badges.map((badgeType, i) => {
-    const config = BADGE_CONFIG[badgeType]
-    const Icon = config.icon
+  const mappedBadges = badges.map((b) => OLD_TO_NEW[b])
 
-    const badge = (
-      <div
-        key={badgeType}
-        className={cn(
-          "flex items-center gap-1.5",
-          tooltips && "cursor-help"
-        )}
-      >
-        <Icon className={cn("w-3.5 h-3.5", config.iconColor)} aria-hidden="true" />
-        <span>{config.label}</span>
-      </div>
-    )
-
-    return (
-      <span key={badgeType} className="contents">
-        {tooltips ? (
-          <Tooltip>
-            <TooltipTrigger asChild>{badge}</TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-              {config.tooltip}
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          badge
-        )}
-        {separators && i < badges.length - 1 && (
-          <span aria-hidden="true" className="text-muted-foreground/60">|</span>
-        )}
-      </span>
-    )
-  })
-
-  const strip = (
-    <div className={cn(
-      "flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground",
-      className
-    )}>
-      {content}
-    </div>
+  return (
+    <TrustBadgeRow
+      badges={mappedBadges}
+      className={cn("py-2", className)}
+    />
   )
-
-  if (tooltips) {
-    return <TooltipProvider>{strip}</TooltipProvider>
-  }
-
-  return strip
 }
