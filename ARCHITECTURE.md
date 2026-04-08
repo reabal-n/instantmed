@@ -788,7 +788,12 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Marketing homepage (hero, service picker, how-it-works, testimonials, FAQ) |
+| `/` | Marketing homepage (hero, service picker, how-it-works, testimonials, FAQ). Homepage `ServicePicker` shows the four top-level services: med-cert, scripts, ED, hair loss. |
+| `/medical-certificate` | Premium landing for med certs — the gold-standard `MedCertLanding` pattern. |
+| `/prescriptions` | Repeat medication landing (eScript workflow, subscription upsell). |
+| `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. No call step. Short URL `/ed` 301s here. |
+| `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. No call step. |
+| `/consult` | Canonical generic doctor-consult funnel (`ServiceFunnelPage` + 12 FAQs + HowToSchema). The `/general-consult` URL was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s here. |
 | `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
 | `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |
