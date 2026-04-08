@@ -32,8 +32,8 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: { absolute: 'Online Doctor Australia | Med Certs & Medication | InstantMed' },
-  description: 'Medical certificates from $19.95 — issued in under 30 minutes, 24/7. Repeat medication from $29.95. AHPRA-registered Australian doctors, 100% online.',
+  title: { absolute: 'Online Doctor Australia | Med Certs, ED & Hair Loss | InstantMed' },
+  description: 'Medical certificates from $19.95 in under 30 minutes. Repeat medication from $29.95. Discreet ED and hair loss treatment from $49.95. AHPRA-registered Australian doctors, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -43,10 +43,12 @@ export const metadata: Metadata = {
     'repeat medication online',
     'telehealth doctor',
     'virtual doctor australia',
+    'ed treatment online',
+    'hair loss treatment online',
   ],
   openGraph: {
-    title: 'Online Doctor Australia | Med Certs & Medication | InstantMed',
-    description: 'Medical certificates issued in under 30 minutes, 24/7. Repeat medication reviewed by Australian-registered doctors.',
+    title: 'Online Doctor Australia | Med Certs, ED & Hair Loss | InstantMed',
+    description: 'Medical certificates in under 30 minutes, 24/7. Discreet ED and hair loss treatment reviewed by AHPRA-registered Australian doctors.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -56,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates issued in under 30 minutes, 24/7. Repeat medication reviewed by Australian doctors.',
+    description: 'Medical certificates in under 30 minutes, 24/7. Discreet ED and hair loss treatment reviewed by AHPRA-registered Australian doctors.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
@@ -111,7 +113,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description="Get medical certificates in under 30 minutes, 24/7. Repeat medication and doctor consults online from $19.95. AHPRA-registered Australian doctors."
+        description="Get medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. From $19.95."
         url="/"
       />
 
@@ -135,7 +137,7 @@ export default async function HomePage() {
         {/* Hero with main value prop — LCP p passed as children for server render */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
-            Medical certificates in under 30 minutes, 24/7. Prescriptions and consultations reviewed by real Australian doctors. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest.
+            Medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss — reviewed by AHPRA-registered Australian doctors. No appointments, no waiting rooms, no video calls.
           </p>
         </Hero>
 
