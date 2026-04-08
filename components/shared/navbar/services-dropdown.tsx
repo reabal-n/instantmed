@@ -4,9 +4,8 @@ import Link from "next/link"
 import {
   FileText,
   Pill,
-  Stethoscope,
   ChevronDown,
-  Scale,
+  HeartPulse,
   Sparkles,
 } from "lucide-react"
 import {
@@ -19,11 +18,10 @@ import { cn } from "@/lib/utils"
 import { useServiceAvailability, type ServiceId } from "@/components/providers/service-availability-provider"
 
 export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; icon: typeof FileText }> = [
-  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificates", description: "Work, uni & carer's leave", icon: FileText },
+  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave", icon: FileText },
   { serviceId: "scripts", title: "Repeat Medication", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
-  { serviceId: "consult", title: "General Consult", href: "/general-consult", description: "New medication & dose changes", icon: Stethoscope },
-  { serviceId: "consult", title: "Weight Loss", href: "/weight-loss", description: "Doctor-led weight management", icon: Scale },
-  { serviceId: "consult", title: "Hair Loss", href: "/hair-loss", description: "Discreet hair loss treatment", icon: Sparkles },
+  { serviceId: "consult", title: "ED Treatment", href: "/erectile-dysfunction", description: "Discreet, no call needed", icon: HeartPulse },
+  { serviceId: "consult", title: "Hair Loss Treatment", href: "/hair-loss", description: "Doctor-reviewed treatment plan", icon: Sparkles },
 ]
 
 interface ServicesDropdownProps {
@@ -39,7 +37,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
         <button
           className={cn(
             "group/services flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-            isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
+            isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/repeat-prescriptions") || isActivePath("/erectile-dysfunction") || isActivePath("/hair-loss")
               ? "text-foreground"
               : "text-muted-foreground hover:text-foreground"
           )}
