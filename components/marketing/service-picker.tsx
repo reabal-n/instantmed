@@ -11,14 +11,14 @@ import { Button } from '@/components/ui/button'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { CertificateMockup } from '@/components/marketing/mockups/certificate'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
-import { ConsultMockup } from '@/components/marketing/mockups/consult'
 import { EDHeroMockup } from '@/components/marketing/mockups/ed-hero-mockup'
+import { HairLossHeroMockup } from '@/components/marketing/mockups/hair-loss-hero-mockup'
 
 const mockupMap: Record<string, React.ComponentType> = {
   'med-cert': CertificateMockup,
   'scripts': EScriptMockup,
   'ed': EDHeroMockup,
-  'hair-loss': ConsultMockup, // TODO: replaced with HairLossMockup in Task 12
+  'hair-loss': HairLossHeroMockup,
 }
 
 const iconMap = {
