@@ -6,6 +6,9 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 
+// Persists across React StrictMode's simulated remount — DOM nodes are preserved.
+const _played = new WeakSet<Element>()
+
 interface ClipPathImageProps {
   src: string;
   alt: string;
@@ -39,28 +42,32 @@ export function ClipPathImage({
   });
   const prefersReducedMotion = useReducedMotion();
 
+  if (isInView && ref.current) _played.add(ref.current)
+  const alreadyPlayed = ref.current != null && _played.has(ref.current)
+  const shouldAnimate = alreadyPlayed || isInView
+
   const clip = clipPaths[direction];
 
   return (
     <motion.div
       ref={ref}
       className={cn("overflow-hidden rounded-2xl", className)}
-      initial={prefersReducedMotion ? {} : { clipPath: clip.hidden }}
+      initial={prefersReducedMotion ? {} : { clipPath: alreadyPlayed ? clip.visible : clip.hidden }}
       animate={
         prefersReducedMotion
           ? {}
-          : isInView
+          : shouldAnimate
             ? { clipPath: clip.visible }
             : { clipPath: clip.hidden }
       }
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <motion.div
-        initial={prefersReducedMotion ? {} : { scale: 1.02 }}
+        initial={prefersReducedMotion ? {} : { scale: alreadyPlayed ? 1 : 1.02 }}
         animate={
           prefersReducedMotion
             ? {}
-            : isInView
+            : shouldAnimate
               ? { scale: 1 }
               : { scale: 1.02 }
         }

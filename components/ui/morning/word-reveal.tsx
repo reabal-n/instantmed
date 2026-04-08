@@ -5,6 +5,9 @@ import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 
+// Persists across React StrictMode's simulated remount — DOM nodes are preserved.
+const _played = new WeakSet<Element>()
+
 interface WordRevealProps {
   text: string;
   className?: string;
@@ -31,6 +34,10 @@ export function WordReveal({
     amount: scrollRevealConfig.threshold,
   });
   const prefersReducedMotion = useReducedMotion();
+
+  if (isInView && ref.current) _played.add(ref.current)
+  const alreadyPlayed = ref.current != null && _played.has(ref.current)
+  const shouldAnimate = alreadyPlayed || isInView
 
   const words = text.split(" ");
 
@@ -66,8 +73,8 @@ export function WordReveal({
           <motion.span
             key={i}
             className={cn("inline-block mr-[0.25em]", isHighlighted && highlightClassName)}
-            initial={{ opacity: 0, y: 12 }}
-            animate={isInView ? { opacity: 1, y: 0 } : undefined}
+            initial={alreadyPlayed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+            animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
             transition={{
               duration: wordDuration,
               delay: i * staggerDelay,

@@ -27,6 +27,11 @@ const variants: Variants = {
   },
 }
 
+// React 18 StrictMode preserves DOM nodes across its simulated unmount→remount
+// cycle. This WeakSet persists outside React's lifecycle, so once an element
+// has entered view we never replay the animation on the second mount.
+const _played = new WeakSet<Element>()
+
 export function BlurFade({
   children,
   className,
@@ -40,11 +45,15 @@ export function BlurFade({
   const isInView = useInView(ref, { once: true, margin: "-50px" })
   const prefersReducedMotion = useReducedMotion()
 
+  // Register on first visibility; check on subsequent mounts (StrictMode remount)
+  if (isInView && ref.current) _played.add(ref.current)
+  const alreadyPlayed = ref.current != null && _played.has(ref.current)
+
   return (
     <motion.div
       ref={ref}
-      initial={prefersReducedMotion ? {} : "hidden"}
-      animate={inView ? (isInView ? "visible" : "hidden") : "visible"}
+      initial={prefersReducedMotion ? {} : alreadyPlayed ? "visible" : "hidden"}
+      animate={inView ? (alreadyPlayed || isInView ? "visible" : "hidden") : "visible"}
       variants={variants}
       custom={{ yOffset, blur }}
       transition={{

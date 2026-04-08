@@ -4,6 +4,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { trackBusinessMetric } from "@/lib/posthog-server"
+import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("cron-stale-queue")
 
@@ -53,6 +54,18 @@ export async function GET(request: NextRequest) {
         metadata: { stale_count: totalStale },
       })
       logger.warn("Stale intakes detected", { stale_count: totalStale })
+
+      // Sentry alert so ops get a real-time notification, not just PostHog metrics
+      Sentry.captureMessage(
+        totalStale >= 5
+          ? `Critical: ${totalStale} intakes waiting 2h+ without review`
+          : `Warning: ${totalStale} intake(s) waiting 2h+ without review`,
+        {
+          level: totalStale >= 5 ? "error" : "warning",
+          tags: { alert_type: "stale_queue", severity: totalStale >= 5 ? "critical" : "warning" },
+          extra: { stale_count: totalStale },
+        },
+      )
     }
 
     // ── Patient delay emails ─────────────────────────────────────────────────
