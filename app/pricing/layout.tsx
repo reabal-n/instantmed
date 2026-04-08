@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // Revalidate every 24 hours — pricing rarely changes
 export const revalidate = 86400
@@ -34,14 +34,15 @@ export const metadata: Metadata = {
   },
 }
 
-// FAQ data for schema - mirrors page content
-const faqSchemaData = [
-  { question: "Are there any hidden fees?", answer: "Nope. The price you see is the price you pay. No subscriptions, no memberships, no surprises." },
-  { question: "What if my request is declined?", answer: "Full refund, no questions asked. We only charge if we can actually help you." },
-  { question: "How do I pay?", answer: "All major credit/debit cards, Apple Pay, and Google Pay. Payment is secure and encrypted." },
-  { question: "Is this covered by Medicare?", answer: "Our service fee isn't Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable." },
-]
-
+/**
+ * /pricing layout — BreadcrumbSchema only.
+ *
+ * Previously ALSO emitted FAQSchema — but pricing-client.tsx emits its own
+ * FAQPage JSON-LD inline (with the full pricingFaqs data, which is the
+ * canonical source), creating a duplicate FAQPage on the same URL. GSC
+ * flagged this as critical 2026-04-06. Removed from layout in the same
+ * fix as /general-consult (commit: duplicate FAQPage sweep).
+ */
 export default function PricingLayout({
   children,
 }: {
@@ -49,8 +50,6 @@ export default function PricingLayout({
 }) {
   return (
     <>
-      {/* SEO Structured Data */}
-      <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

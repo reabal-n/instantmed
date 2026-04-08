@@ -168,6 +168,11 @@ const nextConfig = {
       // Any bookmarks or stale external links 301 to the canonical /request flow.
       { source: "/flow", destination: "/request", permanent: true },
       { source: "/flow/:path*", destination: "/request", permanent: true },
+      // /general-consult cannibalized /consult (flagged in SEO audit + GSC
+      // "crawled-not-indexed" for /consult). /consult is the stronger page
+      // (ServiceFunnelPage, 12 FAQs, feature-flagged med-cert redirect
+      // banner, HowToSchema). /general-consult → /consult, permanent.
+      { source: "/general-consult", destination: "/consult", permanent: true },
       { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
       { source: "/admin/settings", destination: "/admin/features", permanent: true },
       // Public image path migration — old root paths redirected

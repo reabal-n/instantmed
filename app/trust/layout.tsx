@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // Revalidate every 24 hours — trust content is mostly static
 export const revalidate = 86400
@@ -34,16 +34,15 @@ export const metadata: Metadata = {
   },
 }
 
-// FAQ data for schema - mirrors page content
-const faqSchemaData = [
-  { question: "How do I know the doctors are real?", answer: "Every doctor on InstantMed holds current AHPRA registration — the same regulatory body that governs all Australian medical practitioners. You can verify any doctor's credentials yourself on the AHPRA public register." },
-  { question: "Will my employer accept certificates from InstantMed?", answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details." },
-  { question: "What happens to my personal health information?", answer: "Your data is protected with 256-bit SSL encryption (the same as banks) and stored exclusively on Australian servers. We comply with the Privacy Act 1988 and Australian Privacy Principles." },
-  { question: "Is this actually reviewed by a doctor, or is it automated?", answer: "Every single request is reviewed by a qualified Australian doctor who makes an independent clinical decision. There are no automated approvals." },
-  { question: "What if I'm not happy with the service?", answer: "General complaints are responded to within 48 hours. Formal clinical complaints are reviewed by our Medical Director within 14 days. You can also escalate concerns to the Health Complaints Commissioner in your state." },
-  { question: "Are electronic prescriptions legitimate?", answer: "Yes. Our eScripts are sent via official PBS channels and work at any Australian pharmacy. eScripts are the standard across Australia and are fully compliant with the Therapeutic Goods Act." },
-]
-
+/**
+ * /trust layout — BreadcrumbSchema only.
+ *
+ * Previously ALSO emitted FAQSchema — but trust-client.tsx emits its own
+ * FAQPage JSON-LD inline (with the full trustFAQs data), creating a
+ * duplicate FAQPage on the same URL. GSC flagged this as critical
+ * 2026-04-06. Removed from layout in the same fix as /general-consult
+ * and /pricing (commit: duplicate FAQPage sweep).
+ */
 export default function TrustLayout({
   children,
 }: {
@@ -51,8 +50,6 @@ export default function TrustLayout({
 }) {
   return (
     <>
-      {/* SEO Structured Data */}
-      <FAQSchema faqs={faqSchemaData} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
