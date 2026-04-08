@@ -122,15 +122,15 @@ const nextConfig = {
         destination: "/",
         permanent: true
       },
-      // Referrals — no dedicated pages; pathology/imaging referrals via general consult
+      // Referrals — no dedicated pages; route directly to /consult (single hop)
       {
         source: "/referrals/pathology-imaging",
-        destination: "/general-consult",
+        destination: "/consult",
         permanent: true
       },
       {
         source: "/referrals/:path*",
-        destination: "/general-consult",
+        destination: "/consult",
         permanent: true
       },
       // Short URL for ED landing — marketing/link-in-bio friendly

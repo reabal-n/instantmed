@@ -499,7 +499,7 @@ export default async function SymptomPage({ params }: PageProps) {
                     Medical certificates →
                   </Link>
                   <span className="text-muted-foreground">·</span>
-                  <Link href="/general-consult" className="text-primary hover:underline font-medium">
+                  <Link href="/consult" className="text-primary hover:underline font-medium">
                     GP consultations →
                   </Link>
                   <span className="text-muted-foreground">·</span>
@@ -528,7 +528,7 @@ export default async function SymptomPage({ params }: PageProps) {
                     Medical certificates →
                   </Link>
                   <span className="text-muted-foreground">·</span>
-                  <Link href="/general-consult" className="text-primary hover:underline font-medium">
+                  <Link href="/consult" className="text-primary hover:underline font-medium">
                     GP consultations →
                   </Link>
                   <span className="text-muted-foreground">·</span>

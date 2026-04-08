@@ -7,7 +7,7 @@ import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 import { ConsultGuideSection } from '@/components/marketing/sections/consult-guide-section'
 
 const consultFaqs = [
-  { question: "Will the doctor call me?", answer: "For most general consults, yes. The doctor will review your questionnaire first, then call to discuss your symptoms. Keep your phone nearby after submitting." },
+  { question: "Will the doctor call me?", answer: "No — this is an async service. The doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral. If they need more information they'll message you through the platform. No phone call required." },
   { question: "Can I get a prescription from a consult?", answer: "Yes. If the doctor determines medication is clinically appropriate, they'll send an eScript to your phone. You can collect it at any pharmacy." },
   { question: "What about referrals and pathology?", answer: "The doctor can provide referral letters and pathology requests if they believe further investigation is needed. These are included in your consultation fee." },
   { question: "How is this different from a GP visit?", answer: "You get the same quality of care from an AHPRA-registered GP — just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit." },
@@ -15,7 +15,7 @@ const consultFaqs = [
   { question: "What conditions can you treat online?", answer: "Skin conditions (with photos), UTIs, allergies, mental health concerns, medication reviews, minor infections, stable chronic conditions, and many more. If your concern requires physical examination, we'll let you know." },
   { question: "Is my consultation private?", answer: "Doctor-patient confidentiality applies fully. Your health information is encrypted and never shared with employers, insurers, or third parties. Since this is a private service, nothing appears on your Medicare claims history." },
   { question: "Can I send photos to the doctor?", answer: "Yes. For skin conditions, rashes, and other visual concerns, you can upload photos during the questionnaire. This helps the doctor make a more accurate assessment." },
-  { question: "How long is the consultation?", answer: "Phone consultations typically run 10–15 minutes, though the doctor will take as long as needed. The entire process — from submitting the form to receiving treatment advice — is usually complete within 2 hours." },
+  { question: "How long does it take?", answer: "Most consultations are complete within 1–2 hours of submitting your form. The doctor reviews your questionnaire and responds in writing — no waiting on hold or scheduling a call." },
   { question: "Do I need a Medicare card?", answer: "Medicare details are requested for identity verification and prescribing history, but this is a private service — no Medicare rebate is claimed and nothing appears on your Medicare statement." },
   { question: "Can I get a medical certificate from a consult?", answer: "Yes. If during the consultation the doctor determines you're unfit for work, they can issue a medical certificate as part of your consultation — no additional fee." },
   { question: "What about follow-up questions?", answer: "After your consultation, you can message the doctor with follow-up questions through our secure platform. This is included in your consultation fee." },
@@ -85,7 +85,7 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
           },
           {
             name: "Doctor reviews and responds",
-            text: "An AHPRA-registered GP reviews your information. They may call you to discuss further, or provide advice, a prescription, or referral directly.",
+            text: "An AHPRA-registered GP reviews your questionnaire and responds in writing with advice, a prescription, or a referral — typically within 1–2 hours.",
           },
         ]}
       />

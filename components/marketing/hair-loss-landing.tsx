@@ -705,7 +705,7 @@ export function HairLossLanding() {
         <MarketingFooter />
 
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
-        <ContentHubLinks service="general-consult" />
+        <ContentHubLinks service="consult" />
 
         {/* Related articles — SEO internal linking (empty until hair loss blog slugs exist) */}
         <RelatedArticles />

@@ -50,7 +50,7 @@ export const seoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a valid certificate for work or study', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Speak with a doctor about your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor about your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Medical Certificate Online Australia | Get One Today | InstantMed',
@@ -97,7 +97,7 @@ export const seoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Request a prescription online', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Medication Australia | Doctor-Reviewed Requests | InstantMed',
@@ -143,7 +143,7 @@ export const seoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Get your repeat prescription', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Repeat Medication Online | Doctor-Reviewed | InstantMed',
@@ -191,7 +191,7 @@ export const seoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate today', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Same-Day Medical Certificate | Reviewed Within Hours | InstantMed',
@@ -238,7 +238,7 @@ export const seoArticles: Article[] = [
       { question: 'Can I see my regular GP online?', answer: 'Many GP clinics now offer telehealth appointments. Contact your clinic to see if they provide this option. Services like InstantMed are useful when your regular GP isn\'t available.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Consult with a doctor online', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult with a doctor online', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate for work', href: '/medical-certificate', icon: 'certificate' },
       { title: 'Prescription Request', description: 'Request a prescription', href: '/repeat-prescription', icon: 'prescription' }
     ],
@@ -294,7 +294,7 @@ export const seoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a valid certificate', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Are Online Medical Certificates Valid? | Employer Acceptance | InstantMed',
@@ -344,7 +344,7 @@ export const seoArticles: Article[] = [
       { question: 'Are telehealth records kept like regular medical records?', answer: 'Yes. Telehealth providers must maintain medical records that meet the same standards as in-person practices. You can request access to your records.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Consult with a registered doctor', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult with a registered doctor', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a valid certificate', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {
@@ -449,7 +449,7 @@ export const seoArticles: Article[] = [
       { question: 'Is telehealth ever appropriate for mental health crises?', answer: 'For immediate crisis support, call Lifeline (13 11 14) or go to emergency. Telehealth can help with ongoing mental health management, but not acute crisis situations.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Talk to a doctor', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Talk to a doctor', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {
@@ -503,7 +503,7 @@ export const seoArticles: Article[] = [
       { question: 'Does screening delay my consultation?', answer: 'Screening is built into the standard process and doesn\'t add significant time. Answering questions thoroughly actually speeds up the doctor\'s review.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Safe online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Safe online consultations', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Screened certificate requests', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {

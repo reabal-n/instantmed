@@ -156,7 +156,7 @@ export const locationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate from anywhere in Sydney', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations for Sydney patients', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Online consultations for Sydney patients', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Doctor Sydney | Telehealth Consultations | InstantMed',
@@ -317,7 +317,7 @@ export const locationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificates for Melbourne workers', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations across Melbourne', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Online consultations across Melbourne', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Doctor Melbourne | Telehealth Consultations | InstantMed',
@@ -477,7 +477,7 @@ export const locationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificates for Brisbane workers', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations across Brisbane', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Online consultations across Brisbane', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Doctor Brisbane | Telehealth Consultations | InstantMed',
@@ -639,7 +639,7 @@ export const locationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificates for Perth workers', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations across Perth', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Online consultations across Perth', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Doctor Perth | Telehealth Consultations | InstantMed',
@@ -797,7 +797,7 @@ export const locationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificates for Adelaide workers', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations across Adelaide', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Online consultations across Adelaide', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Online Doctor Adelaide | Telehealth Consultations | InstantMed',

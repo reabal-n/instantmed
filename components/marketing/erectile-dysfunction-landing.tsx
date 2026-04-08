@@ -581,7 +581,7 @@ export function ErectileDysfunctionLanding() {
         <MarketingFooter />
 
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
-        <ContentHubLinks service="general-consult" />
+        <ContentHubLinks service="consult" />
 
         {/* Related articles — SEO internal linking (empty until ED blog slugs exist) */}
         <RelatedArticles />

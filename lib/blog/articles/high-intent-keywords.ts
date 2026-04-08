@@ -210,7 +210,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a sick leave certificate online', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Speak with a doctor online', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor online', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['medical-certificate-for-work', 'same-day-medical-certificate', 'online-doctor-certificate-for-work'],
     seo: {
@@ -409,7 +409,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Repeat Prescription', description: 'Get your medication refilled online', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Discuss your medications with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your medications with a doctor', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['how-escripts-work-australia', 'telehealth-consultation-australia', 'repeat-prescription-online-australia'],
     seo: {
@@ -610,7 +610,7 @@ export const highIntentKeywordArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Book a telehealth consultation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Book a telehealth consultation', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' },
       { title: 'Prescription', description: 'Request a prescription', href: '/repeat-prescription', icon: 'prescription' }
     ],
@@ -791,7 +791,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a work certificate online', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health concerns', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health concerns', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['medical-certificate-for-work', 'sick-leave-certificate-online-australia', 'same-day-medical-certificate'],
     seo: {
@@ -973,7 +973,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription', description: 'Get an eScript online', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Consult with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Consult with a doctor', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['repeat-prescription-online-australia', 'telehealth-consultation-australia'],
     seo: {
@@ -1146,7 +1146,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a mental health certificate', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Talk to a doctor about mental health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Talk to a doctor about mental health', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['sick-leave-certificate-online-australia', 'telehealth-consultation-australia', 'online-doctor-certificate-for-work'],
     seo: {
@@ -1338,7 +1338,7 @@ export const highIntentKeywordArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate in under an hour', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Same-day doctor consultation', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Same-day doctor consultation', href: '/consult', icon: 'consult' }
     ],
     relatedArticles: ['sick-leave-certificate-online-australia', 'online-doctor-certificate-for-work', 'medical-certificate-for-work'],
     seo: {

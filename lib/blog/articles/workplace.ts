@@ -40,7 +40,7 @@ export const workplaceArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for work', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Sick Leave Rights in Australia | Employee Entitlements | InstantMed', description: 'Know your sick leave rights under Australian workplace law. Learn about entitlements, documentation requirements, and what employers can ask.', keywords: ['sick leave australia', 'sick leave rights', 'personal leave entitlements', 'medical certificate work'] }
   },
@@ -78,7 +78,7 @@ export const workplaceArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for sick leave', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Working From Home When Sick | Should You? | InstantMed', description: 'Remote work blurs sick day boundaries. Learn when to work from home while unwell and when you should properly rest and recover.', keywords: ['working from home sick', 'sick leave remote work', 'should I work when sick', 'wfh sick day'] }
   },
@@ -118,7 +118,7 @@ export const workplaceArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for university', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health concerns', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health concerns', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Medical Certificates for University | Special Consideration | InstantMed', description: 'Medical certificates for university students. Learn about special consideration, extensions, and what documentation you need.', keywords: ['university medical certificate', 'special consideration', 'uni extension medical certificate', 'student sick leave'] }
   },
@@ -158,7 +158,7 @@ export const workplaceArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Clearance to return to work', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your recovery', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your recovery', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Returning to Work After Illness | Recovery Guide | InstantMed', description: 'When are you ready to return to work after being sick? Learn about recovery timelines, fitness certificates, and easing back in.', keywords: ['return to work after illness', 'fitness for work certificate', 'when to go back to work sick', 'recovery from illness'] }
   }

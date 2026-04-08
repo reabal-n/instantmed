@@ -152,7 +152,7 @@ export const trustBuildingArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Consult with AHPRA-registered doctors', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult with AHPRA-registered doctors', href: '/consult', icon: 'consult' },
       { title: 'About Our Doctors', description: 'Meet our medical team', href: '/about', icon: 'certificate' }
     ],
     seo: {
@@ -336,7 +336,7 @@ export const trustBuildingArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a valid certificate', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Can Your Employer Reject a Medical Certificate? | InstantMed',
@@ -507,7 +507,7 @@ export const trustBuildingArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'No Medicare required', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Private telehealth consultations', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Private telehealth consultations', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Medical Certificate Without Medicare | Australia | InstantMed',
@@ -699,7 +699,7 @@ export const trustBuildingArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Simple online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Simple online consultations', href: '/consult', icon: 'consult' },
       { title: 'Prescription Request', description: 'Medication renewals made easy', href: '/repeat-prescription', icon: 'prescription' }
     ],
     seo: {
@@ -874,7 +874,7 @@ export const trustBuildingArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Non-emergency consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Non-emergency consultations', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Not appropriate for ED', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {
@@ -1064,7 +1064,7 @@ export const trustBuildingArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for university', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Medical Certificate for University Extension | Special Consideration | InstantMed',

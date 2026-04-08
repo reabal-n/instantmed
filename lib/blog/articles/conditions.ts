@@ -33,7 +33,7 @@ export const conditionArticles: Article[] = [
       { question: 'Can I take antihistamines every day?', answer: 'Non-drowsy antihistamines are generally safe for daily use during allergy season. Avoid using decongestant nasal sprays for more than a few days.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss treatment options', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss treatment options', href: '/consult', icon: 'consult' },
       { title: 'Prescription Request', description: 'Request hay fever medication', href: '/repeat-prescription', icon: 'prescription' }
     ],
     seo: { title: 'Hay Fever & Seasonal Allergies | Treatment | InstantMed', description: 'Hay fever affects 1 in 5 Australians. Learn about allergic rhinitis symptoms, triggers, and treatment options.', keywords: ['hay fever australia', 'allergic rhinitis', 'seasonal allergies', 'hay fever treatment'] }
@@ -71,7 +71,7 @@ export const conditionArticles: Article[] = [
       { question: 'Do I always need antibiotic drops?', answer: 'No. Viral conjunctivitis doesn\'t respond to antibiotics. A doctor can determine if antibiotics are appropriate.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Get assessed and treated', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Get assessed and treated', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate if you need time off', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Conjunctivitis (Pink Eye) | Symptoms & Treatment | InstantMed', description: 'Pink eye is common and usually not serious. Learn about viral, bacterial, and allergic conjunctivitis.', keywords: ['conjunctivitis', 'pink eye', 'pink eye treatment'] }
@@ -107,7 +107,7 @@ export const conditionArticles: Article[] = [
       { question: 'Is green mucus always infection?', answer: 'No. Green or yellow mucus is common with both viral and bacterial infections.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss your sinus symptoms', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your sinus symptoms', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate for time off', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Sinusitis & Sinus Infections | Treatment | InstantMed', description: 'Sinusitis causes facial pain and congestion. Learn about home remedies and when antibiotics are needed.', keywords: ['sinusitis', 'sinus infection', 'sinus infection treatment'] }
@@ -143,7 +143,7 @@ export const conditionArticles: Article[] = [
       { question: 'Can anxiety cause dizziness?', answer: 'Yes. Anxiety and panic attacks commonly cause dizziness and lightheadedness.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate if unfit for work', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Vertigo & Dizziness | Causes & Treatment | InstantMed', description: 'Dizziness has many causes. Learn about vertigo, BPPV, lightheadedness, and when to see a doctor.', keywords: ['vertigo', 'dizziness', 'BPPV', 'feeling dizzy'] }
@@ -180,7 +180,7 @@ export const conditionArticles: Article[] = [
       { question: 'Is shingles contagious?', answer: 'You can\'t catch shingles, but someone who hasn\'t had chickenpox can catch chickenpox from shingles blisters.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Get assessed quickly', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Get assessed quickly', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate for time off', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Shingles (Herpes Zoster) | Symptoms & Treatment | InstantMed', description: 'Shingles causes a painful rash. Learn why early treatment matters and about preventing complications.', keywords: ['shingles', 'herpes zoster', 'shingles treatment', 'shingles vaccine'] }
@@ -216,7 +216,7 @@ export const conditionArticles: Article[] = [
       { question: 'Can I get a certificate for gout?', answer: 'Yes. Severe gout pain can make it impossible to walk or work.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Get assessed and treated', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Get assessed and treated', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate if you can\'t work', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Gout | Symptoms, Treatment & Prevention | InstantMed', description: 'Gout causes sudden, severe joint pain. Learn about causes, treatment, and prevention.', keywords: ['gout', 'gout treatment', 'gout symptoms', 'gout diet'] }
@@ -253,7 +253,7 @@ export const conditionArticles: Article[] = [
       { question: 'Is eczema contagious?', answer: 'No. You cannot catch or spread eczema.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss your eczema', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your eczema', href: '/consult', icon: 'consult' },
       { title: 'Prescription Request', description: 'Request treatment', href: '/repeat-prescription', icon: 'prescription' }
     ],
     seo: { title: 'Eczema & Dermatitis | Symptoms & Treatment | InstantMed', description: 'Eczema causes itchy, inflamed skin. Learn about triggers, treatment, and long-term management.', keywords: ['eczema', 'atopic dermatitis', 'eczema treatment', 'dermatitis'] }
@@ -291,7 +291,7 @@ export const conditionArticles: Article[] = [
       { question: 'Can stress cause IBS?', answer: 'Stress doesn\'t cause IBS but often triggers or worsens symptoms. The gut-brain connection is strong.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Certificate if needed', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'IBS & Digestive Issues | Symptoms & Management | InstantMed', description: 'IBS affects 1 in 5 Australians. Learn about symptoms, the low FODMAP diet, and management.', keywords: ['IBS', 'irritable bowel syndrome', 'digestive issues', 'FODMAP'] }

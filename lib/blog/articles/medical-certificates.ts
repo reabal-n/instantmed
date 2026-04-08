@@ -185,7 +185,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'GP Consultation',
         description: 'Speak with a doctor about your mental health',
-        href: '/general-consult',
+        href: '/consult',
         icon: 'consult'
       }
     ],
@@ -731,7 +731,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'GP Consultation',
         description: 'Discuss your situation with a doctor',
-        href: '/general-consult',
+        href: '/consult',
         icon: 'consult'
       }
     ],
@@ -919,7 +919,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'GP Consultation',
         description: 'Speak with a doctor about care needs',
-        href: '/general-consult',
+        href: '/consult',
         icon: 'consult'
       }
     ],
@@ -1114,7 +1114,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'GP Consultation',
         description: 'Discuss your recovery progress',
-        href: '/general-consult',
+        href: '/consult',
         icon: 'consult'
       }
     ],
@@ -1514,7 +1514,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         title: 'GP Consultation',
         description: 'Discuss your health with a doctor',
-        href: '/general-consult',
+        href: '/consult',
         icon: 'consult'
       }
     ],

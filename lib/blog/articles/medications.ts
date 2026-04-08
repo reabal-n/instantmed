@@ -39,7 +39,7 @@ export const medicationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Request a prescription renewal', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Discuss your medications', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your medications', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Repeat Prescriptions in Australia | How They Work | InstantMed', description: 'Learn how repeat prescriptions work in Australia, when you can get them, and your options when repeats run out.', keywords: ['repeat prescription', 'prescription repeats australia', 'medication refill', 'script repeats'] }
   },
@@ -80,7 +80,7 @@ export const medicationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Check if your medication is eligible', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Discuss your medication needs', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your medication needs', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Medications That Can\'t Be Prescribed Online | InstantMed', description: 'Some medications require in-person consultations. Learn which medications have telehealth restrictions and why.', keywords: ['medications not prescribed online', 'telehealth restrictions', 'controlled medications australia'] }
   },
@@ -121,7 +121,7 @@ export const medicationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Request PBS-listed medications', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Discuss medication options', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss medication options', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Understanding the PBS | Pharmaceutical Benefits Scheme | InstantMed', description: 'The PBS subsidises prescription medications in Australia. Learn how it works, co-payment amounts, and how to access PBS pricing.', keywords: ['PBS', 'pharmaceutical benefits scheme', 'PBS medications', 'medication subsidy australia'] }
   },
@@ -161,7 +161,7 @@ export const medicationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Discuss medication options', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Ask about your medications', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Ask about your medications', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Generic vs Brand Name Medications | Are Generics Safe? | InstantMed', description: 'Generic medications can save money. Learn the difference between generic and brand name drugs and when generics are appropriate.', keywords: ['generic medications', 'generic vs brand', 'generic drugs australia', 'medication savings'] }
   },
@@ -201,7 +201,7 @@ export const medicationArticles: Article[] = [
       { question: 'What if I forgot to mention a medication?', answer: 'Tell your doctor or pharmacist as soon as you remember. It\'s never too late to update your medication list.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Review your medications', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Review your medications', href: '/consult', icon: 'consult' },
       { title: 'Prescription Request', description: 'Discuss your medication needs', href: '/repeat-prescription', icon: 'prescription' }
     ],
     seo: { title: 'Medication Interactions | Drug Safety | InstantMed', description: 'Medications can interact with each other, food, and supplements. Learn about common interactions and how to stay safe.', keywords: ['medication interactions', 'drug interactions', 'medication safety', 'drug food interactions'] }
@@ -243,7 +243,7 @@ export const medicationArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Get fresh medication supply', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Discuss your medications', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your medications', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'Storing Medications Safely | Medication Storage Tips | InstantMed', description: 'Proper storage keeps medications effective and safe. Learn how to store, check expiry dates, and dispose of medications correctly.', keywords: ['medication storage', 'storing medicines', 'medication expiry', 'dispose medications australia'] }
   }

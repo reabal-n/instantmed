@@ -9,7 +9,7 @@ interface ContentLink {
 
 interface ContentHubLinksProps {
   /** Which service this page is for — determines relevant cross-links */
-  service: "med-cert" | "prescriptions" | "general-consult"
+  service: "med-cert" | "prescriptions" | "consult"
 }
 
 const SERVICE_LINKS: Record<string, {
@@ -73,7 +73,7 @@ const SERVICE_LINKS: Record<string, {
       { href: "/blog/telehealth-vs-gp-australia", label: "Telehealth vs GP: what's different?" },
     ],
   },
-  "general-consult": {
+  "consult": {
     conditions: [
       { href: "/conditions/cold-and-flu", label: "Cold & Flu", description: "Treatment and recovery advice" },
       { href: "/conditions/uti", label: "UTI", description: "Diagnosis and treatment online" },

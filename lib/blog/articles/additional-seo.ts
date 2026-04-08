@@ -168,7 +168,7 @@ export const additionalSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate fast', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Same-day consultations', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Same-day consultations', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Same-Day Medical Certificate | Get One Fast | InstantMed',
@@ -353,7 +353,7 @@ export const additionalSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Renew your medications', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'For medication reviews', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'For medication reviews', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'How to Renew Prescriptions Online | Australia | InstantMed',
@@ -548,7 +548,7 @@ export const additionalSeoArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Try a telehealth consultation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Try a telehealth consultation', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Common telehealth request', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {
@@ -743,7 +743,7 @@ export const additionalSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'About InstantMed', description: 'Our doctors and governance', href: '/about', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Safe, secure consultations', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Safe, secure consultations', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Is Telehealth Safe? | Security & Privacy | InstantMed',

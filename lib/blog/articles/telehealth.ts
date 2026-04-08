@@ -40,7 +40,7 @@ export const telehealthArticles: Article[] = [
       { question: 'Is my telehealth consultation private?', answer: 'Reputable services use encrypted platforms and follow strict privacy laws. Your consultation is confidential, just like an in-person visit.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Consult a doctor online', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult a doctor online', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'What Is Telehealth? | Online Healthcare Guide | InstantMed', description: 'Telehealth lets you consult a doctor remotely. Learn how it works, what it can treat, and how it fits into Australian healthcare.', keywords: ['telehealth', 'telehealth australia', 'online doctor', 'virtual healthcare'] }
@@ -81,7 +81,7 @@ export const telehealthArticles: Article[] = [
       { question: 'What if the telehealth doctor can\'t help me?', answer: 'They\'ll advise you to see a doctor in person and can often provide a referral or guidance on where to go.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Consult a doctor online', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult a doctor online', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'Telehealth vs In-Person Doctor | When to Use Each | InstantMed', description: 'Telehealth is convenient but not for everything. Learn when online healthcare is appropriate and when to see a doctor in person.', keywords: ['telehealth vs gp', 'online doctor vs in person', 'when to use telehealth'] }
@@ -125,7 +125,7 @@ export const telehealthArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Request a prescription online', href: '/repeat-prescription', icon: 'prescription' },
-      { title: 'GP Consultation', description: 'Consult a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Consult a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: { title: 'How eScripts Work in Australia | Electronic Prescriptions | InstantMed', description: 'eScripts are digital prescriptions sent to your phone. Learn how they work, where to use them, and common questions answered.', keywords: ['escript', 'electronic prescription', 'escript australia', 'digital prescription'] }
   },
@@ -166,7 +166,7 @@ export const telehealthArticles: Article[] = [
       { question: 'What happens to my data if the service closes?', answer: 'Services are required to maintain records for minimum periods and have plans for secure transfer or destruction of records.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Secure online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Secure online consultations', href: '/consult', icon: 'consult' },
       { title: 'Our Privacy Policy', description: 'Read our privacy practices', href: '/privacy', icon: 'certificate' }
     ],
     seo: { title: 'Telehealth Privacy & Security | Is Online Healthcare Safe? | InstantMed', description: 'How Australian telehealth services protect your personal health information. Your privacy rights and security measures explained.', keywords: ['telehealth privacy', 'telehealth security', 'online doctor privacy', 'health data protection'] }
@@ -205,7 +205,7 @@ export const telehealthArticles: Article[] = [
       { question: 'Should I wear anything specific?', answer: 'Wear whatever is comfortable, but consider what you might need to show the doctor. If discussing a skin issue on your arm, wear something with easy sleeve access.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Start your consultation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Start your consultation', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Request a certificate', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'How to Prepare for Telehealth | Tips for Online Doctor Visits | InstantMed', description: 'Get the most from your telehealth consultation. Tips for preparing, what to have ready, and making the most of your online doctor appointment.', keywords: ['telehealth preparation', 'online doctor tips', 'telehealth consultation tips'] }
@@ -253,7 +253,7 @@ export const telehealthArticles: Article[] = [
       { question: 'Should I go to emergency for a medical certificate?', answer: 'No. Emergency departments are for emergencies. Use telehealth or wait for your GP for medical certificates.' }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Available extended hours', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Available extended hours', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate when you need it', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: { title: 'After-Hours Telehealth | When Your GP Is Closed | InstantMed', description: 'Healthcare options when you need a doctor outside business hours. Learn about after-hours telehealth, urgent care, and when to go to emergency.', keywords: ['after hours doctor', 'after hours telehealth', 'night doctor', 'weekend doctor australia'] }

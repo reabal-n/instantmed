@@ -206,7 +206,7 @@ export const highIntentSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for work', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Medical Certificate for Work | Complete Guide | InstantMed',
@@ -374,7 +374,7 @@ export const highIntentSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate quickly', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Speak with a doctor', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Doctor\'s Note vs Medical Certificate | Australia | InstantMed',
@@ -549,7 +549,7 @@ export const highIntentSeoArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Available extended hours', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Available extended hours', href: '/consult', icon: 'consult' },
       { title: 'Prescription Request', description: 'Get medications when you need them', href: '/repeat-prescription', icon: 'prescription' }
     ],
     seo: {
@@ -725,7 +725,7 @@ export const highIntentSeoArticles: Article[] = [
       }
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Online doctor consultation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online doctor consultation', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate', href: '/medical-certificate', icon: 'certificate' }
     ],
     seo: {
@@ -887,7 +887,7 @@ export const highIntentSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate today', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your situation', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your situation', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'Can You Backdate a Medical Certificate? | Australia | InstantMed',
@@ -1028,7 +1028,7 @@ export const highIntentSeoArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate from home', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' }
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
       title: 'WFH Sick Certificate | Do You Need One? | InstantMed',

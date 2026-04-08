@@ -186,7 +186,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for jury duty exemption', href: '/medical-certificate/jury-duty', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your situation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your situation', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'Medical Certificate for Jury Duty Exemption | InstantMed',
@@ -366,7 +366,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Start a consultation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Start a consultation', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'First Telehealth Consultation Guide | What to Expect | InstantMed',
@@ -537,7 +537,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Online or in-person guidance', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online or in-person guidance', href: '/consult', icon: 'consult' },
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' },
     ],
     seo: {
@@ -662,7 +662,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'paragraph',
         content: 'Your GP handles the medical picture — screening for depression and anxiety (which commonly co-exist with burnout), checking for physical health issues contributing to fatigue (thyroid, iron, vitamin D, sleep disorders), issuing medical certificates for leave, and creating a Mental Health Treatment Plan that gives you access to Medicare-rebated psychology sessions.',
-        links: [{ text: 'GP consultation', href: '/general-consult', title: 'Start a consultation' }],
+        links: [{ text: 'GP consultation', href: '/consult', title: 'Start a consultation' }],
       },
       {
         type: 'paragraph',
@@ -727,7 +727,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificate for stress or burnout leave', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your symptoms', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'Burnout vs Stress | Knowing the Difference | InstantMed',
@@ -889,13 +889,13 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'paragraph',
         content: 'Management during pregnancy focuses on lifestyle changes first. Antacids are generally considered safe, but some formulations should be avoided. H2 blockers and certain PPIs may be used in pregnancy when symptoms are severe, but only under medical guidance. Always discuss medication use with your doctor or midwife during pregnancy.',
-        links: [{ text: 'doctor', href: '/general-consult', title: 'Start a consultation' }],
+        links: [{ text: 'doctor', href: '/consult', title: 'Start a consultation' }],
       },
       { type: 'heading', content: 'Long-Term Management', level: 2 },
       {
         type: 'paragraph',
         content: 'GERD is often a chronic condition that requires ongoing management rather than a one-time fix. The good news is that most people manage it well with a combination of lifestyle changes and, when needed, medication. The goal is to find the minimum effective intervention — lifestyle changes alone if possible, the lowest medication dose if not.',
-        links: [{ text: 'consultation', href: '/general-consult', title: 'Discuss reflux management' }],
+        links: [{ text: 'consultation', href: '/consult', title: 'Discuss reflux management' }],
       },
       {
         type: 'paragraph',
@@ -929,7 +929,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss reflux symptoms', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss reflux symptoms', href: '/consult', icon: 'consult' },
       { title: 'Prescriptions', description: 'Request reflux medication', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
@@ -988,7 +988,7 @@ export const phase4ExpansionArticles: Article[] = [
           'Bacterial sinusitis — only when symptoms persist beyond 10-14 days or are severe. Most sinusitis is viral and resolves without treatment.',
           'Sexually transmitted infections — chlamydia, gonorrhoea, and syphilis require specific antibiotic treatment.',
         ],
-        links: [{ text: 'general consultation', href: '/general-consult', title: 'Discuss your symptoms with a doctor' }],
+        links: [{ text: 'general consultation', href: '/consult', title: 'Discuss your symptoms with a doctor' }],
       },
       { type: 'heading', content: 'When Antibiotics Are Not Appropriate', level: 2 },
       {
@@ -1101,7 +1101,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Get assessed for infection', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Get assessed for infection', href: '/consult', icon: 'consult' },
       { title: 'Prescriptions', description: 'Request antibiotics if appropriate', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
@@ -1391,7 +1391,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate on the Gold Coast', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online consultations', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'Online Doctor Gold Coast | Telehealth | InstantMed',
@@ -1529,7 +1529,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificates for Canberra workers', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online consultations', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'Online Doctor Canberra | Telehealth ACT | InstantMed',
@@ -2018,7 +2018,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get your certificate', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your health', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Medical Certificates for Teachers | InstantMed', description: 'Teachers: get a medical certificate without leaving home. Accepted by all Australian schools. Doctor-reviewed, same-day.', keywords: ['teacher medical certificate', 'sick certificate teachers', 'education department medical certificate'] },
   },
@@ -2052,7 +2052,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'paragraph', content: 'If you are experiencing four or more migraine days per month, preventive treatment should be discussed with your doctor. Prevention does not eliminate migraines — a 50% reduction in frequency is considered a good response.' },
       { type: 'list', content: '', items: ['Lifestyle modifications — regular sleep schedule, consistent meal times, staying hydrated, regular moderate exercise, stress management techniques. These sound basic because they are. They also work.', 'Prescription preventives — beta-blockers (propranolol), anticonvulsants (topiramate, sodium valproate), antidepressants (amitriptyline), and candesartan. Choice depends on your other health conditions and side effect profile.', 'CGRP monoclonal antibodies — newer targeted treatments (erenumab, fremanezumab, galcanezumab) available through neurologist prescription in Australia, with PBS listing for chronic migraine after failing other preventives.', 'Supplements — magnesium (400-600mg daily), riboflavin (vitamin B2, 400mg daily), and coenzyme Q10 (150-300mg daily) have reasonable evidence. Not miracle cures, but worth trying with few side effects.', 'Botox — TGA-approved for chronic migraine (15+ headache days per month). Injections every 12 weeks into specific head and neck muscles.'] },
       { type: 'heading', content: 'Acute Treatment Options', level: 2 },
-      { type: 'paragraph', content: 'When a migraine hits, early treatment works best. The general principle: take something effective at the first sign, do not wait to see if it gets worse. It will.', links: [{ text: 'general consultation', href: '/general-consult', title: 'Discuss migraine management with a doctor' }] },
+      { type: 'paragraph', content: 'When a migraine hits, early treatment works best. The general principle: take something effective at the first sign, do not wait to see if it gets worse. It will.', links: [{ text: 'general consultation', href: '/consult', title: 'Discuss migraine management with a doctor' }] },
       { type: 'list', content: '', items: ['Simple analgesics — paracetamol or ibuprofen, ideally with an anti-nausea medication (metoclopramide or prochlorperazine) to improve absorption. Most effective if taken within the first 30 minutes.', 'Triptans — sumatriptan is available over the counter in Australia for diagnosed migraine. Other triptans (rizatriptan, zolmitriptan, eletriptan) require a prescription. These target serotonin receptors and are the most specific acute migraine treatment.', 'Anti-nausea medications — useful both for the nausea itself and to improve absorption of other medications. Metoclopramide and prochlorperazine also have independent anti-migraine effects.', 'Combination approach — an anti-inflammatory plus a triptan plus an anti-emetic is often more effective than any single agent. Your doctor can advise on the right combination.'] },
       { type: 'heading', content: 'Medication Overuse Headache', level: 2 },
       { type: 'paragraph', content: 'This deserves its own section because it is common, under-recognised, and genuinely miserable. If you are taking acute headache medication on 10-15 or more days per month, the medication itself may be perpetuating your headaches. Triptans and opioid-containing analgesics are the worst offenders, but even simple paracetamol can cause it with daily use. The treatment is gradual withdrawal of the overused medication — which temporarily makes headaches worse before they improve. This is best done with medical supervision and a preventive medication in place.' },
@@ -2072,7 +2072,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificate for migraine leave', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss migraine management', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss migraine management', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Migraine Triggers and Management | InstantMed', description: 'Understanding migraine triggers and management. When to see a doctor and how to reduce frequency.', keywords: ['migraine triggers', 'migraine management', 'migraine prevention', 'migraine certificate'] },
   },
@@ -2102,7 +2102,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'paragraph', content: 'The Hunter Valley is one of Australia\'s most significant mining regions, with thousands of workers in coal, minerals, and associated services. Many work rotating rosters — 7 days on, 7 days off, or 12-hour shifts that make attending a GP during business hours impractical. Fly-in-fly-out and drive-in-drive-out workers face additional challenges: they may be rostered on when their regular GP is available, or based at a mine site with no nearby clinic.' },
       { type: 'paragraph', content: 'For these workers, telehealth provides a way to get medical certificates, prescription renewals, and consultations without losing a day off to a clinic waiting room. An eScript can be sent to any pharmacy — whether that is in Singleton, Muswellbrook, or back home in Newcastle.' },
       { type: 'heading', content: 'Coverage Across the Hunter', level: 2 },
-      { type: 'paragraph', content: 'Telehealth works anywhere with an internet connection. That means coverage from the beaches of Port Stephens to the vineyards of the Hunter Valley, and from suburban Maitland to regional Dungog. Specific areas served include:', links: [{ text: 'online consultations', href: '/general-consult', title: 'Book an online GP consultation' }] },
+      { type: 'paragraph', content: 'Telehealth works anywhere with an internet connection. That means coverage from the beaches of Port Stephens to the vineyards of the Hunter Valley, and from suburban Maitland to regional Dungog. Specific areas served include:', links: [{ text: 'online consultations', href: '/consult', title: 'Book an online GP consultation' }] },
       { type: 'list', content: '', items: ['Newcastle CBD, Hamilton, Merewether, Cooks Hill, The Junction, Adamstown', 'Lake Macquarie — Charlestown, Belmont, Warners Bay, Toronto, Morisset', 'Maitland, Rutherford, East Maitland, Thornton', 'Cessnock, Kurri Kurri, Weston', 'Port Stephens — Nelson Bay, Raymond Terrace, Medowie', 'Upper Hunter — Singleton, Muswellbrook, Scone, Denman', 'Hunter Valley wine country — Pokolbin, Lovedale, Rothbury'] },
       { type: 'heading', content: 'Pharmacy Access and eScripts', level: 2 },
       { type: 'paragraph', content: 'One of the practical advantages of telehealth in the Hunter is eScript delivery. Your prescription is sent directly to your phone as a token, and you can present it at any pharmacy in Australia. The Hunter has good pharmacy coverage in urban areas — Priceline, Chemist Warehouse, and independent pharmacies are well distributed across Newcastle, Maitland, and Cessnock. In more remote Upper Hunter towns, knowing you can have the script ready before you arrive at the pharmacy saves a second trip.' },
@@ -2123,7 +2123,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online consultations', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Online Doctor Newcastle | Hunter Region Telehealth | InstantMed', description: 'Online doctor services in Newcastle and the Hunter. Medical certificates and prescriptions without the wait.', keywords: ['online doctor newcastle', 'telehealth newcastle', 'medical certificate newcastle', 'hunter region doctor'] },
   },
@@ -2152,7 +2152,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'list', content: '', items: ['Spouse or de facto partner (including same-sex partners)', 'Children, parents, grandparents, grandchildren, and siblings', 'Children, parents, grandparents, grandchildren, and siblings of your spouse or de facto partner', 'Any member of your household — this can include housemates, close friends living with you, or anyone who is part of your household unit'] },
       { type: 'paragraph', content: 'Some modern awards and enterprise agreements extend the definition further. Check your specific award or agreement, as it may include aunts, uncles, cousins, or culturally significant relationships — particularly relevant for Aboriginal and Torres Strait Islander kinship structures.' },
       { type: 'heading', content: 'When Two Days Is Not Enough', level: 2 },
-      { type: 'paragraph', content: 'Two days of compassionate leave covers the immediate shock and, in many cases, the funeral. It does not cover the weeks or months that follow, when grief can make concentration, motivation, and basic functioning genuinely difficult. When you need more time, there are several options:', links: [{ text: 'general consultation', href: '/general-consult', title: 'Speak with a doctor about grief and leave' }] },
+      { type: 'paragraph', content: 'Two days of compassionate leave covers the immediate shock and, in many cases, the funeral. It does not cover the weeks or months that follow, when grief can make concentration, motivation, and basic functioning genuinely difficult. When you need more time, there are several options:', links: [{ text: 'general consultation', href: '/consult', title: 'Speak with a doctor about grief and leave' }] },
       { type: 'list', content: '', items: ['Personal/carer\'s leave (sick leave) — if grief is affecting your health and ability to work, you can access your 10 days of paid personal leave. Your employer can request a medical certificate or statutory declaration as evidence.', 'Annual leave — you can request to use annual leave if you have it available. Your employer should consider the request reasonably.', 'Unpaid leave — if you have exhausted paid leave, you can request unpaid leave. Your employer must consider the request and can only refuse on reasonable business grounds.', 'Enterprise agreement or company policy — many employers offer more than the NES minimum. Some offer 5-10 days of paid bereavement leave, or allow additional leave at the manager\'s discretion.'] },
       { type: 'heading', content: 'What Employers Can and Cannot Ask', level: 2 },
       { type: 'paragraph', content: 'Your employer can request evidence that you are entitled to compassionate leave. Under the Fair Work Act, this means evidence that would satisfy a reasonable person — such as a death notice, funeral notice, or a statutory declaration. They cannot require a medical certificate for the initial 2 days of compassionate leave.' },
@@ -2175,7 +2175,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Certificate if needed', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your situation', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your situation', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Medical Certificate for Bereavement Leave | InstantMed', description: 'Bereavement leave and medical certificates. When you might need documentation for extended grief leave.', keywords: ['bereavement leave certificate', 'grief leave medical certificate', 'bereavement documentation'] },
   },
@@ -2277,7 +2277,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Carer\'s leave and school absence', href: '/medical-certificate/carer', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your child\'s health', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your child\'s health', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Medical Certificates When Your Child Is Sick | InstantMed', description: 'Get a medical certificate for carer\'s leave or school absence when your child is sick. No need to take them to a clinic.', keywords: ['sick child medical certificate', 'carers leave certificate', 'school absence certificate child'] },
   },
@@ -2311,7 +2311,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Employer Obligations for Remote Worker Health', level: 2 },
       { type: 'paragraph', content: 'Under work health and safety legislation, your employer has a duty of care for your health and safety — even when you work from home. This includes ensuring your home workspace is safe, that you are not working excessive hours, and that you have access to the same leave entitlements as office-based workers. Your employer cannot penalise you for taking sick leave because you work remotely, and they cannot require you to "make up" sick days by working extra hours later.' },
       { type: 'heading', content: 'Home Office Injuries and WorkCover', level: 2 },
-      { type: 'paragraph', content: 'An often-overlooked issue for remote workers is that injuries sustained in your home office during work hours may be covered by workers\' compensation. If you trip over a cable while walking to your desk, strain your back from a poorly set up workstation, or develop a repetitive strain injury from inadequate ergonomics, you may have a valid WorkCover claim. The rules vary by state, but the general principle is that if the injury occurred in the course of your employment, it is potentially compensable — regardless of where you were physically located.', links: [{ text: 'general consultation', href: '/general-consult', title: 'Discuss a workplace injury with a doctor' }] },
+      { type: 'paragraph', content: 'An often-overlooked issue for remote workers is that injuries sustained in your home office during work hours may be covered by workers\' compensation. If you trip over a cable while walking to your desk, strain your back from a poorly set up workstation, or develop a repetitive strain injury from inadequate ergonomics, you may have a valid WorkCover claim. The rules vary by state, but the general principle is that if the injury occurred in the course of your employment, it is potentially compensable — regardless of where you were physically located.', links: [{ text: 'general consultation', href: '/consult', title: 'Discuss a workplace injury with a doctor' }] },
       { type: 'paragraph', content: 'Documenting any home office injury promptly is important. A medical certificate or consultation record establishes the date, nature, and circumstances of the injury, which is essential if you later need to make a claim.' },
       { type: 'heading', content: 'Digital Nomads and Healthcare Gaps', level: 2 },
       { type: 'paragraph', content: 'A growing number of Australians work remotely while travelling — moving between towns, states, or countries. For those staying within Australia, telehealth provides consistent access to healthcare regardless of location. You do not need to find a new GP every time you move, and eScripts can be dispensed at any Australian pharmacy. For those working overseas, the situation is more complex — Australian telehealth services can only treat patients who are physically in Australia at the time of the consultation.' },
@@ -2327,7 +2327,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate from home', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Online consultations', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Online consultations', href: '/consult', icon: 'consult' },
     ],
     seo: { title: 'Telehealth for Remote Workers | InstantMed', description: 'Remote workers: access healthcare from anywhere. Medical certificates, prescriptions, and consultations without leaving home.', keywords: ['remote worker telehealth', 'work from home doctor', 'telehealth regional australia'] },
   },
@@ -2433,7 +2433,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'paragraph',
         content: 'If you request a consultation for a potential infection, here is what a thorough telehealth assessment involves:',
-        links: [{ text: 'request a consultation', href: '/general-consult', title: 'Start a general consultation' }],
+        links: [{ text: 'request a consultation', href: '/consult', title: 'Start a general consultation' }],
       },
       {
         type: 'list',
@@ -2478,7 +2478,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'paragraph',
         content: 'If you have symptoms that you think require antibiotics, a telehealth consultation is a legitimate and convenient starting point. Just be prepared for the possibility that the answer is "you do not need them" — and understand that is the doctor looking after your long-term health, not just your immediate discomfort.',
-        links: [{ text: 'telehealth consultation', href: '/general-consult', title: 'Start a consultation' }],
+        links: [{ text: 'telehealth consultation', href: '/consult', title: 'Start a consultation' }],
       },
     ],
     faqs: [
@@ -2504,7 +2504,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
     ],
     relatedServices: [
-      { title: 'GP Consultation', description: 'Discuss your symptoms with a doctor', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your symptoms with a doctor', href: '/consult', icon: 'consult' },
       { title: 'Repeat Prescriptions', description: 'Renew existing prescriptions', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
@@ -2719,7 +2719,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate for sick leave', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Discuss your mental health', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Discuss your mental health', href: '/consult', icon: 'consult' },
     ],
     seo: {
       title: 'How to Get a Mental Health Certificate for Work | InstantMed',
@@ -2929,7 +2929,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate online', href: '/medical-certificate', icon: 'certificate' },
-      { title: 'GP Consultation', description: 'Consult with a doctor', href: '/general-consult', icon: 'consult' },
+      { title: 'GP Consultation', description: 'Consult with a doctor', href: '/consult', icon: 'consult' },
       { title: 'Repeat Prescriptions', description: 'Renew your prescriptions', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {

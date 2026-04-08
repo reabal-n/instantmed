@@ -40,7 +40,7 @@ function buildSections(): SitemapSection[] {
       { label: "Home", href: "/" },
       { label: "Medical Certificates", href: "/medical-certificate" },
       { label: "Prescriptions", href: "/prescriptions" },
-      { label: "General Consult", href: "/general-consult" },
+      { label: "Doctor Consultation", href: "/consult" },
       { label: "Pricing", href: "/pricing" },
       { label: "How It Works", href: "/how-it-works" },
       { label: "FAQs", href: "/faq" },

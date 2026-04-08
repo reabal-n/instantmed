@@ -467,7 +467,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           )}
           {article.category === "telehealth" && (
             <>
-              <Link href="/general-consult" className="text-primary hover:underline">Online consultations</Link>
+              <Link href="/consult" className="text-primary hover:underline">Online consultations</Link>
               <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">Telehealth guide</Link>
               <Link href="/how-it-works" className="text-primary hover:underline">How it works</Link>
             </>
@@ -476,7 +476,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <>
               <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
               <Link href="/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
-              <Link href="/general-consult" className="text-primary hover:underline">Consultations</Link>
+              <Link href="/consult" className="text-primary hover:underline">Consultations</Link>
             </>
           )}
         </div>

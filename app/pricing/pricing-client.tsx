@@ -68,7 +68,7 @@ const services = [
       "Ongoing support available",
     ],
     popular: false,
-    href: "/general-consult",
+    href: "/consult",
     icon: Stethoscope,
     color: "#059669",
   },

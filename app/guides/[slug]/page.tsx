@@ -246,7 +246,7 @@ export default async function GuidePage({ params }: PageProps) {
                 { href: "/conditions/uti", label: "UTI treatment" },
               ],
               "Telehealth": [
-                { href: "/general-consult", label: "Online consultations" },
+                { href: "/consult", label: "Online consultations" },
                 { href: "/how-it-works", label: "How InstantMed works" },
                 { href: "/trust", label: "Trust & safety" },
               ],

@@ -131,7 +131,7 @@ export function HowItWorksContent() {
                     When you fill in our questionnaire, you&apos;re providing the same information you&apos;d give a GP in a face-to-face consultation: your symptoms, how long you&apos;ve had them, relevant medical history, and any medications you&apos;re taking. The form is structured to capture the clinical details a doctor needs to make an informed assessment.
                   </p>
                   <p>
-                    This isn&apos;t a rubber-stamp process. The doctor reads your responses, reviews your history if you&apos;ve used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn&apos;t add up or they need more information, they&apos;ll message you or call. If they determine your situation requires in-person care, they&apos;ll say so, and you get a full refund.
+                    This isn&apos;t a rubber-stamp process. The doctor reads your responses, reviews your history if you&apos;ve used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn&apos;t add up or they need more information, they&apos;ll message you through the platform. If they determine your situation requires in-person care, they&apos;ll say so, and you get a full refund.
                   </p>
                 </div>
               </div>
@@ -154,10 +154,10 @@ export function HowItWorksContent() {
                 <h3 className="text-lg font-semibold mb-3">Medical certificates vs prescriptions vs consultations</h3>
                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                   <p>
-                    We offer three core services, each with a different clinical pathway. Medical certificates are for short-term illness; the doctor assesses whether your reported symptoms justify time off work or study. Repeat prescriptions are for medications you already take; the doctor confirms it&apos;s safe to continue and sends an eScript to your phone. General consultations are for new health concerns; the doctor assesses your situation, often with a phone call, and provides treatment advice, prescriptions, or referrals as needed.
+                    We offer three core services, each with a different clinical pathway. Medical certificates are for short-term illness; the doctor assesses whether your reported symptoms justify time off work or study. Repeat prescriptions are for medications you already take; the doctor confirms it&apos;s safe to continue and sends an eScript to your phone. General consultations are for new health concerns; the doctor reviews your questionnaire and responds in writing with treatment advice, prescriptions, or referrals as needed.
                   </p>
                   <p>
-                    The clinical rigour scales with the complexity. A medical certificate for a one-day cold is relatively straightforward. A general consultation about ongoing symptoms requires more assessment and typically involves a phone call. A prescription for a medication you&apos;ve been taking for years requires different checks than one for a new concern. The process adapts. The standard doesn&apos;t.
+                    The clinical rigour scales with the complexity. A medical certificate for a one-day cold is relatively straightforward. A general consultation about ongoing symptoms requires more assessment and may involve follow-up questions through the platform. A prescription for a medication you&apos;ve been taking for years requires different checks than one for a new concern. The process adapts. The standard doesn&apos;t.
                   </p>
                 </div>
               </div>
@@ -217,15 +217,15 @@ export function HowItWorksContent() {
                 },
                 {
                   q: "How long does it take?",
-                  a: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions typically within 30–60 minutes, and general consultations may take a bit longer if a phone call is needed. Prescriptions and consultations are available 8am–10pm AEST, 7 days.",
+                  a: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours — all async, no phone call required. Prescriptions and consultations are available 8am–10pm AEST, 7 days.",
                 },
                 {
                   q: "Will my employer accept an online medical certificate?",
                   a: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits. Every certificate includes the doctor's AHPRA registration and a unique verification ID.",
                 },
                 {
-                  q: "What if I need a phone call?",
-                  a: "For medical certificates, most are reviewed without a call. For general consultations, the doctor will often call you to discuss your concern. For prescriptions, a call may be needed for certain medications. Keep your phone handy after submitting.",
+                  q: "Do I need to be available for a call?",
+                  a: "No. InstantMed is fully async — you submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time. If the doctor needs clarification, they'll message you through the platform.",
                 },
                 {
                   q: "Do I need a Medicare card?",
