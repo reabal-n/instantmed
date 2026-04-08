@@ -7,9 +7,6 @@
     "component-settings": {
       "components/ui/tooltip.tsx:::Temp": {
         "route": "/"
-      },
-      "app/prescriptions/%5Bsubtype%5D/prescription-flow-client.tsx:::Temp": {
-        "route": "/"
       }
     },
     "app-routes": {
