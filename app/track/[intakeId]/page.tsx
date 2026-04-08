@@ -18,14 +18,13 @@ export default async function TrackingPage({ params }: PageProps) {
   const { intakeId } = await params
   const supabase = createServiceRoleClient()
 
-  // Get the intake with patient profile
+  // Get the intake with patient profile + service label
   const { data: intake, error } = await supabase
     .from("intakes")
     .select(`
-      id, status, created_at, updated_at, is_priority,
-      patient:profiles!patient_id (
-        id
-      )
+      id, status, created_at, updated_at, is_priority, paid_at,
+      patient:profiles!patient_id ( id ),
+      service:services!service_id ( name, short_name )
     `)
     .eq("id", intakeId)
     .single()
@@ -52,6 +51,7 @@ export default async function TrackingPage({ params }: PageProps) {
   const intakeForClient = {
     ...intake,
     patient: Array.isArray(intake.patient) ? intake.patient[0] : intake.patient,
+    service: Array.isArray(intake.service) ? intake.service[0] : intake.service,
   }
 
   return <TrackingClient intake={intakeForClient} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />

@@ -530,13 +530,10 @@ export async function executeCertApproval(
       { name: "intake_id", value: intakeId },
       { name: "cert_type", value: certificateType },
     ],
-    attachments: [
-      {
-        filename: `Medical_Certificate_${certificateRef}.pdf`,
-        content: pdfBuffer.toString("base64"),
-        contentType: "application/pdf",
-      },
-    ],
+    // No PDF attachment. Patients download the cert via signed URL (72h) or
+    // their dashboard. Reasons: (1) PHI in mailbox increases breach blast
+    // radius; (2) Resend attachments eat quota + delay delivery; (3) signed
+    // URL lets us audit views and expire links.
   })
 
   // Track email status

@@ -22,7 +22,7 @@ import {
   Calendar,
   User,
   Stethoscope,
-  Edit3,
+  PencilLine,
   Eye,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -79,7 +79,6 @@ export function CertificatePreviewDialog({
   onConfirm,
   isPending,
 }: CertificatePreviewDialogProps) {
-  const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<CertificatePreviewData>(data)
   const [dateError, setDateError] = useState<string | null>(null)
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
@@ -90,7 +89,6 @@ export function CertificatePreviewDialog({
   const handleOpenChange = (open: boolean) => {
     if (open) {
       setEditedData(data)
-      setIsEditing(false)
       setDateError(null)
     }
     if (!open && pdfBlobUrl) {
@@ -217,92 +215,66 @@ export function CertificatePreviewDialog({
             </div>
           </div>
 
-          {/* Certificate Dates */}
+          {/* Certificate Dates — inline editable */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <Calendar className="h-3 w-3" />
                 Certificate Period
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs text-muted-foreground hover:text-foreground gap-1 px-2"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                <Edit3 className="h-3 w-3" />
-                {isEditing ? "Done" : "Edit"}
-              </Button>
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+                <PencilLine className="h-3 w-3" />
+                Editable
+              </span>
             </div>
 
-            {isEditing ? (
-              <div className="space-y-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Start Date</Label>
-                    <Input
-                      type="date"
-                      value={editedData.startDate}
-                      onChange={(e) => handleDateChange("startDate", e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">End Date</Label>
-                    <Input
-                      type="date"
-                      value={editedData.endDate}
-                      onChange={(e) => handleDateChange("endDate", e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                </div>
-                {dateError && (
-                  <p className="text-xs text-destructive">{dateError}</p>
-                )}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Medical Reason</Label>
-                  <Textarea
-                    value={editedData.medicalReason}
-                    onChange={(e) => setEditedData({ ...editedData, medicalReason: e.target.value })}
-                    className="min-h-[60px] text-sm resize-none"
-                    placeholder="e.g., Medical Illness"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="cert-start" className="text-xs text-muted-foreground">From</Label>
+                <Input
+                  id="cert-start"
+                  type="date"
+                  value={editedData.startDate}
+                  onChange={(e) => handleDateChange("startDate", e.target.value)}
+                  className="h-9 text-sm font-medium"
+                />
+                <p className="text-xs text-muted-foreground pl-1">{formatDisplayDate(editedData.startDate)}</p>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-muted/40 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-0.5">From</p>
-                    <p className="text-sm font-medium">{formatDisplayDate(editedData.startDate)}</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-muted/40 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-0.5">To</p>
-                    <p className="text-sm font-medium">{formatDisplayDate(editedData.endDate)}</p>
-                  </div>
-                </div>
-                {duration !== null && (
-                  <p className="text-xs text-muted-foreground pl-1">
-                    Duration: <span className="font-medium text-foreground">{duration} day{duration !== 1 ? "s" : ""}</span>
-                  </p>
-                )}
+              <div className="space-y-1">
+                <Label htmlFor="cert-end" className="text-xs text-muted-foreground">To</Label>
+                <Input
+                  id="cert-end"
+                  type="date"
+                  value={editedData.endDate}
+                  onChange={(e) => handleDateChange("endDate", e.target.value)}
+                  className="h-9 text-sm font-medium"
+                />
+                <p className="text-xs text-muted-foreground pl-1">{formatDisplayDate(editedData.endDate)}</p>
               </div>
+            </div>
+            {dateError && (
+              <p className="text-xs text-destructive">{dateError}</p>
+            )}
+            {duration !== null && !dateError && (
+              <p className="text-xs text-muted-foreground pl-1">
+                Duration: <span className="font-medium text-foreground">{duration} day{duration !== 1 ? "s" : ""}</span>
+              </p>
             )}
           </div>
 
-          {/* Medical Reason (read-only unless editing) */}
-          {!isEditing && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <Stethoscope className="h-3 w-3" />
-                Medical Reason
-              </div>
-              <div className="p-3 rounded-lg bg-muted/40 border border-border/30">
-                <p className="text-sm">{editedData.medicalReason || "Medical Illness"}</p>
-              </div>
+          {/* Medical Reason — inline editable */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <Stethoscope className="h-3 w-3" />
+              Medical Reason
             </div>
-          )}
+            <Textarea
+              value={editedData.medicalReason}
+              onChange={(e) => setEditedData({ ...editedData, medicalReason: e.target.value })}
+              className="min-h-[60px] text-sm resize-none"
+              placeholder="e.g., Medical Illness"
+            />
+          </div>
 
           {/* Doctor Info */}
           <div className="space-y-2">
@@ -325,7 +297,7 @@ export function CertificatePreviewDialog({
           {/* Edit indicator */}
           {hasEdits && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning-light border border-warning-border">
-              <Edit3 className="h-3.5 w-3.5 text-warning shrink-0" />
+              <PencilLine className="h-3.5 w-3.5 text-warning shrink-0" />
               <span className="text-sm font-medium text-warning">
                 You&apos;ve made edits — changes will be recorded in the audit trail.
               </span>

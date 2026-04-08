@@ -126,29 +126,42 @@ export function IntakeDetailDrafts({
                   className="min-h-[120px] text-sm"
                 />
               )}
-              <div className="flex items-center gap-2">
-                <Button onClick={onSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  Save Notes
-                </Button>
-                <Button
-                  onClick={onGenerateOrRegenerateNote}
-                  disabled={isPending || isRegenerating}
-                  variant={hasClinicalDraft ? "ghost" : "outline"}
-                  size="sm"
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Button onClick={onSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
+                    <Save className="h-3.5 w-3.5 mr-1.5" />
+                    Save Notes
+                  </Button>
+                  <Button
+                    onClick={onGenerateOrRegenerateNote}
+                    disabled={isPending || isRegenerating}
+                    variant={hasClinicalDraft ? "ghost" : "outline"}
+                    size="sm"
+                  >
+                    {isRegenerating ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <FileText className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {isRegenerating
+                      ? "Generating..."
+                      : hasClinicalDraft
+                        ? "Regenerate AI draft"
+                        : "Generate AI draft"}
+                  </Button>
+                  {noteSaved && <span className="text-xs text-success">Saved!</span>}
+                </div>
+                {/* Minimum-length hint for AHPRA defensibility */}
+                <span
+                  className={`text-xs tabular-nums ${
+                    doctorNotes.trim().length >= 50
+                      ? "text-muted-foreground"
+                      : "text-amber-600 dark:text-amber-500"
+                  }`}
+                  aria-live="polite"
                 >
-                  {isRegenerating ? (
-                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                  ) : (
-                    <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  )}
-                  {isRegenerating
-                    ? "Generating..."
-                    : hasClinicalDraft
-                      ? "Regenerate AI draft"
-                      : "Generate AI draft"}
-                </Button>
-                {noteSaved && <span className="text-xs text-success">Saved!</span>}
+                  {doctorNotes.trim().length}/50 min
+                </span>
               </div>
             </>
           )}

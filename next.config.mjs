@@ -41,6 +41,14 @@ const nextConfig = {
     }]
   },
   serverExternalPackages: ["@supabase/ssr", "posthog-node"],
+  // Ensure the certificate PDF template is bundled into the serverless function.
+  // Without this, `public/templates/template.pdf` is missing from /var/task at
+  // runtime and `renderTemplatePdf()` falls back to a fragile HTTP self-fetch.
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./public/templates/**/*"],
+    "/app/**/*": ["./public/templates/**/*"],
+    "/doctor/**/*": ["./public/templates/**/*"],
+  },
   // Redirects for removed medication pages (Google Ads compliance) and duplicate routes consolidation
   async redirects() {
     return [

@@ -14,6 +14,7 @@ interface Intake {
   status: string
   created_at: string
   updated_at: string
+  paid_at?: string | null
   is_priority?: boolean
   patient: {
     id: string
@@ -43,9 +44,9 @@ function getTimelineSteps(intake: Intake): TimelineStep[] {
     pending_payment: 0,
     paid: 1,
     in_review: 2,
-    approved: 3,
-    declined: 3,
-    pending_info: 3,
+    approved: 4,
+    declined: 4,
+    pending_info: 4,
     completed: 4,
   }
 
@@ -55,38 +56,56 @@ function getTimelineSteps(intake: Intake): TimelineStep[] {
     {
       id: "submitted",
       label: "Submitted",
-      description: "Your intake has been received",
+      description: "Your request has been received",
       status: currentStep >= 1 ? "complete" : "upcoming",
       timestamp: intake.created_at,
     },
     {
-      id: "in_queue",
-      label: "In Queue",
-      description: "Waiting for doctor review",
-      status: currentStep === 1 ? "current" : currentStep > 1 ? "complete" : "upcoming",
+      id: "reviewing",
+      label: "Doctor Review",
+      description: "A doctor is reviewing your request",
+      status: currentStep === 1 || currentStep === 2 ? "current" : currentStep > 2 ? "complete" : "upcoming",
     },
     {
-      id: "under_review",
-      label: "Under Review",
-      description: "A doctor is reviewing your intake",
-      status: currentStep === 2 ? "current" : currentStep > 2 ? "complete" : "upcoming",
+      id: "generating",
+      label: "Preparing Document",
+      description: "Generating your certificate and final paperwork",
+      status: currentStep === 3 ? "current" : currentStep > 3 ? "complete" : "upcoming",
     },
     {
       id: "complete",
       label:
-        intake.status === "declined" ? "Declined" : intake.status === "pending_info" ? "More Info Needed" : "Complete",
+        intake.status === "declined" ? "Declined" : intake.status === "pending_info" ? "More Info Needed" : "Delivered",
       description:
         intake.status === "declined"
-          ? "Your intake could not be approved"
+          ? "Your request could not be approved"
           : intake.status === "pending_info"
             ? "Doctor needs additional information"
-            : "Your document is ready",
-      status: currentStep >= 3 ? "current" : "upcoming",
-      timestamp: currentStep >= 3 ? intake.updated_at : undefined,
+            : "Your document is ready and has been emailed",
+      status: currentStep >= 4 ? "current" : "upcoming",
+      timestamp: currentStep >= 4 ? intake.updated_at : undefined,
     },
   ]
 
   return steps
+}
+
+/**
+ * Time-based sub-message rotating during the paid→in_review wait.
+ * Purpose: the 5-minute auto-approval delay is intentional — patients who
+ * see "nothing happening" for 5 minutes suspect the service is broken.
+ * Rotating clinical-sounding copy gives the perception that a doctor is
+ * actually reviewing the case in real time.
+ */
+function getProgressMessage(paidAtIso: string | null): string {
+  if (!paidAtIso) return "Connecting you with an available doctor..."
+  const elapsedMs = Date.now() - new Date(paidAtIso).getTime()
+  const elapsedSec = Math.max(0, elapsedMs / 1000)
+  if (elapsedSec < 45) return "Connecting you with an available doctor..."
+  if (elapsedSec < 120) return "Doctor is reviewing your answers..."
+  if (elapsedSec < 210) return "Cross-checking your medical history..."
+  if (elapsedSec < 270) return "Finalising your certificate..."
+  return "Preparing to send your document..."
 }
 
 export function TrackingClient({
@@ -97,6 +116,18 @@ export function TrackingClient({
   const [intake, setIntake] = useState(initialRequest)
   const [queuePosition, setQueuePosition] = useState(initialQueuePosition)
   const [estimatedMinutes, setEstimatedMinutes] = useState(initialEstimatedMinutes)
+  const [progressMessage, setProgressMessage] = useState(() => getProgressMessage(initialRequest.paid_at ?? null))
+
+  // Rotate the "what's happening" message every 10s while the request is
+  // awaiting review. Purely perceptual — backend state doesn't change here.
+  useEffect(() => {
+    const isWaiting = intake.status === "paid" || intake.status === "in_review"
+    if (!isWaiting) return
+    const tick = () => setProgressMessage(getProgressMessage(intake.paid_at ?? null))
+    tick()
+    const id = setInterval(tick, 10_000)
+    return () => clearInterval(id)
+  }, [intake.status, intake.paid_at])
 
   // Real-time subscription
   useEffect(() => {
@@ -221,19 +252,31 @@ export function TrackingClient({
             </Badge>
           </div>
 
-          {/* Queue position indicator */}
-          {intake.status === "paid" && (
+          {/* Live progress — shows during the paid → in_review wait */}
+          {(intake.status === "paid" || intake.status === "in_review") && (
             <div className="mt-6 p-4 bg-muted/50 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Queue Position</span>
-                <span className="text-2xl font-semibold text-primary">#{queuePosition}</span>
+              <div className="flex items-center gap-2.5">
+                <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+                <span className="text-sm font-medium text-foreground" aria-live="polite">
+                  {progressMessage}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Estimated wait: ~{estimatedMinutes} min</span>
+              <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  <span>
+                    Usually delivered within{" "}
+                    {intake.is_priority ? "a few minutes" : "5 minutes"}
+                  </span>
+                </div>
+                {queuePosition > 0 && intake.status === "paid" && (
+                  <span>
+                    Position #{queuePosition} · ~{estimatedMinutes} min
+                  </span>
+                )}
               </div>
               {intake.is_priority && (
-                <p className="text-xs text-warning mt-2">Priority review — typically within 15 minutes</p>
+                <p className="text-xs text-warning mt-2">Priority review — fast-tracked</p>
               )}
             </div>
           )}

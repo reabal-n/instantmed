@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/status"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
+import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
 import { formatIntakeStatus } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 
@@ -418,25 +419,14 @@ export function IntakeDetailHeader({
         />
       )}
 
-      {/* Certificate PDF Viewer */}
-      {certPdfUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="font-semibold text-sm">Certificate Preview</h3>
-              <Button variant="ghost" size="sm" onClick={onCloseCertPdf}>
-                <XCircle className="h-4 w-4" />
-              </Button>
-            </div>
-            <iframe src={certPdfUrl} className="flex-1 w-full" title="Certificate Preview" />
-            <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border">
-              <Button variant="outline" onClick={onCloseCertPdf}>
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Certificate PDF Viewer — shared component */}
+      <PdfViewerDialog
+        open={!!certPdfUrl}
+        onOpenChange={(open) => { if (!open) onCloseCertPdf() }}
+        pdfUrl={certPdfUrl}
+        title="Issued Certificate"
+        description="The actual PDF that was delivered to the patient."
+      />
     </>
   )
 }

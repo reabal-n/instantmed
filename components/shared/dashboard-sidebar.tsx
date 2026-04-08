@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   FileText,
+  FileCheck,
   Users,
   BarChart3,
   Download,
@@ -47,6 +48,7 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/repeat-rx", label: "Repeat Rx", icon: Pill },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
+  { href: "/doctor/certificates", label: "Certificates", icon: FileCheck },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/admin", label: "All Requests", icon: FileText },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },

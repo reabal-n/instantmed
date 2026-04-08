@@ -33,19 +33,14 @@ interface SymptomsStepProps {
   onComplete: () => void
 }
 
-const SYMPTOMS_LIST = [
-  "Cold/Flu",
-  "Fever",
-  "Headache",
-  "Nausea",
-  "Gastro",
-  "Fatigue",
-  "Back pain",
-  "Injury",
-  "Migraine",
-  "Period pain",
-  "Anxiety",
-  "Other",
+// Grouped so the chip wall reads like a symptom menu instead of a jumble.
+// Order reflects frequency from our intake data: cold/flu first, then pain,
+// stomach, then the long tail. Keep groups ≤4 chips so each row is scannable.
+const SYMPTOM_GROUPS = [
+  { label: "Cold & flu", items: ["Cold/Flu", "Fever"] },
+  { label: "Pain", items: ["Headache", "Migraine", "Back pain", "Period pain"] },
+  { label: "Stomach", items: ["Nausea", "Gastro"] },
+  { label: "Other", items: ["Fatigue", "Injury", "Anxiety", "Other"] },
 ] as const
 
 const SYMPTOM_DURATION_OPTIONS = [
@@ -127,6 +122,14 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
 
   const isCarer = certType === "carer"
   const detailsQuality = validateSymptomTextQuality(symptomDetails)
+  // Word count mirrors the validator's tokenizer (alpha tokens of length ≥2).
+  // Target of 5 gives a comfortable buffer over the validator's 3-distinct-word
+  // floor — users who hit 5 visible words are already past the gate.
+  const detailsWordCount = symptomDetails
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((w) => w.length >= 2).length
+  const WORD_TARGET = 5
   const isComplete = symptoms.length > 0 && symptomDuration && detailsQuality.valid
   const hasNoErrors = Object.keys(errors).length === 0
   const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
@@ -171,17 +174,24 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
             : "This helps our doctors understand your condition and write an accurate certificate." 
         }}
       >
-        <div className="flex flex-wrap gap-2 mt-2">
-          {SYMPTOMS_LIST.map((symptom) => (
-            <EnhancedSelectionButton
-              key={symptom}
-              variant="chip"
-              selected={symptoms.includes(symptom)}
-              onClick={() => toggleSymptom(symptom)}
-              className="touch-manipulation"
-            >
-              {symptom}
-            </EnhancedSelectionButton>
+        <div className="space-y-3 mt-2">
+          {SYMPTOM_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">{group.label}</p>
+              <div className="flex flex-wrap gap-2">
+                {group.items.map((symptom) => (
+                  <EnhancedSelectionButton
+                    key={symptom}
+                    variant="chip"
+                    selected={symptoms.includes(symptom)}
+                    onClick={() => toggleSymptom(symptom)}
+                    className="touch-manipulation"
+                  >
+                    {symptom}
+                  </EnhancedSelectionButton>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </FormField>
@@ -250,15 +260,17 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
               className={`h-full rounded-full transition-all duration-300 ${
                 detailsQuality.valid ? 'bg-primary' : 'bg-primary/50'
               }`}
-              style={{ width: `${Math.min((symptomDetails.length / 20) * 100, 100)}%` }}
+              style={{ width: `${Math.min((detailsWordCount / WORD_TARGET) * 100, 100)}%` }}
             />
           </div>
-          <p className={`text-xs shrink-0 ${
+          <p className={`text-xs shrink-0 tabular-nums ${
             detailsQuality.valid ? 'text-primary' : 'text-muted-foreground'
-          }`}>
-            {symptomDetails.length >= 20
-              ? `${symptomDetails.length} characters`
-              : `${symptomDetails.length}/20 characters`
+          }`}
+          aria-live="polite"
+          >
+            {detailsQuality.valid
+              ? `${detailsWordCount} words`
+              : `${detailsWordCount}/${WORD_TARGET} words`
             }
           </p>
         </div>

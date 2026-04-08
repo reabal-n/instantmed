@@ -4,12 +4,10 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Calendar,
   Phone,
   MapPin,
   CreditCard,
   FileText,
-  User,
   Clock,
   CheckCircle,
   XCircle,
@@ -54,56 +52,47 @@ export function IntakeDetailAnswers({
 
   return (
     <>
-      {/* Patient Info Card */}
+      {/* Patient Info Card — hierarchical: name anchors the card, Medicare is
+          the clinical identifier the doctor scans second, contact info is
+          tertiary. Previously all six tiles had identical visual weight which
+          forced the doctor's eye to parse each tile independently. */}
       <Card>
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <User className="h-4 w-4" />
-            Patient Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-xs text-muted-foreground mb-1">Name</p>
-              <p className="font-medium">{intake.patient.full_name}</p>
+        <CardContent className="px-5 py-4">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="text-xl font-semibold leading-tight text-foreground">
+              {intake.patient.full_name}
+            </h2>
+            {(patientAge != null || intake.patient.date_of_birth) && (
+              <span className="text-sm text-muted-foreground">
+                {patientAge != null ? `${patientAge}y` : null}
+                {patientAge != null && intake.patient.date_of_birth ? " · " : null}
+                {intake.patient.date_of_birth ? formatDate(intake.patient.date_of_birth) : null}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">Medicare</span>
+            <span className="font-mono text-sm text-foreground">{maskedMedicare}</span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-y-1.5 gap-x-6 text-sm">
+            <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{intake.patient.email || "—"}</span>
             </div>
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground mb-1">Age / DOB</p>
-                <p className="font-medium">{patientAge != null ? `${patientAge}y` : "N/A"} • {intake.patient.date_of_birth ? formatDate(intake.patient.date_of_birth) : "Not provided"}</p>
-              </div>
+            <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
+              <Phone className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{intake.patient.phone || "—"}</span>
             </div>
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-              <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground mb-1">Medicare</p>
-                <p className="font-medium font-mono">{maskedMedicare}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-              <Phone className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground mb-1">Phone</p>
-                <p className="font-medium">{intake.patient.phone || "Not provided"}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-              <Mail className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground mb-1">Email</p>
-                <p className="font-medium text-sm truncate">{intake.patient.email || "Not provided"}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground mb-1">Location</p>
-                <p className="font-medium">
-                  {intake.patient.suburb || "N/A"}, {intake.patient.state || ""}
-                </p>
-              </div>
+            <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                {intake.patient.suburb
+                  ? `${intake.patient.suburb}${intake.patient.state ? `, ${intake.patient.state}` : ""}`
+                  : "—"}
+              </span>
             </div>
           </div>
         </CardContent>

@@ -218,8 +218,10 @@ export function IntakeDetailClient({
     }
   }, [aiDrafts, intake.doctor_notes])
 
-  // P1 RK-1: Minimum clinical notes length for defensibility
-  const MIN_CLINICAL_NOTES_LENGTH = 5
+  // P1 RK-1: Minimum clinical notes length for defensibility. 50 chars
+  // forces a meaningful sentence — "ok" or "looks fine" are not enough for
+  // a defensible record if AHPRA or a plaintiff ever asks to see notes.
+  const MIN_CLINICAL_NOTES_LENGTH = 50
 
   // P2 DOCTOR_WORKLOAD_AUDIT: Keyboard shortcuts for faster workflow
   useDoctorShortcuts({

@@ -658,6 +658,59 @@ export async function getPatientCertificates(
 }
 
 /**
+ * Get all issued certificates for doctor/admin list view.
+ * Paginated, ordered by most-recently issued. Used by /doctor/certificates.
+ */
+export interface GetAllCertificatesFilters {
+  status?: CertificateStatus
+  certificateType?: "work" | "study" | "carer"
+  search?: string // matches certificate_ref, certificate_number, patient_name
+  limit?: number
+  offset?: number
+}
+
+export async function getAllIssuedCertificates(
+  filters: GetAllCertificatesFilters = {}
+): Promise<{ data: IssuedCertificate[]; total: number }> {
+  const supabase = createServiceRoleClient()
+  const limit = Math.min(filters.limit ?? 50, 200)
+  const offset = filters.offset ?? 0
+
+  let query = supabase
+    .from("issued_certificates")
+    .select(
+      "id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at",
+      { count: "exact" }
+    )
+
+  if (filters.status) query = query.eq("status", filters.status)
+  if (filters.certificateType) query = query.eq("certificate_type", filters.certificateType)
+  if (filters.search && filters.search.trim().length > 0) {
+    const term = `%${filters.search.trim().replace(/[%_]/g, "\\$&")}%`
+    query = query.or(
+      `certificate_ref.ilike.${term},certificate_number.ilike.${term},patient_name.ilike.${term}`
+    )
+  }
+
+  const { data, error, count } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) {
+    log.error("Failed to list all certificates", { filters }, error)
+    return { data: [], total: 0 }
+  }
+
+  const decryptedCerts = await Promise.all((data || []).map(async (cert) => {
+    const decryptedName = await readCertificatePatientName(cert)
+    const { patient_name_enc: _enc, ...certWithoutEnc } = cert
+    return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
+  }))
+
+  return { data: decryptedCerts, total: count ?? decryptedCerts.length }
+}
+
+/**
  * Get certificate for an intake
  */
 export async function getCertificateForIntake(

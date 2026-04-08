@@ -15,8 +15,8 @@
 import { PDFDocument, rgb, StandardFonts, type PDFFont } from "pdf-lib"
 import QRCode from "qrcode"
 import * as fs from "fs/promises"
-import { existsSync } from "fs"
 import * as path from "path"
+import * as Sentry from "@sentry/nextjs"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("template-renderer")
@@ -210,26 +210,18 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     const sanitisedInput = { ...input, patientName: trimmedName }
     const templateFile = "template.pdf"
 
-    // Load template PDF — filesystem first (local dev), then HTTP (Vercel serverless)
+    // Load template PDF from filesystem. `outputFileTracingIncludes` in
+    // next.config.mjs ensures public/templates/** is bundled into the
+    // serverless function, so this read works in both local dev and on Vercel.
     let templateBytes: Buffer
     try {
       const templatePath = path.join(process.cwd(), "public", "templates", templateFile)
-      if (!existsSync(templatePath)) throw new Error("Template not found on filesystem")
       templateBytes = await fs.readFile(templatePath)
-    } catch {
-      try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : "http://localhost:3000")
-        const res = await fetch(`${baseUrl}/templates/${templateFile}`, {
-          signal: AbortSignal.timeout(5000),
-        })
-        if (!res.ok) return { success: false, error: `Template not found: ${templateFile} (HTTP ${res.status})` }
-        templateBytes = Buffer.from(await res.arrayBuffer())
-      } catch (fetchErr) {
-        log.error("Template load failed (both fs and fetch)", { templateFile, error: fetchErr instanceof Error ? fetchErr.message : String(fetchErr) })
-        return { success: false, error: `Template not found: ${templateFile}` }
-      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      log.error("Template load failed", { templateFile, error: msg })
+      Sentry.captureException(err, { tags: { subsystem: "cert-template-load" } })
+      return { success: false, error: `Template not found: ${templateFile}` }
     }
 
     let pdfDoc
