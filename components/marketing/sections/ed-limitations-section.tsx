@@ -1,5 +1,3 @@
-"use client"
-
 import { CheckCircle2, AlertCircle } from "lucide-react"
 
 // =============================================================================
@@ -7,17 +5,17 @@ import { CheckCircle2, AlertCircle } from "lucide-react"
 // =============================================================================
 
 const CAN_HELP = [
-  "First-time or ongoing ED concerns with no red-flag symptoms",
-  "Repeat PDE5 inhibitor prescriptions you've had before",
-  "Treatment plan review for established patients",
+  "First-time or ongoing erectile dysfunction assessment",
+  "Repeat PDE5 inhibitor prescriptions (sildenafil, tadalafil)",
+  "Treatment plan review if your current medication isn't working",
 ] as const
 
 const SEE_GP_IN_PERSON = [
-  "New chest pain, fainting, or cardiovascular symptoms",
-  "You take nitrate medications for chest pain",
-  "ED that began suddenly alongside neurological symptoms",
-  "Severe liver or kidney disease",
-  "Under 18",
+  "Chest pain, fainting, or unexplained shortness of breath on exertion",
+  "If you currently take nitrates (e.g. GTN spray, isosorbide mononitrate)",
+  "Sudden onset of ED alongside neurological symptoms (numbness, weakness, vision changes)",
+  "Severe liver or kidney disease, or recent stroke / heart attack within 6 months",
+  "Under 18 years of age",
 ] as const
 
 // =============================================================================
