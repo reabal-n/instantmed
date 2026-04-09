@@ -26,6 +26,8 @@ import { RotatingText } from "@/components/marketing/rotating-text"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
 import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { ContextualMessage } from "@/components/marketing/contextual-message"
+import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -74,6 +76,18 @@ const FinalCtaSection = dynamic(
 const HairLossLimitationsSection = dynamic(
   () => import("@/components/marketing/sections/hair-loss-limitations-section").then((m) => m.HairLossLimitationsSection),
   { loading: () => <div className="min-h-[150px]" /> },
+)
+const HairLossHookQuiz = dynamic(
+  () => import("@/components/marketing/sections/hair-loss-hook-quiz").then((m) => m.HairLossHookQuiz),
+  { loading: () => <div className="min-h-[500px]" />, ssr: false },
+)
+const HairLossProgressTimeline = dynamic(
+  () => import("@/components/marketing/sections/hair-loss-progress-timeline").then((m) => m.HairLossProgressTimeline),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const HairLossFamilyHistoryStrip = dynamic(
+  () => import("@/components/marketing/sections/hair-loss-family-history-strip").then((m) => m.HairLossFamilyHistoryStrip),
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 
 // =============================================================================
@@ -654,8 +668,29 @@ export function HairLossLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* Live wait time — hair loss routed via consult queue */}
-          <LiveWaitTime variant="strip" services={["consult"]} />
+          {/* Live wait time — hair loss routed via consult queue (HL-specific label) */}
+          <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
+
+          {/* 2. Hair loss hook quiz — Norwood self-rating + duration */}
+          <HairLossHookQuiz />
+
+          {/* 3. Social proof band — AnimatedStat + ContextualMessage + named ticker */}
+          <section aria-label="Social proof" className="py-8 lg:py-12 border-b border-border/30 dark:border-white/10">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
+              <p className="text-base sm:text-lg text-foreground font-medium">
+                <AnimatedStat
+                  value={SOCIAL_PROOF.averageRating}
+                  suffix="/5"
+                  decimals={1}
+                />{" "}
+                <span className="text-muted-foreground text-sm sm:text-base">
+                  patient rating &middot; AHPRA-registered doctors
+                </span>
+              </p>
+              <ContextualMessage service="hair-loss" className="text-sm text-muted-foreground italic" />
+              <RecentReviewsTicker format="named" artifact="treatment" />
+            </div>
+          </section>
 
           {/* Recent activity ticker */}
           <RecentActivityTicker />
@@ -674,8 +709,14 @@ export function HairLossLanding() {
           {/* 2b. Treatment options — unique to hair loss, not on ED page */}
           <TreatmentOptions />
 
-          {/* 3. Long-form guide — E-E-A-T content for SEO depth */}
+          {/* 3. Progress timeline — month-by-month regrowth expectations */}
+          <HairLossProgressTimeline />
+
+          {/* 4. Long-form guide — E-E-A-T content for SEO depth */}
           <HairLossGuideSection />
+
+          {/* 5. Family history strip — reinforces genetic basis */}
+          <HairLossFamilyHistoryStrip />
 
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
