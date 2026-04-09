@@ -140,6 +140,64 @@ describe('getConsultPriceId', () => {
 })
 
 // ---------------------------------------------------------------------------
+// getConsultPriceId — production hard-fail on missing subtype env var
+// ---------------------------------------------------------------------------
+describe('getConsultPriceId — production hard-fail on missing subtype env var', () => {
+  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
+  const ORIGINAL_ED = process.env.STRIPE_PRICE_CONSULT_ED
+
+  afterEach(() => {
+    process.env.NODE_ENV = ORIGINAL_NODE_ENV
+    if (ORIGINAL_ED === undefined) delete process.env.STRIPE_PRICE_CONSULT_ED
+    else process.env.STRIPE_PRICE_CONSULT_ED = ORIGINAL_ED
+  })
+
+  it('throws in production when subtype env var is missing', async () => {
+    process.env.NODE_ENV = 'production'
+    delete process.env.STRIPE_PRICE_CONSULT_ED
+    process.env.STRIPE_PRICE_CONSULT = 'price_fallback_generic'
+
+    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
+    expect(() => getConsultPriceId('ed')).toThrow(/STRIPE_PRICE_CONSULT_ED/)
+  })
+
+  it('throws in production when hair_loss subtype env var is missing', async () => {
+    process.env.NODE_ENV = 'production'
+    delete process.env.STRIPE_PRICE_CONSULT_HAIR_LOSS
+    process.env.STRIPE_PRICE_CONSULT = 'price_fallback_generic'
+
+    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
+    expect(() => getConsultPriceId('hair_loss')).toThrow(/STRIPE_PRICE_CONSULT_HAIR_LOSS/)
+  })
+
+  it('falls back to generic consult price in development', async () => {
+    process.env.NODE_ENV = 'development'
+    delete process.env.STRIPE_PRICE_CONSULT_ED
+    process.env.STRIPE_PRICE_CONSULT = 'price_fallback_generic'
+
+    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
+    expect(getConsultPriceId('ed')).toBe('price_fallback_generic')
+  })
+
+  it('falls back to generic consult price in test', async () => {
+    process.env.NODE_ENV = 'test'
+    delete process.env.STRIPE_PRICE_CONSULT_ED
+    process.env.STRIPE_PRICE_CONSULT = 'price_fallback_generic'
+
+    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
+    expect(getConsultPriceId('ed')).toBe('price_fallback_generic')
+  })
+
+  it('does not throw in production for general subtype (default path)', async () => {
+    process.env.NODE_ENV = 'production'
+    process.env.STRIPE_PRICE_CONSULT = 'price_fallback_generic'
+
+    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
+    expect(getConsultPriceId('general')).toBe('price_fallback_generic')
+  })
+})
+
+// ---------------------------------------------------------------------------
 // getPriceIdForRequest — missing env var throws & 3-day tier
 // ---------------------------------------------------------------------------
 describe('getPriceIdForRequest — error paths', () => {

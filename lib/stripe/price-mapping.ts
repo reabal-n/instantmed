@@ -93,12 +93,28 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
   if (!defaultPriceId) {
     throw new Error("Missing STRIPE_PRICE_CONSULT environment variable")
   }
-  
-  // Log warning if subtype doesn't have a specific price
-  if (subtype && subtype !== 'general') {
+
+  // Hard fail in production if a KNOWN subtype is missing its dedicated env var —
+  // mischarging a customer is worse than a 500. env.ts already validates the four
+  // subtype vars at boot in production; this is a belt-and-braces runtime check
+  // per checkout in case of late env mutation or misconfigured subset deploys.
+  const isKnownSubtypeWithoutEnv = subtype in subtypePriceIds && !subtypePriceIds[subtype]
+  if (isKnownSubtypeWithoutEnv) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        `Missing Stripe price env var for consult subtype '${subtype}'. ` +
+        `Expected STRIPE_PRICE_CONSULT_${subtype.toUpperCase()} ` +
+        `(one of: STRIPE_PRICE_CONSULT_ED, STRIPE_PRICE_CONSULT_HAIR_LOSS, ` +
+        `STRIPE_PRICE_CONSULT_WOMENS_HEALTH, STRIPE_PRICE_CONSULT_WEIGHT_LOSS).`
+      )
+    }
+    logger.warn("No specific price for consult subtype, using default (dev/test only)", { subtype })
+  } else if (subtype && subtype !== 'general') {
+    // Unknown subtype (e.g. 'new_medication', future values) — silent fallback,
+    // these are intentionally routed through the generic consult price.
     logger.warn("No specific price for consult subtype, using default", { subtype })
   }
-  
+
   return defaultPriceId
 }
 

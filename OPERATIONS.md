@@ -121,7 +121,9 @@
 **Consult Subtype Wrong Price:**
 1. Check Vercel env vars: `STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`
 2. Run: `pnpm test lib/__tests__/consult-subtype-pricing.test.ts`
-3. Check mapping in `lib/stripe/client.ts` -> `getConsultPriceId()`
+3. Check mapping in `lib/stripe/price-mapping.ts` -> `getConsultPriceId()`
+
+> **Note:** Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. `lib/env.ts` also enforces these four vars at boot under `NODE_ENV=production`, so this is a belt-and-braces check.
 
 **Client-Side React Error:**
 1. Open browser DevTools Console
