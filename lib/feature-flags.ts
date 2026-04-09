@@ -121,6 +121,12 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.auto_approve_max_duration_days = typeof row.value === "number" ? Math.min(row.value, 3) : 3
       } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DRY_RUN) {
         flags.auto_approve_dry_run = row.value === true
+      } else if (row.key === FLAG_KEYS.TELEGRAM_NOTIFICATIONS_ENABLED) {
+        flags.telegram_notifications_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS) {
+        flags.doctor_alert_threshold_hours = typeof row.value === "number" ? row.value : 1
+      } else if (row.key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
+        flags.patient_delay_email_hours = typeof row.value === "number" ? row.value : 2
       }
     }
 

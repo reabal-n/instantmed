@@ -5,11 +5,8 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { trackBusinessMetric } from "@/lib/posthog-server"
 import * as Sentry from "@sentry/nextjs"
-
-const logger = createLogger("cron-stale-queue")
-
-// Patients get a "still reviewing" email after this long
-const PATIENT_EMAIL_THRESHOLD_HOURS = 2
+import { getFeatureFlags } from "@/lib/feature-flags"
+import { sendTelegramAlert, escapeMarkdown } from "@/lib/notifications/telegram"
 
 function formatServiceType(category: string | null): string {
   if (category === "medical_certificate") return "medical certificate"
@@ -22,8 +19,11 @@ function formatServiceType(category: string | null): string {
  * Stale Queue Monitor
  *
  * Runs every hour via Vercel Cron (configured in vercel.json).
- * - Sends a Telegram queue summary to the doctor if any requests have been waiting 1h+
- * - Sends a "still reviewing" email to patients waiting 2h+ (once per intake)
+ * - Sends a Telegram queue summary to the doctor if any requests have been waiting
+ *   `doctor_alert_threshold_hours` (default 1h), once per intake
+ * - Sends a "still reviewing" email to patients waiting `patient_delay_email_hours`
+ *   (default 2h), once per intake
+ * Thresholds are read from feature flags so they can be adjusted without a deploy.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
@@ -35,7 +35,11 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const now = new Date()
 
-    const patientEmailThreshold = new Date(now.getTime() - PATIENT_EMAIL_THRESHOLD_HOURS * 60 * 60 * 1000)
+    const flags = await getFeatureFlags()
+    const doctorAlertThresholdHours = flags.doctor_alert_threshold_hours ?? 1
+    const patientDelayEmailHours = flags.patient_delay_email_hours ?? 2
+
+    const patientEmailThreshold = new Date(now.getTime() - patientDelayEmailHours * 60 * 60 * 1000)
 
     // ── Stale queue metrics (PostHog only) ──────────────────────────────────
     const { count: staleCount } = await supabase
@@ -68,8 +72,45 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // ── Doctor Telegram Alert (1h+ wait, once per intake) ───────────────────
+    if (flags.telegram_notifications_enabled) {
+      const doctorAlertThreshold = new Date(now.getTime() - doctorAlertThresholdHours * 60 * 60 * 1000)
+
+      const { data: staleDoctorAlerts } = await supabase
+        .from("intakes")
+        .select(`id, category, paid_at, patient:profiles!patient_id(full_name)`)
+        .eq("status", "paid")
+        .lt("paid_at", doctorAlertThreshold.toISOString())
+        .is("doctor_telegram_alert_sent_at", null)
+        .limit(10)
+
+      if (staleDoctorAlerts?.length) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+        const lines = staleDoctorAlerts.map((intake) => {
+          const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
+          const firstName = escapeMarkdown((patient?.full_name as string || "Patient").split(" ")[0])
+          const waitMins = Math.round((now.getTime() - new Date(intake.paid_at as string).getTime()) / 60000)
+          const refId = intake.id.slice(0, 8).toUpperCase()
+          const label = formatServiceType(intake.category as string | null)
+          return `• [${refId}](${appUrl}/doctor/intakes/${intake.id}) — ${firstName} — ${escapeMarkdown(label)} — ${waitMins}min`
+        }).join("\n")
+
+        const count = staleDoctorAlerts.length
+        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting 1h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
+        await sendTelegramAlert(msg)
+
+        // Mark alerted — prevents repeat notifications per intake
+        await supabase
+          .from("intakes")
+          .update({ doctor_telegram_alert_sent_at: now.toISOString() })
+          .in("id", staleDoctorAlerts.map((i) => i.id))
+
+        logger.info("Doctor Telegram alert sent", { count })
+      }
+    }
+
     // ── Patient delay emails ─────────────────────────────────────────────────
-    // Send a "we're running late" email to patients waiting 2h+ (once per intake).
+    // Send a "we're running late" email to patients waiting the configured hours (once per intake).
     let delayEmailsSent = 0
     try {
       const { data: delayEmailCandidates } = await supabase
