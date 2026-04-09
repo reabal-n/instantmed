@@ -304,7 +304,7 @@ Patients must be informed at intake of:
 | Control | Compliance Note |
 |---------|----------------|
 | Encryption | TLS 1.2+ in transit; AES-256-GCM field-level at rest (see SECURITY.md) |
-| Access | RLS on all tables + role-based access via Clerk (see SECURITY.md) |
+| Access | RLS on all tables + role-based access via Supabase Auth (see SECURITY.md) |
 | Government IDs | Medicare number used only for eligibility; never internal ID (UUID primary keys) |
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
 | AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
@@ -333,7 +333,7 @@ Patients must be informed at intake of:
 |-----------|------------|----------|-----|
 | Supabase | All database records | Sydney, AU | Signed |
 | Stripe | Email, payment amount | US (PCI compliant) | Standard |
-| Clerk | Email, name | US | Standard |
+| Supabase Auth | Email, name | Sydney, AU | Signed |
 | Resend | Email, patient name | US | Signed |
 | Sentry | Error context (sanitized) | US | Signed |
 | PostHog | Analytics (anonymized) | EU | Signed |
@@ -351,7 +351,7 @@ Patients must be informed at intake of:
 | AI interaction logs | 7 years (truncated content, metadata only) | Clinical safety audit |
 | Payment records | 7 years | Tax Act (ATO requirement) |
 | Profile data | Indefinite while active; deleted 1 year after account closure | Service delivery |
-| Session/auth tokens | 30 days (auto-purged by Clerk) | Security best practice |
+| Session/auth tokens | 30 days (auto-purged by Supabase Auth) | Security best practice |
 | Analytics events | 2 years (anonymized after 90 days) | Business analytics |
 | Email logs | 2 years | Communication audit |
 | Error/debug logs | 90 days (no PHI) | Operational needs |

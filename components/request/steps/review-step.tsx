@@ -261,36 +261,43 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
     // ED assessment
     if (consultSubtype === 'ed') {
-      const ED_ONSET_LABELS: Record<string, string> = {
-        recent: 'Recently (< 3 months)',
-        gradual: 'Gradually over time',
-        sudden: 'Suddenly',
-        always: 'Always had difficulty',
+      const ED_GOAL_LABELS: Record<string, string> = {
+        improve_erections: 'Improve erections',
+        more_spontaneity: 'More spontaneity',
+        boost_confidence: 'Boost confidence',
+        better_stamina: 'Better stamina',
+        maintain: 'Maintain what I have',
       }
-      const ED_FREQ_LABELS: Record<string, string> = {
-        always: 'Every time',
-        often: 'Most of the time',
-        sometimes: 'Sometimes',
-        rarely: 'Rarely',
-      }
-      const ED_MORNING_LABELS: Record<string, string> = {
-        yes: 'Yes',
-        sometimes: 'Sometimes',
-        rarely: 'Rarely / No',
+      const ED_DURATION_LABELS: Record<string, string> = {
+        less_than_3_months: 'Less than 3 months',
+        '3_to_12_months': '3\u201312 months',
+        '1_to_3_years': '1\u20133 years',
+        '3_plus_years': '3+ years',
       }
       const ED_PREF_LABELS: Record<string, string> = {
-        daily: 'Daily (Tadalafil 5mg)',
-        prn: 'As-needed (Sildenafil/Tadalafil)',
+        daily: 'Daily (always ready)',
+        prn: 'As-needed',
+        doctor_decides: 'Doctor\u2019s recommendation',
       }
 
-      const edItems = [
-        { label: 'Onset', value: ED_ONSET_LABELS[answers.edOnset as string] || String(answers.edOnset || '—') },
-        { label: 'Frequency', value: ED_FREQ_LABELS[answers.edFrequency as string] || String(answers.edFrequency || '—') },
-        { label: 'Morning erections', value: ED_MORNING_LABELS[answers.edMorningErections as string] || String(answers.edMorningErections || '—') },
-        { label: 'Preference', value: ED_PREF_LABELS[answers.edPreference as string] || String(answers.edPreference || '—') },
-      ]
-      if (answers.edSafety_managedCondition) {
-        edItems.push({ label: 'Managed condition', value: 'Yes — under doctor supervision' })
+      const edItems: { label: string; value: string }[] = []
+
+      if (answers.edGoal) {
+        edItems.push({ label: 'Main goal', value: ED_GOAL_LABELS[answers.edGoal as string] || String(answers.edGoal) })
+      }
+      if (answers.edDuration) {
+        edItems.push({ label: 'Duration of concern', value: ED_DURATION_LABELS[answers.edDuration as string] || String(answers.edDuration) })
+      }
+      if (answers.iiefTotal !== undefined) {
+        const score = answers.iiefTotal as number
+        const severity = score >= 22 ? 'Mild' : score >= 17 ? 'Mild\u2013moderate' : score >= 12 ? 'Moderate' : 'Significant'
+        edItems.push({ label: 'IIEF-5 score', value: `${score}/25 \u2014 ${severity}` })
+      }
+      if (answers.edPreference) {
+        edItems.push({ label: 'Treatment preference', value: ED_PREF_LABELS[answers.edPreference as string] || String(answers.edPreference) })
+      }
+      if (answers.bmi) {
+        edItems.push({ label: 'BMI', value: String(answers.bmi) })
       }
       if (answers.edAdditionalInfo) {
         edItems.push({ label: 'Additional info', value: String(answers.edAdditionalInfo) })

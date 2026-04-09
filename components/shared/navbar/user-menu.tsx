@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
   LogOut,
   User,
@@ -32,8 +32,8 @@ interface UserMenuProps {
   pathname: string
   handleSignOut: () => Promise<void>
   isLoggingOut: boolean
-  isClerkLoaded: boolean
-  user: ReturnType<typeof useUser>["user"]
+  isLoaded: boolean
+  user: SupabaseUser | null
 }
 
 export function UserMenu({
@@ -43,7 +43,7 @@ export function UserMenu({
   pathname,
   handleSignOut,
   isLoggingOut,
-  isClerkLoaded,
+  isLoaded,
   user,
 }: UserMenuProps) {
   const router = useRouter()
@@ -61,7 +61,7 @@ export function UserMenu({
             Start a request
           </Link>
         </Button>
-        {isClerkLoaded && user ? (
+        {isLoaded && user ? (
           <>
             <Link
               href="/dashboard"

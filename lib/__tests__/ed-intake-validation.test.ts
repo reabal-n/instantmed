@@ -2,8 +2,6 @@ import { describe, it, expect } from "vitest"
 import {
   edGoalsStepSchema,
   edAssessmentStepSchema,
-  edHealthStepSchema,
-  edPreferencesStepSchema,
   validateEdGoalsStep,
   validateEdAssessmentStep,
   validateEdHealthStep,
@@ -18,7 +16,7 @@ describe("edGoalsStepSchema", () => {
   it("passes with valid data", () => {
     const result = edGoalsStepSchema.safeParse({
       edGoal: "improve_erections",
-      edDuration: "6_months_to_1_year",
+      edDuration: "3_to_12_months",
       edAgeConfirmed: true,
     })
     expect(result.success).toBe(true)
@@ -26,7 +24,7 @@ describe("edGoalsStepSchema", () => {
 
   it("fails when edGoal is missing", () => {
     const result = validateEdGoalsStep({
-      edDuration: "6_months_to_1_year",
+      edDuration: "3_to_12_months",
       edAgeConfirmed: true,
     })
     expect(result.isValid).toBe(false)
@@ -45,7 +43,7 @@ describe("edGoalsStepSchema", () => {
   it("fails when age not confirmed (false)", () => {
     const result = validateEdGoalsStep({
       edGoal: "improve_erections",
-      edDuration: "less_than_6_months",
+      edDuration: "less_than_3_months",
       edAgeConfirmed: false,
     })
     expect(result.isValid).toBe(false)
@@ -55,7 +53,7 @@ describe("edGoalsStepSchema", () => {
   it("fails when edGoal is empty string", () => {
     const result = validateEdGoalsStep({
       edGoal: "",
-      edDuration: "less_than_6_months",
+      edDuration: "less_than_3_months",
       edAgeConfirmed: true,
     })
     expect(result.isValid).toBe(false)

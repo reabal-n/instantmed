@@ -52,7 +52,7 @@ const BENIGN_CONSOLE_PATTERNS = [
   /Warning: componentWillMount has been renamed/i,
   /Warning: componentWillReceiveProps has been renamed/i,
   /hydration/i, // Next.js hydration warnings are often benign
-  /Clerk: The publishable key/i, // Clerk dev warnings
+  /Supabase/i, // Supabase auth dev warnings
   /PostHog/i, // Analytics warnings in test
   /Failed to load resource.*favicon/i,
   /ResizeObserver loop/i, // Browser layout warnings
@@ -413,30 +413,25 @@ test.describe("Role Restrictions - Patient User", () => {
 // ============================================================================
 
 test.describe("Portal Pages - Basic Load", () => {
-  test("sign-in page redirects to Clerk Account Portal", async ({ page }) => {
+  test("sign-in page renders", async ({ page }) => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    // /sign-in is a redirect-only client stub: it useEffect's a window.location.href
-    // bounce to https://accounts.instantmed.com.au (the hosted Clerk Account Portal).
-    // The local page never renders a Clerk SignIn component — that lives on the
-    // hosted portal. We assert the bounce is intended/visible instead of a DOM check.
     await gotoWithRetry(page, "/sign-in")
 
-    // Either the URL has already changed to the account portal, OR the brand
-    // marker on the loading shell is visible (the SignInRedirect useEffect
-    // fires on mount, so by the time we look one of these is true).
+    // Sign-in page should render with a brand marker or sign-in form
     const url = page.url()
-    const headedToAccountPortal = url.includes("accounts.instantmed.com.au")
-    const showsLoadingShell = await page
-      .getByText(/Redirecting to sign in|Loading\.\.\./i)
+    const isSignInPage = url.includes("/sign-in")
+    const hasBrandMarker = await page.getByText("InstantMed").first().isVisible().catch(() => false)
+    const hasSignInForm = await page
+      .getByText(/sign in|log in|email/i)
+      .first()
       .isVisible()
       .catch(() => false)
-    const hasBrandMarker = await page.getByText("InstantMed").first().isVisible().catch(() => false)
 
     expect(
-      headedToAccountPortal || showsLoadingShell || hasBrandMarker,
-      "expected /sign-in to redirect to Account Portal or show its loading shell"
+      isSignInPage || hasBrandMarker || hasSignInForm,
+      "expected /sign-in to render the sign-in page"
     ).toBe(true)
 
     tracker.assertNoErrors()

@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import type { PostHog } from "posthog-js"
 import { trackAIReferral } from "@/lib/analytics/ai-referral"
 
@@ -68,10 +68,10 @@ function PostHogPageView() {
 }
 
 /**
- * Identify Clerk users in PostHog when they sign in. Reset on sign-out.
+ * Identify users in PostHog when they sign in. Reset on sign-out.
  */
 function PostHogIdentify() {
-  const { user, isLoaded, isSignedIn } = useUser()
+  const { user, isLoaded, isSignedIn } = useAuth()
   const posthog = usePostHog()
   const identifiedRef = useRef<string | null>(null)
 
@@ -82,15 +82,11 @@ function PostHogIdentify() {
       if (identifiedRef.current === user.id) return
       identifiedRef.current = user.id
 
-      const primaryEmail = user.emailAddresses.find(
-        (e) => e.id === user.primaryEmailAddressId,
-      )?.emailAddress
-
       posthog.identify(user.id, {
-        email: primaryEmail,
-        name: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-        created_at: user.createdAt,
-        is_internal: primaryEmail?.endsWith("@instantmed.com.au") ?? false,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split("@")[0],
+        created_at: user.created_at,
+        is_internal: user.email?.endsWith("@instantmed.com.au") ?? false,
       })
     } else if (!isSignedIn && identifiedRef.current) {
       posthog.reset()

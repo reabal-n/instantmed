@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Suspense } from "react"
 import { Source_Sans_3, JetBrains_Mono } from "next/font/google"
-import { ClerkProvider } from "@clerk/nextjs"
+import { SupabaseAuthProvider } from "@/lib/supabase/auth-provider"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
@@ -138,7 +138,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
+    <SupabaseAuthProvider>
       <html
         lang="en-AU"
         className={`${sourceSans.variable} ${jetbrainsMono.variable}`}
@@ -146,8 +146,7 @@ export default function RootLayout({
         style={{ backgroundColor: '#f8f7f4' }}
       >
         <head>
-          {/* Preconnect to critical third-party origins — Clerk and Sentry (LCP savings) */}
-          <link rel="preconnect" href="https://clerk.instantmed.com.au" />
+          {/* Preconnect to critical third-party origins — Sentry (LCP savings) */}
           <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
@@ -189,6 +188,6 @@ export default function RootLayout({
           </PostHogProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </SupabaseAuthProvider>
   )
 }

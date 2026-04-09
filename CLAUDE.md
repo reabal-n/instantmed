@@ -51,7 +51,7 @@ pnpm ci               # Full CI: install → lint → test → build
 
 ## Tech Stack
 
-Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL · Node 20 · Vercel Pro · Clerk v7 auth · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v11
+Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL + Auth · Node 20 · Vercel Pro · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · Anthropic Claude AI · Framer Motion v11
 
 ---
 
@@ -64,7 +64,7 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
 | Package | Pinned | Why this version |
 |---|---|---|
 | `next` | **15.5.14** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. |
-| `react` / `react-dom` | **18.3.1** | React 19 nullable `RefObject<T \| null>` typing breaks third-party libs (Clerk, Framer Motion 12). Wait until Next 17 makes React 19 the default. |
+| `react` / `react-dom` | **18.3.1** | React 19 nullable `RefObject<T \| null>` typing breaks third-party libs (Framer Motion 12). Wait until Next 17 makes React 19 the default. |
 | `framer-motion` | **11.18.2** | v12 requires React 19. |
 | `tailwindcss` / `@tailwindcss/postcss` | **4.2.2** | CSS-first config is working; don't risk a re-migration. |
 | Bundler | **Webpack** (NOT Turbopack) | Turbopack still has gaps in our codebase (module factory race conditions, framer-motion chunk bugs). |
@@ -157,7 +157,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See ARCHITECTURE.md for full step sequences.
 
-**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively — they share the `consult` service type and common-tail step sequence but have their own assessment + safety steps defined in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). **No call step** — patient completes the structured form, a doctor reviews, and the eScript is delivered. Homepage `ServicePicker` shows 4 cards (med-cert, scripts, ed, hair-loss); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains the canonical generic doctor-consult intake. **Follow-up tracker:** On approval, 3 milestone rows (month 3/6/12) are created in `intake_followups`. Daily cron at `/api/cron/treatment-followup` (09:00 AEST) emails reminders; patients submit via `/patient/followups/[id]`; doctors review via a new card on the intake detail page. Contraindication tooltips surface rationale strings on safety-critical clinical-summary rows.
+**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively — they share the `consult` service type and common-tail step sequence but have their own subtype-specific steps defined in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). **No call step** — patient completes the structured form, a doctor reviews, and the eScript is delivered. Homepage `ServicePicker` shows 4 cards (med-cert, scripts, ed, hair-loss); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains the canonical generic doctor-consult intake. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** On approval, 3 milestone rows (month 3/6/12) are created in `intake_followups`. Daily cron at `/api/cron/treatment-followup` (09:00 AEST) emails reminders; patients submit via `/patient/followups/[id]`; doctors review via a new card on the intake detail page. Contraindication tooltips surface rationale strings on safety-critical clinical-summary rows.
 
 **Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor inputs into Parchment (external eScript) → Doctor toggles "Script Sent" → Patient notified via email.
 
@@ -171,7 +171,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Safety consent:** Merged INTO the review step (not a standalone step).
 
-**Guest checkout:** Creates profile without `clerk_user_id` → Stripe checkout → redirects to `/auth/complete-account` for Clerk account linking.
+**Guest checkout:** Creates profile without `auth_user_id` → Stripe checkout → redirects to `/auth/complete-account` for account linking.
 
 **Referrals:** $5 credit to both parties. Patient shares `?ref=` link. UI: `components/patient/referral-card.tsx`.
 

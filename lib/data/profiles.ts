@@ -172,7 +172,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       created_at,
       updated_at
     `)
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
     .single()
 
   if (error || !data) {
@@ -381,18 +381,3 @@ export async function getUserEmailFromAuthUserId(authUserId: string): Promise<st
   return authUser.user.email
 }
 
-/**
- * Get user email from clerk_user_id (primary method for Clerk auth)
- */
-export async function getUserEmailFromClerkUserId(clerkUserId: string): Promise<string | null> {
-  const serviceClient = createServiceRoleClient()
-  
-  // Get email from profile
-  const { data: profile } = await serviceClient
-    .from("profiles")
-    .select("email")
-    .eq("clerk_user_id", clerkUserId)
-    .single()
-  
-  return profile?.email ?? null
-}

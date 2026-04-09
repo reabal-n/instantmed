@@ -21,7 +21,7 @@ export const ED_FAQ = [
   },
   {
     question: "Is it safe to take ED medication with my current medications?",
-    answer: "Our safety screening step checks for common contraindications including nitrates, alpha-blockers, and certain cardiac medications. The doctor performs a final review of your full medication list before approving any treatment.",
+    answer: "Our safety screening checks for common contraindications including nitrates (e.g. GTN spray), alpha-blockers (e.g. tamsulosin, prazosin), and certain cardiac conditions. The reviewing doctor performs a final check of your full medication list before approving any treatment, per TGA prescribing guidelines.",
   },
   {
     question: "Can I get this treatment without a Medicare card?",

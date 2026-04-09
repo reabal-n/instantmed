@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
@@ -8,36 +8,24 @@ import { Loader2 } from "lucide-react"
 /**
  * Client-side auth waiter for post-signin.
  *
- * Handles the race condition where Clerk's hosted sign-up/sign-in
- * redirects back to the app before the session cookie is established.
- *
- * Strategy: if the client SDK detects a session, redirect through
- * Clerk's sign-in URL to force the handshake (which sets the server
- * cookie). A simple page reload won't work because the handshake
- * tokens aren't in the URL.
- *
- * Uses sessionStorage with a 30-second timestamp window to track
- * attempts. Stale counters from previous sign-ins reset automatically.
- *
- * Accepts search params as a prop to avoid useSearchParams() which
- * requires a Suspense boundary in Next.js 15 and can cause hydration issues.
+ * With Supabase Auth the session cookie is set by the callback route,
+ * so this mostly handles the race condition where the page renders
+ * before the auth state listener fires. If the user is signed in,
+ * we reload the page so the server component can read the session
+ * and redirect. If auth never resolves, show retry UI.
  */
 export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: string }) {
   const { isSignedIn, isLoaded } = useAuth()
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
 
-  // Master timeout: if nothing resolves within 20 seconds (including Clerk
-  // failing to load entirely), show the error/retry UI. Without this, the
-  // spinner is infinite when Clerk's JS fails to initialise.
-  // 20s accounts for the full redirect chain: middleware → post-signin →
-  // auth-waiter → Clerk handshake → back to post-signin → profile link → cookie set.
+  // Master timeout: 15s for Supabase session to establish
   useEffect(() => {
     const masterTimer = setTimeout(() => {
       if (!hasNavigated.current) {
         setTimedOut(true)
       }
-    }, 20000)
+    }, 15000)
 
     return () => clearTimeout(masterTimer)
   }, [])
@@ -46,46 +34,16 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
     if (!isLoaded || hasNavigated.current) return
 
     if (isSignedIn) {
-      // Track retry attempts within a 30-second window to prevent infinite loops.
-      // Counter resets automatically if it's stale (from a previous sign-in session).
-      const attemptKey = "post-signin-attempts"
-      let stored: { count: number; ts: number } = { count: 0, ts: 0 }
-      try {
-        stored = JSON.parse(
-          sessionStorage.getItem(attemptKey) || '{"count":0,"ts":0}'
-        ) as { count: number; ts: number }
-      } catch {
-        // Corrupted sessionStorage value — reset and start fresh
-        sessionStorage.removeItem(attemptKey)
-      }
-
-      const now = Date.now()
-      const count = now - stored.ts > 30000 ? 0 : stored.count
-
-      if (count >= 3) {
-        sessionStorage.removeItem(attemptKey)
-        setTimedOut(true)
-        return
-      }
-
-      sessionStorage.setItem(attemptKey, JSON.stringify({ count: count + 1, ts: now }))
       hasNavigated.current = true
-
-      // Redirect through Clerk to force the handshake and set server cookies.
-      // A simple page reload won't work because the handshake tokens
-      // (which the middleware needs to establish the session) aren't in the URL.
-      const currentOrigin = window.location.origin
-      const postSignInUrl = paramsString
-        ? `${currentOrigin}/auth/post-signin?${paramsString}`
-        : `${currentOrigin}/auth/post-signin`
-      const clerkSignInUrl =
-        process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ||
-        "https://accounts.instantmed.com.au/sign-in"
-      window.location.href = `${clerkSignInUrl}?redirect_url=${encodeURIComponent(postSignInUrl)}`
+      // Session is established — reload so server component handles redirect
+      const destination = paramsString
+        ? `/auth/post-signin?${paramsString}`
+        : `/auth/post-signin`
+      window.location.href = destination
       return
     }
 
-    // Give Clerk up to 8s to establish the session (after it has loaded)
+    // Give auth 8s after SDK loads to establish session
     const timer = setTimeout(() => {
       if (!hasNavigated.current) {
         setTimedOut(true)
@@ -105,10 +63,6 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
           <Link
             href="/sign-in"
             className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
-            onClick={() => {
-              // Clear attempt counter so next sign-in starts fresh
-              sessionStorage.removeItem("post-signin-attempts")
-            }}
           >
             Sign in
           </Link>

@@ -91,12 +91,6 @@
 2. Update `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel
 3. Deploy, then verify webhook delivery in Stripe dashboard
 
-### Clerk Keys
-
-1. Generate new keys in Clerk dashboard
-2. Update `CLERK_SECRET_KEY` in Vercel
-3. Deploy, then verify auth flows work
-
 ---
 
 ## Debugging Checklist
@@ -281,7 +275,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 
 ### Vercel Env Vars
 
-**Required:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `INTERNAL_API_SECRET`, `CLERK_SECRET_KEY`
+**Required:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `INTERNAL_API_SECRET`
 
 **Recommended:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SENTRY_DSN`
 
@@ -349,7 +343,7 @@ ROLLBACK  ROLLBACK    ROLLBACK
 **Common gotchas:**
 - Vercel promote is atomic and idempotent. You cannot "half-rollback."
 - If the bad deploy changed env vars (via `vercel env add`), the rollback does NOT revert those. Check Vercel env vars against git history.
-- Clerk sessions survive rollback. If the issue was middleware auth, **also revoke all sessions** (see section 4).
+- Supabase Auth sessions are cookie-based. If the issue was middleware auth, users may need to re-authenticate.
 
 ---
 
@@ -404,15 +398,15 @@ ROLLBACK  ROLLBACK    ROLLBACK
 
 ---
 
-#### 4. Clerk session revoke (auth incident)
+#### 4. Auth session invalidation (auth incident)
 
 **When:** the rollback was auth-related and you need to force every user to re-authenticate.
 
 **Steps:**
 
-1. Clerk Dashboard → instantmed → Sessions → "Revoke all sessions."
-2. Confirm the warning dialog. This invalidates every JWT across all users immediately.
-3. Users will be redirected to `/auth/login` on their next request. Post an in-app banner (via `feature_flags` table) if the incident window is > 5 minutes.
+1. Supabase Dashboard → Authentication → Sessions. Or run: `SELECT auth.sessions WHERE NOT is_revoked;`
+2. To revoke all sessions: `UPDATE auth.sessions SET not_after = now() WHERE not_after > now();`
+3. Users will be redirected to `/sign-in` on their next request. Post an in-app banner (via `feature_flags` table) if the incident window is > 5 minutes.
 4. **This is irreversible** — users cannot "un-log-out" without signing back in. Only use for actual auth compromises.
 
 ---
@@ -591,7 +585,6 @@ All previously identified gaps have been resolved:
 Required env vars validated at startup via Zod in `lib/env.ts`:
 
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- **Clerk**: `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_*` (11 price IDs — includes `STRIPE_PRICE_PRIORITY_FEE`, `STRIPE_PRICE_REPEAT_RX_MONTHLY`)
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
@@ -690,7 +683,6 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 | `STRIPE_SECRET_KEY` | Generate new key in Stripe → update Vercel env → redeploy | Zero (old key valid for 24h) |
 | `STRIPE_WEBHOOK_SECRET` | Roll endpoint secret in Stripe → update env → redeploy | Brief (webhooks fail until deployed) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Regenerate in Supabase dashboard → update env → redeploy | Brief |
-| `CLERK_SECRET_KEY` | Regenerate in Clerk dashboard → update env → redeploy | Brief (auth calls fail) |
 | `RESEND_API_KEY` | Regenerate in Resend → update env → redeploy | Zero |
 | `PHI_MASTER_KEY` | **CRITICAL:** Must re-encrypt all PHI fields. See SECURITY.md | Requires migration |
 | `ENCRYPTION_KEY` | **CRITICAL:** Same as PHI_MASTER_KEY | Requires migration |
@@ -739,7 +731,7 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 
 ---
 
-You are performing a comprehensive daily audit of the InstantMed codebase and production environment. This is a Next.js 16 / React 19 / Supabase / Clerk v7 / Stripe v22 telehealth platform preparing for whitelabel.
+You are performing a comprehensive daily audit of the InstantMed codebase and production environment. This is a Next.js 15.5 / React 18 / Supabase (DB + Auth) / Stripe v22 telehealth platform preparing for launch.
 
 **Instructions:** Load `CLAUDE.md` first. Run every check below. Use subagents in parallel where checks are independent. Auto-fix safe mechanical issues (dead imports, unused variables, lint violations, type errors). For anything that changes logic, behavior, or public APIs — report it but do NOT fix it. Commit safe fixes in grouped commits (one per category).
 

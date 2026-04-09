@@ -18,6 +18,7 @@ const WHAT_IT_DOESNT = [
 
 const NOT_APPROPRIATE = [
   "Currently taking nitrates (e.g. GTN spray, isosorbide mononitrate).",
+  "Taking alpha-blockers without GP clearance (e.g. tamsulosin, prazosin).",
   "Recent heart attack or stroke (within 6 months).",
   "Severe heart disease or unstable angina.",
   "Certain eye conditions (e.g. non-arteritic ischaemic optic neuropathy).",

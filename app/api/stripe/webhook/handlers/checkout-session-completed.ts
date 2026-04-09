@@ -341,10 +341,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     }
 
     // Track funnel: payment completed
-    // Fetch clerk_user_id so server-side PostHog distinctId matches client-side identify()
+    // Fetch auth_user_id so server-side PostHog distinctId matches client-side identify()
     const { data: phProfile } = await supabase
       .from("profiles")
-      .select("clerk_user_id")
+      .select("auth_user_id")
       .eq("id", patientId)
       .maybeSingle()
 
@@ -355,9 +355,9 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       .eq("id", intakeId)
       .maybeSingle()
 
-    // Use clerk_user_id as primary distinctId (matches client-side posthog.identify)
-    // Fall back to patientId for guest checkouts without Clerk accounts
-    const posthogDistinctId = phProfile?.clerk_user_id || patientId || intakeId
+    // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
+    // Fall back to patientId for guest checkouts without authenticated accounts
+    const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
 
     trackIntakeFunnelStep({
       step: "payment_completed",
@@ -389,10 +389,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         })
       }
 
-      // Alias patientId (Supabase UUID) → clerk_user_id so PostHog merges person records
-      if (phProfile?.clerk_user_id && patientId && phProfile.clerk_user_id !== patientId) {
+      // Alias patientId (Supabase UUID) → auth_user_id so PostHog merges person records
+      if (phProfile?.auth_user_id && patientId && phProfile.auth_user_id !== patientId) {
         posthog.alias({
-          distinctId: phProfile.clerk_user_id,
+          distinctId: phProfile.auth_user_id,
           alias: patientId,
         })
       }
@@ -640,7 +640,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     if (patientId && session.amount_total) {
       const { data: patientProfile } = await supabase
         .from("profiles")
-        .select("email, full_name, clerk_user_id")
+        .select("email, full_name, auth_user_id")
         .eq("id", patientId)
         .single()
 
@@ -669,7 +669,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           })
 
           const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
-          const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
+          const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.auth_user_id
 
           const emailResult = await sendEmail({
             to: patientProfile.email,

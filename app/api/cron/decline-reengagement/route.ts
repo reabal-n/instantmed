@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       id,
       category,
       patient_id,
-      patient:profiles!patient_id (id, full_name, email, clerk_user_id)
+      patient:profiles!patient_id (id, full_name, email, auth_user_id)
     `)
     .eq("status", "declined")
     .gte("declined_at", threeHoursAgo)

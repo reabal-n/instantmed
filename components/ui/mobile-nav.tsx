@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { useClerk } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -119,14 +119,12 @@ export function DoctorMobileNav({ className }: { className?: string }) {
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { signOut } = useClerk()
+  const { signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
 
   const handleSignOut = async () => {
     setMoreOpen(false)
     await signOut()
-    router.push('/')
-    router.refresh()
   }
 
   const isMoreActive = moreMenuItems.some(

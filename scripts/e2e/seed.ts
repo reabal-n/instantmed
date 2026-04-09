@@ -51,11 +51,11 @@ export const E2E_RUN_ID = process.env.E2E_RUN_ID || "e2e-test-run-001"
 // Deterministic IDs for test data (allows idempotent seeding)
 // These use a fixed prefix to ensure consistent lookups across runs
 export const OPERATOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000001"
-export const OPERATOR_CLERK_ID = "user_e2e_operator_001"
+export const OPERATOR_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000001"
 export const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
-export const DOCTOR_CLERK_ID = "user_e2e_doctor_001"
+export const DOCTOR_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000003"
 export const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
-export const PATIENT_CLERK_ID = "user_e2e_patient_001"
+export const PATIENT_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000002"
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 export const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 export const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
@@ -98,7 +98,7 @@ async function seedOperatorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", OPERATOR_PROFILE_ID)
     .single()
 
@@ -111,7 +111,7 @@ async function seedOperatorProfile() {
     .from("profiles")
     .upsert({
       id: OPERATOR_PROFILE_ID,
-      clerk_user_id: OPERATOR_CLERK_ID,
+      auth_user_id: OPERATOR_AUTH_USER_ID,
       email: "e2e-operator@test.instantmed.com.au",
       full_name: "Dr. E2E Operator",
       date_of_birth: "1980-01-15",
@@ -149,7 +149,7 @@ async function seedDoctorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", DOCTOR_PROFILE_ID)
     .single()
 
@@ -162,7 +162,7 @@ async function seedDoctorProfile() {
     .from("profiles")
     .upsert({
       id: DOCTOR_PROFILE_ID,
-      clerk_user_id: DOCTOR_CLERK_ID,
+      auth_user_id: DOCTOR_AUTH_USER_ID,
       email: "e2e-doctor@test.instantmed.com.au",
       full_name: "Dr. E2E Doctor",
       date_of_birth: "1985-03-20",
@@ -200,7 +200,7 @@ async function seedPatientProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, clerk_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", PATIENT_PROFILE_ID)
     .single()
 
@@ -213,7 +213,7 @@ async function seedPatientProfile() {
     .from("profiles")
     .upsert({
       id: PATIENT_PROFILE_ID,
-      clerk_user_id: PATIENT_CLERK_ID,
+      auth_user_id: PATIENT_AUTH_USER_ID,
       email: "e2e-patient@test.instantmed.com.au",
       full_name: "E2E Test Patient",
       date_of_birth: "1990-06-20",
@@ -722,21 +722,21 @@ function printSeedSummary() {
   console.log(`
 ┌─ Operator User (admin+doctor) ─────────────────────────────
 │  Profile ID:    ${OPERATOR_PROFILE_ID}
-│  Clerk ID:      ${OPERATOR_CLERK_ID}
+│  Auth User ID:  ${OPERATOR_AUTH_USER_ID}
 │  Role:          admin (has doctor access)
 │  Provider #:    1234567A
 │  AHPRA #:       MED0001234567
 │
 ├─ Doctor User (doctor only, NOT admin) ─────────────────────
 │  Profile ID:    ${DOCTOR_PROFILE_ID}
-│  Clerk ID:      ${DOCTOR_CLERK_ID}
+│  Auth User ID:  ${DOCTOR_AUTH_USER_ID}
 │  Role:          doctor (no admin access)
 │  Provider #:    7654321B
 │  AHPRA #:       MED0007654321
 │
 ├─ Patient User ──────────────────────────────────────────────
 │  Profile ID:    ${PATIENT_PROFILE_ID}
-│  Clerk ID:      ${PATIENT_CLERK_ID}
+│  Auth User ID:  ${PATIENT_AUTH_USER_ID}
 │  Role:          patient
 │
 ├─ Paid Intake ───────────────────────────────────────────────

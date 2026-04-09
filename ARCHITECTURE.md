@@ -46,7 +46,9 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 |---------|-------|
 | `med-cert` | certificate, symptoms, details, review, checkout |
 | `prescription` / `repeat-script` | medication, medication-history, medical-history, details, review, checkout |
-| `consult` | consult-reason, medical-history, details, review, checkout |
+| `consult` (general) | consult-reason, medical-history, details, review, checkout |
+| `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
+| `consult` (hair loss) | hair-loss-assessment, medical-history, details, review, checkout |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 
@@ -361,7 +363,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Real-time:** Messaging and notifications use Supabase Realtime (`postgres_changes` subscription on INSERT/UPDATE). Push notifications via Web Push API (VAPID key, Service Worker). Notification types: `request_update`, `payment`, `document_ready`, `refill_reminder`, `system`, `promotion`.
 
-**Guest → Authenticated flow:** Guest checkout creates profile without `clerk_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
+**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
 
 **Payment state display:**
 
@@ -383,7 +385,7 @@ Admin capabilities span the `/admin` route group and include: operations dashboa
 
 **Operational controls** (`/admin/features`): Business hours (configurable open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min.
 
-Role assignment methods: SQL update on `profiles` table (production), or Clerk dashboard metadata sync.
+Role assignment methods: SQL update on `profiles` table (production) via Supabase dashboard or service role client.
 
 ---
 
@@ -444,7 +446,7 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 | **Patient** (14) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `refill-prescription`, `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
 | **Stripe Portal** (1) | `/api/stripe/customer-portal` | POST → creates Stripe billing portal session for subscription management |
-| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/clerk`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification; webhook handlers include `invoice.payment_succeeded`, `customer.subscription.deleted` |
+| **Webhooks** (4) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification; webhook handlers include `invoice.payment_succeeded`, `customer.subscription.deleted` |
 | **Misc** (12) | Various | `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
 
 ### Server-Only Module Pattern
@@ -631,7 +633,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `chat/` | — | AI chat intake (ChatIntake, lazy-loaded) |
 | `charts/` | — | LazyAreaChart, LazyBarChart, etc. (dynamic import from recharts) |
 | `effects/` | — | Confetti, ShakeAnimation |
-| `providers/` | — | PostHogProvider, ThemeProvider, ClerkProvider wrapper |
+| `providers/` | — | PostHogProvider, ThemeProvider, MotionProvider |
 | `heroes/` | — | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
 | `ui/morning/` | — | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
 | `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
@@ -669,7 +671,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 | File/Dir | Purpose |
 |----------|---------|
-| `middleware.ts` | Auth (Clerk), route protection, E2E bypass, prod route blocking |
+| `middleware.ts` | Auth (Supabase), route protection, E2E bypass, prod route blocking |
 | `instrumentation.ts` | Sentry server init |
 | `instrumentation-client.ts` | PostHog + Sentry client init |
 | `types/db.ts` | Supabase generated types + custom interfaces |

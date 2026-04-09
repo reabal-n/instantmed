@@ -30,11 +30,11 @@ async function verifyProfileOwnership(profileId: string) {
   const supabase = createServiceRoleClient()
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("clerk_user_id")
+    .select("auth_user_id")
     .eq("id", profileId)
     .single()
 
-  if (profileError || !profile || profile.clerk_user_id !== userId) {
+  if (profileError || !profile || profile.auth_user_id !== userId) {
     return { error: { success: false, error: "Unauthorized" } as ActionResult }
   }
 

@@ -5,7 +5,7 @@ import { ShortcutDiscoveryHint } from '@/components/doctor/keyboard-shortcuts-mo
 import { IntakeNotificationListener } from '@/components/doctor/intake-notification-listener'
 import { DoctorMobileNav } from '@/components/ui/mobile-nav'
 import { PanelProvider } from '@/components/panels/panel-provider'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth } from '@/lib/supabase/auth-provider'
 
 /**
  * DoctorShell - Client wrapper for doctor pages
@@ -15,7 +15,7 @@ import { useAuth } from '@clerk/nextjs'
  * - Keyboard shortcuts discovery hint (shown once to new doctors)
  * - Real-time notifications for new intakes
  *
- * Note: Session timeout warning removed - Clerk handles session refresh automatically
+ * Note: Session timeout warning removed - Supabase Auth handles session refresh automatically
  */
 
 interface DoctorShellProps {
@@ -23,12 +23,12 @@ interface DoctorShellProps {
 }
 
 export function DoctorShell({ children }: DoctorShellProps) {
-  const { userId } = useAuth()
+  const { user } = useAuth()
 
   return (
     <PanelProvider>
       <ShortcutDiscoveryHint />
-      {userId && <IntakeNotificationListener />}
+      {user && <IntakeNotificationListener />}
       {children}
       <DoctorMobileNav />
     </PanelProvider>

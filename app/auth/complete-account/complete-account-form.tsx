@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { Check, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
@@ -19,20 +19,18 @@ export function CompleteAccountForm({
   sessionId?: string
 }) {
   const router = useRouter()
-  const { isSignedIn, isLoaded } = useUser()
+  const { isSignedIn, isLoaded } = useAuth()
 
   const [showConfetti, setShowConfetti] = useState(false)
-  
+
   useEffect(() => {
     // If already signed in, redirect through post-signin to ensure profile is linked
     if (isLoaded && isSignedIn && intakeId) {
-      // Use a timeout to avoid synchronous setState in effect
       const confettiTimer = setTimeout(() => {
         setShowConfetti(true)
       }, 0)
 
       const redirectTimer = setTimeout(() => {
-        // Use post-signin handler to ensure profile linking is complete
         router.push(`/auth/post-signin?intake_id=${intakeId}`)
       }, 1000)
 
@@ -44,15 +42,10 @@ export function CompleteAccountForm({
   }, [isLoaded, isSignedIn, intakeId, router])
 
   const handleCreateAccount = () => {
-    // Redirect to Clerk Account Portal with post-signin handler
-    // This prevents the redirect loop by ensuring profile is linked before accessing protected routes
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'
-    const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
-    const postSignInUrl = `${appUrl}/auth/post-signin?intake_id=${intakeId}`
-    const params = new URLSearchParams({ redirect_url: postSignInUrl })
-    // Pre-fill email so they don't have to retype it
-    if (email) params.set("email_address", email)
-    router.push(`${clerkSignUpUrl}?${params.toString()}`)
+    const returnUrl = encodeURIComponent(`/auth/post-signin?intake_id=${intakeId}`)
+    const params = new URLSearchParams({ redirect: returnUrl })
+    if (email) params.set("email", email)
+    router.push(`/sign-up?${params.toString()}`)
   }
 
   // If already signed in, show success message
@@ -116,7 +109,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`${process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/sign-in'}?redirect_url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL || ''}/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
+        <a href={`/sign-in?redirect=${encodeURIComponent(`/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

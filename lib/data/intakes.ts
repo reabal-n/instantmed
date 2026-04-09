@@ -1771,7 +1771,7 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
     .from("intakes")
     .select(`
       *,
-      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, clerk_user_id),
+      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, auth_user_id),
       service:services!service_id(id, slug, name, type, short_name)
     `)
     .in("status", ["approved", "declined", "completed"])

@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation'
 
-const CLERK_SIGN_IN_URL = process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || 'https://accounts.instantmed.com.au/sign-in'
-
-// Clerk handles password reset - redirect to Account Portal
+// Supabase handles password reset via magic link from the sign-in page
 export default function ResetPasswordRedirect() {
-  redirect(CLERK_SIGN_IN_URL)
+  redirect('/sign-in')
 }

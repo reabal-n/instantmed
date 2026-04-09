@@ -74,7 +74,15 @@ const FIELD_LABELS: Record<string, string> = {
   yellow_flags: "Caution Flags",
   // Consent
   telehealth_consent_given: "Telehealth Consent",
-  // ED subtype — camelCase keys written by ed-assessment-step.tsx
+  // ED subtype — camelCase keys written by ed-goals-step.tsx + ed-assessment-step.tsx
+  edGoal: "Main goal",
+  edDuration: "Duration of concern",
+  iiefTotal: "IIEF-5 score",
+  iief1: "IIEF-5: Confidence",
+  iief2: "IIEF-5: Erection hardness",
+  iief3: "IIEF-5: Maintenance during intercourse",
+  iief4: "IIEF-5: Maintenance difficulty",
+  iief5: "IIEF-5: Satisfaction",
   edOnset: "ED Onset",
   edFrequency: "ED Frequency",
   edMorningErections: "Morning Erections",
@@ -83,12 +91,26 @@ const FIELD_LABELS: Record<string, string> = {
   edDiabetes: "Uncontrolled Diabetes",
   edPreference: "Treatment Preference",
   edAdditionalInfo: "Additional Context",
-  // ED safety — edSafety_ prefixed keys written by ed-safety-step.tsx
-  edSafety_nitrates: "Nitrate Use",
-  edSafety_recentHeartEvent: "Recent Heart Event",
-  edSafety_severeHeartCondition: "Severe Heart Condition",
-  edSafety_previousEdMeds: "Previous ED Medication Use",
-  edSafety_managedCondition: "Cardiac Condition Managed",
+  // ED safety — flat keys written by ed-health-step.tsx
+  edNitrates: "Nitrate Use",
+  edRecentHeartEvent: "Recent Heart Event",
+  edSevereHeart: "Severe Heart Condition",
+  edBpMedication: "Blood pressure medication",
+  previousEdMeds: "Previous ED Medication Use",
+  edGpCleared: "GP Cleared Cardiac Condition",
+  edPreviousTreatment: "Previous ED treatment",
+  edPreviousEffectiveness: "Previous treatment effectiveness",
+  // ED health — medical history keys written by ed-health-step.tsx
+  has_allergies: "Has allergies",
+  known_allergies: "Allergies",
+  has_conditions: "Has conditions",
+  existing_conditions: "Conditions",
+  takes_medications: "Takes medications",
+  current_medications: "Current medications",
+  // ED health — body metrics
+  heightCm: "Height (cm)",
+  weightKg: "Weight (kg)",
+  bmi: "BMI",
   // Hair loss — camelCase keys written by hair-loss-assessment-step.tsx
   hairPattern: "Hair Loss Pattern",
   hairDuration: "Hair Loss Duration",
@@ -137,28 +159,30 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   ed: {
     label: "Erectile Dysfunction Assessment",
     fields: [
-      // Assessment step — ed-assessment-step.tsx
+      // Goals step — ed-goals-step.tsx
+      "edGoal", "edDuration",
+      // Assessment step — ed-assessment-step.tsx (IIEF-5)
+      "iiefTotal", "iief1", "iief2", "iief3", "iief4", "iief5",
       "edOnset", "edFrequency", "edMorningErections",
       "edAgeConfirmed", "edHypertension", "edDiabetes",
       "edPreference", "edAdditionalInfo",
-      // Safety step — ed-safety-step.tsx (note edSafety_ prefix)
-      "edSafety_nitrates", "edSafety_recentHeartEvent",
-      "edSafety_severeHeartCondition", "edSafety_previousEdMeds",
-      "edSafety_managedCondition",
-      // Reserved for planned intake rewrite (IIEF-5, expanded safety).
-      // Not written by today's intake — retained so the doctor portal
-      // renders them correctly the moment the rewrite lands.
-      "ed_onset", "ed_frequency", "ed_severity", "ed_duration",
-      "morning_erections", "libido_changes", "relationship_impact",
-      "previous_ed_treatment", "cardiovascular_history", "diabetes_status",
-      "current_medications_ed", "nitrate_use", "alpha_blocker_use",
+      // Safety + medical history — ed-health-step.tsx
+      "edNitrates", "edRecentHeartEvent",
+      "edSevereHeart", "edBpMedication", "previousEdMeds",
+      "edGpCleared",
+      "has_allergies", "known_allergies",
+      "has_conditions", "existing_conditions",
+      "takes_medications", "current_medications",
+      "edPreviousTreatment", "edPreviousEffectiveness",
+      // Body metrics
+      "heightCm", "weightKg", "bmi",
     ],
     highlight: [
-      "edSafety_nitrates", "nitrate_use",
-      "edSafety_recentHeartEvent", "edSafety_severeHeartCondition",
-      "edSafety_managedCondition",
+      "iiefTotal",
+      "edNitrates",
+      "edRecentHeartEvent", "edSevereHeart",
+      "edGpCleared",
       "edHypertension", "edDiabetes",
-      "cardiovascular_history",
     ],
   },
   hair_loss: {
@@ -471,8 +495,8 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {subtypeFields.map(([key, value]) => {
                 const isHighlighted = subtypeHighlightSet.has(key)
-                // Strip edSafety_ prefix for rationale lookup (e.g. edSafety_nitrates → nitrates)
-                const rationaleKey = key.startsWith("edSafety_") ? key.replace("edSafety_", "") : key
+                // Map flat ED safety keys for rationale lookup (e.g. edNitrates → nitrates)
+                const rationaleKey = key === "edNitrates" ? "nitrates" : key === "edRecentHeartEvent" ? "recentHeartEvent" : key === "edSevereHeart" ? "severeHeartCondition" : key === "edGpCleared" ? "managedCondition" : key
                 const rationale = getContraindicationRationale(rationaleKey, value)
                 const fieldLabel = FIELD_LABELS[key] || formatFieldLabel(key)
                 return (

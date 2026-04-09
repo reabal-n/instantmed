@@ -5,16 +5,16 @@ import { getSupabaseClient, isDbAvailable, cleanupTestIntake } from "./helpers/d
 /**
  * Guest Checkout → Account Linking E2E Tests
  *
- * Verifies that guest profiles (clerk_user_id = null) created during
- * guest checkout are correctly linked when the user creates a Clerk account.
+ * Verifies that guest profiles (auth_user_id = null) created during
+ * guest checkout are correctly linked when the user creates a Supabase Auth account.
  *
- * Tests the linking guard (.is('clerk_user_id', null)) that prevents
- * race conditions between the Clerk webhook and post-signin page.
+ * Tests the linking guard (.is('auth_user_id', null)) that prevents
+ * race conditions between the handle_new_user trigger and post-signin page.
  */
 
 const GUEST_PROFILE_ID = "e2e00000-0000-0000-0000-guest0000001"
 const GUEST_EMAIL = "e2e-guest-test@example.com"
-const FAKE_CLERK_ID = "e2e_clerk_guest_test_001"
+const FAKE_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000001"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
 
 test.describe("Guest Checkout → Account Linking", () => {
@@ -35,7 +35,7 @@ test.describe("Guest Checkout → Account Linking", () => {
       email: GUEST_EMAIL,
       full_name: "E2E Guest User",
       role: "patient",
-      clerk_user_id: null,
+      auth_user_id: null,
       onboarding_completed: false,
       email_verified: false,
     })
@@ -82,72 +82,72 @@ test.describe("Guest Checkout → Account Linking", () => {
     await supabase.from("profiles").delete().ilike("email", GUEST_EMAIL)
   })
 
-  test("guest profile exists with null clerk_user_id", async () => {
+  test("guest profile exists with null auth_user_id", async () => {
     const supabase = getSupabaseClient()
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id, email, role")
+      .select("id, auth_user_id, email, role")
       .eq("id", GUEST_PROFILE_ID)
       .single()
 
     expect(profile).toBeTruthy()
-    expect(profile!.clerk_user_id).toBeNull()
+    expect(profile!.auth_user_id).toBeNull()
     expect(profile!.email).toBe(GUEST_EMAIL)
     expect(profile!.role).toBe("patient")
   })
 
-  test("guest profile can be linked to a clerk_user_id", async () => {
+  test("guest profile can be linked to an auth_user_id", async () => {
     const supabase = getSupabaseClient()
 
-    // Simulate what the Clerk webhook does: find guest profile by email + null clerk_user_id, then link
+    // Simulate what post-signin does: find guest profile by email + null auth_user_id, then link
     const { data: guestProfile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id, role")
+      .select("id, auth_user_id, role")
       .ilike("email", GUEST_EMAIL)
-      .or("clerk_user_id.is.null,clerk_user_id.eq.")
+      .is("auth_user_id", null)
       .maybeSingle()
 
     expect(guestProfile).toBeTruthy()
-    expect(guestProfile!.clerk_user_id).toBeNull()
+    expect(guestProfile!.auth_user_id).toBeNull()
 
-    // Link guest profile — with the .is('clerk_user_id', null) guard
+    // Link guest profile — with the .is('auth_user_id', null) guard
     const { error: linkError } = await supabase
       .from("profiles")
       .update({
-        clerk_user_id: FAKE_CLERK_ID,
+        auth_user_id: FAKE_AUTH_USER_ID,
         email_verified: true,
         email_verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", guestProfile!.id)
-      .is("clerk_user_id", null)
+      .is("auth_user_id", null)
 
     expect(linkError).toBeNull()
 
     // Verify the profile is now linked
     const { data: linkedProfile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id, email_verified")
+      .select("id, auth_user_id, email_verified")
       .eq("id", GUEST_PROFILE_ID)
       .single()
 
-    expect(linkedProfile!.clerk_user_id).toBe(FAKE_CLERK_ID)
+    expect(linkedProfile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
     expect(linkedProfile!.email_verified).toBe(true)
   })
 
   test("linking guard prevents double-linking (race condition)", async () => {
     const supabase = getSupabaseClient()
-    const SECOND_CLERK_ID = "e2e_clerk_guest_test_002"
+    const SECOND_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000002"
 
     // First link — should succeed
     const { error: firstLinkError } = await supabase
       .from("profiles")
       .update({
-        clerk_user_id: FAKE_CLERK_ID,
+        auth_user_id: FAKE_AUTH_USER_ID,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
-      .is("clerk_user_id", null)
+      .is("auth_user_id", null)
 
     expect(firstLinkError).toBeNull()
 
@@ -155,25 +155,25 @@ test.describe("Guest Checkout → Account Linking", () => {
     const { data: secondLink, error: secondLinkError } = await supabase
       .from("profiles")
       .update({
-        clerk_user_id: SECOND_CLERK_ID,
+        auth_user_id: SECOND_AUTH_USER_ID,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
-      .is("clerk_user_id", null)
+      .is("auth_user_id", null)
       .select("id")
 
     // No error, but 0 rows updated (guard prevented it)
     expect(secondLinkError).toBeNull()
     expect(secondLink).toHaveLength(0)
 
-    // Verify original clerk_user_id is preserved
+    // Verify original auth_user_id is preserved
     const { data: profile } = await supabase
       .from("profiles")
-      .select("clerk_user_id")
+      .select("auth_user_id")
       .eq("id", GUEST_PROFILE_ID)
       .single()
 
-    expect(profile!.clerk_user_id).toBe(FAKE_CLERK_ID)
+    expect(profile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
   })
 
   test("guest intake is accessible after profile linking", async () => {
@@ -183,11 +183,11 @@ test.describe("Guest Checkout → Account Linking", () => {
     await supabase
       .from("profiles")
       .update({
-        clerk_user_id: FAKE_CLERK_ID,
+        auth_user_id: FAKE_AUTH_USER_ID,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
-      .is("clerk_user_id", null)
+      .is("auth_user_id", null)
 
     // Verify the intake is still associated with the linked profile
     const { data: intake } = await supabase
@@ -203,11 +203,11 @@ test.describe("Guest Checkout → Account Linking", () => {
     // Verify the linked profile owns this intake
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id")
+      .select("id, auth_user_id")
       .eq("id", intake!.patient_id)
       .single()
 
-    expect(profile!.clerk_user_id).toBe(FAKE_CLERK_ID)
+    expect(profile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
   })
 
   test("non-patient roles are not linkable", async () => {
@@ -219,17 +219,15 @@ test.describe("Guest Checkout → Account Linking", () => {
       .update({ role: "doctor" })
       .eq("id", GUEST_PROFILE_ID)
 
-    // The Clerk webhook checks role === 'patient' before linking
-    // Simulate that check
+    // The post-signin linking code checks role === 'patient' before linking
     const { data: guestProfile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id, role")
+      .select("id, auth_user_id, role")
       .ilike("email", GUEST_EMAIL)
-      .or("clerk_user_id.is.null,clerk_user_id.eq.")
+      .is("auth_user_id", null)
       .maybeSingle()
 
     expect(guestProfile).toBeTruthy()
-    // The webhook code checks: guestProfile.role === 'patient'
     // A doctor profile should NOT be linked
     expect(guestProfile!.role).toBe("doctor")
     expect(guestProfile!.role).not.toBe("patient")

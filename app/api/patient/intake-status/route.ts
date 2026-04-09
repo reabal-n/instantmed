@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Lightweight endpoint for polling intake status from the success page.
  * Uses service-role to bypass RLS (client Supabase has no auth session).
- * Ownership verified via Clerk auth + patient_id check.
+ * Ownership verified via auth session + patient_id check.
  */
 export async function GET(req: NextRequest) {
-  const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) {
+  const { userId } = await auth()
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -20,11 +20,11 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceRoleClient()
 
-  // Look up profile by Clerk user ID
+  // Look up profile by auth user ID
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("auth_user_id", userId)
     .maybeSingle()
 
   if (!profile) {

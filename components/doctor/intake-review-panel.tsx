@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import Link from "next/link"
 import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Button } from "@/components/ui/button"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -20,8 +20,8 @@ export async function GET(
     const { id: certificateId } = await params
 
     // Verify authentication
-    const { userId: clerkUserId } = await auth()
-    if (!clerkUserId) {
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -31,7 +31,7 @@ export async function GET(
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (!profile) {

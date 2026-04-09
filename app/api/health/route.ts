@@ -120,24 +120,21 @@ export async function GET(request: NextRequest) {
     logger.warn("Health check: resend error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
-  // Check Clerk (auth provider)
+  // Check Supabase Auth
   try {
-    const clerkStart = Date.now()
-    if (process.env.CLERK_SECRET_KEY) {
-      const res = await fetch("https://api.clerk.com/v1/clients", {
-        headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-        signal: AbortSignal.timeout(5000),
-      })
-      // 401 means key is wrong, 200/4xx means Clerk is reachable
-      checks.clerk = res.status !== 401
-        ? { status: "ok", latencyMs: Date.now() - clerkStart }
-        : { status: "error", error: "Clerk auth failed" }
+    const authStart = Date.now()
+    const supabaseAuth = createServiceRoleClient()
+    // Lightweight auth admin call — list 1 user to verify the auth service responds
+    const { error: authError } = await supabaseAuth.auth.admin.listUsers({ page: 1, perPage: 1 })
+    if (authError) {
+      checks.auth = { status: "error", error: "Supabase Auth error" }
+      logger.warn("Health check: auth error", { error: authError.message })
     } else {
-      checks.clerk = { status: "error", error: "Clerk not configured" }
+      checks.auth = { status: "ok", latencyMs: Date.now() - authStart }
     }
   } catch (err) {
-    checks.clerk = { status: "error", error: "Clerk unreachable" }
-    logger.warn("Health check: clerk error", { error: err instanceof Error ? err.message : "Unknown" })
+    checks.auth = { status: "error", error: "Supabase Auth unreachable" }
+    logger.warn("Health check: auth error", { error: err instanceof Error ? err.message : "Unknown" })
   }
 
   // Check environment variables

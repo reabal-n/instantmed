@@ -8,7 +8,7 @@ import {
   ReviewAggregateSchema,
 } from "@/components/seo/healthcare-schema"
 import { ED_FAQ } from "@/lib/data/ed-faq"
-import { PRICING } from "@/lib/constants"
+import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
 
 export const revalidate = 86400
 
@@ -61,7 +61,7 @@ export default function Page() {
         description="Discreet erectile dysfunction assessment and treatment from an AHPRA-registered Australian doctor. No call needed."
         price={PRICING.MENS_HEALTH.toFixed(2)}
       />
-      <ReviewAggregateSchema ratingValue={4.8} reviewCount={49} />
+      <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
       <ErectileDysfunctionLanding />
     </>
   )

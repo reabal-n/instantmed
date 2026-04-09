@@ -82,7 +82,7 @@ pnpm e2e:debug          # Step-through debugger
 
 ### Auth Bypass
 
-E2E tests bypass Clerk auth via a server endpoint that sets auth cookies:
+E2E tests bypass auth via a server endpoint that sets auth cookies:
 
 ```ts
 // e2e/helpers/auth.ts — loginAsTestUser()
@@ -97,7 +97,7 @@ await page.request.post(`${BASE_URL}/api/test/login`, {
 // Requires PLAYWRIGHT=1 env var — middleware checks this before accepting the cookies
 ```
 
-**Never** use real Clerk credentials in E2E. The auth bypass is the only supported pattern.
+**Never** use real auth credentials in E2E. The auth bypass is the only supported pattern.
 
 ### Test Data
 
@@ -199,7 +199,7 @@ jobs:
   lighthouse:
     needs: build
     steps:
-      - pnpm build                        # With real Supabase + Clerk secrets (not placeholders)
+      - pnpm build                        # With real Supabase + Stripe secrets (not placeholders)
       - lhci autorun                      # Category-score assertions only (no recommended preset)
   e2e:                                    # Gated by vars.E2E_ENABLED == 'true'
     needs: build

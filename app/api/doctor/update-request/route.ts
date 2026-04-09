@@ -32,7 +32,7 @@ const updateRequestSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  let clerkUserId: string | null = null
+  let actorUserId: string | null = null
 
   try {
     // CSRF protection for session-based requests
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, profile } = authResult
-    clerkUserId = userId
+    actorUserId = userId
 
     const supabase = createServiceRoleClient()
 
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     // Process refund for declined intakes
     if (action === "decline") {
       try {
-        const refundResult = await refundIfEligible(intake_id, clerkUserId!)
+        const refundResult = await refundIfEligible(intake_id, actorUserId!)
         log.info("Refund processing completed", { 
           intakeId: intake_id, 
           refunded: refundResult.refunded,
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, intake: data })
   } catch (error) {
-    log.error("Update intake failed", { clerkUserId }, error)
+    log.error("Update intake failed", { actorUserId }, error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

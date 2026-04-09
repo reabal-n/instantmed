@@ -36,9 +36,6 @@
     },
     "Sentry": {
       "url": "https://mcp.sentry.dev/mcp/instantmed/javascript-nextjs"
-    },
-    "clerk": {
-      "url": "https://mcp.clerk.com/mcp"
     }
   }
 }

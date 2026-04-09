@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -12,11 +12,8 @@ import {
   AlertCircle,
   PhoneOff,
   Clock,
-  Star,
-  ShieldCheck,
   Gift,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
@@ -24,8 +21,6 @@ import { RotatingText } from "@/components/marketing/rotating-text"
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
 import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ContextualMessage } from "@/components/marketing/contextual-message"
-import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -33,8 +28,6 @@ import { ReturningPatientBanner } from "@/components/shared/returning-patient-ba
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
@@ -108,21 +101,6 @@ const PRICING_FEATURES = [
   "Full refund if we can't help",
 ]
 
-const SOCIAL_PROOF_STATS = STAT_PRESETS['consult']
-
-const RECENT_ACTIVITY_ENTRIES = [
-  { city: "Melbourne", minutesAgo: 23 },
-  { city: "Sydney", minutesAgo: 41 },
-  { city: "Brisbane", minutesAgo: 12 },
-  { city: "Perth", minutesAgo: 55 },
-  { city: "Adelaide", minutesAgo: 8 },
-  { city: "Gold Coast", minutesAgo: 34 },
-  { city: "Canberra", minutesAgo: 17 },
-  { city: "Hobart", minutesAgo: 47 },
-]
-
-const RELATED_ARTICLES: Array<{ title: string; href: string }> = []
-
 const ED_HOW_IT_WORKS_STEPS = [
   {
     number: "1",
@@ -145,145 +123,8 @@ const ED_HOW_IT_WORKS_STEPS = [
 ]
 
 // =============================================================================
-// SMALL COMPONENTS
-// =============================================================================
-
-/** Live activity ticker — rotates through recent ED treatment deliveries */
-function RecentActivityTicker() {
-  const [index, setIndex] = useState(0)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % RECENT_ACTIVITY_ENTRIES.length)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const entry = RECENT_ACTIVITY_ENTRIES[index]
-
-  return (
-    <div
-      aria-live="polite"
-      className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"
-    >
-      <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
-      <div className="relative h-5 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            className="block leading-5"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-          >
-            A patient in {entry.city} received their treatment plan {entry.minutesAgo} min ago
-          </motion.span>
-        </AnimatePresence>
-      </div>
-    </div>
-  )
-}
-
-/** Animated number counter using NumberFlow when available */
-function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
-  const [displayed, setDisplayed] = useState(value) // init to real value — no flash on load
-  const [hasAnimated, setHasAnimated] = useState(false)
-  const ref = useRef<HTMLSpanElement>(null)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || hasAnimated) return
-
-    // If already in the viewport on mount, mark done — no animation needed
-    const rect = el.getBoundingClientRect()
-    if (rect.top < window.innerHeight && rect.bottom > 0) {
-      setHasAnimated(true)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasAnimated(true)
-          observer.disconnect()
-
-          if (prefersReducedMotion) return // already showing real value
-
-          // Count up from 0
-          setDisplayed(0)
-          const duration = 1200
-          const start = performance.now()
-          const animate = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1)
-            const eased = 1 - Math.pow(1 - progress, 3)
-            setDisplayed(eased * value)
-            if (progress < 1) requestAnimationFrame(animate)
-          }
-          requestAnimationFrame(animate)
-        }
-      },
-      { threshold: 0.5 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [value, hasAnimated, prefersReducedMotion])
-
-  const formatted = decimals > 0
-    ? displayed.toFixed(decimals)
-    : Math.round(displayed).toLocaleString()
-
-  return (
-    <span ref={ref}>
-      {formatted}{suffix}
-    </span>
-  )
-}
-
-// =============================================================================
 // SECTION COMPONENTS
 // =============================================================================
-
-/** Social proof stats strip */
-function SocialProofStrip() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
-  return (
-    <section aria-label="Social proof statistics" className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
-          {SOCIAL_PROOF_STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="flex items-center gap-3"
-              initial={animate ? { opacity: 0, y: 10 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: i * 0.08 }}
-            >
-              <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} aria-hidden="true" />
-              <div>
-                <p className="text-lg font-semibold text-foreground leading-tight">
-                  <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
-                </p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  )
-}
 
 /** Section 1: Hero with product mockup + embedded trust signals */
 function HeroSection({
@@ -297,7 +138,7 @@ function HeroSection({
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="ED treatment service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section aria-label="ED treatment service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -351,7 +192,7 @@ function HeroSection({
             {/* CTA */}
             <motion.div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
@@ -375,6 +216,22 @@ function HeroSection({
                   8am–10pm AEST, 7 days
                 </p>
               </div>
+            </motion.div>
+
+            {/* Quick quiz anchor — low-commitment engagement hook */}
+            <motion.div
+              className="flex justify-center lg:justify-start mb-4 sm:mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+            >
+              <a
+                href="#ed-quiz"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors dark:text-primary/70 dark:hover:text-primary/90"
+              >
+                Not sure? Take a 30-second quiz
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
             </motion.div>
 
             {/* Trust signals — hidden on mobile to keep CTA above fold */}
@@ -422,36 +279,9 @@ function HeroSection({
           </div>
 
           {/* Mobile mockup — below text content */}
-          <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
+          <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <EDHeroMockup />
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** Related blog articles — internal links for SEO */
-function RelatedArticles() {
-  if (RELATED_ARTICLES.length === 0) return null
-
-  return (
-    <section aria-label="Related articles" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
-          Related reading
-        </h2>
-        <div className="flex flex-wrap justify-center gap-3">
-          {RELATED_ARTICLES.map((article) => (
-            <Link
-              key={article.href}
-              href={article.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
-            >
-              {article.title}
-              <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-            </Link>
-          ))}
         </div>
       </div>
     </section>
@@ -543,37 +373,18 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* Live wait time — ED routed via consult queue (ED-specific label) */}
+          {/* 2. Single trust strip — wait time + doctors online indicator */}
           <LiveWaitTime variant="strip" services={["consult-ed"]} />
 
-          {/* 2. ED hook quiz — engagement + self-qualification immediately below hero */}
-          <EdHookQuiz />
+          {/* 3. Prevalence calculator — normalises shame before engagement */}
+          <EdPrevalenceCalculator />
 
-          {/* 3. Social proof band — AnimatedStat + ContextualMessage + anonymous ticker */}
-          <section aria-label="Social proof" className="py-8 lg:py-12 border-b border-border/30 dark:border-white/10">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
-              <p className="text-base sm:text-lg text-foreground font-medium">
-                <AnimatedStat
-                  value={SOCIAL_PROOF.averageRating}
-                  suffix="/5"
-                  decimals={1}
-                />{" "}
-                <span className="text-muted-foreground text-sm sm:text-base">
-                  patient rating &middot; AHPRA-registered doctors
-                </span>
-              </p>
-              <ContextualMessage service="ed" className="text-sm text-muted-foreground italic" />
-              <RecentReviewsTicker format="anonymous" artifact="treatment" />
-            </div>
+          {/* 4. Hook quiz — engagement after normalisation */}
+          <section id="ed-quiz" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 scroll-mt-20">
+            <EdHookQuiz />
           </section>
 
-          {/* Recent activity ticker */}
-          <RecentActivityTicker />
-
-          {/* Social proof stats */}
-          <SocialProofStrip />
-
-          {/* 2. How It Works */}
+          {/* 5. How It Works */}
           <HowItWorksSection
             onCTAClick={handleHowItWorksCTA}
             steps={ED_HOW_IT_WORKS_STEPS}
@@ -581,22 +392,19 @@ export function ErectileDysfunctionLanding() {
             ctaHref="/request?service=consult&subtype=ed"
           />
 
-          {/* 3. Prevalence calculator — context-setting, reduces shame */}
-          <EdPrevalenceCalculator />
-
-          {/* 4. Mechanism explainer — builds clinical trust via education */}
+          {/* 6. Mechanism explainer — completes the "how" narrative */}
           <EdMechanismExplainer />
 
-          {/* 5. Long-form guide — E-E-A-T content for SEO depth */}
+          {/* 7. Guide — accordion-collapsed, all content rendered for SEO */}
           <EDGuideSection />
 
-          {/* 6. Balanced outcomes framing — what treatment is/isn't, contraindications visible */}
+          {/* 8. Outcomes — what treatment is/isn't, contraindications visible */}
           <EdOutcomesSection />
 
-          {/* Doctor profile — trust signal, this page only */}
+          {/* 9. Doctor profile — trust signal */}
           <DoctorProfileSection />
 
-          {/* 4. Pricing */}
+          {/* 10. Pricing */}
           <PricingSection
             title="One flat fee. No hidden costs."
             subtitle="You only pay if the doctor approves treatment."
@@ -611,7 +419,7 @@ export function ErectileDysfunctionLanding() {
             colors={pricingColors}
           />
 
-          {/* 5. Testimonials */}
+          {/* 11. Testimonials */}
           <TestimonialsSection
             testimonials={testimonialsForColumns}
             title="What patients say"
@@ -621,7 +429,7 @@ export function ErectileDysfunctionLanding() {
           {/* Regulatory Partners — Medicare included */}
           <RegulatoryPartners className="py-12" />
 
-          {/* 6. FAQ */}
+          {/* 13. FAQ */}
           <FaqCtaSection
             onFAQOpen={handleFAQOpen}
             faqs={ED_FAQ}
@@ -642,7 +450,7 @@ export function ErectileDysfunctionLanding() {
             </div>
           </div>
 
-          {/* 7. Final CTA */}
+          {/* 15. Final CTA */}
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Discreet ED treatment, reviewed by a real doctor."
@@ -657,9 +465,6 @@ export function ErectileDysfunctionLanding() {
 
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="consult" />
-
-        {/* Related articles — SEO internal linking (empty until ED blog slugs exist) */}
-        <RelatedArticles />
 
         {/* Exit-intent overlay — desktop only, once per session */}
         {!isDisabled && (
@@ -685,7 +490,7 @@ export function ErectileDysfunctionLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              Discreet ED treatment. No call needed.
+              2-min form · Doctor-reviewed · No call needed
             </p>
             <Button
               asChild

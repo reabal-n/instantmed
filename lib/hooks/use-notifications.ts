@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
@@ -32,16 +32,16 @@ export function useNotifications(): UseNotificationsReturn {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
-  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser()
+  const { user, isLoaded } = useAuth()
   const [profileId, setProfileId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Get profile ID from Clerk user
+  // Get profile ID from auth user
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!isClerkLoaded) return
-      
-      if (!clerkUser) {
+      if (!isLoaded) return
+
+      if (!user) {
         setProfileId(null)
         setIsLoading(false)
         return
@@ -51,9 +51,9 @@ export function useNotifications(): UseNotificationsReturn {
         const { data: profile } = await supabase
           .from("profiles")
           .select("id")
-          .eq("clerk_user_id", clerkUser.id)
+          .eq("auth_user_id", user.id)
           .single()
-        
+
         setProfileId(profile?.id ?? null)
       } catch (_error) {
         setProfileId(null)
@@ -61,9 +61,9 @@ export function useNotifications(): UseNotificationsReturn {
         setIsLoading(false)
       }
     }
-    
+
     fetchProfile()
-  }, [supabase, clerkUser, isClerkLoaded])
+  }, [supabase, user, isLoaded])
 
   const fetchNotifications = useCallback(async () => {
     if (isLoading || !profileId) {
@@ -71,7 +71,7 @@ export function useNotifications(): UseNotificationsReturn {
       setLoading(false)
       return
     }
-    
+
     try {
       setLoading(true)
       setError(null)
@@ -119,7 +119,7 @@ export function useNotifications(): UseNotificationsReturn {
 
   const markAllAsRead = useCallback(async () => {
     if (!profileId) return
-    
+
     try {
       const { error: updateError } = await supabase
         .from("notifications")

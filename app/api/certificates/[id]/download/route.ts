@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import * as Sentry from "@sentry/nextjs"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -27,9 +27,9 @@ export async function GET(
     const { id: certificateId } = await params
 
     // 1. Authenticate user
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
 
-    if (!clerkUserId) {
+    if (!authUserId) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }

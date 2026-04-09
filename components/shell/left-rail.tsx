@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useClerk } from '@clerk/nextjs'
+import { useAuth } from '@/lib/supabase/auth-provider'
 import {
   Home,
   FileText,
@@ -45,12 +45,10 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
-  const { signOut } = useClerk()
+  const { signOut } = useAuth()
 
   const handleSignOut = async () => {
     await signOut()
-    router.push('/')
-    router.refresh()
   }
 
   // LeftRail is only used by the patient layout (AuthenticatedShell).

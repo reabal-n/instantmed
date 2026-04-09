@@ -577,10 +577,10 @@ export async function executeCertApproval(
 
   const { data: phPatient } = await supabase
     .from("profiles")
-    .select("clerk_user_id")
+    .select("auth_user_id")
     .eq("id", patient.id)
     .maybeSingle()
-  const phDistinctId = phPatient?.clerk_user_id || patient.id
+  const phDistinctId = phPatient?.auth_user_id || patient.id
 
   trackIntakeFunnelStep({
     step: 'approved',

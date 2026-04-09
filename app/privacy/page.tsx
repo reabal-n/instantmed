@@ -108,7 +108,7 @@ export default function PrivacyPage() {
                       <strong>Supabase:</strong> Database hosting and storage
                     </li>
                     <li>
-                      <strong>Clerk:</strong> Authentication and identity management
+                      <strong>Supabase Auth:</strong> Authentication and identity management
                     </li>
                     <li>
                       <strong>Stripe:</strong> Payment processing (no card data stored by InstantMed)

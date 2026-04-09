@@ -72,7 +72,7 @@ const PATIENT_PAGES = [
 const BENIGN_CONSOLE_PATTERNS = [
   /Download the React DevTools/i,
   /hydration/i,
-  /Clerk: The publishable key/i,
+  /Supabase/i,
   /PostHog/i,
   /Failed to load resource.*favicon/i,
   /ResizeObserver loop/i,

@@ -7,7 +7,7 @@ import { VerificationCodeEmail, verificationCodeSubject } from "@/components/ema
 import { createLogger } from "@/lib/observability/logger"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
-const log = createLogger("clerk-emails")
+const log = createLogger("verification-emails")
 
 interface SendVerificationParams {
   to: string
@@ -18,9 +18,8 @@ interface SendVerificationParams {
 
 /**
  * Send a branded verification code email via Resend.
- * Called from the Clerk webhook handler when "Delivered by Clerk" is OFF.
  */
-export async function sendClerkVerificationEmail({
+export async function sendVerificationEmail({
   to,
   code,
   requestedFrom,
@@ -49,7 +48,7 @@ export async function sendClerkVerificationEmail({
     replyTo: CONTACT_EMAIL,
     tags: [
       { name: "email_type", value: "verification_code" },
-      { name: "source", value: "clerk_webhook" },
+      { name: "source", value: "auth" },
     ],
   })
 

@@ -14,7 +14,7 @@ async function getPatientWithHistory(patientId: string) {
   const { data: patient, error: patientError } = await supabase
     .from("profiles")
     .select(`
-      id, auth_user_id, clerk_user_id, email, full_name, first_name, last_name,
+      id, auth_user_id, auth_user_id, email, full_name, first_name, last_name,
       date_of_birth, role, phone, address_line1, suburb, state, postcode,
       medicare_number, medicare_irn, medicare_expiry,
       ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,

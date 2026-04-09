@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (!profile) {

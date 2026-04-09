@@ -1,5 +1,5 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
@@ -10,65 +10,59 @@ function escapeIlike(input: string): string {
 
 /**
  * POST /api/profile/ensure
- * 
- * Ensures a profile exists for the current Clerk user.
- * Creates one if it doesn't exist (fallback for webhook failures).
+ *
+ * Ensures a profile exists for the current Supabase Auth user.
+ * Creates one if it doesn't exist (fallback for trigger failures).
  */
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit to prevent abuse (profile creation/linking is sensitive)
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
-    const { userId } = await auth()
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const user = await currentUser()
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    const primaryEmail = user.emailAddresses.find(
-      e => e.id === user.primaryEmailAddressId
-    )?.emailAddress?.toLowerCase()
-
+    const primaryEmail = user.email?.toLowerCase()
     if (!primaryEmail) {
       return NextResponse.json({ error: "No email found" }, { status: 400 })
     }
 
     const serviceClient = createServiceRoleClient()
 
-    // Check if profile exists
+    // Check if profile exists by auth_user_id
     let { data: profile } = await serviceClient
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", user.id)
       .single()
 
-    // If no profile by clerk_user_id, check for guest profile to link
+    // If no profile, check for guest profile to link by email
     if (!profile) {
       const { data: guestProfile } = await serviceClient
         .from("profiles")
-        .select("id, clerk_user_id")
+        .select("id, auth_user_id")
         .ilike("email", escapeIlike(primaryEmail))
-        .or("clerk_user_id.is.null,clerk_user_id.eq.")
+        .is("auth_user_id", null)
         .maybeSingle()
 
-      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === "")) {
-        // Link the guest profile to this Clerk user
-        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+      if (guestProfile) {
+        const fullName = user.user_metadata?.full_name
+          || user.user_metadata?.name
+          || primaryEmail.split('@')[0]
+
         const { data: linkedProfile, error: linkError } = await serviceClient
           .from("profiles")
           .update({
-            clerk_user_id: userId,
+            auth_user_id: user.id,
             email: primaryEmail,
             full_name: fullName,
-            first_name: user.firstName || null,
-            last_name: user.lastName || null,
-            avatar_url: user.imageUrl || null,
+            first_name: user.user_metadata?.first_name || null,
+            last_name: user.user_metadata?.last_name || null,
+            avatar_url: user.user_metadata?.avatar_url || null,
             email_verified: true,
             email_verified_at: new Date().toISOString(),
           })
@@ -84,17 +78,19 @@ export async function POST(request: NextRequest) {
 
     // If still no profile, create one
     if (!profile) {
-      const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+      const fullName = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || primaryEmail.split('@')[0]
 
       const { data: newProfile, error: insertError } = await serviceClient
         .from("profiles")
         .insert({
-          clerk_user_id: userId,
+          auth_user_id: user.id,
           email: primaryEmail,
           full_name: fullName,
-          first_name: user.firstName || null,
-          last_name: user.lastName || null,
-          avatar_url: user.imageUrl || null,
+          first_name: user.user_metadata?.first_name || null,
+          last_name: user.user_metadata?.last_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
           role: 'patient',
           email_verified: true,
           email_verified_at: new Date().toISOString(),
@@ -103,12 +99,11 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (insertError) {
-        // Handle race condition — profile created by webhook concurrently
         if (insertError.code === '23505') {
           const { data: raceProfile } = await serviceClient
             .from("profiles")
             .select("id")
-            .eq("clerk_user_id", userId)
+            .eq("auth_user_id", user.id)
             .single()
           if (raceProfile) {
             profile = raceProfile

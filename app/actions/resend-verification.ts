@@ -12,8 +12,8 @@ interface ResendVerificationResult {
 }
 
 /**
- * Resend email verification link to the current user
- * Now handled by Clerk - email verification is automatic
+ * Resend email verification link to the current user.
+ * Supabase Auth handles verification via magic link on sign-up.
  */
 export async function resendVerificationEmail(): Promise<ResendVerificationResult> {
   try {
@@ -23,13 +23,12 @@ export async function resendVerificationEmail(): Promise<ResendVerificationResul
       return { success: false, error: "Not authenticated" }
     }
 
-    // Email verification is handled automatically by Clerk
-    // Users can manage verification via Clerk Account Portal
-    logger.info("Email verification requested - handled by Clerk", { userId })
-    
-    return { 
-      success: false, 
-      error: "Email verification is managed through your account settings. Please check your inbox or visit the account portal." 
+    // Supabase Auth handles email verification automatically on sign-up
+    logger.info("Email verification requested", { userId })
+
+    return {
+      success: false,
+      error: "Email verification is managed through your account settings. Please check your inbox or visit the account portal."
     }
   } catch (error) {
     logger.error("Unexpected error resending verification", {}, toError(error))
@@ -38,8 +37,8 @@ export async function resendVerificationEmail(): Promise<ResendVerificationResul
 }
 
 /**
- * Check if the current user's email is verified
- * With Clerk, email verification status comes from Clerk user object
+ * Check if the current user's email is verified.
+ * Supabase Auth requires email verification before completing sign-up.
  */
 export async function checkEmailVerified(): Promise<{ verified: boolean; email?: string }> {
   try {
@@ -49,8 +48,7 @@ export async function checkEmailVerified(): Promise<{ verified: boolean; email?:
       return { verified: false }
     }
 
-    // Clerk handles email verification - if user is authenticated, email is verified
-    // Clerk requires email verification before completing sign-up by default
+    // If user is authenticated via Supabase Auth, email is verified
     return {
       verified: true,
       email: authResult.profile.email || undefined,

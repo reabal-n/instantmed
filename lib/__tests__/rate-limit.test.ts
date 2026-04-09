@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest"
 import { getClientIdentifier, rateLimitConfigs } from "@/lib/rate-limit/redis"
 
+const hasRedis = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
+
 describe("rate-limit/redis", () => {
   describe("rateLimitConfigs", () => {
     it("should define all expected tiers", () => {
@@ -17,10 +19,15 @@ describe("rate-limit/redis", () => {
       }
     })
 
-    it("should have limiter as null when Redis is not configured", () => {
-      // In test environment, Redis is not configured
+    it("should have consistent limiter state based on Redis config", () => {
+      // When Redis is not configured (CI), limiter is null.
+      // When Redis IS configured (.env.local), limiter is a Ratelimit instance.
       for (const [, config] of Object.entries(rateLimitConfigs)) {
-        expect(config.limiter).toBeNull()
+        if (hasRedis) {
+          expect(config.limiter).not.toBeNull()
+        } else {
+          expect(config.limiter).toBeNull()
+        }
       }
     })
   })

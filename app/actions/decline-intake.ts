@@ -130,7 +130,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
           id,
           full_name,
           email,
-          clerk_user_id
+          auth_user_id
         )
       `)
       .eq("id", intakeId)
@@ -254,7 +254,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       id: string
       full_name: string | null
       email: string | null
-      clerk_user_id: string | null
+      auth_user_id: string | null
     } | null
 
     if (patient?.email) {

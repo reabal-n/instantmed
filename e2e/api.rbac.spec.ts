@@ -7,7 +7,7 @@
  * Tests cover:
  * - Unauthenticated requests   → denied (any 4xx)
  * - Patient role               → denied on doctor/admin endpoints (any 4xx)
- * - Operator role (admin+doc)  → auth check passes (NOT a Clerk-rejected 4xx)
+ * - Operator role (admin+doc)  → auth check passes (not a middleware reject)
  *
  * Routes exercised:
  * - GET  /api/doctor/monitoring-stats   (doctor/admin only)
@@ -16,13 +16,12 @@
  * - POST /api/med-cert/preview          (doctor/admin only, CSRF after auth)
  *
  * Notes on response codes:
- * - Clerk middleware's `auth.protect()` returns **404** for unauthenticated
- *   API requests (a security default to prevent endpoint enumeration). It is
- *   NOT 401. Tests treat 401/403/404 all as "denied".
+ * - Middleware returns **404** for unauthenticated API requests (security
+ *   default to prevent endpoint enumeration). Tests treat 401/403/404 as "denied".
  * - POST routes also require X-CSRF-Token. Tests don't supply one, so even
  *   authenticated POSTs see 403 from CSRF. For operator-success tests on
  *   POST endpoints we treat the response as "auth passed" if it's anything
- *   other than a Clerk 404 reject. CSRF is covered by lib/__tests__/csrf.test.ts.
+ *   other than a middleware 404 reject. CSRF is covered by lib/__tests__/csrf.test.ts.
  */
 
 import { test, expect, APIResponse } from "@playwright/test"
@@ -33,24 +32,24 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 
 /**
  * Returns true if the response status is in the "denied" range.
- * Covers Clerk auth rejection (404), forbidden (403), and unauthorized (401).
+ * Covers auth rejection (404), forbidden (403), and unauthorized (401).
  */
 function isDenied(status: number): boolean {
   return status === 401 || status === 403 || status === 404
 }
 
 /**
- * Returns true if the response indicates Clerk middleware rejected the request
+ * Returns true if the response indicates auth middleware rejected the request
  * BEFORE it reached the route handler (i.e. the operator wasn't recognized as
  * authenticated). Used by operator-success tests.
  *
- * Clerk's `auth.protect()` returns 404 with no JSON error field for unauth
+ * Auth middleware returns 404 with no JSON error field for unauthenticated
  * API requests. A handler-level 401 will have an `error` field in the body.
  */
 async function wasRejectedByMiddleware(response: APIResponse): Promise<boolean> {
   if (response.status() !== 404) return false
   const body = await response.json().catch(() => null)
-  // Handler 404s (e.g. "Intake not found") have body.error. Clerk middleware
+  // Handler 404s (e.g. "Intake not found") have body.error. Middleware
   // 404s are an empty body / non-JSON.
   return !body || !body.error
 }
@@ -132,7 +131,7 @@ test.describe("API RBAC - Patient Role Restrictions", () => {
 })
 
 // ============================================================================
-// OPERATOR ROLE — auth check should PASS (Clerk middleware lets through)
+// OPERATOR ROLE — auth check should PASS (middleware lets through)
 // ============================================================================
 
 test.describe("API RBAC - Operator Role Access", () => {
@@ -144,7 +143,7 @@ test.describe("API RBAC - Operator Role Access", () => {
   test("operator can GET /api/doctor/monitoring-stats", async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/doctor/monitoring-stats`)
     // GET — no CSRF. Should reach handler. Expect 200, or at worst a server-
-    // side 500 (DB issue). Must NOT be a Clerk auth rejection.
+    // side 500 (DB issue). Must NOT be an auth rejection.
     expect(await wasRejectedByMiddleware(response)).toBe(false)
     expect([401, 403]).not.toContain(response.status())
 
@@ -165,7 +164,7 @@ test.describe("API RBAC - Operator Role Access", () => {
     })
     // Without a CSRF token, an authed operator hits CSRF and gets a handler 403
     // ("Invalid or missing CSRF token"). The KEY assertion: NOT rejected by
-    // Clerk middleware (auth recognized).
+    // auth middleware (auth recognized).
     expect(await wasRejectedByMiddleware(response)).toBe(false)
   })
 
