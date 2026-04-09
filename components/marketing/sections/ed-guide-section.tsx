@@ -3,7 +3,17 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, HeartPulse, ClipboardCheck, Pill, ShieldAlert, Stethoscope } from "lucide-react"
+import {
+  BadgeCheck,
+  HeartPulse,
+  ClipboardCheck,
+  Pill,
+  ShieldAlert,
+  Stethoscope,
+  Activity,
+  Workflow,
+  Lock,
+} from "lucide-react"
 
 // =============================================================================
 // DATA
@@ -130,6 +140,297 @@ export function EDGuideSection() {
               </div>
             </motion.div>
           ))}
+
+          {/* ---- Sub-section A: When ED is a signal of something bigger ---- */}
+          <motion.div
+            initial={animate ? { opacity: 0, y: 16 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Activity className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  When ED is a signal of something bigger
+                </h3>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    ED isn&apos;t always just about ED. It&apos;s one of the
+                    earliest signals the body gives for a handful of underlying
+                    conditions. Addressing the signal can mean catching the
+                    underlying issue earlier.
+                  </p>
+
+                  {/* Cardiovascular */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      Cardiovascular
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      The arteries that supply the penis are narrower than
+                      those around the heart, so they often show stress first.
+                      New-onset ED in a man over 40 is worth mentioning at his
+                      next GP visit even if everything else feels fine.{" "}
+                      {/* TODO(phase-3): link when blog post lives at /blog/ed-cardiovascular-link */}
+                      <Link
+                        href="#"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Read more about the ED–heart link
+                      </Link>
+                      .
+                    </p>
+                  </div>
+
+                  {/* Diabetes and insulin resistance */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      Diabetes and insulin resistance
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Persistently high blood sugar damages the blood vessels
+                      and nerves involved in the erectile response. In some men
+                      ED is the first symptom that flags undiagnosed diabetes.{" "}
+                      {/* TODO(phase-3): link when blog post lives at /blog/ed-diabetes */}
+                      <Link
+                        href="#"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Read more about ED and diabetes
+                      </Link>
+                      .
+                    </p>
+                  </div>
+
+                  {/* Testosterone */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      Testosterone
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Low testosterone isn&apos;t a common cause of ED on its
+                      own, but when it is a factor it tends to come bundled
+                      with low libido, fatigue, and mood changes. A blood test
+                      rules it in or out.{" "}
+                      {/* TODO(phase-3): link when blog post lives at /blog/ed-testosterone */}
+                      <Link
+                        href="#"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Read more about testosterone and ED
+                      </Link>
+                      .
+                    </p>
+                  </div>
+
+                  {/* Sleep apnea */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      Sleep apnea
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Untreated obstructive sleep apnea fragments sleep, drops
+                      nocturnal testosterone, and stresses the cardiovascular
+                      system. Treating the apnea sometimes improves erectile
+                      function on its own.{" "}
+                      {/* TODO(phase-3): link when blog post lives at /blog/ed-sleep-apnea */}
+                      <Link
+                        href="#"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Read more about sleep apnea and ED
+                      </Link>
+                      .
+                    </p>
+                  </div>
+
+                  {/* Stress and mental health */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      Stress and mental health
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Anxiety and low mood are both causes AND consequences of
+                      ED. Addressing the psychological side in parallel with
+                      any physical treatment often makes a real difference.{" "}
+                      {/* TODO(phase-3): link when blog post lives at /blog/ed-mental-health */}
+                      <Link
+                        href="#"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Read more about mental health and ED
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ---- Sub-section B: What to expect from a telehealth assessment ---- */}
+          <motion.div
+            initial={animate ? { opacity: 0, y: 16 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Workflow className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  What to expect from a telehealth assessment
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  Here&apos;s the honest, uncompressed version — so nothing
+                  catches you off guard.
+                </p>
+                <ol className="space-y-4 list-none counter-reset-[step]">
+                  <li className="flex items-start gap-3">
+                    <span
+                      className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5"
+                      aria-hidden="true"
+                    >
+                      1
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-1">
+                        Structured form (about 5 minutes)
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        You&apos;ll answer a short health questionnaire that
+                        covers your medical history, current medications, and a
+                        few targeted questions about symptoms. There are no
+                        video calls required — most patients are reviewed
+                        without any real-time conversation.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span
+                      className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5"
+                      aria-hidden="true"
+                    >
+                      2
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-1">
+                        Doctor review (most cases within 1–2 hours)
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        An AHPRA-registered Australian doctor reviews your
+                        submission. If they need anything clarified, they&apos;ll
+                        message you through the patient dashboard. If the
+                        picture is clear, they approve and move to prescription.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span
+                      className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5"
+                      aria-hidden="true"
+                    >
+                      3
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-1">
+                        eScript delivery to your phone
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Same-day is possible when you submit during operating
+                        hours. The eScript goes to your nominated pharmacy as a
+                        standard electronic prescription — the pharmacist sees
+                        the script, not your assessment.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span
+                      className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5"
+                      aria-hidden="true"
+                    >
+                      4
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-1">
+                        Discreet pharmacy collection or delivery
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Pharmacies dispense in standard packaging with no
+                        indication of contents. Your bank statement shows
+                        &apos;InstantMed&apos; only. The whole loop —
+                        assessment to dispensed medication — usually closes in
+                        under 24 hours.
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ---- Sub-section C: Privacy and discretion — end to end ---- */}
+          <motion.div
+            initial={animate ? { opacity: 0, y: 16 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Lock className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  Privacy and discretion — end to end
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  Three things worth knowing up front, because they&apos;re
+                  the ones most people ask about.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      What the pharmacist sees
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Only the prescription itself. Dose, quantity,
+                      instructions. Not your assessment answers, not your
+                      reason for seeking treatment, not your medical history. A
+                      standard electronic prescription — indistinguishable from
+                      any other.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      What the bank statement says
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      &apos;InstantMed&apos; — nothing else. No medication
+                      name, no service descriptor, no billing code suggesting
+                      anything about what was purchased.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">
+                      How the package arrives
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Standard pharmacy packaging if you collect in person,
+                      standard postal packaging if you opt for delivery.
+                      Nothing on the outside references the medication or the
+                      condition.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Clinical governance link */}
