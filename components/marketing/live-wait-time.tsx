@@ -38,6 +38,26 @@ const SERVICE_CONFIG = {
     bgColor: 'bg-primary/10',
     alwaysOnline: false,
   },
+  'consult-ed': {
+    label: 'ED Consultations',
+    shortLabel: 'ED',
+    icon: Phone,
+    waitLabel: 'Under 1 hour',
+    subtext: '8am–10pm AEST',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    alwaysOnline: false,
+  },
+  'consult-hair-loss': {
+    label: 'Hair Loss Consultations',
+    shortLabel: 'Hair Loss',
+    icon: Phone,
+    waitLabel: 'Under 1 hour',
+    subtext: '8am–10pm AEST',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    alwaysOnline: false,
+  },
 } as const
 
 type ServiceType = keyof typeof SERVICE_CONFIG
