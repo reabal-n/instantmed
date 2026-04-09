@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { Clock, FileText, Pill, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // Static, honest wait time data — no randomisation, no fake fluctuation
 const SERVICE_CONFIG = {
@@ -12,8 +13,8 @@ const SERVICE_CONFIG = {
     label: 'Medical Certificates',
     shortLabel: 'Med Certs',
     icon: FileText,
-    waitLabel: 'Under 15 min',
-    subtext: '24/7, auto-reviewed',
+    waitLabel: `Under ${SOCIAL_PROOF.certTurnaroundMinutes} min`,
+    subtext: 'Available 24/7',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     alwaysOnline: true,

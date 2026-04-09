@@ -57,7 +57,7 @@ export const SOCIAL_PROOF = {
   /** Average response in minutes (used for stat displays) */
   averageResponseMinutes: 44,
   /** Typical turnaround for certificates specifically — must stay under 30 min */
-  certTurnaroundMinutes: 24,
+  certTurnaroundMinutes: 20,
 
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,

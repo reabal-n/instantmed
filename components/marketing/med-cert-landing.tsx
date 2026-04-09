@@ -10,10 +10,7 @@ import {
   CheckCircle2,
   ChevronDown,
   AlertCircle,
-  Users,
   Clock,
-  Star,
-  ShieldCheck,
   Gift,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -26,6 +23,8 @@ import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { AnimatedStat } from "@/components/marketing/animated-stat"
+import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
+import { BADGE_REGISTRY } from "@/lib/trust-badges"
 import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
@@ -86,10 +85,10 @@ const LimitationsSection = dynamic(
 // =============================================================================
 
 const ROTATING_BADGES = [
-  "Accepted by all employers",
-  "No appointment needed",
-  "Same day delivery",
-  "Full refund if we can't help",
+  BADGE_REGISTRY.legally_valid.label,
+  BADGE_REGISTRY.no_appointment.label,
+  BADGE_REGISTRY.same_day.label,
+  BADGE_REGISTRY.refund.label,
 ]
 
 
@@ -100,12 +99,7 @@ const PRICING_FEATURES = [
   "Covers work, uni, or carer\u2019s leave",
 ]
 
-const SOCIAL_PROOF_STATS = [
-  { icon: Users, value: SOCIAL_PROOF.certApprovalPercent, suffix: "%", label: "requests approved", color: "text-success" },
-  { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg turnaround", color: "text-primary" },
-  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
-  { icon: ShieldCheck, value: SOCIAL_PROOF.employerAcceptancePercent, suffix: "%", label: "employer accepted", color: "text-success" },
-]
+const SOCIAL_PROOF_STATS = STAT_PRESETS['med-cert']
 
 const RELATED_ARTICLES = [
   { title: "Your Sick Leave Rights in Australia", href: "/blog/sick-leave-rights-australia" },
@@ -462,9 +456,6 @@ export function MedCertLanding() {
           {/* 3. Certificate Preview */}
           <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
 
-          {/* 3b. Long-form guide — E-E-A-T content for SEO depth */}
-          <MedCertGuideSection />
-
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
 
@@ -500,6 +491,9 @@ export function MedCertLanding() {
 
           {/* 6. FAQ */}
           <FaqCtaSection onFAQOpen={handleFAQOpen} />
+
+          {/* Long-form guide — E-E-A-T content below FAQ for SEO depth */}
+          <MedCertGuideSection />
 
           {/* Referral awareness strip */}
           <div className="py-6 border-t border-border/30 dark:border-white/10">

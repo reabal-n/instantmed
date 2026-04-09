@@ -1,60 +1,167 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Scale, Clock, FileText, ShieldCheck, AlertTriangle } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 // =============================================================================
 // DATA
 // =============================================================================
+//
+// Long-form E-E-A-T guide — Fair Work Act, validity, telehealth vs in-person.
+// Previously a 1,500-word flat wall-of-text mid-funnel. Now a collapsible
+// accordion rendered BELOW the FAQ so users who want depth can expand, while
+// the scan-read-to-CTA path stays clean.
+//
+// Content is rich (multi-paragraph + links), so this uses the shadcn Accordion
+// primitive directly rather than <FAQList /> which is optimised for string-only
+// FAQ data. Flat styling (no per-item card borders) matches faq-cta-section
+// and eliminates the double-container pattern.
 
-const GUIDE_SECTIONS = [
+interface GuideItem {
+  id: string
+  title: string
+  content: ReactNode
+}
+
+const GUIDE_ITEMS: readonly GuideItem[] = [
   {
     id: "what-is",
-    icon: FileText,
     title: "What is a medical certificate?",
-    paragraphs: [
-      "A medical certificate is an official document issued by a registered medical practitioner confirming that a patient has been assessed and is — or was — unfit for their normal duties due to illness or injury. In Australia, these are sometimes called \"sick notes\" or \"doctor's certificates,\" but the correct term is medical certificate.",
-      "The certificate doesn't need to disclose your specific diagnosis. Under Australian privacy law, your employer is entitled to know that you were unfit for work and for how long — not what was wrong with you. A valid certificate states the doctor's name, AHPRA registration number, the date of assessment, and the recommended period of absence.",
-    ],
+    content: (
+      <div className="space-y-3">
+        <p>
+          A medical certificate is an official document issued by a registered
+          medical practitioner confirming that a patient has been assessed and
+          is — or was — unfit for their normal duties due to illness or injury.
+          In Australia, these are sometimes called &ldquo;sick notes&rdquo; or
+          &ldquo;doctor&apos;s certificates,&rdquo; but the correct term is
+          medical certificate.
+        </p>
+        <p>
+          The certificate doesn&apos;t need to disclose your specific diagnosis.
+          Under Australian privacy law, your employer is entitled to know that
+          you were unfit for work and for how long — not what was wrong with
+          you. A valid certificate states the doctor&apos;s name, AHPRA
+          registration number, the date of assessment, and the recommended
+          period of absence.
+        </p>
+      </div>
+    ),
   },
   {
     id: "fair-work",
-    icon: Scale,
     title: "Your rights under the Fair Work Act",
-    paragraphs: [
-      "The Fair Work Act 2009 entitles full-time employees to 10 days of paid personal/carer's leave per year. Part-time employees accrue leave proportionally. Employers can request a medical certificate or statutory declaration for any period of leave, including a single day — though many employers only require one for absences of two or more days.",
-      "Importantly, the Fair Work Act does not specify that a medical certificate must come from a face-to-face consultation. Certificates issued by AHPRA-registered doctors via telehealth carry the same legal weight as those from an in-person GP visit. This has been confirmed by the Fair Work Commission in multiple decisions since 2020.",
-      "Casual employees don't accrue paid sick leave (unless they're long-term regular casuals), but a medical certificate still protects your working relationship and demonstrates good faith. Some enterprise agreements and awards have specific requirements — check yours if you're unsure.",
-    ],
+    content: (
+      <div className="space-y-3">
+        <p>
+          The Fair Work Act 2009 entitles full-time employees to 10 days of
+          paid personal/carer&apos;s leave per year. Part-time employees accrue
+          leave proportionally. Employers can request a medical certificate or
+          statutory declaration for any period of leave, including a single day
+          — though many employers only require one for absences of two or more
+          days.
+        </p>
+        <p>
+          Importantly, the Fair Work Act does not specify that a medical
+          certificate must come from a face-to-face consultation. Certificates
+          issued by AHPRA-registered doctors via telehealth carry the same
+          legal weight as those from an in-person GP visit. This has been
+          confirmed by the Fair Work Commission in multiple decisions since
+          2020.
+        </p>
+        <p>
+          Casual employees don&apos;t accrue paid sick leave (unless
+          they&apos;re long-term regular casuals), but a medical certificate
+          still protects your working relationship and demonstrates good faith.
+          Some enterprise agreements and awards have specific requirements —
+          check yours if you&apos;re unsure.
+        </p>
+      </div>
+    ),
   },
   {
     id: "when-online",
-    icon: Clock,
     title: "When an online certificate makes sense",
-    paragraphs: [
-      "Telehealth medical certificates are appropriate for straightforward, self-limiting conditions that don't require a physical examination. Common examples include cold and flu, gastroenteritis, migraine, minor back pain, period pain, mental health days, and general malaise. These are conditions where the doctor's assessment is based primarily on your reported symptoms and medical history — the same information available via telehealth.",
-      "For a standard 1–3 day absence, a telehealth certificate is clinically equivalent to an in-person one. The doctor reviews your symptoms, asks follow-up questions if needed, and makes a clinical judgement about whether a certificate is appropriate. If they're not satisfied that a certificate is clinically justified, they won't issue one — same as a GP clinic.",
-    ],
+    content: (
+      <div className="space-y-3">
+        <p>
+          Telehealth medical certificates are appropriate for straightforward,
+          self-limiting conditions that don&apos;t require a physical
+          examination. Common examples include cold and flu, gastroenteritis,
+          migraine, minor back pain, period pain, mental health days, and
+          general malaise. These are conditions where the doctor&apos;s
+          assessment is based primarily on your reported symptoms and medical
+          history — the same information available via telehealth.
+        </p>
+        <p>
+          For a standard 1–3 day absence, a telehealth certificate is
+          clinically equivalent to an in-person one. The doctor reviews your
+          symptoms, asks follow-up questions if needed, and makes a clinical
+          judgement about whether a certificate is appropriate. If they&apos;re
+          not satisfied that a certificate is clinically justified, they
+          won&apos;t issue one — same as a GP clinic.
+        </p>
+      </div>
+    ),
   },
   {
     id: "when-gp",
-    icon: AlertTriangle,
     title: "When you should see a GP in person",
-    paragraphs: [
-      "Some situations genuinely require an in-person consultation. Workplace injuries requiring WorkCover documentation need a physical examination and specific forms. Conditions requiring blood tests, imaging, or physical assessment (suspicious moles, joint injuries, chest pain) should be seen face-to-face. Extended absences beyond 3–5 days may benefit from an in-person assessment, and we'll recommend this where appropriate.",
-      "We're not trying to replace your regular GP. If you have an ongoing relationship with a general practitioner, they remain your primary care provider for chronic conditions, health checks, and complex care. We fill a specific gap: straightforward, time-sensitive needs where a clinic visit is impractical or unavailable.",
-    ],
+    content: (
+      <div className="space-y-3">
+        <p>
+          Some situations genuinely require an in-person consultation.
+          Workplace injuries requiring WorkCover documentation need a physical
+          examination and specific forms. Conditions requiring blood tests,
+          imaging, or physical assessment (suspicious moles, joint injuries,
+          chest pain) should be seen face-to-face. Extended absences beyond 3–5
+          days may benefit from an in-person assessment, and we&apos;ll
+          recommend this where appropriate.
+        </p>
+        <p>
+          We&apos;re not trying to replace your regular GP. If you have an
+          ongoing relationship with a general practitioner, they remain your
+          primary care provider for chronic conditions, health checks, and
+          complex care. We fill a specific gap: straightforward, time-sensitive
+          needs where a clinic visit is impractical or unavailable.
+        </p>
+      </div>
+    ),
   },
   {
     id: "validity",
-    icon: ShieldCheck,
     title: "What makes a certificate valid",
-    paragraphs: [
-      "A legally valid medical certificate in Australia must include: the practitioner's full name and AHPRA registration number, the date of the consultation, the patient's name and date of birth, the period the patient is certified as unfit for duties, and the practitioner's signature (digital signatures are accepted). InstantMed certificates include all of these elements.",
-      "Every certificate issued by InstantMed has a unique verification ID. Employers and institutions can verify any certificate at instantmed.com.au/verify — entering the certificate ID confirms it was genuinely issued by our practice. This provides an additional layer of trust that paper certificates from traditional clinics typically don't offer.",
-    ],
+    content: (
+      <div className="space-y-3">
+        <p>
+          A legally valid medical certificate in Australia must include: the
+          practitioner&apos;s full name and AHPRA registration number, the date
+          of the consultation, the patient&apos;s name and date of birth, the
+          period the patient is certified as unfit for duties, and the
+          practitioner&apos;s signature (digital signatures are accepted).
+          InstantMed certificates include all of these elements.
+        </p>
+        <p>
+          Every certificate issued by InstantMed has a unique verification ID.
+          Employers and institutions can verify any certificate at{" "}
+          <Link href="/verify" className="text-primary hover:underline">
+            instantmed.com.au/verify
+          </Link>{" "}
+          — entering the certificate ID confirms it was genuinely issued by our
+          practice. This provides an additional layer of trust that paper
+          certificates from traditional clinics typically don&apos;t offer.
+        </p>
+      </div>
+    ),
   },
 ] as const
 
@@ -62,7 +169,11 @@ const GUIDE_SECTIONS = [
 // COMPONENT
 // =============================================================================
 
-/** Long-form E-E-A-T content section — Fair Work Act, certificate validity, when to use */
+/**
+ * Long-form E-E-A-T content section — Fair Work Act, certificate validity,
+ * when to use. Collapsible accordion, flat styling, no auto-opened item.
+ * Rendered BELOW the FAQ.
+ */
 export function MedCertGuideSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -70,12 +181,12 @@ export function MedCertGuideSection() {
   return (
     <section
       aria-label="Medical certificate guide"
-      className="py-20 lg:py-24"
+      className="py-16 lg:py-20"
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-10"
           initial={animate ? { opacity: 0, y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
@@ -86,58 +197,52 @@ export function MedCertGuideSection() {
             Medically reviewed by AHPRA-registered GPs
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
-            Everything you need to know about medical certificates
+            Deep dive: your rights, validity, and when telehealth is right
           </h2>
           <p className="text-muted-foreground text-sm max-w-xl mx-auto">
-            Your rights, what makes a certificate valid, and when telehealth is
-            the right choice.
+            Tap any topic to expand. Written and reviewed by AHPRA-registered
+            GPs — last updated April 2026.
           </p>
         </motion.div>
 
-        {/* Content sections */}
-        <div className="space-y-12">
-          {GUIDE_SECTIONS.map((section, i) => (
-            <motion.div
-              key={section.id}
-              initial={animate ? { opacity: 0, y: 16 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    {section.title}
-                  </h3>
-                  <div className="space-y-3">
-                    {section.paragraphs.map((p, j) => (
-                      <p
-                        key={j}
-                        className="text-sm text-muted-foreground leading-relaxed"
-                      >
-                        {p}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Accordion — flat style, all collapsed by default */}
+        <motion.div
+          initial={animate ? { opacity: 0, y: 16 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Accordion type="single" collapsible className="space-y-0">
+            {GUIDE_ITEMS.map((item) => (
+              <AccordionItem
+                key={item.id}
+                value={item.id}
+                className="border-b border-border/40 last:border-b-0 first:border-t first:border-t-border/40 rounded-none bg-transparent shadow-none px-0"
+              >
+                <AccordionTrigger className="text-foreground py-5 hover:no-underline">
+                  <span className="font-medium text-foreground text-left text-base">
+                    {item.title}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5">
+                  {item.content}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.div>
 
         {/* Clinical governance link */}
         <motion.div
-          className="mt-12 pt-8 border-t border-border/40 text-center"
+          className="mt-10 pt-6 border-t border-border/40 text-center"
           initial={animate ? { opacity: 0 } : {}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
         >
           <p className="text-xs text-muted-foreground">
-            All clinical decisions are made by AHPRA-registered doctors following{" "}
+            All clinical decisions are made by AHPRA-registered doctors
+            following{" "}
             <Link
               href="/clinical-governance"
               className="text-primary hover:underline"

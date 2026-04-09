@@ -36,6 +36,7 @@ import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
@@ -109,12 +110,7 @@ const PRICING_FEATURES = [
   "Full refund if we can't help",
 ]
 
-const SOCIAL_PROOF_STATS = [
-  { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg review time", color: "text-primary" },
-  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
-  { icon: ShieldCheck, value: SOCIAL_PROOF.certApprovalPercent, suffix: "%", label: "approval rate", color: "text-success" },
-  { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "refund if we can't help", color: "text-success" },
-]
+const SOCIAL_PROOF_STATS = STAT_PRESETS['consult']
 
 const RECENT_ACTIVITY_ENTRIES = [
   { city: "Melbourne", minutesAgo: 18 },

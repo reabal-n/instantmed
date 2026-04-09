@@ -3,11 +3,43 @@
 import { useSyncExternalStore } from 'react'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { Users, TrendingUp, CheckCircle2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { Users, TrendingUp, CheckCircle2, Clock, Star, ShieldCheck, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { usePatientCount } from '@/lib/use-patient-count'
+
+// ── Stat presets — centralized social proof stats per service ────────
+export interface StatEntry {
+  icon: LucideIcon
+  value: number
+  suffix: string
+  label: string
+  color: string
+  decimals?: number
+}
+
+export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
+  'med-cert': [
+    { icon: Users, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'requests approved', color: 'text-success' },
+    { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg turnaround', color: 'text-primary' },
+    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: Send, value: SOCIAL_PROOF.sameDayDeliveryPercent, suffix: '%', label: 'same-day delivery', color: 'text-cyan-600' },
+  ],
+  'prescription': [
+    { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: '%', label: 'fulfilled same day', color: 'text-success' },
+    { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
+    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund guarantee', color: 'text-success' },
+  ],
+  'consult': [
+    { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg review time', color: 'text-primary' },
+    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: ShieldCheck, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'approval rate', color: 'text-success' },
+    { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if we can't help", color: 'text-success' },
+  ],
+} as const
 
 function useHasMounted() {
   return useSyncExternalStore(
