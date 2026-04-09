@@ -11,10 +11,12 @@
  * - Keyboard navigation (Enter to continue)
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
@@ -48,7 +50,23 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const state = (answers.state as string) || ""
   const postcode = (answers.postcode as string) || ""
   const medicareNumber = (answers.medicareNumber as string) || ""
-  
+  const consultSubtype = answers.consultSubtype as string | undefined
+
+  // BMI auto-calculation for ED subtype
+  const bmi = useMemo(() => {
+    const h = Number(answers.heightCm)
+    const w = Number(answers.weightKg)
+    if (!h || !w || h < 100 || h > 250 || w < 30 || w > 300) return null
+    return Math.round((w / ((h / 100) ** 2)) * 10) / 10
+  }, [answers.heightCm, answers.weightKg])
+
+  // Persist BMI to store when it changes
+  useEffect(() => {
+    if (consultSubtype === "ed") {
+      setAnswer("bmi", bmi ?? "")
+    }
+  }, [bmi, consultSubtype, setAnswer])
+
   // Check for saved identity on mount
   useEffect(() => {
     const saved = getSavedIdentity()
@@ -418,6 +436,62 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             </p>
           )}
         </FormField>
+      )}
+
+      {/* Height/Weight/BMI — ED subtype only */}
+      {consultSubtype === "ed" && (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Height &amp; weight</Label>
+          <p className="text-xs text-muted-foreground -mt-1">
+            Helps your doctor assess your overall health profile.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="heightCm" className="text-xs">Height (cm)</Label>
+              <Input
+                id="heightCm"
+                type="number"
+                inputMode="numeric"
+                placeholder="175"
+                value={(answers.heightCm as string) || ""}
+                onChange={(e) => setAnswer("heightCm", e.target.value)}
+                min={100}
+                max={250}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="weightKg" className="text-xs">Weight (kg)</Label>
+              <Input
+                id="weightKg"
+                type="number"
+                inputMode="numeric"
+                placeholder="80"
+                value={(answers.weightKg as string) || ""}
+                onChange={(e) => setAnswer("weightKg", e.target.value)}
+                min={30}
+                max={300}
+              />
+            </div>
+          </div>
+          {bmi !== null && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border text-sm">
+              <span className="text-muted-foreground">BMI:</span>
+              <span className="font-medium">{bmi}</span>
+              <span className={cn(
+                "text-xs",
+                bmi < 18.5 ? "text-warning" :
+                bmi < 25 ? "text-success" :
+                bmi < 30 ? "text-warning" :
+                "text-destructive"
+              )}>
+                {bmi < 18.5 ? "Underweight" :
+                 bmi < 25 ? "Normal weight" :
+                 bmi < 30 ? "Overweight" :
+                 "Obese"}
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Data security reassurance */}
