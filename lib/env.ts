@@ -47,7 +47,9 @@ const serverEnvSchema = z.object({
   STRIPE_PRICE_CONSULT_HAIR_LOSS: z.string().optional(),
   STRIPE_PRICE_CONSULT_WOMENS_HEALTH: z.string().optional(),
   STRIPE_PRICE_CONSULT_WEIGHT_LOSS: z.string().optional(),
-  
+  STRIPE_PRICE_PRIORITY_FEE: z.string().optional(),
+  STRIPE_PRICE_REPEAT_RX_MONTHLY: z.string().optional(),
+
   // Optional with defaults
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
@@ -117,6 +119,8 @@ const productionRequirements = z.object({
   STRIPE_PRICE_CONSULT_HAIR_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_HAIR_LOSS"),
   STRIPE_PRICE_CONSULT_WOMENS_HEALTH: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WOMENS_HEALTH"),
   STRIPE_PRICE_CONSULT_WEIGHT_LOSS: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT_WEIGHT_LOSS"),
+  STRIPE_PRICE_PRIORITY_FEE: z.string().min(1, "Production requires STRIPE_PRICE_PRIORITY_FEE"),
+  STRIPE_PRICE_REPEAT_RX_MONTHLY: z.string().min(1, "Production requires STRIPE_PRICE_REPEAT_RX_MONTHLY"),
   UPSTASH_REDIS_REST_URL: z.string().url("Production requires UPSTASH_REDIS_REST_URL for rate limiting"),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Production requires UPSTASH_REDIS_REST_TOKEN for rate limiting"),
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
