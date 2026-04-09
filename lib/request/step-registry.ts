@@ -24,8 +24,10 @@ export type UnifiedStepId =
   | 'medication-history'// Previous prescriptions + side effects
   | 'medical-history'   // Allergies, conditions, other meds
   | 'consult-reason'    // General consult pathway
-  | 'ed-assessment'     // ED-specific assessment
-  | 'ed-safety'         // ED safety screening (nitrates, cardiac)
+  | 'ed-goals'          // ED goals and duration
+  | 'ed-assessment'     // ED-specific assessment (IIEF-5)
+  | 'ed-health'         // ED health screening (nitrates, cardiac, medical history)
+  | 'ed-preferences'    // ED treatment preferences
   | 'hair-loss-assessment' // Hair loss pattern and history
   | 'womens-health-type'   // Women's health sub-selection
   | 'womens-health-assessment' // Women's health specific questions
@@ -280,19 +282,35 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
   
   ed: [
     {
+      id: 'ed-goals',
+      label: "What's going on",
+      shortLabel: 'Goals',
+      componentPath: 'ed-goals-step',
+      validateFn: 'validateEdGoalsStep',
+      required: true,
+    },
+    {
       id: 'ed-assessment',
-      label: 'ED assessment',
+      label: "How it's affecting you",
       shortLabel: 'Assessment',
       componentPath: 'ed-assessment-step',
       validateFn: 'validateEdAssessmentStep',
       required: true,
     },
     {
-      id: 'ed-safety',
-      label: 'Safety screening',
-      shortLabel: 'Screening',
-      componentPath: 'ed-safety-step',
-      validateFn: 'validateEdSafetyStep',
+      id: 'ed-health',
+      label: 'Your health',
+      shortLabel: 'Health',
+      componentPath: 'ed-health-step',
+      validateFn: 'validateEdHealthStep',
+      required: true,
+    },
+    {
+      id: 'ed-preferences',
+      label: 'Your preferences',
+      shortLabel: 'Preferences',
+      componentPath: 'ed-preferences-step',
+      validateFn: 'validateEdPreferencesStep',
       required: true,
     },
     ...CONSULT_COMMON_TAIL,
