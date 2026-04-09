@@ -46,6 +46,7 @@ import {
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
 // Must match server-side getServiceSlug() in lib/stripe/checkout.ts
@@ -285,8 +286,7 @@ export function RequestFlow({
   // Pre-seed cert type from URL param (from landing page selector)
   useEffect(() => {
     if (initialService === 'med-cert' && initialCertType && !answers.certType) {
-      const valid = ['work', 'study', 'carer']
-      if (valid.includes(initialCertType)) {
+      if (isValidCertCategory(initialCertType)) {
         setAnswer('certType', initialCertType)
       }
     }

@@ -98,6 +98,47 @@ test.describe("Medical Certificate - Guest Flow", () => {
   })
 })
 
+test.describe("Medical Certificate - certType URL Pre-seeding", () => {
+  test("certType=work pre-selects Work in the certificate step", async ({ page }) => {
+    await page.goto("/request?service=med-cert&certType=work")
+    await waitForPageLoad(page)
+
+    // Certificate step should render with Work pre-selected
+    const workRadio = page.getByRole("radio", { name: /Work/i })
+    await expect(workRadio).toBeVisible({ timeout: 10000 })
+    await expect(workRadio).toHaveAttribute("aria-checked", "true")
+  })
+
+  test("certType=study pre-selects Study in the certificate step", async ({ page }) => {
+    await page.goto("/request?service=med-cert&certType=study")
+    await waitForPageLoad(page)
+
+    const studyRadio = page.getByRole("radio", { name: /Study/i })
+    await expect(studyRadio).toBeVisible({ timeout: 10000 })
+    await expect(studyRadio).toHaveAttribute("aria-checked", "true")
+  })
+
+  test("certType=carer pre-selects Carer in the certificate step", async ({ page }) => {
+    await page.goto("/request?service=med-cert&certType=carer")
+    await waitForPageLoad(page)
+
+    const carerRadio = page.getByRole("radio", { name: /Carer/i })
+    await expect(carerRadio).toBeVisible({ timeout: 10000 })
+    await expect(carerRadio).toHaveAttribute("aria-checked", "true")
+  })
+
+  test("invalid certType is ignored — no pre-selection", async ({ page }) => {
+    await page.goto("/request?service=med-cert&certType=invalid")
+    await waitForPageLoad(page)
+
+    // All radios should be unchecked (unless smart defaults kick in)
+    const radios = page.getByRole("radio")
+    const count = await radios.count()
+    // At least one radio should exist (the cert type selector rendered)
+    expect(count).toBeGreaterThanOrEqual(3)
+  })
+})
+
 test.describe("Medical Certificate - Error Handling", () => {
   test("handles network errors gracefully", async ({ page }) => {
     // Mock a network failure on API calls

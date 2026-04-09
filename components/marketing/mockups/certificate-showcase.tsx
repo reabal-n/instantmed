@@ -38,8 +38,9 @@ export function CertificateShowcaseMockup() {
   return (
     <div className="relative">
       {/* Certificate document */}
+      {/* Always white — real PDFs are white paper regardless of system theme */}
       <motion.div
-        className="relative rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-2xl shadow-primary/[0.08] dark:shadow-none overflow-hidden max-w-[340px] mx-auto"
+        className="relative rounded-xl bg-white border border-border/50 dark:border-white/20 shadow-2xl shadow-primary/[0.08] dark:shadow-black/20 overflow-hidden max-w-[340px] mx-auto"
         variants={stagger}
         initial="hidden"
         whileInView="visible"
@@ -48,15 +49,21 @@ export function CertificateShowcaseMockup() {
         {/* Top accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-primary/40 via-primary/60 to-primary/40" />
 
-        <div className="px-6 py-5 space-y-4">
+        {/*
+          Force light-mode colors inside the document.
+          Real PDFs are always white paper with dark text — the mockup
+          should look identical regardless of system theme.
+          Floating badges outside this wrapper remain theme-aware.
+        */}
+        <div className="px-6 py-5 space-y-4 text-gray-900">
           {/* Header: logo + clinic details */}
           <motion.div variants={fadeUp} className="flex items-start justify-between">
-            <div className="text-base font-semibold italic text-foreground/80 tracking-tight">
+            <div className="text-base font-semibold italic text-gray-700 tracking-tight">
               <span className="text-primary/70">i</span>Med
             </div>
             <div className="text-right">
-              <p className="text-[9px] font-semibold text-foreground/70">InstantMed Telehealth Clinic</p>
-              <p className="text-[8px] text-muted-foreground leading-relaxed">
+              <p className="text-[9px] font-semibold text-gray-600">InstantMed Telehealth Clinic</p>
+              <p className="text-[8px] text-gray-400 leading-relaxed">
                 Level 1, 459 Elizabeth Street<br />
                 SURRY HILLS, NSW, 2010<br />
                 instantmed.com.au
@@ -66,24 +73,24 @@ export function CertificateShowcaseMockup() {
 
           {/* Date */}
           <motion.div variants={fadeUp} className="text-right">
-            <span className="text-[9px] text-foreground/60">{dateShort}</span>
+            <span className="text-[9px] text-gray-500">{dateShort}</span>
           </motion.div>
 
           {/* Title */}
           <motion.h3
             variants={fadeUp}
-            className="text-center text-lg font-semibold text-foreground tracking-tight"
+            className="text-center text-lg font-semibold text-gray-900 tracking-tight"
           >
             Medical Certificate
           </motion.h3>
 
           {/* Body */}
           <motion.div variants={fadeUp} className="space-y-2.5">
-            <p className="text-[9px] italic text-foreground/60">To whom it may concern,</p>
-            <p className="text-[9px] text-foreground/70 leading-[1.6]">
-              This is to certify that <span className="inline-block w-20 h-2.5 rounded bg-muted/60 dark:bg-muted/30 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-muted/60 dark:bg-muted/30 align-middle" />) has been reviewed and assessed on {dateLong}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties on {dateLong}.
+            <p className="text-[9px] italic text-gray-500">To whom it may concern,</p>
+            <p className="text-[9px] text-gray-600 leading-[1.6]">
+              This is to certify that <span className="inline-block w-20 h-2.5 rounded bg-gray-200/70 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-gray-200/70 align-middle" />) has been reviewed and assessed on {dateLong}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties on {dateLong}.
             </p>
-            <p className="text-[9px] text-foreground/70 leading-[1.6]">
+            <p className="text-[9px] text-gray-600 leading-[1.6]">
               They are advised to rest and recover and are expected to return to work the following day.
             </p>
           </motion.div>
@@ -91,12 +98,12 @@ export function CertificateShowcaseMockup() {
           {/* Signature block + seal */}
           <motion.div variants={fadeUp} className="flex items-end justify-between pt-6">
             <div className="space-y-0.5">
-              <p className="text-[10px] font-semibold text-foreground/80 flex items-center gap-1">Dr. <span className="inline-block w-16 h-2.5 rounded bg-muted/60 dark:bg-muted/30 align-middle" /></p>
-              <p className="text-[8px] text-muted-foreground">MBBS, FRACGP</p>
-              <p className="text-[8px] text-muted-foreground">Medical Practitioner</p>
-              <p className="text-[8px] text-muted-foreground">AHPRA: MED00XXXXXXXX</p>
+              <p className="text-[10px] font-semibold text-gray-700 flex items-center gap-1">Dr. <span className="inline-block w-16 h-2.5 rounded bg-gray-200/70 align-middle" /></p>
+              <p className="text-[8px] text-gray-400">MBBS, FRACGP</p>
+              <p className="text-[8px] text-gray-400">Medical Practitioner</p>
+              <p className="text-[8px] text-gray-400">AHPRA: MED00XXXXXXXX</p>
               {/* Signature scribble */}
-              <svg width="60" height="20" viewBox="0 0 60 20" className="mt-1 text-foreground/30">
+              <svg width="60" height="20" viewBox="0 0 60 20" className="mt-1 text-gray-300">
                 <path
                   d="M2 15 C8 5, 12 5, 18 12 S28 5, 34 10 S42 3, 50 8 L56 6"
                   stroke="currentColor"
@@ -119,7 +126,7 @@ export function CertificateShowcaseMockup() {
           {/* Divider */}
           <motion.div variants={fadeUp}>
             <div className="border-t border-primary/10 pt-2">
-              <p className="text-[7px] text-center text-muted-foreground/70 font-mono">
+              <p className="text-[7px] text-center text-gray-400 font-mono">
                 CERTIFICATE ID: IM-WORK-{year}{String(now.getMonth() + 1).padStart(2, "0")}{String(day).padStart(2, "0")}-XXXXXXXX
               </p>
             </div>
@@ -127,7 +134,7 @@ export function CertificateShowcaseMockup() {
 
           {/* Verification footer */}
           <motion.div variants={fadeUp}>
-            <p className="text-[7px] text-center text-muted-foreground/50 italic leading-relaxed">
+            <p className="text-[7px] text-center text-gray-400/80 italic leading-relaxed">
               To verify the authenticity of this medical certificate, visit instantmed.com.au/verify or contact our clinic directly.
             </p>
           </motion.div>

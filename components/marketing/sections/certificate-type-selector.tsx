@@ -15,36 +15,23 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { usePostHog } from "@/components/providers/posthog-provider"
+import {
+  CERT_CATEGORIES,
+  CERT_TYPE_POSTHOG_EVENT,
+  CERT_TYPE_POSTHOG_PROPERTY,
+  type CertCategory,
+} from "@/lib/marketing/med-cert-selector"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-type CertCategory = "work" | "study" | "carer"
-
-const CATEGORIES = [
-  {
-    id: "work" as CertCategory,
-    label: "Work",
-    icon: Briefcase,
-    description: "Sick day, personal leave, or carer's leave for your employer.",
-    reasons: ["Cold & flu", "Gastro", "Back pain", "Mental health", "Migraine"],
-  },
-  {
-    id: "study" as CertCategory,
-    label: "Uni / TAFE",
-    icon: GraduationCap,
-    description: "Special consideration, missed exam, or assignment extension.",
-    reasons: ["Exam deferral", "Assignment extension", "Missed classes", "Special consideration"],
-  },
-  {
-    id: "carer" as CertCategory,
-    label: "Carer\u2019s leave",
-    icon: Heart,
-    description: "When you need time off to care for a sick family member.",
-    reasons: ["Sick child", "Elderly parent", "Partner unwell", "Dependent care"],
-  },
-] as const
+/** Icon map — keeps lucide imports in the component (not the lib module). */
+const CATEGORY_ICONS: Record<CertCategory, typeof Briefcase> = {
+  work: Briefcase,
+  study: GraduationCap,
+  carer: Heart,
+}
 
 // =============================================================================
 // COMPONENT
@@ -70,7 +57,7 @@ export function CertificateTypeSelector({
 
   const handleSelect = (category: CertCategory) => {
     setSelected(category)
-    posthog?.capture("certificate_type_selected", { category })
+    posthog?.capture(CERT_TYPE_POSTHOG_EVENT, { [CERT_TYPE_POSTHOG_PROPERTY]: category })
   }
 
   return (
@@ -98,8 +85,8 @@ export function CertificateTypeSelector({
 
         {/* Category cards */}
         <div className="grid sm:grid-cols-3 gap-4">
-          {CATEGORIES.map((cat, i) => {
-            const Icon = cat.icon
+          {CERT_CATEGORIES.map((cat, i) => {
+            const Icon = CATEGORY_ICONS[cat.id]
             const isSelected = selected === cat.id
             return (
               <motion.button
