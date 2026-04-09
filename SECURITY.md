@@ -221,7 +221,7 @@ upgrade-insecure-requests;
 
 1. **General API** (`lib/rate-limit/redis.ts`): Upstash Redis. Fallback: **fail-open** (allow request) when Redis unavailable — intentional for serverless (in-memory Maps don't persist across invocations).
 
-2. **Doctor actions** (`lib/security/rate-limit.ts`): DB-backed sliding window. Fallback: in-memory `Map` with **half limits** when DB unavailable (per-instance, not shared).
+2. **Doctor actions** (`lib/rate-limit/doctor.ts`): DB-backed sliding window (queries `audit_logs`). Fallback: in-memory `Map` with **half limits** when DB unavailable (per-instance, not shared). Note: `lib/security/rate-limit.ts` is an unused duplicate — the active module is `lib/rate-limit/doctor.ts`.
 
 | Endpoint Category | Limit | Window | Module |
 |-------------------|-------|--------|--------|
@@ -243,10 +243,12 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
 
 All webhooks use signature verification (not CSRF).
 
-| Provider | Verification |
-|----------|-------------|
-| **Stripe** | `stripe.webhooks.constructEvent(body, req.headers['stripe-signature'], webhookSecret)` |
-| **Resend** | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
+| Provider | Handler | Verification |
+|----------|---------|-------------|
+| **Stripe** | `app/api/stripe/webhook/route.ts` | `stripe.webhooks.constructEvent(body, sig, secret)` — raw body via `request.text()` before any parsing. `STRIPE_WEBHOOK_SECRET` read from validated `env` object (throws at startup if missing in production). |
+| **Resend** | `app/api/webhooks/resend/route.ts` | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
+
+**Stripe admin replay path:** The webhook handler also accepts replays from the DLQ admin UI (`X-Admin-Replay: true` + `X-Admin-Replay-Secret` header). Replays are authenticated with `crypto.timingSafeEqual` against `INTERNAL_API_SECRET` and bypass signature verification (the payload was already verified on first receipt). This is intentional and audited.
 
 ---
 
@@ -285,6 +287,21 @@ All webhooks use signature verification (not CSRF).
 - **Zod** schema validation (server-side enforced; client-side for UX only)
 - **Sanitization** (`lib/security/sanitize.ts`): strips HTML/script tags, event handlers, SQL patterns, control characters
 - **Medical data:** Medicare Luhn check, Australian phone format, DOB age range
+
+### Dev Route Group (`app/(dev)/`)
+
+`app/(dev)/` files resolve to their path **without** the group prefix (e.g. `app/(dev)/cert-preview` → `/cert-preview`). They are **not** automatically blocked by Next.js. Middleware is the sole protection layer.
+
+| Route | Path | Middleware block | Runtime guard |
+|-------|------|-----------------|---------------|
+| `app/(dev)/cert-preview/route.ts` | `/cert-preview` | Yes — 404 in production/preview | None (route handler, no redirect) |
+| `app/(dev)/email-preview/page.tsx` | `/email-preview` | Yes — 302 to `/` in production/preview | `NODE_ENV === "production"` redirect |
+| `app/(dev)/email-preview/[template]/page.tsx` | `/email-preview/:template` | Yes — covered by `/email-preview` prefix | `NODE_ENV === "production"` redirect |
+| `app/(dev)/sentry-test/page.tsx` | `/sentry-test` | Yes — 404 in production/preview | `NODE_ENV !== "development"` renders locked UI |
+
+None of these routes expose real PHI — all use hardcoded mock data or generate static layout-calibration PDFs. The middleware block is the primary control; runtime guards are defence-in-depth.
+
+**2026-04-09 audit fix:** `/cert-preview` was missing a middleware block. Added to `middleware.ts` alongside `/sentry-test`.
 
 ### E2E Test Auth Bypass
 

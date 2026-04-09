@@ -59,6 +59,9 @@ export default async function middleware(req: NextRequest) {
   if (pathname.startsWith("/sentry-test") && isVercelProdOrPreview && !isE2ETest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+  if (pathname.startsWith("/cert-preview") && isVercelProdOrPreview && !isE2ETest) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
 
   // Skip auth for E2E tests with valid test cookie
   if (hasE2EAuthBypass(req)) {
