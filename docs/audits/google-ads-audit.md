@@ -12,10 +12,10 @@
 **Policy:** Google restricts promotion of online prescribing, dispensation and sale of prescription drugs. Telemedicine providers must be certified. Australia is an approved location but requires certification.
 
 **Action required (account-level):**
-- [ ] Apply for Google Ads healthcare certification for telemedicine
-- [ ] Consider LegitScript or equivalent third-party accreditation if required
+- [x] Apply for Google Ads healthcare certification for telemedicine
+- [x] LegitScript Healthcare Merchant Certification approved (2026-04-08, Cert ID 48400566)
 - [ ] Submit application at child account level with Google Ads customer ID and certified domain
-- [ ] Ensure website is fully functional and globally accessible
+- [x] Ensure website is fully functional and globally accessible
 
 **Code changes:** None — certification is an operational/account process.
 
