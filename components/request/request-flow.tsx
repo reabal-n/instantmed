@@ -153,6 +153,8 @@ export function RequestFlow({
   const contentRef = useRef<HTMLDivElement>(null)
   const dragX = useMotionValue(0)
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
+  // Track time spent on each step for step_completed time_on_step_ms
+  const stepEnteredAtRef = useRef<number>(Date.now())
   
   const {
     serviceType,
@@ -381,15 +383,30 @@ export function RequestFlow({
   // Track step views in PostHog
   useEffect(() => {
     if (currentStep && serviceType) {
-      posthog?.capture('request_step_viewed', {
+      // Reset timer whenever the visible step changes
+      stepEnteredAtRef.current = Date.now()
+
+      const subtype = (answers.consultSubtype as string | undefined) ?? undefined
+      const stepNumber = currentStepIndex + 1
+
+      // intake_started fires once per flow on the first step
+      if (stepNumber === 1) {
+        posthog?.capture('intake_started', {
+          service_type: analyticsServiceType,
+          subtype,
+        })
+      }
+
+      posthog?.capture('step_viewed', {
         service_type: analyticsServiceType,
         step_id: currentStep.id,
-        step_index: currentStepIndex,
-        total_steps: activeSteps.length,
-        is_authenticated: isAuthenticated,
+        step_number: stepNumber,
+        subtype,
       })
     }
-  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, activeSteps.length, isAuthenticated, posthog])
+  // answers.consultSubtype intentionally excluded — only track on step/service change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, posthog])
 
   // Track Google Ads funnel milestones once per flow.
   useEffect(() => {
@@ -430,10 +447,13 @@ export function RequestFlow({
 
   // Handle next navigation with tracking + safety pre-check
   const handleNext = useCallback(() => {
-    posthog?.capture('request_step_completed', {
+    const subtype = (answers.consultSubtype as string | undefined) ?? undefined
+    posthog?.capture('step_completed', {
       service_type: analyticsServiceType,
       step_id: currentStepId,
-      step_index: currentStepIndex,
+      step_number: currentStepIndex + 1,
+      subtype,
+      time_on_step_ms: Date.now() - stepEnteredAtRef.current,
     })
 
     // Run safety pre-check when leaving key clinical steps
@@ -472,14 +492,16 @@ export function RequestFlow({
 
   // Handle exit with tracking
   const handleExit = useCallback(() => {
-    posthog?.capture('request_flow_exited', {
+    const subtype = (answers.consultSubtype as string | undefined) ?? undefined
+    posthog?.capture('intake_abandoned', {
       service_type: analyticsServiceType,
-      exit_step: currentStepId,
-      step_index: currentStepIndex,
+      step_id: currentStepId,
+      step_number: currentStepIndex + 1,
+      subtype,
     })
     // Full page navigation to avoid white-page from layout mismatch
     window.location.href = '/'
-  }, [analyticsServiceType, currentStepId, currentStepIndex, posthog])
+  }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog])
 
   // Handle draft restoration
   const handleRestoreDraft = useCallback(() => {
