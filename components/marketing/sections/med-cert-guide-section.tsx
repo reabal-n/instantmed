@@ -63,20 +63,22 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
     content: (
       <div className="space-y-3">
         <p>
-          The Fair Work Act 2009 entitles full-time employees to 10 days of
-          paid personal/carer&apos;s leave per year. Part-time employees accrue
-          leave proportionally. Employers can request a medical certificate or
-          statutory declaration for any period of leave, including a single day
-          — though many employers only require one for absences of two or more
-          days.
+          Under s.96 of the{" "}
+          <em>Fair Work Act 2009</em> (Cth), full-time employees are entitled
+          to 10 days of paid personal/carer&apos;s leave per year. Part-time
+          employees accrue leave proportionally. Employers may request evidence
+          under s.107 — a medical certificate or statutory declaration — for
+          any period of leave, including a single day, though many employers
+          only require one for absences of two or more days.
         </p>
         <p>
-          Importantly, the Fair Work Act does not specify that a medical
-          certificate must come from a face-to-face consultation. Certificates
-          issued by AHPRA-registered doctors via telehealth carry the same
-          legal weight as those from an in-person GP visit. This has been
-          confirmed by the Fair Work Commission in multiple decisions since
-          2020.
+          Importantly, the Fair Work Act does not require a face-to-face
+          consultation. Certificates issued by AHPRA-registered doctors via
+          telehealth carry the same legal weight as those from an in-person GP
+          visit. This is consistent with the{" "}
+          <em>RACGP Standards for general practices</em> (5th edition, 2024)
+          and multiple Fair Work Commission decisions since 2020 accepting
+          telehealth-issued certificates.
         </p>
         <p>
           Casual employees don&apos;t accrue paid sick leave (unless
@@ -143,12 +145,15 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
     content: (
       <div className="space-y-3">
         <p>
-          A legally valid medical certificate in Australia must include: the
-          practitioner&apos;s full name and AHPRA registration number, the date
-          of the consultation, the patient&apos;s name and date of birth, the
-          period the patient is certified as unfit for duties, and the
-          practitioner&apos;s signature (digital signatures are accepted).
-          InstantMed certificates include all of these elements.
+          Under the{" "}
+          <em>Health Practitioner Regulation National Law Act 2009</em>, a
+          legally valid medical certificate must include: the practitioner&apos;s
+          full name and AHPRA registration number, the date of the
+          consultation, the patient&apos;s name and date of birth, the period
+          the patient is certified as unfit for duties, and the
+          practitioner&apos;s signature (digital signatures are accepted per
+          the <em>Electronic Transactions Act 1999</em>). InstantMed
+          certificates include all of these elements.
         </p>
         <p>
           Every certificate issued by InstantMed has a unique verification ID.
@@ -249,7 +254,10 @@ export function MedCertGuideSection() {
             >
               our clinical governance framework
             </Link>
-            . We never automate clinical decisions.
+            , aligned with{" "}
+            <em>RACGP Standards for general practices</em> (5th ed.) and{" "}
+            <em>TGA prescribing guidelines</em>. We never automate clinical
+            decisions.
           </p>
         </motion.div>
       </div>

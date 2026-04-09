@@ -42,7 +42,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 // Below-fold lazy loads — keep initial bundle small
 const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
-  { loading: () => <div className="min-h-[400px]" /> },
+  { loading: () => <div className="min-h-[400px]" />, ssr: false },
 )
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
@@ -313,9 +313,9 @@ function HeroSection({
               <TrustBadgeRow preset="hero_medcert" className="mt-3" />
             </motion.div>
 
-            {/* Secondary anchor CTA — desktop only */}
+            {/* Secondary anchor CTA */}
             <motion.div
-              className="hidden sm:flex justify-center lg:justify-start mt-4"
+              className="flex justify-center lg:justify-start mt-4"
               initial={animate ? { opacity: 0 } : {}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}

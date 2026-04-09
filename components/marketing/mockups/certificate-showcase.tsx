@@ -153,8 +153,23 @@ export function CertificateShowcaseMockup() {
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.8 }}
       >
-        <Shield className="w-3.5 h-3.5 text-primary" />
+        <Shield className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
         <span className="text-[10px] font-medium text-foreground">Unique verification ID</span>
+      </motion.div>
+
+      {/* Verified badge — pulsing dot signals live verification */}
+      <motion.div
+        className="absolute -bottom-3 right-4 sm:right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-success/30 shadow-lg shadow-success/[0.08] dark:shadow-none"
+        initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+        whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4, delay: 1.0 }}
+      >
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success/60" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+        </span>
+        <span className="text-[10px] font-medium text-success">Verified just now</span>
       </motion.div>
     </div>
   )
