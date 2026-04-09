@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
       // Sentry alert so ops get a real-time notification, not just PostHog metrics
       Sentry.captureMessage(
         totalStale >= 5
-          ? `Critical: ${totalStale} intakes waiting 2h+ without review`
-          : `Warning: ${totalStale} intake(s) waiting 2h+ without review`,
+          ? `Critical: ${totalStale} intakes waiting ${patientDelayEmailHours}h+ without review`
+          : `Warning: ${totalStale} intake(s) waiting ${patientDelayEmailHours}h+ without review`,
         {
           level: totalStale >= 5 ? "error" : "warning",
           tags: { alert_type: "stale_queue", severity: totalStale >= 5 ? "critical" : "warning" },
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
         }).join("\n")
 
         const count = staleDoctorAlerts.length
-        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting 1h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
+        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
         await sendTelegramAlert(msg)
 
         // Mark alerted — prevents repeat notifications per intake
