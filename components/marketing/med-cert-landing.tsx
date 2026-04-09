@@ -19,20 +19,16 @@ import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { AnimatedStat } from "@/components/marketing/animated-stat"
 import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import { BADGE_REGISTRY } from "@/lib/trust-badges"
-import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
-import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import {
@@ -41,8 +37,13 @@ import {
 } from "@/lib/data/testimonials"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
+import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 
 // Below-fold lazy loads — keep initial bundle small
+const CertificateTypeSelector = dynamic(
+  () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -79,6 +80,22 @@ const LimitationsSection = dynamic(
   () => import("@/components/marketing/sections/limitations-section").then((m) => m.LimitationsSection),
   { loading: () => <div className="min-h-[150px]" /> },
 )
+const PricingSection = dynamic(
+  () => import("@/components/marketing/sections/pricing-section").then((m) => m.PricingSection),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const RegulatoryPartners = dynamic(
+  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
+  { loading: () => <div className="min-h-[120px]" /> },
+)
+const ContentHubLinks = dynamic(
+  () => import("@/components/seo/content-hub-links").then((m) => m.ContentHubLinks),
+  { loading: () => <div className="min-h-[200px]" /> },
+)
+const RecentReviewsTicker = dynamic(
+  () => import("@/components/marketing/recent-reviews-ticker").then((m) => m.RecentReviewsTicker),
+  { loading: () => <div className="min-h-[40px]" /> },
+)
 
 // =============================================================================
 // DATA
@@ -91,7 +108,6 @@ const ROTATING_BADGES = [
   BADGE_REGISTRY.refund.label,
 ]
 
-
 const PRICING_FEATURES = [
   "Accepted by all Australian employers and universities",
   "Reviewed by an AHPRA-registered GP",
@@ -101,15 +117,10 @@ const PRICING_FEATURES = [
 
 const SOCIAL_PROOF_STATS = STAT_PRESETS['med-cert']
 
-const RELATED_ARTICLES = [
-  { title: "Your Sick Leave Rights in Australia", href: "/blog/sick-leave-rights-australia" },
-  { title: "Medical Certificates for Mental Health Days", href: "/blog/medical-certificate-mental-health-day" },
-  { title: "How Long Can a Medical Certificate Cover?", href: "/blog/how-long-can-medical-certificate-cover" },
+const EMPLOYER_NAMES = [
+  "Woolworths", "Coles", "ANZ", "Commonwealth Bank", "Telstra",
+  "BHP", "NAB", "Westpac", "Qantas", "Bunnings",
 ]
-
-// =============================================================================
-// SMALL COMPONENTS
-// =============================================================================
 
 // =============================================================================
 // SECTION COMPONENTS
@@ -139,7 +150,7 @@ function SocialProofStrip() {
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: i * 0.08 }}
             >
-              <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} />
+              <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} aria-hidden="true" />
               <div>
                 <p className="text-lg font-semibold text-foreground leading-tight">
                   <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
@@ -154,18 +165,13 @@ function SocialProofStrip() {
   )
 }
 
-const EMPLOYER_NAMES = [
-  "Woolworths", "Coles", "ANZ", "Commonwealth Bank", "Telstra",
-  "BHP", "NAB", "Westpac", "Qantas", "Bunnings",
-]
-
-/** Employer acceptance callout — thin strip between stats and how-it-works */
+/** Employer acceptance callout */
 function EmployerCalloutStrip() {
   return (
     <div className="bg-success/5 border-y border-success/15">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
         <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 mb-3">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
           Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities — identical to an in-person GP certificate
         </p>
         <div className="flex flex-wrap justify-center gap-1.5">
@@ -198,7 +204,7 @@ function HeroSection({
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -243,7 +249,7 @@ function HeroSection({
               transition={{ duration: 0.4, delay: 0.15 }}
             >
               <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                 <RotatingText texts={ROTATING_BADGES} interval={3000} />
               </div>
             </motion.div>
@@ -251,7 +257,7 @@ function HeroSection({
             {/* CTA */}
             <motion.div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
@@ -265,7 +271,7 @@ function HeroSection({
                 >
                   <Link href="/request?service=med-cert">
                     Get your certificate — ${PRICING.MED_CERT.toFixed(2)}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
               </MagneticButton>
@@ -274,14 +280,30 @@ function HeroSection({
                   {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
                 </p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3 shrink-0" />
+                  <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
                   Available 24/7
                 </p>
                 <ContextualMessage service="med-cert" className="text-xs text-muted-foreground/80 italic mt-1" />
               </div>
             </motion.div>
 
-            {/* Trust signals + wait time — hidden on mobile to keep CTA above fold */}
+            {/* Selector anchor — low-commitment engagement hook */}
+            <motion.div
+              className="flex justify-center lg:justify-start mb-4 sm:mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+            >
+              <a
+                href="#certificate-type"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors dark:text-primary/70 dark:hover:text-primary/90"
+              >
+                Not sure which type? Find out
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </motion.div>
+
+            {/* Trust signals — hidden on mobile to keep CTA above fold */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
               initial={animate ? { opacity: 0 } : {}}
@@ -303,7 +325,7 @@ function HeroSection({
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 See how it works
-                <ChevronDown className="h-3.5 w-3.5" />
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
             </motion.div>
           </div>
@@ -314,37 +336,9 @@ function HeroSection({
           </div>
 
           {/* Mobile mockup — compact, below text content */}
-          <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
+          <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <MedCertHeroMockup compact />
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-
-
-
-/** Related blog articles — internal links for SEO */
-function RelatedArticles() {
-  return (
-    <section aria-label="Related articles" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
-          Related reading
-        </h2>
-        <div className="flex flex-wrap justify-center gap-3">
-          {RELATED_ARTICLES.map((article) => (
-            <Link
-              key={article.href}
-              href={article.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
-            >
-              {article.title}
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-            </Link>
-          ))}
         </div>
       </div>
     </section>
@@ -410,7 +404,7 @@ export function MedCertLanding() {
         {/* Temporarily unavailable banner */}
         {isDisabled && (
           <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-warning shrink-0" />
+            <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
             <div>
               <p className="text-sm font-medium text-warning">
                 This service is temporarily unavailable.
@@ -438,31 +432,34 @@ export function MedCertLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* Live wait time — med cert only */}
+          {/* 2. Live wait time */}
           <LiveWaitTime variant="strip" services={["med-cert"]} />
 
-          {/* Recent activity ticker */}
-          <RecentReviewsTicker format="named" artifact="certificate" />
+          {/* 3. Certificate type selector — engagement hook */}
+          <CertificateTypeSelector />
 
-          {/* Social proof stats */}
-          <SocialProofStrip />
-
-          {/* Employer acceptance callout */}
-          <EmployerCalloutStrip />
-
-          {/* 2. How It Works */}
+          {/* 4. How It Works */}
           <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
 
-          {/* 3. Certificate Preview */}
+          {/* 5. Social proof stats — backs up the process with numbers */}
+          <SocialProofStrip />
+
+          {/* 6. Certificate Preview — what you'll receive */}
           <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
 
-          {/* Doctor profile — trust signal, this page only */}
-          <DoctorProfileSection />
+          {/* 7. Employer acceptance — contextual after "what you get" */}
+          <EmployerCalloutStrip />
 
-          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
+          {/* 8. Guide — E-E-A-T content mid-funnel (Fair Work, validity, telehealth) */}
+          <MedCertGuideSection />
+
+          {/* 9. Limitations — honest boundaries before pricing */}
           <LimitationsSection />
 
-          {/* 4. Pricing with comparison table */}
+          {/* 10. Doctor profile — trust signal before pricing */}
+          <DoctorProfileSection />
+
+          {/* 11. Pricing with comparison table */}
           <PricingSection
             title="One flat fee. Save ~$50 vs a GP."
             subtitle="One flat fee — no hidden costs. Full refund if we can't help."
@@ -479,27 +476,29 @@ export function MedCertLanding() {
             showComparisonTable
           />
 
-          {/* 5. Testimonials */}
+          {/* 12. Testimonials + recent reviews */}
           <TestimonialsSection
             testimonials={testimonialsForColumns}
             title="What patients say"
             subtitle="Real reviews from Australians who've used our service"
           />
+          <RecentReviewsTicker format="named" artifact="certificate" />
 
-          {/* Regulatory Partners — Medicare excluded (no rebate applies here) */}
+          {/* 13. Regulatory Partners — Medicare excluded (no rebate applies here) */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
-          {/* 6. FAQ */}
-          <FaqCtaSection onFAQOpen={handleFAQOpen} />
-
-          {/* Long-form guide — E-E-A-T content below FAQ for SEO depth */}
-          <MedCertGuideSection />
+          {/* 14. FAQ */}
+          <FaqCtaSection
+            onFAQOpen={handleFAQOpen}
+            faqs={MED_CERT_FAQ}
+            subtitle="Everything you need to know about getting your certificate."
+          />
 
           {/* Referral awareness strip */}
           <div className="py-6 border-t border-border/30 dark:border-white/10">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
               <p className="text-sm text-muted-foreground">
-                <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" />
+                <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" aria-hidden="true" />
                 Know someone who needs a certificate?{" "}
                 <Link href="/patient" className="text-primary hover:underline font-medium">
                   Refer a friend
@@ -509,7 +508,7 @@ export function MedCertLanding() {
             </div>
           </div>
 
-          {/* 7. Final CTA */}
+          {/* 15. Final CTA */}
           <FinalCtaSection onCTAClick={handleFinalCTA} />
         </main>
 
@@ -517,9 +516,6 @@ export function MedCertLanding() {
 
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="med-cert" />
-
-        {/* Related articles — SEO internal linking, after footer to avoid draining conversion */}
-        <RelatedArticles />
 
         {/* Exit-intent overlay — desktop only, once per session */}
         {!isDisabled && (
@@ -545,7 +541,7 @@ export function MedCertLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              Medical certificates available 24/7.
+              2-min form · GP-reviewed · Available 24/7
             </p>
             <Button
               asChild
@@ -558,7 +554,7 @@ export function MedCertLanding() {
                 {isDisabled
                   ? "Contact us"
                   : `Get your certificate — $${PRICING.MED_CERT.toFixed(2)}`}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </div>
@@ -593,7 +589,7 @@ export function MedCertLanding() {
                 >
                   <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
                     {isDisabled ? "Contact us" : "Get your certificate"}
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
                   </Link>
                 </Button>
               </div>

@@ -93,6 +93,8 @@ interface RequestFlowProps {
   initialSubtype?: string
   /** Medication context from URL (for consult handoff from prescription flow) */
   initialMedication?: string
+  /** Certificate type from URL (pre-seeded from landing page selector) */
+  initialCertType?: string
   isAuthenticated: boolean
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) — details step can be skipped */
@@ -123,6 +125,7 @@ export function RequestFlow({
   rawServiceParam,
   initialSubtype,
   initialMedication,
+  initialCertType,
   isAuthenticated,
   hasProfile,
   hasCompleteIdentity,
@@ -276,6 +279,18 @@ export function RequestFlow({
       }
     }
   // Only run on mount - URL params are the source of truth
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Pre-seed cert type from URL param (from landing page selector)
+  useEffect(() => {
+    if (initialService === 'med-cert' && initialCertType && !answers.certType) {
+      const valid = ['work', 'study', 'carer']
+      if (valid.includes(initialCertType)) {
+        setAnswer('certType', initialCertType)
+      }
+    }
+  // Only run on mount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
