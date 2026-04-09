@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import { IntakeDetailHeader, DECLINE_REASONS } from "./intake-detail-header"
 import { IntakeDetailAnswers } from "./intake-detail-answers"
 import { IntakeDetailDrafts } from "./intake-detail-drafts"
+import { IntakeDetailFollowups, type DoctorFollowupRow } from "./intake-detail-followups"
 
 interface PendingCorrection {
   id: string
@@ -37,6 +38,7 @@ interface IntakeDetailClientProps {
   nextIntakeId?: string | null
   draftId?: string | null
   pendingCorrection?: PendingCorrection | null
+  followups?: DoctorFollowupRow[]
 }
 
 /**
@@ -73,6 +75,7 @@ export function IntakeDetailClient({
   nextIntakeId,
   draftId,
   pendingCorrection,
+  followups = [],
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -537,6 +540,10 @@ export function IntakeDetailClient({
         hasRedFlags={hasRedFlags}
         redFlagDetails={redFlagDetails}
       />
+
+      {followups.length > 0 && (
+        <IntakeDetailFollowups followups={followups} />
+      )}
 
       <IntakeDetailDrafts
         intake={intake}

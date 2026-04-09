@@ -7,6 +7,8 @@ import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { calculateAge } from "@/lib/format"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { DoctorFollowupRow } from "./intake-detail-followups"
 
 export const metadata = { title: "Review Intake" }
 
@@ -48,6 +50,24 @@ export default async function DoctorIntakeDetailPage({
     getPendingDateCorrection(id),
   ])
 
+  // Phase 3: fetch follow-ups for ED/hair-loss consults
+  let followups: DoctorFollowupRow[] = []
+  const serviceTypeLocal = (intake.service as { type?: string } | undefined)?.type
+  if (
+    serviceTypeLocal === "consults" &&
+    (intake.subtype === "ed" || intake.subtype === "hair_loss")
+  ) {
+    const supabase = createServiceRoleClient()
+    const { data } = await supabase
+      .from("intake_followups")
+      .select(
+        "id, subtype, milestone, due_at, completed_at, skipped, effectiveness_rating, side_effects_reported, side_effects_notes, adherence_days_per_week, patient_notes, doctor_reviewed_at",
+      )
+      .eq("intake_id", id)
+      .order("due_at", { ascending: true })
+    followups = (data ?? []) as DoctorFollowupRow[]
+  }
+
   // Mask Medicare number
   const maskMedicare = (medicare: string | null): string => {
     if (!medicare) return "Not provided"
@@ -70,6 +90,7 @@ export default async function DoctorIntakeDetailPage({
       nextIntakeId={nextIntakeId}
       draftId={medCertDraft?.id || null}
       pendingCorrection={pendingCorrection}
+      followups={followups}
     />
   )
 }
