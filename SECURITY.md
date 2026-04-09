@@ -36,6 +36,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `document_drafts` | `data` (JSONB), `content` (AI-generated), `edited_content` | `data` ✅ Phase 2 | Yes |
 | `documents` | `storage_path` (references PDF with PHI) | N/A (ref) | Yes |
 | `patient_health_profiles` | `allergies`, `conditions`, `current_medications`, `notes` | All 4 ✅ Phase 3 | Yes |
+| `intake_followups` | `side_effects_notes`, `patient_notes`, `effectiveness_rating` | No (patient-reported clinical state) | Yes |
 
 ### Encryption Status
 
@@ -146,6 +147,8 @@ FOR SELECT USING (
 | `doctor_profiles` | None | Own only | All |
 | `notifications` | Own (`user_id`) | Own | Own |
 | `payments` | Own via intake chain | Via intake | All |
+| `intake_followups` | Own (`patient_id`) — SELECT + UPDATE | All (SELECT/INSERT/UPDATE) | All |
+| `followup_email_log` | None | None | None (service_role only) |
 
 **Hardened 2026-04-08** via migration `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` (applied to live Supabase):
 
@@ -165,6 +168,7 @@ See `OPERATIONS.md` §Rollback Runbook for the reversibility matrix and rollback
 |--------|-----------|---------|--------|--------|
 | `attachments` | Private | Upload/view own | View all | Draft intakes only |
 | `documents` | Private (signed URLs) | Via signed URL | INSERT | No one (immutable) |
+| `intake-photos` | Private | Upload/view own folder (`{patient_id}/`) | View all | No one |
 
 ### Public Asset Security — Resolved
 

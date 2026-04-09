@@ -410,6 +410,8 @@ Role assignment methods: SQL update on `profiles` table (production), or Clerk d
 | `issued_certificates` | Issued certs with template snapshots | `intakes.id` |
 | `certificate_audit_log` | Issuance/download/verify events | `issued_certificates.id` |
 | `subscriptions` | Repeat Rx monthly subscriptions (Stripe) | `profiles.id` via `profile_id` |
+| `intake_followups` | Post-approval follow-up check-ins (3/6/12-month) for ED and hair-loss patients | `intakes.id` via `intake_id`, `profiles.id` via `patient_id` |
+| `followup_email_log` | Immutable log of follow-up reminder emails sent (max 3 per milestone) | `intake_followups.id` via `followup_id` |
 
 **Relationship hierarchy:**
 ```
@@ -419,6 +421,8 @@ profiles
   |     +-- payments (intake_id)
   |     +-- fraud_flags (intake_id, patient_id)
   |     +-- stripe_disputes (intake_id)
+  |     +-- intake_followups (intake_id, patient_id)
+  |           +-- followup_email_log (followup_id)
   +-- patient_messages (patient_id, sender_id)
   +-- email_preferences (profile_id)
   +-- referrals (referrer_id, referee_id)

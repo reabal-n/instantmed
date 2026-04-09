@@ -251,6 +251,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
 | Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
+| Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart). Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, etc.) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. |
 | IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit sitemap URLs to IndexNow for Bing/Yandex indexing |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
 | Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via email_log |
